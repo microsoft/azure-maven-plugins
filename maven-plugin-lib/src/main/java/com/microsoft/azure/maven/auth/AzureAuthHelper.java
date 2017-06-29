@@ -1,0 +1,265 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for
+ * license information.
+ */
+
+package com.microsoft.azure.maven.auth;
+
+import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.credentials.ApplicationTokenCredentials;
+import com.microsoft.azure.credentials.AzureCliCredentials;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.AuthenticationSetting;
+import com.microsoft.rest.LogLevel;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.settings.Server;
+import org.apache.maven.settings.Settings;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Locale;
+
+/**
+ * Helper class to authenticate with Azure
+ */
+public class AzureAuthHelper {
+    public static final String CLIENT_ID = "client";
+    public static final String TENANT_ID = "tenant";
+    public static final String KEY = "key";
+    public static final String CERTIFICATE = "certificate";
+    public static final String CERTIFICATE_PASSWORD = "certificatePassword";
+    public static final String ENVIRONMENT = "environment";
+
+    public static final String AUTH_WITH_SERVER_ID = "Authenticate with serverId: ";
+    public static final String AUTH_WITH_FILE = "Authenticate with file: ";
+    public static final String AUTH_WITH_AZURE_CLI = "Authenticate with Azure CLI 2.0";
+    public static final String USE_KEY_TO_AUTH = "Use key to get Azure authentication token: ";
+    public static final String USE_CERTIFICATE_TO_AUTH = "Use certificate to get Azure authentication token.";
+
+    public static final String SERVER_ID_NOT_CONFIG = "ServerId is not configured for Azure authentication.";
+    public static final String SERVER_ID_NOT_FOUND = "Server not found in settings.xml. ServerId=";
+    public static final String CLIENT_ID_NOT_CONFIG = "Client Id of your service principal is not configured.";
+    public static final String TENANT_ID_NOT_CONFIG = "Tenant Id of your service principal is not configured.";
+    public static final String KEY_NOT_CONFIG = "Key of your service principal is not configured.";
+    public static final String CERTIFICATE_FILE_NOT_CONFIG = "Certificate of your service principal is not configured.";
+    public static final String CERTIFICATE_FILE_READ_FAIL = "Failed to read certificate file: ";
+    public static final String AZURE_AUTH_INVALID = "Authentication info for Azure is not valid. ServerId=";
+    public static final String AUTH_FILE_NOT_CONFIG = "Authentication file is not configured.";
+    public static final String AUTH_FILE_NOT_EXIST = "Authentication file does not exist: ";
+    public static final String AUTH_FILE_READ_FAIL = "Failed to read authentication file: ";
+    public static final String AZURE_CLI_AUTH_FAIL = "Failed to authenticate with Azure CLI 2.0";
+
+    protected AuthConfiguration config;
+
+    /**
+     * Constructor
+     *
+     * @param config
+     */
+    public AzureAuthHelper(final AuthConfiguration config) {
+        if (config == null) {
+            throw new NullPointerException();
+        }
+        this.config = config;
+    }
+
+    public Azure getAzureClient() {
+        final Azure.Authenticated auth = getAuthObj();
+        if (auth == null) {
+            return null;
+        }
+
+        try {
+            final String subscriptionId = config.getSubscriptionId();
+            return Utils.isStringEmpty(subscriptionId) ?
+                    auth.withDefaultSubscription() :
+                    auth.withSubscription(subscriptionId);
+        } catch (Exception e) {
+            getLog().debug(e);
+        }
+        return null;
+    }
+
+    private Log getLog() {
+        return config.getLog();
+    }
+
+    protected LogLevel getLogLevel() {
+        return getLog().isDebugEnabled() ?
+                LogLevel.BODY_AND_HEADERS :
+                LogLevel.NONE;
+    }
+
+    protected Azure.Configurable azureConfigure() {
+        return Azure.configure()
+                .withLogLevel(getLogLevel())
+                .withUserAgent(config.getUserAgent());
+    }
+
+    protected AzureEnvironment getAzureEnvironment(String environment) {
+        if (Utils.isStringEmpty(environment)) {
+            return AzureEnvironment.AZURE;
+        }
+
+        switch (environment.toUpperCase(Locale.ENGLISH)) {
+            case "AZURE_CHINA":
+                return AzureEnvironment.AZURE_CHINA;
+            case "AZURE_GERMANY":
+                return AzureEnvironment.AZURE_GERMANY;
+            case "AZURE_US_GOVERNMENT":
+                return AzureEnvironment.AZURE_US_GOVERNMENT;
+            default:
+                return AzureEnvironment.AZURE;
+        }
+    }
+
+    protected Azure.Authenticated getAuthObj() {
+        Azure.Authenticated auth;
+        final AuthenticationSetting authSetting = config.getAuthenticationSetting();
+        if (authSetting != null) {
+            auth = getAuthObjFromServerId(config.getSettings(), authSetting.getServerId());
+            if (auth != null) {
+                getLog().info(AUTH_WITH_SERVER_ID + authSetting.getServerId());
+                return auth;
+            }
+
+            auth = getAuthObjFromFile(authSetting.getFile());
+            if (auth != null) {
+                getLog().info(AUTH_WITH_FILE + authSetting.getFile().getAbsolutePath());
+                return auth;
+            }
+        } else {
+            auth = getAuthObjFromAzureCli();
+            if (auth != null) {
+                getLog().info(AUTH_WITH_AZURE_CLI);
+            }
+        }
+        return auth;
+    }
+
+    /**
+     * Get Authenticated object by referencing server definition in Maven settings.xml
+     *
+     * @param settings Settings object
+     * @param serverId Server Id to search in settings.xml
+     * @return Authenticated object if configurations are correct; otherwise return null.
+     */
+    protected Azure.Authenticated getAuthObjFromServerId(final Settings settings, final String serverId) {
+        if (Utils.isStringEmpty(serverId)) {
+            getLog().debug(SERVER_ID_NOT_CONFIG);
+            return null;
+        }
+
+        final Server server = Utils.getServer(settings, serverId);
+        if (server == null) {
+            getLog().error(SERVER_ID_NOT_FOUND + serverId);
+            return null;
+        }
+
+        final ApplicationTokenCredentials credential = getAppTokenCredentialsFromServer(server);
+        if (credential == null) {
+            getLog().error(AZURE_AUTH_INVALID + serverId);
+            return null;
+        }
+
+        return azureConfigure().authenticate(credential);
+    }
+
+    /**
+     * Get Authenticated object using file.
+     *
+     * @param authFile Authentication file object.
+     * @return Authenticated object of file is valid; otherwise return null.
+     */
+    protected Azure.Authenticated getAuthObjFromFile(File authFile) {
+        if (authFile == null) {
+            getLog().debug(AUTH_FILE_NOT_CONFIG);
+            return null;
+        }
+
+        if (!authFile.exists()) {
+            getLog().error(AUTH_FILE_NOT_EXIST + authFile.getAbsolutePath());
+            return null;
+        }
+
+        try {
+            return azureConfigure().authenticate(authFile);
+        } catch (Exception e) {
+            getLog().error(AUTH_FILE_READ_FAIL + authFile.getAbsolutePath());
+            getLog().error(e);
+        }
+        return null;
+    }
+
+    /**
+     * Get Authenticated object using authentication file from Azure CLI 2.0
+     *
+     * @return Authenticated object of Azure CLI 2.0 is logged in correctly; otherwise return null.
+     */
+    protected Azure.Authenticated getAuthObjFromAzureCli() {
+        try {
+            return azureConfigure().authenticate(AzureCliCredentials.create());
+        } catch (Exception e) {
+            getLog().debug(AZURE_CLI_AUTH_FAIL);
+            getLog().debug(e);
+        }
+        return null;
+    }
+
+    /**
+     * Get ApplicationTokenCredentials from server definition in Maven settings.xml
+     *
+     * @param server Server object from settings.xml
+     * @return ApplicationTokenCredentials object if configuration is correct; otherwise return null.
+     */
+    protected ApplicationTokenCredentials getAppTokenCredentialsFromServer(Server server) {
+        if (server == null) {
+            return null;
+        }
+
+        final String clientId = Utils.getValueFromServerConfiguration(server, CLIENT_ID);
+        if (Utils.isStringEmpty(clientId)) {
+            getLog().debug(CLIENT_ID_NOT_CONFIG);
+            return null;
+        }
+
+        final String tenantId = Utils.getValueFromServerConfiguration(server, TENANT_ID);
+        if (Utils.isStringEmpty(tenantId)) {
+            getLog().debug(TENANT_ID_NOT_CONFIG);
+            return null;
+        }
+
+        final String environment = Utils.getValueFromServerConfiguration(server, ENVIRONMENT);
+        final AzureEnvironment azureEnvironment = getAzureEnvironment(environment);
+        getLog().debug("Azure Management Endpoint: " + azureEnvironment.managementEndpoint());
+
+        final String key = Utils.getValueFromServerConfiguration(server, KEY);
+        if (!Utils.isStringEmpty(key)) {
+            getLog().debug(USE_KEY_TO_AUTH);
+            return new ApplicationTokenCredentials(clientId, tenantId, key, azureEnvironment);
+        } else {
+            getLog().debug(KEY_NOT_CONFIG);
+        }
+
+        final String certificate = Utils.getValueFromServerConfiguration(server, CERTIFICATE);
+        if (Utils.isStringEmpty(certificate)) {
+            getLog().debug(CERTIFICATE_FILE_NOT_CONFIG);
+            return null;
+        }
+
+        final String certificatePassword = Utils.getValueFromServerConfiguration(server, CERTIFICATE_PASSWORD);
+        try {
+            byte[] cert;
+            cert = Files.readAllBytes(Paths.get(certificate, new String[0]));
+            getLog().debug(USE_CERTIFICATE_TO_AUTH + certificate);
+            return new ApplicationTokenCredentials(clientId, tenantId, cert, certificatePassword, azureEnvironment);
+        } catch (Exception e) {
+            getLog().debug(CERTIFICATE_FILE_READ_FAIL + certificate);
+        }
+
+        return null;
+    }
+}

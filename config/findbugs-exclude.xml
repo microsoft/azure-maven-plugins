@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FindBugsFilter>
+    <Class name="com.microsoft.azure.maven.webapp.HelpMojo"/>
+    <Class name="com.microsoft.azure.maven.telemetry.GetHashMac"/>
+    <Bug pattern="REC_CATCH_EXCEPTION"/>
+</FindBugsFilter>

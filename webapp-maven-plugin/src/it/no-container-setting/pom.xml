@@ -1,0 +1,34 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.microsoft.azure.it</groupId>
+    <artifactId>no-container-setting</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <properties>
+        <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>@project.groupId@</groupId>
+                <artifactId>@project.artifactId@</artifactId>
+                <version>@project.version@</version>
+                <configuration>
+                    <authentication>
+                        <serverId>azure-auth</serverId>
+                    </authentication>
+                    <resourceGroup>maven-webapp-it-rg-${suffix}</resourceGroup>
+                    <appName>maven-it-app-${maven.build.timestamp}</appName>
+                    <region>westus</region>
+                    <appSettings>
+                        <property>
+                            <name>PORT</name>
+                            <value>80</value>
+                        </property>
+                    </appSettings>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

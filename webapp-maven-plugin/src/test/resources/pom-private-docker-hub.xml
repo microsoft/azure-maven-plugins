@@ -1,0 +1,33 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.microsoft.azure</groupId>
+    <artifactId>webapp-maven-plugin-test</artifactId>
+    <packaging>jar</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>webapp-maven-plugin</artifactId>
+                <configuration>
+                    <authentication>
+                        <serverId>azure-auth</serverId>
+                    </authentication>
+                    <resourceGroup>resourceGroupName</resourceGroup>
+                    <appName>appName</appName>
+                    <region>westeurope</region>
+                    <containerSetting>
+                        <imageName>nginx</imageName>
+                        <serverId>serverId</serverId>
+                    </containerSetting>
+                    <appSettings>
+                        <property>
+                            <name>PORT</name>
+                            <value>80</value>
+                        </property>
+                    </appSettings>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
