@@ -1,70 +1,79 @@
 # Azure Web Apps Maven Plugin
 
-The Web Apps plugin is used to deploy container images to Azure Web Apps on Linux. It aims to provide seamlessly integration of Azure Web Apps into Maven.
+The Azure Web Apps plugin provides seamless integration of Azure Web Apps into Maven, and makes it easier for developers to deploy container images to Azure Web Apps on Linux.
 
-Like Azure Web Apps on Linux, this plugin is still in preview. Only Linux-based Web Apps are supported right now. More features are on the way.
+**Note**: This plugin is still in preview, as is [Azure Web Apps on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro). For now, only Linux-based Web Apps are supported, although additional features are planned.
 
-## Prerequisite
+## Prerequisites
+
 Tool | Required Version
 ---|---
 JDK | 1.7 and above
 Maven | 3.0 and above
 
 ## Goals
-This plugin only has one goal, which is `webapp:deploy`. It is bounded to the `deploy` phase. 
+
+The Azure Web Apps plugin has only one goal: `webapp:deploy`, which is bounded to the `deploy` phase. 
 
 Goal | Description
 --- | ---
-webapp:deploy | Deploy docker container image to an Azure Web App based on your configuration.<br>If the specified Web App does not exist, it will be created.
+`webapp:deploy` | Deploy a docker container image to an Azure Web App based on your configuration.<br>If the specified Web App does not exist, it will be created.
 
 ## Usage
 
-In you Maven Java app, add the following plugin in your pom.xml:
+To use the Azure Web Apps plugin in your Maven Java app, add the following settings for the plugin to your `pom.xml` file:
 
-    <project>
-        ...
-        <build>
-            <plugins>
-                <plugin>
-                    <groupId>com.microsoft.azure</groupId>
-                    <artifactId>webapp-maven-plugin</artifactId>
-                    <version>0.1.0-alpha</version>
-                    <configuration>
-                        ...
-                    </configuration>
-                </plugin>
-                ...
-            </plugins>
-        </build>
-    <project>
+   ```xml
+   <project>
+      ...
+      <build>
+         <plugins>
+            <plugin>
+               <groupId>com.microsoft.azure</groupId>
+               <artifactId>webapp-maven-plugin</artifactId>
+               <version>0.1.0-alpha</version>
+               <configuration>
+                  ...
+               </configuration>
+            </plugin>
+            ...
+         </plugins>
+      </build>
+   <project>
+   ```
 
 ## Configuration
 
-This plugin supports below configuration properties.
+The Azure Web Apps plugin for Maven supports the following configuration properties:
 
-Properties | Required | Description
+Property | Required | Description
 ---|---|---
-`<authentication>`| false | Configure how to authenticate with Azure. Three approaches are supported. Read more details at [Authentication with Azure](#authentication-with-azure)
-`<subscriptionId>` | false | Configure the target subscription. Use it when you have multiple subscriptions in your authentication file.
-`<resourceGroup>` | true | Configure the target resource group.
-`<appName>` | true | Configure the target Web App.
-`<region>` | false | Configure the region of your Web App. Default value is **westus**.<br>It will be used to create a new Web App. If the Web App already exists, it will be ignored.
-`<pricingTier>` | false | Configure the pricing tier of your Web App. Default value is **S1**.<br>It will be used to create a new Web App. If the Web App already exists, it will be ignored.
-`<containerSetting>` | true | Configure to deploy which docker container image to your Web App.<br>Both docker hub and private container registry are supported. Read more details at [Container Setting](#container-setting)
-`<appSettings>` | false | Configure application settings of your Web App. Define name-value pairs like below:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
-`<failsOnError>` | false | Configure whether to throw exception when there are fatal errors during execution. Default value is true.<br>Use it when you don't want deployment failure to fail your whole maven build.
-`<allowTelemetry>` | false | Configure whether to allow this plugin to send telemetry data. Default value is true.
+`<authentication>`| false | Specifies which authentication method to use with Azure.<br>There are three supported methods, which are described in the [Authentication with Azure](#authentication-with-azure) section of this README.
+`<subscriptionId>` | false | Specifies the target subscription.<br>Use this setting when you have multiple subscriptions in your authentication file.
+`<resourceGroup>` | true | Specifies the Azure Resource Group for your Web App.
+`<appName>` | true | Specifies the name of your Web App.
+`<region>` | false | Specifies the region where your Web App will be hosted; the default value is **westus**.<br>This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored.
+`<pricingTier>` | false | Specifies the pricing tier for your Web App; the default value is **S1**.<br>This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored.
+`<containerSetting>` | true | Specifies the docker container image to deploy to your Web App.<br>Docker hubs and private container registries are both supported; see the [Container Setting](#container-setting) section of this README for details.
+`<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
+`<failsOnError>` | false | Specifies whether to throw an exception when there are fatal errors during execution; the default value is **true**.<br>This setting helps prevent deployment failures from failing your entire Maven build.
+`<allowTelemetry>` | false | Specifies whether to allow this plugin to send telemetry data; the default value is **true**.
 
+<a name="authentication-with-azure"></a>
 ### Authentication with Azure
 
-Below approaches are supported to authenticate with Azure.
-Using Maven settings.xml is recommended, because it is the most reliable and flexible approach.
+The following methods are supported for authenticating with Azure.
 
-#### Use Maven settings.xml
-1. Create or find your [Maven settings.xml](https://maven.apache.org/settings.html).
-2. Follow instructions at [here](https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli#create-the-service-principal)
-   to create a service principal, which will be used to authenticate with Azure.
-3. Use credentials from step 2 to add a new server configuration in `Servers` section as below.
+**Note**: Using your Maven `settings.xml` file is the recommended method for authentication because it provides the most-reliable and flexible approach.
+
+#### Authentication Method #1: Use the Maven settings.xml file
+
+1. Open your existing [Maven settings.xml file](https://maven.apache.org/settings.html) in a text editor, or create a new settings.xml file if one does not already exist.
+
+2. Follow the instructions in [Create the service principal](https://docs.microsoft.com/cli/azure/create-an-azure-service-principal-azure-cli#create-the-service-principal) to create a service principal which will be used to authenticate with Azure.
+
+3. Use the credentials from the previous step to add a new server configuration in `Servers` section of your `settings.xml` file using the following syntax:
+
    ```xml
    <server>
       <id>azure-auth</id>
@@ -76,40 +85,18 @@ Using Maven settings.xml is recommended, because it is the most reliable and fle
       </configuration>
    </server>
    ```
-   Complete configuration properties are listed in below table.
+   Where the values for the configuration properties are listed in the following table:
    
-   Property | Description
-   --- | ---
-   client | Client Id of your service principal
-   tenant | Tenant Id of your service principal
-   key | Password if your service principal uses password authentication
-   certificate | Absolute path of your certificate if your service principal uses certificate authentication.<br>Only PKCS12 certificate is supported.
-   certificatePassword | Password to your certificate if there is any
-   environment | Target Azure cloud environment. Optional, default value is AZURE.<br>Allowed values are: <br>- AZURE<br>- AZURE_CHINA<br>- AZURE_GERMANY<br>- AZURE_US_GOVERNMENT
+   Property | Required | Description
+   ---|---|---
+   client | true | Specifies the Client ID of your service principal.
+   tenant | true | Specifies the Tenant ID of your service principal.
+   key | false | Specifies the password if your service principal uses password authentication.
+   certificate | false | Specifies the absolute path of your certificate if your service principal uses certificate authentication.<br>**Note**: Only PKCS12 certificates are supported.
+   certificatePassword | false | Specifies the password for your certificate, if there is any.
+   environment | false | Specifies the target Azure cloud environment; the default value is **AZURE**.<br>The possible values are: <br>- `AZURE`<br>- `AZURE_CHINA`<br>- `AZURE_GERMANY`<br>- `AZURE_US_GOVERNMENT`
    
-4. Add below configuration in your pom.xml
-    ```xml
-    <plugin>
-        <groupId>com.microsoft.azure</groupId>
-        <artifactId>webapp-maven-plugin</artifactId>
-        <configuration>
-            <authentication>
-               <serverId>azure-auth</serverId>
-            </authentication>
-            ...
-        </configuration>
-    </plugin>
-    ```
-
-#### Use authentication File
-1. Follow instructions at [here](https://github.com/Azure/azure-sdk-for-java/blob/master/AUTH.md#creating-a-service-principal-in-azure)
-to create your authentication file.
-2. Configure plugin to use this file as below.
-
-   It is recommended to put your authenticate file path into your `Settings.xml` like [this example](https://maven.apache.org/examples/injecting-properties-via-settings.html).
-
-   `subscriptionId` is optional. You can specify the target subscription when there are multiple subscriptions in your authentication file.
-   If not specified, your default subscription in the authentication file will be used.
+4. Add the following configuration settings to your `pom.xml` file:
 
    ```xml
    <plugin>
@@ -117,93 +104,131 @@ to create your authentication file.
        <artifactId>webapp-maven-plugin</artifactId>
        <configuration>
            <authentication>
-               <file>/absolute/path/to/auth/file</file>
+              <serverId>azure-auth</serverId>
            </authentication>
-           <subscriptionId>your-subscription-guid</subscriptionId>
            ...
        </configuration>
    </plugin>
    ```
 
-#### Use Azure CLI 2.0
-1. Install [Azure CLI 2.0](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-2. Run below commands to log in your Azure subscription.
-    ```shell
-    az login
-    az account set --subscription <subscription Id>
-    ```
+#### Authentication Method #2: Use an authentication file
 
+1. Follow instructions in [Creating a Service Principal in Azure](https://github.com/Azure/azure-sdk-for-java/blob/master/AUTH.md#creating-a-service-principal-in-azure)
+to create an authentication file.
+
+2. Configure the plugin to use this file as below.
+
+   ```xml
+   <plugin>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>webapp-maven-plugin</artifactId>
+      <configuration>
+         <authentication>
+            <file>/absolute/path/to/auth/file</file>
+         </authentication>
+         <subscriptionId>your-subscription-guid</subscriptionId>
+         ...
+      </configuration>
+   </plugin>
+   ```
+
+   **Notes**:
+
+   * A recommended practice is to put the full path to your authenticatation file in your `settings.xml` file; see [Example: Injecting POM Properties via Settings.xml](https://maven.apache.org/examples/injecting-properties-via-settings.html) for details.
+
+   * The `subscriptionId` element is an optional setting that you can use to specify which target subscription to use when there are multiple subscriptions in your authentication file. If you do not specify this setting, your default subscription in your authentication file will be used.
+
+#### Authentication Method #3: Use the Azure CLI 2.0
+
+1. Install the Azure CLI 2.0 by following the instructions in the [Install Azure CLI 2.0](https://docs.microsoft.com/cli/azure/install-azure-cli) article.
+
+2. Run the following commands to log into your Azure subscription:
+
+   ```shell
+   az login
+   az account set --subscription <subscription Id>
+   ```
+
+<a name="container-setting"></a>
 ### Container Setting
 
-In `<containerSetting>` tag, you can configure the docker container image which will be used to deploy your Web App. Typically, it should be an image from a private container registry, which is built from your app. But you still have the options to use images from docker hub.
+In the `<containerSetting>` element of your Maven `settings.xml` file, you can specify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
 
-Within the `<containerSetting>` tag, four properties can be configured.
-Properties | Required | Description
-`<imageName>` | true | Docker image name.
-`<serverId>` | false | Configure the credentials for private docker hub images or private container registry images. `serverId` should be from Maven's setting.xml.
-`registryUrl` | false | Configure the URL of private container registry images.
+You can specify the following properties within the `<containerSetting>` element:
 
-Below examples shows the configuration for different image sources.
+Property | Required | Description
+---|---|---
+`<imageName>` | true | Specifies the Docker image name.
+`<serverId>` | false | Specifies the credentials for private docker hub images or private container registry images. (Note: `serverId` should be from your Maven `setting.xml` file.)
+`registryUrl` | false | Specifies the URL of private container registry images.
 
-#### Deploy an Azure Web App with public Docker Hub image
+The following examples illustrate the configuration settings for different image sources.
 
-    <plugin>
-        <groupId>com.microsoft.azure</groupId>
-        <artifactId>webapp-maven-plugin</artifactId>
-        <configuration>
-            <resourceGroup>yourResourceGroup</resourceGroup>
-            <appName>yourWebApp</appName>
-            <containerSetting>
-                <imageName>nginx</imageName>
-            </containerSetting>
-            <appSettings>
-                <property>
-                    <name>PORT</name>
-                    <value>80</value>
-                </property>
-            </appSettings>
-        </configuration>
-    </plugin>
+#### Deploy an Azure Web App with a public Docker Hub image
 
-#### Deploy an Azure Web App with private Docker Hub image.
+   ```xml
+   <plugin>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>webapp-maven-plugin</artifactId>
+      <configuration>
+         <resourceGroup>yourResourceGroup</resourceGroup>
+         <appName>yourWebApp</appName>
+         <containerSetting>
+            <imageName>nginx</imageName>
+         </containerSetting>
+         <appSettings>
+            <property>
+               <name>PORT</name>
+               <value>80</value>
+            </property>
+         </appSettings>
+      </configuration>
+   </plugin>
+   ```
 
-    <plugin>
-        <groupId>com.microsoft.azure</groupId>
-        <artifactId>webapp-maven-plugin</artifactId>
-        <configuration>
-            <resourceGroup>yourResourceGroup</resourceGroup>
-            <appName>yourWebApp</appName>
-            <containerSetting>
-                <imageName>microsoft/nginx</imageName>
-                <serverId>yourServerId</serverId>
-            </containerSetting>
-            <appSettings>
-                <property>
-                    <name>PORT</name>
-                    <value>80</value>
-                </property>
-            </appSettings>
-        </configuration>
-    </plugin>
+#### Deploy an Azure Web App with a private Docker Hub image.
+
+   ```xml
+   <plugin>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>webapp-maven-plugin</artifactId>
+      <configuration>
+         <resourceGroup>yourResourceGroup</resourceGroup>
+         <appName>yourWebApp</appName>
+         <containerSetting>
+            <imageName>microsoft/nginx</imageName>
+            <serverId>yourServerId</serverId>
+         </containerSetting>
+         <appSettings>
+            <property>
+               <name>PORT</name>
+               <value>80</value>
+            </property>
+         </appSettings>
+      </configuration>
+   </plugin>
+   ```
 
 #### Deploy an Azure Web App with image in private registry.
 
-    <plugin>
-        <groupId>com.microsoft.azure</groupId>
-        <artifactId>webapp-maven-plugin</artifactId>
-        <configuration>
-            <resourceGroup>yourResourceGroup</resourceGroup>
-            <appName>yourWebApp</appName>
-            <containerSetting>
-                <imageName>microsoft.azurecr.io/nginx</imageName>
-                <serverId>yourServerId</serverId>
-                <registryUrl>https://microsoft.azurecr.io</registryUrl>
-            </containerSetting>
-            <appSettings>
-                <property>
-                    <name>PORT</name>
-                    <value>80</value>
-                </property>
-            </appSettings>
-        </configuration>
-    </plugin>
+   ```xml
+   <plugin>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>webapp-maven-plugin</artifactId>
+      <configuration>
+         <resourceGroup>yourResourceGroup</resourceGroup>
+         <appName>yourWebApp</appName>
+         <containerSetting>
+            <imageName>microsoft.azurecr.io/nginx</imageName>
+            <serverId>yourServerId</serverId>
+            <registryUrl>https://microsoft.azurecr.io</registryUrl>
+         </containerSetting>
+         <appSettings>
+            <property>
+               <name>PORT</name>
+               <value>80</value>
+            </property>
+         </appSettings>
+      </configuration>
+   </plugin>
+   ```

@@ -3,13 +3,12 @@
 [![codecov](https://codecov.io/gh/microsoft/azure-maven-plugins/branch/master/graph/badge.svg)](https://codecov.io/gh/microsoft/azure-maven-plugins)
 [![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/microsoft/azure-maven-plugins/blob/master/LICENSE)
 
-This repository contains all Maven plugins for Microsoft Azure services.
+This repository contains all Maven plugins for Microsoft Azure services. Complete list of all plugins are shown as below.
 
-[Azure Web Apps Maven Plugin](./webapp-maven-plugin/README.md)
+### [Azure Web Apps Maven Plugin](./webapp-maven-plugin/README.md)
 
 
-
-# Contributing
+### Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
