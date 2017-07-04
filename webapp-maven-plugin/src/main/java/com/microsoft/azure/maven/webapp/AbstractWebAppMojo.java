@@ -6,13 +6,20 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.configuration.PricingTierEnum;
+import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.util.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -32,11 +39,23 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter(property = "pricingTier", defaultValue = "S1")
     protected PricingTierEnum pricingTier;
 
+    @Parameter(property = "javaVersion")
+    protected String javaVersion;
+
+    @Parameter(property = "javaWebContainer")
+    protected String javaWebContainer;
+
     @Parameter(property = "containerSettings")
     protected ContainerSetting containerSettings;
 
     @Parameter(property = "appSettings")
     protected Properties appSettings;
+
+    @Parameter(property = "deploymentType")
+    protected String deploymentType;
+
+    @Parameter(property = "resources")
+    protected List<Resource> resources;
 
     public String getResourceGroup() {
         return resourceGroup;
@@ -54,12 +73,32 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         return pricingTier == null ? PricingTier.STANDARD_S1 : pricingTier.toPricingTier();
     }
 
+    public JavaVersion getJavaVersion() {
+        return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
+    }
+
+    public WebContainer getJavaWebContainer() {
+        return StringUtils.isEmpty(javaWebContainer) ? null : WebContainer.fromString(javaWebContainer);
+    }
+
     public ContainerSetting getContainerSettings() {
         return containerSettings;
     }
 
     public Map getAppSettings() {
         return appSettings;
+    }
+
+    public DeploymentType getDeploymentType() throws MojoExecutionException {
+        return DeploymentType.fromString(deploymentType);
+    }
+
+    public String getDeploymentStageDirectory() {
+        return getProject().getBasedir().getAbsolutePath() + "/target/staged-" + getAppName();
+    }
+
+    public List<Resource> getResources() {
+        return resources;
     }
 
     public WebApp getWebApp() {

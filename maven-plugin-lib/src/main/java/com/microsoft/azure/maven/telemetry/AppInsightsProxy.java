@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.azure.maven.Utils;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +48,7 @@ public class AppInsightsProxy implements TelemetryProxy {
     }
 
     public void addDefaultProperty(String key, String value) {
-        if (Utils.isStringEmpty(key)) {
+        if (StringUtils.isEmpty(key)) {
             return;
         }
         defaultProperties.put(key, value);

@@ -6,17 +6,12 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.Utils;
-import com.microsoft.azure.maven.webapp.handlers.DeployHandler;
-import com.microsoft.azure.maven.webapp.handlers.PrivateDockerHubDeployHandler;
-import com.microsoft.azure.maven.webapp.handlers.PrivateDockerRegistryDeployHandler;
-import com.microsoft.azure.maven.webapp.handlers.PublicDockerHubDeployHandler;
 import com.microsoft.azure.maven.telemetry.TelemetryEvent;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.util.HashMap;
 
@@ -33,74 +28,63 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String FAILURE_REASON = "failureReason";
 
     public static final String CONTAINER_SETTING_NOT_FOUND = "<containerSettings> tag not found.";
+    public static final String EMPTY_EXCEPTION_MESSAGE = "Empty exception message.";
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        deploy();
-    }
-
-    /**
-     * Deploy web app.
-     *
-     * @throws MojoExecutionException
-     */
-    protected void deploy() throws MojoExecutionException {
-        getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_START);
-        getLog().info(WEBAPP_DEPLOY_START + getAppName() + APOSTROPHE);
 
         try {
-            final DeployHandler handler = getDeployHandler();
-            final WebApp app = getWebApp();
-            handler.validate(app);
-            handler.deploy(app);
+            logDeployStart();
+
+            final DeployFacadeBaseImpl facade = getDeployFacade();
+            facade.setupRuntime()
+                    .applySettings()
+                    .commitChanges();
+
+            facade.deployArtifacts();
+
+            logDeploySuccess();
         } catch (Exception e) {
             processException(e);
         }
-
-        getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_SUCCESS);
-        getLog().info(WEBAPP_DEPLOY_SUCCESS + getAppName());
     }
 
-    /**
-     * Create DeployHandler based on configuration.
-     *
-     * @return A new DeployHandler instance or null.
-     */
-    protected DeployHandler getDeployHandler() throws MojoExecutionException {
-        if (containerSettings == null || containerSettings.isEmpty()) {
-            throw new MojoExecutionException(CONTAINER_SETTING_NOT_FOUND);
-        }
-
-        // Public Docker Hub image
-        if (Utils.isStringEmpty(containerSettings.getServerId())) {
-            return new PublicDockerHubDeployHandler(this);
-        }
-
-        // Private Docker Hub image
-        if (Utils.isStringEmpty(containerSettings.getRegistryUrl())) {
-            return new PrivateDockerHubDeployHandler(this);
-        }
-
-        // Private Docker registry image
-        return new PrivateDockerRegistryDeployHandler(this);
+    protected DeployFacadeBaseImpl getDeployFacade() {
+        return getWebApp() == null ?
+                new DeployFacadeImplWithCreate(this) :
+                new DeployFacadeImplWithUpdate(this);
     }
 
     private void processException(final Exception exception) throws MojoExecutionException {
         String message = exception.getMessage();
-        if (Utils.isStringEmpty(message)) {
-            message = "Empty exception message.";
+        if (StringUtils.isEmpty(message)) {
+            message = EMPTY_EXCEPTION_MESSAGE;
         }
+        logDeployFailure(message);
 
-        final HashMap<String, String> failureReason = new HashMap<>();
-        failureReason.put(FAILURE_REASON, message);
-
-        getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_FAILURE, failureReason);
-        getLog().error(WEBAPP_DEPLOY_FAILURE + getAppName());
         if (isFailingOnError()) {
             throw new MojoExecutionException(message, exception);
         } else {
             getLog().error(message);
         }
+    }
+
+    private void logDeployStart() {
+        getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_START);
+        getLog().info(WEBAPP_DEPLOY_START + getAppName() + APOSTROPHE);
+    }
+
+    private void logDeploySuccess() {
+        getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_SUCCESS);
+        getLog().info(WEBAPP_DEPLOY_SUCCESS + getAppName());
+    }
+
+    private void logDeployFailure(final String message) {
+        final HashMap<String, String> failureReason = new HashMap<>();
+        failureReason.put(FAILURE_REASON, message);
+
+        getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_FAILURE, failureReason);
+        getLog().error(WEBAPP_DEPLOY_FAILURE + getAppName());
     }
 }

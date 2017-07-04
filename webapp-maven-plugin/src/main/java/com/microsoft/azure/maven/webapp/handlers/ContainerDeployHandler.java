@@ -9,7 +9,6 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.DeployMojo;
-import com.microsoft.azure.maven.webapp.OperationResult;
 import org.apache.maven.plugin.MojoExecutionException;
 
 abstract class ContainerDeployHandler implements DeployHandler {

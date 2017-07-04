@@ -13,6 +13,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.AuthenticationSetting;
 import com.microsoft.rest.LogLevel;
+import org.codehaus.plexus.util.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -74,7 +75,7 @@ public class AzureAuthHelper {
 
         try {
             final String subscriptionId = config.getSubscriptionId();
-            return Utils.isStringEmpty(subscriptionId) ?
+            return StringUtils.isEmpty(subscriptionId) ?
                     auth.withDefaultSubscription() :
                     auth.withSubscription(subscriptionId);
         } catch (Exception e) {
@@ -100,7 +101,7 @@ public class AzureAuthHelper {
     }
 
     protected AzureEnvironment getAzureEnvironment(String environment) {
-        if (Utils.isStringEmpty(environment)) {
+        if (StringUtils.isEmpty(environment)) {
             return AzureEnvironment.AZURE;
         }
 
@@ -148,7 +149,7 @@ public class AzureAuthHelper {
      * @return Authenticated object if configurations are correct; otherwise return null.
      */
     protected Azure.Authenticated getAuthObjFromServerId(final Settings settings, final String serverId) {
-        if (Utils.isStringEmpty(serverId)) {
+        if (StringUtils.isEmpty(serverId)) {
             getLog().debug(SERVER_ID_NOT_CONFIG);
             return null;
         }
@@ -221,13 +222,13 @@ public class AzureAuthHelper {
         }
 
         final String clientId = Utils.getValueFromServerConfiguration(server, CLIENT_ID);
-        if (Utils.isStringEmpty(clientId)) {
+        if (StringUtils.isEmpty(clientId)) {
             getLog().debug(CLIENT_ID_NOT_CONFIG);
             return null;
         }
 
         final String tenantId = Utils.getValueFromServerConfiguration(server, TENANT_ID);
-        if (Utils.isStringEmpty(tenantId)) {
+        if (StringUtils.isEmpty(tenantId)) {
             getLog().debug(TENANT_ID_NOT_CONFIG);
             return null;
         }
@@ -237,7 +238,7 @@ public class AzureAuthHelper {
         getLog().debug("Azure Management Endpoint: " + azureEnvironment.managementEndpoint());
 
         final String key = Utils.getValueFromServerConfiguration(server, KEY);
-        if (!Utils.isStringEmpty(key)) {
+        if (!StringUtils.isEmpty(key)) {
             getLog().debug(USE_KEY_TO_AUTH);
             return new ApplicationTokenCredentials(clientId, tenantId, key, azureEnvironment);
         } else {
@@ -245,7 +246,7 @@ public class AzureAuthHelper {
         }
 
         final String certificate = Utils.getValueFromServerConfiguration(server, CERTIFICATE);
-        if (Utils.isStringEmpty(certificate)) {
+        if (StringUtils.isEmpty(certificate)) {
             getLog().debug(CERTIFICATE_FILE_NOT_CONFIG);
             return null;
         }
