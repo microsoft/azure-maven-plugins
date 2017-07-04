@@ -16,10 +16,10 @@
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
                     <region>westeurope</region>
-                    <containerSetting>
+                    <containerSettings>
                         <imageName>nginx</imageName>
                         <serverId>serverId</serverId>
-                    </containerSetting>
+                    </containerSettings>
                     <appSettings>
                         <property>
                             <name>PORT</name>

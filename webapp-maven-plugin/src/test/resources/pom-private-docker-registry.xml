@@ -16,11 +16,11 @@
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
                     <region>westeurope</region>
-                    <containerSetting>
+                    <containerSettings>
                         <imageName>nginx</imageName>
                         <registryUrl>https://www.microsoft.com</registryUrl>
                         <serverId>serverId</serverId>
-                    </containerSetting>
+                    </containerSettings>
                     <appSettings>
                         <property>
                             <name>PORT</name>

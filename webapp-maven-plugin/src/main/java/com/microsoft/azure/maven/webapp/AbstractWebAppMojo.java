@@ -32,8 +32,8 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter(property = "pricingTier", defaultValue = "S1")
     protected PricingTierEnum pricingTier;
 
-    @Parameter(property = "containerSetting")
-    protected ContainerSetting containerSetting;
+    @Parameter(property = "containerSettings")
+    protected ContainerSetting containerSettings;
 
     @Parameter(property = "appSettings")
     protected Properties appSettings;
@@ -54,8 +54,8 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         return pricingTier == null ? PricingTier.STANDARD_S1 : pricingTier.toPricingTier();
     }
 
-    public ContainerSetting getContainerSetting() {
-        return containerSetting;
+    public ContainerSetting getContainerSettings() {
+        return containerSettings;
     }
 
     public Map getAppSettings() {

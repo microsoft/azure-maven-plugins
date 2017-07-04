@@ -21,9 +21,9 @@
                     <resourceGroup>maven-webapp-it-rg-4</resourceGroup>
                     <appName>maven-it-app-${maven.build.timestamp}</appName>
                     <region>westus</region>
-                    <containerSetting>
+                    <containerSettings>
                         <imageName>nginx</imageName>
-                    </containerSetting>
+                    </containerSettings>
                     <appSettings>
                         <property>
                             <name>PORT</name>

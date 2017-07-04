@@ -128,7 +128,7 @@ public class DeployHandlerTest {
         when(mojo.getAppName()).thenReturn(APP_NAME);
         when(mojo.getPricingTier()).thenReturn(PricingTier.STANDARD_S1);
         when(mojo.getAppSettings()).thenReturn(appSettings);
-        when(mojo.getContainerSetting()).thenReturn(container);
+        when(mojo.getContainerSettings()).thenReturn(container);
         when(mojo.getSettings()).thenReturn(settings);
         when(settings.getServer(SERVER_ID)).thenReturn(server);
         when(mojo.getAzureClient()).thenReturn(azure);

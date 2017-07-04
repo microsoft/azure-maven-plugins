@@ -31,7 +31,7 @@ To use the Azure Web Apps plugin in your Maven Java app, add the following setti
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>webapp-maven-plugin</artifactId>
-               <version>0.1.0-alpha</version>
+               <version>0.1.0</version>
                <configuration>
                   ...
                </configuration>
@@ -54,7 +54,7 @@ Property | Required | Description
 `<appName>` | true | Specifies the name of your Web App.
 `<region>` | false | Specifies the region where your Web App will be hosted; the default value is **westus**.<br>This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored.
 `<pricingTier>` | false | Specifies the pricing tier for your Web App; the default value is **S1**.<br>This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored.
-`<containerSetting>` | true | Specifies the docker container image to deploy to your Web App.<br>Docker hubs and private container registries are both supported; see the [Container Setting](#container-setting) section of this README for details.
+`<containerSettings>` | true | Specifies the docker container image to deploy to your Web App.<br>Docker hubs and private container registries are both supported; see the [Container Setting](#container-setting) section of this README for details.
 `<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
 `<failsOnError>` | false | Specifies whether to throw an exception when there are fatal errors during execution; the default value is **true**.<br>This setting helps prevent deployment failures from failing your entire Maven build.
 `<allowTelemetry>` | false | Specifies whether to allow this plugin to send telemetry data; the default value is **true**.
@@ -134,7 +134,7 @@ to create an authentication file.
 
    **Notes**:
 
-   * A recommended practice is to put the full path to your authenticatation file in your `settings.xml` file; see [Example: Injecting POM Properties via Settings.xml](https://maven.apache.org/examples/injecting-properties-via-settings.html) for details.
+   * A recommended practice is to put the full path to your authentication file in your `settings.xml` file; see [Example: Injecting POM Properties via Settings.xml](https://maven.apache.org/examples/injecting-properties-via-settings.html) for details.
 
    * The `subscriptionId` element is an optional setting that you can use to specify which target subscription to use when there are multiple subscriptions in your authentication file. If you do not specify this setting, your default subscription in your authentication file will be used.
 
@@ -148,19 +148,21 @@ to create an authentication file.
    az login
    az account set --subscription <subscription Id>
    ```
+   
+   You are all set. No extra configuration are required.
 
 <a name="container-setting"></a>
 ### Container Setting
 
-In the `<containerSetting>` element of your Maven `settings.xml` file, you can specify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
+In the `<containerSettings>` element of your `pom.xml` file, you can specify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
 
-You can specify the following properties within the `<containerSetting>` element:
+You can specify the following properties within the `<containerSettings>` element:
 
 Property | Required | Description
 ---|---|---
-`<imageName>` | true | Specifies the Docker image name.
+`<imageName>` | true | Specifies the Docker image name. Valid image name formats are listed as below.<br>- Docker Hub image: `[hub-user/]repo-name[:tag]`; `tag` is optional, default value is **latest**.<br>- Private registry image: `hostname/repo-name[:tag]`; `tag` is optional, default value is **latest**.
 `<serverId>` | false | Specifies the credentials for private docker hub images or private container registry images. (Note: `serverId` should be from your Maven `setting.xml` file.)
-`registryUrl` | false | Specifies the URL of private container registry images.
+`<registryUrl>` | false | Specifies the URL of private container registry images.
 
 The following examples illustrate the configuration settings for different image sources.
 
@@ -173,9 +175,9 @@ The following examples illustrate the configuration settings for different image
       <configuration>
          <resourceGroup>yourResourceGroup</resourceGroup>
          <appName>yourWebApp</appName>
-         <containerSetting>
+         <containerSettings>
             <imageName>nginx</imageName>
-         </containerSetting>
+         </containerSettings>
          <appSettings>
             <property>
                <name>PORT</name>
@@ -195,10 +197,10 @@ The following examples illustrate the configuration settings for different image
       <configuration>
          <resourceGroup>yourResourceGroup</resourceGroup>
          <appName>yourWebApp</appName>
-         <containerSetting>
+         <containerSettings>
             <imageName>microsoft/nginx</imageName>
             <serverId>yourServerId</serverId>
-         </containerSetting>
+         </containerSettings>
          <appSettings>
             <property>
                <name>PORT</name>
@@ -218,11 +220,11 @@ The following examples illustrate the configuration settings for different image
       <configuration>
          <resourceGroup>yourResourceGroup</resourceGroup>
          <appName>yourWebApp</appName>
-         <containerSetting>
+         <containerSettings>
             <imageName>microsoft.azurecr.io/nginx</imageName>
             <serverId>yourServerId</serverId>
             <registryUrl>https://microsoft.azurecr.io</registryUrl>
-         </containerSetting>
+         </containerSettings>
          <appSettings>
             <property>
                <name>PORT</name>

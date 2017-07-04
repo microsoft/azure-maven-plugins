@@ -10,6 +10,7 @@ import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.DeployMojo;
 import com.microsoft.azure.maven.webapp.OperationResult;
+import org.apache.maven.plugin.MojoExecutionException;
 
 abstract class ContainerDeployHandler implements DeployHandler {
     public static final String SERVER_ID_NOT_FOUND = "Server Id not found in settings.xml. ServerId=";
@@ -23,31 +24,19 @@ abstract class ContainerDeployHandler implements DeployHandler {
         this.mojo = mojo;
     }
 
-    public OperationResult validate(final WebApp app) {
+    public void validate(final WebApp app) throws Exception {
         // Skip validation for app to be created.
         if (app == null) {
             mojo.getLog().info(WEBAPP_NOT_FOUND);
-            return new OperationResult(true, null);
+            return;
         }
 
         if (app.operatingSystem() != OperatingSystem.LINUX) {
-            return new OperationResult(false, CONTAINER_NOT_SUPPORTED);
+            throw new MojoExecutionException(CONTAINER_NOT_SUPPORTED);
         }
-
-        return new OperationResult(true, null);
     }
 
-    public OperationResult deploy(final WebApp app) {
-        OperationResult result;
-        try {
-            internalDeploy(app);
-            result = new OperationResult(true, null);
-        } catch (Exception e) {
-            mojo.getLog().debug(e);
-            result = new OperationResult(false, e.getMessage());
-        }
-        return result;
-    }
+    public abstract void deploy(final WebApp app) throws Exception;
 
     protected WebApp.DefinitionStages.WithDockerContainerImage defineApp() {
         final boolean isGroupExisted = mojo.getAzureClient()
@@ -83,6 +72,4 @@ abstract class ContainerDeployHandler implements DeployHandler {
         app.inner().withKind("app");
         return app.update();
     }
-
-    protected abstract void internalDeploy(final WebApp app) throws Exception;
 }
