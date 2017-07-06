@@ -30,8 +30,8 @@ public class PublicDockerHubDeployHandler extends ContainerDeployHandler {
      * @throws Exception
      */
     @Override
-    protected void internalDeploy(final WebApp app) throws Exception {
-        final ContainerSetting containerSetting = mojo.getContainerSetting();
+    public void deploy(final WebApp app) throws Exception {
+        final ContainerSetting containerSetting = mojo.getContainerSettings();
         if (app == null) {
             defineApp()
                     .withPublicDockerHubImage(containerSetting.getImageName())

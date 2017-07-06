@@ -32,8 +32,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String WEBAPP_DEPLOY_FAILURE = "Failed to deploy to Web App ";
     public static final String FAILURE_REASON = "failureReason";
 
-    public static final String CONTAINER_SETTING_NOT_FOUND = "No configuration for containerSetting found.";
-    public static final String DEPLOY_HANDLER_NOT_FOUND = "Not able to handle deployment for such configuration.";
+    public static final String CONTAINER_SETTING_NOT_FOUND = "<containerSettings> tag not found.";
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -50,29 +49,17 @@ public class DeployMojo extends AbstractWebAppMojo {
         getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_START);
         getLog().info(WEBAPP_DEPLOY_START + getAppName() + APOSTROPHE);
 
-        // Get a DeployHandler
-        final DeployHandler handler = getDeployHandler();
-        if (handler == null) {
-            processError(DEPLOY_HANDLER_NOT_FOUND);
-            return;
+        try {
+            final DeployHandler handler = getDeployHandler();
+            final WebApp app = getWebApp();
+            handler.validate(app);
+            handler.deploy(app);
+        } catch (Exception e) {
+            processException(e);
         }
 
-        // Validate Web App
-        final WebApp app = getWebApp();
-        OperationResult result = handler.validate(app);
-        if (!result.isSuccess()) {
-            processError(result.getMessage());
-            return;
-        }
-
-        // Invoke deployment
-        result = handler.deploy(app);
-        if (!result.isSuccess()) {
-            processError(result.getMessage());
-        } else {
-            getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_SUCCESS);
-            getLog().info(WEBAPP_DEPLOY_SUCCESS + getAppName());
-        }
+        getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_SUCCESS);
+        getLog().info(WEBAPP_DEPLOY_SUCCESS + getAppName());
     }
 
     /**
@@ -80,19 +67,18 @@ public class DeployMojo extends AbstractWebAppMojo {
      *
      * @return A new DeployHandler instance or null.
      */
-    protected DeployHandler getDeployHandler() {
-        if (containerSetting == null || containerSetting.isEmpty()) {
-            getLog().info(CONTAINER_SETTING_NOT_FOUND);
-            return null;
+    protected DeployHandler getDeployHandler() throws MojoExecutionException {
+        if (containerSettings == null || containerSettings.isEmpty()) {
+            throw new MojoExecutionException(CONTAINER_SETTING_NOT_FOUND);
         }
 
         // Public Docker Hub image
-        if (Utils.isStringEmpty(containerSetting.getServerId())) {
+        if (Utils.isStringEmpty(containerSettings.getServerId())) {
             return new PublicDockerHubDeployHandler(this);
         }
 
         // Private Docker Hub image
-        if (Utils.isStringEmpty(containerSetting.getRegistryUrl())) {
+        if (Utils.isStringEmpty(containerSettings.getRegistryUrl())) {
             return new PrivateDockerHubDeployHandler(this);
         }
 
@@ -100,15 +86,21 @@ public class DeployMojo extends AbstractWebAppMojo {
         return new PrivateDockerRegistryDeployHandler(this);
     }
 
-    private void processError(final String errorMessage) throws MojoExecutionException {
+    private void processException(final Exception exception) throws MojoExecutionException {
+        String message = exception.getMessage();
+        if (Utils.isStringEmpty(message)) {
+            message = "Empty exception message.";
+        }
+
         final HashMap<String, String> failureReason = new HashMap<>();
-        failureReason.put(FAILURE_REASON, errorMessage);
+        failureReason.put(FAILURE_REASON, message);
+
         getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_FAILURE, failureReason);
         getLog().error(WEBAPP_DEPLOY_FAILURE + getAppName());
         if (isFailingOnError()) {
-            throw new MojoExecutionException(errorMessage);
+            throw new MojoExecutionException(message, exception);
         } else {
-            getLog().error(errorMessage);
+            getLog().error(message);
         }
     }
 }

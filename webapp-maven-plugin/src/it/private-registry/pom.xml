@@ -21,11 +21,11 @@
                     <resourceGroup>maven-webapp-it-rg-3</resourceGroup>
                     <appName>maven-it-app-${maven.build.timestamp}</appName>
                     <region>westus</region>
-                    <containerSetting>
+                    <containerSettings>
                         <imageName>sample.azurecr.io/nginx</imageName>
                         <serverId>docker-registry</serverId>
                         <registryUrl>https://sample.azurecr.io</registryUrl>
-                    </containerSetting>
+                    </containerSettings>
                     <appSettings>
                         <property>
                             <name>PORT</name>

@@ -6,7 +6,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>webapp-maven-plugin</artifactId>
-    <version>0.1.0-beta-1</version>
+    <version>0.1.0</version>
     <packaging>maven-plugin</packaging>
     <name>Azure Web Apps Maven Plugin</name>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
@@ -112,7 +112,7 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>maven-plugin-lib</artifactId>
-            <version>0.1.0-beta-1</version>
+            <version>0.1.0</version>
         </dependency>
 
         <!-- TEST -->

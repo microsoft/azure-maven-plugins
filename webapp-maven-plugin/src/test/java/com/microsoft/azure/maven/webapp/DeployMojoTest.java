@@ -15,8 +15,8 @@ import com.microsoft.azure.maven.webapp.handlers.DeployHandler;
 import com.microsoft.azure.maven.webapp.handlers.PrivateDockerHubDeployHandler;
 import com.microsoft.azure.maven.webapp.handlers.PrivateDockerRegistryDeployHandler;
 import com.microsoft.azure.maven.webapp.handlers.PublicDockerHubDeployHandler;
-import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,6 +32,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.microsoft.azure.maven.webapp.DeployMojo.CONTAINER_SETTING_NOT_FOUND;
 import static junit.framework.TestCase.assertNotNull;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
@@ -92,7 +93,7 @@ public class DeployMojoTest {
         final DeployMojo mojo = getMojoFromPom("/pom-public-docker-hub.xml");
         assertNotNull(mojo);
 
-        final ContainerSetting containerSetting = mojo.getContainerSetting();
+        final ContainerSetting containerSetting = mojo.getContainerSettings();
         assertNotNull(containerSetting);
         assertEquals("nginx", containerSetting.getImageName());
     }
@@ -127,12 +128,9 @@ public class DeployMojoTest {
         assertNotNull(mojo);
 
         final DeployMojo mojoSpy = spy(mojo);
-        final OperationResult result = new OperationResult(true, null);
         doCallRealMethod().when(mojoSpy).getWebApp();
         doCallRealMethod().when(mojoSpy).deploy();
         doReturn(deployHandler).when(mojoSpy).getDeployHandler();
-        when(deployHandler.validate(app)).thenReturn(result);
-        when(deployHandler.deploy(app)).thenReturn(result);
         when(webApps.getByResourceGroup(any(String.class), any(String.class))).thenReturn(app);
         ReflectionTestUtils.setField(mojoSpy, "azure", azure);
 
@@ -159,7 +157,13 @@ public class DeployMojoTest {
         final DeployMojo mojo = getMojoFromPom("/pom-no-container-setting.xml");
         assertNotNull(mojo);
 
-        assertNull(mojo.getDeployHandler());
+        String errorMessage = null;
+        try {
+            mojo.getDeployHandler();
+        } catch (MojoExecutionException e) {
+            errorMessage = e.getMessage();
+        }
+        assertEquals(CONTAINER_SETTING_NOT_FOUND, errorMessage);
     }
 
     @Test

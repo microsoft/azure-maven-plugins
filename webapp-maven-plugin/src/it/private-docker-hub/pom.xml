@@ -21,10 +21,10 @@
                     <resourceGroup>maven-webapp-it-rg-2</resourceGroup>
                     <appName>maven-it-app-${maven.build.timestamp}</appName>
                     <region>westus</region>
-                    <containerSetting>
+                    <containerSettings>
                         <imageName>microsoft/nginx</imageName>
                         <serverId>docker-hub</serverId>
-                    </containerSetting>
+                    </containerSettings>
                     <appSettings>
                         <property>
                             <name>PORT</name>

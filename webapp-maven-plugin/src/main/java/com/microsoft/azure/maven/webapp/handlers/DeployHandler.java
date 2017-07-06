@@ -7,13 +7,12 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.webapp.OperationResult;
 
 /**
  * Interface for web-app deployment handler
  */
 public interface DeployHandler {
-    OperationResult validate(final WebApp app);
+    void validate(final WebApp app) throws Exception;
 
-    OperationResult deploy(final WebApp app);
+    void deploy(final WebApp app) throws Exception;
 }
