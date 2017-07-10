@@ -15,6 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.version>3.3.3</maven.version>
+        <maven.filtering.version>1.1</maven.filtering.version>
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <codehaus.plexus-utils>3.0.20</codehaus.plexus-utils>
         <azure.version>1.1.2</azure.version>
@@ -92,6 +93,11 @@
             <version>${maven.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-filtering</artifactId>
+            <version>${maven.filtering.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
             <version>${codehaus.plexus-utils}</version>
@@ -129,11 +135,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven.shared</groupId>
-            <artifactId>maven-filtering</artifactId>
-            <version>1.1</version>
         </dependency>
     </dependencies>
 

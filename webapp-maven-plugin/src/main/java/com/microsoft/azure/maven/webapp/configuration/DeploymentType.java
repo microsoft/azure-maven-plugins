@@ -18,7 +18,7 @@ public enum DeploymentType {
     public static final String DEPLOYMENT_TYPE_NOT_SUPPORTED = "Deployment type not supported: ";
     public static DeploymentType fromString(final String input) throws MojoExecutionException {
         if (StringUtils.isEmpty(input)) {
-            return null;
+            return FTP;
         }
 
         switch (input.toUpperCase(Locale.ENGLISH)) {

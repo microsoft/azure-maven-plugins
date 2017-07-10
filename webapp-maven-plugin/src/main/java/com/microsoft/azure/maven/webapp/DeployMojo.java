@@ -27,9 +27,6 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String WEBAPP_DEPLOY_FAILURE = "Failed to deploy to Web App ";
     public static final String FAILURE_REASON = "failureReason";
 
-    public static final String CONTAINER_SETTING_NOT_FOUND = "<containerSettings> tag not found.";
-    public static final String EMPTY_EXCEPTION_MESSAGE = "Empty exception message.";
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
@@ -37,7 +34,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         try {
             logDeployStart();
 
-            final DeployFacadeBaseImpl facade = getDeployFacade();
+            final DeployFacade facade = getDeployFacade();
             facade.setupRuntime()
                     .applySettings()
                     .commitChanges();
@@ -50,7 +47,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    protected DeployFacadeBaseImpl getDeployFacade() {
+    protected DeployFacade getDeployFacade() {
         return getWebApp() == null ?
                 new DeployFacadeImplWithCreate(this) :
                 new DeployFacadeImplWithUpdate(this);
@@ -59,7 +56,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     private void processException(final Exception exception) throws MojoExecutionException {
         String message = exception.getMessage();
         if (StringUtils.isEmpty(message)) {
-            message = EMPTY_EXCEPTION_MESSAGE;
+            message = exception.toString();
         }
         logDeployFailure(message);
 

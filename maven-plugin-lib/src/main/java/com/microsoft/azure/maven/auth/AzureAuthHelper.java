@@ -34,7 +34,7 @@ public class AzureAuthHelper {
     public static final String CERTIFICATE_PASSWORD = "certificatePassword";
     public static final String ENVIRONMENT = "environment";
 
-    public static final String AUTH_WITH_SERVER_ID = "Authenticate with serverId: ";
+    public static final String AUTH_WITH_SERVER_ID = "Authenticate with ServerId: ";
     public static final String AUTH_WITH_FILE = "Authenticate with file: ";
     public static final String AUTH_WITH_AZURE_CLI = "Authenticate with Azure CLI 2.0";
     public static final String USE_KEY_TO_AUTH = "Use key to get Azure authentication token: ";

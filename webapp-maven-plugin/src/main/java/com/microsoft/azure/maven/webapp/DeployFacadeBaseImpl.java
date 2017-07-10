@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.handlers.*;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -18,6 +19,8 @@ import java.util.List;
 
 public abstract class DeployFacadeBaseImpl implements DeployFacade {
     public static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
+    public static final String RUNTIME_CONFIG_CONFLICT = "<javaVersion> is for Web App on Windows; " +
+            "<containerSettings> is for Web App on Linux; they can't be specified at the same time.";
 
     private AbstractWebAppMojo mojo;
 
@@ -48,12 +51,13 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
     protected RuntimeHandler getRuntimeHandler() throws MojoExecutionException {
         final JavaVersion javaVersion = getMojo().getJavaVersion();
         final ContainerSetting containerSetting = getMojo().getContainerSettings();
+
         if (javaVersion != null && containerSetting != null && !containerSetting.isEmpty()) {
-            throw new MojoExecutionException("<javaVersion> and <containerSettings> are mutual exclusive.");
+            throw new MojoExecutionException(RUNTIME_CONFIG_CONFLICT);
         }
 
         if (javaVersion != null) {
-            return new JavaRuntimeHandlerImpl(mojo);
+            return new JavaRuntimeHandlerImpl(getMojo());
         }
 
         if (StringUtils.isEmpty(containerSetting.getServerId())) {
@@ -77,7 +81,7 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
                 throw new NotImplementedException();
             case FTP:
             default:
-                return new FTPArtifactHandlerImpl(mojo);
+                return new FTPArtifactHandlerImpl(getMojo());
         }
     }
 }

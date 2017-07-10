@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.settings.Server;
@@ -29,10 +30,7 @@ public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
         if (server == null) {
             throw new MojoExecutionException(SERVER_ID_NOT_FOUND + containerSetting.getServerId());
         }
-        return mojo.getAzureClient().webApps()
-                .define(mojo.getAppName())
-                .withRegion(mojo.getRegion())
-                .withNewResourceGroup(mojo.getResourceGroup())
+        return WebAppUtils.defineApp(mojo)
                 .withNewLinuxPlan(mojo.getPricingTier())
                 .withPrivateRegistryImage(containerSetting.getImageName(), containerSetting.getRegistryUrl())
                 .withCredentials(server.getUsername(), server.getPassword());
@@ -40,12 +38,15 @@ public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public WebApp.Update updateAppRuntime() throws MojoExecutionException {
+        final WebApp app = mojo.getWebApp();
+        WebAppUtils.assureLinuxWebApp(app);
+
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final Server server = Utils.getServer(mojo.getSettings(), containerSetting.getServerId());
         if (server == null) {
             throw new MojoExecutionException(SERVER_ID_NOT_FOUND + containerSetting.getServerId());
         }
-        return mojo.getWebApp().update()
+        return app.update()
                 .withPrivateRegistryImage(containerSetting.getImageName(), containerSetting.getRegistryUrl())
                 .withCredentials(server.getUsername(), server.getPassword());
     }

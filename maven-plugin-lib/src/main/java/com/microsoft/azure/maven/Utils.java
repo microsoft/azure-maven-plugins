@@ -73,7 +73,7 @@ public final class Utils {
      * Get string value from plugin descriptor file, namely /META-INF/maven/pugin.xml .
      *
      * @param tagName Valid tagName in /META-INF/maven/plugin.xml, such as "artifactId", "version" etc..
-     * @return
+     * @return String value of target property.
      */
     public static String getValueFromPluginDescriptor(final String tagName) {
         try (final InputStream is = Utils.class.getResourceAsStream("/META-INF/maven/plugin.xml")) {
@@ -91,7 +91,7 @@ public final class Utils {
                                      final MavenResourcesFiltering filtering, final List<Resource> resources,
                                      final String targetDirectory) throws IOException {
         for (final Resource resource : resources) {
-            resource.setTargetPath(targetDirectory + resource.getTargetPath());
+            resource.setTargetPath(targetDirectory + "/" + resource.getTargetPath());
             resource.setFiltering(false);
         }
 

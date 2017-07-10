@@ -15,6 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.version>3.3.3</maven.version>
+        <maven.filtering.version>1.1</maven.filtering.version>
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
@@ -116,6 +117,11 @@
             <version>${maven.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-filtering</artifactId>
+            <version>${maven.filtering.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
             <version>${codehaus.plexus-utils.version}</version>
@@ -160,16 +166,6 @@
             <artifactId>spring-test</artifactId>
             <version>${spring-test.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven.shared</groupId>
-            <artifactId>maven-filtering</artifactId>
-            <version>1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven.shared</groupId>
-            <artifactId>maven-filtering</artifactId>
-            <version>1.1</version>
         </dependency>
     </dependencies>
 
