@@ -8,11 +8,9 @@ package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.handlers.*;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
@@ -21,6 +19,8 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
     public static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
     public static final String RUNTIME_CONFIG_CONFLICT = "<javaVersion> is for Web App on Windows; " +
             "<containerSettings> is for Web App on Linux; they can't be specified at the same time.";
+    public static final String NO_RUNTIME_HANDLER = "Not able to process the runtime stack configuration; " +
+            "please check <javaVersion> or <containerSettings> tag.";
 
     private AbstractWebAppMojo mojo;
 
@@ -52,6 +52,12 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
         final JavaVersion javaVersion = getMojo().getJavaVersion();
         final ContainerSetting containerSetting = getMojo().getContainerSettings();
 
+        // Neither <javaVersion> nor <containerSettings> is specified
+        if (javaVersion == null && (containerSetting == null || containerSetting.isEmpty())) {
+            return new NullRuntimeHandlerImpl(getMojo());
+        }
+
+        // Both <javaVersion> and <containerSettings> are specified
         if (javaVersion != null && containerSetting != null && !containerSetting.isEmpty()) {
             throw new MojoExecutionException(RUNTIME_CONFIG_CONFLICT);
         }
@@ -60,15 +66,19 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
             return new JavaRuntimeHandlerImpl(getMojo());
         }
 
-        if (StringUtils.isEmpty(containerSetting.getServerId())) {
+        if (WebAppUtils.isPublicDockerHubImage(containerSetting)) {
             return new PublicDockerHubRuntimeHandlerImpl(getMojo());
         }
 
-        if (StringUtils.isEmpty(containerSetting.getRegistryUrl())) {
+        if (WebAppUtils.isPrivateDockerHubImage(containerSetting)) {
             return new PrivateDockerHubRuntimeHandlerImpl(getMojo());
         }
 
-        return new PrivateRegistryRuntimeHandlerImpl(getMojo());
+        if (WebAppUtils.isPrivateRegistryImage(containerSetting)) {
+            return new PrivateRegistryRuntimeHandlerImpl(getMojo());
+        }
+
+        throw new MojoExecutionException(NO_RUNTIME_HANDLER);
     }
 
     protected SettingsHandler getSettingsHandler() {

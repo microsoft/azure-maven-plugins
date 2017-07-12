@@ -23,6 +23,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -87,11 +88,23 @@ public final class Utils {
         return null;
     }
 
+    /**
+     * Copy resources to target directory using Maven resource filtering so that we don't have to handle
+     * recursive directory listing and pattern matching.
+     * In order to disable filtering, the "filtering" property is force set to False.
+     *
+     * @param project
+     * @param session
+     * @param filtering
+     * @param resources
+     * @param targetDirectory
+     * @throws IOException
+     */
     public static void copyResources(final MavenProject project, final MavenSession session,
                                      final MavenResourcesFiltering filtering, final List<Resource> resources,
                                      final String targetDirectory) throws IOException {
         for (final Resource resource : resources) {
-            resource.setTargetPath(targetDirectory + "/" + resource.getTargetPath());
+            resource.setTargetPath(Paths.get(targetDirectory, resource.getTargetPath()).toString());
             resource.setFiltering(false);
         }
 

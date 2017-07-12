@@ -7,7 +7,9 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.codehaus.plexus.util.StringUtils;
 
 public class WebAppUtils {
     public static final String CONTAINER_SETTING_NOT_APPLICABLE =
@@ -44,5 +46,20 @@ public class WebAppUtils {
                     .withRegion(mojo.getRegion())
                     .withNewResourceGroup(mojo.getResourceGroup());
         }
+    }
+
+    public static boolean isPublicDockerHubImage(final ContainerSetting containerSetting) {
+        return StringUtils.isEmpty(containerSetting.getServerId()) &&
+                StringUtils.isEmpty(containerSetting.getRegistryUrl());
+    }
+
+    public static boolean isPrivateDockerHubImage(final ContainerSetting containerSetting) {
+        return StringUtils.isNotEmpty(containerSetting.getServerId()) &&
+                StringUtils.isEmpty(containerSetting.getRegistryUrl());
+    }
+
+    public static boolean isPrivateRegistryImage(final ContainerSetting containerSetting) {
+        return StringUtils.isNotEmpty(containerSetting.getServerId()) &&
+                StringUtils.isNotEmpty(containerSetting.getRegistryUrl());
     }
 }

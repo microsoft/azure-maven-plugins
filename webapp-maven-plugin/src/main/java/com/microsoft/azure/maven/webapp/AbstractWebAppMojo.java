@@ -19,6 +19,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -94,7 +95,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     }
 
     public String getDeploymentStageDirectory() {
-        return getProject().getBasedir().getAbsolutePath() + "/target/staged-" + getAppName();
+        return Paths.get(getProject().getBasedir().getAbsolutePath(), "target", "staged-" + getAppName()).toString();
     }
 
     public List<Resource> getResources() {
