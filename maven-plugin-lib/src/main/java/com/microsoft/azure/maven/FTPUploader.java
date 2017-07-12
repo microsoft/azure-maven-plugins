@@ -118,8 +118,8 @@ public class FTPUploader {
      * @param logPrefix
      * @throws IOException
      */
-    private void uploadDirectory(final FTPClient ftpClient, final String sourceDirectoryPath,
-                                 final String targetDirectoryPath, final String logPrefix) throws IOException {
+    protected void uploadDirectory(final FTPClient ftpClient, final String sourceDirectoryPath,
+                                   final String targetDirectoryPath, final String logPrefix) throws IOException {
         log.info(String.format(UPLOAD_DIR, logPrefix, sourceDirectoryPath, targetDirectoryPath));
         final File sourceDirectory = new File(sourceDirectoryPath);
         final File[] files = sourceDirectory.listFiles();
@@ -153,8 +153,8 @@ public class FTPUploader {
      * @param logPrefix
      * @throws IOException
      */
-    public void uploadFile(final FTPClient ftpClient, final String sourceFilePath, final String targetFilePath,
-                           final String logPrefix) throws IOException {
+    protected void uploadFile(final FTPClient ftpClient, final String sourceFilePath, final String targetFilePath,
+                              final String logPrefix) throws IOException {
         log.info(String.format(UPLOAD_FILE, logPrefix, sourceFilePath, targetFilePath));
         final File sourceFile = new File(sourceFilePath);
         final InputStream is = new FileInputStream(sourceFile);

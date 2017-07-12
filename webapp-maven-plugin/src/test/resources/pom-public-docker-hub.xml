@@ -11,10 +11,10 @@
                 <artifactId>webapp-maven-plugin</artifactId>
                 <configuration>
                     <authentication>
-                        <serverId>azure-auth-1</serverId>
+                        <serverId>azure-auth</serverId>
                     </authentication>
-                    <resourceGroup>kevinzha-maven</resourceGroup>
-                    <appName>kevinzha-maven-demo-456</appName>
+                    <resourceGroup>resourceGroupName</resourceGroup>
+                    <appName>appName</appName>
                     <region>westeurope</region>
                     <containerSettings>
                         <imageName>nginx</imageName>
@@ -25,7 +25,6 @@
                             <value>80</value>
                         </property>
                     </appSettings>
-                    <deploymentType>ftp</deploymentType>
                     <resources>
                         <resource>
                             <directory>${baseDir}/target</directory>

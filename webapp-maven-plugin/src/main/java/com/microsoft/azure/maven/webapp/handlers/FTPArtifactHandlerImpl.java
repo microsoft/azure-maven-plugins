@@ -33,12 +33,12 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
         uploadDirectoryToFTP();
     }
 
-    private void copyResourcesToStageDirectory(final List<Resource> resources) throws IOException {
+    protected void copyResourcesToStageDirectory(final List<Resource> resources) throws IOException {
         Utils.copyResources(mojo.getProject(), mojo.getSession(), mojo.getMavenResourcesFiltering(), resources,
                 mojo.getDeploymentStageDirectory());
     }
 
-    private void uploadDirectoryToFTP() throws MojoExecutionException {
+    protected void uploadDirectoryToFTP() throws MojoExecutionException {
         final FTPUploader uploader = new FTPUploader(mojo.getLog());
         final WebApp app = mojo.getWebApp();
         final PublishingProfile profile = app.getPublishingProfile();

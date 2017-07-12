@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -80,6 +81,44 @@ public class AzureAuthHelperTest {
         MockitoAnnotations.initMocks(this);
         when(mojo.getLog()).thenReturn(log);
         when(log.isDebugEnabled()).thenReturn(false);
+    }
+
+    @Test
+    public void testConstructor() throws Exception {
+        NullPointerException exception = null;
+        try {
+            new AzureAuthHelper(null);
+        } catch (NullPointerException npe) {
+            exception = npe;
+        }
+
+        assertNotNull(exception);
+    }
+
+    @Test
+    public void testGetAzureClient() throws Exception {
+        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
+        final AzureAuthHelper helperSpy = spy(helper);
+
+        // authObj is null
+        doReturn(null).when(helperSpy).getAuthObj();
+        assertNull(helperSpy.getAzureClient());
+
+        // authObj is not null
+        doReturn(authenticated).when(helperSpy).getAuthObj();
+
+        // <subscriptionId> is not null
+        when(mojo.getSubscriptionId()).thenReturn("SubscriptionId");
+        helperSpy.getAzureClient();
+        verify(authenticated, times(1)).withSubscription(any(String.class));
+        verify(authenticated, never()).withDefaultSubscription();
+        Mockito.clearInvocations(authenticated);
+
+        // <subscriptionId> is null
+        when(mojo.getSubscriptionId()).thenReturn(null);
+        helperSpy.getAzureClient();
+        verify(authenticated, never()).withSubscription(any(String.class));
+        verify(authenticated, times(1)).withDefaultSubscription();
     }
 
     @Test

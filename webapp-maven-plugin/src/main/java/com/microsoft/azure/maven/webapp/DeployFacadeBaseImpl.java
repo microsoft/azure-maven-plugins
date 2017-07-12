@@ -85,7 +85,7 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
         return new SettingsHandlerImpl(getMojo());
     }
 
-    private ArtifactHandler getArtifactHandler() throws MojoExecutionException {
+    protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
         switch (getMojo().getDeploymentType()) {
             case LOCAL_GIT:
                 throw new NotImplementedException();
