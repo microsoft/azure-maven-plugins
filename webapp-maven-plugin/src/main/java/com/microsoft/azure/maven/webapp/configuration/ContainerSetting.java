@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
-import com.microsoft.azure.maven.Utils;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.net.URL;
 
@@ -67,9 +67,9 @@ public class ContainerSetting {
     }
 
     public boolean isEmpty() {
-        return Utils.isStringEmpty(getImageName()) &&
-                Utils.isStringEmpty(getStartUpFile()) &&
-                Utils.isStringEmpty(getServerId()) &&
-                Utils.isStringEmpty(getRegistryUrl());
+        return StringUtils.isEmpty(getImageName()) &&
+                StringUtils.isEmpty(getStartUpFile()) &&
+                StringUtils.isEmpty(getServerId()) &&
+                StringUtils.isEmpty(getRegistryUrl());
     }
 }

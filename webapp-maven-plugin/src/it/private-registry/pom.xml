@@ -32,7 +32,6 @@
                             <value>80</value>
                         </property>
                     </appSettings>
-                    <failsOnError>false</failsOnError>
                 </configuration>
             </plugin>
         </plugins>

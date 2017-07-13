@@ -7,34 +7,22 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebApps;
-import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.handlers.DeployHandler;
-import com.microsoft.azure.maven.webapp.handlers.PrivateDockerHubDeployHandler;
-import com.microsoft.azure.maven.webapp.handlers.PrivateDockerRegistryDeployHandler;
-import com.microsoft.azure.maven.webapp.handlers.PublicDockerHubDeployHandler;
-import com.microsoft.azure.maven.telemetry.TelemetryProxy;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import org.apache.maven.plugin.testing.MojoRule;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
-import static com.microsoft.azure.maven.webapp.DeployMojo.CONTAINER_SETTING_NOT_FOUND;
-import static junit.framework.TestCase.assertNotNull;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -51,30 +39,14 @@ public class DeployMojoTest {
         }
     };
 
-    @Mock
-    Azure azure;
-
-    @Mock
-    WebApps webApps;
-
-    @Mock
-    WebApp app;
-
-    @Mock
-    DeployHandler deployHandler;
-
-    @Mock
-    TelemetryProxy proxy;
-
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(azure.webApps()).thenReturn(webApps);
     }
 
     @Test
-    public void testGetWebAppProperties() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-public-docker-hub.xml");
+    public void testGetConfigurationForLinux() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         assertNotNull(mojo);
 
         assertEquals("resourceGroupName", mojo.getResourceGroup());
@@ -86,108 +58,69 @@ public class DeployMojoTest {
         assertEquals(PricingTier.STANDARD_S1, mojo.getPricingTier());
 
         assertEquals("webapp-maven-plugin", mojo.getPluginName());
+
+        assertEquals(null, mojo.getJavaVersion());
+
+        assertEquals(null, mojo.getJavaWebContainer());
+
+        assertFalse(mojo.getContainerSettings().isEmpty());
+
+        assertEquals(1, mojo.getAppSettings().size());
+
+        assertEquals(DeploymentType.FTP, mojo.getDeploymentType());
+
+        assertEquals(1, mojo.getResources().size());
     }
 
     @Test
-    public void testGetContainerSetting() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-public-docker-hub.xml");
+    public void testGetConfigurationForWindows() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-windows.xml");
         assertNotNull(mojo);
 
-        final ContainerSetting containerSetting = mojo.getContainerSettings();
-        assertNotNull(containerSetting);
-        assertEquals("nginx", containerSetting.getImageName());
-    }
+        assertEquals(JavaVersion.JAVA_8_NEWEST, mojo.getJavaVersion());
 
-    @Test
-    public void testGetAppSetting() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-public-docker-hub.xml");
-        assertNotNull(mojo);
+        assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getJavaWebContainer());
 
-        final Map map = new HashMap();
-        map.put("PORT", "80");
-
-        Assert.assertNotNull(mojo.getAppSettings());
-        assertEquals(map, mojo.getAppSettings());
+        assertEquals(PricingTier.STANDARD_S2, mojo.getPricingTier());
     }
 
     @Test
     public void testGetWebApp() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-public-docker-hub.xml");
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         assertNotNull(mojo);
 
-        ReflectionTestUtils.setField(mojo, "azure", azure);
-        when(azure.webApps()).thenReturn(webApps);
-        when(webApps.getByResourceGroup(any(String.class), any(String.class))).thenReturn(app);
-
-        assertEquals(app, mojo.getWebApp());
+        assertNull(mojo.getWebApp());
     }
 
     @Test
-    public void testExecuteWithDeploy() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-public-docker-hub.xml");
+    public void testGetDeployFacade() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        assertNotNull(mojo);
+
+        // Create a new Web App
+        assertTrue(mojo.getDeployFacade() instanceof DeployFacadeImplWithCreate);
+
+        // Deploy to existing Web App
+        final DeployMojo mojoSpy = spy(mojo);
+        final WebApp app = mock(WebApp.class);
+        doReturn(app).when(mojoSpy).getWebApp();
+
+        assertTrue(mojoSpy.getDeployFacade() instanceof DeployFacadeImplWithUpdate);
+    }
+
+    @Test
+    public void testExecute() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         assertNotNull(mojo);
 
         final DeployMojo mojoSpy = spy(mojo);
-        doCallRealMethod().when(mojoSpy).getWebApp();
-        doCallRealMethod().when(mojoSpy).deploy();
-        doReturn(deployHandler).when(mojoSpy).getDeployHandler();
-        when(webApps.getByResourceGroup(any(String.class), any(String.class))).thenReturn(app);
+        final DeployFacade facade = mock(DeployFacade.class);
+        doReturn(facade).when(mojoSpy).getDeployFacade();
+        final Azure azure = mock(Azure.class);
+        when(azure.subscriptionId()).thenReturn("subscriptionId");
         ReflectionTestUtils.setField(mojoSpy, "azure", azure);
 
         mojoSpy.execute();
-
-        verify(deployHandler, times(1)).validate(app);
-        verify(deployHandler, times(1)).deploy(app);
-    }
-
-    @Test
-    public void testExecuteWithDeploySkipped() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-no-container-setting.xml");
-        assertNotNull(mojo);
-
-        final DeployMojo mojoSpy = spy(mojo);
-        doReturn(null).when(mojoSpy).getDeployHandler();
-        ReflectionTestUtils.setField(mojoSpy, "azure", azure);
-
-        mojoSpy.execute();
-    }
-
-    @Test
-    public void testNoDeployHandlerFound() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-no-container-setting.xml");
-        assertNotNull(mojo);
-
-        String errorMessage = null;
-        try {
-            mojo.getDeployHandler();
-        } catch (MojoExecutionException e) {
-            errorMessage = e.getMessage();
-        }
-        assertEquals(CONTAINER_SETTING_NOT_FOUND, errorMessage);
-    }
-
-    @Test
-    public void testDeployWithPublicDockerImage() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-public-docker-hub.xml");
-        assertNotNull(mojo);
-
-        assertThat(mojo.getDeployHandler(), instanceOf(PublicDockerHubDeployHandler.class));
-    }
-
-    @Test
-    public void testDeployWebAppWithPrivateDockerImage() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-private-docker-hub.xml");
-        assertNotNull(mojo);
-
-        assertThat(mojo.getDeployHandler(), instanceOf(PrivateDockerHubDeployHandler.class));
-    }
-
-    @Test
-    public void testDeployWebAppWithPrivateRegistryImage() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-private-docker-registry.xml");
-        assertNotNull(mojo);
-
-        assertThat(mojo.getDeployHandler(), instanceOf(PrivateDockerRegistryDeployHandler.class));
     }
 
     private DeployMojo getMojoFromPom(String filename) throws Exception {

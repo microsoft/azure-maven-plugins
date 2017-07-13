@@ -10,11 +10,15 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AzureAuthHelper;
 import com.microsoft.azure.maven.telemetry.*;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 
 import java.util.UUID;
 
@@ -27,12 +31,21 @@ public abstract class AbstractAzureMojo extends AbstractMojo
         implements TelemetryConfiguration, AuthConfiguration {
     public static final String AZURE_INIT_FAIL = "Failed to initialize Azure client object.";
 
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    protected MavenProject project;
+
+    @Parameter(defaultValue = "${session}", readonly = true, required = true)
+    protected MavenSession session;
+
     /**
      * The system settings for Maven. This is the instance resulting from
      * merging global and user-level settings files.
      */
     @Parameter(defaultValue = "${settings}", readonly = true, required = true)
     protected Settings settings;
+
+    @Component(role = MavenResourcesFiltering.class, hint = "default")
+    protected MavenResourcesFiltering mavenResourcesFiltering;
 
     @Parameter(property = "authentication")
     protected AuthenticationSetting authentication;
@@ -57,6 +70,18 @@ public abstract class AbstractAzureMojo extends AbstractMojo
     private String pluginName = Utils.getValueFromPluginDescriptor("artifactId");
 
     private String pluginVersion = Utils.getValueFromPluginDescriptor("version");
+
+    public MavenProject getProject() {
+        return project;
+    }
+
+    public MavenSession getSession() {
+        return session;
+    }
+
+    public MavenResourcesFiltering getMavenResourcesFiltering() {
+        return mavenResourcesFiltering;
+    }
 
     public Settings getSettings() {
         return settings;

@@ -40,14 +40,6 @@ public class UtilsTest {
     }
 
     @Test
-    public void testIsStringEmpty() {
-        assertTrue(Utils.isStringEmpty(null));
-        assertTrue(Utils.isStringEmpty(""));
-        assertTrue(Utils.isStringEmpty("   "));
-        assertFalse(Utils.isStringEmpty("string"));
-    }
-
-    @Test
     public void testGetServer() {
         final String invalidServerId = "non-existing";
         final String validServerId = "existing";
