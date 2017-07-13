@@ -11,22 +11,29 @@
                 <artifactId>webapp-maven-plugin</artifactId>
                 <configuration>
                     <authentication>
-                        <file></file>
+                        <serverId>azure-auth</serverId>
                     </authentication>
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
                     <region>westeurope</region>
-                    <containerSettings>
-                        <imageName>nginx</imageName>
-                        <registryUrl>https://www.microsoft.com</registryUrl>
-                        <serverId>serverId</serverId>
-                    </containerSettings>
+                    <pricingTier>s2</pricingTier>
+                    <javaVersion>1.8</javaVersion>
+                    <javaWebContainer>tomcat 8.5</javaWebContainer>
                     <appSettings>
                         <property>
                             <name>PORT</name>
                             <value>80</value>
                         </property>
                     </appSettings>
+                    <resources>
+                        <resource>
+                            <directory>${baseDir}/target</directory>
+                            <targetPath>/</targetPath>
+                            <includes>
+                                <include>*.jar</include>
+                            </includes>
+                        </resource>
+                    </resources>
                 </configuration>
             </plugin>
         </plugins>

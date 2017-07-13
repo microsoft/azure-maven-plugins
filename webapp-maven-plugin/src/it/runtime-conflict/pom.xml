@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure.it</groupId>
-    <artifactId>public-docker-hub</artifactId>
+    <artifactId>no-container-setting</artifactId>
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
     <properties>
@@ -18,18 +18,13 @@
                     <authentication>
                         <serverId>azure-auth</serverId>
                     </authentication>
-                    <resourceGroup>maven-webapp-it-rg-4</resourceGroup>
+                    <resourceGroup>maven-webapp-it-rg-${suffix}</resourceGroup>
                     <appName>maven-it-app-${maven.build.timestamp}</appName>
                     <region>westus</region>
                     <containerSettings>
                         <imageName>nginx</imageName>
                     </containerSettings>
-                    <appSettings>
-                        <property>
-                            <name>PORT</name>
-                            <value>80</value>
-                        </property>
-                    </appSettings>
+                    <javaVersion>1.8</javaVersion>
                 </configuration>
             </plugin>
         </plugins>
