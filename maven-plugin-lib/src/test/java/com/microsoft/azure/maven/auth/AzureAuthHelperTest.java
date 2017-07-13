@@ -285,11 +285,6 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void testGetAuthObjFromAzureCli() {
-        new AzureAuthHelper(mojo).getAuthObjFromAzureCli();
-    }
-
-    @Test
     public void testGetAppTokenCredentialsFromServer() {
         final AzureAuthHelper helper = new AzureAuthHelper(mojo);
         /**
