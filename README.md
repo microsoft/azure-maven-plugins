@@ -1,5 +1,6 @@
 # Azure Maven Plugins
-[![Travis CI](https://travis-ci.org/microsoft/azure-maven-plugins.svg?branch=master)](https://travis-ci.org/microsoft/azure-maven-plugins/) 
+[![Travis CI](https://travis-ci.org/Microsoft/azure-maven-plugins.svg?branch=master)](https://travis-ci.org/Microsoft/azure-maven-plugins/) 
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/qfpxt9gct33dfmns/branch/master?svg=true)](https://ci.appveyor.com/api/projects/status/qfpxt9gct33dfmns/branch/master?svg=true)
 [![codecov](https://codecov.io/gh/microsoft/azure-maven-plugins/branch/master/graph/badge.svg)](https://codecov.io/gh/microsoft/azure-maven-plugins)
 [![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/microsoft/azure-maven-plugins/blob/master/LICENSE)
 
