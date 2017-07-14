@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.microsoft.azure</groupId>
-    <artifactId>webapp-maven-plugin</artifactId>
+    <artifactId>function-maven-plugin</artifactId>
     <version>0.1.0</version>
     <packaging>maven-plugin</packaging>
-    <name>Azure Web Apps Maven Plugin</name>
+    <name>Azure Functions Maven Plugin</name>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
 
     <properties>
@@ -304,7 +304,7 @@
                     <invokerPropertiesFile>invoker.properties</invokerPropertiesFile>
                     <goals>
                         <goal>clean</goal>
-                        <goal>webapp:deploy</goal>
+                        <goal>function:deploy</goal>
                     </goals>
                 </configuration>
                 <executions>
