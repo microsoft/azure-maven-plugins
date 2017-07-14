@@ -229,9 +229,7 @@
                     <instrumentation>
                         <excludes>
                             <exclude>**/configuration/*.class</exclude>
-                            <exclude>**/telemetry/**.class</exclude>
                             <exclude>**/HelpMojo.class</exclude>
-                            <exclude>**/OperationResult.class</exclude>
                         </excludes>
                     </instrumentation>
                 </configuration>
