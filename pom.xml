@@ -36,5 +36,6 @@
     <modules>
         <module>maven-plugin-lib</module>
         <module>webapp-maven-plugin</module>
+        <module>function-maven-plugin</module>
     </modules>
 </project>
