@@ -6,13 +6,23 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.AbstractAzureMojo;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.util.List;
+import java.io.File;
+import java.nio.file.Paths;
 
 public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
+    @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
+    protected String finalName;
+
+    @Parameter(defaultValue = "${project.build.directory}", readonly = true, required = true)
+    protected File buildDirectory;
+
+    @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true, required = true)
+    protected File outputDirectory;
+
     @Parameter(property = "resourceGroup", required = true)
     protected String resourceGroup;
 
@@ -22,11 +32,13 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     @Parameter(property = "region", defaultValue = "westus")
     protected String region;
 
-    @Parameter(property = "functionName", required = true)
-    protected String functionName;
+    public String getFinalName() {
+        return finalName;
+    }
 
-    @Parameter(property = "resources")
-    protected List<Resource> resources;
+    public String getBuildDirectoryAbsolutePath() {
+        return buildDirectory.getAbsolutePath();
+    }
 
     public String getResourceGroup() {
         return resourceGroup;
@@ -40,11 +52,19 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
         return region;
     }
 
-    public String getFunctionName() {
-        return functionName;
+    public String getDeploymentStageDirectory() {
+        return Paths.get(getBuildDirectoryAbsolutePath(),
+                "azure-functions",
+                getAppName()).toString();
     }
 
-    public List<Resource> getResources() {
-        return resources;
+    public FunctionApp getFunctionApp() {
+        FunctionApp app = null;
+        try {
+            app = getAzureClient().appServices().functionApps().getByResourceGroup(getResourceGroup(), getAppName());
+        } catch (Exception e) {
+            // Swallow exception
+        }
+        return app;
     }
 }

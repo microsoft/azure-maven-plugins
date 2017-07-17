@@ -35,6 +35,10 @@ public class AbstractAzureMojoTest {
         public String getPluginVersion() {
             return "0.1.0-SNAPSHOT";
         }
+
+        @Override
+        protected void doExecute() throws Exception {
+        }
     };
 
     @Before

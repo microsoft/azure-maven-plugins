@@ -24,64 +24,24 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     public static final String WEBAPP_DEPLOY_START = "Start deploying to Web App ";
     public static final String WEBAPP_DEPLOY_SUCCESS = "Successfully deployed to Web App ";
-    public static final String WEBAPP_DEPLOY_FAILURE = "Failed to deploy to Web App ";
-    public static final String FAILURE_REASON = "failureReason";
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        super.execute();
+    protected void doExecute() throws Exception {
+        getLog().info(WEBAPP_DEPLOY_START + getAppName() + APOSTROPHE);
 
-        try {
-            logDeployStart();
+        final DeployFacade facade = getDeployFacade();
+        facade.setupRuntime()
+                .applySettings()
+                .commitChanges();
 
-            final DeployFacade facade = getDeployFacade();
-            facade.setupRuntime()
-                    .applySettings()
-                    .commitChanges();
+        facade.deployArtifacts();
 
-            facade.deployArtifacts();
-
-            logDeploySuccess();
-        } catch (Exception e) {
-            processException(e);
-        }
+        getLog().info(WEBAPP_DEPLOY_SUCCESS + getAppName());
     }
 
     protected DeployFacade getDeployFacade() {
         return getWebApp() == null ?
                 new DeployFacadeImplWithCreate(this) :
                 new DeployFacadeImplWithUpdate(this);
-    }
-
-    private void processException(final Exception exception) throws MojoExecutionException {
-        String message = exception.getMessage();
-        if (StringUtils.isEmpty(message)) {
-            message = exception.toString();
-        }
-        logDeployFailure(message);
-
-        if (isFailingOnError()) {
-            throw new MojoExecutionException(message, exception);
-        } else {
-            getLog().error(message);
-        }
-    }
-
-    private void logDeployStart() {
-        getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_START);
-        getLog().info(WEBAPP_DEPLOY_START + getAppName() + APOSTROPHE);
-    }
-
-    private void logDeploySuccess() {
-        getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_SUCCESS);
-        getLog().info(WEBAPP_DEPLOY_SUCCESS + getAppName());
-    }
-
-    private void logDeployFailure(final String message) {
-        final HashMap<String, String> failureReason = new HashMap<>();
-        failureReason.put(FAILURE_REASON, message);
-
-        getTelemetryProxy().trackEvent(TelemetryEvent.DEPLOY_FAILURE, failureReason);
-        getLog().error(WEBAPP_DEPLOY_FAILURE + getAppName());
     }
 }

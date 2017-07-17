@@ -6,7 +6,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>webapp-maven-plugin</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <packaging>maven-plugin</packaging>
     <name>Azure Web Apps Maven Plugin</name>
     <description>Maven Plugin for Azure Web Apps</description>
@@ -21,6 +21,7 @@
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.version>1.1.2</azure.version>
         <azure.ai.version>1.0.8</azure.ai.version>
+        <azure.maven-lib.version>0.1.1</azure.maven-lib.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.4.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
@@ -129,7 +130,7 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>maven-plugin-lib</artifactId>
-            <version>0.1.0</version>
+            <version>${azure.maven-lib.version}</version>
         </dependency>
 
         <!-- TEST -->

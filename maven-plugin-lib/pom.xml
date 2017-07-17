@@ -6,7 +6,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>maven-plugin-lib</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <packaging>jar</packaging>
     <name>Azure Maven plugin library</name>
     <description>Common library for Azure Maven Plugins</description>

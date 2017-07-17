@@ -15,17 +15,7 @@
                     </authentication>
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
-                    <functionName>a-function</functionName>
                     <region>westeurope</region>
-                    <resources>
-                        <resource>
-                            <directory>${baseDir}/target</directory>
-                            <targetPath>/</targetPath>
-                            <includes>
-                                <include>*.jar</include>
-                            </includes>
-                        </resource>
-                    </resources>
                 </configuration>
             </plugin>
         </plugins>

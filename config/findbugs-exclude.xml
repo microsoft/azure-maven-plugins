@@ -5,4 +5,6 @@
     <Class name="com.microsoft.azure.maven.function.HelpMojo"/>
     <Class name="com.microsoft.azure.maven.telemetry.GetHashMac"/>
     <Bug pattern="REC_CATCH_EXCEPTION"/>
+    <Bug pattern="DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"/>
+    <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
 </FindBugsFilter>

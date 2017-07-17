@@ -4,71 +4,48 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.FTPUploader;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.DeployMojo;
-import org.apache.maven.model.Resource;
-import org.junit.Before;
+import com.microsoft.azure.maven.function.DeployMojo;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
 public class FTPArtifactHandlerImplTest {
-    @Mock
-    private AbstractWebAppMojo mojo;
-
-    private FTPArtifactHandlerImpl handler = null;
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        handler = new FTPArtifactHandlerImpl(mojo);
-    }
-
     @Test
     public void publish() throws Exception {
+        final DeployMojo mojo = mock(DeployMojo.class);
+        final FTPArtifactHandlerImpl handler = new FTPArtifactHandlerImpl(mojo);
         final FTPArtifactHandlerImpl handlerSpy = spy(handler);
-        doNothing().when(handlerSpy).copyResourcesToStageDirectory(ArgumentMatchers.<Resource>anyList());
+        doNothing().when(handlerSpy).copyResourcesToStageDirectory(null);
         doNothing().when(handlerSpy).uploadDirectoryToFTP();
 
-        handlerSpy.publish(new ArrayList<Resource>());
-        verify(handlerSpy, times(1))
-                .copyResourcesToStageDirectory(ArgumentMatchers.<Resource>anyList());
+        handlerSpy.publish(null);
+        verify(handlerSpy, times(1)).copyResourcesToStageDirectory(isNull());
         verify(handlerSpy, times(1)).uploadDirectoryToFTP();
-    }
-
-    @Test
-    public void copyResourcesToStageDirectory() throws Exception {
+        verify(handlerSpy, times(1)).publish(isNull());
+        verifyNoMoreInteractions(handlerSpy);
     }
 
     @Test
     public void uploadDirectoryToFTP() throws Exception {
-        final String FTP_URL = "ftp.azurewebsites.net/site/wwwroot";
+        final String ftpUrl = "ftp.azurewebsites.net/site/wwwroot";
         final PublishingProfile profile = mock(PublishingProfile.class);
-        when(profile.ftpUrl()).thenReturn(FTP_URL);
-        final WebApp app = mock(WebApp.class);
+        when(profile.ftpUrl()).thenReturn(ftpUrl);
+        final FunctionApp app = mock(FunctionApp.class);
         when(app.getPublishingProfile()).thenReturn(profile);
         final DeployMojo mojo = mock(DeployMojo.class);
-        when(mojo.getWebApp()).thenReturn(app);
+        when(mojo.getFunctionApp()).thenReturn(app);
         final FTPUploader uploader = mock(FTPUploader.class);
         final FTPArtifactHandlerImpl handler = new FTPArtifactHandlerImpl(mojo);
         final FTPArtifactHandlerImpl handlerSpy = spy(handler);
         doReturn(uploader).when(handlerSpy).getUploader();
 
         handlerSpy.uploadDirectoryToFTP();
-        verify(mojo, times(1)).getWebApp();
+        verify(mojo, times(1)).getFunctionApp();
         verify(mojo, times(1)).getDeploymentStageDirectory();
         verifyNoMoreInteractions(mojo);
         verify(app, times(1)).getPublishingProfile();
@@ -78,8 +55,7 @@ public class FTPArtifactHandlerImplTest {
         verify(profile, times(1)).ftpPassword();
         verifyNoMoreInteractions(profile);
         verify(uploader, times(1))
-                .uploadDirectoryWithRetries(anyString(), (String) isNull(), (String) isNull(), (String) isNull(),
-                        anyString(), anyInt());
+                .uploadDirectoryWithRetries(anyString(), isNull(), isNull(), isNull(), anyString(), anyInt());
         verifyNoMoreInteractions(uploader);
     }
 }
