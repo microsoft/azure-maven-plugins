@@ -29,7 +29,7 @@ public class FTPUploader {
     public static final String UPLOAD_DIR_FAILURE = "Failed to upload directory: %s --> %s";
     public static final String UPLOAD_DIR = "%s[DIR] %s --> %s";
     public static final String UPLOAD_FILE = "%s[FILE] %s --> %s";
-    public static final String UPLOAD_FILE_REPLY = "%s.......Reply { code : %d, message : %s }";
+    public static final String UPLOAD_FILE_REPLY = "%s.......Reply Message : %s";
 
     private Log log;
 
@@ -157,15 +157,24 @@ public class FTPUploader {
                               final String logPrefix) throws IOException {
         log.info(String.format(UPLOAD_FILE, logPrefix, sourceFilePath, targetFilePath));
         final File sourceFile = new File(sourceFilePath);
-        final InputStream is = new FileInputStream(sourceFile);
-        try {
+        try (final InputStream is = new FileInputStream(sourceFile)) {
             ftpClient.changeWorkingDirectory(targetFilePath);
             ftpClient.storeFile(sourceFile.getName(), is);
-            log.info(String.format(UPLOAD_FILE_REPLY, logPrefix, ftpClient.getReplyCode(), ftpClient.getReplyString()));
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            is.close();
+
+            final int replyCode = ftpClient.getReplyCode();
+            final String replyMessage = ftpClient.getReplyString();
+            if (isCommandFailed(replyCode)) {
+                log.error(String.format(UPLOAD_FILE_REPLY, logPrefix, replyMessage));
+                throw new IOException("Failed to upload file: " + sourceFilePath);
+            } else {
+                log.info(String.format(UPLOAD_FILE_REPLY, logPrefix, replyMessage));
+            }
         }
+    }
+
+    private boolean isCommandFailed(final int replyCode) {
+        // https://en.wikipedia.org/wiki/List_of_FTP_server_return_codes
+        // 2xx means command has been successfully completed
+        return replyCode >= 300;
     }
 }
