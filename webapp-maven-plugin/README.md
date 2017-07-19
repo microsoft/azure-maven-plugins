@@ -1,8 +1,9 @@
 # Azure Web Apps Maven Plugin
 
-The Azure Web Apps plugin provides seamless integration of Azure Web Apps into Maven, and makes it easier for developers to deploy container images to Azure Web Apps on Linux.
+The Azure Web Apps plugin provides seamless integration of Azure Web Apps into Maven, 
+and makes it easier for developers to deploy to Web App and [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro) in Azure.
 
-**Note**: This plugin is still in preview, as is [Azure Web Apps on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro). For now, only Linux-based Web Apps are supported, although additional features are planned.
+**Note**: This plugin is still in preview; feedback and feature requests are warmly welcome.
 
 ## Prerequisites
 
@@ -17,7 +18,7 @@ The Azure Web Apps plugin has only one goal: `webapp:deploy`, which is bounded t
 
 Goal | Description
 --- | ---
-`webapp:deploy` | Deploy a docker container image to an Azure Web App based on your configuration.<br>If the specified Web App does not exist, it will be created.
+`webapp:deploy` | Deploy artifacts or docker container image to an Azure Web App based on your configuration.<br>If the specified Web App does not exist, it will be created.
 
 ## Usage
 
@@ -54,8 +55,12 @@ Property | Required | Description
 `<appName>` | true | Specifies the name of your Web App.
 `<region>` | false | Specifies the region where your Web App will be hosted; the default value is **westus**.<br>This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored.
 `<pricingTier>` | false | Specifies the pricing tier for your Web App; the default value is **S1**.<br>This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored.
-`<containerSettings>` | true | Specifies the docker container image to deploy to your Web App.<br>Docker hubs and private container registries are both supported; see the [Container Setting](#container-setting) section of this README for details.
+`<javaVersion>` | false | Specifies the JVM version for your Web App.<br>This setting is only applicable for normal Web App (Windows based); see the [Java Runtime](#java-runtime) section of this README for details.
+`<javaWebContainer>` | false | Specified the Web Container for your Web App.<br>This setting is only applicable for normal Web App (Windows based); see the [Web Container](#web-container) section of this README for details.
+`<containerSettings>` | false | Specifies the docker container image to deploy to your Web App.<br>Docker hubs and private container registries are both supported; see the [Container Setting](#container-setting) section of this README for details.
 `<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
+`<deploymentType>` | false | Specifies the deployment approach you want to use. Only `ftp` is supported right now.
+`<resources>` | false | Specifies the artifacts to be deployed to your Web App; see the [Deploy via FTP](#deploy-via-ftp) section for more details.
 `<failsOnError>` | false | Specifies whether to throw an exception when there are fatal errors during execution; the default value is **true**.<br>This setting helps prevent deployment failures from failing your entire Maven build.
 `<allowTelemetry>` | false | Specifies whether to allow this plugin to send telemetry data; the default value is **true**.
 
@@ -151,8 +156,112 @@ to create an authentication file.
    
    You are all set. No extra configuration are required.
 
+### Web App (Windows based)
+
+For Windows-based Web App, only Java runtime stack is supported in our plugin. You can use `<javaVersion>` and `<javaWebContainer>` to configure your Web App.
+
+<a name="java-runtime"></a>
+#### Java Runtime
+Use values from the following table to configure the JVM you want to use in your Web App.
+
+Supported Value | Description
+---|---
+`1.7` | Java 7, Newest minor version
+`1.7.0_51` | Java 7, Update 51
+`1.7.0_71` | Java 7, Update 71
+`1.8` | Java 8, Newest minor version
+`1.8.0_25` | Java 8, Update 25
+`1.8.0_60` | Java 8, Update 60
+`1.8.0_73` | Java 8, Update 73
+`1.8.0_111` | Java 8, Update 111
+`1.8.0_92` | Azul's Zulu OpenJDK 8, Update 92
+`1.8.0_102` | Azul's Zulu OpenJDK 8, Update 102
+
+It is recommended to ignore the minor version number like the following example, so that the latest supported JVM will be used in your Web App.
+
+   ```xml
+   <plugin>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>webapp-maven-plugin</artifactId>
+      <configuration>
+         <javaVersion>1.8</javaVersion>
+         ...
+      </configuration>
+   </plugin>
+   ```
+
+<a name="web-container"></a>
+#### Web Container
+
+Use values from the following table to configure the Web Container in your Web App.
+
+Supported Value | Description
+---|---
+`tomcat 7.0` | Newest Tomcat 7.0
+`tomcat 7.0.50` | Tomcat 7.0.50
+`tomcat 7.0.62` | Tomcat 7.0.62
+`tomcat 8.0` | Newest Tomcat 8.0
+`tomcat 8.0.23` | Tomcat 8.0.23
+`tomcat 8.5` | Newest Tomcat 8.5
+`tomcat 8.5.6` | Tomcat 8.5.6
+`jetty 9.1` | Newest Jetty 9.1
+`jetty 9.1.0.20131115` | Jetty 9.1.0.v20131115
+`jetty 9.3` | Newest Jetty 9.3
+`jetty 9.3.13.20161014` | Jetty 9.3.13.v20161014
+
+It is recommended to ignore the minor version number like the following example, so that the latest supported web container will be used in your Web App.
+
+   ```xml
+   <plugin>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>webapp-maven-plugin</artifactId>
+      <configuration>
+         <javaWebContainer>tomcat 8.5</javaWebContainer>
+         ...
+      </configuration>
+   </plugin>
+   ```
+
+<a name="deploy-via-ftp"></a>
+#### Deploy via FTP
+You can deploy your **WAR** file and other artifacts to Web App via FTP. The following example shows all configuration elements.
+
+   ```xml
+   <plugin>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>webapp-maven-plugin</artifactId>
+      <configuration>
+         <deploymentType>ftp</deploymentType>
+         <resources>
+            <resource>
+                <directory>${project.basedir}/target</directory>
+                <targetPath>/</targetPath>
+                <includes>
+                    <include>*.war</include>
+                </includes>
+                <excludes>
+                    <exclude>*.xml</exclude>
+                </excludes>
+            </resource>
+         </resources>
+         ...
+      </configuration>
+   </plugin>
+   ```
+   
+   Detailed explanation of the `<resource>` element is listed in the following table.
+   
+   Property | Description
+   ---|---
+   `directory` | Specifies the absolute path where the resources are stored.
+   `targetPath` | Specifies the target path where the resources will be deployed to.<br>This is a relative path to the `/site/wwwroot/webapps` folder in your Web App server.
+   `includes` | A list of patterns to include, e.g. `**/*.xml`.
+   `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
+
+### Web App on Linux
+
 <a name="container-setting"></a>
-### Container Setting
+#### Container Setting
 
 In the `<containerSettings>` element of your `pom.xml` file, you can specify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
 
