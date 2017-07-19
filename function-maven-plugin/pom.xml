@@ -9,6 +9,7 @@
     <version>0.1.0</version>
     <packaging>maven-plugin</packaging>
     <name>Azure Functions Maven Plugin</name>
+    <description>Maven Plugin for Azure Functions</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
 
     <properties>
