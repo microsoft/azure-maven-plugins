@@ -13,7 +13,7 @@
 <a name="web-app-on-windows"></a>
 ## Web App (on Windows) with Java 8, Tomcat and FTP deployment
 The following configuration is applicable for below scenario:
-- Referencing `<serverId>` in `settings.xml` to authenticate with Azure
+- Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Windows
 - Using Java 8 and Tomcat 8.5
 - Using FTP to deploy **WAR** file to `/site/wwwroot/webapps/` directory in your Web App server
@@ -29,7 +29,7 @@ The following configuration is applicable for below scenario:
                <artifactId>webapp-maven-plugin</artifactId>
                <version>0.1.0</version>
                <configuration>
-                  <!-- Referencing <serverId> in settings.xml to authenticate with Azure -->
+                  <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
                     <serverId>azure-auth</serverId>
                   </authentication>
@@ -78,7 +78,7 @@ The following configuration is applicable for below scenario:
 <a name="web-app-on-linux-public-docker"></a>
 ## Web App on Linux with public DockerHub container image
 The following configuration is applicable for below scenario:
-- Referencing `${azure.auth.filePath}` in `settings.xml` to authenticate with Azure
+- Referencing `${azure.auth.filePath}` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Linux
 - Using public DockerHub image `springio/gs-spring-boot-docker:latest` as runtime stack
 - Add Application Settings to your Web App
@@ -93,7 +93,7 @@ The following configuration is applicable for below scenario:
                <artifactId>webapp-maven-plugin</artifactId>
                <version>0.1.0</version>
                <configuration>
-                  <!-- Referencing ${azure.auth.filePath} from settings.xml to authenticate with Azure -->
+                  <!-- Referencing ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
                   <authentication>
                     <file>${azure.auth.filePath}</file>
                   </authentication>
@@ -132,7 +132,7 @@ The following configuration is applicable for below scenario:
 <a name="web-app-on-linux-private-docker"></a>
 ## Web App on Linux with private DockerHub container image
 The following configuration is applicable for below scenario:
-- Referencing `<serverId>` in `settings.xml` to authenticate with Azure
+- Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Linux
 - Using private DockerHub image `your-docker-account/your-private-image:latest` as runtime stack
 - Add Application Settings to your Web App
@@ -147,7 +147,7 @@ The following configuration is applicable for below scenario:
                <artifactId>webapp-maven-plugin</artifactId>
                <version>0.1.0</version>
                <configuration>
-                  <!-- Referencing <serverId> in settings.xml to authenticate with Azure -->
+                  <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
                     <serverId>azure-auth</serverId>
                   </authentication>
@@ -187,7 +187,7 @@ The following configuration is applicable for below scenario:
 <a name="web-app-on-linux-private-registry"></a>
 ## Web App on Linux with docker container image in private container registry
 The following configuration is applicable for below scenario:
-- Referencing `<serverId>` in `settings.xml` to authenticate with Azure
+- Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Linux
 - Using image `example.azurecr.io/image-name:latest` from private container registry `https://example.azurecr.io` as runtime stack
 - Add Application Settings to your Web App
@@ -202,7 +202,7 @@ The following configuration is applicable for below scenario:
                <artifactId>webapp-maven-plugin</artifactId>
                <version>0.1.0</version>
                <configuration>
-                  <!-- Referencing <serverId> in settings.xml to authenticate with Azure -->
+                  <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
                     <serverId>azure-auth</serverId>
                   </authentication>
