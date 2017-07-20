@@ -1,10 +1,25 @@
 # Azure Web Apps Maven Plugin
 
+#### Table of Content
+- [Prerequisites](#prerequisites)
+- [Goals](#goals)
+- [Usage](#usage)
+- [Quick Samples](#quick-samples)
+- [Configuration](#configuration)
+    - [Authentication with Azure](#authentication-with-azure)
+    - [Web App (on Windows)](#web-app-on-windows)
+        - [Java Runtime](#java-runtime)
+        - [Web Container](#web-container)
+    - [Web App on Linux](#web-app-on-linux)
+        - [Container Setting](#container-setting)
+
+
 The Azure Web Apps plugin provides seamless integration of Azure Web Apps into Maven, 
-and makes it easier for developers to deploy to Web App and [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro) in Azure.
+and makes it easier for developers to deploy to Web App (on Windows) and [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro) in Azure.
 
 **Note**: This plugin is still in preview; feedback and feature requests are warmly welcome.
 
+<a name="prerequisites"></a>
 ## Prerequisites
 
 Tool | Required Version
@@ -12,6 +27,7 @@ Tool | Required Version
 JDK | 1.7 and above
 Maven | 3.0 and above
 
+<a name="goals"></a>
 ## Goals
 
 The Azure Web Apps plugin has only one goal: `webapp:deploy`, which is bounded to the `deploy` phase. 
@@ -20,6 +36,7 @@ Goal | Description
 --- | ---
 `webapp:deploy` | Deploy artifacts or docker container image to an Azure Web App based on your configuration.<br>If the specified Web App does not exist, it will be created.
 
+<a name="usage"></a>
 ## Usage
 
 To use the Azure Web Apps plugin in your Maven Java app, add the following settings for the plugin to your `pom.xml` file:
@@ -43,6 +60,12 @@ To use the Azure Web Apps plugin in your Maven Java app, add the following setti
    <project>
    ```
 
+<a name="quick-samples"></a>
+## Quick Samples
+A few typical usages of Azure Web App Maven plugin are listed at [Web App Samples](./web-app-samples.md).
+You can choose one to quickly get started.
+
+<a name="configuration"></a>
 ## Configuration
 
 The Azure Web Apps plugin for Maven supports the following configuration properties:
@@ -156,9 +179,11 @@ to create an authentication file.
    
    You are all set. No extra configuration are required.
 
-### Web App (Windows based)
+<a name="web-app-on-windows"></a>
+### Web App (on Windows)
 
-For Windows-based Web App, only Java runtime stack is supported in our plugin. You can use `<javaVersion>` and `<javaWebContainer>` to configure your Web App.
+For Web App (on Windows), only Java runtime stack is supported in our plugin.
+You can use `<javaVersion>` and `<javaWebContainer>` to configure the runtime of your Web App.
 
 <a name="java-runtime"></a>
 #### Java Runtime
@@ -258,6 +283,8 @@ You can deploy your **WAR** file and other artifacts to Web App via FTP. The fol
    `includes` | A list of patterns to include, e.g. `**/*.xml`.
    `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
 
+
+<a name="web-app-on-windows"></a>
 ### Web App on Linux
 
 <a name="container-setting"></a>
@@ -273,73 +300,5 @@ Property | Required | Description
 `<serverId>` | false | Specifies the credentials for private docker hub images or private container registry images. (Note: `serverId` should be from your Maven `setting.xml` file.)
 `<registryUrl>` | false | Specifies the URL of private container registry images.
 
-The following examples illustrate the configuration settings for different image sources.
+Check out samples at [Web App Samples](./samples/web-app-samples.md) for the configuration settings for different image sources.
 
-#### Deploy an Azure Web App with a public Docker Hub image
-
-   ```xml
-   <plugin>
-      <groupId>com.microsoft.azure</groupId>
-      <artifactId>webapp-maven-plugin</artifactId>
-      <configuration>
-         <resourceGroup>yourResourceGroup</resourceGroup>
-         <appName>yourWebApp</appName>
-         <containerSettings>
-            <imageName>nginx</imageName>
-         </containerSettings>
-         <appSettings>
-            <property>
-               <name>PORT</name>
-               <value>80</value>
-            </property>
-         </appSettings>
-      </configuration>
-   </plugin>
-   ```
-
-#### Deploy an Azure Web App with a private Docker Hub image.
-
-   ```xml
-   <plugin>
-      <groupId>com.microsoft.azure</groupId>
-      <artifactId>webapp-maven-plugin</artifactId>
-      <configuration>
-         <resourceGroup>yourResourceGroup</resourceGroup>
-         <appName>yourWebApp</appName>
-         <containerSettings>
-            <imageName>microsoft/nginx</imageName>
-            <serverId>yourServerId</serverId>
-         </containerSettings>
-         <appSettings>
-            <property>
-               <name>PORT</name>
-               <value>80</value>
-            </property>
-         </appSettings>
-      </configuration>
-   </plugin>
-   ```
-
-#### Deploy an Azure Web App with image in private registry.
-
-   ```xml
-   <plugin>
-      <groupId>com.microsoft.azure</groupId>
-      <artifactId>webapp-maven-plugin</artifactId>
-      <configuration>
-         <resourceGroup>yourResourceGroup</resourceGroup>
-         <appName>yourWebApp</appName>
-         <containerSettings>
-            <imageName>microsoft.azurecr.io/nginx</imageName>
-            <serverId>yourServerId</serverId>
-            <registryUrl>https://microsoft.azurecr.io</registryUrl>
-         </containerSettings>
-         <appSettings>
-            <property>
-               <name>PORT</name>
-               <value>80</value>
-            </property>
-         </appSettings>
-      </configuration>
-   </plugin>
-   ```
