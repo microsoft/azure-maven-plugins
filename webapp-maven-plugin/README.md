@@ -62,7 +62,7 @@ To use the Azure Web Apps plugin in your Maven Java app, add the following setti
 
 <a name="quick-samples"></a>
 ## Quick Samples
-A few typical usages of Azure Web App Maven plugin are listed at [Web App Samples](./web-app-samples.md).
+A few typical usages of Azure Web App Maven plugin are listed at [Web App Samples](../samples/web-app-samples.md).
 You can choose one to quickly get started.
 
 <a name="configuration"></a>
@@ -300,5 +300,5 @@ Property | Required | Description
 `<serverId>` | false | Specifies the credentials for private docker hub images or private container registry images. (Note: `serverId` should be from your Maven `setting.xml` file.)
 `<registryUrl>` | false | Specifies the URL of private container registry images.
 
-Check out samples at [Web App Samples](./samples/web-app-samples.md) for the configuration settings for different image sources.
+Check out samples at [Web App Samples](../samples/web-app-samples.md) for the configuration settings for different image sources.
 

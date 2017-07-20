@@ -1,15 +1,16 @@
 # Sample usages of Azure Web Apps Maven Plugin
 
 #### Table of Content
-- [Web App (on Windows) with Java 8, Tomcat and FTP deployment](#)
+- [Web App (on Windows) with Java 8, Tomcat and FTP deployment](#wep-app-on-windows)
 
-- [Web App on Linux with public DockerHub container image](#)
+- [Web App on Linux with public DockerHub container image](#web-app-on-linux-public-docker)
 
-- [Web App on Linux with private DockerHub container image](#)
+- [Web App on Linux with private DockerHub container image](#web-app-on-linux-private-docker)
 
-- [Web App on Linux with docker container image in private container registry](#)
+- [Web App on Linux with docker container image in private container registry](#web-app-on-linux-private-registry)
 
 
+<a name="web-app-on-windows"></a>
 ## Web App (on Windows) with Java 8, Tomcat and FTP deployment
 The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in `settings.xml` to authenticate with Azure
@@ -74,6 +75,7 @@ The following configuration is applicable for below scenario:
    <project>
    ```
 
+<a name="web-app-on-linux-public-docker"></a>
 ## Web App on Linux with public DockerHub container image
 The following configuration is applicable for below scenario:
 - Referencing `${azure.auth.filePath}` in `settings.xml` to authenticate with Azure
@@ -127,6 +129,7 @@ The following configuration is applicable for below scenario:
    <project>
    ```
 
+<a name="web-app-on-linux-private-docker"></a>
 ## Web App on Linux with private DockerHub container image
 The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in `settings.xml` to authenticate with Azure
@@ -181,6 +184,7 @@ The following configuration is applicable for below scenario:
    <project>
    ```
 
+<a name="web-app-on-linux-private-registry"></a>
 ## Web App on Linux with docker container image in private container registry
 The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in `settings.xml` to authenticate with Azure
