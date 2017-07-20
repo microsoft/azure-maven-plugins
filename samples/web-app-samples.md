@@ -1,7 +1,7 @@
 # Sample usages of Azure Web Apps Maven Plugin
 
 #### Table of Content
-- [Web App (on Windows) with Java 8, Tomcat and FTP deployment](#wep-app-on-windows)
+- [Web App (on Windows) with Java 8, Tomcat and FTP deployment](#web-app-on-windows)
 
 - [Web App on Linux with public DockerHub container image](#web-app-on-linux-public-docker)
 
