@@ -29,10 +29,19 @@ public class AnnotationHandlerImplTest {
     public static final String QUEUE_TRIGGER_METHOD = "queueTriggerMethod";
     public static final String TIMER_TRIGGER_FUNCTION = "TimerTriggerFunction";
     public static final String TIMER_TRIGGER_METHOD = "timerTriggerMethod";
+    public static final String MULTI_OUTPUT_FUNCTION = "MultiOutputFunction";
+    public static final String MULTI_OUTPUT_METHOD = "multipleOutput";
 
     public class FunctionEntryPoints {
         @FunctionName(HTTP_TRIGGER_FUNCTION)
         public String httpTriggerMethod(@HttpTrigger(name = "req") String req) {
+            return "Hello!";
+        }
+
+        @FunctionName(MULTI_OUTPUT_FUNCTION)
+        @HttpOutput(name = "$return")
+        @QueueOutput(name = "$return", queueName = "qOut", connection = "conn")
+        public String multipleOutput(@HttpTrigger(name = "req") String req) {
             return "Hello!";
         }
 
@@ -50,30 +59,26 @@ public class AnnotationHandlerImplTest {
     public void findFunctions() throws Exception {
         final Log log = mock(Log.class);
         final AnnotationHandler handler = new AnnotationHandlerImpl(log);
+        final Set<Method> functions = handler.findFunctions(getClassUrl());
 
-        final URL classURL = ClasspathHelper.forPackage("com.microsoft.azure.maven.function.handlers")
-                .iterator()
-                .next();
-        final Set<Method> functions = handler.findFunctions(classURL);
-        assertEquals(3, functions.size());
+        assertEquals(4, functions.size());
         final List<String> methodNames = functions.stream().map(f -> f.getName()).collect(Collectors.toList());
         assertTrue(methodNames.contains(HTTP_TRIGGER_METHOD));
         assertTrue(methodNames.contains(QUEUE_TRIGGER_METHOD));
         assertTrue(methodNames.contains(TIMER_TRIGGER_METHOD));
+        assertTrue(methodNames.contains(MULTI_OUTPUT_METHOD));
     }
 
     @Test
     public void generateConfigurations() throws Exception {
         final Log log = mock(Log.class);
         final AnnotationHandler handler = new AnnotationHandlerImpl(log);
-
-        final URL classURL = ClasspathHelper.forPackage("com.microsoft.azure.maven.function.handlers")
-                .iterator()
-                .next();
-        final Set<Method> functions = handler.findFunctions(classURL);
+        final Set<Method> functions = handler.findFunctions(getClassUrl());
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(functions);
+        configMap.values().forEach(config -> config.validate());
 
-        assertEquals(3, configMap.size());
+        assertEquals(4, configMap.size());
+
         assertTrue(configMap.containsKey(HTTP_TRIGGER_FUNCTION));
         final FunctionConfiguration httpTriggerFunctionConfig = configMap.get(HTTP_TRIGGER_FUNCTION);
         assertEquals(getFullyQualifiedMethodName(HTTP_TRIGGER_METHOD), httpTriggerFunctionConfig.getEntryPoint());
@@ -89,6 +94,18 @@ public class AnnotationHandlerImplTest {
         final FunctionConfiguration timerTriggerFunctionConfig = configMap.get(TIMER_TRIGGER_FUNCTION);
         assertEquals(getFullyQualifiedMethodName(TIMER_TRIGGER_METHOD), timerTriggerFunctionConfig.getEntryPoint());
         assertEquals(1, timerTriggerFunctionConfig.getBindings().size());
+
+        assertTrue(configMap.containsKey(MULTI_OUTPUT_FUNCTION));
+        final FunctionConfiguration multiOutputFunctionConfig = configMap.get(MULTI_OUTPUT_FUNCTION);
+        assertEquals(getFullyQualifiedMethodName(MULTI_OUTPUT_METHOD), multiOutputFunctionConfig.getEntryPoint());
+        assertFalse(multiOutputFunctionConfig.isDisabled());
+        assertEquals(3, multiOutputFunctionConfig.getBindings().size());
+    }
+
+    private URL getClassUrl() {
+        return ClasspathHelper.forPackage("com.microsoft.azure.maven.function.handlers")
+                .iterator()
+                .next();
     }
 
     private String getFullyQualifiedMethodName(final String methodName) {

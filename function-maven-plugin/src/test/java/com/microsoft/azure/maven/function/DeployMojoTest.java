@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
 import org.apache.maven.model.Resource;
@@ -47,23 +48,23 @@ public class DeployMojoTest {
         assertEquals("appName", mojo.getAppName());
 
         assertEquals("westeurope", mojo.getRegion());
-
-        assertEquals("function-maven-plugin", mojo.getPluginName());
     }
 
-    //@Test
+    @Test
     public void doExecute() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom.xml");
         assertNotNull(mojo);
 
         final DeployMojo mojoSpy = spy(mojo);
-        final Log log = mock(Log.class);
-        doReturn(log).when(mojoSpy).getLog();
+        doCallRealMethod().when(mojoSpy).getLog();
         final ArtifactHandler handler = mock(ArtifactHandler.class);
         doReturn(handler).when(mojoSpy).getArtifactHandler();
-        doReturn(new ArrayList<Resource>()).when(mojoSpy).getResources();
-        doNothing().when(mojoSpy).createFunctionAppIfNotExist();
+        doCallRealMethod().when(mojoSpy).createFunctionAppIfNotExist();
         doCallRealMethod().when(mojoSpy).getAppName();
+        doReturn("~/target").when(mojoSpy).getBuildDirectoryAbsolutePath();
+        doCallRealMethod().when(mojoSpy).getResources();
+        final FunctionApp app = mock(FunctionApp.class);
+        doReturn(app).when(mojoSpy).getFunctionApp();
 
         mojoSpy.doExecute();
         verify(mojoSpy, times(1)).createFunctionAppIfNotExist();

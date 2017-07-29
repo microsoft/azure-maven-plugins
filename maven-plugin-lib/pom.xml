@@ -162,6 +162,7 @@
                     <check/>
                     <instrumentation>
                         <excludes>
+                            <exclude>**/AuthenticationSetting.class</exclude>
                             <exclude>**/telemetry/**.class</exclude>
                         </excludes>
                     </instrumentation>

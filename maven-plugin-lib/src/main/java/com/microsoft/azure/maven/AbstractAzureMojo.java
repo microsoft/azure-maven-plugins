@@ -14,6 +14,7 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -39,6 +40,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo
 
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
+
+    @Parameter( defaultValue = "${plugin}", readonly = true, required = true )
+    private PluginDescriptor plugin;
 
     /**
      * The system settings for Maven. This is the instance resulting from
@@ -69,10 +73,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo
     private String sessionId = UUID.randomUUID().toString();
 
     private String installationId = GetHashMac.getHashMac();
-
-    private String pluginName = Utils.getValueFromPluginDescriptor("artifactId");
-
-    private String pluginVersion = Utils.getValueFromPluginDescriptor("version");
 
     public MavenProject getProject() {
         return project;
@@ -115,11 +115,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo
     }
 
     public String getPluginName() {
-        return pluginName;
+        return plugin.getArtifactId();
     }
 
     public String getPluginVersion() {
-        return pluginVersion;
+        return plugin.getVersion();
     }
 
     public String getUserAgent() {
@@ -163,7 +163,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo
                 throw new MojoExecutionException(AZURE_INIT_FAIL);
             } else {
                 // Repopulate subscriptionId in case it is not configured.
-                getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
+                getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, getAzureClient().subscriptionId());
             }
 
             trackMojoStart();
