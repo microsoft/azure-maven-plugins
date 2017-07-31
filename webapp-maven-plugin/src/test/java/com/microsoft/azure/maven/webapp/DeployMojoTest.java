@@ -11,7 +11,9 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,8 +58,6 @@ public class DeployMojoTest {
         assertEquals("westeurope", mojo.getRegion());
 
         assertEquals(PricingTier.STANDARD_S1, mojo.getPricingTier());
-
-        assertEquals("webapp-maven-plugin", mojo.getPluginName());
 
         assertEquals(null, mojo.getJavaVersion());
 
@@ -109,22 +109,44 @@ public class DeployMojoTest {
     }
 
     @Test
-    public void testExecute() throws Exception {
+    public void testDoExecute() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         assertNotNull(mojo);
 
         final DeployMojo mojoSpy = spy(mojo);
-        final DeployFacade facade = mock(DeployFacade.class);
+        final DeployFacade facade = getDeployFacade();
         doReturn(facade).when(mojoSpy).getDeployFacade();
-        final Azure azure = mock(Azure.class);
-        when(azure.subscriptionId()).thenReturn("subscriptionId");
-        ReflectionTestUtils.setField(mojoSpy, "azure", azure);
+        doCallRealMethod().when(mojoSpy).getLog();
 
-        mojoSpy.execute();
+        mojoSpy.doExecute();
     }
 
     private DeployMojo getMojoFromPom(String filename) throws Exception {
         final File pom = new File(DeployMojoTest.class.getResource(filename).toURI());
         return (DeployMojo) rule.lookupMojo("deploy", pom);
+    }
+
+    private DeployFacade getDeployFacade() {
+        return new DeployFacade() {
+            @Override
+            public DeployFacade setupRuntime() throws MojoExecutionException {
+                return this;
+            }
+
+            @Override
+            public DeployFacade applySettings() throws MojoExecutionException {
+                return this;
+            }
+
+            @Override
+            public DeployFacade commitChanges() throws MojoExecutionException {
+                return this;
+            }
+
+            @Override
+            public DeployFacade deployArtifacts() throws Exception {
+                return this;
+            }
+        };
     }
 }

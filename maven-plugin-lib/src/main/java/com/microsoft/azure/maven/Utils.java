@@ -71,24 +71,6 @@ public final class Utils {
     }
 
     /**
-     * Get string value from plugin descriptor file, namely /META-INF/maven/pugin.xml .
-     *
-     * @param tagName Valid tagName in /META-INF/maven/plugin.xml, such as "artifactId", "version" etc..
-     * @return String value of target property.
-     */
-    public static String getValueFromPluginDescriptor(final String tagName) {
-        try (final InputStream is = Utils.class.getResourceAsStream("/META-INF/maven/plugin.xml")) {
-            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            final DocumentBuilder builder = factory.newDocumentBuilder();
-            final Document doc = builder.parse(is);
-            doc.getDocumentElement().normalize();
-            return doc.getElementsByTagName(tagName).item(0).getTextContent();
-        } catch (Exception e) {
-        }
-        return null;
-    }
-
-    /**
      * Copy resources to target directory using Maven resource filtering so that we don't have to handle
      * recursive directory listing and pattern matching.
      * In order to disable filtering, the "filtering" property is force set to False.

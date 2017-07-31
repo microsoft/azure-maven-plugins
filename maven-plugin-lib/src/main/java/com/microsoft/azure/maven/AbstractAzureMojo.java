@@ -14,12 +14,15 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
+import org.codehaus.plexus.util.StringUtils;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 import static com.microsoft.azure.maven.telemetry.AppInsightsProxy.*;
@@ -30,12 +33,16 @@ import static com.microsoft.azure.maven.telemetry.AppInsightsProxy.*;
 public abstract class AbstractAzureMojo extends AbstractMojo
         implements TelemetryConfiguration, AuthConfiguration {
     public static final String AZURE_INIT_FAIL = "Failed to initialize Azure client object.";
+    public static final String FAILURE_REASON = "failureReason";
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
 
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
+
+    @Parameter( defaultValue = "${plugin}", readonly = true, required = true )
+    private PluginDescriptor plugin;
 
     /**
      * The system settings for Maven. This is the instance resulting from
@@ -66,10 +73,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo
     private String sessionId = UUID.randomUUID().toString();
 
     private String installationId = GetHashMac.getHashMac();
-
-    private String pluginName = Utils.getValueFromPluginDescriptor("artifactId");
-
-    private String pluginVersion = Utils.getValueFromPluginDescriptor("version");
 
     public MavenProject getProject() {
         return project;
@@ -112,11 +115,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo
     }
 
     public String getPluginName() {
-        return pluginName;
+        return plugin.getArtifactId();
     }
 
     public String getPluginVersion() {
-        return pluginVersion;
+        return plugin.getVersion();
     }
 
     public String getUserAgent() {
@@ -154,12 +157,58 @@ public abstract class AbstractAzureMojo extends AbstractMojo
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (getAzureClient() == null) {
-            getTelemetryProxy().trackEvent(TelemetryEvent.INIT_FAILURE);
-            throw new MojoExecutionException(AZURE_INIT_FAIL);
+        try {
+            if (getAzureClient() == null) {
+                getTelemetryProxy().trackEvent(TelemetryEvent.INIT_FAILURE);
+                throw new MojoExecutionException(AZURE_INIT_FAIL);
+            } else {
+                // Repopulate subscriptionId in case it is not configured.
+                getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, getAzureClient().subscriptionId());
+            }
+
+            trackMojoStart();
+
+            doExecute();
+
+            trackMojoSuccess();
+        } catch (Exception e) {
+            processException(e);
+        }
+    }
+
+    /**
+     * Sub-class should implement this method to do real work.
+     *
+     * @throws Exception
+     */
+    protected abstract void doExecute() throws Exception;
+
+    protected void trackMojoStart() {
+        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".start");
+    }
+
+    protected void trackMojoSuccess() {
+        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".success");
+    }
+
+    protected void trackMojoFailure(final String message) {
+        final HashMap<String, String> failureReason = new HashMap<>();
+        failureReason.put(FAILURE_REASON, message);
+        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".failure");
+    }
+
+    protected void processException(final Exception exception) throws MojoExecutionException {
+        final String message = exception.getMessage();
+        if (StringUtils.isEmpty(message)) {
+            trackMojoFailure(exception.toString());
         } else {
-            // Repopulate subscriptionId in case it is not configured.
-            getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
+            trackMojoFailure(message);
+        }
+
+        if (isFailingOnError()) {
+            throw new MojoExecutionException(message, exception);
+        } else {
+            getLog().error(message);
         }
     }
 }

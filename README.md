@@ -7,6 +7,7 @@
 This repository contains all Maven plugins for Microsoft Azure services. Complete list of all plugins are shown as below.
 
 ### [Azure Web Apps Maven Plugin](./webapp-maven-plugin/README.md)
+### [Azure Functions Maven Plugin](./function-maven-plugin/README.md)
 
 
 ### Contributing

@@ -4,13 +4,13 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.Utils;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -18,12 +18,12 @@ import java.io.IOException;
 import java.util.List;
 
 public class FTPArtifactHandlerImpl implements ArtifactHandler {
-    public static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot/webapps";
+    public static final String DEFAULT_FUNCTION_ROOT = "/site/wwwroot/";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
 
-    private AbstractWebAppMojo mojo;
+    private AbstractFunctionMojo mojo;
 
-    public FTPArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
+    public FTPArtifactHandlerImpl(final AbstractFunctionMojo mojo) {
         this.mojo = mojo;
     }
 
@@ -34,21 +34,26 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
     }
 
     protected void copyResourcesToStageDirectory(final List<Resource> resources) throws IOException {
-        Utils.copyResources(mojo.getProject(), mojo.getSession(), mojo.getMavenResourcesFiltering(), resources,
+        Utils.copyResources(
+                mojo.getProject(),
+                mojo.getSession(),
+                mojo.getMavenResourcesFiltering(),
+                resources,
                 mojo.getDeploymentStageDirectory());
     }
 
     protected void uploadDirectoryToFTP() throws MojoExecutionException {
         final FTPUploader uploader = getUploader();
-        final WebApp app = mojo.getWebApp();
+        final FunctionApp app = mojo.getFunctionApp();
         final PublishingProfile profile = app.getPublishingProfile();
         final String serverUrl = profile.ftpUrl().split("/", 2)[0];
 
-        uploader.uploadDirectoryWithRetries(serverUrl,
+        uploader.uploadDirectoryWithRetries(
+                serverUrl,
                 profile.ftpUsername(),
                 profile.ftpPassword(),
                 mojo.getDeploymentStageDirectory(),
-                DEFAULT_WEBAPP_ROOT,
+                DEFAULT_FUNCTION_ROOT,
                 DEFAULT_MAX_RETRY_TIMES);
     }
 

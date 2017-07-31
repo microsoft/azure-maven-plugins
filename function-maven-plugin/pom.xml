@@ -6,7 +6,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>function-maven-plugin</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <packaging>maven-plugin</packaging>
     <name>Azure Functions Maven Plugin</name>
     <description>Maven Plugin for Azure Functions</description>
@@ -21,6 +21,9 @@
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.version>1.1.2</azure.version>
         <azure.ai.version>1.0.8</azure.ai.version>
+        <azure.maven-lib.version>0.1.1</azure.maven-lib.version>
+        <azure.function.version>1.0.0</azure.function.version>
+        <reflections.version>0.9.11</reflections.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.4.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
@@ -83,6 +86,15 @@
         </profile>
     </profiles>
 
+    <!-- Use local repo to host private JAR before the official package is released -->
+    <repositories>
+        <repository>
+            <id>local-repo</id>
+            <name>local-repo</name>
+            <url>file://${project.basedir}/repo</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -129,7 +141,17 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>maven-plugin-lib</artifactId>
-            <version>0.1.0</version>
+            <version>${azure.maven-lib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure.serverless</groupId>
+            <artifactId>azure-functions-java-core</artifactId>
+            <version>${azure.function.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>${reflections.version}</version>
         </dependency>
 
         <!-- TEST -->
@@ -208,8 +230,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.3</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -224,7 +246,6 @@
                     <check/>
                     <instrumentation>
                         <excludes>
-                            <exclude>**/configuration/*.class</exclude>
                             <exclude>**/HelpMojo.class</exclude>
                         </excludes>
                     </instrumentation>
