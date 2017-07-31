@@ -17,9 +17,6 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
     protected String finalName;
 
-    @Parameter(defaultValue = "${project.build.directory}", readonly = true, required = true)
-    protected File buildDirectory;
-
     @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true, required = true)
     protected File outputDirectory;
 
@@ -34,10 +31,6 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
 
     public String getFinalName() {
         return finalName;
-    }
-
-    public String getBuildDirectoryAbsolutePath() {
-        return buildDirectory.getAbsolutePath();
     }
 
     public String getResourceGroup() {
@@ -59,12 +52,11 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     }
 
     public FunctionApp getFunctionApp() {
-        FunctionApp app = null;
         try {
-            app = getAzureClient().appServices().functionApps().getByResourceGroup(getResourceGroup(), getAppName());
+            return getAzureClient().appServices().functionApps().getByResourceGroup(getResourceGroup(), getAppName());
         } catch (Exception e) {
             // Swallow exception
         }
-        return app;
+        return null;
     }
 }

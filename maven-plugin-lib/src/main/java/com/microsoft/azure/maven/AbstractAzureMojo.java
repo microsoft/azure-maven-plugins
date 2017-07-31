@@ -22,6 +22,7 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -41,8 +42,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
 
-    @Parameter( defaultValue = "${plugin}", readonly = true, required = true )
-    private PluginDescriptor plugin;
+    @Parameter(defaultValue = "${project.build.directory}", readonly = true, required = true)
+    protected File buildDirectory;
+
+    @Parameter(defaultValue = "${plugin}", readonly = true, required = true)
+    protected PluginDescriptor plugin;
 
     /**
      * The system settings for Maven. This is the instance resulting from
@@ -80,6 +84,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo
 
     public MavenSession getSession() {
         return session;
+    }
+
+    public String getBuildDirectoryAbsolutePath() {
+        return buildDirectory.getAbsolutePath();
     }
 
     public MavenResourcesFiltering getMavenResourcesFiltering() {

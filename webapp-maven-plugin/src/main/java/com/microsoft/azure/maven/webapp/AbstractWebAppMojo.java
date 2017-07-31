@@ -95,7 +95,9 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     }
 
     public String getDeploymentStageDirectory() {
-        return Paths.get(getProject().getBasedir().getAbsolutePath(), "target", "staged-" + getAppName()).toString();
+        return Paths.get(getBuildDirectoryAbsolutePath(),
+                "azure-webapps",
+                getAppName()).toString();
     }
 
     public List<Resource> getResources() {

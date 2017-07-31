@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class FTPArtifactHandlerImpl implements ArtifactHandler {
-    public static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot/webapps";
+    public static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
 
     private AbstractWebAppMojo mojo;
@@ -34,7 +34,10 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
     }
 
     protected void copyResourcesToStageDirectory(final List<Resource> resources) throws IOException {
-        Utils.copyResources(mojo.getProject(), mojo.getSession(), mojo.getMavenResourcesFiltering(), resources,
+        Utils.copyResources(mojo.getProject(),
+                mojo.getSession(),
+                mojo.getMavenResourcesFiltering(),
+                resources,
                 mojo.getDeploymentStageDirectory());
     }
 

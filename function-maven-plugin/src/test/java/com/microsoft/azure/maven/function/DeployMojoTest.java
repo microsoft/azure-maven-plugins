@@ -9,8 +9,6 @@ package com.microsoft.azure.maven.function;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
-import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,11 +16,8 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
-import java.util.ArrayList;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)

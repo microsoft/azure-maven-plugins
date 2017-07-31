@@ -11,7 +11,10 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.DeployMojo;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +25,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -51,6 +55,17 @@ public class FTPArtifactHandlerImplTest {
 
     @Test
     public void copyResourcesToStageDirectory() throws Exception {
+        when(mojo.getProject()).thenReturn(mock(MavenProject.class));
+        when(mojo.getSession()).thenReturn(mock(MavenSession.class));
+        when(mojo.getMavenResourcesFiltering()).thenReturn(mock(MavenResourcesFiltering.class));
+        when(mojo.getDeploymentStageDirectory()).thenReturn("stageDirectory");
+
+        handler.copyResourcesToStageDirectory(new ArrayList<Resource>());
+        verify(mojo, times(1)).getProject();
+        verify(mojo, times(1)).getSession();
+        verify(mojo, times(1)).getMavenResourcesFiltering();
+        verify(mojo, times(1)).getDeploymentStageDirectory();
+        verifyNoMoreInteractions(mojo);
     }
 
     @Test
@@ -81,5 +96,10 @@ public class FTPArtifactHandlerImplTest {
                 .uploadDirectoryWithRetries(anyString(), (String) isNull(), (String) isNull(), (String) isNull(),
                         anyString(), anyInt());
         verifyNoMoreInteractions(uploader);
+    }
+
+    @Test
+    public void getUploader() throws Exception {
+        assertTrue(handler.getUploader() instanceof FTPUploader);
     }
 }
