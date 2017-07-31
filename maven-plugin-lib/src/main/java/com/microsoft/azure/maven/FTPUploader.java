@@ -89,7 +89,7 @@ public class FTPUploader {
         log.debug("FTP username: " + username);
         boolean isSuccess = false;
         try {
-            final FTPClient ftpClient = new FTPClient();
+            final FTPClient ftpClient = getFTPClient();
             ftpClient.connect(ftpServer);
             ftpClient.login(username, password);
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
@@ -170,6 +170,10 @@ public class FTPUploader {
                 log.info(String.format(UPLOAD_FILE_REPLY, logPrefix, replyMessage));
             }
         }
+    }
+
+    protected FTPClient getFTPClient() {
+        return new FTPClient();
     }
 
     private boolean isCommandFailed(final int replyCode) {

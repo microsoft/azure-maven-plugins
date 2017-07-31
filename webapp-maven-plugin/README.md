@@ -1,4 +1,5 @@
 # Azure Web Apps Maven Plugin
+[![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22webapp-maven-plugin%22)
 
 #### Table of Content
 - [Prerequisites](#prerequisites)
@@ -279,7 +280,7 @@ You can deploy your **WAR** file and other artifacts to Web App via FTP. The fol
    Property | Description
    ---|---
    `directory` | Specifies the absolute path where the resources are stored.
-   `targetPath` | Specifies the target path where the resources will be deployed to.<br>This is a relative path to the `/site/wwwroot/webapps` folder in your Web App server.
+   `targetPath` | Specifies the target path where the resources will be deployed to.<br>This is a relative path to the `/site/wwwroot/` folder of FTP server in your Web App.
    `includes` | A list of patterns to include, e.g. `**/*.xml`.
    `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
 

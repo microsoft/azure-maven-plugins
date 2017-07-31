@@ -6,8 +6,13 @@
 
 package com.microsoft.azure.maven;
 
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Resource;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
+import org.apache.maven.shared.filtering.MavenResourcesExecution;
+import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +20,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,7 +50,7 @@ public class UtilsTest {
     }
 
     @Test
-    public void testGetServer() {
+    public void getServer() {
         final String invalidServerId = "non-existing";
         final String validServerId = "existing";
 
@@ -54,7 +64,7 @@ public class UtilsTest {
     }
 
     @Test
-    public void testGetValueFromServerConfiguration() {
+    public void getValueFromServerConfiguration() {
         assertNull(null, Utils.getValueFromServerConfiguration(null, null));
 
         when(server.getConfiguration()).thenReturn(null);
@@ -73,5 +83,20 @@ public class UtilsTest {
         assertEquals("randomValue", Utils.getValueFromServerConfiguration(server, "random-key"));
         verify(node, times(1)).getValue();
         verifyNoMoreInteractions(node);
+    }
+
+    @Test
+    public void copyResources() throws Exception {
+        final MavenResourcesFiltering filtering = mock(MavenResourcesFiltering.class);
+        final Resource resource = new Resource();
+        resource.setTargetPath("/");
+
+        Utils.copyResources(mock(MavenProject.class),
+                mock(MavenSession.class),
+                filtering,
+                Arrays.asList(new Resource[] {resource}),
+                "target");
+        verify(filtering, times(1)).filterResources(any(MavenResourcesExecution.class));
+        verifyNoMoreInteractions(filtering);
     }
 }
