@@ -28,34 +28,34 @@ import java.util.Properties;
  * Base abstract class for shared configurations and operations.
  */
 public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
-    @Parameter(property = "resourceGroup", required = true)
+    @Parameter(property = "webapp.resourceGroup", required = true)
     protected String resourceGroup;
 
-    @Parameter(property = "appName", required = true)
+    @Parameter(property = "webapp.appName", required = true)
     protected String appName;
 
-    @Parameter(property = "region", defaultValue = "westus")
+    @Parameter(property = "webapp.region", defaultValue = "westus")
     protected String region;
 
-    @Parameter(property = "pricingTier", defaultValue = "S1")
+    @Parameter(property = "webapp.pricingTier", defaultValue = "S1")
     protected PricingTierEnum pricingTier;
 
-    @Parameter(property = "javaVersion")
+    @Parameter(property = "webapp.javaVersion")
     protected String javaVersion;
 
-    @Parameter(property = "javaWebContainer")
+    @Parameter(property = "webapp.javaWebContainer")
     protected String javaWebContainer;
 
-    @Parameter(property = "containerSettings")
+    @Parameter
     protected ContainerSetting containerSettings;
 
-    @Parameter(property = "appSettings")
+    @Parameter
     protected Properties appSettings;
 
-    @Parameter(property = "deploymentType")
+    @Parameter(property = "webapp.deploymentType")
     protected String deploymentType;
 
-    @Parameter(property = "resources")
+    @Parameter
     protected List<Resource> resources;
 
     public String getResourceGroup() {

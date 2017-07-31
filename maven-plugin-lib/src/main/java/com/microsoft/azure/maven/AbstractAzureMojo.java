@@ -58,10 +58,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo
     @Component(role = MavenResourcesFiltering.class, hint = "default")
     protected MavenResourcesFiltering mavenResourcesFiltering;
 
-    @Parameter(property = "authentication")
+    @Parameter
     protected AuthenticationSetting authentication;
 
-    @Parameter(property = "subscriptionId")
+    @Parameter
     protected String subscriptionId = "";
 
     @Parameter(property = "allowTelemetry", defaultValue = "true")

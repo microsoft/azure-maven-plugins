@@ -27,7 +27,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>webapp-maven-plugin</artifactId>
-               <version>0.1.0</version>
+               <version>0.1.1</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -91,7 +91,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>webapp-maven-plugin</artifactId>
-               <version>0.1.0</version>
+               <version>0.1.1</version>
                <configuration>
                   <!-- Referencing ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -145,7 +145,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>webapp-maven-plugin</artifactId>
-               <version>0.1.0</version>
+               <version>0.1.1</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -200,7 +200,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>webapp-maven-plugin</artifactId>
-               <version>0.1.0</version>
+               <version>0.1.1</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
