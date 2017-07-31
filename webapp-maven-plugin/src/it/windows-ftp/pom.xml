@@ -26,7 +26,7 @@
                     <resources>
                         <resource>
                             <directory>${project.basedir}</directory>
-                            <targetPath>/</targetPath>
+                            <targetPath>webapps</targetPath>
                             <includes>
                                 <include>pom.xml</include>
                             </includes>

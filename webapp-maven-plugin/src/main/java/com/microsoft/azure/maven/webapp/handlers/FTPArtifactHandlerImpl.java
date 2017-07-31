@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class FTPArtifactHandlerImpl implements ArtifactHandler {
-    public static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot/";
+    public static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
 
     private AbstractWebAppMojo mojo;

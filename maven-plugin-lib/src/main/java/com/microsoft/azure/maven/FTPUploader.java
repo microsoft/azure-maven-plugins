@@ -93,6 +93,7 @@ public class FTPUploader {
             ftpClient.connect(ftpServer);
             ftpClient.login(username, password);
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            ftpClient.enterLocalPassiveMode();
 
             log.info(String.format(UPLOAD_DIR_START, sourceDirectoryPath, targetDirectoryPath));
             uploadDirectory(ftpClient, sourceDirectoryPath, targetDirectoryPath, "");

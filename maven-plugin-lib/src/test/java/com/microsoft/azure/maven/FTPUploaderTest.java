@@ -73,6 +73,7 @@ public class FTPUploaderTest {
         verify(ftpClient, times(1)).connect(anyString());
         verify(ftpClient, times(1)).login(anyString(), anyString());
         verify(ftpClient, times(1)).setFileType(FTP.BINARY_FILE_TYPE);
+        verify(ftpClient, times(1)).enterLocalPassiveMode();
         verify(ftpClient, times(1)).disconnect();
         verifyNoMoreInteractions(ftpClient);
         verify(uploaderSpy, times(1)).uploadDirectory(any(FTPClient.class), anyString(), anyString(), anyString());

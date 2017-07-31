@@ -52,8 +52,8 @@ The following configuration is applicable for below scenario:
                      <resource>
                         <!-- Where your artifacts are stored -->
                         <directory>${project.basedir}/target</directory>
-                        <!-- Relative path to /site/wwwroot/webapps -->
-                        <targetPath>/</targetPath>
+                        <!-- Relative path to /site/wwwroot/ -->
+                        <targetPath>webapps</targetPath>
                         <includes>
                            <include>*.war</include>
                         </includes>
