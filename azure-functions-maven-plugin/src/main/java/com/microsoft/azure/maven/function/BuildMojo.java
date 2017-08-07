@@ -43,7 +43,7 @@ public class BuildMojo extends AbstractFunctionMojo {
     public static final String SAVE_SINGLE_SUCCESS = "\tSuccessfully saved to ";
     public static final String FUNCTION_JSON = "function.json";
     public static final String COPY_JARS = "Copying JARs to staging directory ";
-    public static final String COPY_SUCCESS = "Copies successfully.";
+    public static final String COPY_SUCCESS = "Copied successfully.";
     public static final String BUILD_SUCCESS = "Successfully built Azure Functions.";
 
     @Override
