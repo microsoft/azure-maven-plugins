@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.microsoft.azure</groupId>
-    <artifactId>function-maven-plugin</artifactId>
+    <artifactId>azure-functions-maven-plugin</artifactId>
     <version>0.1.2</version>
     <packaging>maven-plugin</packaging>
     <name>Azure Functions Maven Plugin</name>
