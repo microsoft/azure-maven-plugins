@@ -9,13 +9,7 @@ package com.microsoft.azure.maven.function.handlers;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.maven.FTPUploader;
-import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
-import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
-
-import java.io.IOException;
-import java.util.List;
 
 public class FTPArtifactHandlerImpl implements ArtifactHandler {
     public static final String DEFAULT_FUNCTION_ROOT = "/site/wwwroot/";
@@ -28,21 +22,7 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
     }
 
     @Override
-    public void publish(final List<Resource> resources) throws Exception {
-        copyResourcesToStageDirectory(resources);
-        uploadDirectoryToFTP();
-    }
-
-    protected void copyResourcesToStageDirectory(final List<Resource> resources) throws IOException {
-        Utils.copyResources(
-                mojo.getProject(),
-                mojo.getSession(),
-                mojo.getMavenResourcesFiltering(),
-                resources,
-                mojo.getDeploymentStageDirectory());
-    }
-
-    protected void uploadDirectoryToFTP() throws MojoExecutionException {
+    public void publish() throws Exception {
         final FTPUploader uploader = getUploader();
         final FunctionApp app = mojo.getFunctionApp();
         final PublishingProfile profile = app.getPublishingProfile();
