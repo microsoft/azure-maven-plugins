@@ -1,0 +1,52 @@
+<component-set>
+    <components>
+        <component>
+            <!--
+                This lifecycle mapping is based on the jar lifecycle mapping;
+                differences highlighted below
+            -->
+            <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+            <role-hint>azure-functions</role-hint>
+            <implementation>
+                org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
+            </implementation>
+            <configuration>
+                <lifecycles>
+                    <lifecycle>
+                        <id>default</id>
+                        <phases>
+                            <process-resources>
+                                org.apache.maven.plugins:maven-resources-plugin:resources
+                            </process-resources>
+                            <compile>
+                                org.apache.maven.plugins:maven-compiler-plugin:compile
+                            </compile>
+                            <process-test-resources>
+                                org.apache.maven.plugins:maven-resources-plugin:testResources
+                            </process-test-resources>
+                            <test-compile>
+                                org.apache.maven.plugins:maven-compiler-plugin:testCompile
+                            </test-compile>
+                            <test>
+                                org.apache.maven.plugins:maven-surefire-plugin:test
+                            </test>
+                            <package>
+                                org.apache.maven.plugins:maven-jar-plugin:jar,
+                                <!-- Added -->
+                                ${project.groupId}:${project.artifactId}:build
+                            </package>
+                            <install>
+                                org.apache.maven.plugins:maven-install-plugin:install
+                            </install>
+                            <deploy>
+                                org.apache.maven.plugins:maven-deploy-plugin:deploy,
+                                <!-- Added -->
+                                ${project.groupId}:${project.artifactId}:deploy
+                            </deploy>
+                        </phases>
+                    </lifecycle>
+                </lifecycles>
+            </configuration>
+        </component>
+    </components>
+</component-set>
