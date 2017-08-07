@@ -74,7 +74,7 @@ public class BuildMojo extends AbstractFunctionMojo {
             getLog().info("Starting processing function: " + config.getKey());
             final File file = getFunctionJsonFile(config.getKey());
             mapper.writerWithDefaultPrettyPrinter().writeValue(file, config.getValue());
-            getLog().info("Successfully write to " + file.getAbsolutePath());
+            getLog().info("Successfully saved to " + file.getAbsolutePath());
         }
     }
 
