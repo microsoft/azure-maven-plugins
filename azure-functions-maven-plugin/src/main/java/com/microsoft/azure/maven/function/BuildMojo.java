@@ -71,8 +71,10 @@ public class BuildMojo extends AbstractFunctionMojo {
     protected void outputJsonFile(final Map<String, FunctionConfiguration> configMap) throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
         for (final Map.Entry<String, FunctionConfiguration> config : configMap.entrySet()) {
+            getLog().info("Starting processing function: " + config.getKey());
             final File file = getFunctionJsonFile(config.getKey());
             mapper.writerWithDefaultPrettyPrinter().writeValue(file, config.getValue());
+            getLog().info("Successfully write to " + file.getAbsolutePath());
         }
     }
 
