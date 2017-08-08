@@ -25,11 +25,15 @@ public class DeployFacadeImplWithCreateTest {
     @Mock
     private AbstractWebAppMojo mojo;
 
+    @Mock
+    private Log log;
+
     private DeployFacadeImplWithCreate facade = null;
 
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
+        when(mojo.getLog()).thenReturn(log);
         facade = new DeployFacadeImplWithCreate(mojo);
     }
 

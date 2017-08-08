@@ -67,7 +67,7 @@ public class DeployFacadeBaseImplTest {
 
         facade.deployArtifacts();
 
-        verify(log, times(1)).warn(any(String.class));
+        verify(log, times(1)).info(any(String.class));
 
         // Valid resources
         final ArtifactHandler handler = mock(ArtifactHandler.class);
