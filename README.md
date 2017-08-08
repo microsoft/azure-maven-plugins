@@ -2,14 +2,14 @@
 [![Travis CI](https://travis-ci.org/Microsoft/azure-maven-plugins.svg?branch=master)](https://travis-ci.org/Microsoft/azure-maven-plugins/) 
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/qfpxt9gct33dfmns/branch/master?svg=true)](https://ci.appveyor.com/project/xscript/azure-maven-plugins)
 [![codecov](https://codecov.io/gh/microsoft/azure-maven-plugins/branch/master/graph/badge.svg)](https://codecov.io/gh/microsoft/azure-maven-plugins)
-[![MIT License](http://img.shields.io/badge/license-MIT-green.svg) ](https://github.com/Microsoft/azure-maven-plugins/blob/master/LICENSE)
+[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/Microsoft/azure-maven-plugins/blob/master/LICENSE)
 
 ### Plugins
 This repository contains all Maven plugins for Microsoft Azure services. Complete list of all plugins are shown as below.
 
 Maven Plugin | Maven Central Version
 ---|---
-[Azure Web Apps Maven Plugin](./azure-webapp-maven-plugin/README.md) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22webapp-maven-plugin%22)
+[Azure Web Apps Maven Plugin](./azure-webapp-maven-plugin/README.md) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22)
 [Azure Functions Maven Plugin](./azure-functions-maven-plugin/README.md) | *Still Under Development*
 
 ### Reporting Issues and Feedback

@@ -1,5 +1,5 @@
 # Azure Web Apps Maven Plugin
-[![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22webapp-maven-plugin%22)
+[![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22)
 
 #### Table of Content
 - [Prerequisites](#prerequisites)
@@ -49,8 +49,8 @@ To use the Azure Web Apps plugin in your Maven Java app, add the following setti
          <plugins>
             <plugin>
                <groupId>com.microsoft.azure</groupId>
-               <artifactId>webapp-maven-plugin</artifactId>
-               <version>0.1.0</version>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>0.1.2</version>
                <configuration>
                   ...
                </configuration>
@@ -130,7 +130,7 @@ The following methods are supported for authenticating with Azure.
    ```xml
    <plugin>
        <groupId>com.microsoft.azure</groupId>
-       <artifactId>webapp-maven-plugin</artifactId>
+       <artifactId>azure-webapp-maven-plugin</artifactId>
        <configuration>
            <authentication>
               <serverId>azure-auth</serverId>
@@ -150,7 +150,7 @@ to create an authentication file.
    ```xml
    <plugin>
       <groupId>com.microsoft.azure</groupId>
-      <artifactId>webapp-maven-plugin</artifactId>
+      <artifactId>azure-webapp-maven-plugin</artifactId>
       <configuration>
          <authentication>
             <file>/absolute/path/to/auth/file</file>
@@ -208,7 +208,7 @@ It is recommended to ignore the minor version number like the following example,
    ```xml
    <plugin>
       <groupId>com.microsoft.azure</groupId>
-      <artifactId>webapp-maven-plugin</artifactId>
+      <artifactId>azure-webapp-maven-plugin</artifactId>
       <configuration>
          <javaVersion>1.8</javaVersion>
          ...
@@ -240,7 +240,7 @@ It is recommended to ignore the minor version number like the following example,
    ```xml
    <plugin>
       <groupId>com.microsoft.azure</groupId>
-      <artifactId>webapp-maven-plugin</artifactId>
+      <artifactId>azure-webapp-maven-plugin</artifactId>
       <configuration>
          <javaWebContainer>tomcat 8.5</javaWebContainer>
          ...
@@ -255,13 +255,13 @@ You can deploy your **WAR** file and other artifacts to Web App via FTP. The fol
    ```xml
    <plugin>
       <groupId>com.microsoft.azure</groupId>
-      <artifactId>webapp-maven-plugin</artifactId>
+      <artifactId>azure-webapp-maven-plugin</artifactId>
       <configuration>
          <deploymentType>ftp</deploymentType>
          <resources>
             <resource>
                 <directory>${project.basedir}/target</directory>
-                <targetPath>/</targetPath>
+                <targetPath>webapps</targetPath>
                 <includes>
                     <include>*.war</include>
                 </includes>
