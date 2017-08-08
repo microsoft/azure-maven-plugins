@@ -42,16 +42,6 @@ public class JavaRuntimeHandlerImplTest {
 
     @Test
     public void updateAppRuntime() throws Exception {
-        // Validation failed
-        MojoExecutionException exception = null;
-        try {
-            handler.updateAppRuntime();
-        } catch (MojoExecutionException e) {
-            exception = e;
-        } finally {
-            assertNotNull(exception);
-        }
-
         // Success
         final SiteInner siteInner = mock(SiteInner.class);
         when(siteInner.kind()).thenReturn("app");

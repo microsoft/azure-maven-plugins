@@ -29,10 +29,9 @@ import java.util.UUID;
 import static com.microsoft.azure.maven.telemetry.AppInsightsProxy.*;
 
 /**
- * Base abstract class for shared configurations and operations.
+ * Base abstract class for all Azure Mojos.
  */
-public abstract class AbstractAzureMojo extends AbstractMojo
-        implements TelemetryConfiguration, AuthConfiguration {
+public abstract class AbstractAzureMojo extends AbstractMojo implements TelemetryConfiguration, AuthConfiguration {
     public static final String AZURE_INIT_FAIL = "Failed to initialize Azure client object.";
     public static final String FAILURE_REASON = "failureReason";
 
@@ -58,15 +57,45 @@ public abstract class AbstractAzureMojo extends AbstractMojo
     @Component(role = MavenResourcesFiltering.class, hint = "default")
     protected MavenResourcesFiltering mavenResourcesFiltering;
 
+    /**
+     * Authentication setting for Azure Management API.<br/>
+     * Below are the supported sub-elements within {@code <authentication>}. You can use one of them to authenticate
+     * with azure<br/>
+     * {@code <serverId>} specifies the credentials of your Azure service principal, by referencing a server definition
+     * in Maven's settings.xml<br/>
+     * {@code <file>} specifies the absolute path of your authentication file for Azure.
+     *
+     * @since 0.1.0
+     */
     @Parameter
     protected AuthenticationSetting authentication;
 
+    /**
+     * Azure subscription Id. You only need to specify it when:
+     * <ul>
+     * <li>you are using authentication file</li>
+     * <li>there are more than one subscription in the authentication file</li>
+     * </ul>
+     *
+     * @since 0.1.0
+     */
     @Parameter
     protected String subscriptionId = "";
 
+    /**
+     * Boolean flag to turn on/off telemetry within current Maven plugin.
+     *
+     * @since 0.1.0
+     */
     @Parameter(property = "allowTelemetry", defaultValue = "true")
     protected boolean allowTelemetry;
 
+    /**
+     * Boolean flag to control whether throwing exception from current Maven plugin when meeting any error.<br/>
+     * If set to true, the exception from current Maven plugin will fail the current Maven run.
+     *
+     * @since 0.1.0
+     */
     @Parameter(property = "failsOnError", defaultValue = "true")
     protected boolean failsOnError;
 
@@ -180,7 +209,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo
 
             trackMojoSuccess();
         } catch (Exception e) {
-            processException(e);
+            handleException(e);
         }
     }
 
@@ -202,10 +231,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo
     protected void trackMojoFailure(final String message) {
         final HashMap<String, String> failureReason = new HashMap<>();
         failureReason.put(FAILURE_REASON, message);
-        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".failure");
+        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".failure", failureReason);
     }
 
-    protected void processException(final Exception exception) throws MojoExecutionException {
+    protected void handleException(final Exception exception) throws MojoExecutionException {
         final String message = exception.getMessage();
         if (StringUtils.isEmpty(message)) {
             trackMojoFailure(exception.toString());

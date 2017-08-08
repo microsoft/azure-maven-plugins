@@ -12,8 +12,6 @@ import com.microsoft.azure.maven.webapp.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class JavaRuntimeHandlerImpl implements RuntimeHandler {
-    public static final String WEB_CONTAINER_NOT_CONFIGURED = "<javaWebContainer> is not configured.";
-
     private AbstractWebAppMojo mojo;
 
     public JavaRuntimeHandlerImpl(final AbstractWebAppMojo mojo) {
@@ -22,8 +20,6 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public WebApp.DefinitionStages.WithCreate defineAppWithRunTime() throws MojoExecutionException {
-        validate();
-
         final WebApp.DefinitionStages.WithCreate withCreate = WebAppUtils.defineApp(mojo)
                 .withNewWindowsPlan(mojo.getPricingTier());
 
@@ -34,8 +30,6 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public WebApp.Update updateAppRuntime() throws MojoExecutionException {
-        validate();
-
         final WebApp app = mojo.getWebApp();
         WebAppUtils.assureWindowsWebApp(app);
 
@@ -43,11 +37,5 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
         update.withJavaVersion(mojo.getJavaVersion())
                 .withWebContainer(mojo.getJavaWebContainer());
         return update;
-    }
-
-    private void validate() throws MojoExecutionException {
-        if (mojo.getJavaWebContainer() == null) {
-            throw new MojoExecutionException(WEB_CONTAINER_NOT_CONFIGURED);
-        }
     }
 }

@@ -150,7 +150,7 @@ public class AbstractAzureMojoTest {
         final String message = "test exception message";
         String actualMessage = null;
         try {
-            mojo.processException(new Exception(message));
+            mojo.handleException(new Exception(message));
         } catch (Exception e) {
             actualMessage = e.getMessage();
         }

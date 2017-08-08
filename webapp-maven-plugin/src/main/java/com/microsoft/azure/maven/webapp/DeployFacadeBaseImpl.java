@@ -11,7 +11,6 @@ import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.handlers.*;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 
@@ -87,8 +86,6 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
 
     protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
         switch (getMojo().getDeploymentType()) {
-            case LOCAL_GIT:
-                throw new NotImplementedException();
             case FTP:
             default:
                 return new FTPArtifactHandlerImpl(getMojo());
