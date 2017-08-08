@@ -9,16 +9,11 @@ package com.microsoft.azure.maven.function;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * Goal which deploy function to Azure.
+ * Goal which deploy artifacts to specified Function App in Azure.
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
@@ -33,7 +28,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         getLog().info(FUNCTION_DEPLOY_START + getAppName() + "...");
 
         createFunctionAppIfNotExist();
-        getArtifactHandler().publish(getResources());
+        getArtifactHandler().publish();
         getFunctionApp().syncTriggers();
 
         getLog().info(FUNCTION_DEPLOY_SUCCESS + getAppName());
@@ -51,18 +46,6 @@ public class DeployMojo extends AbstractFunctionMojo {
                     .create();
             getLog().info(FUNCTION_APP_CREATED + getAppName());
         }
-    }
-
-    protected List<Resource> getResources() {
-        final Resource resource = new Resource();
-        resource.setDirectory(getBuildDirectoryAbsolutePath());
-        resource.setTargetPath("/");
-        resource.setFiltering(false);
-        resource.setIncludes(Arrays.asList("*.jar"));
-
-        final ArrayList<Resource> resources = new ArrayList<>();
-        resources.add(resource);
-        return resources;
     }
 
     protected ArtifactHandler getArtifactHandler() {

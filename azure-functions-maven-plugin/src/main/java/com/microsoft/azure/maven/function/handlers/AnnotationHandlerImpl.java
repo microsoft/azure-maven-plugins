@@ -115,13 +115,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     }
 
     protected BaseBinding parseMethodAnnotation(final Annotation annotation) {
-        BaseBinding ret = null;
-        if (annotation instanceof HttpOutput) {
-            ret = new HttpBinding((HttpOutput) annotation);
-        } else if (annotation instanceof QueueOutput) {
-            ret = new QueueBinding((QueueOutput) annotation);
-        }
-
+        final BaseBinding ret = parseParameterAnnotation(annotation);
         if (ret != null) {
             ret.setName("$return");
         }

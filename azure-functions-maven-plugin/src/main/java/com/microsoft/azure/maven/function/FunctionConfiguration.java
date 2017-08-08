@@ -71,10 +71,6 @@ public class FunctionConfiguration {
         this.entryPoint = entryPoint;
     }
 
-    public void setBindings(List<BaseBinding> bindings) {
-        this.bindings = bindings;
-    }
-
     public void validate() {
         if (getBindings().stream().filter(b -> b.getType().endsWith("Trigger")).count() > 1) {
             throw new RuntimeException(MULTIPLE_TRIGGER + getEntryPoint());

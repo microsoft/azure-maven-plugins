@@ -10,12 +10,14 @@ import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
 import org.apache.maven.plugin.testing.MojoRule;
+import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -46,6 +48,23 @@ public class DeployMojoTest {
     }
 
     @Test
+    public void getDeploymetnStageDirectory() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
+        assertEquals(Paths.get("target", "azure-functions", "appName").toString(),
+                mojoSpy.getDeploymentStageDirectory());
+    }
+
+    @Test
+    public void getFunctionApp() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        doReturn(null).when(mojoSpy).getAzureClient();
+        assertNull(mojoSpy.getFunctionApp());
+    }
+
+    @Test
     public void doExecute() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom.xml");
         assertNotNull(mojo);
@@ -56,15 +75,13 @@ public class DeployMojoTest {
         doReturn(handler).when(mojoSpy).getArtifactHandler();
         doCallRealMethod().when(mojoSpy).createFunctionAppIfNotExist();
         doCallRealMethod().when(mojoSpy).getAppName();
-        doReturn("~/target").when(mojoSpy).getBuildDirectoryAbsolutePath();
-        doCallRealMethod().when(mojoSpy).getResources();
         final FunctionApp app = mock(FunctionApp.class);
         doReturn(app).when(mojoSpy).getFunctionApp();
 
         mojoSpy.doExecute();
         verify(mojoSpy, times(1)).createFunctionAppIfNotExist();
         verify(mojoSpy, times(1)).doExecute();
-        verify(handler, times(1)).publish(anyList());
+        verify(handler, times(1)).publish();
         verifyNoMoreInteractions(handler);
     }
 

@@ -12,26 +12,12 @@ import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.function.DeployMojo;
 import org.junit.Test;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class FTPArtifactHandlerImplTest {
     @Test
     public void publish() throws Exception {
-        final DeployMojo mojo = mock(DeployMojo.class);
-        final FTPArtifactHandlerImpl handler = new FTPArtifactHandlerImpl(mojo);
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
-        doNothing().when(handlerSpy).copyResourcesToStageDirectory(null);
-        doNothing().when(handlerSpy).uploadDirectoryToFTP();
-
-        handlerSpy.publish(null);
-        verify(handlerSpy, times(1)).copyResourcesToStageDirectory(isNull());
-        verify(handlerSpy, times(1)).uploadDirectoryToFTP();
-        verify(handlerSpy, times(1)).publish(isNull());
-        verifyNoMoreInteractions(handlerSpy);
-    }
-
-    @Test
-    public void uploadDirectoryToFTP() throws Exception {
         final String ftpUrl = "ftp.azurewebsites.net/site/wwwroot";
         final PublishingProfile profile = mock(PublishingProfile.class);
         when(profile.ftpUrl()).thenReturn(ftpUrl);
@@ -44,7 +30,11 @@ public class FTPArtifactHandlerImplTest {
         final FTPArtifactHandlerImpl handlerSpy = spy(handler);
         doReturn(uploader).when(handlerSpy).getUploader();
 
-        handlerSpy.uploadDirectoryToFTP();
+        handlerSpy.publish();
+
+        verify(handlerSpy, times(1)).getUploader();
+        verify(handlerSpy, times(1)).publish();
+        verifyNoMoreInteractions(handlerSpy);
         verify(mojo, times(1)).getFunctionApp();
         verify(mojo, times(1)).getDeploymentStageDirectory();
         verifyNoMoreInteractions(mojo);
@@ -57,5 +47,12 @@ public class FTPArtifactHandlerImplTest {
         verify(uploader, times(1))
                 .uploadDirectoryWithRetries(anyString(), isNull(), isNull(), isNull(), anyString(), anyInt());
         verifyNoMoreInteractions(uploader);
+    }
+
+    @Test
+    public void getUploader() throws Exception {
+        final DeployMojo mojo = mock(DeployMojo.class);
+        final FTPArtifactHandlerImpl handler = new FTPArtifactHandlerImpl(mojo);
+        assertTrue(handler.getUploader() instanceof FTPUploader);
     }
 }
