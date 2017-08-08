@@ -10,6 +10,8 @@ import com.microsoft.azure.management.appservice.WebApp;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class DeployFacadeImplWithCreate extends DeployFacadeBaseImpl {
+    public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
+    public static final String WEBAPP_CREATED = "Successfully created Web App";
     private WebApp.DefinitionStages.WithCreate withCreate = null;
 
     public DeployFacadeImplWithCreate(final AbstractWebAppMojo mojo) {
@@ -30,7 +32,9 @@ public class DeployFacadeImplWithCreate extends DeployFacadeBaseImpl {
 
     @Override
     public DeployFacadeBaseImpl commitChanges() throws MojoExecutionException {
+        getMojo().getLog().info(WEBAPP_NOT_EXIST);
         withCreate.create();
+        getMojo().getLog().info(WEBAPP_CREATED);
         return this;
     }
 }

@@ -36,7 +36,7 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
     public DeployFacade deployArtifacts() throws Exception {
         final List<Resource> resources = getMojo().getResources();
         if (resources == null || resources.isEmpty()) {
-            getMojo().getLog().warn(NO_RESOURCES_CONFIG);
+            getMojo().getLog().info(NO_RESOURCES_CONFIG);
         } else {
             getArtifactHandler().publish(resources);
         }
