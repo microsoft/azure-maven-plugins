@@ -6,28 +6,20 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.maven.telemetry.TelemetryEvent;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.codehaus.plexus.util.StringUtils;
-
-import java.util.HashMap;
 
 /**
- * Goal which deploy specified docker image to a Linux web app in Azure.
+ * Deploy an Azure Web App, either Windows-based or Linux-based.
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
-    public static final String APOSTROPHE = "...";
-
-    public static final String WEBAPP_DEPLOY_START = "Start deploying to Web App ";
-    public static final String WEBAPP_DEPLOY_SUCCESS = "Successfully deployed to Web App ";
+    public static final String WEBAPP_DEPLOY_START = "Start deploying to Web App %s...";
+    public static final String WEBAPP_DEPLOY_SUCCESS = "Successfully deployed Web App at https://%s.azurewebsites.net";
 
     @Override
     protected void doExecute() throws Exception {
-        getLog().info(WEBAPP_DEPLOY_START + getAppName() + APOSTROPHE);
+        getLog().info(String.format(WEBAPP_DEPLOY_START, getAppName()));
 
         final DeployFacade facade = getDeployFacade();
         facade.setupRuntime()
@@ -36,7 +28,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
         facade.deployArtifacts();
 
-        getLog().info(WEBAPP_DEPLOY_SUCCESS + getAppName());
+        getLog().info(String.format(WEBAPP_DEPLOY_SUCCESS, getAppName()));
     }
 
     protected DeployFacade getDeployFacade() {

@@ -61,7 +61,7 @@ public class DeployMojoTest {
 
         assertEquals(null, mojo.getJavaVersion());
 
-        assertEquals(null, mojo.getJavaWebContainer());
+        assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getJavaWebContainer());
 
         assertFalse(mojo.getContainerSettings().isEmpty());
 

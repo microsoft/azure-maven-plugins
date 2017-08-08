@@ -21,9 +21,10 @@ import java.nio.file.Paths;
  * Utility class to upload directory to FTP server
  */
 public class FTPUploader {
-    public static final String UPLOAD_START = "#%d Starting uploading to FTP server: %s";
+    public static final String UPLOAD_START = "Starting uploading files to FTP server: ";
     public static final String UPLOAD_SUCCESS = "Successfully uploaded files to FTP server: ";
-    public static final String UPLOAD_FAILURE = "Failed to upload files to FTP server after retries...";
+    public static final String UPLOAD_FAILURE = "Failed to upload files to FTP server, retrying immediately (%d/%d)";
+    public static final String UPLOAD_RETRY_FAILURE = "Failed to upload files to FTP server after %d retries...";
     public static final String UPLOAD_DIR_START = "Starting uploading directory: %s --> %s";
     public static final String UPLOAD_DIR_FINISH = "Finished uploading directory: %s --> %s";
     public static final String UPLOAD_DIR_FAILURE = "Failed to upload directory: %s --> %s";
@@ -56,22 +57,19 @@ public class FTPUploader {
     public void uploadDirectoryWithRetries(final String ftpServer, final String username, final String password,
                                            final String sourceDirectory, final String targetDirectory,
                                            final int maxRetryCount) throws MojoExecutionException {
-        boolean isSuccess = false;
         int retryCount = 0;
         while (retryCount < maxRetryCount) {
             retryCount++;
-            log.info(String.format(UPLOAD_START, retryCount, ftpServer));
+            log.info(UPLOAD_START + ftpServer);
             if (uploadDirectory(ftpServer, username, password, sourceDirectory, targetDirectory)) {
-                isSuccess = true;
-                break;
+                log.info(UPLOAD_SUCCESS + ftpServer);
+                return;
+            } else {
+                log.warn(String.format(UPLOAD_FAILURE, retryCount, maxRetryCount));
             }
         }
-
-        if (isSuccess) {
-            log.info(UPLOAD_SUCCESS + ftpServer);
-        } else {
-            throw new MojoExecutionException(UPLOAD_FAILURE);
-        }
+        // Reaching here means all retries failed.
+        throw new MojoExecutionException(String.format(UPLOAD_RETRY_FAILURE, maxRetryCount));
     }
 
     /**

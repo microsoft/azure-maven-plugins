@@ -70,9 +70,9 @@ public class FTPArtifactHandlerImplTest {
 
     @Test
     public void uploadDirectoryToFTP() throws Exception {
-        final String FTP_URL = "ftp.azurewebsites.net/site/wwwroot";
+        final String ftpUrl = "ftp.azurewebsites.net/site/wwwroot";
         final PublishingProfile profile = mock(PublishingProfile.class);
-        when(profile.ftpUrl()).thenReturn(FTP_URL);
+        when(profile.ftpUrl()).thenReturn(ftpUrl);
         final WebApp app = mock(WebApp.class);
         when(app.getPublishingProfile()).thenReturn(profile);
         final DeployMojo mojo = mock(DeployMojo.class);
