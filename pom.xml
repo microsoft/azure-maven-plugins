@@ -34,8 +34,8 @@
     </developers>
 
     <modules>
-        <module>maven-plugin-lib</module>
-        <module>webapp-maven-plugin</module>
+        <module>azure-maven-plugin-lib</module>
+        <module>azure-webapp-maven-plugin</module>
         <module>azure-functions-maven-plugin</module>
     </modules>
 </project>
