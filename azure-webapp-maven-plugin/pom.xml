@@ -294,7 +294,7 @@
                     <invokerPropertiesFile>invoker.properties</invokerPropertiesFile>
                     <goals>
                         <goal>clean</goal>
-                        <goal>webapp:deploy</goal>
+                        <goal>azure-webapp:deploy</goal>
                     </goals>
                 </configuration>
                 <executions>
