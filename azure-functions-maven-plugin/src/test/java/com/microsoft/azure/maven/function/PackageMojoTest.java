@@ -9,41 +9,24 @@ package com.microsoft.azure.maven.function;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.testing.MojoRule;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.ReflectionUtils;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reflections.util.ClasspathHelper;
-
-import java.io.File;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BuildMojoTest {
-    @Rule
-    public MojoRule rule = new MojoRule() {
-        @Override
-        protected void before() throws Throwable {
-        }
-
-        @Override
-        protected void after() {
-        }
-    };
-
+public class PackageMojoTest extends MojoTestBase {
     @Test
     public void doExecute() throws Exception {
-        final BuildMojo mojo = getMojoFromPom("/pom.xml");
-        assertNotNull(mojo);
-
-        final BuildMojo mojoSpy = spy(mojo);
+        final PackageMojo mojo = getMojoFromPom();
+        final PackageMojo mojoSpy = spy(mojo);
         ReflectionUtils.setVariableValueInObject(mojoSpy, "finalName", "artifact-0.1.0");
         doReturn(mock(AnnotationHandler.class)).when(mojoSpy).getAnnotationHandler();
         doReturn(ClasspathHelper.forPackage("com.microsoft.azure.maven.function.handlers").toArray()[0])
@@ -60,27 +43,25 @@ public class BuildMojoTest {
 
     @Test
     public void getAnnotationHandler() throws Exception {
-        final BuildMojo mojo = getMojoFromPom("/pom.xml");
-        assertNotNull(mojo);
-
+        final PackageMojo mojo = getMojoFromPom();
         final AnnotationHandler handler = mojo.getAnnotationHandler();
+
         assertNotNull(handler);
         assertTrue(handler instanceof AnnotationHandlerImpl);
     }
 
     @Test
     public void getFunctionJsonFile() throws Exception {
-        final BuildMojo mojo = getMojoFromPom("/pom.xml");
-        assertNotNull(mojo);
-
-        final BuildMojo mojoSpy = spy(mojo);
+        final PackageMojo mojo = getMojoFromPom();
+        final PackageMojo mojoSpy = spy(mojo);
         doReturn("target/azure-functions").when(mojoSpy).getDeploymentStageDirectory();
 
         mojoSpy.getFunctionJsonFile("myFunction");
     }
 
-    private BuildMojo getMojoFromPom(String filename) throws Exception {
-        final File pom = new File(BuildMojoTest.class.getResource(filename).toURI());
-        return (BuildMojo) rule.lookupMojo("build", pom);
+    private PackageMojo getMojoFromPom() throws Exception {
+        final PackageMojo mojo = (PackageMojo) getMojoFromPom("/pom.xml", "package");
+        assertNotNull(mojo);
+        return mojo;
     }
 }

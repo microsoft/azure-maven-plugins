@@ -6,39 +6,30 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
+import com.microsoft.azure.management.appservice.FunctionApps;
+import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
-import org.apache.maven.plugin.testing.MojoRule;
-import org.codehaus.plexus.util.ReflectionUtils;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.File;
 import java.nio.file.Paths;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DeployMojoTest {
-    @Rule
-    public MojoRule rule = new MojoRule() {
-        @Override
-        protected void before() throws Throwable {
-        }
-
-        @Override
-        protected void after() {
-        }
-    };
-
+public class DeployMojoTest extends MojoTestBase {
     @Test
     public void getConfiguration() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom.xml");
-        assertNotNull(mojo);
+        final DeployMojo mojo = getMojoFromPom();
 
         assertEquals("resourceGroupName", mojo.getResourceGroup());
 
@@ -48,8 +39,8 @@ public class DeployMojoTest {
     }
 
     @Test
-    public void getDeploymetnStageDirectory() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom.xml");
+    public void getDeploymentStageDirectory() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
         final DeployMojo mojoSpy = spy(mojo);
         doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
         assertEquals(Paths.get("target", "azure-functions", "appName").toString(),
@@ -58,7 +49,7 @@ public class DeployMojoTest {
 
     @Test
     public void getFunctionApp() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom.xml");
+        final DeployMojo mojo = getMojoFromPom();
         final DeployMojo mojoSpy = spy(mojo);
         doReturn(null).when(mojoSpy).getAzureClient();
         assertNull(mojoSpy.getFunctionApp());
@@ -66,9 +57,7 @@ public class DeployMojoTest {
 
     @Test
     public void doExecute() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom.xml");
-        assertNotNull(mojo);
-
+        final DeployMojo mojo = getMojoFromPom();
         final DeployMojo mojoSpy = spy(mojo);
         doCallRealMethod().when(mojoSpy).getLog();
         final ArtifactHandler handler = mock(ArtifactHandler.class);
@@ -86,17 +75,111 @@ public class DeployMojoTest {
     }
 
     @Test
+    public void createFunctionAppIfNotExist() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
+        final DeployMojo mojoSpy = spy(mojo);
+        doReturn(null).when(mojoSpy).getFunctionApp();
+
+        mojoSpy.createFunctionAppIfNotExist();
+
+        verify(mojoSpy, times(2)).getAppName();
+    }
+
+    @Test
+    public void defineApp() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
+        final DeployMojo mojoSpy = spy(mojo);
+        final Azure azure = mock(Azure.class);
+        doReturn(azure).when(mojoSpy).getAzureClient();
+        final AppServiceManager appServiceManager = mock(AppServiceManager.class);
+        doReturn(appServiceManager).when(azure).appServices();
+        final FunctionApps functionApps = mock(FunctionApps.class);
+        doReturn(functionApps).when(appServiceManager).functionApps();
+        final Blank blank = mock(Blank.class);
+        doReturn(blank).when(functionApps).define(anyString());
+
+        final Blank ret = mojoSpy.defineApp("appName");
+
+        assertSame(blank, ret);
+    }
+
+    @Test
+    public void configureRegion() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
+        final DeployMojo mojoSpy = spy(mojo);
+        final Blank blank = mock(Blank.class);
+        final NewAppServicePlanWithGroup newAppServicePlanWithGroup = mock(NewAppServicePlanWithGroup.class);
+        doReturn(newAppServicePlanWithGroup).when(blank).withRegion(anyString());
+
+        final NewAppServicePlanWithGroup ret = mojoSpy.configureRegion(blank);
+
+        assertSame(newAppServicePlanWithGroup, ret);
+    }
+
+    @Test
+    public void configureExistingResourceGroup() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
+        final DeployMojo mojoSpy = spy(mojo);
+        doReturn(true).when(mojoSpy).isResourceGroupExist(anyString());
+        final NewAppServicePlanWithGroup newAppServicePlanWithGroup = mock(NewAppServicePlanWithGroup.class);
+        final WithCreate withCreate = mock(WithCreate.class);
+        doReturn(withCreate).when(newAppServicePlanWithGroup).withExistingResourceGroup(anyString());
+
+        final WithCreate ret = mojoSpy.configureResourceGroup(newAppServicePlanWithGroup);
+
+        assertSame(withCreate, ret);
+    }
+
+    @Test
+    public void configureNewResourceGroup() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
+        final DeployMojo mojoSpy = spy(mojo);
+        doReturn(false).when(mojoSpy).isResourceGroupExist(anyString());
+        final NewAppServicePlanWithGroup newAppServicePlanWithGroup = mock(NewAppServicePlanWithGroup.class);
+        final WithCreate withCreate = mock(WithCreate.class);
+        doReturn(withCreate).when(newAppServicePlanWithGroup).withNewResourceGroup(anyString());
+
+        final WithCreate ret = mojoSpy.configureResourceGroup(newAppServicePlanWithGroup);
+
+        assertSame(withCreate, ret);
+    }
+
+    @Test
+    public void configurePricingTier() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
+        final DeployMojo mojoSpy = spy(mojo);
+        final WithCreate withCreate = mock(WithCreate.class);
+
+        final WithCreate ret = mojoSpy.configurePricingTier(withCreate);
+
+        assertSame(withCreate, ret);
+        verify(withCreate, times(1)).withNewAppServicePlan(PricingTier.STANDARD_S1);
+    }
+
+    @Test
+    public void configureAppSettings() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
+        final WithCreate withCreate = mock(WithCreate.class);
+
+        final WithCreate ret = mojo.configureAppSettings(withCreate);
+
+        assertSame(withCreate, ret);
+        verify(withCreate, times(1)).withAppSettings(anyMap());
+    }
+
+    @Test
     public void getArtifactHandler() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom.xml");
-        assertNotNull(mojo);
+        final DeployMojo mojo = getMojoFromPom();
 
         final ArtifactHandler handler = mojo.getArtifactHandler();
+
         assertNotNull(handler);
         assertTrue(handler instanceof FTPArtifactHandlerImpl);
     }
 
-    private DeployMojo getMojoFromPom(String filename) throws Exception {
-        final File pom = new File(DeployMojoTest.class.getResource(filename).toURI());
-        return (DeployMojo) rule.lookupMojo("deploy", pom);
+    private DeployMojo getMojoFromPom() throws Exception {
+        final DeployMojo mojo = (DeployMojo) getMojoFromPom("/pom.xml", "deploy");
+        assertNotNull(mojo);
+        return mojo;
     }
 }
