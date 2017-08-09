@@ -32,6 +32,7 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
     public WebApp.Update updateAppRuntime() throws MojoExecutionException {
         final WebApp app = mojo.getWebApp();
         WebAppUtils.assureWindowsWebApp(app);
+        WebAppUtils.clearTags(app);
 
         final WebApp.Update update = app.update();
         update.withJavaVersion(mojo.getJavaVersion())

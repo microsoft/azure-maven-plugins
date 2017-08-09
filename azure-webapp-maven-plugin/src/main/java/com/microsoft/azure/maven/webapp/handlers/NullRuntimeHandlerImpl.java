@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class NullRuntimeHandlerImpl implements RuntimeHandler {
@@ -26,6 +27,8 @@ public class NullRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public WebApp.Update updateAppRuntime() throws MojoExecutionException {
-        return mojo.getWebApp().update();
+        final WebApp app = mojo.getWebApp();
+        WebAppUtils.clearTags(app);
+        return app.update();
     }
 }

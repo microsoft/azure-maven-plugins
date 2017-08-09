@@ -40,6 +40,7 @@ public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
     public WebApp.Update updateAppRuntime() throws MojoExecutionException {
         final WebApp app = mojo.getWebApp();
         WebAppUtils.assureLinuxWebApp(app);
+        WebAppUtils.clearTags(app);
 
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final Server server = Utils.getServer(mojo.getSettings(), containerSetting.getServerId());
