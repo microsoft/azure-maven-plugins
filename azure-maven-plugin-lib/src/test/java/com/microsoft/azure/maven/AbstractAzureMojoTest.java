@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractAzureMojoTest {
-    public static final String PLUGIN_NAME = "maven-plugin-lib";
+    public static final String PLUGIN_NAME = "azure-maven-plugin-lib";
     public static final String PLUGIN_VERSION = "0.1.0-SNAPSHOT";
     public static final String SUBSCRIPTION_ID = "fake-subscription-id";
 

@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.microsoft.azure</groupId>
-    <artifactId>webapp-maven-plugin</artifactId>
+    <artifactId>azure-webapp-maven-plugin</artifactId>
     <version>0.1.2</version>
     <packaging>maven-plugin</packaging>
-    <name>Azure Web Apps Maven Plugin</name>
+    <name>Maven Plugin for Azure Web Apps</name>
     <description>Maven Plugin for Azure Web Apps</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
 
@@ -20,7 +20,7 @@
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.ai.version>1.0.8</azure.ai.version>
-        <azure.maven-lib.version>0.1.2</azure.maven-lib.version>
+        <azure.maven-plugin-lib.version>0.1.2</azure.maven-plugin-lib.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.4.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
@@ -123,8 +123,8 @@
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
-            <artifactId>maven-plugin-lib</artifactId>
-            <version>${azure.maven-lib.version}</version>
+            <artifactId>azure-maven-plugin-lib</artifactId>
+            <version>${azure.maven-plugin-lib.version}</version>
         </dependency>
 
         <!-- TEST -->
@@ -294,7 +294,7 @@
                     <invokerPropertiesFile>invoker.properties</invokerPropertiesFile>
                     <goals>
                         <goal>clean</goal>
-                        <goal>webapp:deploy</goal>
+                        <goal>azure-webapp:deploy</goal>
                     </goals>
                 </configuration>
                 <executions>

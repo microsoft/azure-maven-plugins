@@ -1,4 +1,4 @@
-# Sample usages of Azure Web Apps Maven Plugin
+# Sample usages of Maven Plugin for Azure Web Apps
 
 #### Table of Content
 - [Web App (on Windows) with Java 8, Tomcat and FTP deployment](#web-app-on-windows)
@@ -26,8 +26,8 @@ The following configuration is applicable for below scenario:
          <plugins>
             <plugin>
                <groupId>com.microsoft.azure</groupId>
-               <artifactId>webapp-maven-plugin</artifactId>
-               <version>0.1.1</version>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>0.1.2</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -90,8 +90,8 @@ The following configuration is applicable for below scenario:
          <plugins>
             <plugin>
                <groupId>com.microsoft.azure</groupId>
-               <artifactId>webapp-maven-plugin</artifactId>
-               <version>0.1.1</version>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>0.1.2</version>
                <configuration>
                   <!-- Referencing ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -144,8 +144,8 @@ The following configuration is applicable for below scenario:
          <plugins>
             <plugin>
                <groupId>com.microsoft.azure</groupId>
-               <artifactId>webapp-maven-plugin</artifactId>
-               <version>0.1.1</version>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>0.1.2</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -199,8 +199,8 @@ The following configuration is applicable for below scenario:
          <plugins>
             <plugin>
                <groupId>com.microsoft.azure</groupId>
-               <artifactId>webapp-maven-plugin</artifactId>
-               <version>0.1.1</version>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>0.1.2</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>

@@ -8,7 +8,7 @@
         <plugins>
             <plugin>
                 <groupId>com.microsoft.azure</groupId>
-                <artifactId>webapp-maven-plugin</artifactId>
+                <artifactId>azure-webapp-maven-plugin</artifactId>
                 <configuration>
                     <authentication>
                         <serverId>azure-auth</serverId>
@@ -16,9 +16,9 @@
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
                     <region>westeurope</region>
-                    <pricingTier>s2</pricingTier>
-                    <javaVersion>1.8</javaVersion>
-                    <javaWebContainer>tomcat 8.5</javaWebContainer>
+                    <containerSettings>
+                        <imageName>nginx</imageName>
+                    </containerSettings>
                     <appSettings>
                         <property>
                             <name>PORT</name>

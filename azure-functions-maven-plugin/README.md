@@ -1,4 +1,4 @@
-# Azure Functions Maven Plugin
+# Maven Plugin for Azure Functions
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-functions-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-functions-maven-plugin%22)
 
 ## Prerequisites
@@ -29,7 +29,7 @@ Azure Functions Local Emulator | Latest version
 
 ## Usage
 
-To use the Azure Functions plugin in your Maven Java app, add the following snippet to your `pom.xml` file:
+To use the Maven Plugin for Azure Functions in your Maven Java app, add the following snippet to your `pom.xml` file:
 
    ```xml
    <project>
