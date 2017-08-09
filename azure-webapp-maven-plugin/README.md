@@ -31,11 +31,11 @@ Maven | 3.0 and above
 <a name="goals"></a>
 ## Goals
 
-The Maven Plugin for Azure Web Apps has only one goal: `webapp:deploy`. 
+The Maven Plugin for Azure Web Apps has only one goal: `azure-webapp:deploy`. 
 
 Goal | Description
 --- | ---
-`webapp:deploy` | Deploy artifacts or docker container image to an Azure Web App based on your configuration.<br>If the specified Web App does not exist, it will be created.
+`azure-webapp:deploy` | Deploy artifacts or docker container image to an Azure Web App based on your configuration.<br>If the specified Web App does not exist, it will be created.
 
 <a name="usage"></a>
 ## Usage
