@@ -1,4 +1,4 @@
-# Sample usages of Azure Web Apps Maven Plugin
+# Sample usages of Maven Plugin for Azure Web Apps
 
 #### Table of Content
 - [Web App (on Windows) with Java 8, Tomcat and FTP deployment](#web-app-on-windows)

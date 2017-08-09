@@ -9,8 +9,8 @@ This repository contains all Maven plugins for Microsoft Azure services. Complet
 
 Maven Plugin | Maven Central Version
 ---|---
-[Azure Web Apps Maven Plugin](./azure-webapp-maven-plugin/README.md) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22)
-[Azure Functions Maven Plugin](./azure-functions-maven-plugin/README.md) | *Still Under Development*
+[Maven Plugin for Azure Web Apps](./azure-webapp-maven-plugin/README.md) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22)
+[Maven Plugin for Azure Functions](./azure-functions-maven-plugin/README.md) | *Still Under Development*
 
 ### Reporting Issues and Feedback
 If you encounter any bugs with the maven plugins, please file an issue in the [Issues](https://github.com/microsoft/azure-maven-plugins/issues) section of our GitHub repo.

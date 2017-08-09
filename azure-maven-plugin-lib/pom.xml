@@ -8,7 +8,7 @@
     <artifactId>azure-maven-plugin-lib</artifactId>
     <version>0.1.2</version>
     <packaging>jar</packaging>
-    <name>Azure Maven plugin library</name>
+    <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
 

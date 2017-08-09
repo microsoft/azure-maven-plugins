@@ -1,4 +1,4 @@
-# Azure Web Apps Maven Plugin
+# Maven Plugin for Azure Web Apps
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22)
 
 #### Table of Content
@@ -15,7 +15,7 @@
         - [Container Setting](#container-setting)
 
 
-The Azure Web Apps plugin provides seamless integration of Azure Web Apps into Maven, 
+The Maven Plugin for Azure Web Apps provides seamless integration of Azure Web Apps into Maven, 
 and makes it easier for developers to deploy to Web App (on Windows) and [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro) in Azure.
 
 **Note**: This plugin is still in preview; feedback and feature requests are warmly welcome.
@@ -31,7 +31,7 @@ Maven | 3.0 and above
 <a name="goals"></a>
 ## Goals
 
-The Azure Web Apps plugin has only one goal: `webapp:deploy`, which is bounded to the `deploy` phase. 
+The Maven Plugin for Azure Web Apps has only one goal: `webapp:deploy`. 
 
 Goal | Description
 --- | ---
@@ -40,7 +40,7 @@ Goal | Description
 <a name="usage"></a>
 ## Usage
 
-To use the Azure Web Apps plugin in your Maven Java app, add the following settings for the plugin to your `pom.xml` file:
+To use the Maven Plugin for Azure Web Apps in your Maven Java app, add the following settings for the plugin to your `pom.xml` file:
 
    ```xml
    <project>
@@ -63,13 +63,13 @@ To use the Azure Web Apps plugin in your Maven Java app, add the following setti
 
 <a name="quick-samples"></a>
 ## Quick Samples
-A few typical usages of Azure Web App Maven plugin are listed at [Web App Samples](../samples/web-app-samples.md).
+A few typical usages of Maven Plugin for Azure Web Apps are listed at [Web App Samples](../samples/web-app-samples.md).
 You can choose one to quickly get started.
 
 <a name="configuration"></a>
 ## Configuration
 
-The Azure Web Apps plugin for Maven supports the following configuration properties:
+The Maven Plugin for Azure Web Apps supports the following configuration properties:
 
 Property | Required | Description
 ---|---|---
