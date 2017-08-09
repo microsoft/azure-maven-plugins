@@ -50,7 +50,7 @@ To use the Maven Plugin for Azure Web Apps in your Maven Java app, add the follo
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.1.2</version>
+               <version>0.1.3</version>
                <configuration>
                   ...
                </configuration>
