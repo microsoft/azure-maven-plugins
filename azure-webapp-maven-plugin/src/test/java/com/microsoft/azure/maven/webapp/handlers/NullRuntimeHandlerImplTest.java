@@ -7,6 +7,8 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.implementation.SiteInner;
+import com.microsoft.azure.management.appservice.implementation.WebAppsInner;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
@@ -47,9 +49,11 @@ public class NullRuntimeHandlerImplTest {
 
     @Test
     public void updateAppRuntime() throws Exception {
-        final WebApp.Update update = mock(WebApp.Update.class);
         final WebApp app = mock(WebApp.class);
+        final WebApp.Update update = mock(WebApp.Update.class);
         when(app.update()).thenReturn(update);
+        final SiteInner siteInner = mock(SiteInner.class);
+        when(app.inner()).thenReturn(siteInner);
         when(mojo.getWebApp()).thenReturn(app);
 
         assertSame(update, handler.updateAppRuntime());
