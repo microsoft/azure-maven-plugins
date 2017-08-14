@@ -16,6 +16,12 @@
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
                     <region>westeurope</region>
+                    <appSettings>
+                        <property>
+                            <name>key</name>
+                            <value>value</value>
+                        </property>
+                    </appSettings>
                 </configuration>
             </plugin>
         </plugins>

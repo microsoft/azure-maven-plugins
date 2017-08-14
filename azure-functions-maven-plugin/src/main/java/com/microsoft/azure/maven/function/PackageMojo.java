@@ -27,20 +27,23 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Goal which searches functions in target/classes directory and generates function.json files.
+ * Generate function.json files and copy JARs to staging directory
  */
-@Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE)
-public class BuildMojo extends AbstractFunctionMojo {
+@Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
+public class PackageMojo extends AbstractFunctionMojo {
     public static final String SEARCH_FUNCTIONS = "Searching for Azure Function entry points...";
     public static final String FOUND_FUNCTIONS = " Azure Function entry point(s) found.";
     public static final String GENERATE_CONFIG = "Generating Azure Function configurations...";
+    public static final String GENERATE_SKIP = "No Azure Functions found. Skip configuration generation.";
     public static final String GENERATE_DONE = "Generation done.";
     public static final String VALIDATE_CONFIG = "Validating generated configurations...";
+    public static final String VALIDATE_SKIP = "No configurations found. Skip validation.";
     public static final String VALIDATE_DONE = "Validation done.";
     public static final String SAVE_CONFIG = "Saving configurations to function.json...";
+    public static final String SAVE_SKIP = "No configurations found. Skip save.";
     public static final String SAVE_SUCCESS = "Saved successfully.";
-    public static final String SAVE_SINGLE_CONFIG = "\tStarting processing function: ";
-    public static final String SAVE_SINGLE_SUCCESS = "\tSuccessfully saved to ";
+    public static final String SAVE_SINGLE_CONFIG = "  Starting processing function: ";
+    public static final String SAVE_SINGLE_SUCCESS = "  Successfully saved to ";
     public static final String FUNCTION_JSON = "function.json";
     public static final String COPY_JARS = "Copying JARs to staging directory ";
     public static final String COPY_SUCCESS = "Copied successfully.";
@@ -56,7 +59,7 @@ public class BuildMojo extends AbstractFunctionMojo {
 
         validateConfigurations(configMap);
 
-        outputJsonFile(configMap);
+        writeConfigurationsToFiles(configMap);
 
         copyJarsToStageDirectory();
 
@@ -82,9 +85,13 @@ public class BuildMojo extends AbstractFunctionMojo {
                                                                         final Set<Method> methods) throws Exception {
         getLog().info(GENERATE_CONFIG);
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(methods);
-        final String scriptFilePath = getScriptFilePath();
-        configMap.values().forEach(config -> config.setScriptFile(scriptFilePath));
-        getLog().info(GENERATE_DONE);
+        if (configMap.size() == 0) {
+            getLog().info(GENERATE_SKIP);
+        } else {
+            final String scriptFilePath = getScriptFilePath();
+            configMap.values().forEach(config -> config.setScriptFile(scriptFilePath));
+            getLog().info(GENERATE_DONE);
+        }
         return configMap;
     }
 
@@ -98,20 +105,33 @@ public class BuildMojo extends AbstractFunctionMojo {
 
     protected void validateConfigurations(final Map<String, FunctionConfiguration> configMap) {
         getLog().info(VALIDATE_CONFIG);
-        configMap.values().forEach(config -> config.validate());
-        getLog().info(VALIDATE_DONE);
+        if (configMap.size() == 0) {
+            getLog().info(VALIDATE_SKIP);
+        } else {
+            configMap.values().forEach(config -> config.validate());
+            getLog().info(VALIDATE_DONE);
+        }
     }
 
-    protected void outputJsonFile(final Map<String, FunctionConfiguration> configMap) throws IOException {
+    protected void writeConfigurationsToFiles(final Map<String, FunctionConfiguration> configMap) throws IOException {
         getLog().info(SAVE_CONFIG);
-        final ObjectWriter objectWriter = getObjectWriter();
-        for (final Map.Entry<String, FunctionConfiguration> config : configMap.entrySet()) {
-            getLog().info(SAVE_SINGLE_CONFIG + config.getKey());
-            final File file = getFunctionJsonFile(config.getKey());
-            objectWriter.writeValue(file, config.getValue());
-            getLog().info(SAVE_SINGLE_SUCCESS + file.getAbsolutePath());
+        if (configMap.size() == 0) {
+            getLog().info(SAVE_SKIP);
+        } else {
+            final ObjectWriter objectWriter = getObjectWriter();
+            for (final Map.Entry<String, FunctionConfiguration> config : configMap.entrySet()) {
+                writeConfigurationToFile(objectWriter, config.getKey(), config.getValue());
+            }
+            getLog().info(SAVE_SUCCESS);
         }
-        getLog().info(SAVE_SUCCESS);
+    }
+
+    protected void writeConfigurationToFile(final ObjectWriter objectWriter, final String functionName,
+                                            final FunctionConfiguration config) throws IOException {
+        getLog().info(SAVE_SINGLE_CONFIG + functionName);
+        final File file = getFunctionJsonFile(functionName);
+        objectWriter.writeValue(file, config);
+        getLog().info(SAVE_SINGLE_SUCCESS + file.getAbsolutePath());
     }
 
     protected ObjectWriter getObjectWriter() {
