@@ -7,15 +7,19 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.*;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.codehaus.plexus.util.StringUtils;
 
-import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Deploy artifacts to target Function App in Azure. If target Function App doesn't exist, it will be created.
@@ -23,7 +27,8 @@ import java.util.function.Function;
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_DEPLOY_START = "Starting deploying to Function App ";
-    public static final String FUNCTION_DEPLOY_SUCCESS = "Successfully deployed to Function App ";
+    public static final String FUNCTION_DEPLOY_SUCCESS =
+            "Successfully deployed Function App at https://%s.azurewebsites.net";
     public static final String FUNCTION_APP_CREATE_START = "Target Function App does not exist. " +
             "Creating a new Function App ...";
     public static final String FUNCTION_APP_CREATED = "Successfully created Function App ";
@@ -33,10 +38,10 @@ public class DeployMojo extends AbstractFunctionMojo {
         getLog().info(FUNCTION_DEPLOY_START + getAppName() + "...");
 
         createFunctionAppIfNotExist();
-        getArtifactHandler().publish();
-        getFunctionApp().syncTriggers();
 
-        getLog().info(FUNCTION_DEPLOY_SUCCESS + getAppName());
+        getArtifactHandler().publish();
+
+        getLog().info(String.format(FUNCTION_DEPLOY_SUCCESS, getAppName()));
     }
 
     protected void createFunctionAppIfNotExist() {
@@ -45,13 +50,13 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (app == null) {
             getLog().info(FUNCTION_APP_CREATE_START);
 
-            Arrays.asList(getAppName()).stream()
+            Stream.of(getAppName())
                     .map(this::defineApp)
                     .map(this::configureRegion)
                     .map(this::configureResourceGroup)
                     .map(this::configurePricingTier)
                     .map(this::configureAppSettings)
-                    .map(w -> w.create());
+                    .forEach(w -> w.create());
 
             getLog().info(FUNCTION_APP_CREATED + getAppName());
         }
@@ -83,7 +88,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             withCreate.withNewConsumptionPlan();
         }
         return withCreate;
-    };
+    }
 
     protected WithCreate configureAppSettings(final WithCreate withCreate) {
         final Map appSettings = getAppSettings();
@@ -91,9 +96,19 @@ public class DeployMojo extends AbstractFunctionMojo {
             withCreate.withAppSettings(appSettings);
         }
         return withCreate;
-    };
+    }
 
     protected ArtifactHandler getArtifactHandler() {
-        return new FTPArtifactHandlerImpl(this);
+        if (StringUtils.isEmpty(getDeploymentType())) {
+            return new MSDeployArtifactHandlerImpl(this);
+        }
+
+        switch (getDeploymentType().toLowerCase(Locale.ENGLISH)) {
+            case "ftp":
+                return new FTPArtifactHandlerImpl(this);
+            case "msdeploy":
+            default:
+                return new MSDeployArtifactHandlerImpl(this);
+        }
     }
 }

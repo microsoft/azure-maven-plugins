@@ -39,6 +39,7 @@ public class FTPArtifactHandlerImplTest {
         verify(mojo, times(1)).getDeploymentStageDirectory();
         verifyNoMoreInteractions(mojo);
         verify(app, times(1)).getPublishingProfile();
+        verify(app, times(1)).syncTriggers();
         verifyNoMoreInteractions(app);
         verify(profile, times(1)).ftpUrl();
         verify(profile, times(1)).ftpUsername();

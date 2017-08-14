@@ -31,8 +31,9 @@ public class RunMojoTest extends MojoTestBase {
         doReturn(true).when(mojoSpy).isWindows();
 
         mojoSpy.doExecute();
+        final String stageDirectory = Paths.get("target", "azure-functions", "appName").toString();
         verify(mojoSpy, times(1)).runCommand(
-                new String[]{"cmd.exe", "/c", "cd /D target\\azure-functions\\appName"},
+                new String[]{"cmd.exe", "/c", "cd /D " + stageDirectory},
                 false,
                 Arrays.asList(0L),
                 RunMojo.STAGE_DIR_NOT_FOUND);
@@ -42,7 +43,7 @@ public class RunMojoTest extends MojoTestBase {
                 Arrays.asList(0L),
                 RunMojo.RUNTIME_NOT_FOUND);
         verify(mojoSpy, times(1)).runCommand(
-                new String[]{"cmd.exe", "/c", "cd /D target\\azure-functions\\appName && func host start"},
+                new String[]{"cmd.exe", "/c", "cd /D " + stageDirectory + " && func host start"},
                 true,
                 Arrays.asList(0L, 3221225786L),
                 RunMojo.RUN_FUNCTIONS_FAILURE);
@@ -80,8 +81,8 @@ public class RunMojoTest extends MojoTestBase {
         final RunMojo mojo = getMojoFromPom();
 
         final String[] command = mojo.isWindows() ?
-                new String[]{"cmd.exe", "/C", "dir"} :
-                new String[]{"sh", "/C", "ls -al"};
+                new String[]{"cmd.exe", "/c", "dir"} :
+                new String[]{"sh", "-c", "ls -al"};
         mojo.runCommand(command, true, Arrays.asList(0L), "dir/ls error");
     }
 

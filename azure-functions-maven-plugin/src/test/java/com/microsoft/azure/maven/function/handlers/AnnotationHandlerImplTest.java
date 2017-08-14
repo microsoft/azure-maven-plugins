@@ -57,8 +57,7 @@ public class AnnotationHandlerImplTest {
 
     @Test
     public void findFunctions() throws Exception {
-        final Log log = mock(Log.class);
-        final AnnotationHandler handler = new AnnotationHandlerImpl(log);
+        final AnnotationHandler handler = getAnnotationHandler();
         final Set<Method> functions = handler.findFunctions(getClassUrl());
 
         assertEquals(4, functions.size());
@@ -71,8 +70,7 @@ public class AnnotationHandlerImplTest {
 
     @Test
     public void generateConfigurations() throws Exception {
-        final Log log = mock(Log.class);
-        final AnnotationHandler handler = new AnnotationHandlerImpl(log);
+        final AnnotationHandler handler = getAnnotationHandler();
         final Set<Method> functions = handler.findFunctions(getClassUrl());
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(functions);
         configMap.values().forEach(config -> config.validate());
@@ -100,6 +98,11 @@ public class AnnotationHandlerImplTest {
         assertEquals(getFullyQualifiedMethodName(MULTI_OUTPUT_METHOD), multiOutputFunctionConfig.getEntryPoint());
         assertFalse(multiOutputFunctionConfig.isDisabled());
         assertEquals(3, multiOutputFunctionConfig.getBindings().size());
+    }
+
+    private AnnotationHandlerImpl getAnnotationHandler() {
+        final Log log = mock(Log.class);
+        return new AnnotationHandlerImpl(log);
     }
 
     private URL getClassUrl() {
