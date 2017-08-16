@@ -6,7 +6,7 @@
     <artifactId>azure-maven-plugins</artifactId>
     <version>0.1.4</version>
     <packaging>pom</packaging>
-    <name>Azure Maven Plugins</name>
+    <name>Maven Plugins for Azure</name>
     <description>Maven plugins for Microsoft Azure services</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
 

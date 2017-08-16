@@ -20,21 +20,23 @@ import java.util.Date;
 
 public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
     public static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-deployment-packages";
-    public static final String CREATE_ZIP_START = "Starting creating ZIP package...";
+    public static final String ZIP_EXT = ".zip";
+    public static final String CREATE_ZIP_START = "Creating ZIP package...";
     public static final String CREATE_ZIP_DONE = "Successfully saved ZIP package at ";
     public static final String STAGE_DIR_NOT_FOUND = "Function App stage directory not found. " +
-            "Please run azure-functions:package first";
+            "Please run azure-functions:package first.";
     public static final String LOCAL_SETTINGS_FILE = "local.settings.json";
     public static final String REMOVE_LOCAL_SETTINGS = "Remove local.settings.json from ZIP package.";
     public static final String INTERNAL_STORAGE_KEY = "AzureWebJobsStorage";
     public static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found.";
     public static final String INTERNAL_STORAGE_CONNECTION_STRING = "Function App Internal Storage Connection String: ";
-    public static final String UPLOAD_PACKAGE_START = "Starting uploading ZIP package to Azure Storage...";
+    public static final String UPLOAD_PACKAGE_START = "Uploading ZIP package to Azure Storage...";
     public static final String UPLOAD_PACKAGE_DONE = "Successfully uploaded ZIP package to ";
-    public static final String DEPLOY_PACKAGE_START = "Starting deploying Function App with package...";
+    public static final String DEPLOY_PACKAGE_START = "Deploying Function App with package...";
     public static final String DEPLOY_PACKAGE_DONE = "Successfully deployed Function App with package.";
-    public static final String DELETE_PACKAGE_START = "Starting deleting deployment package from Azure Storage...";
+    public static final String DELETE_PACKAGE_START = "Deleting deployment package from Azure Storage...";
     public static final String DELETE_PACKAGE_DONE = "Successfully deleted deployment package ";
+    public static final String DELETE_PACKAGE_FAIL = "Failed to delete deployment package ";
 
     private AbstractFunctionMojo mojo;
 
@@ -54,9 +56,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
 
         final String packageUri = uploadPackageToAzureStorage(zipPackage, storageAccount, blobName);
 
-        deployWithPackageUri(app, packageUri);
-
-        deletePackageFromAzureStorage(storageAccount, blobName);
+        deployWithPackageUri(app, packageUri, () -> deletePackageFromAzureStorage(storageAccount, blobName));
     }
 
     protected void logInfo(final String message) {
@@ -82,7 +82,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
 
         final String stageDirectoryPath = mojo.getDeploymentStageDirectory();
         final File stageDirectory = new File(stageDirectoryPath);
-        final File zipPackage = new File(stageDirectoryPath.concat(".zip"));
+        final File zipPackage = new File(stageDirectoryPath.concat(ZIP_EXT));
 
         if (!stageDirectory.exists()) {
             logError(STAGE_DIR_NOT_FOUND);
@@ -94,7 +94,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
         logDebug(REMOVE_LOCAL_SETTINGS);
         ZipUtil.removeEntry(zipPackage, LOCAL_SETTINGS_FILE);
 
-        logInfo(CREATE_ZIP_DONE + stageDirectoryPath.concat(".zip"));
+        logInfo(CREATE_ZIP_DONE + stageDirectoryPath.concat(ZIP_EXT));
         return zipPackage;
     }
 
@@ -111,7 +111,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
     protected String getBlobName() {
         return mojo.getAppName()
                 .concat(new SimpleDateFormat(".yyyyMMddHHmmssSSS").format(new Date()))
-                .concat(".zip");
+                .concat(ZIP_EXT);
     }
 
     protected String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
@@ -123,19 +123,26 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
         return packageUri;
     }
 
-    protected void deployWithPackageUri(final FunctionApp app, final String packageUri) {
-        logInfo(DEPLOY_PACKAGE_START);
-        app.deploy()
-                .withPackageUri(packageUri)
-                .withExistingDeploymentsDeleted(false)
-                .execute();
-        logInfo(DEPLOY_PACKAGE_DONE);
+    protected void deployWithPackageUri(final FunctionApp app, final String packageUri, Runnable onDeployFinish) {
+        try {
+            logInfo(DEPLOY_PACKAGE_START);
+            app.deploy()
+                    .withPackageUri(packageUri)
+                    .withExistingDeploymentsDeleted(false)
+                    .execute();
+            logInfo(DEPLOY_PACKAGE_DONE);
+        } finally {
+            onDeployFinish.run();
+        }
     }
 
-    protected void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName)
-            throws Exception {
-        logInfo(DELETE_PACKAGE_START);
-        AzureStorageHelper.deleteBlob(storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);
-        logInfo(DELETE_PACKAGE_DONE + blobName);
+    protected void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName) {
+        try {
+            logInfo(DELETE_PACKAGE_START);
+            AzureStorageHelper.deleteBlob(storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);
+            logInfo(DELETE_PACKAGE_DONE + blobName);
+        } catch (Exception e) {
+            logError(DELETE_PACKAGE_FAIL + blobName);
+        }
     }
 }

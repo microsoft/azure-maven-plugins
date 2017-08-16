@@ -7,8 +7,6 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebAppBase;
-import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
@@ -19,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 

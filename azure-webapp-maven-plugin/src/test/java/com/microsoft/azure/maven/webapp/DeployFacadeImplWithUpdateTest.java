@@ -9,7 +9,6 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
-import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

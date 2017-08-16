@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.function.config;
+package com.microsoft.azure.maven.function.configurations;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;

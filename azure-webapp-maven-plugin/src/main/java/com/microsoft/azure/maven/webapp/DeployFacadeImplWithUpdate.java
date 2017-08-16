@@ -18,7 +18,11 @@ public class DeployFacadeImplWithUpdate extends DeployFacadeBaseImpl {
 
     @Override
     public DeployFacadeBaseImpl setupRuntime() throws MojoExecutionException {
-        update = getRuntimeHandler().updateAppRuntime();
+        try {
+            update = getRuntimeHandler().updateAppRuntime();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return this;
     }
 

@@ -21,12 +21,12 @@ public class NullRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public WebApp.DefinitionStages.WithCreate defineAppWithRunTime() throws MojoExecutionException {
+    public WebApp.DefinitionStages.WithCreate defineAppWithRunTime() throws Exception {
         throw new MojoExecutionException(NO_RUNTIME_CONFIG);
     }
 
     @Override
-    public WebApp.Update updateAppRuntime() throws MojoExecutionException {
+    public WebApp.Update updateAppRuntime() throws Exception {
         final WebApp app = mojo.getWebApp();
         WebAppUtils.clearTags(app);
         return app.update();

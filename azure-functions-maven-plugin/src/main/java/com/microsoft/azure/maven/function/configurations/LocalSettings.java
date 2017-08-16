@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.function.config;
+package com.microsoft.azure.maven.function.configurations;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,8 +24,8 @@ public class LocalSettings {
 
     public LocalSettings() {
         values = new HashMap<>();
-        values.put("AzureWebJobsStorage", "");
-        values.put("AzureWebJobsDashboard", "");
+        values.put("AzureWebJobsStorage", "UseDevelopmentStorage=true");
+        values.put("AzureWebJobsDashboard", "UseDevelopmentStorage=true");
 
         connectionStrings = new HashMap<>();
     }

@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.nio.file.Paths;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -62,13 +63,13 @@ public class DeployMojoTest extends MojoTestBase {
         doCallRealMethod().when(mojoSpy).getLog();
         final ArtifactHandler handler = mock(ArtifactHandler.class);
         doReturn(handler).when(mojoSpy).getArtifactHandler();
-        doCallRealMethod().when(mojoSpy).createFunctionAppIfNotExist();
+        doCallRealMethod().when(mojoSpy).createOrUpdateFunctionApp();
         doCallRealMethod().when(mojoSpy).getAppName();
         final FunctionApp app = mock(FunctionApp.class);
         doReturn(app).when(mojoSpy).getFunctionApp();
 
         mojoSpy.doExecute();
-        verify(mojoSpy, times(1)).createFunctionAppIfNotExist();
+        verify(mojoSpy, times(1)).createOrUpdateFunctionApp();
         verify(mojoSpy, times(1)).doExecute();
         verify(handler, times(1)).publish();
         verifyNoMoreInteractions(handler);
@@ -80,22 +81,23 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployMojo mojoSpy = spy(mojo);
         doReturn(null).when(mojoSpy).getFunctionApp();
         final Blank blank = mock(Blank.class);
-        doReturn(blank).when(mojoSpy).defineApp(anyString());
+        doReturn(blank).when(mojoSpy).defineApp(anyString(), anyString());
         final NewAppServicePlanWithGroup withGroup = mock(NewAppServicePlanWithGroup.class);
-        doReturn(withGroup).when(mojoSpy).configureRegion(any(Blank.class));
+        doReturn(withGroup).when(blank).withRegion(anyString());
         final WithCreate withCreate = mock(WithCreate.class);
-        doReturn(withCreate).when(mojoSpy).configureResourceGroup(any(NewAppServicePlanWithGroup.class));
-        doReturn(withCreate).when(mojoSpy).configurePricingTier(any(WithCreate.class));
-        doReturn(withCreate).when(mojoSpy).configureAppSettings(any(WithCreate.class));
+        doReturn(withCreate).when(mojoSpy).configureResourceGroup(any(NewAppServicePlanWithGroup.class), anyString());
+        doNothing().when(mojoSpy).configurePricingTier(any(WithCreate.class), any(PricingTier.class));
+        doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
 
-        mojoSpy.createFunctionAppIfNotExist();
+        mojoSpy.createOrUpdateFunctionApp();
 
         verify(mojoSpy, times(2)).getAppName();
-        verify(mojoSpy, times(1)).defineApp(anyString());
-        verify(mojoSpy, times(1)).configureRegion(any(Blank.class));
-        verify(mojoSpy, times(1)).configureResourceGroup(any(NewAppServicePlanWithGroup.class));
-        verify(mojoSpy, times(1)).configurePricingTier(any(WithCreate.class));
-        verify(mojoSpy, times(1)).configureAppSettings(any(WithCreate.class));
+        verify(mojoSpy, times(1)).defineApp(anyString(), anyString());
+        verify(mojoSpy, times(1))
+                .configureResourceGroup(any(NewAppServicePlanWithGroup.class), anyString());
+        verify(mojoSpy, times(1))
+                .configurePricingTier(any(WithCreate.class), any(PricingTier.class));
+        verify(mojoSpy, times(1)).configureAppSettings(any(Consumer.class), anyMap());
         verify(withCreate, times(1)).create();
     }
 
@@ -111,23 +113,12 @@ public class DeployMojoTest extends MojoTestBase {
         doReturn(functionApps).when(appServiceManager).functionApps();
         final Blank blank = mock(Blank.class);
         doReturn(blank).when(functionApps).define(anyString());
-
-        final Blank ret = mojoSpy.defineApp("appName");
-
-        assertSame(blank, ret);
-    }
-
-    @Test
-    public void configureRegion() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
-        final Blank blank = mock(Blank.class);
         final NewAppServicePlanWithGroup newAppServicePlanWithGroup = mock(NewAppServicePlanWithGroup.class);
         doReturn(newAppServicePlanWithGroup).when(blank).withRegion(anyString());
 
-        final NewAppServicePlanWithGroup ret = mojoSpy.configureRegion(blank);
+        final NewAppServicePlanWithGroup ret = mojoSpy.defineApp(anyString(), anyString());
 
-        assertSame(newAppServicePlanWithGroup, ret);
+        assertSame(blank, ret);
     }
 
     @Test
@@ -139,7 +130,7 @@ public class DeployMojoTest extends MojoTestBase {
         final WithCreate withCreate = mock(WithCreate.class);
         doReturn(withCreate).when(newAppServicePlanWithGroup).withExistingResourceGroup(anyString());
 
-        final WithCreate ret = mojoSpy.configureResourceGroup(newAppServicePlanWithGroup);
+        final WithCreate ret = mojoSpy.configureResourceGroup(newAppServicePlanWithGroup, "resourceGroup");
 
         assertSame(withCreate, ret);
     }
@@ -153,7 +144,7 @@ public class DeployMojoTest extends MojoTestBase {
         final WithCreate withCreate = mock(WithCreate.class);
         doReturn(withCreate).when(newAppServicePlanWithGroup).withNewResourceGroup(anyString());
 
-        final WithCreate ret = mojoSpy.configureResourceGroup(newAppServicePlanWithGroup);
+        final WithCreate ret = mojoSpy.configureResourceGroup(newAppServicePlanWithGroup, "resourceGroup");
 
         assertSame(withCreate, ret);
     }
@@ -164,9 +155,8 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployMojo mojoSpy = spy(mojo);
         final WithCreate withCreate = mock(WithCreate.class);
 
-        final WithCreate ret = mojoSpy.configurePricingTier(withCreate);
+        mojoSpy.configurePricingTier(withCreate, PricingTier.STANDARD_S1);
 
-        assertSame(withCreate, ret);
         verify(withCreate, times(1)).withNewAppServicePlan(PricingTier.STANDARD_S1);
     }
 
@@ -175,9 +165,8 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployMojo mojo = getMojoFromPom();
         final WithCreate withCreate = mock(WithCreate.class);
 
-        final WithCreate ret = mojo.configureAppSettings(withCreate);
+        mojo.configureAppSettings(withCreate::withAppSettings, mojo.getAppSettings());
 
-        assertSame(withCreate, ret);
         verify(withCreate, times(1)).withAppSettings(anyMap());
     }
 

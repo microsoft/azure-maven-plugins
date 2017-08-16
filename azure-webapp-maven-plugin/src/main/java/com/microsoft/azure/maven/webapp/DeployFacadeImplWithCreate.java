@@ -20,7 +20,11 @@ public class DeployFacadeImplWithCreate extends DeployFacadeBaseImpl {
 
     @Override
     public DeployFacadeBaseImpl setupRuntime() throws MojoExecutionException {
-        withCreate = getRuntimeHandler().defineAppWithRunTime();
+        try {
+            withCreate = getRuntimeHandler().defineAppWithRunTime();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return this;
     }
 

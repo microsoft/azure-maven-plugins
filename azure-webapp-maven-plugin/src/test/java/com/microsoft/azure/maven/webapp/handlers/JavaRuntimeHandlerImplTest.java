@@ -11,7 +11,6 @@ import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

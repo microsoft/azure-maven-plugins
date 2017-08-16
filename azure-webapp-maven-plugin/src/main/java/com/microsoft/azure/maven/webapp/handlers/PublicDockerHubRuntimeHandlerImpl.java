@@ -10,7 +10,6 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import org.apache.maven.plugin.MojoExecutionException;
 
 public class PublicDockerHubRuntimeHandlerImpl implements RuntimeHandler {
     private AbstractWebAppMojo mojo;
@@ -20,14 +19,14 @@ public class PublicDockerHubRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public WebApp.DefinitionStages.WithCreate defineAppWithRunTime() throws MojoExecutionException {
+    public WebApp.DefinitionStages.WithCreate defineAppWithRunTime() throws Exception {
         return WebAppUtils.defineApp(mojo)
                 .withNewLinuxPlan(mojo.getPricingTier())
                 .withPublicDockerHubImage(mojo.getContainerSettings().getImageName());
     }
 
     @Override
-    public WebApp.Update updateAppRuntime() throws MojoExecutionException {
+    public WebApp.Update updateAppRuntime() throws Exception {
         final WebApp app = mojo.getWebApp();
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);

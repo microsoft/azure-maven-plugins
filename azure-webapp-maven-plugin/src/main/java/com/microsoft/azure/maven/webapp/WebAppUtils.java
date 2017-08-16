@@ -34,7 +34,8 @@ public class WebAppUtils {
         }
     }
 
-    public static WebApp.DefinitionStages.WithNewAppServicePlan defineApp(final AbstractWebAppMojo mojo) {
+    public static WebApp.DefinitionStages.WithNewAppServicePlan defineApp(final AbstractWebAppMojo mojo)
+            throws Exception {
         if (mojo.getAzureClient().resourceGroups().checkExistence(mojo.getResourceGroup())) {
             return mojo.getAzureClient().webApps()
                     .define(mojo.getAppName())

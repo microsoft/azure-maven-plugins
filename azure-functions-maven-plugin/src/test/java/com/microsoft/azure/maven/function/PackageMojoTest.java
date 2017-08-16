@@ -50,15 +50,6 @@ public class PackageMojoTest extends MojoTestBase {
         assertTrue(handler instanceof AnnotationHandlerImpl);
     }
 
-    @Test
-    public void getFunctionJsonFile() throws Exception {
-        final PackageMojo mojo = getMojoFromPom();
-        final PackageMojo mojoSpy = spy(mojo);
-        doReturn("target/azure-functions").when(mojoSpy).getDeploymentStageDirectory();
-
-        mojoSpy.getFunctionJsonFile("myFunction");
-    }
-
     private PackageMojo getMojoFromPom() throws Exception {
         final PackageMojo mojo = (PackageMojo) getMojoFromPom("/pom.xml", "package");
         assertNotNull(mojo);

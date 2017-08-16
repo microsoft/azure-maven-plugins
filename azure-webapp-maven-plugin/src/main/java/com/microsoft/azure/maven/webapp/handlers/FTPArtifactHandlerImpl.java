@@ -41,7 +41,7 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
                 mojo.getDeploymentStageDirectory());
     }
 
-    protected void uploadDirectoryToFTP() throws MojoExecutionException {
+    protected void uploadDirectoryToFTP() throws Exception {
         final FTPUploader uploader = getUploader();
         final WebApp app = mojo.getWebApp();
         final PublishingProfile profile = app.getPublishingProfile();

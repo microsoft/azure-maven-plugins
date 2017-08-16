@@ -11,9 +11,10 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAzureMojo;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
-import com.microsoft.azure.maven.webapp.configuration.PricingTierEnum;
+import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -164,6 +165,19 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter
     protected List<Resource> resources;
 
+    /**
+     * Skip execution.
+     *
+     * @since 0.1.4
+     */
+    @Parameter(property = "webapp.skip", defaultValue = "false")
+    protected boolean skip;
+
+    @Override
+    protected boolean isSkipMojo() {
+        return skip;
+    }
+
     public String getResourceGroup() {
         return resourceGroup;
     }
@@ -212,10 +226,12 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         return resources;
     }
 
-    public WebApp getWebApp() {
+    public WebApp getWebApp() throws AzureAuthFailureException {
         try {
             return getAzureClient().webApps().getByResourceGroup(getResourceGroup(), getAppName());
-        } catch (Exception e) {
+        } catch (AzureAuthFailureException authEx) {
+            throw authEx;
+        } catch (Exception ex) {
             // Swallow exception for non-existing web app
         }
         return null;

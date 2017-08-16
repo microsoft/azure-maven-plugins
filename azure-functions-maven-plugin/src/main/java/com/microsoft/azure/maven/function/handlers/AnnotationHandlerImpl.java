@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
-import com.microsoft.azure.maven.function.config.FunctionConfiguration;
+import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.bindings.BaseBinding;
 import com.microsoft.azure.maven.function.bindings.HttpBinding;
 import com.microsoft.azure.maven.function.bindings.QueueBinding;

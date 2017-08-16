@@ -9,7 +9,6 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 
 public class JavaRuntimeHandlerImpl implements RuntimeHandler {
     private AbstractWebAppMojo mojo;
@@ -19,7 +18,7 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public WebApp.DefinitionStages.WithCreate defineAppWithRunTime() throws MojoExecutionException {
+    public WebApp.DefinitionStages.WithCreate defineAppWithRunTime() throws Exception {
         final WebApp.DefinitionStages.WithCreate withCreate = WebAppUtils.defineApp(mojo)
                 .withNewWindowsPlan(mojo.getPricingTier());
 
@@ -29,7 +28,7 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public WebApp.Update updateAppRuntime() throws MojoExecutionException {
+    public WebApp.Update updateAppRuntime() throws Exception {
         final WebApp app = mojo.getWebApp();
         WebAppUtils.assureWindowsWebApp(app);
         WebAppUtils.clearTags(app);
