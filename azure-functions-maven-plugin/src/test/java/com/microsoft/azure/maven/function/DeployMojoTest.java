@@ -15,7 +15,7 @@ import com.microsoft.azure.management.appservice.FunctionApps;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -79,10 +79,24 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployMojo mojo = getMojoFromPom();
         final DeployMojo mojoSpy = spy(mojo);
         doReturn(null).when(mojoSpy).getFunctionApp();
+        final Blank blank = mock(Blank.class);
+        doReturn(blank).when(mojoSpy).defineApp(anyString());
+        final NewAppServicePlanWithGroup withGroup = mock(NewAppServicePlanWithGroup.class);
+        doReturn(withGroup).when(mojoSpy).configureRegion(any(Blank.class));
+        final WithCreate withCreate = mock(WithCreate.class);
+        doReturn(withCreate).when(mojoSpy).configureResourceGroup(any(NewAppServicePlanWithGroup.class));
+        doReturn(withCreate).when(mojoSpy).configurePricingTier(any(WithCreate.class));
+        doReturn(withCreate).when(mojoSpy).configureAppSettings(any(WithCreate.class));
 
         mojoSpy.createFunctionAppIfNotExist();
 
         verify(mojoSpy, times(2)).getAppName();
+        verify(mojoSpy, times(1)).defineApp(anyString());
+        verify(mojoSpy, times(1)).configureRegion(any(Blank.class));
+        verify(mojoSpy, times(1)).configureResourceGroup(any(NewAppServicePlanWithGroup.class));
+        verify(mojoSpy, times(1)).configurePricingTier(any(WithCreate.class));
+        verify(mojoSpy, times(1)).configureAppSettings(any(WithCreate.class));
+        verify(withCreate, times(1)).create();
     }
 
     @Test
@@ -174,7 +188,7 @@ public class DeployMojoTest extends MojoTestBase {
         final ArtifactHandler handler = mojo.getArtifactHandler();
 
         assertNotNull(handler);
-        assertTrue(handler instanceof FTPArtifactHandlerImpl);
+        assertTrue(handler instanceof MSDeployArtifactHandlerImpl);
     }
 
     private DeployMojo getMojoFromPom() throws Exception {

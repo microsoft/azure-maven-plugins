@@ -12,7 +12,7 @@ import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 
 public class FTPArtifactHandlerImpl implements ArtifactHandler {
-    public static final String DEFAULT_FUNCTION_ROOT = "/site/wwwroot/";
+    public static final String DEFAULT_FUNCTION_ROOT = "/site/wwwroot";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
 
     private AbstractFunctionMojo mojo;
@@ -35,6 +35,8 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
                 mojo.getDeploymentStageDirectory(),
                 DEFAULT_FUNCTION_ROOT,
                 DEFAULT_MAX_RETRY_TIMES);
+
+        app.syncTriggers();
     }
 
     protected FTPUploader getUploader() {

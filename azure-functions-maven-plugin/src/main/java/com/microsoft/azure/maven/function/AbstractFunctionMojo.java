@@ -70,6 +70,16 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     protected String pricingTier;
 
     /**
+     * Deployment type to deploy Web App. Supported values:
+     * <ul>
+     *     <li>msdeploy</li>
+     *     <li>ftp</li>
+     * </ul>
+     */
+    @Parameter(defaultValue = "msdeploy")
+    protected String deploymentType;
+
+    /**
      * Application settings of Function App, in the form of name-value pairs.
      * <pre>
      * {@code
@@ -109,6 +119,10 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
 
     public Map getAppSettings() {
         return appSettings;
+    }
+
+    public String getDeploymentType() {
+        return deploymentType;
     }
 
     public String getDeploymentStageDirectory() {
