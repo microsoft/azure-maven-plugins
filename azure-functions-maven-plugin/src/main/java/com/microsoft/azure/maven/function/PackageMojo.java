@@ -9,6 +9,9 @@ package com.microsoft.azure.maven.function;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.function.config.FunctionConfiguration;
+import com.microsoft.azure.maven.function.config.HostConfiguration;
+import com.microsoft.azure.maven.function.config.LocalSettings;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
 import org.apache.maven.model.Resource;
@@ -59,7 +62,13 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         validateConfigurations(configMap);
 
+        createStageDirectory();
+
         writeConfigurationsToFiles(configMap);
+
+        writeHostConfigurationToFile(new HostConfiguration());
+
+        writeLocalSettingsToFile(new LocalSettings());
 
         copyJarsToStageDirectory();
 
@@ -113,6 +122,10 @@ public class PackageMojo extends AbstractFunctionMojo {
         }
     }
 
+    protected void createStageDirectory() {
+        new File(getDeploymentStageDirectory()).mkdirs();
+    }
+
     protected void writeConfigurationsToFiles(final Map<String, FunctionConfiguration> configMap) throws IOException {
         getLog().info(SAVE_CONFIG);
         if (configMap.size() == 0) {
@@ -132,6 +145,24 @@ public class PackageMojo extends AbstractFunctionMojo {
         final File file = getFunctionJsonFile(functionName);
         objectWriter.writeValue(file, config);
         getLog().info(SAVE_SINGLE_SUCCESS + file.getAbsolutePath());
+    }
+
+    protected void writeHostConfigurationToFile(final HostConfiguration config) throws Exception {
+        getLog().info("Starting saving Host configuration to host.json...");
+        final File hostJsonFile = Paths.get(getDeploymentStageDirectory(), "host.json").toFile();
+        hostJsonFile.createNewFile();
+        final ObjectWriter objectWriter = getObjectWriter();
+        objectWriter.writeValue(hostJsonFile, config);
+        getLog().info("Successfully saved " + hostJsonFile.getAbsolutePath());
+    }
+
+    protected void writeLocalSettingsToFile(final LocalSettings settings) throws Exception {
+        getLog().info("Starting saving Host configuration to host.json...");
+        final File localSettingsJsonFile = Paths.get(getDeploymentStageDirectory(), "local.settings.json").toFile();
+        localSettingsJsonFile.createNewFile();
+        final ObjectWriter objectWriter = getObjectWriter();
+        objectWriter.writeValue(localSettingsJsonFile, settings);
+        getLog().info("Successfully saved " + localSettingsJsonFile.getAbsolutePath());
     }
 
     protected ObjectWriter getObjectWriter() {

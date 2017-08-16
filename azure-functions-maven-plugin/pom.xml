@@ -285,6 +285,7 @@
                     <instrumentation>
                         <excludes>
                             <exclude>**/HelpMojo.class</exclude>
+                            <exclude>**/config/*.class</exclude>
                         </excludes>
                     </instrumentation>
                 </configuration>

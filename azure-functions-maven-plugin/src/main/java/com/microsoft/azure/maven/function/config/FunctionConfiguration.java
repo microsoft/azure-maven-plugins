@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.function;
+package com.microsoft.azure.maven.function.config;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,6 +13,9 @@ import com.microsoft.azure.maven.function.bindings.BaseBinding;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Schema of function.json is at https://github.com/Azure/azure-webjobs-sdk-script/blob/dev/schemas/json/function.json
+ */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FunctionConfiguration {
     public static final String MULTIPLE_TRIGGER = "Only one trigger is allowed for each Azure Function. " +
