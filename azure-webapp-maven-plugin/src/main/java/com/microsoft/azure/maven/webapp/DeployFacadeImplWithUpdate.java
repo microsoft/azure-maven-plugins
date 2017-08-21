@@ -7,10 +7,11 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.Update;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class DeployFacadeImplWithUpdate extends DeployFacadeBaseImpl {
-    private WebApp.Update update = null;
+    private Update update = null;
 
     public DeployFacadeImplWithUpdate(AbstractWebAppMojo mojo) {
         super(mojo);
@@ -18,7 +19,11 @@ public class DeployFacadeImplWithUpdate extends DeployFacadeBaseImpl {
 
     @Override
     public DeployFacadeBaseImpl setupRuntime() throws MojoExecutionException {
-        update = getRuntimeHandler().updateAppRuntime();
+        try {
+            update = getRuntimeHandler().updateAppRuntime();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return this;
     }
 

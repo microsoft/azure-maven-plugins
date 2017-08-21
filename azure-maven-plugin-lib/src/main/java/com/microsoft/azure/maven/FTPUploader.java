@@ -85,28 +85,21 @@ public class FTPUploader {
     protected boolean uploadDirectory(final String ftpServer, final String username, final String password,
                                       final String sourceDirectoryPath, final String targetDirectoryPath) {
         log.debug("FTP username: " + username);
-        boolean isSuccess = false;
         try {
-            final FTPClient ftpClient = getFTPClient();
-            ftpClient.connect(ftpServer);
-            ftpClient.login(username, password);
-            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-            ftpClient.enterLocalPassiveMode();
+            final FTPClient ftpClient = getFTPClient(ftpServer, username, password);
 
             log.info(String.format(UPLOAD_DIR_START, sourceDirectoryPath, targetDirectoryPath));
             uploadDirectory(ftpClient, sourceDirectoryPath, targetDirectoryPath, "");
             log.info(String.format(UPLOAD_DIR_FINISH, sourceDirectoryPath, targetDirectoryPath));
 
-            isSuccess = true;
             ftpClient.disconnect();
+            return true;
         } catch (Exception e) {
             log.debug(e);
-        }
-
-        if (!isSuccess) {
             log.error(String.format(UPLOAD_DIR_FAILURE, sourceDirectoryPath, targetDirectoryPath));
         }
-        return isSuccess;
+
+        return false;
     }
 
     /**
@@ -171,8 +164,14 @@ public class FTPUploader {
         }
     }
 
-    protected FTPClient getFTPClient() {
-        return new FTPClient();
+    protected FTPClient getFTPClient(final String ftpServer, final String username, final String password)
+            throws Exception {
+        final FTPClient ftpClient = new FTPClient();
+        ftpClient.connect(ftpServer);
+        ftpClient.login(username, password);
+        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+        ftpClient.enterLocalPassiveMode();
+        return ftpClient;
     }
 
     private boolean isCommandFailed(final int replyCode) {

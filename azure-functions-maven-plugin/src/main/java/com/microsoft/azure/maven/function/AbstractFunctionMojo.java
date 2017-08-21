@@ -9,7 +9,11 @@ package com.microsoft.azure.maven.function;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAzureMojo;
+import com.microsoft.azure.maven.appservice.PricingTierEnum;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.function.configurations.HostConfiguration;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -17,6 +21,8 @@ import java.util.Map;
 import java.util.Properties;
 
 public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
+    public static final String AZURE_FUNCTIONS = "azure-functions";
+
     @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
     protected String finalName;
 
@@ -48,38 +54,6 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     protected String region;
 
     /**
-     * Function App pricing tier, which will only be used to create Function App at the first time.<br/>
-     * Below is the list of supported pricing tier:
-     * <ul>
-     *     <li>F1</li>
-     *     <li>D1</li>
-     *     <li>B1</li>
-     *     <li>B2</li>
-     *     <li>B3</li>
-     *     <li>S1</li>
-     *     <li>S2</li>
-     *     <li>S3</li>
-     *     <li>P1</li>
-     *     <li>P2</li>
-     *     <li>P3</li>
-     * </ul>
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.pricingTier", defaultValue = "S1")
-    protected String pricingTier;
-
-    /**
-     * Deployment type to deploy Web App. Supported values:
-     * <ul>
-     *     <li>msdeploy</li>
-     *     <li>ftp</li>
-     * </ul>
-     */
-    @Parameter(defaultValue = "msdeploy")
-    protected String deploymentType;
-
-    /**
      * Application settings of Function App, in the form of name-value pairs.
      * <pre>
      * {@code
@@ -97,6 +71,19 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     @Parameter
     protected Properties appSettings;
 
+    /**
+     * Skip execution.
+     *
+     * @since 0.1.0
+     */
+    @Parameter(property = "functions.skip", defaultValue = "false")
+    protected boolean skip;
+
+    @Override
+    protected boolean isSkipMojo() {
+        return skip;
+    }
+
     public String getFinalName() {
         return finalName;
     }
@@ -113,29 +100,23 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
         return region;
     }
 
-    public PricingTier getPricingTier() {
-        return PricingTier.STANDARD_S1;
-    }
-
     public Map getAppSettings() {
         return appSettings;
     }
 
-    public String getDeploymentType() {
-        return deploymentType;
-    }
-
     public String getDeploymentStageDirectory() {
         return Paths.get(getBuildDirectoryAbsolutePath(),
-                "azure-functions",
+                AZURE_FUNCTIONS,
                 getAppName()).toString();
     }
 
-    public FunctionApp getFunctionApp() {
+    public FunctionApp getFunctionApp() throws AzureAuthFailureException {
         try {
             return getAzureClient().appServices().functionApps().getByResourceGroup(getResourceGroup(), getAppName());
-        } catch (Exception e) {
-            // Swallow exception
+        } catch (AzureAuthFailureException authEx) {
+            throw authEx;
+        } catch (Exception ex) {
+            // Swallow exception for non-existing function app
         }
         return null;
     }

@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven;
 
-import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -18,7 +17,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -66,24 +64,27 @@ public class FTPUploaderTest {
     public void uploadDirectory() throws Exception {
         final FTPUploader uploaderSpy = spy(ftpUploader);
         final FTPClient ftpClient = mock(FTPClient.class);
-        doReturn(ftpClient).when(uploaderSpy).getFTPClient();
+        doReturn(ftpClient).when(uploaderSpy).getFTPClient(anyString(), anyString(), anyString());
         doNothing().when(uploaderSpy).uploadDirectory(any(FTPClient.class), anyString(), anyString(), anyString());
 
         uploaderSpy.uploadDirectory(anyString(), anyString(), anyString(), anyString(), anyString());
-        verify(ftpClient, times(1)).connect(anyString());
-        verify(ftpClient, times(1)).login(anyString(), anyString());
-        verify(ftpClient, times(1)).setFileType(FTP.BINARY_FILE_TYPE);
-        verify(ftpClient, times(1)).enterLocalPassiveMode();
         verify(ftpClient, times(1)).disconnect();
         verifyNoMoreInteractions(ftpClient);
         verify(uploaderSpy, times(1)).uploadDirectory(any(FTPClient.class), anyString(), anyString(), anyString());
-        verify(uploaderSpy, times(1)).getFTPClient();
+        verify(uploaderSpy, times(1)).getFTPClient(anyString(), anyString(), anyString());
         verify(uploaderSpy, times(1)).uploadDirectory(anyString(), anyString(), anyString(), anyString(), anyString());
         verifyNoMoreInteractions(uploaderSpy);
     }
 
     @Test
     public void getFTPClient() throws Exception {
-        assertTrue(ftpUploader.getFTPClient() instanceof FTPClient);
+        Exception caughtException = null;
+        try {
+            ftpUploader.getFTPClient("fakeFTPServer", "username", "password");
+        } catch (Exception e) {
+            caughtException = e;
+        } finally {
+            assertNotNull(caughtException);
+        }
     }
 }

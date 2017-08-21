@@ -31,7 +31,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         getLog().info(String.format(WEBAPP_DEPLOY_SUCCESS, getAppName()));
     }
 
-    protected DeployFacade getDeployFacade() {
+    protected DeployFacade getDeployFacade() throws Exception {
         return getWebApp() == null ?
                 new DeployFacadeImplWithCreate(this) :
                 new DeployFacadeImplWithUpdate(this);

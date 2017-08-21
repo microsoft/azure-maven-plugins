@@ -12,7 +12,6 @@ import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,7 +40,7 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
                 mojo.getDeploymentStageDirectory());
     }
 
-    protected void uploadDirectoryToFTP() throws MojoExecutionException {
+    protected void uploadDirectoryToFTP() throws Exception {
         final FTPUploader uploader = getUploader();
         final WebApp app = mojo.getWebApp();
         final PublishingProfile profile = app.getPublishingProfile();

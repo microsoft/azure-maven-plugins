@@ -8,7 +8,7 @@
     <artifactId>azure-functions-maven-plugin</artifactId>
     <version>0.1.4</version>
     <packaging>maven-plugin</packaging>
-    <name>Azure Functions Maven Plugin</name>
+    <name>Maven Plugin for Azure Functions</name>
     <description>Maven Plugin for Azure Functions</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
 
@@ -285,6 +285,7 @@
                     <instrumentation>
                         <excludes>
                             <exclude>**/HelpMojo.class</exclude>
+                            <exclude>**/configurations/*.class</exclude>
                         </excludes>
                     </instrumentation>
                 </configuration>

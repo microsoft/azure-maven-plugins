@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithNewAppServicePlan;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
@@ -34,7 +35,8 @@ public class WebAppUtils {
         }
     }
 
-    public static WebApp.DefinitionStages.WithNewAppServicePlan defineApp(final AbstractWebAppMojo mojo) {
+    public static WithNewAppServicePlan defineApp(final AbstractWebAppMojo mojo)
+            throws Exception {
         if (mojo.getAzureClient().resourceGroups().checkExistence(mojo.getResourceGroup())) {
             return mojo.getAzureClient().webApps()
                     .define(mojo.getAppName())

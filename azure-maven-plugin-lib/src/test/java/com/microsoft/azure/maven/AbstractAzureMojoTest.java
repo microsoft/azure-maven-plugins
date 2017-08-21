@@ -141,7 +141,6 @@ public class AbstractAzureMojoTest {
 
     @Test
     public void execute() throws Exception {
-        when(azure.subscriptionId()).thenReturn(SUBSCRIPTION_ID);
         mojo.execute();
     }
 

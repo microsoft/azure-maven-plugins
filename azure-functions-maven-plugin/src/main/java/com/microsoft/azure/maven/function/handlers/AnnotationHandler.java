@@ -6,8 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
-import com.microsoft.azure.maven.function.FunctionConfiguration;
-import org.reflections.Configuration;
+import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 
 import java.lang.reflect.Method;
 import java.net.URL;

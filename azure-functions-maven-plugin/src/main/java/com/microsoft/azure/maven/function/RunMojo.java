@@ -8,9 +8,11 @@ package com.microsoft.azure.maven.function;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +31,46 @@ public class RunMojo extends AbstractFunctionMojo {
     public static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
     public static final String START_RUN_FUNCTIONS = "Starting running Azure Functions...";
     public static final String STOP_RUN_FUNCTIONS = "Stopping running Azure Functions...";
+
+    public static final String WINDOWS_FUNCTION_RUN = "cd /D %s && func function run %s --no-interactive";
+    public static final String LINUX_FUNCTION_RUN = "cd %s; func function run %s --no-interactive";
+    public static final String WINDOWS_HOST_START = "cd /D %s && func host start";
+    public static final String LINUX_HOST_START = "cd %s; func host start";
+
+    /**
+     * Run a single function with the specified name.
+     *
+     * @since 0.1.0
+     */
+    @Parameter(property = "functions.target")
+    protected String targetFunction;
+
+    /**
+     * Specify input string which will be passed to target function. It is used with <targetFunction/> element.
+     *
+     * @since 0.1.0
+     */
+    @Parameter(property = "functions.input")
+    protected String functionInputString;
+
+    /**
+     * Specify input file whose content will be passed to target function. It is used with <targetFunction/> element.
+     * @since 0.1.0
+     */
+    @Parameter(property = "functions.inputFile")
+    protected File functionInputFile;
+
+    public String getTargetFunction() {
+        return targetFunction;
+    }
+
+    public String getInputString() {
+        return functionInputString;
+    }
+
+    public File getInputFile() {
+        return functionInputFile;
+    }
 
     @Override
     protected void doExecute() throws Exception {
@@ -51,7 +93,7 @@ public class RunMojo extends AbstractFunctionMojo {
 
     protected void runFunctions() throws Exception {
         getLog().info(START_RUN_FUNCTIONS);
-        runCommand(getRunFunctionsCommand(), true, getValidReturnCodes(), RUN_FUNCTIONS_FAILURE);
+        runCommand(getRunFunctionCommand(), true, getValidReturnCodes(), RUN_FUNCTIONS_FAILURE);
         getLog().info(STOP_RUN_FUNCTIONS);
     }
 
@@ -66,17 +108,38 @@ public class RunMojo extends AbstractFunctionMojo {
         return buildCommand("func");
     }
 
-    protected String[] getRunFunctionsCommand() {
+    protected String[] getRunFunctionCommand() {
+        return StringUtils.isEmpty(getTargetFunction()) ?
+                getStartFunctionHostCommand() :
+                getRunSingleFunctionCommand();
+    }
+
+    protected String[] getRunSingleFunctionCommand() {
+        final String stageDirectory = getDeploymentStageDirectory();
+        final String functionName = getTargetFunction();
+        String command = isWindows() ?
+                String.format(WINDOWS_FUNCTION_RUN, stageDirectory, functionName) :
+                String.format(LINUX_FUNCTION_RUN, stageDirectory, functionName);
+        if (StringUtils.isNotEmpty(getInputString())) {
+            command = command.concat(" -c ").concat(getInputString());
+        } else if (getInputFile() != null) {
+            command = command.concat(" -f ").concat(getInputFile().getAbsolutePath());
+        }
+        return buildCommand(command);
+    }
+
+    protected String[] getStartFunctionHostCommand() {
+        final String stageDirectory = getDeploymentStageDirectory();
         final String command = isWindows() ?
-                String.format("cd /D %s && func host start", getDeploymentStageDirectory()) :
-                String.format("cd %s; func host start", getDeploymentStageDirectory());
+                String.format(WINDOWS_HOST_START, stageDirectory) :
+                String.format(LINUX_HOST_START, stageDirectory);
         return buildCommand(command);
     }
 
     protected String[] buildCommand(final String command) {
         return isWindows() ?
-            new String[]{"cmd.exe", "/c", command} :
-            new String[]{"sh", "-c", command};
+                new String[]{"cmd.exe", "/c", command} :
+                new String[]{"sh", "-c", command};
     }
 
     protected boolean isWindows() {
@@ -89,10 +152,10 @@ public class RunMojo extends AbstractFunctionMojo {
 
     protected List<Long> getValidReturnCodes() {
         return isWindows() ?
-            // Windows return code of CTRL-C is 3221225786
-            Arrays.asList(0L, 3221225786L) :
-            // Linux return code of CTRL-C is 130
-            Arrays.asList(0L, 130L);
+                // Windows return code of CTRL-C is 3221225786
+                Arrays.asList(0L, 3221225786L) :
+                // Linux return code of CTRL-C is 130
+                Arrays.asList(0L, 130L);
     }
 
     protected void runCommand(final String[] command, final boolean showStdout, final List<Long> validReturnCodes,

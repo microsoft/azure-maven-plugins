@@ -6,11 +6,11 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import com.microsoft.azure.management.appservice.WebApp;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
+import com.microsoft.azure.management.appservice.WebApp.Update;
 
 public interface RuntimeHandler {
-    WebApp.DefinitionStages.WithCreate defineAppWithRunTime() throws MojoExecutionException;
+    WithCreate defineAppWithRunTime() throws Exception;
 
-    WebApp.Update updateAppRuntime() throws MojoExecutionException;
+    Update updateAppRuntime() throws Exception;
 }
