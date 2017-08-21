@@ -11,10 +11,12 @@ import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
+import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionApps;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
+import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,10 +69,12 @@ public class DeployMojoTest extends MojoTestBase {
         doCallRealMethod().when(mojoSpy).getAppName();
         final FunctionApp app = mock(FunctionApp.class);
         doReturn(app).when(mojoSpy).getFunctionApp();
+        doNothing().when(mojoSpy).updateFunctionApp(app);
 
         mojoSpy.doExecute();
         verify(mojoSpy, times(1)).createOrUpdateFunctionApp();
         verify(mojoSpy, times(1)).doExecute();
+        verify(mojoSpy, times(1)).updateFunctionApp(any(FunctionApp.class));
         verify(handler, times(1)).publish();
         verifyNoMoreInteractions(handler);
     }
@@ -80,13 +84,11 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployMojo mojo = getMojoFromPom();
         final DeployMojo mojoSpy = spy(mojo);
         doReturn(null).when(mojoSpy).getFunctionApp();
-        final Blank blank = mock(Blank.class);
-        doReturn(blank).when(mojoSpy).defineApp(anyString(), anyString());
         final NewAppServicePlanWithGroup withGroup = mock(NewAppServicePlanWithGroup.class);
-        doReturn(withGroup).when(blank).withRegion(anyString());
+        doReturn(withGroup).when(mojoSpy).defineApp(anyString(), anyString());
         final WithCreate withCreate = mock(WithCreate.class);
         doReturn(withCreate).when(mojoSpy).configureResourceGroup(any(NewAppServicePlanWithGroup.class), anyString());
-        doNothing().when(mojoSpy).configurePricingTier(any(WithCreate.class), any(PricingTier.class));
+        doNothing().when(mojoSpy).configurePricingTier(any(WithCreate.class), isNull());
         doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
 
         mojoSpy.createOrUpdateFunctionApp();
@@ -95,10 +97,23 @@ public class DeployMojoTest extends MojoTestBase {
         verify(mojoSpy, times(1)).defineApp(anyString(), anyString());
         verify(mojoSpy, times(1))
                 .configureResourceGroup(any(NewAppServicePlanWithGroup.class), anyString());
-        verify(mojoSpy, times(1))
-                .configurePricingTier(any(WithCreate.class), any(PricingTier.class));
+        verify(mojoSpy, times(1)).configurePricingTier(any(WithCreate.class), isNull());
         verify(mojoSpy, times(1)).configureAppSettings(any(Consumer.class), anyMap());
         verify(withCreate, times(1)).create();
+    }
+
+    @Test
+    public void updateFunctionApp() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
+        final DeployMojo mojoSpy = spy(mojo);
+        final FunctionApp app = mock(FunctionApp.class);
+        final Update update = mock(Update.class);
+        doReturn(update).when(app).update();
+        doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
+
+        mojoSpy.updateFunctionApp(app);
+
+        verify(update, times(1)).apply();
     }
 
     @Test
@@ -118,7 +133,7 @@ public class DeployMojoTest extends MojoTestBase {
 
         final NewAppServicePlanWithGroup ret = mojoSpy.defineApp(anyString(), anyString());
 
-        assertSame(blank, ret);
+        assertSame(newAppServicePlanWithGroup, ret);
     }
 
     @Test
@@ -154,10 +169,12 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployMojo mojo = getMojoFromPom();
         final DeployMojo mojoSpy = spy(mojo);
         final WithCreate withCreate = mock(WithCreate.class);
+        doReturn(withCreate).when(withCreate).withNewAppServicePlan(any(PricingTier.class));
 
         mojoSpy.configurePricingTier(withCreate, PricingTier.STANDARD_S1);
 
         verify(withCreate, times(1)).withNewAppServicePlan(PricingTier.STANDARD_S1);
+        verify(withCreate, times(1)).withWebAppAlwaysOn(true);
     }
 
     @Test
@@ -171,13 +188,25 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void getArtifactHandler() throws Exception {
+    public void getMSDeployArtifactHandler() throws Exception {
         final DeployMojo mojo = getMojoFromPom();
 
         final ArtifactHandler handler = mojo.getArtifactHandler();
 
         assertNotNull(handler);
         assertTrue(handler instanceof MSDeployArtifactHandlerImpl);
+    }
+
+    @Test
+    public void getFTPArtifactHandler() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
+        final DeployMojo mojoSpy = spy(mojo);
+        doReturn("ftp").when(mojoSpy).getDeploymentType();
+
+        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
+
+        assertNotNull(handler);
+        assertTrue(handler instanceof FTPArtifactHandlerImpl);
     }
 
     private DeployMojo getMojoFromPom() throws Exception {

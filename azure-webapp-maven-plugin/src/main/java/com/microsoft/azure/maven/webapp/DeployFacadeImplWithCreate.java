@@ -6,13 +6,13 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class DeployFacadeImplWithCreate extends DeployFacadeBaseImpl {
     public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
     public static final String WEBAPP_CREATED = "Successfully created Web App";
-    private WebApp.DefinitionStages.WithCreate withCreate = null;
+    private WithCreate withCreate = null;
 
     public DeployFacadeImplWithCreate(final AbstractWebAppMojo mojo) {
         super(mojo);

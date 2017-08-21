@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
 import org.apache.maven.plugin.logging.Log;
@@ -55,13 +56,13 @@ public class DeployFacadeImplWithCreateTest {
         doReturn(handler).when(facadeSpy).getSettingsHandler();
 
         facadeSpy.applySettings();
-        verify(handler, times(1)).processSettings((WebApp.DefinitionStages.WithCreate) null);
+        verify(handler, times(1)).processSettings((WithCreate) null);
         verifyNoMoreInteractions(handler);
     }
 
     @Test
     public void commitChanges() throws Exception {
-        final WebApp.DefinitionStages.WithCreate withCreate = mock(WebApp.DefinitionStages.WithCreate.class);
+        final WithCreate withCreate = mock(WithCreate.class);
         ReflectionTestUtils.setField(facade, "withCreate", withCreate);
 
         facade.commitChanges();

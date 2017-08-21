@@ -7,6 +7,8 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.management.appservice.WebApp.UpdateStages.WithCredentials;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
@@ -43,8 +45,8 @@ public class PrivateRegistryRuntimeHandlerImplTest {
     public void updateAppRuntime() throws Exception {
         final SiteInner siteInner = mock(SiteInner.class);
         when(siteInner.kind()).thenReturn("app,linux");
-        final WebApp.UpdateStages.WithCredentials withCredentials = mock(WebApp.UpdateStages.WithCredentials.class);
-        final WebApp.Update update = mock(WebApp.Update.class);
+        final WithCredentials withCredentials = mock(WithCredentials.class);
+        final Update update = mock(Update.class);
         when(update.withPrivateRegistryImage(null, null)).thenReturn(withCredentials);
         final WebApp app = mock(WebApp.class);
         when(app.inner()).thenReturn(siteInner);

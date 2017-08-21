@@ -6,7 +6,8 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
+import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -21,7 +22,7 @@ public class SettingsHandlerImpl implements SettingsHandler {
     }
 
     @Override
-    public void processSettings(WebApp.DefinitionStages.WithCreate withCreate) throws MojoExecutionException {
+    public void processSettings(WithCreate withCreate) throws MojoExecutionException {
         final Map appSettings = mojo.getAppSettings();
         if (appSettings != null && !appSettings.isEmpty()) {
             withCreate.withAppSettings(appSettings);
@@ -34,7 +35,7 @@ public class SettingsHandlerImpl implements SettingsHandler {
     }
 
     @Override
-    public void processSettings(WebApp.Update update) throws MojoExecutionException {
+    public void processSettings(Update update) throws MojoExecutionException {
         final Map appSettings = mojo.getAppSettings();
         if (appSettings != null && !appSettings.isEmpty()) {
             update.withAppSettings(appSettings);

@@ -46,6 +46,14 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     protected String appName;
 
     /**
+     * Function App region, which will only be used to create Function App at the first time.
+     *
+     * @since 0.1.0
+     */
+    @Parameter(property = "functions.region", defaultValue = "westus")
+    protected String region;
+
+    /**
      * Application settings of Function App, in the form of name-value pairs.
      * <pre>
      * {@code
@@ -86,6 +94,10 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
 
     public String getAppName() {
         return appName;
+    }
+
+    public String getRegion() {
+        return region;
     }
 
     public Map getAppSettings() {

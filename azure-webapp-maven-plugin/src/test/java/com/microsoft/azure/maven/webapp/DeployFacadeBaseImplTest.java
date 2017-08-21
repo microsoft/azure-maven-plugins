@@ -88,7 +88,7 @@ public class DeployFacadeBaseImplTest {
 
     @Test
     public void getRuntimeHandler() throws Exception {
-        RuntimeHandler handler = null;
+        RuntimeHandler handler;
 
         // <javaVersion> == null && <containerSettings> == null
         when(mojo.getJavaVersion()).thenReturn(null);

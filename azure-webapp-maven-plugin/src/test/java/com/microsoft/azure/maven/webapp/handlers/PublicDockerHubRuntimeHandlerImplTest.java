@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
@@ -41,7 +42,7 @@ public class PublicDockerHubRuntimeHandlerImplTest {
     public void updateAppRuntime() throws Exception {
         final SiteInner siteInner = mock(SiteInner.class);
         when(siteInner.kind()).thenReturn("app,linux");
-        final WebApp.Update update = mock(WebApp.Update.class);
+        final Update update = mock(Update.class);
         final WebApp app = mock(WebApp.class);
         when(app.inner()).thenReturn(siteInner);
         when(app.update()).thenReturn(update);

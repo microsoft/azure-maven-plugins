@@ -7,7 +7,9 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebAppBase;
+import com.microsoft.azure.management.appservice.WebAppBase.UpdateStages.WithWebContainer;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
@@ -44,9 +46,8 @@ public class JavaRuntimeHandlerImplTest {
         // Success
         final SiteInner siteInner = mock(SiteInner.class);
         when(siteInner.kind()).thenReturn("app");
-        final WebAppBase.UpdateStages.WithWebContainer withWebContainer =
-                mock(WebAppBase.UpdateStages.WithWebContainer.class);
-        final WebApp.Update update = mock(WebApp.Update.class);
+        final WithWebContainer withWebContainer = mock(WithWebContainer.class);
+        final Update update = mock(Update.class);
         when(update.withJavaVersion(null)).thenReturn(withWebContainer);
         final WebApp app = mock(WebApp.class);
         when(app.inner()).thenReturn(siteInner);

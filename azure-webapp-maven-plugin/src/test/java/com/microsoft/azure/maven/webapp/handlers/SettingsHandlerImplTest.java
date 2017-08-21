@@ -6,7 +6,8 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
+import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import org.junit.Before;
@@ -18,9 +19,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.HashMap;
-import java.util.Map;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -44,7 +43,7 @@ public class SettingsHandlerImplTest {
 
     @Test
     public void processSettings() throws Exception {
-        final WebApp.DefinitionStages.WithCreate withCreate = mock(WebApp.DefinitionStages.WithCreate.class);
+        final WithCreate withCreate = mock(WithCreate.class);
         handler.processSettings(withCreate);
         verify(withCreate, times(1)).withAppSettings(ArgumentMatchers.<String, String>anyMap());
         verify(withCreate, times(1)).withLocalGitSourceControl();
@@ -52,7 +51,7 @@ public class SettingsHandlerImplTest {
 
     @Test
     public void processSettings1() throws Exception {
-        final WebApp.Update update = mock(WebApp.Update.class);
+        final Update update = mock(Update.class);
         handler.processSettings(update);
         verify(update, times(1)).withAppSettings(ArgumentMatchers.<String, String>anyMap());
         verify(update, times(1)).withLocalGitSourceControl();

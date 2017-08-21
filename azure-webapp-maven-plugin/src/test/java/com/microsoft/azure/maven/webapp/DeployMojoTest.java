@@ -6,12 +6,10 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.testing.MojoRule;
@@ -21,7 +19,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.File;
 

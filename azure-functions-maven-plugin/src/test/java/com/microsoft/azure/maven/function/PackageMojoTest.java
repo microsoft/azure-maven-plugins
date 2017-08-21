@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
 import org.apache.maven.execution.MavenSession;
@@ -17,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reflections.util.ClasspathHelper;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
@@ -48,6 +50,27 @@ public class PackageMojoTest extends MojoTestBase {
 
         assertNotNull(handler);
         assertTrue(handler instanceof AnnotationHandlerImpl);
+    }
+
+    @Test
+    public void getScriptFilePath() throws Exception {
+        final PackageMojo mojo = getMojoFromPom();
+        final PackageMojo mojoSpy = spy(mojo);
+        ReflectionUtils.setVariableValueInObject(mojoSpy, "finalName", "artifact-0.1.0");
+
+        final String finalName = mojoSpy.getScriptFilePath();
+
+        assertEquals("..\\artifact-0.1.0.jar", finalName);
+    }
+
+    @Test
+    public void writeFunctionJsonFile() throws Exception {
+        final PackageMojo mojo = getMojoFromPom();
+        final PackageMojo mojoSpy = spy(mojo);
+        doReturn("target/azure-functions").when(mojoSpy).getDeploymentStageDirectory();
+        doNothing().when(mojoSpy).writeObjectToFile(isNull(), isNull(), isNotNull());
+
+        mojoSpy.writeFunctionJsonFile(null, "httpTrigger", null);
     }
 
     private PackageMojo getMojoFromPom() throws Exception {

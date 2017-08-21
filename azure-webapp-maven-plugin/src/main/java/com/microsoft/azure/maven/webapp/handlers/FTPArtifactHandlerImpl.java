@@ -12,7 +12,6 @@ import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.IOException;
 import java.util.List;

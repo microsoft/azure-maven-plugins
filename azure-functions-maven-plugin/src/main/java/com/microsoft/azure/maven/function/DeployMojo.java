@@ -40,15 +40,6 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     public static final String MS_DEPLOY = "msdeploy";
     public static final String FTP = "ftp";
-    public static final String WEST_US = "westus";
-
-    /**
-     * Function App region, which will only be used to create Function App at the first time.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.region", defaultValue = WEST_US)
-    protected String region;
 
     /**
      * Function App pricing tier, which will only be used to create Function App at the first time.<br/>
@@ -83,10 +74,6 @@ public class DeployMojo extends AbstractFunctionMojo {
      */
     @Parameter(property = "functions.deploymentType", defaultValue = MS_DEPLOY)
     protected String deploymentType;
-
-    public String getRegion() {
-        return region;
-    }
 
     public PricingTier getPricingTier() {
         return pricingTier == null ? null : pricingTier.toPricingTier();
