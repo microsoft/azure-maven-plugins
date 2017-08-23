@@ -6,12 +6,12 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
-import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.bindings.BaseBinding;
+import com.microsoft.azure.maven.function.bindings.BindingFactory;
 import com.microsoft.azure.maven.function.bindings.HttpBinding;
-import com.microsoft.azure.maven.function.bindings.QueueBinding;
-import com.microsoft.azure.maven.function.bindings.TimerBinding;
-import com.microsoft.azure.serverless.functions.annotation.*;
+import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
+import com.microsoft.azure.serverless.functions.annotation.FunctionName;
+import com.microsoft.azure.serverless.functions.annotation.HttpTrigger;
 import org.apache.maven.plugin.logging.Log;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
@@ -96,22 +96,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     }
 
     protected BaseBinding parseParameterAnnotation(final Annotation annotation) {
-        if (annotation instanceof HttpTrigger) {
-            return new HttpBinding((HttpTrigger) annotation);
-        }
-        if (annotation instanceof HttpOutput) {
-            return new HttpBinding((HttpOutput) annotation);
-        }
-        if (annotation instanceof QueueTrigger) {
-            return new QueueBinding((QueueTrigger) annotation);
-        }
-        if (annotation instanceof QueueOutput) {
-            return new QueueBinding((QueueOutput) annotation);
-        }
-        if (annotation instanceof TimerTrigger) {
-            return new TimerBinding((TimerTrigger) annotation);
-        }
-        return null;
+        return BindingFactory.getBinding(annotation);
     }
 
     protected BaseBinding parseMethodAnnotation(final Annotation annotation) {

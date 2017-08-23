@@ -51,7 +51,7 @@ public class AnnotationHandlerImplTest {
         }
 
         @FunctionName(TIMER_TRIGGER_FUNCTION)
-        public void timerTriggerMethod(@TimerTrigger(name = "timer", schedule = "", useMonitor = false) String timer) {
+        public void timerTriggerMethod(@TimerTrigger(name = "timer", schedule = "") String timer) {
         }
     }
 
