@@ -12,7 +12,7 @@ import com.microsoft.azure.serverless.functions.annotation.TableInput;
 import com.microsoft.azure.serverless.functions.annotation.TableOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class TableBinding extends BaseBinding {
+public class TableBinding extends StorageBaseBinding {
     private String tableName = "";
 
     private String partitionKey = "";
@@ -22,8 +22,6 @@ public class TableBinding extends BaseBinding {
     private String filter = "";
 
     private String take = "";
-
-    private String connection = "";
 
     public TableBinding(final TableInput tableInput) {
         setDirection("in");
@@ -35,7 +33,7 @@ public class TableBinding extends BaseBinding {
         rowKey = tableInput.rowKey();
         filter = tableInput.filter();
         take = tableInput.take();
-        connection = tableInput.connection();
+        setConnection(tableInput.connection());
     }
 
     public TableBinding(final TableOutput tableOutput) {
@@ -46,7 +44,7 @@ public class TableBinding extends BaseBinding {
         tableName = tableOutput.tableName();
         partitionKey = tableOutput.partitionKey();
         rowKey = tableOutput.rowKey();
-        connection = tableOutput.connection();
+        setConnection(tableOutput.connection());
     }
 
     @JsonGetter("tableName")
@@ -72,10 +70,5 @@ public class TableBinding extends BaseBinding {
     @JsonGetter("take")
     public String getTake() {
         return take;
-    }
-
-    @JsonGetter("connection")
-    public String getConnection() {
-        return connection;
     }
 }

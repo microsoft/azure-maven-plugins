@@ -6,13 +6,13 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
-import com.microsoft.azure.maven.function.bindings.BaseBinding;
-import com.microsoft.azure.maven.function.bindings.BindingFactory;
-import com.microsoft.azure.maven.function.bindings.HttpBinding;
+import com.microsoft.azure.maven.function.bindings.*;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.serverless.functions.annotation.FunctionName;
 import com.microsoft.azure.serverless.functions.annotation.HttpTrigger;
+import com.microsoft.azure.serverless.functions.annotation.StorageAccount;
 import org.apache.maven.plugin.logging.Log;
+import org.codehaus.plexus.util.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
@@ -63,10 +63,23 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         final FunctionConfiguration config = new FunctionConfiguration();
         final List<BaseBinding> bindings = config.getBindings();
 
+        processParameterAnnotations(method, bindings);
+
+        processMethodAnnotations(method, bindings);
+
+        patchStorageBinding(method, bindings);
+
+        config.setEntryPoint(method.getDeclaringClass().getCanonicalName() + "." + method.getName());
+        return config;
+    }
+
+    protected void processParameterAnnotations(final Method method, final List<BaseBinding> bindings) {
         for (final Parameter param : method.getParameters()) {
             bindings.addAll(parseAnnotations(param::getAnnotations, this::parseParameterAnnotation));
         }
+    }
 
+    protected void processMethodAnnotations(final Method method, final List<BaseBinding> bindings) {
         if (!method.getReturnType().equals(Void.TYPE)) {
             bindings.addAll(parseAnnotations(method::getAnnotations, this::parseMethodAnnotation));
 
@@ -75,9 +88,6 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
                 bindings.add(new HttpBinding());
             }
         }
-
-        config.setEntryPoint(method.getDeclaringClass().getCanonicalName() + "." + method.getName());
-        return config;
     }
 
     protected List<BaseBinding> parseAnnotations(Supplier<Annotation[]> annotationProvider,
@@ -105,5 +115,27 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
             ret.setName("$return");
         }
         return ret;
+    }
+
+    protected void patchStorageBinding(final Method method, final List<BaseBinding> bindings) {
+        final Optional<Annotation> storageAccount = Arrays.stream(method.getAnnotations())
+                .filter(a -> a instanceof StorageAccount)
+                .findFirst();
+
+        if (storageAccount.isPresent()) {
+            log.debug("StorageAccount annotation found.");
+            final String connectionString = ((StorageAccount) storageAccount.get()).value();
+            bindings.stream().forEach(b -> {
+                if (b instanceof StorageBaseBinding) {
+                    final StorageBaseBinding sb = (StorageBaseBinding) b;
+                    // Override storage bindings with empty connection
+                    if (StringUtils.isEmpty(sb.getConnection())) {
+                        sb.setConnection(connectionString);
+                    }
+                }
+            });
+        } else {
+            log.debug("No StorageAccount annotation found.");
+        }
     }
 }

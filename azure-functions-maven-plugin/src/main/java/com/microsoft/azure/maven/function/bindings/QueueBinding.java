@@ -8,16 +8,12 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.HttpOutput;
-import com.microsoft.azure.serverless.functions.annotation.HttpTrigger;
 import com.microsoft.azure.serverless.functions.annotation.QueueOutput;
 import com.microsoft.azure.serverless.functions.annotation.QueueTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class QueueBinding extends BaseBinding {
+public class QueueBinding extends StorageBaseBinding {
     private String queueName = "";
-
-    private String connection = "";
 
     public QueueBinding(final QueueTrigger queueTrigger) {
         setDirection("in");
@@ -25,7 +21,7 @@ public class QueueBinding extends BaseBinding {
         setName(queueTrigger.name());
 
         queueName = queueTrigger.queueName();
-        connection = queueTrigger.connection();
+        setConnection(queueTrigger.connection());
     }
 
     public QueueBinding(final QueueOutput queueOutput) {
@@ -34,16 +30,11 @@ public class QueueBinding extends BaseBinding {
         setName(queueOutput.name());
 
         queueName = queueOutput.queueName();
-        connection = queueOutput.connection();
+        setConnection(queueOutput.connection());
     }
 
     @JsonGetter("queueName")
     public String getQueueName() {
         return queueName;
-    }
-
-    @JsonGetter("connection")
-    public String getConnection() {
-        return connection;
     }
 }

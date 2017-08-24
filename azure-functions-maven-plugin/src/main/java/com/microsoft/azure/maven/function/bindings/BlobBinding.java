@@ -8,13 +8,13 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.*;
+import com.microsoft.azure.serverless.functions.annotation.BlobTrigger;
+import com.microsoft.azure.serverless.functions.annotation.BlobInput;
+import com.microsoft.azure.serverless.functions.annotation.BlobOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class BlobBinding extends BaseBinding {
+public class BlobBinding extends StorageBaseBinding {
     private String path = "";
-
-    private String connection = "";
 
     public BlobBinding(final BlobTrigger blobTrigger) {
         setDirection("in");
@@ -22,7 +22,7 @@ public class BlobBinding extends BaseBinding {
         setName(blobTrigger.name());
 
         path = blobTrigger.path();
-        connection = blobTrigger.connection();
+        setConnection(blobTrigger.connection());
     }
 
     public BlobBinding(final BlobInput blobInput) {
@@ -31,7 +31,7 @@ public class BlobBinding extends BaseBinding {
         setName(blobInput.name());
 
         path = blobInput.path();
-        connection = blobInput.connection();
+        setConnection(blobInput.connection());
     }
 
     public BlobBinding(final BlobOutput blobOutput) {
@@ -40,16 +40,11 @@ public class BlobBinding extends BaseBinding {
         setName(blobOutput.name());
 
         path = blobOutput.path();
-        connection = blobOutput.connection();
+        setConnection(blobOutput.connection());
     }
 
     @JsonGetter("path")
     public String getPath() {
         return path;
-    }
-
-    @JsonGetter("connection")
-    public String getConnection() {
-        return connection;
     }
 }
