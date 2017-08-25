@@ -8,16 +8,14 @@ package com.microsoft.azure.maven.function;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
-import com.microsoft.azure.maven.function.configurations.HostConfiguration;
-import com.microsoft.azure.maven.function.configurations.LocalSettings;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,41 +32,26 @@ import java.util.Set;
  */
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
 public class PackageMojo extends AbstractFunctionMojo {
-    public static final String SEARCH_FUNCTIONS = "Step 1 of 7: Searching for Azure Function entry points";
+    public static final String SEARCH_FUNCTIONS = "Step 1 of 6: Searching for Azure Function entry points";
     public static final String FOUND_FUNCTIONS = " Azure Function entry point(s) found.";
-    public static final String GENERATE_CONFIG = "Step 2 of 7: Generating Azure Function configurations";
+    public static final String GENERATE_CONFIG = "Step 2 of 6: Generating Azure Function configurations";
     public static final String GENERATE_SKIP = "No Azure Functions found. Skip configuration generation.";
     public static final String GENERATE_DONE = "Generation done.";
-    public static final String VALIDATE_CONFIG = "Step 3 of 7: Validating generated configurations";
+    public static final String VALIDATE_CONFIG = "Step 3 of 6: Validating generated configurations";
     public static final String VALIDATE_SKIP = "No configurations found. Skip validation.";
     public static final String VALIDATE_DONE = "Validation done.";
-    public static final String SAVE_HOST_JSON = "Step 4 of 7: Saving host configuration to host.json";
-    public static final String SAVE_LOCAL_SETTINGS_JSON = "Step 5 of 7: Saving local settings to local.settings.json";
-    public static final String SAVE_FUNCTION_JSONS = "Step 6 of 7: Saving configurations to function.json";
+    public static final String SAVE_HOST_JSON = "Step 4 of 6: Saving empty host.json";
+    public static final String SAVE_FUNCTION_JSONS = "Step 5 of 6: Saving configurations to function.json";
     public static final String SAVE_SKIP = "No configurations found. Skip save.";
     public static final String SAVE_FUNCTION_JSON = "Starting processing function: ";
     public static final String SAVE_SUCCESS = "Successfully saved to ";
-    public static final String COPY_JARS = "Step 7 of 7: Copying JARs to staging directory ";
+    public static final String COPY_JARS = "Step 6 of 6: Copying JARs to staging directory ";
     public static final String COPY_SUCCESS = "Copied successfully.";
     public static final String BUILD_SUCCESS = "Successfully built Azure Functions.";
 
     public static final String FUNCTION_JSON = "function.json";
     public static final String HOST_JSON = "host.json";
-    public static final String LOCAL_SETTINGS_JSON = "local.settings.json";
 
-    /**
-     * Configuration for host, which will be saved to host.json.
-     * Schema of host.json is at https://github.com/Azure/azure-webjobs-sdk-script/blob/dev/schemas/json/host.json
-     * Sample host.json is at https://github.com/Azure/azure-webjobs-sdk-script/wiki/host.json
-     *
-     * @since 0.1.0
-     */
-    @Parameter
-    protected HostConfiguration host;
-
-    public HostConfiguration getHostConfiguration() {
-        return host == null ? new HostConfiguration() : host;
-    }
 
     @Override
     protected void doExecute() throws Exception {
@@ -82,9 +65,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         final ObjectWriter objectWriter = getObjectWriter();
 
-        writeHostJsonFile(objectWriter, getHostConfiguration());
-
-        writeLocalSettingsJsonFile(objectWriter, getLocalSettings());
+        writeEmptyHostJsonFile(objectWriter);
 
         writeFunctionJsonFiles(objectWriter, configMap);
 
@@ -141,16 +122,6 @@ public class PackageMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected LocalSettings getLocalSettings() {
-        final LocalSettings localSettings = new LocalSettings();
-        // Merge <appSettings> to local settings
-        final Map appSettings = getAppSettings();
-        if (appSettings != null && !appSettings.isEmpty()) {
-            localSettings.getValues().putAll(appSettings);
-        }
-        return localSettings;
-    }
-
     protected void writeFunctionJsonFiles(final ObjectWriter objectWriter,
                                           final Map<String, FunctionConfiguration> configMap) throws IOException {
         getLog().info(SAVE_FUNCTION_JSONS);
@@ -171,20 +142,12 @@ public class PackageMojo extends AbstractFunctionMojo {
         getLog().info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
     }
 
-    protected void writeHostJsonFile(final ObjectWriter objectWriter, final HostConfiguration config)
+    protected void writeEmptyHostJsonFile(final ObjectWriter objectWriter)
             throws IOException {
         getLog().info(SAVE_HOST_JSON);
         final File hostJsonFile = Paths.get(getDeploymentStageDirectory(), HOST_JSON).toFile();
-        writeObjectToFile(objectWriter, config, hostJsonFile);
+        writeObjectToFile(objectWriter, new Object(), hostJsonFile);
         getLog().info(SAVE_SUCCESS + hostJsonFile.getAbsolutePath());
-    }
-
-    protected void writeLocalSettingsJsonFile(final ObjectWriter objectWriter, final LocalSettings settings)
-            throws IOException {
-        getLog().info(SAVE_LOCAL_SETTINGS_JSON);
-        final File localSettingsFile = Paths.get(getDeploymentStageDirectory(), LOCAL_SETTINGS_JSON).toFile();
-        writeObjectToFile(objectWriter, settings, localSettingsFile);
-        getLog().info(SAVE_SUCCESS + localSettingsFile.getAbsolutePath());
     }
 
     protected void writeObjectToFile(final ObjectWriter objectWriter, final Object object, final File targetFile)
@@ -195,7 +158,9 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected ObjectWriter getObjectWriter() {
-        return new ObjectMapper().writerWithDefaultPrettyPrinter();
+        return new ObjectMapper()
+                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                .writerWithDefaultPrettyPrinter();
     }
 
     protected void copyJarsToStageDirectory() throws IOException {

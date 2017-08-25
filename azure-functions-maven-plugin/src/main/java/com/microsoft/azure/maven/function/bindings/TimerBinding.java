@@ -14,32 +14,16 @@ import com.microsoft.azure.serverless.functions.annotation.TimerTrigger;
 public class TimerBinding extends BaseBinding {
     private String schedule;
 
-    private boolean runOnStartup;
-
-    private boolean useMonitor;
-
     public TimerBinding(final TimerTrigger timerTrigger) {
         setDirection("in");
         setType("timerTrigger");
         setName(timerTrigger.name());
 
         schedule = timerTrigger.schedule();
-        runOnStartup = timerTrigger.runOnStartup();
-        useMonitor = timerTrigger.useMonitor();
     }
 
     @JsonGetter("schedule")
     public String getSchedule() {
         return schedule;
-    }
-
-    @JsonGetter("runOnStartUp")
-    public boolean isRunOnStartup() {
-        return runOnStartup;
-    }
-
-    @JsonGetter("useMonitor")
-    public boolean isUseMonitor() {
-        return useMonitor;
     }
 }

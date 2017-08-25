@@ -9,6 +9,8 @@ package com.microsoft.azure.maven.function.configurations;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.microsoft.azure.maven.function.bindings.BaseBinding;
+import com.microsoft.azure.maven.function.bindings.StorageBaseBinding;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,8 @@ public class FunctionConfiguration {
             "Multiple triggers found on method: ";
     public static final String HTTP_OUTPUT_NOT_ALLOWED = "HttpOutput binding is only allowed to use with " +
             "HttpTrigger binding. HttpOutput binding found on method: ";
+    public static final String STORAGE_CONNECTION_EMPTY = "Storage binding (blob/queue/table) must have non-empty " +
+            "connection. Invalid storage binding found on method: ";
 
     private String scriptFile;
 
@@ -30,8 +34,6 @@ public class FunctionConfiguration {
     private List<BaseBinding> bindings = new ArrayList<>();
 
     private boolean disabled = false;
-
-    private boolean excluded;
 
     @JsonGetter("scriptFile")
     public String getScriptFile() {
@@ -53,17 +55,8 @@ public class FunctionConfiguration {
         return disabled;
     }
 
-    @JsonGetter("excluded")
-    public boolean isExcluded() {
-        return excluded;
-    }
-
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
-    }
-
-    public void setExcluded(boolean excluded) {
-        this.excluded = excluded;
     }
 
     public void setScriptFile(String scriptFile) {
@@ -75,13 +68,34 @@ public class FunctionConfiguration {
     }
 
     public void validate() {
-        if (getBindings().stream().filter(b -> b.getType().endsWith("Trigger")).count() > 1) {
+        checkMultipleTrigger();
+
+        checkHttpOutputBinding();
+
+        checkEmptyStorageConnection();
+    }
+
+    protected void checkMultipleTrigger() {
+        if (getBindings().stream()
+                .filter(b -> b.getType().endsWith("Trigger"))
+                .count() > 1) {
             throw new RuntimeException(MULTIPLE_TRIGGER + getEntryPoint());
         }
+    }
 
+    protected void checkHttpOutputBinding() {
         if (getBindings().stream().noneMatch(b -> b.getType().equalsIgnoreCase("httpTrigger")) &&
                 getBindings().stream().anyMatch(b -> b.getType().equalsIgnoreCase("http"))) {
             throw new RuntimeException(HTTP_OUTPUT_NOT_ALLOWED + getEntryPoint());
+        }
+    }
+
+    protected void checkEmptyStorageConnection() {
+        if (getBindings().stream()
+                .filter(b -> b instanceof StorageBaseBinding)
+                .map(b -> (StorageBaseBinding) b)
+                .filter(sb -> StringUtils.isEmpty(sb.getConnection())).count() > 0) {
+            throw new RuntimeException(STORAGE_CONNECTION_EMPTY + getEntryPoint());
         }
     }
 }
