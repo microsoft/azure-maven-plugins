@@ -157,6 +157,9 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter(property = "webapp.deploymentType")
     protected String deploymentType;
 
+    @Parameter(property = "webapp.stopBeforeDeployment", defaultValue = "false")
+    protected boolean stopAppBeforeDeployment;
+
     /**
      * Resources to deploy to Web App.
      *
@@ -214,6 +217,10 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public DeploymentType getDeploymentType() throws MojoExecutionException {
         return DeploymentType.fromString(deploymentType);
+    }
+
+    public boolean isStopAppBeforeDeployment() {
+        return stopAppBeforeDeployment;
     }
 
     public String getDeploymentStageDirectory() {

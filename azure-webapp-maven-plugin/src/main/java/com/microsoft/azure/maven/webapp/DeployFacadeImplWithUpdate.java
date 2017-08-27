@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class DeployFacadeImplWithUpdate extends DeployFacadeBaseImpl {
@@ -20,7 +20,9 @@ public class DeployFacadeImplWithUpdate extends DeployFacadeBaseImpl {
     @Override
     public DeployFacadeBaseImpl setupRuntime() throws MojoExecutionException {
         try {
-            update = getRuntimeHandler().updateAppRuntime();
+            update = HandlerFactory.getInstance()
+                    .getRuntimeHandler(getMojo())
+                    .updateAppRuntime();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -29,7 +31,9 @@ public class DeployFacadeImplWithUpdate extends DeployFacadeBaseImpl {
 
     @Override
     public DeployFacadeBaseImpl applySettings() throws MojoExecutionException {
-        getSettingsHandler().processSettings(update);
+        HandlerFactory.getInstance()
+                .getSettingsHandler(getMojo())
+                .processSettings(update);
         return this;
     }
 

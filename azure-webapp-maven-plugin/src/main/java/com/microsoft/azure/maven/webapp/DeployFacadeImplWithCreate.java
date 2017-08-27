@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
+import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class DeployFacadeImplWithCreate extends DeployFacadeBaseImpl {
@@ -21,7 +22,9 @@ public class DeployFacadeImplWithCreate extends DeployFacadeBaseImpl {
     @Override
     public DeployFacadeBaseImpl setupRuntime() throws MojoExecutionException {
         try {
-            withCreate = getRuntimeHandler().defineAppWithRunTime();
+            withCreate = HandlerFactory.getInstance()
+                    .getRuntimeHandler(getMojo())
+                    .defineAppWithRunTime();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -30,7 +33,9 @@ public class DeployFacadeImplWithCreate extends DeployFacadeBaseImpl {
 
     @Override
     public DeployFacadeBaseImpl applySettings() throws MojoExecutionException {
-        getSettingsHandler().processSettings(withCreate);
+        HandlerFactory.getInstance()
+                .getSettingsHandler(getMojo())
+                .processSettings(withCreate);
         return this;
     }
 

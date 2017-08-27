@@ -6,11 +6,14 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
+import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
+import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
+import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,6 +21,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Set;
 
 import static org.mockito.Mockito.*;
 
@@ -29,6 +34,15 @@ public class DeployFacadeImplWithCreateTest {
     @Mock
     private Log log;
 
+    @Mock
+    private ArtifactHandler artifactHandler;
+
+    @Mock
+    private RuntimeHandler runtimeHandler;
+
+    @Mock
+    private SettingsHandler settingsHandler;
+
     private DeployFacadeImplWithCreate facade = null;
 
     @Before
@@ -36,6 +50,22 @@ public class DeployFacadeImplWithCreateTest {
         MockitoAnnotations.initMocks(this);
         when(mojo.getLog()).thenReturn(log);
         facade = new DeployFacadeImplWithCreate(mojo);
+        ReflectionUtils.setVariableValueInObject(HandlerFactory.class, "instance", new HandlerFactory() {
+            @Override
+            public RuntimeHandler getRuntimeHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+                return runtimeHandler;
+            }
+
+            @Override
+            public SettingsHandler getSettingsHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+                return settingsHandler;
+            }
+
+            @Override
+            public ArtifactHandler getArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+                return artifactHandler;
+            }
+        });
     }
 
     @Test
