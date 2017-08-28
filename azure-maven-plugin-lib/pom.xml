@@ -22,7 +22,7 @@
         <azure.version>1.1.2</azure.version>
         <azure.client-runtime.version>1.0.4</azure.client-runtime.version>
         <azure.client-auth.version>1.0.4</azure.client-auth.version>
-        <azure.ai.version>1.0.8</azure.ai.version>
+        <azure.ai.version>1.0.9</azure.ai.version>
         <common-net.version>3.6</common-net.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.4.0</mockito.version>

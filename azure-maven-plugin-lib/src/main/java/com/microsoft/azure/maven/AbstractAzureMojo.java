@@ -24,7 +24,6 @@ import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
-import java.rmi.server.ExportException;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -202,6 +201,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
+            // Work around for Application Insights Java SDK:
+            // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.
+            // An issue has been filed at https://github.com/Microsoft/ApplicationInsights-Java/issues/416
+            // Before this issue is fixed, set default uncaught exception handler for all threads as work around.
+            Thread.setDefaultUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler());
+
             if (isSkipMojo()) {
                 trackMojoSkip();
                 return;
@@ -262,6 +267,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             throw new MojoExecutionException(message, exception);
         } else {
             getLog().error(message);
+        }
+    }
+
+    protected class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
+        @Override
+        public void uncaughtException(Thread t, Throwable e) {
+            getLog().debug("uncaughtException: " + e);
         }
     }
 }
