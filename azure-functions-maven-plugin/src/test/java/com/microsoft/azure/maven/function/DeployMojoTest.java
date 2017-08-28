@@ -15,6 +15,7 @@ import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionApps;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
+import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
@@ -107,6 +108,8 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployMojo mojo = getMojoFromPom();
         final DeployMojo mojoSpy = spy(mojo);
         final FunctionApp app = mock(FunctionApp.class);
+        final SiteInner siteInner = mock(SiteInner.class);
+        doReturn(siteInner).when(app).inner();
         final Update update = mock(Update.class);
         doReturn(update).when(app).update();
         doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
