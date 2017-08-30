@@ -33,7 +33,7 @@ public class QueueBinding extends StorageBaseBinding {
         setConnection(queueOutput.connection());
     }
 
-    @JsonGetter("queueName")
+    @JsonGetter
     public String getQueueName() {
         return queueName;
     }

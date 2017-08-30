@@ -43,7 +43,7 @@ public class BlobBinding extends StorageBaseBinding {
         setConnection(blobOutput.connection());
     }
 
-    @JsonGetter("path")
+    @JsonGetter
     public String getPath() {
         return path;
     }

@@ -35,6 +35,12 @@ import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
  */
 @Mojo(name = "add")
 public class AddMojo extends AbstractFunctionMojo {
+    @Parameter(defaultValue = "${project.baseDir}", readonly = true, required = true)
+    protected String baseDir;
+
+    @Parameter(defaultValue = "${project.compileSourceRoots}", readonly = true, required = true)
+    protected List<String> compileSourceRoots;
+
     /**
      * Package name of the new function.
      *
@@ -69,6 +75,16 @@ public class AddMojo extends AbstractFunctionMojo {
 
     public String getFunctionTemplate() {
         return functionTemplate;
+    }
+
+    protected String getBaseDir() {
+        return baseDir;
+    }
+
+    protected String getSourceRoot() {
+        return compileSourceRoots == null || compileSourceRoots.isEmpty() ?
+                Paths.get(getBaseDir(), "src", "main", "java").toString() :
+                compileSourceRoots.get(0);
     }
 
     protected void setFunctionPackageName(String functionPackageName) {
@@ -167,7 +183,7 @@ public class AddMojo extends AbstractFunctionMojo {
         getLog().info("");
         getLog().info("Step 4 of 4: Saving function to file");
 
-        final String sourceRoot = getProject().getCompileSourceRoots().get(0);
+        final String sourceRoot = getSourceRoot();
 
         final String[] packageName = getFunctionPackageName().split("\\.");
         final File packageDir = Paths.get(sourceRoot, packageName).toFile();
@@ -179,6 +195,10 @@ public class AddMojo extends AbstractFunctionMojo {
             final String message = format("Function already exists at %s. Please specify a different function name.",
                     targetFile.getAbsolutePath());
             throw new FileAlreadyExistsException(message);
+        }
+
+        if (!packageDir.exists()) {
+            packageDir.mkdirs();
         }
 
         try (final OutputStream os = new FileOutputStream(targetFile)) {
@@ -219,7 +239,7 @@ public class AddMojo extends AbstractFunctionMojo {
             return;
         }
 
-        final Scanner scanner = new Scanner(System.in, "UTF-8");
+        final Scanner scanner = getScanner();
 
         while (true) {
             out.printf("Enter value for %s: ", propertyName);
@@ -236,5 +256,9 @@ public class AddMojo extends AbstractFunctionMojo {
                 getLog().warn("Invalid input.");
             }
         }
+    }
+
+    protected Scanner getScanner() {
+        return new Scanner(System.in, "UTF-8");
     }
 }

@@ -67,27 +67,27 @@ public class ServiceBusBinding extends BaseBinding {
         access = topicOutput.access().toString();
     }
 
-    @JsonGetter("queueName")
+    @JsonGetter
     public String getQueueName() {
         return queueName;
     }
 
-    @JsonGetter("topicName")
+    @JsonGetter
     public String getTopicName() {
         return topicName;
     }
 
-    @JsonGetter("subscriptionName")
+    @JsonGetter
     public String getSubscriptionName() {
         return subscriptionName;
     }
 
-    @JsonGetter("access")
+    @JsonGetter
     public String getAccess() {
         return access;
     }
 
-    @JsonGetter("connection")
+    @JsonGetter
     public String getConnection() {
         return connection;
     }

@@ -18,17 +18,17 @@ public abstract class BaseBinding {
 
     protected String direction = "";
 
-    @JsonGetter("type")
+    @JsonGetter
     public String getType() {
         return type;
     }
 
-    @JsonGetter("name")
+    @JsonGetter
     public String getName() {
         return name;
     }
 
-    @JsonGetter("direction")
+    @JsonGetter
     public String getDirection() {
         return direction;
     }
