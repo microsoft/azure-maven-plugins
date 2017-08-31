@@ -46,22 +46,22 @@ public class HttpBinding extends BaseBinding {
         setName("$return");
     }
 
-    @JsonGetter("route")
+    @JsonGetter
     public String getRoute() {
         return route;
     }
 
-    @JsonGetter("webHookType")
+    @JsonGetter
     public String getWebHookType() {
         return webHookType;
     }
 
-    @JsonGetter("authLevel")
+    @JsonGetter
     public String getAuthLevel() {
         return authLevel;
     }
 
-    @JsonGetter("methods")
+    @JsonGetter
     public String[] getMethods() {
         return methods.clone();
     }

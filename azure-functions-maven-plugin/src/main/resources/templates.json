@@ -1,0 +1,112 @@
+[
+  {
+    "id": "HttpTrigger-Java",
+    "metadata": {
+      "name": "HttpTrigger",
+      "description": "$HttpTriggerJava_description",
+      "defaultFunctionName": "httpTriggerJava",
+      "language": "Java",
+      "userPrompt": []
+    },
+    "files": {
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.serverless.functions.ExecutionContext;\nimport com.microsoft.azure.serverless.functions.annotation.*;\n\npublic class $functionName$ {\n    @FunctionName(\"$functionName$\")\n    public void functionHandler(@HttpTrigger(name = \"req\", authLevel = AuthorizationLevel.ANONYMOUS) String req, final ExecutionContext executionContext) {\n        System.out.println(\"Http trigger input: \" + req);\n    }\n}\n"
+    }
+  },
+  {
+    "id": "BlobTrigger-Java",
+    "metadata": {
+      "name": "BlobTrigger",
+      "description": "$BlobTriggerJava_description",
+      "defaultFunctionName": "blobTriggerJava",
+      "language": "Java",
+      "userPrompt": [
+        "connection",
+        "path"
+      ]
+    },
+    "files": {
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.serverless.functions.ExecutionContext;\nimport com.microsoft.azure.serverless.functions.annotation.*;\n\npublic class $functionName$ {\n    @FunctionName(\"$functionName$\")\n    public void functionHandler(@BlobTrigger(name = \"myBlob\", path = \"$path$\", connection = \"$connection$\") String myBlob, final ExecutionContext executionContext) {\n        System.out.println(\"Blob trigger input: \" + myBlob);\n    }\n}\n"
+    }
+  },
+  {
+    "id": "QueueTrigger-Java",
+    "metadata": {
+      "name": "QueueTrigger",
+      "description": "$QueueTriggerJava_description",
+      "defaultFunctionName": "queueTriggerJava",
+      "language": "Java",
+      "userPrompt": [
+        "connection",
+        "queueName"
+      ]
+    },
+    "files": {
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.serverless.functions.ExecutionContext;\nimport com.microsoft.azure.serverless.functions.annotation.*;\n\npublic class $functionName$ {\n    @FunctionName(\"$functionName$\")\n    public void functionHandler(@QueueTrigger(name = \"myQueueItem\", queueName = \"$queueName$\", connection = \"$connection$\") String myQueueItem, final ExecutionContext executionContext) {\n        System.out.println(\"Queue trigger input: \" + myQueueItem);\n    }\n}\n"
+    }
+  },
+  {
+    "id": "ServiceBusQueueTrigger-Java",
+    "metadata": {
+      "name": "ServiceBusQueueTrigger",
+      "description": "$ServiceBusQueueTriggerJava_description",
+      "defaultFunctionName": "serviceBusQueueTriggerJava",
+      "language": "Java",
+      "userPrompt": [
+        "connection",
+        "queueName"
+      ]
+    },
+    "files": {
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.serverless.functions.ExecutionContext;\nimport com.microsoft.azure.serverless.functions.annotation.*;\n\npublic class $functionName$ {\n    @FunctionName(\"$functionName$\")\n    public void functionHandler(@ServiceBusQueueTrigger(name = \"myQueueItem\", queueName = \"$queueName$\", connection = \"$connection$\") String myQueueItem, final ExecutionContext executionContext) {\n        System.out.println(\"Service Bus Queue trigger input: \" + myQueueItem);\n    }\n}\n"
+    }
+  },
+  {
+    "id": "ServiceBusTopicTrigger-Java",
+    "metadata": {
+      "name": "ServiceBusTopicTrigger",
+      "description": "$ServiceBusTopicTriggerJava_description",
+      "defaultFunctionName": "serviceBusTopicTriggerJava",
+      "language": "Java",
+      "userPrompt": [
+        "connection",
+        "topicName",
+        "subscriptionName"
+      ]
+    },
+    "files": {
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.serverless.functions.ExecutionContext;\nimport com.microsoft.azure.serverless.functions.annotation.*;\n\npublic class $functionName$ {\n    @FunctionName(\"$functionName$\")\n    public void functionHandler(@ServiceBusTopicTrigger(name = \"myTopicItem\", topicName = \"$topicName$\", subscriptionName = \"$subscriptionName$\", connection = \"$connection$\") String myTopicItem, final ExecutionContext executionContext) {\n        System.out.println(\"Service Bus Topic trigger input: \" + myTopicItem);\n    }\n}\n"
+    }
+  },
+  {
+    "id": "EventHubTrigger-Java",
+    "metadata": {
+      "name": "EventHubTrigger",
+      "description": "$EventHubTriggerJava_description",
+      "defaultFunctionName": "eventHubTriggerJava",
+      "language": "Java",
+      "userPrompt": [
+        "connection",
+        "consumerGroup",
+        "eventHubName"
+      ]
+    },
+    "files": {
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.serverless.functions.ExecutionContext;\nimport com.microsoft.azure.serverless.functions.annotation.*;\n\npublic class $functionName$ {\n    @FunctionName(\"$functionName$\")\n    public void functionHandler(@EventHubTrigger(name = \"myEvent\", eventHubName = \"$eventHubName$\", consumerGroup = \"$consumerGroup$\", connection = \"$connection$\") String myEvent, final ExecutionContext executionContext) {\n        System.out.println(\"EventHub trigger input: \" + myEvent);\n    }\n}\n"
+    }
+  },
+  {
+    "id": "TimerTrigger-Java",
+    "metadata": {
+      "name": "TimerTrigger",
+      "description": "$TimerTriggerJava_description",
+      "defaultFunctionName": "timerTriggerJava",
+      "language": "Java",
+      "userPrompt": [
+        "schedule"
+      ]
+    },
+    "files": {
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.serverless.functions.ExecutionContext;\nimport com.microsoft.azure.serverless.functions.annotation.*;\n\npublic class $functionName$ {\n    @FunctionName(\"$functionName$\")\n    public void functionHandler(@TimerTrigger(name = \"timerInfo\", schedule = \"$schedule$\") String timerInfo, final ExecutionContext executionContext) {\n        System.out.println(\"Timer trigger input: \" + timerInfo);\n    }\n}\n"
+    }
+  }
+]

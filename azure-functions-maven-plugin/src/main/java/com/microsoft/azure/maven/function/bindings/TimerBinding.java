@@ -22,7 +22,7 @@ public class TimerBinding extends BaseBinding {
         schedule = timerTrigger.schedule();
     }
 
-    @JsonGetter("schedule")
+    @JsonGetter
     public String getSchedule() {
         return schedule;
     }

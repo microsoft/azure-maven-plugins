@@ -79,6 +79,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws Exception {
+        getLog().info("");
         getLog().info(SEARCH_FUNCTIONS);
         final Set<Method> functions = handler.findFunctions(getClassUrl());
         getLog().info(functions.size() + FOUND_FUNCTIONS);
@@ -91,6 +92,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected Map<String, FunctionConfiguration> getFunctionConfigurations(final AnnotationHandler handler,
                                                                            final Set<Method> methods) throws Exception {
+        getLog().info("");
         getLog().info(GENERATE_CONFIG);
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(methods);
         if (configMap.size() == 0) {
@@ -113,6 +115,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected void validateFunctionConfigurations(final Map<String, FunctionConfiguration> configMap) {
+        getLog().info("");
         getLog().info(VALIDATE_CONFIG);
         if (configMap.size() == 0) {
             getLog().info(VALIDATE_SKIP);
@@ -124,6 +127,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void writeFunctionJsonFiles(final ObjectWriter objectWriter,
                                           final Map<String, FunctionConfiguration> configMap) throws IOException {
+        getLog().info("");
         getLog().info(SAVE_FUNCTION_JSONS);
         if (configMap.size() == 0) {
             getLog().info(SAVE_SKIP);
@@ -142,8 +146,8 @@ public class PackageMojo extends AbstractFunctionMojo {
         getLog().info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
     }
 
-    protected void writeEmptyHostJsonFile(final ObjectWriter objectWriter)
-            throws IOException {
+    protected void writeEmptyHostJsonFile(final ObjectWriter objectWriter) throws IOException {
+        getLog().info("");
         getLog().info(SAVE_HOST_JSON);
         final File hostJsonFile = Paths.get(getDeploymentStageDirectory(), HOST_JSON).toFile();
         writeObjectToFile(objectWriter, new Object(), hostJsonFile);
@@ -165,6 +169,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void copyJarsToStageDirectory() throws IOException {
         final String stagingDirectory = getDeploymentStageDirectory();
+        getLog().info("");
         getLog().info(COPY_JARS + stagingDirectory);
         Utils.copyResources(
                 getProject(),

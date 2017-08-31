@@ -118,6 +118,9 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void updateFunctionApp(final FunctionApp app) {
         getLog().info(FUNCTION_APP_UPDATE);
 
+        // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
+        app.inner().withTags(null);
+
         final Update update = app.update();
         configureAppSettings(update::withAppSettings, getAppSettings());
         update.apply();

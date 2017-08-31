@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public abstract class StorageBaseBinding extends BaseBinding {
     private String connection = "";
 
-    @JsonGetter("connection")
+    @JsonGetter
     public String getConnection() {
         return connection;
     }

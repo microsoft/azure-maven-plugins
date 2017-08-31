@@ -47,27 +47,27 @@ public class TableBinding extends StorageBaseBinding {
         setConnection(tableOutput.connection());
     }
 
-    @JsonGetter("tableName")
+    @JsonGetter
     public String getTableName() {
         return tableName;
     }
 
-    @JsonGetter("partitionKey")
+    @JsonGetter
     public String getPartitionKey() {
         return partitionKey;
     }
 
-    @JsonGetter("rowKey")
+    @JsonGetter
     public String getRowKey() {
         return rowKey;
     }
 
-    @JsonGetter("filter")
+    @JsonGetter
     public String getFilter() {
         return filter;
     }
 
-    @JsonGetter("take")
+    @JsonGetter
     public String getTake() {
         return take;
     }

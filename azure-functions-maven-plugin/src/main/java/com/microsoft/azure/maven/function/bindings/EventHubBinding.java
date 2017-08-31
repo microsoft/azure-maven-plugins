@@ -43,12 +43,12 @@ public class EventHubBinding extends BaseBinding {
         return eventHubName;
     }
 
-    @JsonGetter("consumerGroup")
+    @JsonGetter
     public String getConsumerGroup() {
         return consumerGroup;
     }
 
-    @JsonGetter("connection")
+    @JsonGetter
     public String getConnection() {
         return connection;
     }
