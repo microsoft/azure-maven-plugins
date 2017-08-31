@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.maven.function.template.FunctionTemplate;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -35,6 +36,19 @@ import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
  */
 @Mojo(name = "add")
 public class AddMojo extends AbstractFunctionMojo {
+    public static final String LOAD_TEMPLATES = "Step 1 of 4: Load all function templates";
+    public static final String LOAD_TEMPLATES_DONE = "Successfully loaded all function templates";
+    public static final String LOAD_TEMPLATES_FAIL = "Failed to load all function templates.";
+    public static final String FIND_TEMPLATE = "Step 2 of 4: Find specified function template";
+    public static final String FIND_TEMPLATE_DONE = "Successfully found function template: ";
+    public static final String FIND_TEMPLATE_FAIL = "Function template not found: ";
+    public static final String PREPARE_PARAMS = "Step 3 of 4: Prepare required parameters";
+    public static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
+    public static final String SAVE_FILE_DONE = "Successfully saved new function at ";
+    public static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
+
+    //region Properties
+
     @Parameter(defaultValue = "${project.baseDir}", readonly = true, required = true)
     protected String baseDir;
 
@@ -65,12 +79,16 @@ public class AddMojo extends AbstractFunctionMojo {
     @Parameter(property = "functions.template")
     protected String functionTemplate;
 
+    //endregion
+
+    //region Getter and Setter
+
     public String getFunctionPackageName() {
         return functionPackageName;
     }
 
     public String getFunctionName() {
-        return StringUtils.capitalise(functionName);
+        return functionName;
     }
 
     public String getFunctionTemplate() {
@@ -88,125 +106,212 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void setFunctionPackageName(String functionPackageName) {
-        this.functionPackageName = functionPackageName;
+        this.functionPackageName = StringUtils.lowerCase(functionPackageName);
     }
 
     protected void setFunctionName(String functionName) {
-        this.functionName = functionName;
+        this.functionName = StringUtils.capitalise(functionName);
     }
 
     protected void setFunctionTemplate(String functionTemplate) {
         this.functionTemplate = functionTemplate;
     }
 
+    //endregion
+
     @Override
     protected void doExecute() throws Exception {
-        final FunctionTemplate[] templates = loadAllFunctionTemplates();
+        final List<FunctionTemplate> templates = loadAllFunctionTemplates();
 
         final FunctionTemplate template = getFunctionTemplate(templates);
 
-        final String newFunctionClass = generateNewFunctionClass(template);
+        final Map params = prepareRequiredParameters(template);
 
-        saveFunctionToFile(newFunctionClass);
+        final String newFunctionClass = substitueParametersInTemplate(template, params);
+
+        saveNewFunctionToFile(newFunctionClass);
     }
 
-    protected FunctionTemplate[] loadAllFunctionTemplates() throws Exception {
+    //region Load all templates
+
+    protected List<FunctionTemplate> loadAllFunctionTemplates() throws Exception {
         getLog().info("");
-        getLog().info("Step 1 of 4: Load all function templates");
+        getLog().info(LOAD_TEMPLATES);
+
         try (final InputStream is = AddMojo.class.getResourceAsStream("/templates.json")) {
             final String templatesJsonStr = IOUtil.toString(is);
-            final ObjectMapper objectMapper = new ObjectMapper();
-            final FunctionTemplate[] templates = objectMapper.readValue(templatesJsonStr, FunctionTemplate[].class);
-            getLog().info("Successfully loaded all function templates");
+            final List<FunctionTemplate> templates = parseTemplateJson(templatesJsonStr);
+            getLog().info(LOAD_TEMPLATES_DONE);
             return templates;
         } catch (Exception e) {
-            getLog().error("Failed to load all function templates.");
+            getLog().error(LOAD_TEMPLATES_FAIL);
             throw e;
         }
     }
 
-    protected FunctionTemplate getFunctionTemplate(final FunctionTemplate[] templates) throws Exception {
-        getLog().info("");
-        getLog().info("Step 2 of 4: Find chosen function template");
-        final List<String> availableTemplateNames = Arrays.stream(templates)
-                .map(t -> t.getMetadata().getName())
-                .collect(Collectors.toList());
-        assureInputFromUser("Function Template", getFunctionTemplate(), availableTemplateNames,
-                this::setFunctionTemplate);
-
-        final String templateName = getFunctionTemplate();
-        getLog().info("Chosen function template: " + templateName);
-        final Optional<FunctionTemplate> template = Arrays.stream(templates)
-                .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
-                .findFirst();
-        if (!template.isPresent()) {
-            throw new Exception("Function template not found: " + templateName);
-        }
-        getLog().info("Successfully found function template: " + templateName);
-        return template.get();
+    protected List<FunctionTemplate> parseTemplateJson(final String templateJson) throws Exception {
+        final FunctionTemplate[] templates = new ObjectMapper().readValue(templateJson, FunctionTemplate[].class);
+        return Arrays.asList(templates);
     }
 
-    protected String generateNewFunctionClass(final FunctionTemplate template) {
+    //endregion
+
+    //region Get function template
+
+    protected FunctionTemplate getFunctionTemplate(final List<FunctionTemplate> templates) throws Exception {
         getLog().info("");
-        getLog().info("Step 3 of 4: Prepare required parameters");
+        getLog().info(FIND_TEMPLATE);
 
-        final Map<String, String> propMap = new HashMap<>();
+        assureInputFromUser("Function Template",
+                getFunctionTemplate(),
+                getTemplateNames(templates),
+                this::setFunctionTemplate);
 
-        getLog().info(format("Common parameter [%s]", "Function Name"));
-        assureInputFromUser("Function Name",
+        return findTemplateByName(templates, getFunctionTemplate());
+    }
+
+    protected List<String> getTemplateNames(final List<FunctionTemplate> templates) {
+        return templates.stream().map(t -> t.getMetadata().getName()).collect(Collectors.toList());
+    }
+
+    protected FunctionTemplate findTemplateByName(final List<FunctionTemplate> templates, final String templateName)
+            throws Exception {
+        getLog().info("Specified function template: " + templateName);
+        final Optional<FunctionTemplate> template = templates.stream()
+                .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
+                .findFirst();
+
+        if (template.isPresent()) {
+            getLog().info(FIND_TEMPLATE_DONE + templateName);
+            return template.get();
+        }
+
+        throw new Exception(FIND_TEMPLATE_FAIL + templateName);
+    }
+
+    //endregion
+
+    //region Prepare parameters
+
+    protected Map<String, String> prepareRequiredParameters(final FunctionTemplate template) {
+        getLog().info("");
+        getLog().info(PREPARE_PARAMS);
+
+        prepareFunctionName();
+
+        preparePackageName();
+
+        final Map<String, String> params = prepareTemplateParameters(template);
+
+        params.put("functionName", getFunctionName());
+        params.put("packageName", getFunctionPackageName());
+
+        return params;
+    }
+
+    protected void prepareFunctionName() {
+        getLog().info("Common parameter [Function Name]: name for both the new function and Java class");
+
+        assureInputFromUser("Enter value for Function Name: ",
                 getFunctionName(),
                 str -> isNotEmpty(str) && isIdentifier(str) && !isKeyword(str),
+                "Input should be a valid Java class name.",
                 this::setFunctionName);
 
-        getLog().info(format("Common parameter [%s]", "Package Name"));
-        assureInputFromUser("Package Name",
+        getLog().info("Value to use: " + getFunctionName());
+    }
+
+    protected void preparePackageName() {
+        getLog().info("Common parameter [Package Name]: package name of the new Java class");
+
+        assureInputFromUser("Enter value for Package Name: ",
                 getFunctionPackageName(),
                 str -> isNotEmpty(str) && isName(str),
+                "Input should be a valid Java package name.",
                 this::setFunctionPackageName);
 
-        propMap.put("functionName", getFunctionName());
-        propMap.put("packageName", getFunctionPackageName());
+        getLog().info("Value to use: " + getFunctionPackageName());
+    }
+
+    protected Map<String, String> prepareTemplateParameters(final FunctionTemplate template) {
+        final Map<String, String> params = new HashMap<>();
 
         for (final String property : template.getMetadata().getUserPrompt()) {
             getLog().info(format("Trigger specific parameter [%s]", property));
-            assureInputFromUser(property, null, str -> isNotEmpty(str), str -> propMap.put(property, str));
+
+            assureInputFromUser(format("Enter value for %s: ", property),
+                    null,
+                    str -> isNotEmpty(str),
+                    "Input should be a non-empty string.",
+                    str -> params.put(property, str));
+
+            getLog().info("Value to use: " + params.get(property));
         }
 
+        return params;
+    }
+
+    //endregion
+
+    //region Substitute parameters
+
+    protected String substitueParametersInTemplate(final FunctionTemplate template, final Map<String, String> params) {
         String ret = template.getFiles().get("function.java");
-        for (final Map.Entry<String, String> entry : propMap.entrySet()) {
+        for (final Map.Entry<String, String> entry : params.entrySet()) {
             ret = ret.replace(String.format("$%s$", entry.getKey()), entry.getValue());
         }
         return ret;
     }
 
-    protected void saveFunctionToFile(final String newFunctionClass) throws Exception {
+    //endregion
+
+    //region Save function to file
+
+    protected void saveNewFunctionToFile(final String newFunctionClass) throws Exception {
         getLog().info("");
-        getLog().info("Step 4 of 4: Saving function to file");
+        getLog().info(SAVE_FILE);
 
+        final File packageDir = getPackageDir();
+
+        final File targetFile = getTargetFile(packageDir);
+
+        createPackageDirIfNotExist(packageDir);
+
+        saveToTargetFile(targetFile, newFunctionClass);
+
+        getLog().info(SAVE_FILE_DONE + targetFile.getAbsolutePath());
+    }
+
+    protected File getPackageDir() {
         final String sourceRoot = getSourceRoot();
-
         final String[] packageName = getFunctionPackageName().split("\\.");
-        final File packageDir = Paths.get(sourceRoot, packageName).toFile();
+        return Paths.get(sourceRoot, packageName).toFile();
+    }
 
+    protected File getTargetFile(final File packageDir) throws Exception {
         final String functionName = getFunctionName() + ".java";
         final File targetFile = new File(packageDir, functionName);
-
         if (targetFile.exists()) {
-            final String message = format("Function already exists at %s. Please specify a different function name.",
-                    targetFile.getAbsolutePath());
-            throw new FileAlreadyExistsException(message);
+            throw new FileAlreadyExistsException(format(FILE_EXIST, targetFile.getAbsolutePath()));
         }
+        return targetFile;
+    }
 
+    protected void createPackageDirIfNotExist(final File packageDir) {
         if (!packageDir.exists()) {
             packageDir.mkdirs();
         }
+    }
 
+    protected void saveToTargetFile(final File targetFile, final String newFunctionClass) throws Exception {
         try (final OutputStream os = new FileOutputStream(targetFile)) {
             copy(newFunctionClass, os);
         }
-
-        getLog().info("Successfully saved new function at " + targetFile.getAbsolutePath());
     }
+
+    //endregion
+
+    //region Helper methods
 
     protected void assureInputFromUser(final String propertyName, final String initValue, final List<String> options,
                                        final Consumer<String> setter) {
@@ -219,21 +324,26 @@ public class AddMojo extends AbstractFunctionMojo {
             out.printf("%d. %s%n", i, options.get(i));
         }
 
-        assureInputFromUser(propertyName, "", str -> {
-            try {
-                final int index = Integer.parseInt(str);
-                return 0 <= index && index < options.size();
-            } catch (Exception e) {
-                return false;
-            }
-        }, str -> {
-            final int index = Integer.parseInt(str);
-            setter.accept(options.get(index));
-        });
+        assureInputFromUser("Enter index to use: ",
+                null,
+                str -> {
+                    try {
+                        final int index = Integer.parseInt(str);
+                        return 0 <= index && index < options.size();
+                    } catch (Exception e) {
+                        return false;
+                    }
+                },
+                "Invalid index.",
+                str -> {
+                    final int index = Integer.parseInt(str);
+                    setter.accept(options.get(index));
+                });
     }
 
-    protected void assureInputFromUser(final String propertyName, final String initValue,
-                                       final Function<String, Boolean> validator, final Consumer<String> setter) {
+    protected void assureInputFromUser(final String prompt, final String initValue,
+                                       final Function<String, Boolean> validator, final String errorMessage,
+                                       final Consumer<String> setter) {
         if (validator.apply(initValue)) {
             setter.accept(initValue);
             return;
@@ -242,23 +352,24 @@ public class AddMojo extends AbstractFunctionMojo {
         final Scanner scanner = getScanner();
 
         while (true) {
-            out.printf("Enter value for %s: ", propertyName);
+            out.printf(prompt);
             out.flush();
             try {
                 final String input = scanner.next();
                 if (validator.apply(input)) {
                     setter.accept(input);
                     break;
-                } else {
-                    getLog().warn("Invalid input: " + input);
                 }
-            } catch (Exception e) {
-                getLog().warn("Invalid input.");
+            } catch (Exception ignored) {
             }
+            // Reaching here means invalid input
+            getLog().warn(errorMessage);
         }
     }
 
     protected Scanner getScanner() {
         return new Scanner(System.in, "UTF-8");
     }
+
+    //endregion
 }
