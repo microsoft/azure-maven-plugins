@@ -20,7 +20,9 @@ before_install:
   - sudo apt-get update && sudo apt-get install -y libssl-dev libffi-dev python-dev build-essential
   - sudo pip install azure-cli
 
-script: "mvn cobertura:cobertura"
+script:
+  - "mvn verify -P it"
+  - "mvn cobertura:cobertura"
 
 after_success:
   # test coverage reporting
