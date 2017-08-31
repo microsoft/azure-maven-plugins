@@ -21,8 +21,8 @@ before_install:
   - sudo pip install azure-cli
 
 script:
-  - "mvn verify -P it"
-  - "mvn cobertura:cobertura"
+  - "./mvnw verify -P it"
+  - "./mvnw cobertura:cobertura"
 
 after_success:
   # test coverage reporting
