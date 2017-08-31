@@ -28,3 +28,6 @@ hs_err_pid*
 
 # macOS
 .DS_Store
+
+# mvnw
+!.mvn/wrapper/maven-wrapper.jar
