@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.maven.function.template.FunctionTemplate;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -127,7 +126,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
         final Map params = prepareRequiredParameters(template);
 
-        final String newFunctionClass = substitueParametersInTemplate(template, params);
+        final String newFunctionClass = substituteParametersInTemplate(template, params);
 
         saveNewFunctionToFile(newFunctionClass);
     }
@@ -255,7 +254,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //region Substitute parameters
 
-    protected String substitueParametersInTemplate(final FunctionTemplate template, final Map<String, String> params) {
+    protected String substituteParametersInTemplate(final FunctionTemplate template, final Map<String, String> params) {
         String ret = template.getFiles().get("function.java");
         for (final Map.Entry<String, String> entry : params.entrySet()) {
             ret = ret.replace(String.format("$%s$", entry.getKey()), entry.getValue());
