@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Generate configuration files (host.json, function.json etc.) and copy JARs to staging directory
+ * Generate configuration files (host.json, function.json etc.) and copy JARs to staging directory.
  */
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
 public class PackageMojo extends AbstractFunctionMojo {
@@ -74,6 +74,8 @@ public class PackageMojo extends AbstractFunctionMojo {
         getLog().info(BUILD_SUCCESS);
     }
 
+    //region Process annotations
+
     protected AnnotationHandler getAnnotationHandler() throws Exception {
         return new AnnotationHandlerImpl(getLog());
     }
@@ -89,6 +91,10 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected URL getClassUrl() throws Exception {
         return outputDirectory.toURI().toURL();
     }
+
+    //endregion
+
+    //region Generate function configurations
 
     protected Map<String, FunctionConfiguration> getFunctionConfigurations(final AnnotationHandler handler,
                                                                            final Set<Method> methods) throws Exception {
@@ -114,6 +120,10 @@ public class PackageMojo extends AbstractFunctionMojo {
                 .toString();
     }
 
+    //endregion
+
+    //region Validate function configurations
+
     protected void validateFunctionConfigurations(final Map<String, FunctionConfiguration> configMap) {
         getLog().info("");
         getLog().info(VALIDATE_CONFIG);
@@ -124,6 +134,10 @@ public class PackageMojo extends AbstractFunctionMojo {
             getLog().info(VALIDATE_DONE);
         }
     }
+
+    //endregion
+
+    //region Write configurations (host.json, function.json) to file
 
     protected void writeFunctionJsonFiles(final ObjectWriter objectWriter,
                                           final Map<String, FunctionConfiguration> configMap) throws IOException {
@@ -167,6 +181,10 @@ public class PackageMojo extends AbstractFunctionMojo {
                 .writerWithDefaultPrettyPrinter();
     }
 
+    //endregion
+
+    //region Copy Jars to stage directory
+
     protected void copyJarsToStageDirectory() throws IOException {
         final String stagingDirectory = getDeploymentStageDirectory();
         getLog().info("");
@@ -188,4 +206,6 @@ public class PackageMojo extends AbstractFunctionMojo {
         resource.setIncludes(Arrays.asList("*.jar"));
         return Arrays.asList(resource);
     }
+
+    //endregion
 }
