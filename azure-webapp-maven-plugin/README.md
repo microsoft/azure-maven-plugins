@@ -6,8 +6,8 @@
 - [Goals](#goals)
 - [Usage](#usage)
 - [Quick Samples](#quick-samples)
+- [Common Configuration](#common-configuration)
 - [Configuration](#configuration)
-    - [Authentication with Azure](#authentication-with-azure)
     - [Web App (on Windows)](#web-app-on-windows)
         - [Java Runtime](#java-runtime)
         - [Web Container](#web-container)
@@ -20,7 +20,6 @@ and makes it easier for developers to deploy to Web App (on Windows) and [Web Ap
 
 **Note**: This plugin is still in preview; feedback and feature requests are warmly welcome.
 
-<a name="prerequisites"></a>
 ## Prerequisites
 
 Tool | Required Version
@@ -37,7 +36,6 @@ Goal | Description
 --- | ---
 `azure-webapp:deploy` | Deploy artifacts or docker container image to an Azure Web App based on your configuration.<br>If the specified Web App does not exist, it will be created.
 
-<a name="usage"></a>
 ## Usage
 
 To use the Maven Plugin for Azure Web Apps in your Maven Java app, add the following settings for the plugin to your `pom.xml` file:
@@ -61,20 +59,21 @@ To use the Maven Plugin for Azure Web Apps in your Maven Java app, add the follo
    <project>
    ```
 
-<a name="quick-samples"></a>
 ## Quick Samples
-A few typical usages of Maven Plugin for Azure Web Apps are listed at [Web App Samples](../samples/web-app-samples.md).
+A few typical usages of Maven Plugin for Azure Web Apps are listed at [Web App Samples](../docs/web-app-samples.md).
 You can choose one to quickly get started.
 
-<a name="configuration"></a>
+## Common Configuration
+
+This Maven plugin supports common configurations of all Maven Plugins for Azure.
+Detailed documentation of common configurations is at [here](../docs/common-configuration.md).
+
 ## Configuration
 
-The Maven Plugin for Azure Web Apps supports the following configuration properties:
+This Maven Plugin supports the following configuration properties:
 
 Property | Required | Description
 ---|---|---
-`<authentication>`| false | Specifies which authentication method to use with Azure.<br>There are three supported methods, which are described in the [Authentication with Azure](#authentication-with-azure) section of this README.
-`<subscriptionId>` | false | Specifies the target subscription.<br>Use this setting when you have multiple subscriptions in your authentication file.
 `<resourceGroup>` | true | Specifies the Azure Resource Group for your Web App.
 `<appName>` | true | Specifies the name of your Web App.
 `<region>` | false | Specifies the region where your Web App will be hosted; the default value is **westus**.<br>This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored.
@@ -85,108 +84,12 @@ Property | Required | Description
 `<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
 `<deploymentType>` | false | Specifies the deployment approach you want to use. Only `ftp` is supported right now.
 `<resources>` | false | Specifies the artifacts to be deployed to your Web App; see the [Deploy via FTP](#deploy-via-ftp) section for more details.
-`<failsOnError>` | false | Specifies whether to throw an exception when there are fatal errors during execution; the default value is **true**.<br>This setting helps prevent deployment failures from failing your entire Maven build.
-`<allowTelemetry>` | false | Specifies whether to allow this plugin to send telemetry data; the default value is **true**.
 
-<a name="authentication-with-azure"></a>
-### Authentication with Azure
-
-The following methods are supported for authenticating with Azure.
-
-**Note**: Using your Maven `settings.xml` file is the recommended method for authentication because it provides the most-reliable and flexible approach.
-
-#### Authentication Method #1: Use the Maven settings.xml file
-
-1. Open your existing [Maven settings.xml file](https://maven.apache.org/settings.html) in a text editor, or create a new settings.xml file if one does not already exist.
-
-2. Follow the instructions in [Create the service principal](https://docs.microsoft.com/cli/azure/create-an-azure-service-principal-azure-cli#create-the-service-principal) to create a service principal which will be used to authenticate with Azure.
-
-3. Use the credentials from the previous step to add a new server configuration in `Servers` section of your `settings.xml` file using the following syntax:
-
-   ```xml
-   <server>
-      <id>azure-auth</id>
-      <configuration>
-          <client>xxxx</client>
-          <tenant>xxxx</tenant>
-          <key>xxxx</key>
-          <environment>AZURE</environment>
-      </configuration>
-   </server>
-   ```
-   Where the values for the configuration properties are listed in the following table:
-   
-   Property | Required | Description
-   ---|---|---
-   client | true | Specifies the Client ID of your service principal.
-   tenant | true | Specifies the Tenant ID of your service principal.
-   key | false | Specifies the password if your service principal uses password authentication.
-   certificate | false | Specifies the absolute path of your certificate if your service principal uses certificate authentication.<br>**Note**: Only PKCS12 certificates are supported.
-   certificatePassword | false | Specifies the password for your certificate, if there is any.
-   environment | false | Specifies the target Azure cloud environment; the default value is **AZURE**.<br>The possible values are: <br>- `AZURE`<br>- `AZURE_CHINA`<br>- `AZURE_GERMANY`<br>- `AZURE_US_GOVERNMENT`
-   
-4. Add the following configuration settings to your `pom.xml` file:
-
-   ```xml
-   <plugin>
-       <groupId>com.microsoft.azure</groupId>
-       <artifactId>azure-webapp-maven-plugin</artifactId>
-       <configuration>
-           <authentication>
-              <serverId>azure-auth</serverId>
-           </authentication>
-           ...
-       </configuration>
-   </plugin>
-   ```
-
-#### Authentication Method #2: Use an authentication file
-
-1. Follow instructions in [Creating a Service Principal in Azure](https://github.com/Azure/azure-sdk-for-java/blob/master/AUTH.md#creating-a-service-principal-in-azure)
-to create an authentication file.
-
-2. Configure the plugin to use this file as below.
-
-   ```xml
-   <plugin>
-      <groupId>com.microsoft.azure</groupId>
-      <artifactId>azure-webapp-maven-plugin</artifactId>
-      <configuration>
-         <authentication>
-            <file>/absolute/path/to/auth/file</file>
-         </authentication>
-         <subscriptionId>your-subscription-guid</subscriptionId>
-         ...
-      </configuration>
-   </plugin>
-   ```
-
-   **Notes**:
-
-   * A recommended practice is to put the full path to your authentication file in your `settings.xml` file; see [Example: Injecting POM Properties via Settings.xml](https://maven.apache.org/examples/injecting-properties-via-settings.html) for details.
-
-   * The `subscriptionId` element is an optional setting that you can use to specify which target subscription to use when there are multiple subscriptions in your authentication file. If you do not specify this setting, your default subscription in your authentication file will be used.
-
-#### Authentication Method #3: Use the Azure CLI 2.0
-
-1. Install the Azure CLI 2.0 by following the instructions in the [Install Azure CLI 2.0](https://docs.microsoft.com/cli/azure/install-azure-cli) article.
-
-2. Run the following commands to log into your Azure subscription:
-
-   ```shell
-   az login
-   az account set --subscription <subscription Id>
-   ```
-   
-   You are all set. No extra configuration are required.
-
-<a name="web-app-on-windows"></a>
 ### Web App (on Windows)
 
 For Web App (on Windows), only Java runtime stack is supported in our plugin.
 You can use `<javaVersion>` and `<javaWebContainer>` to configure the runtime of your Web App.
 
-<a name="java-runtime"></a>
 #### Java Runtime
 Use values from the following table to configure the JVM you want to use in your Web App.
 
@@ -216,7 +119,6 @@ It is recommended to ignore the minor version number like the following example,
    </plugin>
    ```
 
-<a name="web-container"></a>
 #### Web Container
 
 Use values from the following table to configure the Web Container in your Web App.
@@ -248,7 +150,6 @@ It is recommended to ignore the minor version number like the following example,
    </plugin>
    ```
 
-<a name="deploy-via-ftp"></a>
 #### Deploy via FTP
 You can deploy your **WAR** file and other artifacts to Web App via FTP. The following example shows all configuration elements.
 
@@ -285,10 +186,8 @@ You can deploy your **WAR** file and other artifacts to Web App via FTP. The fol
    `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
 
 
-<a name="web-app-on-windows"></a>
 ### Web App on Linux
 
-<a name="container-setting"></a>
 #### Container Setting
 
 In the `<containerSettings>` element of your `pom.xml` file, you can specify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
@@ -301,5 +200,5 @@ Property | Required | Description
 `<serverId>` | false | Specifies the credentials for private docker hub images or private container registry images. (Note: `serverId` should be from your Maven `setting.xml` file.)
 `<registryUrl>` | false | Specifies the URL of private container registry images.
 
-Check out samples at [Web App Samples](../samples/web-app-samples.md) for the configuration settings for different image sources.
+Check out samples at [Web App Samples](../docs/web-app-samples.md) for the configuration settings for different image sources.
 

@@ -1,4 +1,4 @@
-# Azure Maven Plugins
+# Maven Plugins for Azure Services
 [![Travis CI](https://travis-ci.org/Microsoft/azure-maven-plugins.svg?branch=master)](https://travis-ci.org/Microsoft/azure-maven-plugins/) 
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/qfpxt9gct33dfmns/branch/master?svg=true)](https://ci.appveyor.com/project/xscript/azure-maven-plugins)
 [![codecov](https://codecov.io/gh/microsoft/azure-maven-plugins/branch/master/graph/badge.svg)](https://codecov.io/gh/microsoft/azure-maven-plugins)
