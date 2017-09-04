@@ -110,9 +110,6 @@ Follow below instructions, you don't need to handwrite `function.json` any more.
 1. Use annotations from package `com.microsoft.azure.serverless:azure-functions-java-core` to decorate your functions. 
 2. Run `mvn package azure-functions:package`; then `function.json` files will be automatically generated for all functions in your project.
 
->Note:
->Generated `function.json` will be placed at `${project.basedir}\target\azure-functions` directory.
-
 ### Run Azure Functions locally
 
 With the help of goal `azure-functions:run`, you can run your Azure Functions locally.
