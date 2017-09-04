@@ -31,25 +31,26 @@ import static org.codehaus.plexus.util.IOUtil.copy;
 import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 
 /**
- * Add new Azure Function to existing project
+ * Create new Azure Function (as Java class) and add to current project.
  */
 @Mojo(name = "add")
 public class AddMojo extends AbstractFunctionMojo {
     public static final String LOAD_TEMPLATES = "Step 1 of 4: Load all function templates";
     public static final String LOAD_TEMPLATES_DONE = "Successfully loaded all function templates";
     public static final String LOAD_TEMPLATES_FAIL = "Failed to load all function templates.";
-    public static final String FIND_TEMPLATE = "Step 2 of 4: Find specified function template";
+    public static final String FIND_TEMPLATE = "Step 2 of 4: Select function template";
     public static final String FIND_TEMPLATE_DONE = "Successfully found function template: ";
     public static final String FIND_TEMPLATE_FAIL = "Function template not found: ";
     public static final String PREPARE_PARAMS = "Step 3 of 4: Prepare required parameters";
+    public static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
     public static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
     public static final String SAVE_FILE_DONE = "Successfully saved new function at ";
     public static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
 
     //region Properties
 
-    @Parameter(defaultValue = "${project.baseDir}", readonly = true, required = true)
-    protected String baseDir;
+    @Parameter(defaultValue = "${project.basedir}", readonly = true, required = true)
+    protected File basedir;
 
     @Parameter(defaultValue = "${project.compileSourceRoots}", readonly = true, required = true)
     protected List<String> compileSourceRoots;
@@ -94,13 +95,13 @@ public class AddMojo extends AbstractFunctionMojo {
         return functionTemplate;
     }
 
-    protected String getBaseDir() {
-        return baseDir;
+    protected String getBasedir() {
+        return basedir.getAbsolutePath();
     }
 
     protected String getSourceRoot() {
         return compileSourceRoots == null || compileSourceRoots.isEmpty() ?
-                Paths.get(getBaseDir(), "src", "main", "java").toString() :
+                Paths.get(getBasedir(), "src", "main", "java").toString() :
                 compileSourceRoots.get(0);
     }
 
@@ -161,7 +162,7 @@ public class AddMojo extends AbstractFunctionMojo {
         getLog().info("");
         getLog().info(FIND_TEMPLATE);
 
-        assureInputFromUser("Function Template",
+        assureInputFromUser("template for new function",
                 getFunctionTemplate(),
                 getTemplateNames(templates),
                 this::setFunctionTemplate);
@@ -175,7 +176,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
     protected FunctionTemplate findTemplateByName(final List<FunctionTemplate> templates, final String templateName)
             throws Exception {
-        getLog().info("Specified function template: " + templateName);
+        getLog().info("Selected function template: " + templateName);
         final Optional<FunctionTemplate> template = templates.stream()
                 .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
                 .findFirst();
@@ -200,10 +201,13 @@ public class AddMojo extends AbstractFunctionMojo {
 
         preparePackageName();
 
-        final Map<String, String> params = prepareTemplateParameters(template);
-
+        final Map<String, String> params = new HashMap<>();
         params.put("functionName", getFunctionName());
         params.put("packageName", getFunctionPackageName());
+
+        prepareTemplateParameters(template, params);
+
+        displayParameters(params);
 
         return params;
     }
@@ -216,8 +220,6 @@ public class AddMojo extends AbstractFunctionMojo {
                 str -> isNotEmpty(str) && isIdentifier(str) && !isKeyword(str),
                 "Input should be a valid Java class name.",
                 this::setFunctionName);
-
-        getLog().info("Value to use: " + getFunctionName());
     }
 
     protected void preparePackageName() {
@@ -228,13 +230,10 @@ public class AddMojo extends AbstractFunctionMojo {
                 str -> isNotEmpty(str) && isName(str),
                 "Input should be a valid Java package name.",
                 this::setFunctionPackageName);
-
-        getLog().info("Value to use: " + getFunctionPackageName());
     }
 
-    protected Map<String, String> prepareTemplateParameters(final FunctionTemplate template) {
-        final Map<String, String> params = new HashMap<>();
-
+    protected Map<String, String> prepareTemplateParameters(final FunctionTemplate template,
+                                                            final Map<String, String> params) {
         for (final String property : template.getMetadata().getUserPrompt()) {
             getLog().info(format("Trigger specific parameter [%s]", property));
 
@@ -243,11 +242,18 @@ public class AddMojo extends AbstractFunctionMojo {
                     str -> isNotEmpty(str),
                     "Input should be a non-empty string.",
                     str -> params.put(property, str));
-
-            getLog().info("Value to use: " + params.get(property));
         }
 
         return params;
+    }
+
+    protected void displayParameters(final Map<String, String> params) {
+        getLog().info("");
+        getLog().info("Summary of parameters for function template:");
+
+        params.entrySet()
+                .stream()
+                .forEach(e -> getLog().info(format("%s: %s", e.getKey(), e.getValue())));
     }
 
     //endregion
@@ -312,13 +318,14 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //region Helper methods
 
-    protected void assureInputFromUser(final String propertyName, final String initValue, final List<String> options,
+    protected void assureInputFromUser(final String prompt, final String initValue, final List<String> options,
                                        final Consumer<String> setter) {
         if (options.stream().anyMatch(o -> o.equalsIgnoreCase(initValue))) {
+            getLog().info(FOUND_VALID_VALUE);
             return;
         }
 
-        out.printf("Choose from below options for %s.%n", propertyName);
+        out.printf("Choose from below options as %s.%n", prompt);
         for (int i = 0; i < options.size(); i++) {
             out.printf("%d. %s%n", i, options.get(i));
         }
@@ -344,6 +351,7 @@ public class AddMojo extends AbstractFunctionMojo {
                                        final Function<String, Boolean> validator, final String errorMessage,
                                        final Consumer<String> setter) {
         if (validator.apply(initValue)) {
+            getLog().info(FOUND_VALID_VALUE);
             setter.accept(initValue);
             return;
         }
@@ -354,7 +362,7 @@ public class AddMojo extends AbstractFunctionMojo {
             out.printf(prompt);
             out.flush();
             try {
-                final String input = scanner.next();
+                final String input = scanner.nextLine();
                 if (validator.apply(input)) {
                     setter.accept(input);
                     break;

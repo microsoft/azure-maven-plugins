@@ -19,6 +19,8 @@ import java.util.Properties;
 public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     public static final String AZURE_FUNCTIONS = "azure-functions";
 
+    //region Properties
+
     @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
     protected String finalName;
 
@@ -75,6 +77,10 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     @Parameter(property = "functions.skip", defaultValue = "false")
     protected boolean skip;
 
+    //endregion
+
+    //region Getter
+
     @Override
     protected boolean isSkipMojo() {
         return skip;
@@ -116,4 +122,6 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
         }
         return null;
     }
+
+    //endregion
 }

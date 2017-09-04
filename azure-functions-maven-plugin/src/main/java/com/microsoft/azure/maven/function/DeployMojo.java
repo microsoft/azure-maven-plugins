@@ -41,6 +41,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     public static final String MS_DEPLOY = "msdeploy";
     public static final String FTP = "ftp";
 
+    //region Properties
+
     /**
      * Function App pricing tier, which will only be used to create Function App at the first time.<br/>
      * Below is the list of supported pricing tier. If left blank, Consumption plan is the default.
@@ -75,6 +77,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     @Parameter(property = "functions.deploymentType", defaultValue = MS_DEPLOY)
     protected String deploymentType;
 
+    //endregion
+
+    //region Getter
+
     public PricingTier getPricingTier() {
         return pricingTier == null ? null : pricingTier.toPricingTier();
     }
@@ -82,6 +88,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     public String getDeploymentType() {
         return StringUtils.isEmpty(deploymentType) ? MS_DEPLOY : deploymentType;
     }
+
+    //endregion
 
     @Override
     protected void doExecute() throws Exception {
@@ -93,6 +101,8 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         getLog().info(String.format(FUNCTION_DEPLOY_SUCCESS, getAppName()));
     }
+
+    //region Create or update function app
 
     protected void createOrUpdateFunctionApp() throws Exception {
         final FunctionApp app = getFunctionApp();
@@ -157,6 +167,8 @@ public class DeployMojo extends AbstractFunctionMojo {
             withAppSettings.accept(appSettings);
         }
     }
+
+    //endregion
 
     protected ArtifactHandler getArtifactHandler() {
         switch (getDeploymentType().toLowerCase(Locale.ENGLISH)) {

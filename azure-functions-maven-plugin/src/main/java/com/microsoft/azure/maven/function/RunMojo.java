@@ -14,28 +14,32 @@ import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.InputStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.lang.String.format;
+
 /**
- * Run Azure Java Functions
+ * Run Azure Java Functions locally. Azure Functions Core Tools is required to be installed first.
  */
 @Mojo(name = "run")
 public class RunMojo extends AbstractFunctionMojo {
     public static final String STAGE_DIR_FOUND = "Azure Functions stage directory found at: ";
     public static final String STAGE_DIR_NOT_FOUND =
             "Stage directory not found. Please run mvn:package or azure-functions:package first.";
-    public static final String RUNTIME_FOUND = "Azure Functions CLI 2.0 found.";
-    public static final String RUNTIME_NOT_FOUND = "Azure Functions CLI 2.0 not found. " +
-            "Please run 'npm i -g azure-functions-core-tools' to install Azure Functions CLI 2.0 first.";
+    public static final String RUNTIME_FOUND = "Azure Functions Core Tools found.";
+    public static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
+            "Please run 'npm i -g azure-functions-core-tools@core' to install Azure Functions Core Tools first.";
     public static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
     public static final String START_RUN_FUNCTIONS = "Starting running Azure Functions...";
-    public static final String STOP_RUN_FUNCTIONS = "Stopping running Azure Functions...";
 
     public static final String WINDOWS_FUNCTION_RUN = "cd /D %s && func function run %s --no-interactive";
     public static final String LINUX_FUNCTION_RUN = "cd %s; func function run %s --no-interactive";
     public static final String WINDOWS_HOST_START = "cd /D %s && func host start";
     public static final String LINUX_HOST_START = "cd %s; func host start";
+
+    //region Properties
 
     /**
      * Run a single function with the specified name.
@@ -55,10 +59,15 @@ public class RunMojo extends AbstractFunctionMojo {
 
     /**
      * Specify input file whose content will be passed to target function. It is used with <targetFunction/> element.
+     *
      * @since 0.1.0
      */
     @Parameter(property = "functions.inputFile")
     protected File functionInputFile;
+
+    //endregion
+
+    //region Getter
 
     public String getTargetFunction() {
         return targetFunction;
@@ -71,6 +80,8 @@ public class RunMojo extends AbstractFunctionMojo {
     public File getInputFile() {
         return functionInputFile;
     }
+
+    //endregion
 
     @Override
     protected void doExecute() throws Exception {
@@ -94,13 +105,12 @@ public class RunMojo extends AbstractFunctionMojo {
     protected void runFunctions() throws Exception {
         getLog().info(START_RUN_FUNCTIONS);
         runCommand(getRunFunctionCommand(), true, getValidReturnCodes(), RUN_FUNCTIONS_FAILURE);
-        getLog().info(STOP_RUN_FUNCTIONS);
     }
 
+    //region Build commands
+
     protected String[] getCheckStageDirectoryCommand() {
-        final String command = isWindows() ?
-                String.format("cd /D %s", getDeploymentStageDirectory()) :
-                String.format("cd %s", getDeploymentStageDirectory());
+        final String command = format(isWindows() ? "cd /D %s" : "cd %s", getDeploymentStageDirectory());
         return buildCommand(command);
     }
 
@@ -115,11 +125,7 @@ public class RunMojo extends AbstractFunctionMojo {
     }
 
     protected String[] getRunSingleFunctionCommand() {
-        final String stageDirectory = getDeploymentStageDirectory();
-        final String functionName = getTargetFunction();
-        String command = isWindows() ?
-                String.format(WINDOWS_FUNCTION_RUN, stageDirectory, functionName) :
-                String.format(LINUX_FUNCTION_RUN, stageDirectory, functionName);
+        String command = format(getRunFunctionTemplate(), getDeploymentStageDirectory(), getTargetFunction());
         if (StringUtils.isNotEmpty(getInputString())) {
             command = command.concat(" -c ").concat(getInputString());
         } else if (getInputFile() != null) {
@@ -128,12 +134,17 @@ public class RunMojo extends AbstractFunctionMojo {
         return buildCommand(command);
     }
 
+    protected String getRunFunctionTemplate() {
+        return isWindows() ? WINDOWS_FUNCTION_RUN : LINUX_FUNCTION_RUN;
+    }
+
     protected String[] getStartFunctionHostCommand() {
-        final String stageDirectory = getDeploymentStageDirectory();
-        final String command = isWindows() ?
-                String.format(WINDOWS_HOST_START, stageDirectory) :
-                String.format(LINUX_HOST_START, stageDirectory);
+        final String command = format(getStartFunctionHostTemplate(), getDeploymentStageDirectory());
         return buildCommand(command);
+    }
+
+    protected String getStartFunctionHostTemplate() {
+        return isWindows() ? WINDOWS_HOST_START : LINUX_HOST_START;
     }
 
     protected String[] buildCommand(final String command) {
@@ -141,6 +152,10 @@ public class RunMojo extends AbstractFunctionMojo {
                 new String[]{"cmd.exe", "/c", command} :
                 new String[]{"sh", "-c", command};
     }
+
+    //endregion
+
+    //region Helper methods
 
     protected boolean isWindows() {
         return SystemUtils.IS_OS_WINDOWS;
@@ -162,18 +177,19 @@ public class RunMojo extends AbstractFunctionMojo {
                               final String errorMessage) throws Exception {
         getLog().debug("Executing command: " + StringUtils.join(command, " "));
 
-        final ProcessBuilder.Redirect redirect = getStdoutRedirect(showStdout);
+        final Redirect redirect = getStdoutRedirect(showStdout);
         final Process process = new ProcessBuilder(command)
-                .redirectErrorStream(true)
                 .redirectOutput(redirect)
+                .redirectErrorStream(true)
                 .start();
+
         process.waitFor();
 
         handleExitValue(process.exitValue(), validReturnCodes, errorMessage, process.getInputStream());
     }
 
-    protected ProcessBuilder.Redirect getStdoutRedirect(boolean showStdout) {
-        return showStdout ? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.PIPE;
+    protected Redirect getStdoutRedirect(boolean showStdout) {
+        return showStdout ? Redirect.INHERIT : Redirect.PIPE;
     }
 
     protected void handleExitValue(int exitValue, final List<Long> validReturnCodes, final String errorMessage,
@@ -193,4 +209,6 @@ public class RunMojo extends AbstractFunctionMojo {
             getLog().error(StringUtils.strip(input, "\n"));
         }
     }
+
+    //endregion
 }

@@ -37,7 +37,7 @@ public class AddMojoTest extends MojoTestBase {
     @Test
     public void doExecute() throws Exception {
         final AddMojo mojo = getMojoFromPom();
-        ReflectionUtils.setVariableValueInObject(mojo, "baseDir", "target/test");
+        ReflectionUtils.setVariableValueInObject(mojo, "basedir", new File("target/test"));
         mojo.setFunctionTemplate("HttpTrigger");
         mojo.setFunctionName("NewFunction");
         mojo.setFunctionPackageName("com.microsoft.azure");
@@ -55,7 +55,7 @@ public class AddMojoTest extends MojoTestBase {
         final AddMojo mojo = getMojoFromPom();
         final AddMojo mojoSpy = spy(mojo);
         final Scanner scanner = mock(Scanner.class);
-        doReturn("2").when(scanner).next();
+        doReturn("2").when(scanner).nextLine();
         doReturn(scanner).when(mojoSpy).getScanner();
 
         final Set<String> set = new HashSet<>();

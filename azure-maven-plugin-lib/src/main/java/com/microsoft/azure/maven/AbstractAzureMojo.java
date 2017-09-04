@@ -208,15 +208,15 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             Thread.setDefaultUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler());
 
             if (isSkipMojo()) {
+                getLog().info("Skip execution.");
                 trackMojoSkip();
-                return;
+            } else {
+                trackMojoStart();
+
+                doExecute();
+
+                trackMojoSuccess();
             }
-
-            trackMojoStart();
-
-            doExecute();
-
-            trackMojoSuccess();
         } catch (Exception e) {
             handleException(e);
         }
