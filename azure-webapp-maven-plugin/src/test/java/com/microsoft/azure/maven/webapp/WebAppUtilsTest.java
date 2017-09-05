@@ -17,23 +17,23 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.net.URL;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebAppUtilsTest {
     @Test
     public void assureLinuxWebApp() throws Exception {
-        final WebApp app = mock(WebApp.class);
         final SiteInner siteInner = mock(SiteInner.class);
-        when(app.inner()).thenReturn(siteInner);
-        when(siteInner.kind()).thenReturn("app,linux");
+        doReturn("app,linux").when(siteInner).kind();
+        final WebApp app = mock(WebApp.class);
+        doReturn(siteInner).when(app).inner();
 
         // Linux Web App
         WebAppUtils.assureLinuxWebApp(app);
 
         // Non-Linux Web App
-        when(siteInner.kind()).thenReturn("app");
+        doReturn("app").when(siteInner).kind();
         MojoExecutionException exception = null;
         try {
             WebAppUtils.assureLinuxWebApp(app);
@@ -46,16 +46,16 @@ public class WebAppUtilsTest {
 
     @Test
     public void assureWindowsWebApp() throws Exception {
-        final WebApp app = mock(WebApp.class);
         final SiteInner siteInner = mock(SiteInner.class);
-        when(app.inner()).thenReturn(siteInner);
-        when(siteInner.kind()).thenReturn("app");
+        doReturn("app").when(siteInner).kind();
+        final WebApp app = mock(WebApp.class);
+        doReturn(siteInner).when(app).inner();
 
         // Windows Web App
         WebAppUtils.assureWindowsWebApp(app);
 
         // Linux Web App
-        when(siteInner.kind()).thenReturn("app,linux");
+        doReturn("app,linux").when(siteInner).kind();
         MojoExecutionException exception = null;
         try {
             WebAppUtils.assureWindowsWebApp(app);

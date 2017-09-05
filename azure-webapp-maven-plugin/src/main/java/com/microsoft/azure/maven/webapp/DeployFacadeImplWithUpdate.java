@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
-import org.apache.maven.plugin.MojoExecutionException;
 
 public class DeployFacadeImplWithUpdate extends DeployFacadeBaseImpl {
     private Update update = null;
@@ -18,19 +17,15 @@ public class DeployFacadeImplWithUpdate extends DeployFacadeBaseImpl {
     }
 
     @Override
-    public DeployFacadeBaseImpl setupRuntime() throws MojoExecutionException {
-        try {
-            update = HandlerFactory.getInstance()
-                    .getRuntimeHandler(getMojo())
-                    .updateAppRuntime();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public DeployFacadeBaseImpl setupRuntime() throws Exception {
+        update = HandlerFactory.getInstance()
+                .getRuntimeHandler(getMojo())
+                .updateAppRuntime();
         return this;
     }
 
     @Override
-    public DeployFacadeBaseImpl applySettings() throws MojoExecutionException {
+    public DeployFacadeBaseImpl applySettings() throws Exception {
         HandlerFactory.getInstance()
                 .getSettingsHandler(getMojo())
                 .processSettings(update);
@@ -38,7 +33,7 @@ public class DeployFacadeImplWithUpdate extends DeployFacadeBaseImpl {
     }
 
     @Override
-    public DeployFacadeBaseImpl commitChanges() throws MojoExecutionException {
+    public DeployFacadeBaseImpl commitChanges() throws Exception {
         update.apply();
         return this;
     }

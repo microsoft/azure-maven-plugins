@@ -29,6 +29,8 @@ import java.util.Properties;
  * Base abstract class for Web App Mojos.
  */
 public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
+    //region Properties
+
     /**
      * Resource group of Web App. It will be created if it doesn't exist.
      *
@@ -157,8 +159,13 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter(property = "webapp.deploymentType")
     protected String deploymentType;
 
-    @Parameter(property = "webapp.stopBeforeDeployment", defaultValue = "false")
-    protected boolean stopAppBeforeDeployment;
+    /**
+     * Flag to control whether stop Web App during deployment.
+     *
+     * @since 0.1.4
+     */
+    @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "false")
+    protected boolean stopAppDuringDeployment;
 
     /**
      * Resources to deploy to Web App.
@@ -175,6 +182,10 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      */
     @Parameter(property = "webapp.skip", defaultValue = "false")
     protected boolean skip;
+
+    //endregion
+
+    //region Getter
 
     @Override
     protected boolean isSkipMojo() {
@@ -219,8 +230,8 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         return DeploymentType.fromString(deploymentType);
     }
 
-    public boolean isStopAppBeforeDeployment() {
-        return stopAppBeforeDeployment;
+    public boolean isStopAppDuringDeployment() {
+        return stopAppDuringDeployment;
     }
 
     public String getDeploymentStageDirectory() {
@@ -243,4 +254,6 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         }
         return null;
     }
+
+    //endregion
 }

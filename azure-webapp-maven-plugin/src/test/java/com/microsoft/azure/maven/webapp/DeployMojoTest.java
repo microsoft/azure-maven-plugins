@@ -11,7 +11,6 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.junit.Before;
 import org.junit.Rule;
@@ -126,17 +125,17 @@ public class DeployMojoTest {
     private DeployFacade getDeployFacade() {
         return new DeployFacade() {
             @Override
-            public DeployFacade setupRuntime() throws MojoExecutionException {
+            public DeployFacade setupRuntime() throws Exception {
                 return this;
             }
 
             @Override
-            public DeployFacade applySettings() throws MojoExecutionException {
+            public DeployFacade applySettings() throws Exception {
                 return this;
             }
 
             @Override
-            public DeployFacade commitChanges() throws MojoExecutionException {
+            public DeployFacade commitChanges() throws Exception {
                 return this;
             }
 

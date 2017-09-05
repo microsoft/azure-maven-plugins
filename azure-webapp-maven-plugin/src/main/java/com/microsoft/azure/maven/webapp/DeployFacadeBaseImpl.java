@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.List;
 
@@ -21,11 +20,11 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
         this.mojo = mojo;
     }
 
-    public abstract DeployFacade setupRuntime() throws MojoExecutionException;
+    public abstract DeployFacade setupRuntime() throws Exception;
 
-    public abstract DeployFacade applySettings() throws MojoExecutionException;
+    public abstract DeployFacade applySettings() throws Exception;
 
-    public abstract DeployFacade commitChanges() throws MojoExecutionException;
+    public abstract DeployFacade commitChanges() throws Exception;
 
     public DeployFacade deployArtifacts() throws Exception {
         final List<Resource> resources = getMojo().getResources();
@@ -48,13 +47,13 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
     }
 
     protected void beforeDeployArtifacts() throws Exception {
-        if (getMojo().isStopAppBeforeDeployment()) {
+        if (getMojo().isStopAppDuringDeployment()) {
             getMojo().getWebApp().stop();
         }
     }
 
     protected void afterDeployArtifacts() throws Exception {
-        if (getMojo().isStopAppBeforeDeployment()) {
+        if (getMojo().isStopAppDuringDeployment()) {
             getMojo().getWebApp().restart();
         }
     }

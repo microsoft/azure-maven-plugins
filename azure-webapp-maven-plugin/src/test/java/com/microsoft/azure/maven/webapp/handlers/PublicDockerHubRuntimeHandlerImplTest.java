@@ -41,15 +41,15 @@ public class PublicDockerHubRuntimeHandlerImplTest {
     @Test
     public void updateAppRuntime() throws Exception {
         final SiteInner siteInner = mock(SiteInner.class);
-        when(siteInner.kind()).thenReturn("app,linux");
+        doReturn("app,linux").when(siteInner).kind();
         final Update update = mock(Update.class);
         final WebApp app = mock(WebApp.class);
-        when(app.inner()).thenReturn(siteInner);
-        when(app.update()).thenReturn(update);
-        when(mojo.getWebApp()).thenReturn(app);
+        doReturn(siteInner).when(app).inner();
+        doReturn(update).when(app).update();
+        doReturn(app).when(mojo).getWebApp();
         final ContainerSetting containerSetting = new ContainerSetting();
         containerSetting.setImageName("nginx");
-        when(mojo.getContainerSettings()).thenReturn(containerSetting);
+        doReturn(containerSetting).when(mojo).getContainerSettings();
 
         handler.updateAppRuntime();
         verify(update, times(1)).withPublicDockerHubImage(any(String.class));
