@@ -36,9 +36,9 @@ public class DeployFacadeImplWithCreate extends DeployFacadeBaseImpl {
 
     @Override
     public DeployFacadeBaseImpl commitChanges() throws Exception {
-        getMojo().getLog().info(WEBAPP_NOT_EXIST);
+        logInfo(WEBAPP_NOT_EXIST);
         withCreate.create();
-        getMojo().getLog().info(WEBAPP_CREATED);
+        logInfo(WEBAPP_CREATED);
         return this;
     }
 }

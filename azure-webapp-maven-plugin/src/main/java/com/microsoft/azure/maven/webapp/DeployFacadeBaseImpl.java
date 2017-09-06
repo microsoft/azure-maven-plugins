@@ -29,7 +29,7 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
     public DeployFacade deployArtifacts() throws Exception {
         final List<Resource> resources = getMojo().getResources();
         if (resources == null || resources.isEmpty()) {
-            getMojo().getLog().info(NO_RESOURCES_CONFIG);
+            logInfo(NO_RESOURCES_CONFIG);
         } else {
             beforeDeployArtifacts();
 
@@ -46,15 +46,21 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
         return mojo;
     }
 
+    protected void logInfo(final String message) {
+        getMojo().getLog().info(message);
+    }
+
     protected void beforeDeployArtifacts() throws Exception {
         if (getMojo().isStopAppDuringDeployment()) {
+            logInfo("Stopping Web App before deploying artifacts...");
             getMojo().getWebApp().stop();
         }
     }
 
     protected void afterDeployArtifacts() throws Exception {
         if (getMojo().isStopAppDuringDeployment()) {
-            getMojo().getWebApp().restart();
+            logInfo("Starting Web App after deploying artifacts...");
+            getMojo().getWebApp().start();
         }
     }
 }
