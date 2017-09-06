@@ -55,10 +55,10 @@ public class FTPArtifactHandlerImplTest {
 
     @Test
     public void copyResourcesToStageDirectory() throws Exception {
-        when(mojo.getProject()).thenReturn(mock(MavenProject.class));
-        when(mojo.getSession()).thenReturn(mock(MavenSession.class));
-        when(mojo.getMavenResourcesFiltering()).thenReturn(mock(MavenResourcesFiltering.class));
-        when(mojo.getDeploymentStageDirectory()).thenReturn("stageDirectory");
+        doReturn(mock(MavenProject.class)).when(mojo).getProject();
+        doReturn(mock(MavenSession.class)).when(mojo).getSession();
+        doReturn(mock(MavenResourcesFiltering.class)).when(mojo).getMavenResourcesFiltering();
+        doReturn("stageDirectory").when(mojo).getDeploymentStageDirectory();
 
         handler.copyResourcesToStageDirectory(new ArrayList<Resource>());
         verify(mojo, times(1)).getProject();
@@ -72,11 +72,11 @@ public class FTPArtifactHandlerImplTest {
     public void uploadDirectoryToFTP() throws Exception {
         final String ftpUrl = "ftp.azurewebsites.net/site/wwwroot";
         final PublishingProfile profile = mock(PublishingProfile.class);
-        when(profile.ftpUrl()).thenReturn(ftpUrl);
+        doReturn(ftpUrl).when(profile).ftpUrl();
         final WebApp app = mock(WebApp.class);
-        when(app.getPublishingProfile()).thenReturn(profile);
+        doReturn(profile).when(app).getPublishingProfile();
         final DeployMojo mojo = mock(DeployMojo.class);
-        when(mojo.getWebApp()).thenReturn(app);
+        doReturn(app).when(mojo).getWebApp();
         final FTPUploader uploader = mock(FTPUploader.class);
         final FTPArtifactHandlerImpl handler = new FTPArtifactHandlerImpl(mojo);
         final FTPArtifactHandlerImpl handlerSpy = spy(handler);

@@ -32,12 +32,12 @@ public class SettingsHandlerImplTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(mojo.getAppSettings()).thenReturn(new HashMap() {
+        doReturn(new HashMap() {
             {
                 put("Key", "Value");
             }
-        });
-        when(mojo.getDeploymentType()).thenReturn(DeploymentType.LOCAL_GIT);
+        }).when(mojo).getAppSettings();
+        doReturn(DeploymentType.LOCAL_GIT).when(mojo).getDeploymentType();
         handler = new SettingsHandlerImpl(mojo);
     }
 

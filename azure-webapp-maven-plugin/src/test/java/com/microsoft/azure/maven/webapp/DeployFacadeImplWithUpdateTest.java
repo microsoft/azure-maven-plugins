@@ -7,12 +7,9 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
-import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -20,38 +17,32 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DeployFacadeImplWithUpdateTest {
-    @Mock
-    private AbstractWebAppMojo mojo;
-
+public class DeployFacadeImplWithUpdateTest extends DeployFacadeTestBase {
     private DeployFacadeImplWithUpdate facade = null;
 
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
         facade = new DeployFacadeImplWithUpdate(mojo);
+        setupHandlerFactory();
     }
 
     @Test
     public void setupRuntime() throws Exception {
         final DeployFacadeBaseImpl facadeSpy = spy(facade);
-        final RuntimeHandler handler = mock(RuntimeHandler.class);
-        doReturn(handler).when(facadeSpy).getRuntimeHandler();
 
         facadeSpy.setupRuntime();
-        verify(handler, times(1)).updateAppRuntime();
-        verifyNoMoreInteractions(handler);
+        verify(runtimeHandler, times(1)).updateAppRuntime();
+        verifyNoMoreInteractions(runtimeHandler);
     }
 
     @Test
     public void applySettings() throws Exception {
         final DeployFacadeBaseImpl facadeSpy = spy(facade);
-        final SettingsHandler handler = mock(SettingsHandler.class);
-        doReturn(handler).when(facadeSpy).getSettingsHandler();
 
         facadeSpy.applySettings();
-        verify(handler, times(1)).processSettings((Update) null);
-        verifyNoMoreInteractions(handler);
+        verify(settingsHandler, times(1)).processSettings((Update) null);
+        verifyNoMoreInteractions(settingsHandler);
     }
 
     @Test

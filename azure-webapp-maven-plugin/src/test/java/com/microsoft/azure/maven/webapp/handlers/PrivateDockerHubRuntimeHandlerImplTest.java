@@ -21,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -42,24 +41,24 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
 
     @Test
     public void updateAppRuntime() throws Exception {
-        final SiteInner siteInner = mock(SiteInner.class);
-        when(siteInner.kind()).thenReturn("app,linux");
-        final WithCredentials withCredentials = mock(WithCredentials.class);
-        final Update update = mock(Update.class);
-        when(update.withPrivateDockerHubImage(null)).thenReturn(withCredentials);
         final WebApp app = mock(WebApp.class);
-        when(app.inner()).thenReturn(siteInner);
-        when(app.update()).thenReturn(update);
-        when(mojo.getWebApp()).thenReturn(app);
+        doReturn(app).when(mojo).getWebApp();
+        final SiteInner siteInner = mock(SiteInner.class);
+        doReturn("app,linux").when(siteInner).kind();
+        doReturn(siteInner).when(app).inner();
+        final Update update = mock(Update.class);
+        final WithCredentials withCredentials = mock(WithCredentials.class);
+        doReturn(withCredentials).when(update).withPrivateDockerHubImage(null);
+        doReturn(update).when(app).update();
 
         final ContainerSetting containerSetting = new ContainerSetting();
         containerSetting.setServerId("serverId");
-        when(mojo.getContainerSettings()).thenReturn(containerSetting);
+        doReturn(containerSetting).when(mojo).getContainerSettings();
 
         final Server server = mock(Server.class);
         final Settings settings = mock(Settings.class);
-        when(settings.getServer("serverId")).thenReturn(server);
-        when(mojo.getSettings()).thenReturn(settings);
+        doReturn(server).when(settings).getServer(anyString());
+        doReturn(settings).when(mojo).getSettings();
 
         handler.updateAppRuntime();
         verify(update, times(1)).withPrivateDockerHubImage(null);

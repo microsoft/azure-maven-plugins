@@ -6,14 +6,12 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import org.apache.maven.plugin.MojoExecutionException;
-
 public interface DeployFacade {
-    DeployFacade setupRuntime() throws MojoExecutionException;
+    DeployFacade setupRuntime() throws Exception;
 
-    DeployFacade applySettings() throws MojoExecutionException;
+    DeployFacade applySettings() throws Exception;
 
-    DeployFacade commitChanges() throws MojoExecutionException;
+    DeployFacade commitChanges() throws Exception;
 
     DeployFacade deployArtifacts() throws Exception;
 }

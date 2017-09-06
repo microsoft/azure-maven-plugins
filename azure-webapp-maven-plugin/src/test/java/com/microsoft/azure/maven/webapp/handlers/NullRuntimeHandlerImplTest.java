@@ -18,9 +18,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NullRuntimeHandlerImplTest {
@@ -50,11 +51,11 @@ public class NullRuntimeHandlerImplTest {
     @Test
     public void updateAppRuntime() throws Exception {
         final WebApp app = mock(WebApp.class);
+        doReturn(app).when(mojo).getWebApp();
         final Update update = mock(Update.class);
-        when(app.update()).thenReturn(update);
+        doReturn(update).when(app).update();
         final SiteInner siteInner = mock(SiteInner.class);
-        when(app.inner()).thenReturn(siteInner);
-        when(mojo.getWebApp()).thenReturn(app);
+        doReturn(siteInner).when(app).inner();
 
         assertSame(update, handler.updateAppRuntime());
     }

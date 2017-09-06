@@ -6,20 +6,13 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.handlers.*;
+import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.List;
 
 public abstract class DeployFacadeBaseImpl implements DeployFacade {
     public static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
-    public static final String RUNTIME_CONFIG_CONFLICT = "<javaVersion> is for Web App on Windows; " +
-            "<containerSettings> is for Web App on Linux; they can't be specified at the same time.";
-    public static final String NO_RUNTIME_HANDLER = "Not able to process the runtime stack configuration; " +
-            "please check <javaVersion> or <containerSettings> tag.";
 
     private AbstractWebAppMojo mojo;
 
@@ -27,18 +20,24 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
         this.mojo = mojo;
     }
 
-    public abstract DeployFacade setupRuntime() throws MojoExecutionException;
+    public abstract DeployFacade setupRuntime() throws Exception;
 
-    public abstract DeployFacade applySettings() throws MojoExecutionException;
+    public abstract DeployFacade applySettings() throws Exception;
 
-    public abstract DeployFacade commitChanges() throws MojoExecutionException;
+    public abstract DeployFacade commitChanges() throws Exception;
 
     public DeployFacade deployArtifacts() throws Exception {
         final List<Resource> resources = getMojo().getResources();
         if (resources == null || resources.isEmpty()) {
-            getMojo().getLog().info(NO_RESOURCES_CONFIG);
+            logInfo(NO_RESOURCES_CONFIG);
         } else {
-            getArtifactHandler().publish(resources);
+            beforeDeployArtifacts();
+
+            HandlerFactory.getInstance()
+                    .getArtifactHandler(getMojo())
+                    .publish(resources);
+
+            afterDeployArtifacts();
         }
         return this;
     }
@@ -47,48 +46,21 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
         return mojo;
     }
 
-    protected RuntimeHandler getRuntimeHandler() throws MojoExecutionException {
-        final JavaVersion javaVersion = getMojo().getJavaVersion();
-        final ContainerSetting containerSetting = getMojo().getContainerSettings();
-
-        // Neither <javaVersion> nor <containerSettings> is specified
-        if (javaVersion == null && (containerSetting == null || containerSetting.isEmpty())) {
-            return new NullRuntimeHandlerImpl(getMojo());
-        }
-
-        // Both <javaVersion> and <containerSettings> are specified
-        if (javaVersion != null && containerSetting != null && !containerSetting.isEmpty()) {
-            throw new MojoExecutionException(RUNTIME_CONFIG_CONFLICT);
-        }
-
-        if (javaVersion != null) {
-            return new JavaRuntimeHandlerImpl(getMojo());
-        }
-
-        if (WebAppUtils.isPublicDockerHubImage(containerSetting)) {
-            return new PublicDockerHubRuntimeHandlerImpl(getMojo());
-        }
-
-        if (WebAppUtils.isPrivateDockerHubImage(containerSetting)) {
-            return new PrivateDockerHubRuntimeHandlerImpl(getMojo());
-        }
-
-        if (WebAppUtils.isPrivateRegistryImage(containerSetting)) {
-            return new PrivateRegistryRuntimeHandlerImpl(getMojo());
-        }
-
-        throw new MojoExecutionException(NO_RUNTIME_HANDLER);
+    protected void logInfo(final String message) {
+        getMojo().getLog().info(message);
     }
 
-    protected SettingsHandler getSettingsHandler() {
-        return new SettingsHandlerImpl(getMojo());
+    protected void beforeDeployArtifacts() throws Exception {
+        if (getMojo().isStopAppDuringDeployment()) {
+            logInfo("Stopping Web App before deploying artifacts...");
+            getMojo().getWebApp().stop();
+        }
     }
 
-    protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
-        switch (getMojo().getDeploymentType()) {
-            case FTP:
-            default:
-                return new FTPArtifactHandlerImpl(getMojo());
+    protected void afterDeployArtifacts() throws Exception {
+        if (getMojo().isStopAppDuringDeployment()) {
+            logInfo("Starting Web App after deploying artifacts...");
+            getMojo().getWebApp().start();
         }
     }
 }

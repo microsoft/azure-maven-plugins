@@ -99,7 +99,7 @@ Run below command to create a new function:
 - Bound to `HttpTrigger`
 
 ```cmd
-mvn azure-functions:add -Dfunctions.package=com.your.package -Dfunctions.name=NewFunction -Dfunctions.templates=HttpTrigger
+mvn azure-functions:add -Dfunctions.package=com.your.package -Dfunctions.name=NewFunction -Dfunctions.template=HttpTrigger
 ```
 
 You don't have to provide all properties on command line. Missing properties will be prompted for input during the execution of the goal.
