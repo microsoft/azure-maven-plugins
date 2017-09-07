@@ -37,31 +37,31 @@ public class PrivateRegistryRuntimeHandlerImplTest {
     }
 
     @Test
-    public void defineAppWithRunTime() throws Exception {
+    public void defineAppWithRuntime() throws Exception {
     }
 
     @Test
     public void updateAppRuntime() throws Exception {
         final SiteInner siteInner = mock(SiteInner.class);
-        when(siteInner.kind()).thenReturn("app,linux");
+        doReturn("app,linux").when(siteInner).kind();
         final WithCredentials withCredentials = mock(WithCredentials.class);
         final Update update = mock(Update.class);
-        when(update.withPrivateRegistryImage(null, null)).thenReturn(withCredentials);
+        doReturn(withCredentials).when(update).withPrivateRegistryImage(null, null);
         final WebApp app = mock(WebApp.class);
-        when(app.inner()).thenReturn(siteInner);
-        when(app.update()).thenReturn(update);
-        when(mojo.getWebApp()).thenReturn(app);
+        doReturn(siteInner).when(app).inner();
+        doReturn(update).when(app).update();
 
         final ContainerSetting containerSetting = new ContainerSetting();
         containerSetting.setServerId("serverId");
-        when(mojo.getContainerSettings()).thenReturn(containerSetting);
+        doReturn(containerSetting).when(mojo).getContainerSettings();
 
         final Server server = mock(Server.class);
         final Settings settings = mock(Settings.class);
-        when(settings.getServer("serverId")).thenReturn(server);
-        when(mojo.getSettings()).thenReturn(settings);
+        doReturn(server).when(settings).getServer(anyString());
+        doReturn(settings).when(mojo).getSettings();
 
-        handler.updateAppRuntime();
+        handler.updateAppRuntime(app);
+
         verify(update, times(1)).withPrivateRegistryImage(null, null);
         verify(server, times(1)).getUsername();
         verify(server, times(1)).getPassword();

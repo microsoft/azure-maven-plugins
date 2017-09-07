@@ -36,6 +36,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     public static final String FAILURE_REASON = "failureReason";
 
+    //region Properties
+
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
 
@@ -109,6 +111,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     private String sessionId = UUID.randomUUID().toString();
 
     private String installationId = GetHashMac.getHashMac();
+
+    //endregion
+
+    //region Getter
 
     public MavenProject getProject() {
         return project;
@@ -198,6 +204,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
+    //endregion
+
+    //region Entry Point
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -208,7 +218,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             Thread.setDefaultUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler());
 
             if (isSkipMojo()) {
-                getLog().info("Skip execution.");
+                info("Skip execution.");
                 trackMojoSkip();
             } else {
                 trackMojoStart();
@@ -232,11 +242,15 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     /**
-     * Sub-class should implement this method to do real work.
+     * Entry point of sub-class. Sub-class should implement this method to do real work.
      *
      * @throws Exception
      */
     protected abstract void doExecute() throws Exception;
+
+    //endregion
+
+    //region Telemetry
 
     protected void trackMojoSkip() {
         getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".skip");
@@ -256,6 +270,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".failure", failureReason);
     }
 
+    //endregion
+
+    //region Helper methods
+
     protected void handleException(final Exception exception) throws MojoExecutionException {
         String message = exception.getMessage();
         if (StringUtils.isEmpty(message)) {
@@ -266,14 +284,36 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (isFailingOnError()) {
             throw new MojoExecutionException(message, exception);
         } else {
-            getLog().error(message);
+            error(message);
         }
     }
 
     protected class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
         @Override
         public void uncaughtException(Thread t, Throwable e) {
-            getLog().debug("uncaughtException: " + e);
+            debug("uncaughtException: " + e);
         }
     }
+
+    //endregion
+
+    //region Logging
+
+    public void debug(final String message) {
+        getLog().debug(message);
+    }
+
+    public void info(final String message) {
+        getLog().info(message);
+    }
+
+    public void warning(final String message) {
+        getLog().warn(message);
+    }
+
+    public void error(final String message) {
+        getLog().error(message);
+    }
+
+    //endregion
 }

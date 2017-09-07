@@ -36,24 +36,23 @@ public class JavaRuntimeHandlerImplTest {
     }
 
     @Test
-    public void defineAppWithRunTime() throws Exception {
+    public void defineAppWithRuntime() throws Exception {
     }
 
     @Test
     public void updateAppRuntime() throws Exception {
         // Success
         final SiteInner siteInner = mock(SiteInner.class);
-        when(siteInner.kind()).thenReturn("app");
+        doReturn("app").when(siteInner).kind();
         final WithWebContainer withWebContainer = mock(WithWebContainer.class);
         final Update update = mock(Update.class);
-        when(update.withJavaVersion(null)).thenReturn(withWebContainer);
+        doReturn(withWebContainer).when(update).withJavaVersion(null);
         final WebApp app = mock(WebApp.class);
-        when(app.inner()).thenReturn(siteInner);
-        when(app.update()).thenReturn(update);
-        when(mojo.getWebApp()).thenReturn(app);
-        when(mojo.getJavaWebContainer()).thenReturn(WebContainer.TOMCAT_8_5_NEWEST);
+        doReturn(siteInner).when(app).inner();
+        doReturn(update).when(app).update();
+        doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(mojo).getJavaWebContainer();
 
-        assertSame(update, handler.updateAppRuntime());
+        assertSame(update, handler.updateAppRuntime(app));
         verify(withWebContainer, times(1)).withWebContainer(WebContainer.TOMCAT_8_5_NEWEST);
         verifyNoMoreInteractions(withWebContainer);
     }
