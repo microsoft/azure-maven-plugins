@@ -33,14 +33,14 @@ public class NullRuntimeHandlerImplTest {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        handler = new NullRuntimeHandlerImpl(mojo);
+        handler = new NullRuntimeHandlerImpl();
     }
 
     @Test
-    public void defineAppWithRunTime() throws Exception {
+    public void defineAppWithRuntime() throws Exception {
         MojoExecutionException exception = null;
         try {
-            handler.defineAppWithRunTime();
+            handler.defineAppWithRuntime();
         } catch (MojoExecutionException e) {
             exception = e;
         } finally {
@@ -51,12 +51,11 @@ public class NullRuntimeHandlerImplTest {
     @Test
     public void updateAppRuntime() throws Exception {
         final WebApp app = mock(WebApp.class);
-        doReturn(app).when(mojo).getWebApp();
         final Update update = mock(Update.class);
         doReturn(update).when(app).update();
         final SiteInner siteInner = mock(SiteInner.class);
         doReturn(siteInner).when(app).inner();
 
-        assertSame(update, handler.updateAppRuntime());
+        assertSame(update, handler.updateAppRuntime(app));
     }
 }

@@ -26,7 +26,7 @@ public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public WithCreate defineAppWithRunTime() throws Exception {
+    public WithCreate defineAppWithRuntime() throws Exception {
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final Server server = Utils.getServer(mojo.getSettings(), containerSetting.getServerId());
         if (server == null) {
@@ -39,8 +39,7 @@ public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public Update updateAppRuntime() throws Exception {
-        final WebApp app = mojo.getWebApp();
+    public Update updateAppRuntime(final WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
 

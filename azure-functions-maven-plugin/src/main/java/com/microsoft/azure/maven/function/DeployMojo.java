@@ -91,16 +91,20 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //endregion
 
+    //region Entry Point
+
     @Override
     protected void doExecute() throws Exception {
-        getLog().info(FUNCTION_DEPLOY_START + getAppName() + "...");
+        info(FUNCTION_DEPLOY_START + getAppName() + "...");
 
         createOrUpdateFunctionApp();
 
         getArtifactHandler().publish();
 
-        getLog().info(String.format(FUNCTION_DEPLOY_SUCCESS, getAppName()));
+        info(String.format(FUNCTION_DEPLOY_SUCCESS, getAppName()));
     }
+
+    //endregion
 
     //region Create or update function app
 
@@ -114,7 +118,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected void createFunctionApp() throws Exception {
-        getLog().info(FUNCTION_APP_CREATE_START);
+        info(FUNCTION_APP_CREATE_START);
 
         final NewAppServicePlanWithGroup newAppServicePlanWithGroup = defineApp(getAppName(), getRegion());
         final WithCreate withCreate = configureResourceGroup(newAppServicePlanWithGroup, getResourceGroup());
@@ -122,11 +126,11 @@ public class DeployMojo extends AbstractFunctionMojo {
         configureAppSettings(withCreate::withAppSettings, getAppSettings());
         withCreate.create();
 
-        getLog().info(FUNCTION_APP_CREATED + getAppName());
+        info(FUNCTION_APP_CREATED + getAppName());
     }
 
     protected void updateFunctionApp(final FunctionApp app) {
-        getLog().info(FUNCTION_APP_UPDATE);
+        info(FUNCTION_APP_UPDATE);
 
         // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
         app.inner().withTags(null);
@@ -135,7 +139,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         configureAppSettings(update::withAppSettings, getAppSettings());
         update.apply();
 
-        getLog().info(FUNCTION_APP_UPDATE_DONE + getAppName());
+        info(FUNCTION_APP_UPDATE_DONE + getAppName());
     }
 
     protected NewAppServicePlanWithGroup defineApp(final String appName, final String region) throws Exception {

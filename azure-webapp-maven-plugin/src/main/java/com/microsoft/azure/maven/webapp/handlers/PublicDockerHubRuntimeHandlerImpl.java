@@ -21,15 +21,14 @@ public class PublicDockerHubRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public WithCreate defineAppWithRunTime() throws Exception {
+    public WithCreate defineAppWithRuntime() throws Exception {
         return WebAppUtils.defineApp(mojo)
                 .withNewLinuxPlan(mojo.getPricingTier())
                 .withPublicDockerHubImage(mojo.getContainerSettings().getImageName());
     }
 
     @Override
-    public Update updateAppRuntime() throws Exception {
-        final WebApp app = mojo.getWebApp();
+    public Update updateAppRuntime(final WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
 

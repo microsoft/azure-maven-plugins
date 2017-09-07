@@ -25,7 +25,7 @@ public class PrivateDockerHubRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public WithCreate defineAppWithRunTime() throws Exception {
+    public WithCreate defineAppWithRuntime() throws Exception {
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final Server server = Utils.getServer(mojo.getSettings(), containerSetting.getServerId());
         if (server == null) {
@@ -38,8 +38,7 @@ public class PrivateDockerHubRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public WebApp.Update updateAppRuntime() throws Exception {
-        final WebApp app = mojo.getWebApp();
+    public WebApp.Update updateAppRuntime(final WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
 

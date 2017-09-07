@@ -119,6 +119,8 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //endregion
 
+    //region Entry Point
+
     @Override
     protected void doExecute() throws Exception {
         final List<FunctionTemplate> templates = loadAllFunctionTemplates();
@@ -132,19 +134,21 @@ public class AddMojo extends AbstractFunctionMojo {
         saveNewFunctionToFile(newFunctionClass);
     }
 
+    //endregion
+
     //region Load all templates
 
     protected List<FunctionTemplate> loadAllFunctionTemplates() throws Exception {
-        getLog().info("");
-        getLog().info(LOAD_TEMPLATES);
+        info("");
+        info(LOAD_TEMPLATES);
 
         try (final InputStream is = AddMojo.class.getResourceAsStream("/templates.json")) {
             final String templatesJsonStr = IOUtil.toString(is);
             final List<FunctionTemplate> templates = parseTemplateJson(templatesJsonStr);
-            getLog().info(LOAD_TEMPLATES_DONE);
+            info(LOAD_TEMPLATES_DONE);
             return templates;
         } catch (Exception e) {
-            getLog().error(LOAD_TEMPLATES_FAIL);
+            error(LOAD_TEMPLATES_FAIL);
             throw e;
         }
     }
@@ -159,8 +163,8 @@ public class AddMojo extends AbstractFunctionMojo {
     //region Get function template
 
     protected FunctionTemplate getFunctionTemplate(final List<FunctionTemplate> templates) throws Exception {
-        getLog().info("");
-        getLog().info(FIND_TEMPLATE);
+        info("");
+        info(FIND_TEMPLATE);
 
         assureInputFromUser("template for new function",
                 getFunctionTemplate(),
@@ -176,13 +180,13 @@ public class AddMojo extends AbstractFunctionMojo {
 
     protected FunctionTemplate findTemplateByName(final List<FunctionTemplate> templates, final String templateName)
             throws Exception {
-        getLog().info("Selected function template: " + templateName);
+        info("Selected function template: " + templateName);
         final Optional<FunctionTemplate> template = templates.stream()
                 .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
                 .findFirst();
 
         if (template.isPresent()) {
-            getLog().info(FIND_TEMPLATE_DONE + templateName);
+            info(FIND_TEMPLATE_DONE + templateName);
             return template.get();
         }
 
@@ -194,8 +198,8 @@ public class AddMojo extends AbstractFunctionMojo {
     //region Prepare parameters
 
     protected Map<String, String> prepareRequiredParameters(final FunctionTemplate template) {
-        getLog().info("");
-        getLog().info(PREPARE_PARAMS);
+        info("");
+        info(PREPARE_PARAMS);
 
         prepareFunctionName();
 
@@ -213,7 +217,7 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void prepareFunctionName() {
-        getLog().info("Common parameter [Function Name]: name for both the new function and Java class");
+        info("Common parameter [Function Name]: name for both the new function and Java class");
 
         assureInputFromUser("Enter value for Function Name: ",
                 getFunctionName(),
@@ -223,7 +227,7 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void preparePackageName() {
-        getLog().info("Common parameter [Package Name]: package name of the new Java class");
+        info("Common parameter [Package Name]: package name of the new Java class");
 
         assureInputFromUser("Enter value for Package Name: ",
                 getFunctionPackageName(),
@@ -235,7 +239,7 @@ public class AddMojo extends AbstractFunctionMojo {
     protected Map<String, String> prepareTemplateParameters(final FunctionTemplate template,
                                                             final Map<String, String> params) {
         for (final String property : template.getMetadata().getUserPrompt()) {
-            getLog().info(format("Trigger specific parameter [%s]", property));
+            info(format("Trigger specific parameter [%s]", property));
 
             assureInputFromUser(format("Enter value for %s: ", property),
                     null,
@@ -248,12 +252,12 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void displayParameters(final Map<String, String> params) {
-        getLog().info("");
-        getLog().info("Summary of parameters for function template:");
+        info("");
+        info("Summary of parameters for function template:");
 
         params.entrySet()
                 .stream()
-                .forEach(e -> getLog().info(format("%s: %s", e.getKey(), e.getValue())));
+                .forEach(e -> info(format("%s: %s", e.getKey(), e.getValue())));
     }
 
     //endregion
@@ -273,8 +277,8 @@ public class AddMojo extends AbstractFunctionMojo {
     //region Save function to file
 
     protected void saveNewFunctionToFile(final String newFunctionClass) throws Exception {
-        getLog().info("");
-        getLog().info(SAVE_FILE);
+        info("");
+        info(SAVE_FILE);
 
         final File packageDir = getPackageDir();
 
@@ -284,7 +288,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
         saveToTargetFile(targetFile, newFunctionClass);
 
-        getLog().info(SAVE_FILE_DONE + targetFile.getAbsolutePath());
+        info(SAVE_FILE_DONE + targetFile.getAbsolutePath());
     }
 
     protected File getPackageDir() {
@@ -321,7 +325,7 @@ public class AddMojo extends AbstractFunctionMojo {
     protected void assureInputFromUser(final String prompt, final String initValue, final List<String> options,
                                        final Consumer<String> setter) {
         if (options.stream().anyMatch(o -> o.equalsIgnoreCase(initValue))) {
-            getLog().info(FOUND_VALID_VALUE);
+            info(FOUND_VALID_VALUE);
             return;
         }
 
@@ -351,7 +355,7 @@ public class AddMojo extends AbstractFunctionMojo {
                                        final Function<String, Boolean> validator, final String errorMessage,
                                        final Consumer<String> setter) {
         if (validator.apply(initValue)) {
-            getLog().info(FOUND_VALID_VALUE);
+            info(FOUND_VALID_VALUE);
             setter.accept(initValue);
             return;
         }
@@ -370,7 +374,7 @@ public class AddMojo extends AbstractFunctionMojo {
             } catch (Exception ignored) {
             }
             // Reaching here means invalid input
-            getLog().warn(errorMessage);
+            warning(errorMessage);
         }
     }
 

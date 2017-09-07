@@ -52,6 +52,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_JSON = "function.json";
     public static final String HOST_JSON = "host.json";
 
+    //region Entry Point
 
     @Override
     protected void doExecute() throws Exception {
@@ -71,8 +72,10 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         copyJarsToStageDirectory();
 
-        getLog().info(BUILD_SUCCESS);
+        info(BUILD_SUCCESS);
     }
+
+    //endregion
 
     //region Process annotations
 
@@ -81,10 +84,10 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws Exception {
-        getLog().info("");
-        getLog().info(SEARCH_FUNCTIONS);
+        info("");
+        info(SEARCH_FUNCTIONS);
         final Set<Method> functions = handler.findFunctions(getClassUrl());
-        getLog().info(functions.size() + FOUND_FUNCTIONS);
+        info(functions.size() + FOUND_FUNCTIONS);
         return functions;
     }
 
@@ -98,15 +101,15 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected Map<String, FunctionConfiguration> getFunctionConfigurations(final AnnotationHandler handler,
                                                                            final Set<Method> methods) throws Exception {
-        getLog().info("");
-        getLog().info(GENERATE_CONFIG);
+        info("");
+        info(GENERATE_CONFIG);
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(methods);
         if (configMap.size() == 0) {
-            getLog().info(GENERATE_SKIP);
+            info(GENERATE_SKIP);
         } else {
             final String scriptFilePath = getScriptFilePath();
             configMap.values().forEach(config -> config.setScriptFile(scriptFilePath));
-            getLog().info(GENERATE_DONE);
+            info(GENERATE_DONE);
         }
 
         return configMap;
@@ -125,13 +128,13 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Validate function configurations
 
     protected void validateFunctionConfigurations(final Map<String, FunctionConfiguration> configMap) {
-        getLog().info("");
-        getLog().info(VALIDATE_CONFIG);
+        info("");
+        info(VALIDATE_CONFIG);
         if (configMap.size() == 0) {
-            getLog().info(VALIDATE_SKIP);
+            info(VALIDATE_SKIP);
         } else {
             configMap.values().forEach(config -> config.validate());
-            getLog().info(VALIDATE_DONE);
+            info(VALIDATE_DONE);
         }
     }
 
@@ -141,10 +144,10 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void writeFunctionJsonFiles(final ObjectWriter objectWriter,
                                           final Map<String, FunctionConfiguration> configMap) throws IOException {
-        getLog().info("");
-        getLog().info(SAVE_FUNCTION_JSONS);
+        info("");
+        info(SAVE_FUNCTION_JSONS);
         if (configMap.size() == 0) {
-            getLog().info(SAVE_SKIP);
+            info(SAVE_SKIP);
         } else {
             for (final Map.Entry<String, FunctionConfiguration> config : configMap.entrySet()) {
                 writeFunctionJsonFile(objectWriter, config.getKey(), config.getValue());
@@ -154,18 +157,18 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void writeFunctionJsonFile(final ObjectWriter objectWriter, final String functionName,
                                          final FunctionConfiguration config) throws IOException {
-        getLog().info(SAVE_FUNCTION_JSON + functionName);
+        info(SAVE_FUNCTION_JSON + functionName);
         final File functionJsonFile = Paths.get(getDeploymentStageDirectory(), functionName, FUNCTION_JSON).toFile();
         writeObjectToFile(objectWriter, config, functionJsonFile);
-        getLog().info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
+        info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
     }
 
     protected void writeEmptyHostJsonFile(final ObjectWriter objectWriter) throws IOException {
-        getLog().info("");
-        getLog().info(SAVE_HOST_JSON);
+        info("");
+        info(SAVE_HOST_JSON);
         final File hostJsonFile = Paths.get(getDeploymentStageDirectory(), HOST_JSON).toFile();
         writeObjectToFile(objectWriter, new Object(), hostJsonFile);
-        getLog().info(SAVE_SUCCESS + hostJsonFile.getAbsolutePath());
+        info(SAVE_SUCCESS + hostJsonFile.getAbsolutePath());
     }
 
     protected void writeObjectToFile(final ObjectWriter objectWriter, final Object object, final File targetFile)
@@ -187,15 +190,15 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void copyJarsToStageDirectory() throws IOException {
         final String stagingDirectory = getDeploymentStageDirectory();
-        getLog().info("");
-        getLog().info(COPY_JARS + stagingDirectory);
+        info("");
+        info(COPY_JARS + stagingDirectory);
         Utils.copyResources(
                 getProject(),
                 getSession(),
                 getMavenResourcesFiltering(),
                 getResources(),
                 stagingDirectory);
-        getLog().info(COPY_SUCCESS);
+        info(COPY_SUCCESS);
     }
 
     protected List<Resource> getResources() {

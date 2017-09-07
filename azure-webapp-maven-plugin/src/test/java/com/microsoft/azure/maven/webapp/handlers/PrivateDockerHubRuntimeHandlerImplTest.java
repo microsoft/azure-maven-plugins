@@ -36,13 +36,12 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
         handler = new PrivateDockerHubRuntimeHandlerImpl(mojo);
     }
     @Test
-    public void defineAppWithRunTime() throws Exception {
+    public void defineAppWithRuntime() throws Exception {
     }
 
     @Test
     public void updateAppRuntime() throws Exception {
         final WebApp app = mock(WebApp.class);
-        doReturn(app).when(mojo).getWebApp();
         final SiteInner siteInner = mock(SiteInner.class);
         doReturn("app,linux").when(siteInner).kind();
         doReturn(siteInner).when(app).inner();
@@ -60,7 +59,8 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
         doReturn(server).when(settings).getServer(anyString());
         doReturn(settings).when(mojo).getSettings();
 
-        handler.updateAppRuntime();
+        handler.updateAppRuntime(app);
+
         verify(update, times(1)).withPrivateDockerHubImage(null);
         verify(server, times(1)).getUsername();
         verify(server, times(1)).getPassword();

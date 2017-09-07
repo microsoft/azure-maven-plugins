@@ -20,7 +20,7 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public WithCreate defineAppWithRunTime() throws Exception {
+    public WithCreate defineAppWithRuntime() throws Exception {
         final WithCreate withCreate = WebAppUtils.defineApp(mojo)
                 .withNewWindowsPlan(mojo.getPricingTier());
 
@@ -30,8 +30,7 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public Update updateAppRuntime() throws Exception {
-        final WebApp app = mojo.getWebApp();
+    public Update updateAppRuntime(final WebApp app) throws Exception {
         WebAppUtils.assureWindowsWebApp(app);
         WebAppUtils.clearTags(app);
 

@@ -83,6 +83,8 @@ public class RunMojo extends AbstractFunctionMojo {
 
     //endregion
 
+    //region Entry Point
+
     @Override
     protected void doExecute() throws Exception {
         checkStageDirectoryExistence();
@@ -94,18 +96,20 @@ public class RunMojo extends AbstractFunctionMojo {
 
     protected void checkStageDirectoryExistence() throws Exception {
         runCommand(getCheckStageDirectoryCommand(), false, getDefaultValidReturnCodes(), STAGE_DIR_NOT_FOUND);
-        getLog().info(STAGE_DIR_FOUND + getDeploymentStageDirectory());
+        info(STAGE_DIR_FOUND + getDeploymentStageDirectory());
     }
 
     protected void checkRuntimeExistence() throws Exception {
         runCommand(getCheckRuntimeCommand(), false, getDefaultValidReturnCodes(), RUNTIME_NOT_FOUND);
-        getLog().info(RUNTIME_FOUND);
+        info(RUNTIME_FOUND);
     }
 
     protected void runFunctions() throws Exception {
-        getLog().info(START_RUN_FUNCTIONS);
+        info(START_RUN_FUNCTIONS);
         runCommand(getRunFunctionCommand(), true, getValidReturnCodes(), RUN_FUNCTIONS_FAILURE);
     }
+
+    //endregion
 
     //region Build commands
 
@@ -175,7 +179,7 @@ public class RunMojo extends AbstractFunctionMojo {
 
     protected void runCommand(final String[] command, final boolean showStdout, final List<Long> validReturnCodes,
                               final String errorMessage) throws Exception {
-        getLog().debug("Executing command: " + StringUtils.join(command, " "));
+        debug("Executing command: " + StringUtils.join(command, " "));
 
         final Redirect redirect = getStdoutRedirect(showStdout);
         final Process process = new ProcessBuilder(command)
@@ -194,11 +198,11 @@ public class RunMojo extends AbstractFunctionMojo {
 
     protected void handleExitValue(int exitValue, final List<Long> validReturnCodes, final String errorMessage,
                                    final InputStream inputStream) throws Exception {
-        getLog().debug("Process exit value: " + exitValue);
+        debug("Process exit value: " + exitValue);
         if (!validReturnCodes.contains(Integer.toUnsignedLong(exitValue))) {
             // input stream is a merge of standard output and standard error of the sub-process
             showErrorIfAny(inputStream);
-            getLog().error(errorMessage);
+            error(errorMessage);
             throw new Exception(errorMessage);
         }
     }
@@ -206,7 +210,7 @@ public class RunMojo extends AbstractFunctionMojo {
     protected void showErrorIfAny(final InputStream inputStream) throws Exception {
         if (inputStream != null) {
             final String input = IOUtil.toString(inputStream);
-            getLog().error(StringUtils.strip(input, "\n"));
+            error(StringUtils.strip(input, "\n"));
         }
     }
 

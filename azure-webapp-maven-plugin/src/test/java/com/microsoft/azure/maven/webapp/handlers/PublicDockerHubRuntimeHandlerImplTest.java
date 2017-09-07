@@ -46,12 +46,12 @@ public class PublicDockerHubRuntimeHandlerImplTest {
         final WebApp app = mock(WebApp.class);
         doReturn(siteInner).when(app).inner();
         doReturn(update).when(app).update();
-        doReturn(app).when(mojo).getWebApp();
         final ContainerSetting containerSetting = new ContainerSetting();
         containerSetting.setImageName("nginx");
         doReturn(containerSetting).when(mojo).getContainerSettings();
 
-        handler.updateAppRuntime();
+        handler.updateAppRuntime(app);
+
         verify(update, times(1)).withPublicDockerHubImage(any(String.class));
         verifyNoMoreInteractions(update);
     }

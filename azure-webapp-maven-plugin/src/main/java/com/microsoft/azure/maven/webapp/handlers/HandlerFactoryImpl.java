@@ -25,7 +25,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
         // Neither <javaVersion> nor <containerSettings> is specified
         if (javaVersion == null && (containerSetting == null || containerSetting.isEmpty())) {
-            return new NullRuntimeHandlerImpl(mojo);
+            return new NullRuntimeHandlerImpl();
         }
 
         // Both <javaVersion> and <containerSettings> are specified

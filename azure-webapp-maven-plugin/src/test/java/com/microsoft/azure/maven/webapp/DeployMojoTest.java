@@ -6,20 +6,30 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.management.appservice.*;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
+import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
+import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
+import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
+import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
+import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
+import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -37,15 +47,45 @@ public class DeployMojoTest {
         }
     };
 
+    @Mock
+    protected ArtifactHandler artifactHandler;
+
+    @Mock
+    protected RuntimeHandler runtimeHandler;
+
+    @Mock
+    protected SettingsHandler settingsHandler;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        setupHandlerFactory();
+    }
+
+    protected void setupHandlerFactory() throws Exception {
+        final Field f = HandlerFactory.class.getDeclaredField("instance");
+        f.setAccessible(true);
+        f.set(null, new HandlerFactory() {
+            @Override
+            public RuntimeHandler getRuntimeHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+                return runtimeHandler;
+            }
+
+            @Override
+            public SettingsHandler getSettingsHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+                return settingsHandler;
+            }
+
+            @Override
+            public ArtifactHandler getArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+                return artifactHandler;
+            }
+        });
     }
 
     @Test
-    public void testGetConfigurationForLinux() throws Exception {
+    public void getConfigurationForLinux() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        assertNotNull(mojo);
 
         assertEquals("resourceGroupName", mojo.getResourceGroup());
 
@@ -66,12 +106,13 @@ public class DeployMojoTest {
         assertEquals(DeploymentType.FTP, mojo.getDeploymentType());
 
         assertEquals(1, mojo.getResources().size());
+
+        assertFalse(mojo.isStopAppDuringDeployment());
     }
 
     @Test
-    public void testGetConfigurationForWindows() throws Exception {
+    public void getConfigurationForWindows() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-windows.xml");
-        assertNotNull(mojo);
 
         assertEquals(JavaVersion.JAVA_8_NEWEST, mojo.getJavaVersion());
 
@@ -81,68 +122,117 @@ public class DeployMojoTest {
     }
 
     @Test
-    public void testGetWebApp() throws Exception {
+    public void getWebApp() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        assertNotNull(mojo);
 
         assertNull(mojo.getWebApp());
     }
 
     @Test
-    public void testGetDeployFacade() throws Exception {
+    public void createOrUpdateWebAppWithCreate() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        assertNotNull(mojo);
-
-        // Create a new Web App
-        assertTrue(mojo.getDeployFacade() instanceof DeployFacadeImplWithCreate);
-
-        // Deploy to existing Web App
         final DeployMojo mojoSpy = spy(mojo);
-        final WebApp app = mock(WebApp.class);
-        doReturn(app).when(mojoSpy).getWebApp();
+        doReturn(null).when(mojoSpy).getWebApp();
+        doNothing().when(mojoSpy).createWebApp();
 
-        assertTrue(mojoSpy.getDeployFacade() instanceof DeployFacadeImplWithUpdate);
+        mojoSpy.createOrUpdateWebApp();
+
+        verify(mojoSpy, times(1)).createWebApp();
+        verify(mojoSpy, times(0)).updateWebApp(any(WebApp.class));
     }
 
     @Test
-    public void testDoExecute() throws Exception {
+    public void createOrUpdateWebAppWithUpdate() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        assertNotNull(mojo);
-
         final DeployMojo mojoSpy = spy(mojo);
-        final DeployFacade facade = getDeployFacade();
-        doReturn(facade).when(mojoSpy).getDeployFacade();
-        doCallRealMethod().when(mojoSpy).getLog();
+        final WebApp app = mock(WebApp.class);
+        doReturn(app).when(mojoSpy).getWebApp();
+        doNothing().when(mojoSpy).updateWebApp(any(WebApp.class));
+
+        mojoSpy.createOrUpdateWebApp();
+
+        verify(mojoSpy, times(0)).createWebApp();
+        verify(mojoSpy, times(1)).updateWebApp(any(WebApp.class));
+    }
+
+    @Test
+    public void doExecute() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        doNothing().when(mojoSpy).createOrUpdateWebApp();
+        doNothing().when(mojoSpy).deployArtifacts();
 
         mojoSpy.doExecute();
+
+        verify(mojoSpy, times(1)).createOrUpdateWebApp();
+        verify(mojoSpy, times(1)).deployArtifacts();
+    }
+
+    @Test
+    public void deployArtifactsWithNoResources() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        doReturn(null).when(mojoSpy).getResources();
+
+        mojoSpy.deployArtifacts();
+    }
+
+    @Test
+    public void createWebApp() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        final WithCreate withCreate = mock(WithCreate.class);
+        doReturn(withCreate).when(runtimeHandler).defineAppWithRuntime();
+
+        mojoSpy.createWebApp();
+
+        verify(runtimeHandler, times(1)).defineAppWithRuntime();
+        verify(settingsHandler, times(1)).processSettings(any(WithCreate.class));
+        verify(withCreate, times(1)).create();
+    }
+
+    @Test
+    public void updateWebApp() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        final WebApp app = mock(WebApp.class);
+        final Update update = mock(Update.class);
+        doReturn(update).when(runtimeHandler).updateAppRuntime(app);
+
+        mojoSpy.updateWebApp(app);
+
+        verify(runtimeHandler, times(1)).updateAppRuntime(app);
+        verify(settingsHandler, times(1)).processSettings(any(Update.class));
+        verify(update, times(1)).apply();
+    }
+
+    @Test
+    public void deployArtifactsWithResources() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        doReturn(getResourceList()).when(mojoSpy).getResources();
+
+        mojoSpy.deployArtifacts();
+
+        verify(artifactHandler, times(1)).publish(ArgumentMatchers.<Resource>anyList());
+        verifyNoMoreInteractions(artifactHandler);
     }
 
     private DeployMojo getMojoFromPom(String filename) throws Exception {
         final File pom = new File(DeployMojoTest.class.getResource(filename).toURI());
-        return (DeployMojo) rule.lookupMojo("deploy", pom);
+        final DeployMojo mojo = (DeployMojo) rule.lookupMojo("deploy", pom);
+        assertNotNull(mojo);
+        return mojo;
     }
 
-    private DeployFacade getDeployFacade() {
-        return new DeployFacade() {
-            @Override
-            public DeployFacade setupRuntime() throws Exception {
-                return this;
-            }
+    private List<Resource> getResourceList() {
+        final Resource resource = new Resource();
+        resource.setDirectory("/");
+        resource.setTargetPath("/");
 
-            @Override
-            public DeployFacade applySettings() throws Exception {
-                return this;
-            }
+        final List<Resource> resources = new ArrayList<>();
+        resources.add(resource);
 
-            @Override
-            public DeployFacade commitChanges() throws Exception {
-                return this;
-            }
-
-            @Override
-            public DeployFacade deployArtifacts() throws Exception {
-                return this;
-            }
-        };
+        return resources;
     }
 }
