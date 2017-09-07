@@ -16,11 +16,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 public class NullRuntimeHandlerImpl implements RuntimeHandler {
     public static final String NO_RUNTIME_CONFIG = "No runtime stack is specified in pom.xml; " +
             "use <javaVersion> or <containerSettings> to configure runtime stack.";
-    private AbstractWebAppMojo mojo;
-
-    public NullRuntimeHandlerImpl(final AbstractWebAppMojo mojo) {
-        this.mojo = mojo;
-    }
 
     @Override
     public WithCreate defineAppWithRuntime() throws Exception {

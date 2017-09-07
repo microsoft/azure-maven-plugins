@@ -33,7 +33,7 @@ public class NullRuntimeHandlerImplTest {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        handler = new NullRuntimeHandlerImpl(mojo);
+        handler = new NullRuntimeHandlerImpl();
     }
 
     @Test
