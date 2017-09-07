@@ -23,6 +23,8 @@
                     <region>westus</region>
                     <javaVersion>1.8</javaVersion>
                     <javaWebContainer>tomcat 8.5</javaWebContainer>
+                    <deploymentType>ftp</deploymentType>
+                    <stopAppDuringDeployment>true</stopAppDuringDeployment>
                     <resources>
                         <resource>
                             <directory>${project.basedir}</directory>

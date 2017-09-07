@@ -13,11 +13,18 @@ import java.util.List;
 
 public abstract class DeployFacadeBaseImpl implements DeployFacade {
     public static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
+    public static final String STOP_APP = "Stopping Web App before deploying artifacts...";
+    public static final String START_APP = "Starting Web App after deploying artifacts...";
+    public static final String STOP_APP_DONE = "Successfully stopped Web App.";
+    public static final String START_APP_DONE = "Successfully started Web App.";
 
     private AbstractWebAppMojo mojo;
 
+    private DeploymentUtil util;
+
     public DeployFacadeBaseImpl(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
+        this.util = new DeploymentUtil();
     }
 
     public abstract DeployFacade setupRuntime() throws Exception;
@@ -31,13 +38,15 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
         if (resources == null || resources.isEmpty()) {
             logInfo(NO_RESOURCES_CONFIG);
         } else {
-            beforeDeployArtifacts();
+            try {
+                util.beforeDeployArtifacts();
 
-            HandlerFactory.getInstance()
-                    .getArtifactHandler(getMojo())
-                    .publish(resources);
-
-            afterDeployArtifacts();
+                HandlerFactory.getInstance()
+                        .getArtifactHandler(getMojo())
+                        .publish(resources);
+            } finally {
+                util.afterDeployArtifacts();
+            }
         }
         return this;
     }
@@ -50,17 +59,29 @@ public abstract class DeployFacadeBaseImpl implements DeployFacade {
         getMojo().getLog().info(message);
     }
 
-    protected void beforeDeployArtifacts() throws Exception {
-        if (getMojo().isStopAppDuringDeployment()) {
-            logInfo("Stopping Web App before deploying artifacts...");
-            getMojo().getWebApp().stop();
-        }
-    }
+    class DeploymentUtil {
+        boolean isAppStopped = false;
 
-    protected void afterDeployArtifacts() throws Exception {
-        if (getMojo().isStopAppDuringDeployment()) {
-            logInfo("Starting Web App after deploying artifacts...");
-            getMojo().getWebApp().start();
+        public void beforeDeployArtifacts() throws Exception {
+            if (getMojo().isStopAppDuringDeployment()) {
+                logInfo(STOP_APP);
+
+                getMojo().getWebApp().stop();
+                isAppStopped = true;
+
+                logInfo(STOP_APP_DONE);
+            }
+        }
+
+        public void afterDeployArtifacts() throws Exception {
+            if (isAppStopped) {
+                logInfo(START_APP);
+
+                getMojo().getWebApp().start();
+                isAppStopped = false;
+
+                logInfo(START_APP_DONE);
+            }
         }
     }
 }

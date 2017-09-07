@@ -21,12 +21,10 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void doExecute() throws Exception {
         getLog().info(String.format(WEBAPP_DEPLOY_START, getAppName()));
 
-        final DeployFacade facade = getDeployFacade();
-        facade.setupRuntime()
+        getDeployFacade().setupRuntime()
                 .applySettings()
-                .commitChanges();
-
-        facade.deployArtifacts();
+                .commitChanges()    // Create or update Web App first
+                .deployArtifacts(); // Deploy artifacts
 
         getLog().info(String.format(WEBAPP_DEPLOY_SUCCESS, getAppName()));
     }
