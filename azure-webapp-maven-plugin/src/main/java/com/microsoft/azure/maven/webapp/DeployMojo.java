@@ -16,7 +16,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 import java.util.List;
 
-
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
  */

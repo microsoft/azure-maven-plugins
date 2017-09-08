@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithNewAppServicePlan;
+import com.microsoft.azure.management.resources.fluentcore.arm.models.GroupableResource.DefinitionStages.WithGroup;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
@@ -35,19 +36,14 @@ public class WebAppUtils {
         }
     }
 
-    public static WithNewAppServicePlan defineApp(final AbstractWebAppMojo mojo)
-            throws Exception {
-        if (mojo.getAzureClient().resourceGroups().checkExistence(mojo.getResourceGroup())) {
-            return mojo.getAzureClient().webApps()
-                    .define(mojo.getAppName())
-                    .withRegion(mojo.getRegion())
-                    .withExistingResourceGroup(mojo.getResourceGroup());
-        } else {
-            return mojo.getAzureClient().webApps()
-                    .define(mojo.getAppName())
-                    .withRegion(mojo.getRegion())
-                    .withNewResourceGroup(mojo.getResourceGroup());
-        }
+    public static WithNewAppServicePlan defineApp(final AbstractWebAppMojo mojo) throws Exception {
+        final WithGroup<WithNewAppServicePlan> withGroup = mojo.getAzureClient().webApps()
+                .define(mojo.getAppName())
+                .withRegion(mojo.getRegion());
+        final String resourceGroup = mojo.getResourceGroup();
+        return mojo.getAzureClient().resourceGroups().checkExistence(resourceGroup) ?
+                withGroup.withExistingResourceGroup(resourceGroup) :
+                withGroup.withNewResourceGroup(resourceGroup);
     }
 
     public static boolean isPublicDockerHubImage(final ContainerSetting containerSetting) {
