@@ -9,13 +9,10 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertNotNull;
@@ -25,14 +22,10 @@ import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NullRuntimeHandlerImplTest {
-    @Mock
-    private AbstractWebAppMojo mojo;
-
     private NullRuntimeHandlerImpl handler = null;
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
         handler = new NullRuntimeHandlerImpl();
     }
 

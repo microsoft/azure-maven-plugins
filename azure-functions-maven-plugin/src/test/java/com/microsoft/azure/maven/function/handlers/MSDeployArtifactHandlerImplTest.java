@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.function.handlers;
 
 import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.WebDeployment;
 import com.microsoft.azure.management.appservice.WebDeployment.DefinitionStages.WithExecute;
 import com.microsoft.azure.management.appservice.WebDeployment.DefinitionStages.WithPackageUri;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
@@ -33,6 +32,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.*;
 
 public class MSDeployArtifactHandlerImplTest {
