@@ -52,10 +52,21 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         final Map<String, FunctionConfiguration> configMap = new HashMap<>();
         for (final Method method : methods) {
             final FunctionName functionAnnotation = method.getAnnotation(FunctionName.class);
-            log.debug("Starting processing function : " + functionAnnotation.value());
-            configMap.put(functionAnnotation.value(), generateConfiguration(method));
+            final String functionName = functionAnnotation.value();
+            validateFunctionName(configMap.keySet(), functionName);
+            log.debug("Starting processing function : " + functionName);
+            configMap.put(functionName, generateConfiguration(method));
         }
         return configMap;
+    }
+
+    protected void validateFunctionName(final Set<String> nameSet, final String functionName) throws Exception {
+        if (StringUtils.isEmpty(functionName)) {
+            throw new Exception("Azure Function name cannot be empty.");
+        }
+        if (nameSet.stream().anyMatch(n -> StringUtils.equalsIgnoreCase(n, functionName))) {
+            throw new Exception("Found duplicate Azure Function: " + functionName);
+        }
     }
 
     @Override
