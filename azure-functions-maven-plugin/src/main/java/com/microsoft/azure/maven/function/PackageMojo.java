@@ -117,7 +117,8 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected String getScriptFilePath() {
         return new StringBuilder()
-                .append("..\\")
+                .append("..")
+                .append(File.separator)
                 .append(getFinalName())
                 .append(".jar")
                 .toString();

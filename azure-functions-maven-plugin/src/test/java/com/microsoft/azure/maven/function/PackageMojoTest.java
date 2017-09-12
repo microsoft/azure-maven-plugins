@@ -17,6 +17,8 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reflections.util.ClasspathHelper;
 
+import java.nio.file.Paths;
+
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -57,7 +59,7 @@ public class PackageMojoTest extends MojoTestBase {
 
         final String finalName = mojoSpy.getScriptFilePath();
 
-        assertEquals("..\\artifact-0.1.0.jar", finalName);
+        assertEquals(Paths.get("..", "artifact-0.1.0.jar").toString(), finalName);
     }
 
     @Test
