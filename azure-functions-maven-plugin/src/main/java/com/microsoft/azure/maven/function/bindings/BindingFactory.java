@@ -8,46 +8,58 @@ package com.microsoft.azure.maven.function.bindings;
 import com.microsoft.azure.serverless.functions.annotation.*;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 public class BindingFactory {
-    private static Map<Class<? extends Annotation>, Function<Annotation, BaseBinding>> map = new ConcurrentHashMap();
+    private static Map<Class<? extends Annotation>, Class<? extends BaseBinding>> map = new ConcurrentHashMap();
 
     static {
-        map.put(ApiHubFileTrigger.class, a -> new ApiHubFileBinding((ApiHubFileTrigger) a));
-        map.put(ApiHubFileInput.class, a -> new ApiHubFileBinding((ApiHubFileInput) a));
-        map.put(ApiHubFileOutput.class, a -> new ApiHubFileBinding((ApiHubFileOutput) a));
-        map.put(BlobTrigger.class, a -> new BlobBinding((BlobTrigger) a));
-        map.put(BlobInput.class, a -> new BlobBinding((BlobInput) a));
-        map.put(BlobOutput.class, a -> new BlobBinding((BlobOutput) a));
-        map.put(DocumentDBInput.class, a -> new DocumentDBBinding((DocumentDBInput) a));
-        map.put(DocumentDBOutput.class, a -> new DocumentDBBinding((DocumentDBOutput) a));
-        map.put(EventHubTrigger.class, a -> new EventHubBinding((EventHubTrigger) a));
-        map.put(EventHubOutput.class, a -> new EventHubBinding((EventHubOutput) a));
-        map.put(HttpTrigger.class, a -> new HttpBinding((HttpTrigger) a));
-        map.put(HttpOutput.class, a -> new HttpBinding((HttpOutput) a));
-        map.put(MobileTableInput.class, a -> new MobileTableBinding((MobileTableInput) a));
-        map.put(MobileTableOutput.class, a -> new MobileTableBinding((MobileTableOutput) a));
-        map.put(NotificationHubOutput.class, a -> new NotificationHubBinding((NotificationHubOutput) a));
-        map.put(QueueTrigger.class, a -> new QueueBinding((QueueTrigger) a));
-        map.put(QueueOutput.class, a -> new QueueBinding((QueueOutput) a));
-        map.put(SendGridOutput.class, a -> new SendGridBinding((SendGridOutput) a));
-        map.put(ServiceBusQueueTrigger.class, a -> new ServiceBusBinding((ServiceBusQueueTrigger) a));
-        map.put(ServiceBusTopicTrigger.class, a -> new ServiceBusBinding((ServiceBusTopicTrigger) a));
-        map.put(ServiceBusQueueOutput.class, a -> new ServiceBusBinding((ServiceBusQueueOutput) a));
-        map.put(ServiceBusTopicOutput.class, a -> new ServiceBusBinding((ServiceBusTopicOutput) a));
-        map.put(TableInput.class, a -> new TableBinding((TableInput) a));
-        map.put(TableOutput.class, a -> new TableBinding((TableOutput) a));
-        map.put(TimerTrigger.class, a -> new TimerBinding((TimerTrigger) a));
-        map.put(TwilioSmsOutput.class, a -> new TwilioBinding((TwilioSmsOutput) a));
+        map.put(ApiHubFileTrigger.class, ApiHubFileBinding.class);
+        map.put(ApiHubFileInput.class, ApiHubFileBinding.class);
+        map.put(ApiHubFileOutput.class, ApiHubFileBinding.class);
+        map.put(BlobTrigger.class, BlobBinding.class);
+        map.put(BlobInput.class, BlobBinding.class);
+        map.put(BlobOutput.class, BlobBinding.class);
+        map.put(DocumentDBInput.class, DocumentDBBinding.class);
+        map.put(DocumentDBOutput.class, DocumentDBBinding.class);
+        map.put(EventHubTrigger.class, EventHubBinding.class);
+        map.put(EventHubOutput.class, EventHubBinding.class);
+        map.put(HttpTrigger.class, HttpBinding.class);
+        map.put(HttpOutput.class, HttpBinding.class);
+        map.put(MobileTableInput.class, MobileTableBinding.class);
+        map.put(MobileTableOutput.class, MobileTableBinding.class);
+        map.put(NotificationHubOutput.class, NotificationHubBinding.class);
+        map.put(QueueTrigger.class, QueueBinding.class);
+        map.put(QueueOutput.class, QueueBinding.class);
+        map.put(SendGridOutput.class, SendGridBinding.class);
+        map.put(ServiceBusQueueTrigger.class, ServiceBusBinding.class);
+        map.put(ServiceBusTopicTrigger.class, ServiceBusBinding.class);
+        map.put(ServiceBusQueueOutput.class, ServiceBusBinding.class);
+        map.put(ServiceBusTopicOutput.class, ServiceBusBinding.class);
+        map.put(TableInput.class, TableBinding.class);
+        map.put(TableOutput.class, TableBinding.class);
+        map.put(TimerTrigger.class, TimerBinding.class);
+        map.put(TwilioSmsOutput.class, TwilioBinding.class);
     }
 
     public static BaseBinding getBinding(final Annotation annotation) {
         final Class<? extends Annotation> annotationType = annotation.annotationType();
         return map.containsKey(annotationType) ?
-                map.get(annotationType).apply(annotation) :
+                createNewInstance(map.get(annotationType), annotation) :
                 null;
+    }
+
+    private static BaseBinding createNewInstance(final Class<? extends BaseBinding> binding,
+                                                 final Annotation annotation) {
+        try {
+            final Class<? extends Annotation> annotationType = annotation.annotationType();
+            final Constructor constructor = binding.getConstructor(annotationType);
+            return (BaseBinding) constructor.newInstance(annotation);
+        } catch (Exception e) {
+            // Swallow it
+        }
+        return null;
     }
 }
