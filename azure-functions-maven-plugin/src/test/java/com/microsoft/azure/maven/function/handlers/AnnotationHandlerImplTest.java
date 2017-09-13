@@ -39,6 +39,8 @@ public class AnnotationHandlerImplTest {
     public static final String SERVICE_BUS_QUEUE_TRIGGER_METHOD = "serviceBusQueueTriggerMethod";
     public static final String SERVICE_BUS_TOPIC_TRIGGER_FUNCTION = "serviceBusTopicTriggerFunction";
     public static final String SERVICE_BUS_TOPIC_TRIGGER_METHOD = "serviceBusTopicTriggerMethod";
+    public static final String API_HUB_FILE_TRIGGER_FUNCTION = "apiHubFileTriggerFunction";
+    public static final String API_HUB_FILE_TRIGGER_METHOD = "apiHubFileTriggerMethod";
 
     public class FunctionEntryPoints {
         @FunctionName(HTTP_TRIGGER_FUNCTION)
@@ -59,7 +61,22 @@ public class AnnotationHandlerImplTest {
         }
 
         @FunctionName(TIMER_TRIGGER_FUNCTION)
-        public void timerTriggerMethod(@TimerTrigger(name = "timer", schedule = "") String timer) {
+        @DocumentDBOutput(name = "$return", databaseName = "db", collectionName = "col", connection = "conn")
+        @MobileTableOutput(name = "$return", tableName = "table", connection = "conn", apiKey = "key")
+        @NotificationHubOutput(name = "$return", hubName = "hub", connection = "conn")
+        @SendGridOutput(name = "$return", apiKey = "key", to = "to", from = "from", subject = "sub", text = "text")
+        @TwilioSmsOutput(name = "$return", accountSid = "sid", authToken = "auth", to = "to", from = "from", body = "b")
+        public String timerTriggerMethod(@TimerTrigger(name = "timer", schedule = "") String timer,
+                                         @DocumentDBInput(name = "in1",
+                                                 databaseName = "db",
+                                                 collectionName = "col",
+                                                 connection = "conn") String in1,
+                                         @MobileTableInput(name = "in2",
+                                                 tableName = "table",
+                                                 id = "id",
+                                                 connection = "conn",
+                                                 apiKey = "key") String in2) {
+            return "Hello!";
         }
 
         @FunctionName(BLOB_TRIGGER_FUNCTION)
@@ -92,6 +109,13 @@ public class AnnotationHandlerImplTest {
                 subscriptionName = "subs", connection = "conn") String in) {
             return "Hello!";
         }
+
+        @FunctionName(API_HUB_FILE_TRIGGER_FUNCTION)
+        @ApiHubFileOutput(name = "$return", path = "", connection = "conn")
+        public String apiHubFileTriggerMethod(@ApiHubFileTrigger(name = "in1", path = "p", connection = "c") String in1,
+                                              @ApiHubFileInput(name = "in2", path = "p", connection = "c") String in2) {
+            return "Hello!";
+        }
     }
 
     @Test
@@ -99,7 +123,7 @@ public class AnnotationHandlerImplTest {
         final AnnotationHandler handler = getAnnotationHandler();
         final Set<Method> functions = handler.findFunctions(getClassUrl());
 
-        assertEquals(8, functions.size());
+        assertEquals(9, functions.size());
         final List<String> methodNames = functions.stream().map(f -> f.getName()).collect(Collectors.toList());
         assertTrue(methodNames.contains(HTTP_TRIGGER_METHOD));
         assertTrue(methodNames.contains(QUEUE_TRIGGER_METHOD));
@@ -109,6 +133,7 @@ public class AnnotationHandlerImplTest {
         assertTrue(methodNames.contains(EVENTHUB_TRIGGER_METHOD));
         assertTrue(methodNames.contains(SERVICE_BUS_QUEUE_TRIGGER_METHOD));
         assertTrue(methodNames.contains(SERVICE_BUS_TOPIC_TRIGGER_METHOD));
+        assertTrue(methodNames.contains(API_HUB_FILE_TRIGGER_METHOD));
     }
 
     @Test
@@ -118,56 +143,25 @@ public class AnnotationHandlerImplTest {
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(functions);
         configMap.values().forEach(config -> config.validate());
 
-        assertEquals(8, configMap.size());
+        assertEquals(9, configMap.size());
 
-        assertTrue(configMap.containsKey(HTTP_TRIGGER_FUNCTION));
-        final FunctionConfiguration httpTriggerFunctionConfig = configMap.get(HTTP_TRIGGER_FUNCTION);
-        assertEquals(getFullyQualifiedMethodName(HTTP_TRIGGER_METHOD), httpTriggerFunctionConfig.getEntryPoint());
-        assertFalse(httpTriggerFunctionConfig.isDisabled());
-        assertEquals(2, httpTriggerFunctionConfig.getBindings().size());
+        verifyFunctionConfiguration(configMap, HTTP_TRIGGER_FUNCTION, HTTP_TRIGGER_METHOD, 2);
 
-        assertTrue(configMap.containsKey(QUEUE_TRIGGER_FUNCTION));
-        final FunctionConfiguration queueTriggerFunctionConfig = configMap.get(QUEUE_TRIGGER_FUNCTION);
-        assertEquals(getFullyQualifiedMethodName(QUEUE_TRIGGER_METHOD), queueTriggerFunctionConfig.getEntryPoint());
-        assertEquals(2, queueTriggerFunctionConfig.getBindings().size());
+        verifyFunctionConfiguration(configMap, QUEUE_TRIGGER_FUNCTION, QUEUE_TRIGGER_METHOD, 2);
 
-        assertTrue(configMap.containsKey(TIMER_TRIGGER_FUNCTION));
-        final FunctionConfiguration timerTriggerFunctionConfig = configMap.get(TIMER_TRIGGER_FUNCTION);
-        assertEquals(getFullyQualifiedMethodName(TIMER_TRIGGER_METHOD), timerTriggerFunctionConfig.getEntryPoint());
-        assertEquals(1, timerTriggerFunctionConfig.getBindings().size());
+        verifyFunctionConfiguration(configMap, TIMER_TRIGGER_FUNCTION, TIMER_TRIGGER_METHOD, 8);
 
-        assertTrue(configMap.containsKey(MULTI_OUTPUT_FUNCTION));
-        final FunctionConfiguration multiOutputFunctionConfig = configMap.get(MULTI_OUTPUT_FUNCTION);
-        assertEquals(getFullyQualifiedMethodName(MULTI_OUTPUT_METHOD), multiOutputFunctionConfig.getEntryPoint());
-        assertFalse(multiOutputFunctionConfig.isDisabled());
-        assertEquals(3, multiOutputFunctionConfig.getBindings().size());
+        verifyFunctionConfiguration(configMap, MULTI_OUTPUT_FUNCTION, MULTI_OUTPUT_METHOD, 3);
 
-        assertTrue(configMap.containsKey(BLOB_TRIGGER_FUNCTION));
-        final FunctionConfiguration blobTriggerFunctionConfig = configMap.get(BLOB_TRIGGER_FUNCTION);
-        assertEquals(getFullyQualifiedMethodName(BLOB_TRIGGER_METHOD), blobTriggerFunctionConfig.getEntryPoint());
-        assertFalse(blobTriggerFunctionConfig.isDisabled());
-        assertEquals(5, blobTriggerFunctionConfig.getBindings().size());
+        verifyFunctionConfiguration(configMap, BLOB_TRIGGER_FUNCTION, BLOB_TRIGGER_METHOD, 5);
 
-        assertTrue(configMap.containsKey(EVENTHUB_TRIGGER_FUNCTION));
-        final FunctionConfiguration eventHubTriggerFunctionConfig = configMap.get(EVENTHUB_TRIGGER_FUNCTION);
-        assertEquals(getFullyQualifiedMethodName(EVENTHUB_TRIGGER_METHOD),
-                eventHubTriggerFunctionConfig.getEntryPoint());
-        assertFalse(eventHubTriggerFunctionConfig.isDisabled());
-        assertEquals(2, eventHubTriggerFunctionConfig.getBindings().size());
+        verifyFunctionConfiguration(configMap, EVENTHUB_TRIGGER_FUNCTION, EVENTHUB_TRIGGER_METHOD, 2);
 
-        assertTrue(configMap.containsKey(SERVICE_BUS_QUEUE_TRIGGER_FUNCTION));
-        final FunctionConfiguration sbQueueTriggerFunctionConfig = configMap.get(SERVICE_BUS_QUEUE_TRIGGER_FUNCTION);
-        assertEquals(getFullyQualifiedMethodName(SERVICE_BUS_QUEUE_TRIGGER_METHOD),
-                sbQueueTriggerFunctionConfig.getEntryPoint());
-        assertFalse(sbQueueTriggerFunctionConfig.isDisabled());
-        assertEquals(2, sbQueueTriggerFunctionConfig.getBindings().size());
+        verifyFunctionConfiguration(configMap, SERVICE_BUS_QUEUE_TRIGGER_FUNCTION, SERVICE_BUS_QUEUE_TRIGGER_METHOD, 2);
 
-        assertTrue(configMap.containsKey(SERVICE_BUS_TOPIC_TRIGGER_FUNCTION));
-        final FunctionConfiguration sbTopicTriggerFunctionConfig = configMap.get(SERVICE_BUS_TOPIC_TRIGGER_FUNCTION);
-        assertEquals(getFullyQualifiedMethodName(SERVICE_BUS_TOPIC_TRIGGER_METHOD),
-                sbTopicTriggerFunctionConfig.getEntryPoint());
-        assertFalse(sbTopicTriggerFunctionConfig.isDisabled());
-        assertEquals(2, sbTopicTriggerFunctionConfig.getBindings().size());
+        verifyFunctionConfiguration(configMap, SERVICE_BUS_TOPIC_TRIGGER_FUNCTION, SERVICE_BUS_TOPIC_TRIGGER_METHOD, 2);
+
+        verifyFunctionConfiguration(configMap, API_HUB_FILE_TRIGGER_FUNCTION, API_HUB_FILE_TRIGGER_METHOD, 3);
     }
 
     private AnnotationHandlerImpl getAnnotationHandler() {
@@ -183,5 +177,14 @@ public class AnnotationHandlerImplTest {
 
     private String getFullyQualifiedMethodName(final String methodName) {
         return FunctionEntryPoints.class.getCanonicalName() + "." + methodName;
+    }
+
+    private void verifyFunctionConfiguration(final Map<String, FunctionConfiguration> configMap,
+                                             final String functionName, final String methodName, final int bindingNum) {
+        assertTrue(configMap.containsKey(functionName));
+        final FunctionConfiguration functionConfig = configMap.get(functionName);
+        assertEquals(getFullyQualifiedMethodName(methodName), functionConfig.getEntryPoint());
+        assertFalse(functionConfig.isDisabled());
+        assertEquals(bindingNum, functionConfig.getBindings().size());
     }
 }
