@@ -24,7 +24,7 @@ public class TwilioBinding extends BaseBinding {
 
     public TwilioBinding(final TwilioSmsOutput smsOutput) {
         setDirection("out");
-        setType("notificationHub");
+        setType("twilioSms");
         setName(smsOutput.name());
 
         accountSid = smsOutput.accountSid();

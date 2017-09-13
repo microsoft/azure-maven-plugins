@@ -24,7 +24,7 @@ public class SendGridBinding extends BaseBinding {
 
     public SendGridBinding(final SendGridOutput sendGridOutput) {
         setDirection("out");
-        setType("notificationHub");
+        setType("sendGrid");
         setName(sendGridOutput.name());
 
         apiKey = sendGridOutput.apiKey();
