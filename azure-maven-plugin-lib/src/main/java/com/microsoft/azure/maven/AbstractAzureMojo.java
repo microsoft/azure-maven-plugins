@@ -8,6 +8,7 @@ package com.microsoft.azure.maven;
 
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
+import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.auth.AzureAuthHelper;
 import com.microsoft.azure.maven.telemetry.*;
@@ -25,14 +26,21 @@ import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-
-import static com.microsoft.azure.maven.telemetry.AppInsightsProxy.*;
 
 /**
  * Base abstract class for all Azure Mojos.
  */
 public abstract class AbstractAzureMojo extends AbstractMojo implements TelemetryConfiguration, AuthConfiguration {
+    public static final String PLUGIN_NAME_KEY = "pluginName";
+    public static final String PLUGIN_VERSION_KEY = "pluginVersion";
+    public static final String INSTALLATION_ID_KEY = "installationId";
+    public static final String SESSION_ID_KEY = "sessionId";
+    public static final String SUBSCRIPTION_ID_KEY = "subscriptionId";
+    public static final String AUTH_TYPE = "authType";
+    public static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
+    public static final String INIT_FAILURE = "InitFailure";
     public static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     public static final String FAILURE_REASON = "failureReason";
 
@@ -179,7 +187,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (azure == null) {
             azure = azureAuthHelper.getAzureClient();
             if (azure == null) {
-                getTelemetryProxy().trackEvent(TelemetryEvent.INIT_FAILURE);
+                getTelemetryProxy().trackEvent(INIT_FAILURE);
                 throw new AzureAuthFailureException(AZURE_INIT_FAIL);
             } else {
                 // Repopulate subscriptionId in case it is not configured.
@@ -199,9 +207,40 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     protected void initTelemetry() {
         telemetryProxy = new AppInsightsProxy(this);
         if (!isTelemetryAllowed()) {
-            telemetryProxy.trackEvent(TelemetryEvent.TELEMETRY_NOT_ALLOWED);
+            telemetryProxy.trackEvent(TELEMETRY_NOT_ALLOWED);
             telemetryProxy.disable();
         }
+    }
+
+    //endregion
+
+    //region Telemetry Configuration Interface
+
+    public Map<String, String> getTelemetryProperties() {
+        final Map<String, String> map = new HashMap<>();
+        map.put(INSTALLATION_ID_KEY, getInstallationId());
+        map.put(PLUGIN_NAME_KEY, getPluginName());
+        map.put(PLUGIN_VERSION_KEY, getPluginVersion());
+        map.put(SUBSCRIPTION_ID_KEY, getSubscriptionId());
+        map.put(SESSION_ID_KEY, getSessionId());
+        map.put(AUTH_TYPE, getAuthType());
+        return map;
+    }
+
+    // TODO:
+    // Add AuthType ENUM and move to AzureAuthHelper.
+    public String getAuthType() {
+        final AuthenticationSetting authSetting = getAuthenticationSetting();
+        if (authSetting == null) {
+            return "AzureCLI";
+        }
+        if (StringUtils.isNotEmpty(authSetting.getServerId())) {
+            return "ServerId";
+        }
+        if (authSetting.getFile() != null) {
+            return "AuthFile";
+        }
+        return "Unknown";
     }
 
     //endregion

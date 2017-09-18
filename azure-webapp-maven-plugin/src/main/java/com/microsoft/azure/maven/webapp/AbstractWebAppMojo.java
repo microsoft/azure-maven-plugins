@@ -29,6 +29,11 @@ import java.util.Properties;
  * Base abstract class for Web App Mojos.
  */
 public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
+    public static final String JAVA_VERSION = "javaVersion";
+    public static final String JAVA_WEB_CONTAINER = "javaWebContainer";
+    public static final String DOCKER_IMAGE_TYPE = "dockerImageType";
+    public static final String DEPLOYMENT_TYPE = "deploymentType";
+
     //region Properties
 
     /**
@@ -156,7 +161,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      *
      * @since 0.1.0
      */
-    @Parameter(property = "webapp.deploymentType")
+    @Parameter(property = "webapp.deploymentType", defaultValue = "ftp")
     protected String deploymentType;
 
     /**
@@ -226,7 +231,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         return appSettings;
     }
 
-    public DeploymentType getDeploymentType() throws MojoExecutionException {
+    public DeploymentType getDeploymentType() {
         return DeploymentType.fromString(deploymentType);
     }
 
@@ -253,6 +258,20 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
             // Swallow exception for non-existing web app
         }
         return null;
+    }
+
+    //endregion
+
+    //region Telemetry Configuration Interface
+
+    @Override
+    public Map<String, String> getTelemetryProperties() {
+        final Map<String, String> map = super.getTelemetryProperties();
+        map.put(JAVA_VERSION, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
+        map.put(JAVA_WEB_CONTAINER, getJavaWebContainer().toString());
+        map.put(DOCKER_IMAGE_TYPE, WebAppUtils.getDockerImageType(getContainerSettings()).toString());
+        map.put(DEPLOYMENT_TYPE, getDeploymentType().toString());
+        return map;
     }
 
     //endregion

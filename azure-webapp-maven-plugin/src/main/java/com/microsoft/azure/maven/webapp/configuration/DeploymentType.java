@@ -12,20 +12,20 @@ import org.codehaus.plexus.util.StringUtils;
 import java.util.Locale;
 
 public enum DeploymentType {
+    NONE,
     FTP,
-    LOCAL_GIT;
+    UNKNOWN;
 
-    public static final String DEPLOYMENT_TYPE_NOT_SUPPORTED = "Deployment type not supported: ";
-    public static DeploymentType fromString(final String input) throws MojoExecutionException {
+    public static DeploymentType fromString(final String input) {
         if (StringUtils.isEmpty(input)) {
-            return FTP;
+            return NONE;
         }
 
         switch (input.toUpperCase(Locale.ENGLISH)) {
             case "FTP":
                 return FTP;
             default:
-                throw new MojoExecutionException(DEPLOYMENT_TYPE_NOT_SUPPORTED + input);
+                return UNKNOWN;
         }
     }
 }

@@ -10,7 +10,6 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.AbstractAzureMojo;
-import com.microsoft.azure.maven.AuthenticationSetting;
 import com.microsoft.rest.LogLevel;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;

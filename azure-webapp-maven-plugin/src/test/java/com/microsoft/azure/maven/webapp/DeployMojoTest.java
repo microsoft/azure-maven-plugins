@@ -103,7 +103,7 @@ public class DeployMojoTest {
 
         assertEquals(1, mojo.getAppSettings().size());
 
-        assertEquals(DeploymentType.FTP, mojo.getDeploymentType());
+        assertEquals(DeploymentType.NONE, mojo.getDeploymentType());
 
         assertEquals(1, mojo.getResources().size());
 
