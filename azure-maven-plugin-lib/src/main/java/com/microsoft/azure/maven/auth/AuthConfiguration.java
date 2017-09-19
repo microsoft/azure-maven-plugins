@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.auth;
 
-import com.microsoft.azure.maven.AuthenticationSetting;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
 

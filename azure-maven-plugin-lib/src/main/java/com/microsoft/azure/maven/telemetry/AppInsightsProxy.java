@@ -13,12 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AppInsightsProxy implements TelemetryProxy {
-    public static final String PLUGIN_NAME_KEY = "pluginName";
-    public static final String PLUGIN_VERSION_KEY = "pluginVersion";
-    public static final String INSTALLATION_ID_KEY = "installationId";
-    public static final String SESSION_ID_KEY = "sessionId";
-    public static final String SUBSCRIPTION_ID_KEY = "subscriptionId";
-
     protected TelemetryClient client;
 
     protected TelemetryConfiguration configuration;
@@ -35,16 +29,7 @@ public class AppInsightsProxy implements TelemetryProxy {
             throw new NullPointerException();
         }
         configuration = config;
-        setupDefaultProperties();
-    }
-
-    private void setupDefaultProperties() {
-        defaultProperties = new HashMap<>();
-        defaultProperties.put(INSTALLATION_ID_KEY, configuration.getInstallationId());
-        defaultProperties.put(PLUGIN_NAME_KEY, configuration.getPluginName());
-        defaultProperties.put(PLUGIN_VERSION_KEY, configuration.getPluginVersion());
-        defaultProperties.put(SUBSCRIPTION_ID_KEY, configuration.getSubscriptionId());
-        defaultProperties.put(SESSION_ID_KEY, configuration.getSessionId());
+        defaultProperties = configuration.getTelemetryProperties();
     }
 
     public void addDefaultProperty(String key, String value) {

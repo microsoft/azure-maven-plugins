@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven;
+package com.microsoft.azure.maven.auth;
 
 import java.io.File;
 

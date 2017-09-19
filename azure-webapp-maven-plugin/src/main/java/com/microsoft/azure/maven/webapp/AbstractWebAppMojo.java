@@ -16,7 +16,6 @@ import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -29,6 +28,11 @@ import java.util.Properties;
  * Base abstract class for Web App Mojos.
  */
 public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
+    public static final String JAVA_VERSION_KEY = "javaVersion";
+    public static final String JAVA_WEB_CONTAINER_KEY = "javaWebContainer";
+    public static final String DOCKER_IMAGE_TYPE_KEY = "dockerImageType";
+    public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
+
     //region Properties
 
     /**
@@ -156,7 +160,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      *
      * @since 0.1.0
      */
-    @Parameter(property = "webapp.deploymentType")
+    @Parameter(property = "webapp.deploymentType", defaultValue = "ftp")
     protected String deploymentType;
 
     /**
@@ -226,7 +230,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         return appSettings;
     }
 
-    public DeploymentType getDeploymentType() throws MojoExecutionException {
+    public DeploymentType getDeploymentType() {
         return DeploymentType.fromString(deploymentType);
     }
 
@@ -253,6 +257,20 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
             // Swallow exception for non-existing web app
         }
         return null;
+    }
+
+    //endregion
+
+    //region Telemetry Configuration Interface
+
+    @Override
+    public Map<String, String> getTelemetryProperties() {
+        final Map<String, String> map = super.getTelemetryProperties();
+        map.put(JAVA_VERSION_KEY, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
+        map.put(JAVA_WEB_CONTAINER_KEY, getJavaWebContainer().toString());
+        map.put(DOCKER_IMAGE_TYPE_KEY, WebAppUtils.getDockerImageType(getContainerSettings()).toString());
+        map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
+        return map;
     }
 
     //endregion

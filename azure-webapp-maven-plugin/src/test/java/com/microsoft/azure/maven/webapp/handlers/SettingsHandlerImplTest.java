@@ -37,7 +37,6 @@ public class SettingsHandlerImplTest {
                 put("Key", "Value");
             }
         }).when(mojo).getAppSettings();
-        doReturn(DeploymentType.LOCAL_GIT).when(mojo).getDeploymentType();
         handler = new SettingsHandlerImpl(mojo);
     }
 
@@ -46,7 +45,6 @@ public class SettingsHandlerImplTest {
         final WithCreate withCreate = mock(WithCreate.class);
         handler.processSettings(withCreate);
         verify(withCreate, times(1)).withAppSettings(ArgumentMatchers.<String, String>anyMap());
-        verify(withCreate, times(1)).withLocalGitSourceControl();
     }
 
     @Test
@@ -54,6 +52,5 @@ public class SettingsHandlerImplTest {
         final Update update = mock(Update.class);
         handler.processSettings(update);
         verify(update, times(1)).withAppSettings(ArgumentMatchers.<String, String>anyMap());
-        verify(update, times(1)).withLocalGitSourceControl();
     }
 }
