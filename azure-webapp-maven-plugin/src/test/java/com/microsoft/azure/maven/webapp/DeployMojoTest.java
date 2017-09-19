@@ -66,8 +66,6 @@ public class DeployMojoTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        doReturn("azure-webapp-maven-plugin").when(plugin).getName();
-        doReturn("0.1.0-SNAPSHOT").when(plugin).getVersion();
         setupHandlerFactory();
     }
 
@@ -133,6 +131,7 @@ public class DeployMojoTest {
     @Test
     public void getTelemetryProperties() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        ReflectionUtils.setVariableValueInObject(mojo, "plugin", plugin);
 
         final Map map = mojo.getTelemetryProperties();
 
@@ -244,7 +243,6 @@ public class DeployMojoTest {
         final File pom = new File(DeployMojoTest.class.getResource(filename).toURI());
         final DeployMojo mojo = (DeployMojo) rule.lookupMojo("deploy", pom);
         assertNotNull(mojo);
-        ReflectionUtils.setVariableValueInObject(mojo, "plugin", plugin);
         return mojo;
     }
 
