@@ -25,9 +25,12 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
+import java.util.Map;
 
+import static com.microsoft.azure.maven.AbstractAzureMojo.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -73,9 +76,9 @@ public class AbstractAzureMojoTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(plugin.getArtifactId()).thenReturn(PLUGIN_NAME);
-        when(plugin.getVersion()).thenReturn(PLUGIN_VERSION);
-        when(buildDirectory.getAbsolutePath()).thenReturn("target");
+        doReturn(PLUGIN_NAME).when(plugin).getArtifactId();
+        doReturn(PLUGIN_VERSION).when(plugin).getVersion();
+        doReturn("target").when(buildDirectory).getAbsolutePath();
         ReflectionUtils.setVariableValueInObject(mojo, "subscriptionId", SUBSCRIPTION_ID);
         ReflectionUtils.setVariableValueInObject(mojo, "allowTelemetry", false);
         ReflectionUtils.setVariableValueInObject(mojo, "failsOnError", true);
@@ -155,5 +158,42 @@ public class AbstractAzureMojoTest {
             actualMessage = e.getMessage();
         }
         assertEquals(message, actualMessage);
+    }
+
+    @Test
+    public void getTelemetryProperties() throws Exception {
+        final Map map = mojo.getTelemetryProperties();
+
+        assertEquals(6, map.size());
+        assertTrue(map.containsKey(INSTALLATION_ID_KEY));
+        assertTrue(map.containsKey(PLUGIN_NAME_KEY));
+        assertTrue(map.containsKey(PLUGIN_VERSION_KEY));
+        assertTrue(map.containsKey(SUBSCRIPTION_ID_KEY));
+        assertTrue(map.containsKey(SESSION_ID_KEY));
+        assertTrue(map.containsKey(AUTH_TYPE));
+    }
+
+    @Test
+    public void getAuthType() throws Exception {
+        assertEquals("Unknown", mojo.getAuthType());
+
+        doReturn("serverId").when(authenticationSetting).getServerId();
+        doReturn(null).when(authenticationSetting).getFile();
+        assertEquals("ServerId", mojo.getAuthType());
+
+        doReturn(null).when(authenticationSetting).getServerId();
+        doReturn(new File("/pom.xml")).when(authenticationSetting).getFile();
+        assertEquals("AuthFile", mojo.getAuthType());
+
+        ReflectionUtils.setVariableValueInObject(mojo, "authentication", null);
+        assertEquals("AzureCLI", mojo.getAuthType());
+    }
+
+    @Test
+    public void logging() throws Exception {
+        mojo.debug("debug message");
+        mojo.info("info message");
+        mojo.warning("warning message");
+        mojo.error("error message");
     }
 }

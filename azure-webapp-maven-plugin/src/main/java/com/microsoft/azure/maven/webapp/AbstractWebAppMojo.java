@@ -16,7 +16,6 @@ import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -29,10 +28,10 @@ import java.util.Properties;
  * Base abstract class for Web App Mojos.
  */
 public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
-    public static final String JAVA_VERSION = "javaVersion";
-    public static final String JAVA_WEB_CONTAINER = "javaWebContainer";
-    public static final String DOCKER_IMAGE_TYPE = "dockerImageType";
-    public static final String DEPLOYMENT_TYPE = "deploymentType";
+    public static final String JAVA_VERSION_KEY = "javaVersion";
+    public static final String JAVA_WEB_CONTAINER_KEY = "javaWebContainer";
+    public static final String DOCKER_IMAGE_TYPE_KEY = "dockerImageType";
+    public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
     //region Properties
 
@@ -267,10 +266,10 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
-        map.put(JAVA_VERSION, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
-        map.put(JAVA_WEB_CONTAINER, getJavaWebContainer().toString());
-        map.put(DOCKER_IMAGE_TYPE, WebAppUtils.getDockerImageType(getContainerSettings()).toString());
-        map.put(DEPLOYMENT_TYPE, getDeploymentType().toString());
+        map.put(JAVA_VERSION_KEY, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
+        map.put(JAVA_WEB_CONTAINER_KEY, getJavaWebContainer().toString());
+        map.put(DOCKER_IMAGE_TYPE_KEY, WebAppUtils.getDockerImageType(getContainerSettings()).toString());
+        map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
         return map;
     }
 

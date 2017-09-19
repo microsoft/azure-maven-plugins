@@ -16,7 +16,9 @@ import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
+import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +32,9 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -48,6 +52,9 @@ public class DeployMojoTest {
     };
 
     @Mock
+    protected PluginDescriptor plugin;
+
+    @Mock
     protected ArtifactHandler artifactHandler;
 
     @Mock
@@ -59,6 +66,8 @@ public class DeployMojoTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        doReturn("azure-webapp-maven-plugin").when(plugin).getName();
+        doReturn("0.1.0-SNAPSHOT").when(plugin).getVersion();
         setupHandlerFactory();
     }
 
@@ -119,6 +128,19 @@ public class DeployMojoTest {
         assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getJavaWebContainer());
 
         assertEquals(PricingTier.STANDARD_S2, mojo.getPricingTier());
+    }
+
+    @Test
+    public void getTelemetryProperties() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+
+        final Map map = mojo.getTelemetryProperties();
+
+        assertEquals(10, map.size());
+        assertTrue(map.containsKey(JAVA_VERSION_KEY));
+        assertTrue(map.containsKey(JAVA_WEB_CONTAINER_KEY));
+        assertTrue(map.containsKey(DOCKER_IMAGE_TYPE_KEY));
+        assertTrue(map.containsKey(DEPLOYMENT_TYPE_KEY));
     }
 
     @Test
@@ -222,6 +244,7 @@ public class DeployMojoTest {
         final File pom = new File(DeployMojoTest.class.getResource(filename).toURI());
         final DeployMojo mojo = (DeployMojo) rule.lookupMojo("deploy", pom);
         assertNotNull(mojo);
+        ReflectionUtils.setVariableValueInObject(mojo, "plugin", plugin);
         return mojo;
     }
 
