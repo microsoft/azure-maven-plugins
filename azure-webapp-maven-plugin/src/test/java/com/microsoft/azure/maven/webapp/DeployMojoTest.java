@@ -16,7 +16,9 @@ import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
+import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +32,9 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -46,6 +50,9 @@ public class DeployMojoTest {
         protected void after() {
         }
     };
+
+    @Mock
+    protected PluginDescriptor plugin;
 
     @Mock
     protected ArtifactHandler artifactHandler;
@@ -103,7 +110,7 @@ public class DeployMojoTest {
 
         assertEquals(1, mojo.getAppSettings().size());
 
-        assertEquals(DeploymentType.FTP, mojo.getDeploymentType());
+        assertEquals(DeploymentType.NONE, mojo.getDeploymentType());
 
         assertEquals(1, mojo.getResources().size());
 
@@ -119,6 +126,20 @@ public class DeployMojoTest {
         assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getJavaWebContainer());
 
         assertEquals(PricingTier.STANDARD_S2, mojo.getPricingTier());
+    }
+
+    @Test
+    public void getTelemetryProperties() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        ReflectionUtils.setVariableValueInObject(mojo, "plugin", plugin);
+
+        final Map map = mojo.getTelemetryProperties();
+
+        assertEquals(10, map.size());
+        assertTrue(map.containsKey(JAVA_VERSION_KEY));
+        assertTrue(map.containsKey(JAVA_WEB_CONTAINER_KEY));
+        assertTrue(map.containsKey(DOCKER_IMAGE_TYPE_KEY));
+        assertTrue(map.containsKey(DEPLOYMENT_TYPE_KEY));
     }
 
     @Test

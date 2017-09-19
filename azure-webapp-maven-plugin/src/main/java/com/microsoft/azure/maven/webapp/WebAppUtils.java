@@ -10,6 +10,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithNewAppServicePlan;
 import com.microsoft.azure.management.resources.fluentcore.arm.models.GroupableResource.DefinitionStages.WithGroup;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -46,19 +47,19 @@ public class WebAppUtils {
                 withGroup.withNewResourceGroup(resourceGroup);
     }
 
-    public static boolean isPublicDockerHubImage(final ContainerSetting containerSetting) {
-        return StringUtils.isEmpty(containerSetting.getServerId()) &&
-                StringUtils.isEmpty(containerSetting.getRegistryUrl());
-    }
+    public static DockerImageType getDockerImageType(final ContainerSetting containerSetting) {
+        if (containerSetting == null || StringUtils.isEmpty(containerSetting.getImageName())) {
+            return DockerImageType.NONE;
+        }
 
-    public static boolean isPrivateDockerHubImage(final ContainerSetting containerSetting) {
-        return StringUtils.isNotEmpty(containerSetting.getServerId()) &&
-                StringUtils.isEmpty(containerSetting.getRegistryUrl());
-    }
+        final boolean isCustomRegistry = StringUtils.isNotEmpty(containerSetting.getRegistryUrl());
+        final boolean isPrivate = StringUtils.isNotEmpty(containerSetting.getServerId());
 
-    public static boolean isPrivateRegistryImage(final ContainerSetting containerSetting) {
-        return StringUtils.isNotEmpty(containerSetting.getServerId()) &&
-                StringUtils.isNotEmpty(containerSetting.getRegistryUrl());
+        if (isCustomRegistry) {
+            return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;
+        } else {
+            return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
+        }
     }
 
     /**

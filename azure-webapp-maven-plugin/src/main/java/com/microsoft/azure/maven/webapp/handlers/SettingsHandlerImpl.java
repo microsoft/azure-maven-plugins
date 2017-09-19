@@ -27,11 +27,6 @@ public class SettingsHandlerImpl implements SettingsHandler {
         if (appSettings != null && !appSettings.isEmpty()) {
             withCreate.withAppSettings(appSettings);
         }
-
-        final DeploymentType deploymentType = mojo.getDeploymentType();
-        if (deploymentType == DeploymentType.LOCAL_GIT) {
-            withCreate.withLocalGitSourceControl();
-        }
     }
 
     @Override
@@ -39,11 +34,6 @@ public class SettingsHandlerImpl implements SettingsHandler {
         final Map appSettings = mojo.getAppSettings();
         if (appSettings != null && !appSettings.isEmpty()) {
             update.withAppSettings(appSettings);
-        }
-
-        final DeploymentType deploymentType = mojo.getDeploymentType();
-        if (deploymentType == DeploymentType.LOCAL_GIT) {
-            update.withLocalGitSourceControl();
         }
     }
 }
