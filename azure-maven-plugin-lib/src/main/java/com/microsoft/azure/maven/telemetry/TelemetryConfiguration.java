@@ -6,14 +6,8 @@
 
 package com.microsoft.azure.maven.telemetry;
 
+import java.util.Map;
+
 public interface TelemetryConfiguration {
-    String getInstallationId();
-
-    String getPluginName();
-
-    String getPluginVersion();
-
-    String getSubscriptionId();
-
-    String getSessionId();
+    Map<String, String> getTelemetryProperties();
 }

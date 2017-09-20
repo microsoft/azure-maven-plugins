@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,39 +68,20 @@ public class WebAppUtilsTest {
     }
 
     @Test
-    public void isPublicDockerHubImage() throws Exception {
+    public void getDockerImageType() throws Exception {
         final ContainerSetting containerSetting = new ContainerSetting();
-        assertTrue(WebAppUtils.isPublicDockerHubImage(containerSetting));
+        assertEquals(DockerImageType.NONE, WebAppUtils.getDockerImageType(containerSetting));
+
+        containerSetting.setImageName("imageName");
+        assertEquals(DockerImageType.PUBLIC_DOCKER_HUB, WebAppUtils.getDockerImageType(containerSetting));
 
         containerSetting.setServerId("serverId");
-        assertFalse(WebAppUtils.isPublicDockerHubImage(containerSetting));
+        assertEquals(DockerImageType.PRIVATE_DOCKER_HUB, WebAppUtils.getDockerImageType(containerSetting));
 
         containerSetting.setRegistryUrl(new URL("https://microsoft.azurecr.io"));
-        assertFalse(WebAppUtils.isPublicDockerHubImage(containerSetting));
+        assertEquals(DockerImageType.PRIVATE_REGISTRY, WebAppUtils.getDockerImageType(containerSetting));
+
+        containerSetting.setServerId("");
+        assertEquals(DockerImageType.UNKNOWN, WebAppUtils.getDockerImageType(containerSetting));
     }
-
-    @Test
-    public void isPrivateDockerHubImage() throws Exception {
-        final ContainerSetting containerSetting = new ContainerSetting();
-        assertFalse(WebAppUtils.isPrivateDockerHubImage(containerSetting));
-
-        containerSetting.setServerId("serverId");
-        assertTrue(WebAppUtils.isPrivateDockerHubImage(containerSetting));
-
-        containerSetting.setRegistryUrl(new URL("https://microsoft.azurecr.io"));
-        assertFalse(WebAppUtils.isPrivateDockerHubImage(containerSetting));
-    }
-
-    @Test
-    public void isPrivateRegistryImage() throws Exception {
-        final ContainerSetting containerSetting = new ContainerSetting();
-        assertFalse(WebAppUtils.isPrivateRegistryImage(containerSetting));
-
-        containerSetting.setServerId("serverId");
-        assertFalse(WebAppUtils.isPrivateRegistryImage(containerSetting));
-
-        containerSetting.setRegistryUrl(new URL("https://microsoft.azurecr.io"));
-        assertTrue(WebAppUtils.isPrivateRegistryImage(containerSetting));
-    }
-
 }

@@ -10,8 +10,8 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureCliCredentials;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.Utils;
-import com.microsoft.azure.maven.AuthenticationSetting;
 import com.microsoft.rest.LogLevel;
 import org.codehaus.plexus.util.StringUtils;
 import org.apache.maven.plugin.logging.Log;
@@ -68,7 +68,7 @@ public class AzureAuthHelper {
     }
 
     public Azure getAzureClient() {
-        final Azure.Authenticated auth = getAuthObj();
+        final Authenticated auth = getAuthObj();
         if (auth == null) {
             return null;
         }
@@ -117,26 +117,16 @@ public class AzureAuthHelper {
         }
     }
 
-    protected Azure.Authenticated getAuthObj() {
-        Azure.Authenticated auth;
+    protected Authenticated getAuthObj() {
+        Authenticated auth;
         final AuthenticationSetting authSetting = config.getAuthenticationSetting();
         if (authSetting != null) {
             auth = getAuthObjFromServerId(config.getSettings(), authSetting.getServerId());
-            if (auth != null) {
-                getLog().info(AUTH_WITH_SERVER_ID + authSetting.getServerId());
-                return auth;
-            }
-
-            auth = getAuthObjFromFile(authSetting.getFile());
-            if (auth != null) {
-                getLog().info(AUTH_WITH_FILE + authSetting.getFile().getAbsolutePath());
-                return auth;
+            if (auth == null) {
+                auth = getAuthObjFromFile(authSetting.getFile());
             }
         } else {
             auth = getAuthObjFromAzureCli();
-            if (auth != null) {
-                getLog().info(AUTH_WITH_AZURE_CLI);
-            }
         }
         return auth;
     }
@@ -148,7 +138,7 @@ public class AzureAuthHelper {
      * @param serverId Server Id to search in settings.xml
      * @return Authenticated object if configurations are correct; otherwise return null.
      */
-    protected Azure.Authenticated getAuthObjFromServerId(final Settings settings, final String serverId) {
+    protected Authenticated getAuthObjFromServerId(final Settings settings, final String serverId) {
         if (StringUtils.isEmpty(serverId)) {
             getLog().debug(SERVER_ID_NOT_CONFIG);
             return null;
@@ -166,7 +156,11 @@ public class AzureAuthHelper {
             return null;
         }
 
-        return azureConfigure().authenticate(credential);
+        final Authenticated auth = azureConfigure().authenticate(credential);
+        if (auth != null) {
+            getLog().info(AUTH_WITH_SERVER_ID + serverId);
+        }
+        return auth;
     }
 
     /**
@@ -175,7 +169,7 @@ public class AzureAuthHelper {
      * @param authFile Authentication file object.
      * @return Authenticated object of file is valid; otherwise return null.
      */
-    protected Azure.Authenticated getAuthObjFromFile(File authFile) {
+    protected Authenticated getAuthObjFromFile(final File authFile) {
         if (authFile == null) {
             getLog().debug(AUTH_FILE_NOT_CONFIG);
             return null;
@@ -187,7 +181,11 @@ public class AzureAuthHelper {
         }
 
         try {
-            return azureConfigure().authenticate(authFile);
+            final Authenticated auth = azureConfigure().authenticate(authFile);
+            if (auth != null) {
+                getLog().info(AUTH_WITH_FILE + authFile.getAbsolutePath());
+            }
+            return auth;
         } catch (Exception e) {
             getLog().error(AUTH_FILE_READ_FAIL + authFile.getAbsolutePath());
             getLog().error(e);
@@ -198,11 +196,15 @@ public class AzureAuthHelper {
     /**
      * Get Authenticated object using authentication file from Azure CLI 2.0
      *
-     * @return Authenticated object of Azure CLI 2.0 is logged in correctly; otherwise return null.
+     * @return Authenticated object if Azure CLI 2.0 is logged in correctly; otherwise return null.
      */
-    protected Azure.Authenticated getAuthObjFromAzureCli() {
+    protected Authenticated getAuthObjFromAzureCli() {
         try {
-            return azureConfigure().authenticate(AzureCliCredentials.create());
+            final Authenticated auth = azureConfigure().authenticate(AzureCliCredentials.create());
+            if (auth != null) {
+                getLog().info(AUTH_WITH_AZURE_CLI);
+            }
+            return auth;
         } catch (Exception e) {
             getLog().debug(AZURE_CLI_AUTH_FAIL);
             getLog().debug(e);
