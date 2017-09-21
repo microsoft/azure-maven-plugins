@@ -14,32 +14,29 @@ import com.microsoft.azure.serverless.functions.annotation.ApiHubFileTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ApiHubFileBinding extends BaseBinding {
+    public static final String HUB_FILE_TRIGGER = "apiHubFileTrigger";
+    public static final String HUB_FILE = "apiHubFile";
+
     private String path = "";
 
     private String connection = "";
 
     public ApiHubFileBinding(final ApiHubFileTrigger fileTrigger) {
-        setDirection("in");
-        setType("apiHubFileTrigger");
-        setName(fileTrigger.name());
+        super(fileTrigger.name(), HUB_FILE_TRIGGER, Direction.IN);
 
         path = fileTrigger.path();
         connection = fileTrigger.connection();
     }
 
     public ApiHubFileBinding(final ApiHubFileInput fileInput) {
-        setDirection("in");
-        setType("apiHubFile");
-        setName(fileInput.name());
+        super(fileInput.name(), HUB_FILE, Direction.IN);
 
         path = fileInput.path();
         connection = fileInput.connection();
     }
 
     public ApiHubFileBinding(final ApiHubFileOutput fileOutput) {
-        setDirection("out");
-        setType("apiHubFile");
-        setName(fileOutput.name());
+        super(fileOutput.name(), HUB_FILE, Direction.OUT);
 
         path = fileOutput.path();
         connection = fileOutput.connection();

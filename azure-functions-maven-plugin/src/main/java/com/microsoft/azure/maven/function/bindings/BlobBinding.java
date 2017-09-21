@@ -14,30 +14,27 @@ import com.microsoft.azure.serverless.functions.annotation.BlobOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class BlobBinding extends StorageBaseBinding {
+    public static final String BLOB_TRIGGER = "blobTrigger";
+    public static final String BLOB = "blob";
+
     private String path = "";
 
     public BlobBinding(final BlobTrigger blobTrigger) {
-        setDirection("in");
-        setType("blobTrigger");
-        setName(blobTrigger.name());
+        super(blobTrigger.name(), BLOB_TRIGGER, Direction.IN);
 
         path = blobTrigger.path();
         setConnection(blobTrigger.connection());
     }
 
     public BlobBinding(final BlobInput blobInput) {
-        setDirection("in");
-        setType("blob");
-        setName(blobInput.name());
+        super(blobInput.name(), BLOB, Direction.IN);
 
         path = blobInput.path();
         setConnection(blobInput.connection());
     }
 
     public BlobBinding(final BlobOutput blobOutput) {
-        setDirection("out");
-        setType("blob");
-        setName(blobOutput.name());
+        super(blobOutput.name(), BLOB, Direction.OUT);
 
         path = blobOutput.path();
         setConnection(blobOutput.connection());

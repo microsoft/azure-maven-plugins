@@ -21,26 +21,26 @@ import java.util.Date;
 public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
     public static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-deployment-packages";
     public static final String ZIP_EXT = ".zip";
-    public static final String CREATE_ZIP_START = "Creating ZIP package...";
+    public static final String CREATE_ZIP_START = "Step 1 of 4: Creating ZIP package...";
     public static final String CREATE_ZIP_DONE = "Successfully saved ZIP package at ";
     public static final String STAGE_DIR_NOT_FOUND = "Function App stage directory not found. " +
-            "Please run azure-functions:package first.";
+            "Please run 'mvn package azure-functions:package' first.";
     public static final String LOCAL_SETTINGS_FILE = "local.settings.json";
     public static final String REMOVE_LOCAL_SETTINGS = "Remove local.settings.json from ZIP package.";
     public static final String INTERNAL_STORAGE_KEY = "AzureWebJobsStorage";
     public static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found.";
     public static final String INTERNAL_STORAGE_CONNECTION_STRING = "Function App Internal Storage Connection String: ";
-    public static final String UPLOAD_PACKAGE_START = "Uploading ZIP package to Azure Storage...";
+    public static final String UPLOAD_PACKAGE_START = "Step 2 of 4: Uploading ZIP package to Azure Storage...";
     public static final String UPLOAD_PACKAGE_DONE = "Successfully uploaded ZIP package to ";
-    public static final String DEPLOY_PACKAGE_START = "Deploying Function App with package...";
+    public static final String DEPLOY_PACKAGE_START = "Step 3 of 4: Deploying Function App with package...";
     public static final String DEPLOY_PACKAGE_DONE = "Successfully deployed Function App with package.";
-    public static final String DELETE_PACKAGE_START = "Deleting deployment package from Azure Storage...";
+    public static final String DELETE_PACKAGE_START = "Step 4 of 4: Deleting deployment package from Azure Storage...";
     public static final String DELETE_PACKAGE_DONE = "Successfully deleted deployment package ";
     public static final String DELETE_PACKAGE_FAIL = "Failed to delete deployment package ";
 
     private AbstractFunctionMojo mojo;
 
-    public MSDeployArtifactHandlerImpl(AbstractFunctionMojo mojo) {
+    public MSDeployArtifactHandlerImpl(final AbstractFunctionMojo mojo) {
         this.mojo = mojo;
     }
 
@@ -78,6 +78,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
     }
 
     protected File createZipPackage() throws Exception {
+        logInfo("");
         logInfo(CREATE_ZIP_START);
 
         final String stageDirectoryPath = mojo.getDeploymentStageDirectory();
@@ -116,6 +117,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
 
     protected String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
                                                  final String blobName) throws Exception {
+        logInfo("");
         logInfo(UPLOAD_PACKAGE_START);
         final String packageUri = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, blobName);
@@ -125,6 +127,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
 
     protected void deployWithPackageUri(final FunctionApp app, final String packageUri, Runnable onDeployFinish) {
         try {
+            logInfo("");
             logInfo(DEPLOY_PACKAGE_START);
             app.deploy()
                     .withPackageUri(packageUri)
@@ -138,6 +141,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
 
     protected void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName) {
         try {
+            logInfo("");
             logInfo(DELETE_PACKAGE_START);
             AzureStorageHelper.deleteBlob(storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);
             logInfo(DELETE_PACKAGE_DONE + blobName);

@@ -13,21 +13,20 @@ import com.microsoft.azure.serverless.functions.annotation.QueueTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class QueueBinding extends StorageBaseBinding {
+    public static final String QUEUE_TRIGGER = "queueTrigger";
+    public static final String QUEUE = "queue";
+
     private String queueName = "";
 
     public QueueBinding(final QueueTrigger queueTrigger) {
-        setDirection("in");
-        setType("queueTrigger");
-        setName(queueTrigger.name());
+        super(queueTrigger.name(), QUEUE_TRIGGER, Direction.IN);
 
         queueName = queueTrigger.queueName();
         setConnection(queueTrigger.connection());
     }
 
     public QueueBinding(final QueueOutput queueOutput) {
-        setDirection("out");
-        setType("queue");
-        setName(queueOutput.name());
+        super(queueOutput.name(), QUEUE, Direction.OUT);
 
         queueName = queueOutput.queueName();
         setConnection(queueOutput.connection());

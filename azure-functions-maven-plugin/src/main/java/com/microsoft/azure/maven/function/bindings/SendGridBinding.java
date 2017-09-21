@@ -12,6 +12,8 @@ import com.microsoft.azure.serverless.functions.annotation.SendGridOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class SendGridBinding extends BaseBinding {
+    public static final String SEND_GRID = "sendGrid";
+
     private String apiKey = "";
 
     private String to = "";
@@ -23,9 +25,7 @@ public class SendGridBinding extends BaseBinding {
     private String text = "";
 
     public SendGridBinding(final SendGridOutput sendGridOutput) {
-        setDirection("out");
-        setType("sendGrid");
-        setName(sendGridOutput.name());
+        super(sendGridOutput.name(), SEND_GRID, Direction.OUT);
 
         apiKey = sendGridOutput.apiKey();
         to = sendGridOutput.to();

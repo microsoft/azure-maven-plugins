@@ -15,6 +15,9 @@ import com.microsoft.azure.serverless.functions.annotation.ServiceBusTopicTrigge
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ServiceBusBinding extends BaseBinding {
+    public static final String SERVICE_BUS_TRIGGER = "serviceBusTrigger";
+    public static final String SERVICE_BUS = "serviceBus";
+
     private String queueName = "";
 
     private String topicName = "";
@@ -26,9 +29,7 @@ public class ServiceBusBinding extends BaseBinding {
     private String access = "";
 
     public ServiceBusBinding(final ServiceBusQueueTrigger queueTrigger) {
-        setDirection("in");
-        setType("serviceBusTrigger");
-        setName(queueTrigger.name());
+        super(queueTrigger.name(), SERVICE_BUS_TRIGGER, Direction.IN);
 
         queueName = queueTrigger.queueName();
         connection = queueTrigger.connection();
@@ -36,9 +37,7 @@ public class ServiceBusBinding extends BaseBinding {
     }
 
     public ServiceBusBinding(final ServiceBusTopicTrigger topicTrigger) {
-        setDirection("in");
-        setType("serviceBusTrigger");
-        setName(topicTrigger.name());
+        super(topicTrigger.name(), SERVICE_BUS_TRIGGER, Direction.IN);
 
         topicName = topicTrigger.topicName();
         subscriptionName = topicTrigger.subscriptionName();
@@ -47,9 +46,7 @@ public class ServiceBusBinding extends BaseBinding {
     }
 
     public ServiceBusBinding(final ServiceBusQueueOutput queueOutput) {
-        setDirection("out");
-        setType("serviceBus");
-        setName(queueOutput.name());
+        super(queueOutput.name(), SERVICE_BUS, Direction.OUT);
 
         queueName = queueOutput.queueName();
         connection = queueOutput.connection();
@@ -57,9 +54,7 @@ public class ServiceBusBinding extends BaseBinding {
     }
 
     public ServiceBusBinding(final ServiceBusTopicOutput topicOutput) {
-        setDirection("out");
-        setType("serviceBus");
-        setName(topicOutput.name());
+        super(topicOutput.name(), SERVICE_BUS, Direction.OUT);
 
         topicName = topicOutput.topicName();
         subscriptionName = topicOutput.subscriptionName();

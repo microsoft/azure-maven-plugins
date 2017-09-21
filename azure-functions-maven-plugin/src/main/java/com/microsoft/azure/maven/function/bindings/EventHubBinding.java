@@ -13,6 +13,9 @@ import com.microsoft.azure.serverless.functions.annotation.EventHubTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class EventHubBinding extends BaseBinding {
+    public static final String EVENT_HUB_TRIGGER = "eventHubTrigger";
+    public static final String EVENT_HUB = "eventHub";
+
     private String eventHubName = "";
 
     private String consumerGroup = "";
@@ -20,9 +23,7 @@ public class EventHubBinding extends BaseBinding {
     private String connection = "";
 
     public EventHubBinding(final EventHubTrigger eventHubTrigger) {
-        setDirection("in");
-        setType("eventHubTrigger");
-        setName(eventHubTrigger.name());
+        super(eventHubTrigger.name(), EVENT_HUB_TRIGGER, Direction.IN);
 
         eventHubName = eventHubTrigger.eventHubName();
         consumerGroup = eventHubTrigger.consumerGroup();
@@ -30,9 +31,7 @@ public class EventHubBinding extends BaseBinding {
     }
 
     public EventHubBinding(final EventHubOutput eventHubOutput) {
-        setDirection("out");
-        setType("eventHub");
-        setName(eventHubOutput.name());
+        super(eventHubOutput.name(), EVENT_HUB, Direction.OUT);
 
         eventHubName = eventHubOutput.eventHubName();
         connection = eventHubOutput.connection();
