@@ -26,7 +26,7 @@ public class TableBinding extends StorageBaseBinding {
     private String take = "";
 
     public TableBinding(final TableInput tableInput) {
-        super(tableInput.name(), TABLE, Direction.IN);
+        super(tableInput.name(), TABLE, Direction.IN, tableInput.dataType());
 
         tableName = tableInput.tableName();
         partitionKey = tableInput.partitionKey();
@@ -37,7 +37,7 @@ public class TableBinding extends StorageBaseBinding {
     }
 
     public TableBinding(final TableOutput tableOutput) {
-        super(tableOutput.name(), TABLE, Direction.OUT);
+        super(tableOutput.name(), TABLE, Direction.OUT, tableOutput.dataType());
 
         tableName = tableOutput.tableName();
         partitionKey = tableOutput.partitionKey();

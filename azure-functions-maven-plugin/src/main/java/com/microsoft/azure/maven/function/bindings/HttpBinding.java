@@ -27,7 +27,7 @@ public class HttpBinding extends BaseBinding {
     private String[] methods = {};
 
     public HttpBinding(final HttpTrigger httpTrigger) {
-        super(httpTrigger.name(), HTTP_TRIGGER, Direction.IN);
+        super(httpTrigger.name(), HTTP_TRIGGER, Direction.IN, httpTrigger.dataType());
 
         route = httpTrigger.route();
         authLevel = httpTrigger.authLevel().toString().toLowerCase(Locale.ENGLISH);
@@ -36,11 +36,11 @@ public class HttpBinding extends BaseBinding {
     }
 
     public HttpBinding(final HttpOutput httpOutput) {
-        super(httpOutput.name(), HTTP, Direction.OUT);
+        super(httpOutput.name(), HTTP, Direction.OUT, httpOutput.dataType());
     }
 
     public HttpBinding() {
-        super("$return", HTTP, Direction.OUT);
+        super("$return", HTTP, Direction.OUT, "");
     }
 
     @JsonGetter

@@ -19,14 +19,14 @@ public class QueueBinding extends StorageBaseBinding {
     private String queueName = "";
 
     public QueueBinding(final QueueTrigger queueTrigger) {
-        super(queueTrigger.name(), QUEUE_TRIGGER, Direction.IN);
+        super(queueTrigger.name(), QUEUE_TRIGGER, Direction.IN, queueTrigger.dataType());
 
         queueName = queueTrigger.queueName();
         setConnection(queueTrigger.connection());
     }
 
     public QueueBinding(final QueueOutput queueOutput) {
-        super(queueOutput.name(), QUEUE, Direction.OUT);
+        super(queueOutput.name(), QUEUE, Direction.OUT, queueOutput.dataType());
 
         queueName = queueOutput.queueName();
         setConnection(queueOutput.connection());
