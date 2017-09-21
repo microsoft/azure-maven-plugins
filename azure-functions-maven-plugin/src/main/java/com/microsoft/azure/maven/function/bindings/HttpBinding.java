@@ -15,6 +15,9 @@ import java.util.Locale;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class HttpBinding extends BaseBinding {
+    public static final String HTTP_TRIGGER = "httpTrigger";
+    public static final String HTTP = "http";
+
     private String route = "";
 
     private String webHookType = "";
@@ -24,7 +27,7 @@ public class HttpBinding extends BaseBinding {
     private String[] methods = {};
 
     public HttpBinding(final HttpTrigger httpTrigger) {
-        super(httpTrigger.name(), "httpTrigger", Direction.IN);
+        super(httpTrigger.name(), HTTP_TRIGGER, Direction.IN);
 
         route = httpTrigger.route();
         authLevel = httpTrigger.authLevel().toString().toLowerCase(Locale.ENGLISH);
@@ -33,11 +36,11 @@ public class HttpBinding extends BaseBinding {
     }
 
     public HttpBinding(final HttpOutput httpOutput) {
-        super(httpOutput.name(), "http", Direction.OUT);
+        super(httpOutput.name(), HTTP, Direction.OUT);
     }
 
     public HttpBinding() {
-        super("$return", "http", Direction.OUT);
+        super("$return", HTTP, Direction.OUT);
     }
 
     @JsonGetter

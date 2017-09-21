@@ -12,10 +12,12 @@ import com.microsoft.azure.serverless.functions.annotation.TimerTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TimerBinding extends BaseBinding {
+    public static final String TIMER_TRIGGER = "timerTrigger";
+
     private String schedule;
 
     public TimerBinding(final TimerTrigger timerTrigger) {
-        super(timerTrigger.name(), "timerTrigger", Direction.IN);
+        super(timerTrigger.name(), TIMER_TRIGGER, Direction.IN);
 
         schedule = timerTrigger.schedule();
     }

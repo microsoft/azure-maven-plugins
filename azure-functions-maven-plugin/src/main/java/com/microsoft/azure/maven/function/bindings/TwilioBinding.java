@@ -12,6 +12,8 @@ import com.microsoft.azure.serverless.functions.annotation.TwilioSmsOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TwilioBinding extends BaseBinding {
+    public static final String TWILIO_SMS = "twilioSms";
+
     private String accountSid = "";
 
     private String authToken = "";
@@ -23,7 +25,7 @@ public class TwilioBinding extends BaseBinding {
     private String body = "";
 
     public TwilioBinding(final TwilioSmsOutput smsOutput) {
-        super(smsOutput.name(), "twilioSms", Direction.OUT);
+        super(smsOutput.name(), TWILIO_SMS, Direction.OUT);
 
         accountSid = smsOutput.accountSid();
         authToken = smsOutput.authToken();

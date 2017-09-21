@@ -13,6 +13,8 @@ import com.microsoft.azure.serverless.functions.annotation.DocumentDBOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class DocumentDBBinding extends BaseBinding {
+    public static final String DOCUMENT_DB = "documentdb";
+
     private String databaseName = "";
 
     private String collectionName = "";
@@ -26,7 +28,7 @@ public class DocumentDBBinding extends BaseBinding {
     private boolean createIfNotExists = false;
 
     public DocumentDBBinding(final DocumentDBInput dbInput) {
-        super(dbInput.name(), "documentdb", Direction.IN);
+        super(dbInput.name(), DOCUMENT_DB, Direction.IN);
 
         databaseName = dbInput.databaseName();
         collectionName = dbInput.collectionName();
@@ -36,7 +38,7 @@ public class DocumentDBBinding extends BaseBinding {
     }
 
     public DocumentDBBinding(final DocumentDBOutput dbOutput) {
-        super(dbOutput.name(), "documentdb", Direction.OUT);
+        super(dbOutput.name(), DOCUMENT_DB, Direction.OUT);
 
         databaseName = dbOutput.databaseName();
         collectionName = dbOutput.collectionName();

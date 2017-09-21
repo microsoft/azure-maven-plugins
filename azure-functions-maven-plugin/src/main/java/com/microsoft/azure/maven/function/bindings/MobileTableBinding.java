@@ -13,6 +13,8 @@ import com.microsoft.azure.serverless.functions.annotation.MobileTableOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class MobileTableBinding extends BaseBinding {
+    public static final String MOBILE_TABLE = "mobileTable";
+
     private String tableName = "";
 
     private String id = "";
@@ -22,7 +24,7 @@ public class MobileTableBinding extends BaseBinding {
     private String apiKey = "";
 
     public MobileTableBinding(final MobileTableInput tableInput) {
-        super(tableInput.name(), "mobileTable", Direction.IN);
+        super(tableInput.name(), MOBILE_TABLE, Direction.IN);
 
         tableName = tableInput.tableName();
         id = tableInput.id();
@@ -31,7 +33,7 @@ public class MobileTableBinding extends BaseBinding {
     }
 
     public MobileTableBinding(final MobileTableOutput tableOutput) {
-        super(tableOutput.name(), "mobileTable", Direction.OUT);
+        super(tableOutput.name(), MOBILE_TABLE, Direction.OUT);
 
         tableName = tableOutput.tableName();
         connection = tableOutput.connection();

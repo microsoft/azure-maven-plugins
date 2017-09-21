@@ -13,6 +13,8 @@ import com.microsoft.azure.serverless.functions.annotation.TableOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TableBinding extends StorageBaseBinding {
+    public static final String TABLE = "table";
+
     private String tableName = "";
 
     private String partitionKey = "";
@@ -24,7 +26,7 @@ public class TableBinding extends StorageBaseBinding {
     private String take = "";
 
     public TableBinding(final TableInput tableInput) {
-        super(tableInput.name(), "table", Direction.IN);
+        super(tableInput.name(), TABLE, Direction.IN);
 
         tableName = tableInput.tableName();
         partitionKey = tableInput.partitionKey();
@@ -35,7 +37,7 @@ public class TableBinding extends StorageBaseBinding {
     }
 
     public TableBinding(final TableOutput tableOutput) {
-        super(tableOutput.name(), "table", Direction.OUT);
+        super(tableOutput.name(), TABLE, Direction.OUT);
 
         tableName = tableOutput.tableName();
         partitionKey = tableOutput.partitionKey();
