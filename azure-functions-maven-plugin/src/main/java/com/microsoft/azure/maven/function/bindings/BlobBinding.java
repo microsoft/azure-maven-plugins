@@ -20,21 +20,21 @@ public class BlobBinding extends StorageBaseBinding {
     private String path = "";
 
     public BlobBinding(final BlobTrigger blobTrigger) {
-        super(blobTrigger.name(), BLOB_TRIGGER, Direction.IN);
+        super(blobTrigger.name(), BLOB_TRIGGER, Direction.IN, blobTrigger.dataType());
 
         path = blobTrigger.path();
         setConnection(blobTrigger.connection());
     }
 
     public BlobBinding(final BlobInput blobInput) {
-        super(blobInput.name(), BLOB, Direction.IN);
+        super(blobInput.name(), BLOB, Direction.IN, blobInput.dataType());
 
         path = blobInput.path();
         setConnection(blobInput.connection());
     }
 
     public BlobBinding(final BlobOutput blobOutput) {
-        super(blobOutput.name(), BLOB, Direction.OUT);
+        super(blobOutput.name(), BLOB, Direction.OUT, blobOutput.dataType());
 
         path = blobOutput.path();
         setConnection(blobOutput.connection());

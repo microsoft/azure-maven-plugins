@@ -22,6 +22,8 @@ public abstract class BaseBinding {
 
     protected String direction = "";
 
+    protected String dataType = "";
+
     @JsonGetter
     public String getType() {
         return type;
@@ -37,14 +39,20 @@ public abstract class BaseBinding {
         return direction;
     }
 
+    @JsonGetter
+    public String getDataType() {
+        return dataType;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
 
-    protected BaseBinding(final String name, final String type, final String direction) {
+    protected BaseBinding(final String name, final String type, final String direction, final String dataType) {
         this.name = name;
         this.type = type;
         this.direction = direction;
+        this.dataType = dataType;
     }
 
     @Override

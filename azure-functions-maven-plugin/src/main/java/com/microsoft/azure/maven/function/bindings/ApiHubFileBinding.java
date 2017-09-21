@@ -22,21 +22,21 @@ public class ApiHubFileBinding extends BaseBinding {
     private String connection = "";
 
     public ApiHubFileBinding(final ApiHubFileTrigger fileTrigger) {
-        super(fileTrigger.name(), HUB_FILE_TRIGGER, Direction.IN);
+        super(fileTrigger.name(), HUB_FILE_TRIGGER, Direction.IN, fileTrigger.dataType());
 
         path = fileTrigger.path();
         connection = fileTrigger.connection();
     }
 
     public ApiHubFileBinding(final ApiHubFileInput fileInput) {
-        super(fileInput.name(), HUB_FILE, Direction.IN);
+        super(fileInput.name(), HUB_FILE, Direction.IN, fileInput.dataType());
 
         path = fileInput.path();
         connection = fileInput.connection();
     }
 
     public ApiHubFileBinding(final ApiHubFileOutput fileOutput) {
-        super(fileOutput.name(), HUB_FILE, Direction.OUT);
+        super(fileOutput.name(), HUB_FILE, Direction.OUT, fileOutput.dataType());
 
         path = fileOutput.path();
         connection = fileOutput.connection();

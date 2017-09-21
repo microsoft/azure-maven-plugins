@@ -23,7 +23,7 @@ public class NotificationHubBinding extends BaseBinding {
     private String platform = "";
 
     public NotificationHubBinding(final NotificationHubOutput hubOutput) {
-        super(hubOutput.name(), NOTIFICATION_HUB, Direction.OUT);
+        super(hubOutput.name(), NOTIFICATION_HUB, Direction.OUT, hubOutput.dataType());
 
         tagExpression = hubOutput.tagExpression();
         hubName = hubOutput.hubName();
