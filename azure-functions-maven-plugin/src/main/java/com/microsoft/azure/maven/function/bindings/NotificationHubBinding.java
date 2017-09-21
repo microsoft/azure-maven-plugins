@@ -21,9 +21,7 @@ public class NotificationHubBinding extends BaseBinding {
     private String platform = "";
 
     public NotificationHubBinding(final NotificationHubOutput hubOutput) {
-        setDirection("out");
-        setType("notificationHub");
-        setName(hubOutput.name());
+        super(hubOutput.name(), "notificationHub", Direction.OUT);
 
         tagExpression = hubOutput.tagExpression();
         hubName = hubOutput.hubName();

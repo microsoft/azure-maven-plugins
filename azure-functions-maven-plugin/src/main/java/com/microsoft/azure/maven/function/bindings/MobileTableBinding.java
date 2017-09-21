@@ -22,9 +22,7 @@ public class MobileTableBinding extends BaseBinding {
     private String apiKey = "";
 
     public MobileTableBinding(final MobileTableInput tableInput) {
-        setDirection("in");
-        setType("mobileTable");
-        setName(tableInput.name());
+        super(tableInput.name(), "mobileTable", Direction.IN);
 
         tableName = tableInput.tableName();
         id = tableInput.id();
@@ -33,9 +31,7 @@ public class MobileTableBinding extends BaseBinding {
     }
 
     public MobileTableBinding(final MobileTableOutput tableOutput) {
-        setDirection("out");
-        setType("mobileTable");
-        setName(tableOutput.name());
+        super(tableOutput.name(), "mobileTable", Direction.OUT);
 
         tableName = tableOutput.tableName();
         connection = tableOutput.connection();

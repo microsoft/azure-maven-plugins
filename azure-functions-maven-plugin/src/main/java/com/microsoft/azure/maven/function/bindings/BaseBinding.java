@@ -11,6 +11,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public abstract class BaseBinding {
+    static class Direction {
+        static final String IN = "in";
+        static final String OUT = "out";
+    }
 
     protected String type = "";
 
@@ -33,15 +37,13 @@ public abstract class BaseBinding {
         return direction;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setDirection(String direction) {
+    protected BaseBinding(final String name, final String type, final String direction) {
+        this.name = name;
+        this.type = type;
         this.direction = direction;
     }
 

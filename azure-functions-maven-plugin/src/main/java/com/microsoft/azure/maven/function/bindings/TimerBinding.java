@@ -15,9 +15,7 @@ public class TimerBinding extends BaseBinding {
     private String schedule;
 
     public TimerBinding(final TimerTrigger timerTrigger) {
-        setDirection("in");
-        setType("timerTrigger");
-        setName(timerTrigger.name());
+        super(timerTrigger.name(), "timerTrigger", Direction.IN);
 
         schedule = timerTrigger.schedule();
     }

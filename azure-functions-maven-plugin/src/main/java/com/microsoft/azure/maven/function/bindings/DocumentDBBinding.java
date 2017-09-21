@@ -26,9 +26,7 @@ public class DocumentDBBinding extends BaseBinding {
     private boolean createIfNotExists = false;
 
     public DocumentDBBinding(final DocumentDBInput dbInput) {
-        setDirection("in");
-        setType("documentdb");
-        setName(dbInput.name());
+        super(dbInput.name(), "documentdb", Direction.IN);
 
         databaseName = dbInput.databaseName();
         collectionName = dbInput.collectionName();
@@ -38,9 +36,7 @@ public class DocumentDBBinding extends BaseBinding {
     }
 
     public DocumentDBBinding(final DocumentDBOutput dbOutput) {
-        setDirection("out");
-        setType("documentdb");
-        setName(dbOutput.name());
+        super(dbOutput.name(), "documentdb", Direction.OUT);
 
         databaseName = dbOutput.databaseName();
         collectionName = dbOutput.collectionName();

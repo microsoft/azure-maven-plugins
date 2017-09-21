@@ -19,27 +19,21 @@ public class ApiHubFileBinding extends BaseBinding {
     private String connection = "";
 
     public ApiHubFileBinding(final ApiHubFileTrigger fileTrigger) {
-        setDirection("in");
-        setType("apiHubFileTrigger");
-        setName(fileTrigger.name());
+        super(fileTrigger.name(), "apiHubFileTrigger", Direction.IN);
 
         path = fileTrigger.path();
         connection = fileTrigger.connection();
     }
 
     public ApiHubFileBinding(final ApiHubFileInput fileInput) {
-        setDirection("in");
-        setType("apiHubFile");
-        setName(fileInput.name());
+        super(fileInput.name(), "apiHubFile", Direction.IN);
 
         path = fileInput.path();
         connection = fileInput.connection();
     }
 
     public ApiHubFileBinding(final ApiHubFileOutput fileOutput) {
-        setDirection("out");
-        setType("apiHubFile");
-        setName(fileOutput.name());
+        super(fileOutput.name(), "apiHubFile", Direction.OUT);
 
         path = fileOutput.path();
         connection = fileOutput.connection();

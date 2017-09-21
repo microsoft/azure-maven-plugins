@@ -26,9 +26,7 @@ public class ServiceBusBinding extends BaseBinding {
     private String access = "";
 
     public ServiceBusBinding(final ServiceBusQueueTrigger queueTrigger) {
-        setDirection("in");
-        setType("serviceBusTrigger");
-        setName(queueTrigger.name());
+        super(queueTrigger.name(), "serviceBusTrigger", Direction.IN);
 
         queueName = queueTrigger.queueName();
         connection = queueTrigger.connection();
@@ -36,9 +34,7 @@ public class ServiceBusBinding extends BaseBinding {
     }
 
     public ServiceBusBinding(final ServiceBusTopicTrigger topicTrigger) {
-        setDirection("in");
-        setType("serviceBusTrigger");
-        setName(topicTrigger.name());
+        super(topicTrigger.name(), "serviceBusTrigger", Direction.IN);
 
         topicName = topicTrigger.topicName();
         subscriptionName = topicTrigger.subscriptionName();
@@ -47,9 +43,7 @@ public class ServiceBusBinding extends BaseBinding {
     }
 
     public ServiceBusBinding(final ServiceBusQueueOutput queueOutput) {
-        setDirection("out");
-        setType("serviceBus");
-        setName(queueOutput.name());
+        super(queueOutput.name(), "serviceBus", Direction.OUT);
 
         queueName = queueOutput.queueName();
         connection = queueOutput.connection();
@@ -57,9 +51,7 @@ public class ServiceBusBinding extends BaseBinding {
     }
 
     public ServiceBusBinding(final ServiceBusTopicOutput topicOutput) {
-        setDirection("out");
-        setType("serviceBus");
-        setName(topicOutput.name());
+        super(topicOutput.name(), "serviceBus", Direction.OUT);
 
         topicName = topicOutput.topicName();
         subscriptionName = topicOutput.subscriptionName();

@@ -23,9 +23,7 @@ public class TwilioBinding extends BaseBinding {
     private String body = "";
 
     public TwilioBinding(final TwilioSmsOutput smsOutput) {
-        setDirection("out");
-        setType("twilioSms");
-        setName(smsOutput.name());
+        super(smsOutput.name(), "twilioSms", Direction.OUT);
 
         accountSid = smsOutput.accountSid();
         authToken = smsOutput.authToken();

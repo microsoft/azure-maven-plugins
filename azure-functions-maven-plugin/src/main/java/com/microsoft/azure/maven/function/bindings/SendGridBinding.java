@@ -23,9 +23,7 @@ public class SendGridBinding extends BaseBinding {
     private String text = "";
 
     public SendGridBinding(final SendGridOutput sendGridOutput) {
-        setDirection("out");
-        setType("sendGrid");
-        setName(sendGridOutput.name());
+        super(sendGridOutput.name(), "sendGrid", Direction.OUT);
 
         apiKey = sendGridOutput.apiKey();
         to = sendGridOutput.to();

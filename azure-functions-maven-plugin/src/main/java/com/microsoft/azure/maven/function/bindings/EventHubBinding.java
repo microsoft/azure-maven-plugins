@@ -20,9 +20,7 @@ public class EventHubBinding extends BaseBinding {
     private String connection = "";
 
     public EventHubBinding(final EventHubTrigger eventHubTrigger) {
-        setDirection("in");
-        setType("eventHubTrigger");
-        setName(eventHubTrigger.name());
+        super(eventHubTrigger.name(), "eventHubTrigger", Direction.IN);
 
         eventHubName = eventHubTrigger.eventHubName();
         consumerGroup = eventHubTrigger.consumerGroup();
@@ -30,9 +28,7 @@ public class EventHubBinding extends BaseBinding {
     }
 
     public EventHubBinding(final EventHubOutput eventHubOutput) {
-        setDirection("out");
-        setType("eventHub");
-        setName(eventHubOutput.name());
+        super(eventHubOutput.name(), "eventHub", Direction.OUT);
 
         eventHubName = eventHubOutput.eventHubName();
         connection = eventHubOutput.connection();
