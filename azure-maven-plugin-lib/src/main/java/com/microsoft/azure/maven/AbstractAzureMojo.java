@@ -165,7 +165,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     public String getInstallationId() {
-        return installationId;
+        return installationId == null ? "" : installationId;
     }
 
     public String getPluginName() {
