@@ -27,7 +27,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.1.3</version>
+               <version>0.1.5</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -91,7 +91,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.1.3</version>
+               <version>0.1.5</version>
                <configuration>
                   <!-- Referencing ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -115,7 +115,7 @@ The following configuration is applicable for below scenario:
                      <property>
                         <name>PORT</name>
                         <value>8080</value>
-                     </property>            
+                     </property>
                      <property>
                         <name>your-setting-key</name>
                         <value>your-setting-value</value>
@@ -145,7 +145,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.1.3</version>
+               <version>0.1.5</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -170,7 +170,7 @@ The following configuration is applicable for below scenario:
                      <property>
                         <name>PORT</name>
                         <value>8080</value>
-                     </property>            
+                     </property>
                      <property>
                         <name>your-setting-key</name>
                         <value>your-setting-value</value>
@@ -200,7 +200,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.1.3</version>
+               <version>0.1.5</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -229,7 +229,7 @@ The following configuration is applicable for below scenario:
                      <property>
                         <name>PORT</name>
                         <value>8080</value>
-                     </property>            
+                     </property>
                      <property>
                         <name>your-setting-key</name>
                         <value>your-setting-value</value>
