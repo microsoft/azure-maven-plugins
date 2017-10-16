@@ -39,7 +39,7 @@ Maven | 3.0 and above
 
 #### `azure-functions:run`
 - Invoke Azure Functions Local Emulator to run all functions. Default working directory is the staging directory.
-- Use property `-Dazure.function=myFunction` to run a single function named `myFunction`
+- Use property `-Dfunctions.target=myFunction` to run a single function named `myFunction`
 
 #### `azure-functions:deploy` 
 - Deploy the staging directory to target Function App.
@@ -60,7 +60,7 @@ To use the Maven Plugin for Azure Functions in your Maven Java app, add the foll
       <plugin>
         <groupId>com.microsoft.azure</groupId>
           <artifactId>azure-functions-maven-plugin</artifactId>
-          <version>0.1.0</version>
+          <version>0.1.5</version>
           <configuration>
             ...
           </configuration>
