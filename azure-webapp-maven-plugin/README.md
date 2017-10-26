@@ -13,6 +13,8 @@
         - [Web Container](#web-container)
     - [Web App on Linux](#web-app-on-linux)
         - [Container Setting](#container-setting)
+    - [Supported Regions](#supported-regions)
+    - [Supported Pricing Tiers](#supported-pricing-tiers)
 
 
 The Maven Plugin for Azure Web Apps provides seamless integration of Azure Web Apps into Maven, 
@@ -76,14 +78,16 @@ Property | Required | Description
 ---|---|---
 `<resourceGroup>` | true | Specifies the Azure Resource Group for your Web App.
 `<appName>` | true | Specifies the name of your Web App.
-`<region>` | false | Specifies the region where your Web App will be hosted; the default value is **westus**.<br>This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored.
-`<pricingTier>` | false | Specifies the pricing tier for your Web App; the default value is **S1**.<br>This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored.
+`<region>`* | false | Specifies the region where your Web App will be hosted; the default value is **westus**. All valid regions at [Supported Regions](#supported-regions) section.
+`<pricingTier>`* | false | Specifies the pricing tier for your Web App; the default value is **S1**. All valid tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section.
 `<javaVersion>` | false | Specifies the JVM version for your Web App.<br>This setting is only applicable for normal Web App (Windows based); see the [Java Runtime](#java-runtime) section of this README for details.
 `<javaWebContainer>` | false | Specified the Web Container for your Web App.<br>This setting is only applicable for normal Web App (Windows based); see the [Web Container](#web-container) section of this README for details.
 `<containerSettings>` | false | Specifies the docker container image to deploy to your Web App.<br>Docker hubs and private container registries are both supported; see the [Container Setting](#container-setting) section of this README for details.
 `<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
 `<deploymentType>` | false | Specifies the deployment approach you want to use. Only `ftp` is supported right now.
+`<stopAppDuringDeployment>` | false | Specifies whether stop target Web App during deployment. This will prevent deployment failure caused by IIS locking files.
 `<resources>` | false | Specifies the artifacts to be deployed to your Web App; see the [Deploy via FTP](#deploy-via-ftp) section for more details.
+>*: This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored
 
 ### Web App (on Windows)
 
@@ -202,3 +206,45 @@ Property | Required | Description
 
 Check out samples at [Web App Samples](../docs/web-app-samples.md) for the configuration settings for different image sources.
 
+### Supported Regions
+All valid regions are listed as below. Read more at [Azure Region Availability](https://azure.microsoft.com/en-us/regions/services/).
+- `westus`
+- `westus2`
+- `centralus`
+- `eastus`
+- `eastus2`
+- `northcentralus`
+- `southcentralus`
+- `westcentralus`
+- `canadacentral`
+- `canadaeast`
+- `brazilsouth`
+- `northeurope`
+- `westeurope`
+- `uksouth`
+- `ukwest`
+- `eastasia`
+- `southeastasia`
+- `japaneast`
+- `japanwest`
+- `australiaeast`
+- `australiasoutheast`
+- `centralindia`
+- `southindia`
+- `westindia`
+- `koreacentral`
+- `koreasouth`
+
+### Supported Pricing Tiers
+All valid pricing tiers are listed as below. Read more at [Azure App Service Plan Pricing](https://azure.microsoft.com/en-us/pricing/details/app-service/).
+- `F1`
+- `D1`
+- `B1`
+- `B2`
+- `B3`
+- `S1`
+- `S2`
+- `S3`
+- `P1`
+- `P2`
+- `P3`
