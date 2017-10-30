@@ -7,6 +7,8 @@
 - [Usage](#usage)
 - [Common Configuration](#common-configuration)
 - [Configuration](#configuration)
+    - [Supported Regions](#supported-regions)
+    - [Supported Pricing Tiers](#supported-pricing-tiers)
 - [How To](#how-to)
     - [Add new function to current project](#add-new-function-to-current-project)
     - [Generate `function.json` from current project](#generate-functionjson-from-current-project)
@@ -85,10 +87,51 @@ Property | Required | Description
 ---|---|---
 `<resourceGroup>` | true | Specifies the Azure Resource Group for your Function App.
 `<appName>` | true | Specifies the name of your Function App.
-`<region>` | false | Specifies the region where your Function App will be hosted; default value is **westus**.<br>This setting will be used to create a new Function App if specified Function App does not exist; if target Function App already exists, this setting will be ignored.
-`<pricingTier>` | false | Specifies the pricing tier for your Function App; default value is **Consumption**.<br>This setting will be used to create a new Function App if specified Function App does not exist; if target Function App already exists, this setting will be ignored.
+`<region>`* | false | Specifies the region where your Function App will be hosted; default value is **westus**. All valid regions are at [Supported Regions](#supported-regions) section.
+`<pricingTier>`* | false | Specifies the pricing tier for your Function App; default value is **Consumption**. All valid pricing tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section.
 `<appSettings>` | false | Specifies the application settings for your Function App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
 `<deploymentType>` | false | Specifies the deployment approach you want to use.<br>Supported values are `msdeploy` and `ftp`. Default value is **`msdeploy`**.
+>*: This setting will be used to create a new Function App if specified Function App does not exist; if target Function App already exists, this setting will be ignored.
+
+### Supported Regions
+All valid regions are listed as below. Read more at [Azure Region Availability](https://azure.microsoft.com/en-us/regions/services/).
+- `westus`
+- `westus2`
+- `eastus`
+- `eastus2`
+- `northcentralus`
+- `southcentralus`
+- `westcentralus`
+- `canadacentral`
+- `canadaeast`
+- `brazilsouth`
+- `northeurope`
+- `westeurope`
+- `uksouth`
+- `eastasia`
+- `southeastasia`
+- `japaneast`
+- `japanwest`
+- `australiaeast`
+- `australiasoutheast`
+- `centralindia`
+- `southindia`
+
+### Supported Pricing Tiers
+Consumption plan is the default if you don't specify anything for your Azure Functions.
+You can also run Functions within your App Service Plan. All valid App Service plan pricing tiers are listed as below.
+Read more at [Azure App Service Plan Pricing](https://azure.microsoft.com/en-us/pricing/details/app-service/).
+- `F1`
+- `D1`
+- `B1`
+- `B2`
+- `B3`
+- `S1`
+- `S2`
+- `S3`
+- `P1`
+- `P2`
+- `P3`
 
 ## How-To
 
