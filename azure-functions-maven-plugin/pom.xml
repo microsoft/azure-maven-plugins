@@ -108,7 +108,8 @@
                             <invokerPropertiesFile>invoker.properties</invokerPropertiesFile>
                             <goals>
                                 <goal>clean</goal>
-                                <goal>function:deploy</goal>
+                                <goal>package</goal>
+                                <goal>azure-functions:deploy</goal>
                             </goals>
                         </configuration>
                         <executions>
