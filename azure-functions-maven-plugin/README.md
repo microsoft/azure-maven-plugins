@@ -28,16 +28,20 @@ Maven | 3.0 and above
 
 ## Goals
 
-#### `azure-functions:add`
-- Create new Java function and add to current project.
-- You will be prompted to choose template and enter parameters.
-
 #### `azure-functions:package`
 - Scan the output directory (default is `${project.basedir}/target/classes`) and generating `function.json` for each function (method annotated with `FunctionName`) in the staging directory.
 - Copy JAR files from the build directory (default is `${project.basedir}/target/`) to the staging directory.
 
 >NOTE:
 >Default staging directory is `${project.basedir}/target/azure-functions/${function-app-name}/`
+
+#### `azure-functions:add`
+- Create new Java function and add to current project.
+- You will be prompted to choose template and enter parameters. Templates for below triggers are supported as of now:
+    - HTTP Trigger
+    - Azure Storage Blob Trigger
+    - Azure Storage Queue Trigger
+    - Timer Trigger
 
 #### `azure-functions:run`
 - Invoke Azure Functions Local Emulator to run all functions. Default working directory is the staging directory.
@@ -150,8 +154,8 @@ You don't have to provide all properties on command line. Missing properties wil
 ### Generate `function.json` from current project
 
 Follow below instructions, you don't need to handwrite `function.json` any more.
-1. Use annotations from package `com.microsoft.azure.serverless:azure-functions-java-core` to decorate your functions. 
-2. Run `mvn package azure-functions:package`; then `function.json` files will be automatically generated for all functions in your project.
+1. Use annotations from package `com.microsoft.azure:azure-functions-java-core` to decorate your functions. 
+2. Run `mvn clean package azure-functions:package`; then `function.json` files will be automatically generated for all functions in your project.
 
 ### Run Azure Functions locally
 
