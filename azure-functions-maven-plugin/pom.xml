@@ -15,6 +15,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.3.3</maven.version>
@@ -108,8 +109,15 @@
                             <invokerPropertiesFile>invoker.properties</invokerPropertiesFile>
                             <goals>
                                 <goal>clean</goal>
-                                <goal>function:deploy</goal>
+                                <goal>package</goal>
+                                <goal>azure-functions:deploy</goal>
                             </goals>
+                            <properties>
+                                <timestamp>${maven.build.timestamp}</timestamp>
+                            </properties>
+                            <scriptVariables>
+                                <timestamp>${maven.build.timestamp}</timestamp>
+                            </scriptVariables>
                         </configuration>
                         <executions>
                             <execution>
