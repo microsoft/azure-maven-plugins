@@ -205,11 +205,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void initTelemetry() {
+        telemetryProxy = new DummyTelemetryProxy();
+        /*
         telemetryProxy = new AppInsightsProxy(this);
         if (!isTelemetryAllowed()) {
             telemetryProxy.trackEvent(TELEMETRY_NOT_ALLOWED);
             telemetryProxy.disable();
         }
+        */
     }
 
     //endregion
@@ -324,6 +327,37 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             throw new MojoExecutionException(message, exception);
         } else {
             error(message);
+        }
+    }
+
+    private static class DummyTelemetryProxy implements TelemetryProxy {
+        @Override
+        public void trackEvent(String eventName) {
+        }
+
+        @Override
+        public void trackEvent(String eventName, Map<String, String> customProperties) {
+        }
+
+        @Override
+        public void trackEvent(String eventName, Map<String, String> customProperties, boolean overrideDefaultProperties) {
+        }
+
+        @Override
+        public void addDefaultProperty(String key, String value) {
+        }
+
+        @Override
+        public Map<String, String> getDefaultProperties() {
+            return null;
+        }
+
+        @Override
+        public void enable() {
+        }
+
+        @Override
+        public void disable() {
         }
     }
 
