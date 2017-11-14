@@ -242,7 +242,7 @@ public class AddMojo extends AbstractFunctionMojo {
             info(format("Trigger specific parameter [%s]", property));
 
             assureInputFromUser(format("Enter value for %s: ", property),
-                    null,
+                    System.getProperty(property),
                     str -> isNotEmpty(str),
                     "Input should be a non-empty string.",
                     str -> params.put(property, str));
