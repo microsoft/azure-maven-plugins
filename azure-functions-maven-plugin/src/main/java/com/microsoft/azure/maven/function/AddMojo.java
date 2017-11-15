@@ -8,6 +8,8 @@ package com.microsoft.azure.maven.function;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.maven.function.template.FunctionTemplate;
+
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.IOUtil;
@@ -169,7 +171,8 @@ public class AddMojo extends AbstractFunctionMojo {
         assureInputFromUser("template for new function",
                 getFunctionTemplate(),
                 getTemplateNames(templates),
-                this::setFunctionTemplate);
+                this::setFunctionTemplate,
+                true);
 
         return findTemplateByName(templates, getFunctionTemplate());
     }
@@ -197,7 +200,8 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //region Prepare parameters
 
-    protected Map<String, String> prepareRequiredParameters(final FunctionTemplate template) {
+    protected Map<String, String> prepareRequiredParameters(final FunctionTemplate template)
+            throws MojoFailureException {
         info("");
         info(PREPARE_PARAMS);
 
@@ -216,36 +220,42 @@ public class AddMojo extends AbstractFunctionMojo {
         return params;
     }
 
-    protected void prepareFunctionName() {
+    protected void prepareFunctionName() throws MojoFailureException {
         info("Common parameter [Function Name]: name for both the new function and Java class");
 
         assureInputFromUser("Enter value for Function Name: ",
                 getFunctionName(),
                 str -> isNotEmpty(str) && isIdentifier(str) && !isKeyword(str),
                 "Input should be a valid Java class name.",
-                this::setFunctionName);
+                this::setFunctionName,
+                true);
     }
 
-    protected void preparePackageName() {
+    protected void preparePackageName() throws MojoFailureException {
         info("Common parameter [Package Name]: package name of the new Java class");
 
         assureInputFromUser("Enter value for Package Name: ",
                 getFunctionPackageName(),
                 str -> isNotEmpty(str) && isName(str),
                 "Input should be a valid Java package name.",
-                this::setFunctionPackageName);
+                this::setFunctionPackageName,
+                true);
     }
 
     protected Map<String, String> prepareTemplateParameters(final FunctionTemplate template,
-                                                            final Map<String, String> params) {
+                                                            final Map<String, String> params)
+            throws MojoFailureException {
         for (final String property : template.getMetadata().getUserPrompt()) {
             info(format("Trigger specific parameter [%s]", property));
 
+            final String propertyValue = System.getProperty(property);
+
             assureInputFromUser(format("Enter value for %s: ", property),
-                    null,
+                    propertyValue == null ? "" : propertyValue,
                     str -> isNotEmpty(str),
                     "Input should be a non-empty string.",
-                    str -> params.put(property, str));
+                    str -> params.put(property, str),
+                    false);
         }
 
         return params;
@@ -323,9 +333,14 @@ public class AddMojo extends AbstractFunctionMojo {
     //region Helper methods
 
     protected void assureInputFromUser(final String prompt, final String initValue, final List<String> options,
-                                       final Consumer<String> setter) {
-        if (options.stream().anyMatch(o -> o.equalsIgnoreCase(initValue))) {
+                                       final Consumer<String> setter, final boolean required)
+            throws MojoFailureException {
+        if (options.stream().filter(Objects::nonNull).anyMatch(o -> o.equalsIgnoreCase(initValue))) {
             info(FOUND_VALID_VALUE);
+            return;
+        }
+
+        if (canUseDefaultValue(initValue, setter, required)) {
             return;
         }
 
@@ -348,15 +363,21 @@ public class AddMojo extends AbstractFunctionMojo {
                 str -> {
                     final int index = Integer.parseInt(str);
                     setter.accept(options.get(index));
-                });
+                },
+                required);
     }
 
     protected void assureInputFromUser(final String prompt, final String initValue,
                                        final Function<String, Boolean> validator, final String errorMessage,
-                                       final Consumer<String> setter) {
+                                       final Consumer<String> setter, final boolean required)
+            throws MojoFailureException {
         if (validator.apply(initValue)) {
             info(FOUND_VALID_VALUE);
             setter.accept(initValue);
+            return;
+        }
+
+        if (canUseDefaultValue(initValue, setter, required)) {
             return;
         }
 
@@ -380,6 +401,20 @@ public class AddMojo extends AbstractFunctionMojo {
 
     protected Scanner getScanner() {
         return new Scanner(System.in, "UTF-8");
+    }
+
+    boolean canUseDefaultValue(String initValue, Consumer<String> setter, boolean required)
+            throws MojoFailureException {
+        if (!getSettings().isInteractiveMode()) {
+            if (required) {
+                throw new MojoFailureException(String.format("invalid input: %s", initValue));
+            } else {
+                out.printf("The input is invalid. Use empty string.%n");
+                setter.accept("");
+                return true;
+            }
+        }
+        return false;
     }
 
     //endregion
