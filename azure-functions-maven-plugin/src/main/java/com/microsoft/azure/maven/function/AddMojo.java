@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.function;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.maven.function.template.FunctionTemplate;
-
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -421,13 +420,13 @@ public class AddMojo extends AbstractFunctionMojo {
             info(FOUND_VALID_VALUE);
             setter.accept(input);
             return;
+        }
+
+        if (required) {
+            throw new MojoFailureException(String.format("invalid input: %s", input));
         } else {
-            if (required) {
-                throw new MojoFailureException(String.format("invalid input: %s", input));
-            } else {
-                out.printf("The input is invalid. Use empty string.%n");
-                setter.accept("");
-            }
+            out.printf("The input is invalid. Use empty string.%n");
+            setter.accept("");
         }
     }
 
