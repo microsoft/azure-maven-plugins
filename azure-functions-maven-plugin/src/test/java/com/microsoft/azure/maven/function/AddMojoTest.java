@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.function;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.ReflectionUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
 
 import java.io.File;
@@ -53,32 +54,37 @@ public class AddMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void assureInputFromUserInteractively() throws Exception {
+    public void assureInputFromUser() throws Exception {
         final AddMojo mojo = getMojoFromPom();
         final AddMojo mojoSpy = spy(mojo);
         final Scanner scanner = mock(Scanner.class);
-        final Settings settings = mock(Settings.class);
         doReturn("2").when(scanner).nextLine();
         doReturn(scanner).when(mojoSpy).getScanner();
-        doReturn(settings).when(mojoSpy).getSettings();
-        doReturn(true).when(settings).isInteractiveMode();
 
         final Set<String> set = new HashSet<>();
-        mojoSpy.assureInputFromUser("property", "", Arrays.asList("a0", "a1", "a2"), set::add, true);
+        mojoSpy.assureInputFromUser("property", "", Arrays.asList("a0", "a1", "a2"), set::add);
 
         assertTrue(set.contains("a2"));
     }
 
     @Test(expected = MojoFailureException.class)
-    public void assureInputFromUserNonInteractively() throws Exception{
+    public void assureInputInBatchModeWhenRequired() throws Exception{
         final AddMojo mojo = getMojoFromPom();
         final AddMojo mojoSpy = spy(mojo);
-        final Settings settings = mock(Settings.class);
-        doReturn(settings).when(mojoSpy).getSettings();
-        doReturn(false).when(settings).isInteractiveMode();
 
         final Set<String> set = new HashSet<>();
-        mojoSpy.assureInputFromUser("property", "", Arrays.asList("a0", "a1", "a2"), set::add, true);
+        mojoSpy.assureInputInBatchMode("", StringUtils::isNotEmpty, set::add, true);
+    }
+
+    @Test
+    public void assureInputInBatchModeWhenNotRequired() throws Exception{
+        final AddMojo mojo = getMojoFromPom();
+        final AddMojo mojoSpy = spy(mojo);
+
+        final Set<String> set = new HashSet<>();
+        mojoSpy.assureInputInBatchMode("a0", StringUtils::isNotEmpty, set::add, true);
+
+        assertTrue(set.contains("a0"));
     }
 
     private AddMojo getMojoFromPom() throws Exception {

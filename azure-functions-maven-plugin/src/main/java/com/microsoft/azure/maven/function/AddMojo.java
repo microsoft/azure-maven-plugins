@@ -168,11 +168,20 @@ public class AddMojo extends AbstractFunctionMojo {
         info("");
         info(FIND_TEMPLATE);
 
-        assureInputFromUser("template for new function",
-                getFunctionTemplate(),
-                getTemplateNames(templates),
-                this::setFunctionTemplate,
-                true);
+        if (settings != null && !settings.isInteractiveMode()) {
+            assureInputInBatchMode(getFunctionTemplate(),
+                    str -> getTemplateNames(templates)
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .anyMatch(o -> o.equalsIgnoreCase(str)),
+                    this::setFunctionTemplate,
+                    true);
+        } else {
+            assureInputFromUser("template for new function",
+                    getFunctionTemplate(),
+                    getTemplateNames(templates),
+                    this::setFunctionTemplate);
+        }
 
         return findTemplateByName(templates, getFunctionTemplate());
     }
@@ -223,23 +232,35 @@ public class AddMojo extends AbstractFunctionMojo {
     protected void prepareFunctionName() throws MojoFailureException {
         info("Common parameter [Function Name]: name for both the new function and Java class");
 
-        assureInputFromUser("Enter value for Function Name: ",
-                getFunctionName(),
-                str -> isNotEmpty(str) && isIdentifier(str) && !isKeyword(str),
-                "Input should be a valid Java class name.",
-                this::setFunctionName,
-                true);
+        if (settings != null && !settings.isInteractiveMode()) {
+            assureInputInBatchMode(getFunctionName(),
+                    str -> isNotEmpty(str) && isIdentifier(str) && !isKeyword(str),
+                    this::setFunctionName,
+                    true);
+        } else {
+            assureInputFromUser("Enter value for Function Name: ",
+                    getFunctionName(),
+                    str -> isNotEmpty(str) && isIdentifier(str) && !isKeyword(str),
+                    "Input should be a valid Java class name.",
+                    this::setFunctionName);
+        }
     }
 
     protected void preparePackageName() throws MojoFailureException {
         info("Common parameter [Package Name]: package name of the new Java class");
 
-        assureInputFromUser("Enter value for Package Name: ",
-                getFunctionPackageName(),
-                str -> isNotEmpty(str) && isName(str),
-                "Input should be a valid Java package name.",
-                this::setFunctionPackageName,
-                true);
+        if (settings != null && !settings.isInteractiveMode()) {
+            assureInputInBatchMode(getFunctionPackageName(),
+                    str -> isNotEmpty(str) && isName(str),
+                    this::setFunctionPackageName,
+                    true);
+        } else {
+            assureInputFromUser("Enter value for Package Name: ",
+                    getFunctionPackageName(),
+                    str -> isNotEmpty(str) && isName(str),
+                    "Input should be a valid Java package name.",
+                    this::setFunctionPackageName);
+        }
     }
 
     protected Map<String, String> prepareTemplateParameters(final FunctionTemplate template,
@@ -248,14 +269,19 @@ public class AddMojo extends AbstractFunctionMojo {
         for (final String property : template.getMetadata().getUserPrompt()) {
             info(format("Trigger specific parameter [%s]", property));
 
-            final String propertyValue = System.getProperty(property);
+            if (settings != null && !settings.isInteractiveMode()) {
+                assureInputInBatchMode(System.getProperty(property),
+                        str -> isNotEmpty(str),
+                        str -> params.put(property, str),
+                        false);
+            } else {
+                assureInputFromUser(format("Enter value for %s: ", property),
+                        System.getProperty(property),
+                        str -> isNotEmpty(str),
+                        "Input should be a non-empty string.",
+                        str -> params.put(property, str));
 
-            assureInputFromUser(format("Enter value for %s: ", property),
-                    propertyValue == null ? "" : propertyValue,
-                    str -> isNotEmpty(str),
-                    "Input should be a non-empty string.",
-                    str -> params.put(property, str),
-                    false);
+            }
         }
 
         return params;
@@ -333,14 +359,9 @@ public class AddMojo extends AbstractFunctionMojo {
     //region Helper methods
 
     protected void assureInputFromUser(final String prompt, final String initValue, final List<String> options,
-                                       final Consumer<String> setter, final boolean required)
-            throws MojoFailureException {
+                                       final Consumer<String> setter) {
         if (options.stream().filter(Objects::nonNull).anyMatch(o -> o.equalsIgnoreCase(initValue))) {
             info(FOUND_VALID_VALUE);
-            return;
-        }
-
-        if (canUseDefaultValue(initValue, setter, required)) {
             return;
         }
 
@@ -363,21 +384,15 @@ public class AddMojo extends AbstractFunctionMojo {
                 str -> {
                     final int index = Integer.parseInt(str);
                     setter.accept(options.get(index));
-                },
-                required);
+                });
     }
 
     protected void assureInputFromUser(final String prompt, final String initValue,
                                        final Function<String, Boolean> validator, final String errorMessage,
-                                       final Consumer<String> setter, final boolean required)
-            throws MojoFailureException {
+                                       final Consumer<String> setter) {
         if (validator.apply(initValue)) {
             info(FOUND_VALID_VALUE);
             setter.accept(initValue);
-            return;
-        }
-
-        if (canUseDefaultValue(initValue, setter, required)) {
             return;
         }
 
@@ -399,22 +414,25 @@ public class AddMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected Scanner getScanner() {
-        return new Scanner(System.in, "UTF-8");
-    }
-
-    boolean canUseDefaultValue(String initValue, Consumer<String> setter, boolean required)
+    protected void assureInputInBatchMode(final String input, final Function<String, Boolean> validator,
+                                          final Consumer<String> setter, final boolean required)
             throws MojoFailureException {
-        if (!getSettings().isInteractiveMode()) {
+        if (validator.apply(input)) {
+            info(FOUND_VALID_VALUE);
+            setter.accept(input);
+            return;
+        } else {
             if (required) {
-                throw new MojoFailureException(String.format("invalid input: %s", initValue));
+                throw new MojoFailureException(String.format("invalid input: %s", input));
             } else {
                 out.printf("The input is invalid. Use empty string.%n");
                 setter.accept("");
-                return true;
             }
         }
-        return false;
+    }
+
+    protected Scanner getScanner() {
+        return new Scanner(System.in, "UTF-8");
     }
 
     //endregion
