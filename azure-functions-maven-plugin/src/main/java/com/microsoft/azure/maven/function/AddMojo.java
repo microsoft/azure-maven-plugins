@@ -47,6 +47,7 @@ public class AddMojo extends AbstractFunctionMojo {
     public static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
     public static final String SAVE_FILE_DONE = "Successfully saved new function at ";
     public static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
+    private static final String FUNCTION_NAME_REGEXP = "^[a-zA-Z][a-zA-Z\\d_\\-]*$";
 
     //region Properties
 
@@ -90,6 +91,10 @@ public class AddMojo extends AbstractFunctionMojo {
 
     public String getFunctionName() {
         return functionName;
+    }
+
+    public String getClassName() {
+        return getFunctionName().replace('-', '_');
     }
 
     public String getFunctionTemplate() {
@@ -219,6 +224,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
         final Map<String, String> params = new HashMap<>();
         params.put("functionName", getFunctionName());
+        params.put("className", getClassName());
         params.put("packageName", getFunctionPackageName());
 
         prepareTemplateParameters(template, params);
@@ -233,14 +239,14 @@ public class AddMojo extends AbstractFunctionMojo {
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionName(),
-                    str -> isNotEmpty(str) && isIdentifier(str) && !isKeyword(str),
+                    str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
                     this::setFunctionName,
                     true);
         } else {
             assureInputFromUser("Enter value for Function Name: ",
                     getFunctionName(),
-                    str -> isNotEmpty(str) && isIdentifier(str) && !isKeyword(str),
-                    "Input should be a valid Java class name.",
+                    str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
+                    "Function name must start with a letter and can contain letters, digits, \\'_\\' and \\'-\\'",
                     this::setFunctionName);
         }
     }
@@ -333,7 +339,7 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected File getTargetFile(final File packageDir) throws Exception {
-        final String functionName = getFunctionName() + ".java";
+        final String functionName = getClassName() + ".java";
         final File targetFile = new File(packageDir, functionName);
         if (targetFile.exists()) {
             throw new FileAlreadyExistsException(format(FILE_EXIST, targetFile.getAbsolutePath()));
