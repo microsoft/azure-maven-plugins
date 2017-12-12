@@ -246,7 +246,7 @@ public class AddMojo extends AbstractFunctionMojo {
             assureInputFromUser("Enter value for Function Name: ",
                     getFunctionName(),
                     str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
-                    "Function name must start with a letter and can contain letters, digits, \\'_\\' and \\'-\\'",
+                    "Function name must start with a letter and can contain letters, digits, '_' and '-'",
                     this::setFunctionName);
         }
     }
