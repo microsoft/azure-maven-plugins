@@ -6,7 +6,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-functions-maven-plugin</artifactId>
-    <version>0.1.8-SNAPSHOT</version>
+    <version>0.1.9-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Functions</name>
     <description>Maven Plugin for Azure Functions</description>
