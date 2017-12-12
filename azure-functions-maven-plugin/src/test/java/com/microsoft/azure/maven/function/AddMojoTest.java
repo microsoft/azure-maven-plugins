@@ -53,6 +53,36 @@ public class AddMojoTest extends MojoTestBase {
         assertTrue(newFunctionFile.exists());
     }
 
+    @Test(expected = MojoFailureException.class)
+    public void doExecuteWithInvalidFunctionName() throws Exception {
+        final AddMojo mojo = getMojoFromPom();
+        final Settings settings = new Settings();
+        settings.setInteractiveMode(false);
+        ReflectionUtils.setVariableValueInObject(mojo, "basedir", new File("target/test"));
+        ReflectionUtils.setVariableValueInObject(mojo, "settings", settings);
+        mojo.setFunctionTemplate("HttpTrigger");
+        mojo.setFunctionName("$NewFunction");
+        mojo.setFunctionPackageName("com.microsoft.azure");
+
+        mojo.doExecute();
+    }
+
+    @Test
+    public void doExecuteWithSpecialFunctionName() throws Exception {
+        final AddMojo mojo = getMojoFromPom();
+        ReflectionUtils.setVariableValueInObject(mojo, "basedir", new File("target/test"));
+        mojo.setFunctionTemplate("HttpTrigger");
+        mojo.setFunctionName("New-Function");
+        mojo.setFunctionPackageName("com.microsoft.azure");
+
+        final File newFunctionFile = new File("target/test/src/main/java/com/microsoft/azure/New_Function.java");
+        newFunctionFile.delete();
+
+        mojo.doExecute();
+
+        assertTrue(newFunctionFile.exists());
+    }
+
     @Test
     public void assureInputFromUser() throws Exception {
         final AddMojo mojo = getMojoFromPom();
