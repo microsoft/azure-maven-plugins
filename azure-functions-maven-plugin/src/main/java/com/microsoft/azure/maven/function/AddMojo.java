@@ -276,8 +276,7 @@ public class AddMojo extends AbstractFunctionMojo {
         for (final String property : template.getMetadata().getUserPrompt()) {
             info(format("Trigger specific parameter [%s]", property));
 
-            final List<String> options = OptionTypedProperty.get(property) == null ?
-                    null : getOptionsForProperty(property);
+            final List<String> options = getOptionsForUserPrompt(property);
             if (settings != null && !settings.isInteractiveMode()) {
                 String initValue = System.getProperty(property);
                 if (options != null && options.size() > 0) {
@@ -473,34 +472,12 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     @Nullable
-    private List<String> getOptionsForProperty(final String property) {
-        final OptionTypedProperty optionTypedProperty = OptionTypedProperty.get(property);
-        if (optionTypedProperty != null) {
-            switch (optionTypedProperty) {
-                case AUTH_LEVEL:
-                    return Arrays.asList("ANONYMOUS", "FUNCTION", "ADMIN");
-                default:
-                    return null;
-            }
-        }
-        return null;
-    }
-
-    private enum OptionTypedProperty {
-        AUTH_LEVEL("authLevel");
-
-        private final String property;
-
-        OptionTypedProperty(String property) {
-            this.property = property;
-        }
-
-        @Nullable
-        public static OptionTypedProperty get(final String property) {
-            return Arrays.stream(values())
-                    .filter(prop -> prop.property.equals(property))
-                    .findFirst()
-                    .orElse(null);
+    private List<String> getOptionsForUserPrompt(final String promptName) {
+        switch (promptName.trim().toLowerCase(Locale.getDefault())) {
+            case "authlevel":
+                return Arrays.asList("ANONYMOUS", "FUNCTION", "ADMIN");
+            default:
+                return null;
         }
     }
 
