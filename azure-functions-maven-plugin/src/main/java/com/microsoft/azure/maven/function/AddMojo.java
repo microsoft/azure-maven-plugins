@@ -31,6 +31,8 @@ import static javax.lang.model.SourceVersion.*;
 import static org.codehaus.plexus.util.IOUtil.copy;
 import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 
+import javax.annotation.Nullable;
+
 /**
  * Create new Azure Function (as Java class) and add to current project.
  */
@@ -274,18 +276,38 @@ public class AddMojo extends AbstractFunctionMojo {
         for (final String property : template.getMetadata().getUserPrompt()) {
             info(format("Trigger specific parameter [%s]", property));
 
+            final List<String> options = OptionTypedProperty.get(property) == null ?
+                    null : getOptionsForProperty(property);
             if (settings != null && !settings.isInteractiveMode()) {
-                assureInputInBatchMode(System.getProperty(property),
-                        str -> isNotEmpty(str),
-                        str -> params.put(property, str),
-                        false);
-            } else {
-                assureInputFromUser(format("Enter value for %s: ", property),
-                        System.getProperty(property),
-                        str -> isNotEmpty(str),
-                        "Input should be a non-empty string.",
-                        str -> params.put(property, str));
+                String initValue = System.getProperty(property);
+                if (options != null && options.size() > 0) {
+                    final String foundElement = findElementInOptions(options, initValue);
+                    initValue = foundElement == null ? options.get(0) : foundElement;
+                }
 
+                assureInputInBatchMode(
+                        initValue,
+                        StringUtils::isNotEmpty,
+                        str -> params.put(property, str),
+                        false
+                );
+            } else {
+                if (options == null) {
+                    assureInputFromUser(
+                            format("Enter value for %s: ", property),
+                            System.getProperty(property),
+                            StringUtils::isNotEmpty,
+                            "Input should be a non-empty string.",
+                            str -> params.put(property, str)
+                    );
+                } else {
+                    assureInputFromUser(
+                            format("Enter value for %s: ", property),
+                            System.getProperty(property),
+                            options,
+                            str -> params.put(property, str)
+                    );
+                }
             }
         }
 
@@ -365,8 +387,10 @@ public class AddMojo extends AbstractFunctionMojo {
 
     protected void assureInputFromUser(final String prompt, final String initValue, final List<String> options,
                                        final Consumer<String> setter) {
-        if (options.stream().filter(Objects::nonNull).anyMatch(o -> o.equalsIgnoreCase(initValue))) {
+        final String option = findElementInOptions(options, initValue);
+        if (option != null) {
             info(FOUND_VALID_VALUE);
+            setter.accept(option);
             return;
         }
 
@@ -438,6 +462,46 @@ public class AddMojo extends AbstractFunctionMojo {
 
     protected Scanner getScanner() {
         return new Scanner(System.in, "UTF-8");
+    }
+
+    @Nullable
+    private String findElementInOptions(List<String> options, String item) {
+        return options.stream()
+                .filter(o -> o != null && o.equalsIgnoreCase(item))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Nullable
+    private List<String> getOptionsForProperty(final String property) {
+        final OptionTypedProperty optionTypedProperty = OptionTypedProperty.get(property);
+        if (optionTypedProperty != null) {
+            switch (optionTypedProperty) {
+                case AUTH_LEVEL:
+                    return Arrays.asList("ANONYMOUS", "FUNCTION", "ADMIN");
+                default:
+                    return null;
+            }
+        }
+        return null;
+    }
+
+    private enum OptionTypedProperty {
+        AUTH_LEVEL("authLevel");
+
+        private final String property;
+
+        OptionTypedProperty(String property) {
+            this.property = property;
+        }
+
+        @Nullable
+        public static OptionTypedProperty get(final String property) {
+            return Arrays.stream(values())
+                    .filter(prop -> prop.property.equals(property))
+                    .findFirst()
+                    .orElse(null);
+        }
     }
 
     //endregion
