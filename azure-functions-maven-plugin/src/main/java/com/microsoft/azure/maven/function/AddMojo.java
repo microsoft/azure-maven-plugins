@@ -473,12 +473,10 @@ public class AddMojo extends AbstractFunctionMojo {
 
     @Nullable
     private List<String> getOptionsForUserPrompt(final String promptName) {
-        switch (promptName.trim().toLowerCase(Locale.getDefault())) {
-            case "authlevel":
-                return Arrays.asList("ANONYMOUS", "FUNCTION", "ADMIN");
-            default:
-                return null;
+        if ("authlevel".equalsIgnoreCase(promptName.trim())) {
+            return Arrays.asList("ANONYMOUS", "FUNCTION", "ADMIN");
         }
+        return null;
     }
 
     //endregion
