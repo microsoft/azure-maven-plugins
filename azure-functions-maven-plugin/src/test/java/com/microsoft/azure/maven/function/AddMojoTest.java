@@ -40,12 +40,15 @@ public class AddMojoTest extends MojoTestBase {
     @Test
     public void doExecute() throws Exception {
         final AddMojo mojo = getMojoFromPom();
+        final Settings settings = new Settings();
+        settings.setInteractiveMode(false);
         ReflectionUtils.setVariableValueInObject(mojo, "basedir", new File("target/test"));
+        ReflectionUtils.setVariableValueInObject(mojo, "settings", settings);
         mojo.setFunctionTemplate("HttpTrigger");
-        mojo.setFunctionName("NewFunction");
+        mojo.setFunctionName("New-Function");
         mojo.setFunctionPackageName("com.microsoft.azure");
 
-        final File newFunctionFile = new File("target/test/src/main/java/com/microsoft/azure/NewFunction.java");
+        final File newFunctionFile = new File("target/test/src/main/java/com/microsoft/azure/New_Function.java");
         newFunctionFile.delete();
 
         mojo.doExecute();
@@ -65,22 +68,6 @@ public class AddMojoTest extends MojoTestBase {
         mojo.setFunctionPackageName("com.microsoft.azure");
 
         mojo.doExecute();
-    }
-
-    @Test
-    public void doExecuteWithSpecialFunctionName() throws Exception {
-        final AddMojo mojo = getMojoFromPom();
-        ReflectionUtils.setVariableValueInObject(mojo, "basedir", new File("target/test"));
-        mojo.setFunctionTemplate("HttpTrigger");
-        mojo.setFunctionName("New-Function");
-        mojo.setFunctionPackageName("com.microsoft.azure");
-
-        final File newFunctionFile = new File("target/test/src/main/java/com/microsoft/azure/New_Function.java");
-        newFunctionFile.delete();
-
-        mojo.doExecute();
-
-        assertTrue(newFunctionFile.exists());
     }
 
     @Test
