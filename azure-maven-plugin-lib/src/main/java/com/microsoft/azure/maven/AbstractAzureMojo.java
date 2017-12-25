@@ -177,10 +177,15 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     public String getUserAgent() {
-        return String.format("%s/%s %s:%s %s:%s",
-                getPluginName(), getPluginVersion(),
-                INSTALLATION_ID_KEY, getInstallationId(),
-                SESSION_ID_KEY, getSessionId());
+        if (isTelemetryAllowed()) {
+            return String.format("%s/%s %s:%s %s:%s",
+                    getPluginName(), getPluginVersion(),
+                    INSTALLATION_ID_KEY, getInstallationId(),
+                    SESSION_ID_KEY, getSessionId());
+        } else {
+            return String.format("%s/%s",
+                    getPluginName(), getPluginVersion());
+        }
     }
 
     public Azure getAzureClient() throws AzureAuthFailureException {
