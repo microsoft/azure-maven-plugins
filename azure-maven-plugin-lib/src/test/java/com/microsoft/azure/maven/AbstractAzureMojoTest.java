@@ -29,6 +29,7 @@ import java.util.Map;
 
 import static com.microsoft.azure.maven.AbstractAzureMojo.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -135,12 +136,22 @@ public class AbstractAzureMojoTest {
     }
 
     @Test
-    public void getUserAgent() {
+    public void getUserAgentWhenTelemetryAllowed() throws IllegalAccessException {
+        ReflectionUtils.setVariableValueInObject(mojo, "allowTelemetry", true);
         final String userAgent = mojo.getUserAgent();
         assertTrue(StringUtils.contains(userAgent, PLUGIN_NAME));
         assertTrue(StringUtils.contains(userAgent, PLUGIN_VERSION));
         assertTrue(StringUtils.contains(userAgent, mojo.getInstallationId()));
         assertTrue(StringUtils.contains(userAgent, mojo.getSessionId()));
+    }
+
+    @Test
+    public void getUserAgentWhenTelemetryNotAllowed() {
+        final String userAgent = mojo.getUserAgent();
+        assertTrue(StringUtils.contains(userAgent, PLUGIN_NAME));
+        assertTrue(StringUtils.contains(userAgent, PLUGIN_VERSION));
+        assertFalse(StringUtils.contains(userAgent, mojo.getInstallationId()));
+        assertFalse(StringUtils.contains(userAgent, mojo.getSessionId()));
     }
 
     @Test

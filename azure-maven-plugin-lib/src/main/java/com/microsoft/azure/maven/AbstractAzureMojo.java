@@ -12,6 +12,7 @@ import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.auth.AzureAuthHelper;
 import com.microsoft.azure.maven.telemetry.*;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -177,10 +178,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     public String getUserAgent() {
-        return String.format("%s/%s %s:%s %s:%s",
-                getPluginName(), getPluginVersion(),
-                INSTALLATION_ID_KEY, getInstallationId(),
-                SESSION_ID_KEY, getSessionId());
+        return isTelemetryAllowed() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
+                        INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
+                : String.format("%s/%s", getPluginName(), getPluginVersion());
     }
 
     public Azure getAzureClient() throws AzureAuthFailureException {
