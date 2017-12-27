@@ -57,9 +57,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             "\nTelemetry\n" +
             "---------\n" +
             "The Azure Maven Plugin collects usage data in order to improve your experience.\n" +
-            "The data is anonymous and is collected by Microsoft.\n" +
+            "The data is anonymous and does not include commandline argument values.\n" +
+            "The data is collected by Microsoft.\n" +
             "You can change your telemetry configuration through 'allowTelemetry' property.\n\n" +
-            "For more information, please go to https://aka.ms/azure-maven-config\n";
+            "For more information, please go to https://aka.ms/azure-maven-config.\n";
 
     //region Properties
 
