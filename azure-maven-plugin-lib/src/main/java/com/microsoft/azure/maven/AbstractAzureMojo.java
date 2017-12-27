@@ -16,7 +16,6 @@ import com.microsoft.azure.maven.telemetry.*;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -26,8 +25,15 @@ import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 /**
@@ -44,6 +50,17 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public static final String INIT_FAILURE = "InitFailure";
     public static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     public static final String FAILURE_REASON = "failureReason";
+    private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
+            ".azure", "mavenplugins.properties").toString();
+    private static final String FIRST_RUN_KEY = "first.run";
+    private static final String PRIVACY_STATEMENT =
+            "\nTelemetry\n" +
+            "---------\n" +
+            "The Azure Maven Plugin collects usage data in order to improve your experience.\n" +
+            "The data is anonymous and does not include commandline argument values.\n" +
+            "The data is collected by Microsoft.\n" +
+            "You can change your telemetry configuration through 'allowTelemetry' property.\n\n" +
+            "For more information, please go to https://aka.ms/azure-maven-config.\n";
 
     //region Properties
 
@@ -248,13 +265,19 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     //region Entry Point
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() throws MojoExecutionException {
         try {
             // Work around for Application Insights Java SDK:
             // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.
             // An issue has been filed at https://github.com/Microsoft/ApplicationInsights-Java/issues/416
             // Before this issue is fixed, set default uncaught exception handler for all threads as work around.
             Thread.setDefaultUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler());
+
+            Properties prop = new Properties();
+            if (isFirstRun(prop)) {
+                infoWithMultipleLines(PRIVACY_STATEMENT);
+                updateConfigurationFile(prop);
+            }
 
             if (isSkipMojo()) {
                 info("Skip execution.");
@@ -327,6 +350,38 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
+    private boolean isFirstRun(Properties prop) {
+        try {
+            File configurationFile = new File(CONFIGURATION_PATH);
+            if (configurationFile.exists()) {
+                try (InputStream input = new FileInputStream(CONFIGURATION_PATH)) {
+                    prop.load(input);
+                    String firstRunValue = prop.getProperty(FIRST_RUN_KEY);
+                    if (firstRunValue != null && !firstRunValue.isEmpty() && firstRunValue.equalsIgnoreCase("false")) {
+                        return false;
+                    }
+                }
+            } else {
+                configurationFile.getParentFile().mkdirs();
+                configurationFile.createNewFile();
+            }
+        } catch (Exception e) {
+            // catch exceptions here to avoid blocking mojo execution.
+            debug(e.getMessage());
+        }
+        return true;
+    }
+
+    private void updateConfigurationFile(Properties prop) {
+        try (OutputStream output = new FileOutputStream(CONFIGURATION_PATH)) {
+            prop.setProperty(FIRST_RUN_KEY, "false");
+            prop.store(output, "Azure Maven Plugin configurations");
+        } catch (Exception e) {
+            // catch exceptions here to avoid blocking mojo execution.
+            debug(e.getMessage());
+        }
+    }
+
     protected class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
         @Override
         public void uncaughtException(Thread t, Throwable e) {
@@ -344,6 +399,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     public void info(final String message) {
         getLog().info(message);
+    }
+
+    public void infoWithMultipleLines(final String messages) {
+        final String[] messageArray = messages.split("\\n");
+        for (String line : messageArray) {
+            getLog().info(line);
+        }
     }
 
     public void warning(final String message) {
