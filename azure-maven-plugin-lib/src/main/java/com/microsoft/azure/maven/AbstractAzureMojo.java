@@ -350,27 +350,35 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    private boolean isFirstRun(Properties prop) throws IOException {
-        File configurationFile = new File(CONFIGURATION_PATH);
-        if (configurationFile.exists()) {
-            try (InputStream input = new FileInputStream(CONFIGURATION_PATH)) {
-                prop.load(input);
-                String firstRunValue = prop.getProperty(FIRST_RUN_KEY);
-                if (firstRunValue != null && !firstRunValue.isEmpty() && firstRunValue.equalsIgnoreCase("false")) {
-                    return false;
+    private boolean isFirstRun(Properties prop) {
+        try {
+            File configurationFile = new File(CONFIGURATION_PATH);
+            if (configurationFile.exists()) {
+                try (InputStream input = new FileInputStream(CONFIGURATION_PATH)) {
+                    prop.load(input);
+                    String firstRunValue = prop.getProperty(FIRST_RUN_KEY);
+                    if (firstRunValue != null && !firstRunValue.isEmpty() && firstRunValue.equalsIgnoreCase("false")) {
+                        return false;
+                    }
                 }
+            } else {
+                configurationFile.getParentFile().mkdirs();
+                configurationFile.createNewFile();
             }
-        } else {
-            configurationFile.getParentFile().mkdirs();
-            configurationFile.createNewFile();
+        } catch (Exception e) {
+            // catch exceptions here to avoid blocking mojo execution.
+            debug(e.getMessage());
         }
         return true;
     }
 
-    private void updateConfigurationFile(Properties prop) throws IOException {
+    private void updateConfigurationFile(Properties prop) {
         try (OutputStream output = new FileOutputStream(CONFIGURATION_PATH)) {
             prop.setProperty(FIRST_RUN_KEY, "false");
             prop.store(output, "Azure Maven Plugin configurations");
+        } catch (Exception e) {
+            // catch exceptions here to avoid blocking mojo execution.
+            debug(e.getMessage());
         }
     }
 
