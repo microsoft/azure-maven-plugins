@@ -38,7 +38,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         return new Reflections(
                 new ConfigurationBuilder()
                         .addUrls(url)
-                        .addScanners(new MethodAnnotationsScanner())
+                        .setScanners(new MethodAnnotationsScanner())
                         .addClassLoader(getClassLoader(url)))
                 .getMethodsAnnotatedWith(FunctionName.class);
     }
