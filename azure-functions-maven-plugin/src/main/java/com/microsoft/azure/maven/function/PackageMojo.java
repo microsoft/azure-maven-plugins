@@ -13,6 +13,8 @@ import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
+
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -20,6 +22,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -86,12 +89,22 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws Exception {
         info("");
         info(SEARCH_FUNCTIONS);
-        final Set<Method> functions = handler.findFunctions(getClassUrl());
+        Set<Method> functions;
+        try {
+            functions = handler.findFunctions(getTargetClassUrl());
+        } catch (NoClassDefFoundError e) {
+            // fallback to reflect through artifact url
+            functions = handler.findFunctions(getArtifactUrl());
+        }
         info(functions.size() + FOUND_FUNCTIONS);
         return functions;
     }
 
-    protected URL getClassUrl() throws Exception {
+    protected URL getArtifactUrl() throws Exception {
+        return this.getProject().getArtifact().getFile().toURI().toURL();
+    }
+
+    protected URL getTargetClassUrl() throws Exception {
         return outputDirectory.toURI().toURL();
     }
 

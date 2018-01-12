@@ -32,7 +32,7 @@ public class PackageMojoTest extends MojoTestBase {
         doReturn(mock(AnnotationHandler.class)).when(mojoSpy).getAnnotationHandler();
         doReturn(ClasspathHelper.forPackage("com.microsoft.azure.maven.function.handlers").toArray()[0])
                 .when(mojoSpy)
-                .getClassUrl();
+                .getTargetClassUrl();
         doReturn("target/azure-functions").when(mojoSpy).getDeploymentStageDirectory();
         doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(mock(MavenProject.class)).when(mojoSpy).getProject();
