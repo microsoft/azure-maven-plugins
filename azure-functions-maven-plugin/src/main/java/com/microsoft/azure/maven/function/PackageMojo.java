@@ -89,9 +89,11 @@ public class PackageMojo extends AbstractFunctionMojo {
         info(SEARCH_FUNCTIONS);
         Set<Method> functions;
         try {
+            debug("ClassPath to resolve: " + getTargetClassUrl());
             functions = handler.findFunctions(getTargetClassUrl());
         } catch (NoClassDefFoundError e) {
             // fallback to reflect through artifact url
+            debug("ClassPath to resolve: " + getArtifactUrl());
             functions = handler.findFunctions(getArtifactUrl());
         }
         info(functions.size() + FOUND_FUNCTIONS);
