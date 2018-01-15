@@ -87,6 +87,11 @@ public class AppInsightsProxy implements TelemetryProxy {
             merged.putAll(customProperties);
             merged.putAll(defaultProperties);
         }
+        for (Map.Entry<String, String> entry : merged.entrySet()) {
+            if (StringUtils.isEmpty(entry.getValue())) {
+                merged.remove(entry.getKey());
+            }
+        }
         return merged;
     }
 }
