@@ -13,6 +13,7 @@ import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
+
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -86,12 +87,24 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws Exception {
         info("");
         info(SEARCH_FUNCTIONS);
-        final Set<Method> functions = handler.findFunctions(getClassUrl());
+        Set<Method> functions;
+        try {
+            debug("ClassPath to resolve: " + getTargetClassUrl());
+            functions = handler.findFunctions(getTargetClassUrl());
+        } catch (NoClassDefFoundError e) {
+            // fallback to reflect through artifact url
+            debug("ClassPath to resolve: " + getArtifactUrl());
+            functions = handler.findFunctions(getArtifactUrl());
+        }
         info(functions.size() + FOUND_FUNCTIONS);
         return functions;
     }
 
-    protected URL getClassUrl() throws Exception {
+    protected URL getArtifactUrl() throws Exception {
+        return this.getProject().getArtifact().getFile().toURI().toURL();
+    }
+
+    protected URL getTargetClassUrl() throws Exception {
         return outputDirectory.toURI().toURL();
     }
 

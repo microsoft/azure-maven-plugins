@@ -5,7 +5,7 @@
  */
 
 // Verify Azure Functions
-def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/hello?name=Azure".toURL()
+def url = "https://maven-functions-it-${timestamp}-2.azurewebsites.net/api/thirdparty?name=Azure".toURL()
 try {
     url.getText() // warm up
 } catch (Exception e) {
@@ -20,7 +20,7 @@ def tenantId = System.getenv("TENANT_ID")
 def key = System.getenv("KEY")
 def command = """
     az login --service-principal -u ${clientId}  -p ${key} --tenant ${tenantId}
-    az group delete -y -n maven-functions-it-rg-1 --no-wait
+    az group delete -y -n maven-functions-it-rg-2 --no-wait
     az logout
 """
 def process = ["bash", "-c", command].execute()

@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <functionAppName>maven-functions-it-${timestamp}-1</functionAppName>
+        <functionAppName>maven-functions-it-${timestamp}-2</functionAppName>
         <functionAppRegion>westus</functionAppRegion>
     </properties>
 
@@ -24,6 +24,11 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-functions-java-core</artifactId>
             <version>[1.0.0-beta-1,1.0.0)</version>
+        </dependency>
+        <dependency>
+            <artifactId>abstractmethod-library</artifactId>
+            <groupId>com.microsoft.itlib</groupId>
+            <version>1.0.0</version>
         </dependency>
 
         <!-- Test -->
@@ -52,13 +57,43 @@
 
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>no.identification.functions:EnrollmentFunctions</mainClass>
+                        </transformer>
+                    </transformers>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>@project.groupId@</groupId>
                 <artifactId>@project.artifactId@</artifactId>
                 <configuration>
                     <authentication>
                         <serverId>azure-auth</serverId>
                     </authentication>
-                    <resourceGroup>maven-functions-it-rg-1</resourceGroup>
+                    <resourceGroup>maven-functions-it-rg-2</resourceGroup>
                     <appName>${functionAppName}</appName>
                     <region>${functionAppRegion}</region>
                     <appSettings>
