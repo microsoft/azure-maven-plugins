@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <functionAppName>maven-functions-it-${timestamp}</functionAppName>
+        <functionAppName>maven-functions-it-${timestamp}-1</functionAppName>
         <functionAppRegion>westus</functionAppRegion>
     </properties>
 

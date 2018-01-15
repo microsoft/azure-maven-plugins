@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <functionAppName>maven-functions-it-${timestamp}</functionAppName>
+        <functionAppName>maven-functions-it-${timestamp}-2</functionAppName>
         <functionAppRegion>westus</functionAppRegion>
     </properties>
 
@@ -93,7 +93,7 @@
                     <authentication>
                         <serverId>azure-auth</serverId>
                     </authentication>
-                    <resourceGroup>maven-functions-it-rg-1</resourceGroup>
+                    <resourceGroup>maven-functions-it-rg-2</resourceGroup>
                     <appName>${functionAppName}</appName>
                     <region>${functionAppRegion}</region>
                     <appSettings>

@@ -5,7 +5,7 @@
  */
 
 // Verify Azure Functions
-def url = "https://maven-functions-it-${timestamp}.azurewebsites.net/api/hello?name=Azure".toURL()
+def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/hello?name=Azure".toURL()
 try {
     url.getText() // warm up
 } catch (Exception e) {

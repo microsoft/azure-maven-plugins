@@ -1,4 +1,4 @@
-package eu.hanskruse;
+package com.microsoft.azure;
 
 import java.util.*;
 import java.util.logging.Logger;
