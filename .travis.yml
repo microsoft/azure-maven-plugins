@@ -12,7 +12,8 @@ before_install:
   - sudo pip install azure-cli
 
 script:
-  - "./mvnw verify -P it"
+  - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash ./mvnw verify; fi'
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./mvnw verify -P it; fi'
   - "./mvnw cobertura:cobertura"
 
 after_success:
