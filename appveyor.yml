@@ -18,4 +18,5 @@ install:
   - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
 
 build_script:
-  - mvnw.cmd clean install -P it -B -V
+  - if [%APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME%]==[Microsoft/azure-maven-plugins] mvnw.cmd clean install -P it -B -V
+  - if [%APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME%]!=[Microsoft/azure-maven-plugins] mvnw.cmd clean install -B -V
