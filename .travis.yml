@@ -22,8 +22,8 @@ before_install:
 
 script:
   - if [ "${TRAVIS_PULL_REQUEST}" = "false" ];
-    then './mvnw verify -P it';
-    else './mvnw verify';
+    then ./mvnw verify -P it;
+    else ./mvnw verify;
     fi
   - './mvnw cobertura:cobertura'
 
