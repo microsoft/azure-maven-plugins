@@ -69,11 +69,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <transformers>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>no.identification.functions:EnrollmentFunctions</mainClass>
-                        </transformer>
-                    </transformers>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
