@@ -22,7 +22,7 @@
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.ai.version>1.0.9</azure.ai.version>
-        <azure.maven-plugin-lib.version>0.1.7-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>0.1.7</azure.maven-plugin-lib.version>
         <azure.function.version>[1.0.0-beta-1,1.0.0)</azure.function.version>
         <azure.storage.version>5.4.0</azure.storage.version>
         <reflections.version>0.9.11</reflections.version>
@@ -386,15 +386,9 @@
                         <pluginExecutions>
                             <pluginExecution>
                                 <pluginExecutionFilter>
-                                    <groupId>
-                                        org.apache.maven.plugins
-                                    </groupId>
-                                    <artifactId>
-                                        maven-plugin-plugin
-                                    </artifactId>
-                                    <versionRange>
-                                        [1.0.0,)
-                                    </versionRange>
+                                    <groupId>org.apache.maven.plugins</groupId>
+                                    <artifactId>maven-plugin-plugin</artifactId>
+                                    <versionRange>[1.0.0,)</versionRange>
                                     <goals>
                                         <goal>default-descriptor</goal>
                                     </goals>
