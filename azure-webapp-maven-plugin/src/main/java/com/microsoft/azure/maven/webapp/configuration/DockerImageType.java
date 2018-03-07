@@ -11,5 +11,6 @@ public enum DockerImageType {
     PUBLIC_DOCKER_HUB,
     PRIVATE_DOCKER_HUB,
     PRIVATE_REGISTRY,
-    UNKNOWN
+    UNKNOWN,
+    BUILT_IN
 }

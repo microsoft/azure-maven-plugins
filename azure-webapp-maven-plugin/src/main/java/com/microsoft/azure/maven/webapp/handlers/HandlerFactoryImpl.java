@@ -43,6 +43,8 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
         final DockerImageType imageType = WebAppUtils.getDockerImageType(containerSetting);
         switch (imageType) {
+            case BUILT_IN:
+                return new BuiltInImageRuntimeHandlerImpl(mojo);
             case PUBLIC_DOCKER_HUB:
                 return new PublicDockerHubRuntimeHandlerImpl(mojo);
             case PRIVATE_DOCKER_HUB:

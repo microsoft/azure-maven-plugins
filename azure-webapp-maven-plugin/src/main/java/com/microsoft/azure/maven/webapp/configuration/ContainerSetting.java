@@ -15,7 +15,17 @@ import java.net.URL;
  */
 public class ContainerSetting {
     /**
-     * Docker image name
+     * Whether to use built-in blessed image
+     */
+    private boolean useBuiltInImage;
+
+    /**
+     * Image name used for Web App on Linux or Web App for container.<br/>
+     * Below is the list of supported built-in image:
+     * <ul>
+     *     <li>tomcat 8.5-jre8</li>
+     *     <li>tomcat 9.0-jre8</li>
+     * </ul>
      */
     private String imageName;
 
@@ -71,5 +81,13 @@ public class ContainerSetting {
                 StringUtils.isEmpty(getStartUpFile()) &&
                 StringUtils.isEmpty(getServerId()) &&
                 StringUtils.isEmpty(getRegistryUrl());
+    }
+
+    public boolean isUseBuiltInImage() {
+        return useBuiltInImage;
+    }
+
+    public void setUseBuiltInImage(boolean useBuiltInImage) {
+        this.useBuiltInImage = useBuiltInImage;
     }
 }
