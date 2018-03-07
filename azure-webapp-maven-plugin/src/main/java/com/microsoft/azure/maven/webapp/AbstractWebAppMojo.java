@@ -127,7 +127,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     /**
      * Settings of docker container image within Web App. This only applies to Linux-based Web App.<br/>
      * Below are the supported sub-element within {@code <containerSettings>}:<br/>
-     * {@code <useBuiltInImage>} specifies whether to use the built-in image in Web App on Linux<br/>
+     * {@code <useBuiltInImage>} specifies whether built-in images are used in Web App on Linux.<br/>
      * {@code <imageName>} specifies docker image name to use in Web App on Linux<br/>
      * {@code <serverId>} specifies credentials to access docker image. Use it when you are using private Docker Hub
      * image or private registry.<br/>
@@ -269,7 +269,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         final Map<String, String> map = super.getTelemetryProperties();
         map.put(JAVA_VERSION_KEY, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
         map.put(JAVA_WEB_CONTAINER_KEY, getJavaWebContainer().toString());
-        map.put(DOCKER_IMAGE_TYPE_KEY, WebAppUtils.getImageType(getContainerSettings()).toString());
+        map.put(DOCKER_IMAGE_TYPE_KEY, WebAppUtils.getDockerImageType(getContainerSettings()).toString());
         map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
         return map;
     }

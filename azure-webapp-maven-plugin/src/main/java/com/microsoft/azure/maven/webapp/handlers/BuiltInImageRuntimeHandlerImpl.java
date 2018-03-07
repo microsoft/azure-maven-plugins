@@ -8,8 +8,6 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 
-import java.util.Locale;
-
 import org.apache.maven.plugin.MojoExecutionException;
 
 import com.microsoft.azure.management.appservice.RuntimeStack;
@@ -19,8 +17,8 @@ import com.microsoft.azure.maven.webapp.WebAppUtils;
 
 public class BuiltInImageRuntimeHandlerImpl implements RuntimeHandler {
 
-    private static final String NOT_SUPPORTED_IMAGE = "The image name: '%s' is not supported.";
-    private static final String IMAGE_NOT_GIVEN = "Image name is not given.";
+    private static final String NOT_SUPPORTED_IMAGE = "The image: '%s' is not supported.";
+    private static final String IMAGE_NOT_GIVEN = "Image name is not specified.";
 
     private AbstractWebAppMojo mojo;
 

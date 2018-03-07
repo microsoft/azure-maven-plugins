@@ -6,11 +6,11 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
-public enum ImageType {
+public enum DockerImageType {
     NONE,
-    BUILT_IN,
     PUBLIC_DOCKER_HUB,
     PRIVATE_DOCKER_HUB,
     PRIVATE_REGISTRY,
-    UNKNOWN
+    UNKNOWN,
+    BUILT_IN
 }

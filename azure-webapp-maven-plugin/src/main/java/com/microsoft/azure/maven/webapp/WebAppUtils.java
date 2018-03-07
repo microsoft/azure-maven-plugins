@@ -10,7 +10,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithNewAppServicePlan;
 import com.microsoft.azure.management.resources.fluentcore.arm.models.GroupableResource.DefinitionStages.WithGroup;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.configuration.ImageType;
+import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -47,22 +47,22 @@ public class WebAppUtils {
                 withGroup.withNewResourceGroup(resourceGroup);
     }
 
-    public static ImageType getImageType(final ContainerSetting containerSetting) {
+    public static DockerImageType getDockerImageType(final ContainerSetting containerSetting) {
         if (containerSetting == null || StringUtils.isEmpty(containerSetting.getImageName())) {
-            return ImageType.NONE;
+            return DockerImageType.NONE;
         }
 
         if (containerSetting.isUseBuiltInImage()) {
-            return ImageType.BUILT_IN;
+            return DockerImageType.BUILT_IN;
         }
 
         final boolean isCustomRegistry = StringUtils.isNotEmpty(containerSetting.getRegistryUrl());
         final boolean isPrivate = StringUtils.isNotEmpty(containerSetting.getServerId());
 
         if (isCustomRegistry) {
-            return isPrivate ? ImageType.PRIVATE_REGISTRY : ImageType.UNKNOWN;
+            return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;
         } else {
-            return isPrivate ? ImageType.PRIVATE_DOCKER_HUB : ImageType.PUBLIC_DOCKER_HUB;
+            return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
         }
     }
 
