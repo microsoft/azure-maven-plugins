@@ -9,9 +9,9 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import com.microsoft.azure.maven.webapp.configuration.ImageType;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.junit.Test;
+import org.junit.Test; 
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -68,20 +68,24 @@ public class WebAppUtilsTest {
     }
 
     @Test
-    public void getDockerImageType() throws Exception {
+    public void getImageType() throws Exception {
         final ContainerSetting containerSetting = new ContainerSetting();
-        assertEquals(DockerImageType.NONE, WebAppUtils.getDockerImageType(containerSetting));
+        assertEquals(ImageType.NONE, WebAppUtils.getImageType(containerSetting));
 
         containerSetting.setImageName("imageName");
-        assertEquals(DockerImageType.PUBLIC_DOCKER_HUB, WebAppUtils.getDockerImageType(containerSetting));
+        assertEquals(ImageType.PUBLIC_DOCKER_HUB, WebAppUtils.getImageType(containerSetting));
+
+        containerSetting.setUseBuiltInImage(true);
+        assertEquals(ImageType.BUILT_IN, WebAppUtils.getImageType(containerSetting));
+        containerSetting.setUseBuiltInImage(false);
 
         containerSetting.setServerId("serverId");
-        assertEquals(DockerImageType.PRIVATE_DOCKER_HUB, WebAppUtils.getDockerImageType(containerSetting));
+        assertEquals(ImageType.PRIVATE_DOCKER_HUB, WebAppUtils.getImageType(containerSetting));
 
         containerSetting.setRegistryUrl(new URL("https://microsoft.azurecr.io"));
-        assertEquals(DockerImageType.PRIVATE_REGISTRY, WebAppUtils.getDockerImageType(containerSetting));
+        assertEquals(ImageType.PRIVATE_REGISTRY, WebAppUtils.getImageType(containerSetting));
 
         containerSetting.setServerId("");
-        assertEquals(DockerImageType.UNKNOWN, WebAppUtils.getDockerImageType(containerSetting));
+        assertEquals(ImageType.UNKNOWN, WebAppUtils.getImageType(containerSetting));
     }
 }

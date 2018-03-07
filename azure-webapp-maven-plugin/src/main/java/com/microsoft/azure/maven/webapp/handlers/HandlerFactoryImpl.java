@@ -10,7 +10,7 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import com.microsoft.azure.maven.webapp.configuration.ImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class HandlerFactoryImpl extends HandlerFactory {
@@ -41,8 +41,10 @@ public class HandlerFactoryImpl extends HandlerFactory {
             return new JavaRuntimeHandlerImpl(mojo);
         }
 
-        final DockerImageType imageType = WebAppUtils.getDockerImageType(containerSetting);
+        final ImageType imageType = WebAppUtils.getImageType(containerSetting);
         switch (imageType) {
+            case BUILT_IN:
+                return new BuiltInImageRuntimeHandlerImpl(mojo);
             case PUBLIC_DOCKER_HUB:
                 return new PublicDockerHubRuntimeHandlerImpl(mojo);
             case PRIVATE_DOCKER_HUB:
