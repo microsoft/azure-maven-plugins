@@ -20,7 +20,7 @@ public class ContainerSetting {
     private boolean useBuiltInImage;
 
     /**
-     * Docker image name.<br/>
+     * Image name used for Web App on Linux or Web App for container.<br/>
      * Below is the list of supported built-in image:
      * <ul>
      *     <li>tomcat 8.5-jre8</li>
