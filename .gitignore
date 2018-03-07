@@ -25,6 +25,10 @@ hs_err_pid*
 # IDE
 .idea/
 *.iml
+.classpath
+.project
+.settings/
+.checkstyle
 
 # macOS
 .DS_Store
