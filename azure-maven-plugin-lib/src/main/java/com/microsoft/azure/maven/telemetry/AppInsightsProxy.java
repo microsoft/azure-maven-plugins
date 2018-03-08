@@ -12,7 +12,6 @@ import org.codehaus.plexus.util.StringUtils;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class AppInsightsProxy implements TelemetryProxy {
     protected TelemetryClient client;
