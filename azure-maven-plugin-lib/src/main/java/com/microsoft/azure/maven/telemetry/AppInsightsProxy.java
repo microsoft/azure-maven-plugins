@@ -10,7 +10,9 @@ import com.microsoft.applicationinsights.TelemetryClient;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AppInsightsProxy implements TelemetryProxy {
     protected TelemetryClient client;
@@ -87,9 +89,10 @@ public class AppInsightsProxy implements TelemetryProxy {
             merged.putAll(customProperties);
             merged.putAll(defaultProperties);
         }
-        for (Map.Entry<String, String> entry : merged.entrySet()) {
-            if (StringUtils.isEmpty(entry.getValue())) {
-                merged.remove(entry.getKey());
+        Iterator<Map.Entry<String, String>> it = merged.entrySet().iterator();
+        while (it.hasNext()) {
+            if (StringUtils.isEmpty(it.next().getValue())) {
+                it.remove();
             }
         }
         return merged;
