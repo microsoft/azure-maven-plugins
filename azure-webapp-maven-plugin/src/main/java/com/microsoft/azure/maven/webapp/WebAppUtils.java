@@ -52,7 +52,7 @@ public class WebAppUtils {
             return DockerImageType.NONE;
         }
 
-        if (containerSetting.isUseBuiltInImage()) {
+        if (containerSetting.isUseBuiltinImage()) {
             return DockerImageType.BUILT_IN;
         }
 
