@@ -36,7 +36,6 @@ public class BuiltInImageRuntimeHandlerImpl implements RuntimeHandler {
     @Override
     public WebApp.Update updateAppRuntime(WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
-        WebAppUtils.clearTags(app);
 
         return app.update().withBuiltInImage(this.getJavaRunTimeStack(mojo.getContainerSettings().getImageName()));
     }

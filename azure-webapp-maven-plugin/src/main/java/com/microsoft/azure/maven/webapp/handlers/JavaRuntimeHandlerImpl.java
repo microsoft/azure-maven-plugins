@@ -32,7 +32,6 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
     @Override
     public Update updateAppRuntime(final WebApp app) throws Exception {
         WebAppUtils.assureWindowsWebApp(app);
-        WebAppUtils.clearTags(app);
 
         final Update update = app.update();
         update.withJavaVersion(mojo.getJavaVersion())

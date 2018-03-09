@@ -20,7 +20,7 @@ import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class NullRuntimeHandlerImplTest {
     private NullRuntimeHandlerImpl handler = null;
 

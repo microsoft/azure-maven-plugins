@@ -41,7 +41,6 @@ public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
     @Override
     public Update updateAppRuntime(final WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
-        WebAppUtils.clearTags(app);
 
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final Server server = Utils.getServer(mojo.getSettings(), containerSetting.getServerId());
