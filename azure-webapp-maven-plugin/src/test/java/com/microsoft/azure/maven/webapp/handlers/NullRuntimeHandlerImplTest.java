@@ -20,7 +20,7 @@ import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@RunWith(MockitoJUnitRunner.class)
 public class NullRuntimeHandlerImplTest {
     private NullRuntimeHandlerImpl handler = null;
 
@@ -46,8 +46,6 @@ public class NullRuntimeHandlerImplTest {
         final WebApp app = mock(WebApp.class);
         final Update update = mock(Update.class);
         doReturn(update).when(app).update();
-        final SiteInner siteInner = mock(SiteInner.class);
-        doReturn(siteInner).when(app).inner();
 
         assertSame(update, handler.updateAppRuntime(app));
     }
