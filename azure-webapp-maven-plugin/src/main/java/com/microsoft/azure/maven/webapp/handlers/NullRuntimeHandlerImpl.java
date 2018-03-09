@@ -23,7 +23,6 @@ public class NullRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public Update updateAppRuntime(final WebApp app) throws Exception {
-        WebAppUtils.clearTags(app);
         return app.update();
     }
 }

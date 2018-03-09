@@ -46,8 +46,6 @@ public class NullRuntimeHandlerImplTest {
         final WebApp app = mock(WebApp.class);
         final Update update = mock(Update.class);
         doReturn(update).when(app).update();
-        final SiteInner siteInner = mock(SiteInner.class);
-        doReturn(siteInner).when(app).inner();
 
         assertSame(update, handler.updateAppRuntime(app));
     }

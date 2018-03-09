@@ -40,7 +40,6 @@ public class PrivateDockerHubRuntimeHandlerImpl implements RuntimeHandler {
     @Override
     public WebApp.Update updateAppRuntime(final WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
-        WebAppUtils.clearTags(app);
 
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final Server server = Utils.getServer(mojo.getSettings(), containerSetting.getServerId());

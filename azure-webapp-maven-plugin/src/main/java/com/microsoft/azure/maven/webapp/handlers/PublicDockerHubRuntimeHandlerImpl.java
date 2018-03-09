@@ -30,7 +30,6 @@ public class PublicDockerHubRuntimeHandlerImpl implements RuntimeHandler {
     @Override
     public Update updateAppRuntime(final WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
-        WebAppUtils.clearTags(app);
 
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         return app.update().withPublicDockerHubImage(containerSetting.getImageName());

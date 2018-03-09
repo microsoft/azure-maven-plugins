@@ -65,17 +65,4 @@ public class WebAppUtils {
             return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
         }
     }
-
-    /**
-     * Work Around:
-     * When a web app is created from Azure Portal, there are hidden tags associated with the app.
-     * It will be messed up when calling "update" API.
-     * An issue is logged at https://github.com/Azure/azure-sdk-for-java/issues/1755 .
-     * Remove all tags here to make it work.
-     *
-     * @param app
-     */
-    public static void clearTags(final WebApp app) {
-        app.inner().withTags(null);
-    }
 }
