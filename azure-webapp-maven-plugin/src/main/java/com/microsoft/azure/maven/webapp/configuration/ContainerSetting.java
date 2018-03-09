@@ -17,7 +17,7 @@ public class ContainerSetting {
     /**
      * Whether to use built-in blessed image
      */
-    private boolean useBuiltInImage;
+    private boolean useBuiltinImage;
 
     /**
      * Image name used for Web App on Linux or Web App for container.<br/>
@@ -83,11 +83,11 @@ public class ContainerSetting {
                 StringUtils.isEmpty(getRegistryUrl());
     }
 
-    public boolean isUseBuiltInImage() {
-        return useBuiltInImage;
+    public boolean isUseBuiltinImage() {
+        return useBuiltinImage;
     }
 
-    public void setUseBuiltInImage(boolean useBuiltInImage) {
-        this.useBuiltInImage = useBuiltInImage;
+    public void setUseBuiltinImage(boolean useBuiltinImage) {
+        this.useBuiltinImage = useBuiltinImage;
     }
 }
