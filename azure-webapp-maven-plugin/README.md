@@ -194,13 +194,14 @@ You can deploy your **WAR** file and other artifacts to Web App via FTP. The fol
 
 #### Container Setting
 
-In the `<containerSettings>` element of your `pom.xml` file, you can specify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
+In the `<containerSettings>` element of your `pom.xml` file, you can sepcify to use built-in image for Apache Tomcat. You can also specify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
 
 You can specify the following properties within the `<containerSettings>` element:
 
 Property | Required | Description
 ---|---|---
-`<imageName>` | true | Specifies the Docker image name. Valid image name formats are listed as below.<br>- Docker Hub image: `[hub-user/]repo-name[:tag]`; `tag` is optional, default value is **latest**.<br>- Private registry image: `hostname/repo-name[:tag]`; `tag` is optional, default value is **latest**.
+`<useBuiltinImage>` | false | Specifies (`true` or `false`) whether to use Azure Web App built-in support for tomcat; the default value is **`false`**.
+`<imageName>` | true | Specifies the Docker image name. Valid image name formats are listed as below.<br>- Built-in image: `tomcat 9.0-jre8` or `tomcat 8.5-jre8`; currently built-in image includes **Apache Tomcat 8.5/9.0** and **OpenJDK 8**.<br>- Docker Hub image: `[hub-user/]repo-name[:tag]`; `tag` is optional, default value is **latest**.<br>- Private registry image: `hostname/repo-name[:tag]`; `tag` is optional, default value is **latest**.
 `<serverId>` | false | Specifies the credentials for private docker hub images or private container registry images. (Note: `serverId` should be from your Maven `setting.xml` file.)
 `<registryUrl>` | false | Specifies the URL of private container registry images.
 
