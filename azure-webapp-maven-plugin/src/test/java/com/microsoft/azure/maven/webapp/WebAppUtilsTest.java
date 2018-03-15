@@ -75,10 +75,6 @@ public class WebAppUtilsTest {
         containerSetting.setImageName("imageName");
         assertEquals(DockerImageType.PUBLIC_DOCKER_HUB, WebAppUtils.getDockerImageType(containerSetting));
 
-        containerSetting.setUseBuiltinImage(true);
-        assertEquals(DockerImageType.BUILT_IN, WebAppUtils.getDockerImageType(containerSetting));
-        containerSetting.setUseBuiltinImage(false);
-
         containerSetting.setServerId("serverId");
         assertEquals(DockerImageType.PRIVATE_DOCKER_HUB, WebAppUtils.getDockerImageType(containerSetting));
 

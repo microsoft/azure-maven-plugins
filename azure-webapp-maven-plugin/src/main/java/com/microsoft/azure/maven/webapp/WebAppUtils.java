@@ -52,10 +52,6 @@ public class WebAppUtils {
             return DockerImageType.NONE;
         }
 
-        if (containerSetting.isUseBuiltinImage()) {
-            return DockerImageType.BUILT_IN;
-        }
-
         final boolean isCustomRegistry = StringUtils.isNotEmpty(containerSetting.getRegistryUrl());
         final boolean isPrivate = StringUtils.isNotEmpty(containerSetting.getServerId());
 

@@ -14,10 +14,10 @@ import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class HandlerFactoryImpl extends HandlerFactory {
-    public static final String RUNTIME_CONFIG_CONFLICT = "<javaVersion> is for Web App on Windows; " +
-            "<containerSettings> is for Web App on Linux; they can't be specified at the same time.";
+    public static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>" +
+            "and <containerSettings> should not be set at the same time.";
     public static final String NO_RUNTIME_HANDLER = "Not able to process the runtime stack configuration; " +
-            "please check <javaVersion> or <containerSettings> tag in pom.xml";
+            "please check <javaVersion>, <linuxRuntime> or <containerSettings> tag in pom.xml";
     public static final String IMAGE_NAME_MISSING = "<imageName> not found within <containerSettings> tag.";
     public static final String DEPLOYMENT_TYPE_NOT_FOUND = "<deploymentType> is not configured.";
     public static final String UNKNOWN_DEPLOYMENT_TYPE = "Unknown value from <deploymentType> tag.";
@@ -25,15 +25,16 @@ public class HandlerFactoryImpl extends HandlerFactory {
     @Override
     public RuntimeHandler getRuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
         final JavaVersion javaVersion = mojo.getJavaVersion();
+        final String linuxRuntime = mojo.getLinuxRuntime();
         final ContainerSetting containerSetting = mojo.getContainerSettings();
 
-        // Neither <javaVersion> nor <containerSettings> is specified
-        if (javaVersion == null && (containerSetting == null || containerSetting.isEmpty())) {
+        // No runtime setting is specified
+        if (javaVersion == null && linuxRuntime == null && (containerSetting == null || containerSetting.isEmpty())) {
             return new NullRuntimeHandlerImpl();
         }
 
-        // Both <javaVersion> and <containerSettings> are specified
-        if (javaVersion != null && containerSetting != null && !containerSetting.isEmpty()) {
+        // Duplicated runtime are specified
+        if (isDuplicatedRuntimeDefined(javaVersion, linuxRuntime, containerSetting)) {
             throw new MojoExecutionException(RUNTIME_CONFIG_CONFLICT);
         }
 
@@ -41,10 +42,12 @@ public class HandlerFactoryImpl extends HandlerFactory {
             return new JavaRuntimeHandlerImpl(mojo);
         }
 
+        if (linuxRuntime != null) {
+            return new LinuxRuntimeHandlerImpl(mojo);
+        }
+
         final DockerImageType imageType = WebAppUtils.getDockerImageType(containerSetting);
         switch (imageType) {
-            case BUILT_IN:
-                return new BuiltInImageRuntimeHandlerImpl(mojo);
             case PUBLIC_DOCKER_HUB:
                 return new PublicDockerHubRuntimeHandlerImpl(mojo);
             case PRIVATE_DOCKER_HUB:
@@ -74,5 +77,11 @@ public class HandlerFactoryImpl extends HandlerFactory {
             default:
                 return new FTPArtifactHandlerImpl(mojo);
         }
+    }
+
+    private boolean isDuplicatedRuntimeDefined(final JavaVersion javaVersion, final String linuxRuntime,
+                                               final ContainerSetting containerSetting) {
+        return javaVersion != null ? linuxRuntime != null || (containerSetting != null && containerSetting.isEmpty()) :
+                linuxRuntime != null && (containerSetting != null && containerSetting.isEmpty());
     }
 }
