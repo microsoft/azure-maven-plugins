@@ -29,7 +29,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
         final ContainerSetting containerSetting = mojo.getContainerSettings();
 
         // No runtime setting is specified
-        if (javaVersion == null && linuxRuntime == null && (containerSetting == null || containerSetting.isEmpty())) {
+        if (javaVersion == null && linuxRuntime == null && isContainerSettingEmpty(containerSetting)) {
             return new NullRuntimeHandlerImpl();
         }
 
@@ -62,7 +62,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
     }
 
     @Override
-    public SettingsHandler getSettingsHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+    public SettingsHandler getSettingsHandler(final AbstractWebAppMojo mojo) {
         return new SettingsHandlerImpl(mojo);
     }
 
@@ -81,7 +81,11 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
     private boolean isDuplicatedRuntimeDefined(final JavaVersion javaVersion, final String linuxRuntime,
                                                final ContainerSetting containerSetting) {
-        return javaVersion != null ? linuxRuntime != null || (containerSetting != null && containerSetting.isEmpty()) :
-                linuxRuntime != null && (containerSetting != null && containerSetting.isEmpty());
+        return javaVersion != null ? linuxRuntime != null || !isContainerSettingEmpty(containerSetting) :
+                linuxRuntime != null && !isContainerSettingEmpty(containerSetting);
+    }
+
+    private boolean isContainerSettingEmpty(final ContainerSetting containerSetting) {
+        return containerSetting == null || containerSetting.isEmpty();
     }
 }
