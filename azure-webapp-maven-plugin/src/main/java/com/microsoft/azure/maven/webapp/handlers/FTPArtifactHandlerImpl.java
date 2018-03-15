@@ -19,6 +19,7 @@ import java.util.List;
 public class FTPArtifactHandlerImpl implements ArtifactHandler {
     public static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
+    public static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
 
     private AbstractWebAppMojo mojo;
 
@@ -28,6 +29,10 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
 
     @Override
     public void publish(final List<Resource> resources) throws Exception {
+        if (resources == null || resources.isEmpty()) {
+            mojo.getLog().info(NO_RESOURCES_CONFIG);
+            return;
+        }
         copyResourcesToStageDirectory(resources);
         uploadDirectoryToFTP();
     }
