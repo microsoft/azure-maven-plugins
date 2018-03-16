@@ -20,6 +20,9 @@ public class WARHandlerImpl implements ArtifactHandler  {
 
     private AbstractWebAppMojo mojo;
 
+    private static final int DEFAULT_MAX_RETRY_TIMES = 5;
+    private static final String UPLOAD_FAILURE = "Failed to upload files to FTP server, retrying immediately (%d/%d)";
+
     public WARHandlerImpl(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
     }
@@ -31,6 +34,15 @@ public class WARHandlerImpl implements ArtifactHandler  {
         if (!war.exists() || !war.isFile() || !Files.getFileExtension(war.getName()).equalsIgnoreCase("war")) {
             throw new MojoExecutionException("Failed to find the war file in build directory");
         }
-        mojo.getWebApp().warDeploy(war);
+        mojo.getLog().info("Starting to deploy the war file...");
+        int retryCount = 0;
+        while (retryCount++ < DEFAULT_MAX_RETRY_TIMES) {
+            try {
+                mojo.getWebApp().warDeploy(war);
+            } catch (Exception e) {
+                mojo.getLog().warn(String.format(UPLOAD_FAILURE, retryCount, DEFAULT_MAX_RETRY_TIMES));
+            }
+        }
+
     }
 }
