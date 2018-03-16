@@ -125,9 +125,18 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     protected String javaWebContainer;
 
     /**
+     * Below is the list of supported Linux runtime:
+     * <ul>
+     *     <li>tomcat 8.5-jre8</li>
+     *     <li>tomcat 9.0-jre8</li>
+     * </ul>
+     */
+    @Parameter(property = "webapp.linuxRuntime")
+    protected String linuxRuntime;
+
+    /**
      * Settings of docker container image within Web App. This only applies to Linux-based Web App.<br/>
      * Below are the supported sub-element within {@code <containerSettings>}:<br/>
-     * {@code <useBuiltInImage>} specifies whether built-in images are used in Web App on Linux.<br/>
      * {@code <imageName>} specifies docker image name to use in Web App on Linux<br/>
      * {@code <serverId>} specifies credentials to access docker image. Use it when you are using private Docker Hub
      * image or private registry.<br/>
@@ -215,6 +224,10 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public JavaVersion getJavaVersion() {
         return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
+    }
+
+    public String getLinuxRuntime() {
+        return linuxRuntime;
     }
 
     public WebContainer getJavaWebContainer() {

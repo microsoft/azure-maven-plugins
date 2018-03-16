@@ -15,14 +15,14 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 
-public class BuiltInImageRuntimeHandlerImpl implements RuntimeHandler {
+public class LinuxRuntimeHandlerImpl implements RuntimeHandler {
 
     private static final String NOT_SUPPORTED_IMAGE = "The image: '%s' is not supported.";
     private static final String IMAGE_NOT_GIVEN = "Image name is not specified.";
 
     private AbstractWebAppMojo mojo;
 
-    public BuiltInImageRuntimeHandlerImpl(AbstractWebAppMojo mojo) {
+    public LinuxRuntimeHandlerImpl(AbstractWebAppMojo mojo) {
         this.mojo = mojo;
     }
 
@@ -30,14 +30,14 @@ public class BuiltInImageRuntimeHandlerImpl implements RuntimeHandler {
     public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
         return WebAppUtils.defineApp(mojo)
                 .withNewLinuxPlan(mojo.getPricingTier())
-                .withBuiltInImage(this.getJavaRunTimeStack(mojo.getContainerSettings().getImageName()));
+                .withBuiltInImage(this.getJavaRunTimeStack(mojo.getLinuxRuntime()));
     }
 
     @Override
     public WebApp.Update updateAppRuntime(WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
 
-        return app.update().withBuiltInImage(this.getJavaRunTimeStack(mojo.getContainerSettings().getImageName()));
+        return app.update().withBuiltInImage(this.getJavaRunTimeStack(mojo.getLinuxRuntime()));
     }
 
     private RuntimeStack getJavaRunTimeStack(String imageName) throws MojoExecutionException {
