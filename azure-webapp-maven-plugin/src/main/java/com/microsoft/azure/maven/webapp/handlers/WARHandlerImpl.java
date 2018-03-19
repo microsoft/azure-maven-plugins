@@ -14,6 +14,7 @@ import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import com.google.common.io.Files;
+import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 
 public class WARHandlerImpl implements ArtifactHandler  {
@@ -21,7 +22,8 @@ public class WARHandlerImpl implements ArtifactHandler  {
     private AbstractWebAppMojo mojo;
 
     private static final int DEFAULT_MAX_RETRY_TIMES = 5;
-    private static final String UPLOAD_FAILURE = "Failed to upload files to FTP server, retrying immediately (%d/%d)";
+    private static final String UPLOAD_FAILURE = "Failed to deploy the war file to server, " +
+            "retrying immediately (%d/%d)";
 
     public WARHandlerImpl(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
@@ -36,9 +38,11 @@ public class WARHandlerImpl implements ArtifactHandler  {
         }
         mojo.getLog().info("Starting to deploy the war file...");
         int retryCount = 0;
+        final WebApp app = mojo.getWebApp();
         while (retryCount++ < DEFAULT_MAX_RETRY_TIMES) {
             try {
-                mojo.getWebApp().warDeploy(war);
+                app.warDeploy(war);
+                return;
             } catch (Exception e) {
                 mojo.getLog().warn(String.format(UPLOAD_FAILURE, retryCount, DEFAULT_MAX_RETRY_TIMES));
             }
