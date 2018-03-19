@@ -3,11 +3,13 @@
 #### Table of Content
 - [Web App (on Windows) with Java 8, Tomcat and FTP deployment](#web-app-on-windows)
 
-- [Web App on Linux with public DockerHub container image](#web-app-on-linux-public-docker)
+- [Web App (on Linux) with Java 8, Tomcat and FTP deployment](#web-app-on-linux)
 
-- [Web App on Linux with private DockerHub container image](#web-app-on-linux-private-docker)
+- [Web App for Containers with public DockerHub container image](#web-app-for-containers-public-docker)
 
-- [Web App on Linux with docker container image in private container registry](#web-app-on-linux-private-registry)
+- [Web App for Containers with private DockerHub container image](#web-app-for-containers-private-docker)
+
+- [Web App for Containers with docker container image in private container registry](#web-app-for-containers-private-registry)
 
 
 <a name="web-app-on-windows"></a>
@@ -41,7 +43,7 @@ The following configuration is applicable for below scenario:
                   <region>westus</region>
                   <pricingTier>S1</pricingTier>
                   
-                  <!-- Java Runtime Stack-->
+                  <!-- Java Runtime Stack for Web App on Windows-->
                   <javaVersion>1.8</javaVersion>
                   <javaWebContainer>tomcat 8.5</javaWebContainer>
                   
@@ -74,12 +76,76 @@ The following configuration is applicable for below scenario:
       </build>
    <project>
    ```
+   
+<a name="web-app-on-linux"></a>
+## Web App (on Linux) with Java 8, Tomcat and FTP deployment
+The following configuration is applicable for below scenario:
+- Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
+- Web App on Linux
+- Using Java 8 and Tomcat 8.5
+- Using FTP to deploy **WAR** file to `/site/wwwroot/webapps/` directory in your Web App server
+- Add Application Settings to your Web App
 
-<a name="web-app-on-linux-public-docker"></a>
-## Web App on Linux with public DockerHub container image
+   ```xml
+   <project>
+      ...
+      <build>
+         <plugins>
+            <plugin>
+               <groupId>com.microsoft.azure</groupId>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>0.1.5</version>
+               <configuration>
+                  <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
+                  <authentication>
+                    <serverId>azure-auth</serverId>
+                  </authentication>
+                  
+                  <!-- Web App information -->
+                  <resourceGroup>your-resource-group</resourceGroup>
+                  <appName>your-app-name</appName>
+                  <!-- <region> and <pricingTier> are optional. They will be used to create new Web App if the specified Web App doesn't exist -->
+                  <region>westus</region>
+                  <pricingTier>S1</pricingTier>
+                  
+                  <!-- Java Runtime Stack for Web App on Linux-->
+                  <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
+                  
+                  <!-- FTP deployment -->
+                  <deploymentType>ftp</deploymentType>
+                  <!-- Resources to be deployed to your Web App -->
+                  <resources>
+                     <resource>
+                        <!-- Where your artifacts are stored -->
+                        <directory>${project.basedir}/target</directory>
+                        <!-- Relative path to /site/wwwroot/ -->
+                        <targetPath>webapps</targetPath>
+                        <includes>
+                           <include>*.war</include>
+                        </includes>
+                     </resource>
+                  </resources>
+                  
+                  <!-- Application Settings of your Web App -->
+                  <appSettings>
+                     <property>
+                        <name>your-setting-key</name>
+                        <value>your-setting-value</value>
+                     </property>
+                  </appSettings>
+               </configuration>
+            </plugin>
+            ...
+         </plugins>
+      </build>
+   <project>
+   ```
+
+<a name="web-app-for-containers-public-docker"></a>
+## Web App for Containers with public DockerHub container image
 The following configuration is applicable for below scenario:
 - Referencing `${azure.auth.filePath}` in Maven's `settings.xml` to authenticate with Azure
-- Web App on Linux
+- Web App for Containers
 - Using public DockerHub image `springio/gs-spring-boot-docker:latest` as runtime stack
 - Add Application Settings to your Web App
 
@@ -129,11 +195,11 @@ The following configuration is applicable for below scenario:
    <project>
    ```
 
-<a name="web-app-on-linux-private-docker"></a>
-## Web App on Linux with private DockerHub container image
+<a name="web-app-for-containers-private-docker"></a>
+## Web App for Containers with private DockerHub container image
 The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
-- Web App on Linux
+- Web App for Containers
 - Using private DockerHub image `your-docker-account/your-private-image:latest` as runtime stack
 - Add Application Settings to your Web App
 
@@ -184,11 +250,11 @@ The following configuration is applicable for below scenario:
    <project>
    ```
 
-<a name="web-app-on-linux-private-registry"></a>
-## Web App on Linux with docker container image in private container registry
+<a name="web-app-for-containers-private-registry"></a>
+## Web App for Containers with docker container image in private container registry
 The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
-- Web App on Linux
+- Web App for Containers
 - Using image `example.azurecr.io/image-name:latest` from private container registry `https://example.azurecr.io` as runtime stack
 - Add Application Settings to your Web App
 
