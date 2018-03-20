@@ -6,6 +6,9 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
+
+import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithNewAppServicePlan;
 import com.microsoft.azure.management.resources.fluentcore.arm.models.GroupableResource.DefinitionStages.WithGroup;
@@ -20,6 +23,8 @@ public class WebAppUtils {
                     "please use <javaVersion> and <javaWebContainer> to configure your runtime.";
     public static final String JAVA_VERSION_NOT_APPLICABLE = "<javaVersion> is not applicable to Web App on Linux; " +
             "please use <containerSettings> to specify your runtime.";
+    public static final String NOT_SUPPORTED_IMAGE = "The image: '%s' is not supported.";
+    public static final String IMAGE_NOT_GIVEN = "Image name is not specified.";
 
     private static boolean isLinuxWebApp(final WebApp app) {
         return app.inner().kind().contains("linux");
@@ -60,5 +65,18 @@ public class WebAppUtils {
         } else {
             return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
         }
+    }
+
+    public static RuntimeStack getLinuxRunTimeStack(String imageName) throws MojoExecutionException {
+        if (isNotEmpty(imageName)) {
+            if (imageName.equalsIgnoreCase(RuntimeStack.TOMCAT_8_5_JRE8.toString())) {
+                return RuntimeStack.TOMCAT_8_5_JRE8;
+            } else if (imageName.equalsIgnoreCase(RuntimeStack.TOMCAT_9_0_JRE8.toString())) {
+                return RuntimeStack.TOMCAT_9_0_JRE8;
+            } else {
+                throw new MojoExecutionException(String.format(NOT_SUPPORTED_IMAGE, imageName));
+            }
+        }
+        throw new MojoExecutionException(IMAGE_NOT_GIVEN);
     }
 }
