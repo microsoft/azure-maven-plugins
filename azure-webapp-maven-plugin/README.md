@@ -13,7 +13,7 @@
         - [Web Container](#web-container)
     - [Web App (on Linux)](#web-app-on-linux)
         - [Java Runtime and Web Container](#java-runtime-and-web-container)
-    - [Web App (for Containers)](#web-app-for-containers)
+    - [Web App for Containers](#web-app-for-containers)
         - [Container Setting](#container-setting)
     - [Supported Regions](#supported-regions)
     - [Supported Pricing Tiers](#supported-pricing-tiers)
@@ -52,7 +52,7 @@ To use the Maven Plugin for Azure Web Apps in your Maven Java app, add the follo
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.1.3</version>
+               <version>0.2.0</version>
                <configuration>
                   ...
                </configuration>
@@ -200,7 +200,7 @@ Use values from the following table to configure the JVM and Web Container you w
 Supported Value | Description
 ---|---
 `tomcat 8.5-jre8` | Java 8, Tomcat 8.5
-`tomcat 9.0-jre8` | Java 8, Update 9.0
+`tomcat 9.0-jre8` | Java 8, Tomcat 9.0
 
    ```xml
    <plugin>
@@ -214,42 +214,9 @@ Supported Value | Description
    ```
 
 #### Deploy via FTP
-You can deploy your **WAR** file and other artifacts to Web App via FTP. The following example shows all configuration elements.
+You can deploy your **WAR** file and other artifacts to Web App via FTP. Please refer to [the example in previous section](#deploy-via-ftp) for all configuration elements.
 
-   ```xml
-   <plugin>
-      <groupId>com.microsoft.azure</groupId>
-      <artifactId>azure-webapp-maven-plugin</artifactId>
-      <configuration>
-         <deploymentType>ftp</deploymentType>
-         <resources>
-            <resource>
-                <directory>${project.basedir}/target</directory>
-                <targetPath>webapps</targetPath>
-                <includes>
-                    <include>*.war</include>
-                </includes>
-                <excludes>
-                    <exclude>*.xml</exclude>
-                </excludes>
-            </resource>
-         </resources>
-         ...
-      </configuration>
-   </plugin>
-   ```
-   
-   Detailed explanation of the `<resource>` element is listed in the following table.
-   
-   Property | Description
-   ---|---
-   `directory` | Specifies the absolute path where the resources are stored.
-   `targetPath` | Specifies the target path where the resources will be deployed to.<br>This is a relative path to the `/site/wwwroot/` folder of FTP server in your Web App.
-   `includes` | A list of patterns to include, e.g. `**/*.xml`.
-   `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
-
-
-### Web App (for Containers)
+### Web App for Containers
 
 #### Container Setting
 
