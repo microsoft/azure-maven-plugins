@@ -26,17 +26,13 @@ addons:
 
 install:
   - pip install azure-cli --user
-# before_install:
-#   - sudo apt-get update && sudo apt-get install -y libssl-dev libffi-dev python-dev build-essential
-#   - sudo pip install azure-cli
 
 script:
-  # - if [ "${TRAVIS_PULL_REQUEST}" = "false" ];
-  #   then ./mvnw verify -P it;
-  #   else ./mvnw verify;
-  #   fi
-  - ./mvnw verify -P it;
-  # - './mvnw cobertura:cobertura'
+  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ];
+    then ./mvnw verify -P it;
+    else ./mvnw verify;
+    fi
+  - './mvnw cobertura:cobertura'
 
 after_success:
   # test coverage reporting
