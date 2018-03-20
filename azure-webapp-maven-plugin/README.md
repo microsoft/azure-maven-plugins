@@ -11,7 +11,9 @@
     - [Web App (on Windows)](#web-app-on-windows)
         - [Java Runtime](#java-runtime)
         - [Web Container](#web-container)
-    - [Web App on Linux](#web-app-on-linux)
+    - [Web App (on Linux)](#web-app-on-linux)
+        - [Java Runtime and Web Container](#java-runtime-and-web-container)
+    - [Web App for Containers](#web-app-for-containers)
         - [Container Setting](#container-setting)
     - [Supported Regions](#supported-regions)
     - [Supported Pricing Tiers](#supported-pricing-tiers)
@@ -50,7 +52,7 @@ To use the Maven Plugin for Azure Web Apps in your Maven Java app, add the follo
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.1.3</version>
+               <version>0.2.0</version>
                <configuration>
                   ...
                </configuration>
@@ -190,18 +192,41 @@ You can deploy your **WAR** file and other artifacts to Web App via FTP. The fol
    `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
 
 
-### Web App on Linux
+### Web App (on Linux)
+
+#### Java Runtime and Web Container 
+Use values from the following table to configure the JVM and Web Container you want to use in your Web App.
+
+Supported Value | Description
+---|---
+`tomcat 8.5-jre8` | Java 8, Tomcat 8.5
+`tomcat 9.0-jre8` | Java 8, Tomcat 9.0
+
+   ```xml
+   <plugin>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>azure-webapp-maven-plugin</artifactId>
+      <configuration>
+         <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
+         ...
+      </configuration>
+   </plugin>
+   ```
+
+#### Deploy via FTP
+You can deploy your **WAR** file and other artifacts to Web App via FTP. Please refer to [the example in previous section](#deploy-via-ftp) for all configuration elements.
+
+### Web App for Containers
 
 #### Container Setting
 
-In the `<containerSettings>` element of your `pom.xml` file, you can sepcify to use built-in image for Apache Tomcat. You can also specify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
+In the `<containerSettings>` element of your `pom.xml` file, you can sepcify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
 
 You can specify the following properties within the `<containerSettings>` element:
 
 Property | Required | Description
 ---|---|---
-`<useBuiltinImage>` | false | Specifies (`true` or `false`) whether to use Azure Web App built-in support for tomcat; the default value is **`false`**.
-`<imageName>` | true | Specifies the Docker image name. Valid image name formats are listed as below.<br>- Built-in image: `tomcat 9.0-jre8` or `tomcat 8.5-jre8`; currently built-in image includes **Apache Tomcat 8.5/9.0** and **OpenJDK 8**.<br>- Docker Hub image: `[hub-user/]repo-name[:tag]`; `tag` is optional, default value is **latest**.<br>- Private registry image: `hostname/repo-name[:tag]`; `tag` is optional, default value is **latest**.
+`<imageName>` | true | Specifies the Docker image name. Valid image name formats are listed as below.<br>- Docker Hub image: `[hub-user/]repo-name[:tag]`; `tag` is optional, default value is **latest**.<br>- Private registry image: `hostname/repo-name[:tag]`; `tag` is optional, default value is **latest**.
 `<serverId>` | false | Specifies the credentials for private docker hub images or private container registry images. (Note: `serverId` should be from your Maven `setting.xml` file.)
 `<registryUrl>` | false | Specifies the URL of private container registry images.
 
