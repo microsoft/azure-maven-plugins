@@ -16,16 +16,27 @@ env:
     # KEY
     - secure: yLZyoxdqFU26hgHuA+fCqyy5FUMUOj/K0jfSZ7SjLSVcItESwTtk2GKF2JmWAp6415VfqCYhfKAw+/vEKg6OaEX+J7HuSiir/Ji0bF6rLexaMiJEoMW2sdHiT8cPjZnjJCOe+p/otB4wzcjGBE8yuJ/QqKQVXF0qgclJbtgo1AR1C8ojBoCXondVPilVvo5CJFhBbNlQGY5ZI2cLlgLthl7XSdChTMscv2dRLP0nHhXLDPKakBbAJmFnsQt6x7BhzolKQcHcMUluap9xygJNN9nuTfRMqlHWXuvkkXUrKpV8HmV1QYaUdWL0y8jiRvyuowhtXGfO4y8Vlrx7glF15LMecPAnoGkFnRv1tnEYODX8VAlYkVeu6wQ1HYDWQPyO8xz+SaCSKobSRrqrZd18d5A2xHi1nxibpG+rZ+2jRUamOSEUG/vcsBYS8Um0UyEPcFDyXQX1tVvVWIT8XiQOOXHO/YPHFywaInXpPVF4JWFj35KFPynvYxmGt0W9RJyyVYTiqkFMOCRokq/6g5BRJIX7szSgEWRGplXs93FYdWsOA2DwQnhtYTUyYtJtz4lPR/fPz6MJS6xJEnWGAZ3woLAdWact60wfxYseK+yknuPHY3IWMrBLXPhwu14e6FlQpVWW4HJOXYf+PLVSoNhTF1InI9gKq9GXXsm+FzIWbVM=
 
-before_install:
-  - sudo apt-get update && sudo apt-get install -y libssl-dev libffi-dev python-dev build-essential
-  - sudo pip install azure-cli
+addons:
+  apt:
+    packages:
+      - libssl-dev
+      - libffi-dev
+      - python-dev
+      - build-essential
+
+install:
+  - pip install azure-cli --user
+# before_install:
+#   - sudo apt-get update && sudo apt-get install -y libssl-dev libffi-dev python-dev build-essential
+#   - sudo pip install azure-cli
 
 script:
-  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ];
-    then ./mvnw verify -P it;
-    else ./mvnw verify;
-    fi
-  - './mvnw cobertura:cobertura'
+  # - if [ "${TRAVIS_PULL_REQUEST}" = "false" ];
+  #   then ./mvnw verify -P it;
+  #   else ./mvnw verify;
+  #   fi
+  - ./mvnw verify -P it;
+  # - './mvnw cobertura:cobertura'
 
 after_success:
   # test coverage reporting
