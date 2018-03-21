@@ -30,6 +30,7 @@ import java.util.Properties;
 public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     public static final String JAVA_VERSION_KEY = "javaVersion";
     public static final String JAVA_WEB_CONTAINER_KEY = "javaWebContainer";
+    public static final String LINUX_RUNTIME_KEY = "linuxRuntime";
     public static final String DOCKER_IMAGE_TYPE_KEY = "dockerImageType";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
@@ -282,6 +283,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         final Map<String, String> map = super.getTelemetryProperties();
         map.put(JAVA_VERSION_KEY, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
         map.put(JAVA_WEB_CONTAINER_KEY, getJavaWebContainer().toString());
+        map.put(LINUX_RUNTIME_KEY, StringUtils.isEmpty(linuxRuntime) ? "" : linuxRuntime);
         map.put(DOCKER_IMAGE_TYPE_KEY, WebAppUtils.getDockerImageType(getContainerSettings()).toString());
         map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
         return map;
