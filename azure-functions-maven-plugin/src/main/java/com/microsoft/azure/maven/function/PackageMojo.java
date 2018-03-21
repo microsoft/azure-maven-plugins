@@ -14,15 +14,20 @@ import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
 
+import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +57,8 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     public static final String FUNCTION_JSON = "function.json";
     public static final String HOST_JSON = "host.json";
+
+    public static final String DEPENDENCY_PLUGIN_KEY = "org.apache.maven.plugins:maven-dependency-plugin";
 
     //region Entry Point
 
@@ -90,11 +97,13 @@ public class PackageMojo extends AbstractFunctionMojo {
         Set<Method> functions;
         try {
             debug("ClassPath to resolve: " + getTargetClassUrl());
-            functions = handler.findFunctions(getTargetClassUrl());
+            final List<URL> dependencyWithTargetClass = getDependencyArtifactUrls();
+            dependencyWithTargetClass.add(getTargetClassUrl());
+            functions = handler.findFunctions(dependencyWithTargetClass);
         } catch (NoClassDefFoundError e) {
-            // fallback to reflect through artifact url
+            // fallback to reflect through artifact url, for shaded project(fat jar)
             debug("ClassPath to resolve: " + getArtifactUrl());
-            functions = handler.findFunctions(getArtifactUrl());
+            functions = handler.findFunctions(Arrays.asList(getArtifactUrl()));
         }
         info(functions.size() + FOUND_FUNCTIONS);
         return functions;
@@ -106,6 +115,41 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected URL getTargetClassUrl() throws Exception {
         return outputDirectory.toURI().toURL();
+    }
+
+    /**
+     * This method will search the output directory which configured in the Maven Dependency Plugin.
+     * Maven Dependency Plugin will extract the runtime jars into the output directory,
+     * and these jars will be used for annotation search using reflection.
+     * @return URLs for the runtime needed jars
+     */
+    protected List<URL> getDependencyArtifactUrls() {
+        final List<URL> urlList = new ArrayList<>();
+        final Plugin dependencyPlugin = this.getProject().getPlugin(DEPENDENCY_PLUGIN_KEY);
+        if (dependencyPlugin != null) {
+            final List<PluginExecution> executions = dependencyPlugin.getExecutions();
+            for (final PluginExecution execution: executions) {
+                if (execution.getId().equals("copy-dependencies")) {
+                    final Xpp3Dom dom = (Xpp3Dom) execution.getConfiguration();
+                    if (dom != null && dom.getChild("outputDirectory") != null) {
+                        final File outputDirectory = new File(dom.getChild("outputDirectory").getValue());
+                        File[] files = outputDirectory.listFiles();
+                        if (files != null) {
+                            for (final File f : files) {
+                                try {
+                                    urlList.add(f.toURI().toURL());
+                                } catch (MalformedURLException e) {
+                                    debug("Failed to parse URI to URL. File: " + f.toString());
+                                }
+                            }
+                        } else {
+                            debug("Failed to list Files in directory: " + outputDirectory.toString());
+                        }
+                    }
+                }
+            }
+        }
+        return urlList;
     }
 
     //endregion
