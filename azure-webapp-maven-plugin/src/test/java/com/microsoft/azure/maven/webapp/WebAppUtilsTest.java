@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
@@ -83,5 +84,21 @@ public class WebAppUtilsTest {
 
         containerSetting.setServerId("");
         assertEquals(DockerImageType.UNKNOWN, WebAppUtils.getDockerImageType(containerSetting));
+    }
+
+    @Test
+    public void getLinuxRunTimeStack() throws MojoExecutionException {
+        assertEquals(RuntimeStack.TOMCAT_8_5_JRE8, WebAppUtils.getLinuxRunTimeStack("tomcat 8.5-jre8"));
+        assertEquals(RuntimeStack.TOMCAT_9_0_JRE8, WebAppUtils.getLinuxRunTimeStack("tomcat 9.0-jre8"));
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void getLinuxRunTimeStackWithNonExistedInput() throws MojoExecutionException {
+        WebAppUtils.getLinuxRunTimeStack("non-existed-input");
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void getLinuxRunTimeStackWithEmptyInput() throws MojoExecutionException {
+        WebAppUtils.getLinuxRunTimeStack("");
     }
 }

@@ -6,19 +6,14 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
+import static com.microsoft.azure.maven.webapp.WebAppUtils.getLinuxRunTimeStack;
 
-import org.apache.maven.plugin.MojoExecutionException;
-
-import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 
 public class LinuxRuntimeHandlerImpl implements RuntimeHandler {
-
-    private static final String NOT_SUPPORTED_IMAGE = "The image: '%s' is not supported.";
-    private static final String IMAGE_NOT_GIVEN = "Image name is not specified.";
 
     private AbstractWebAppMojo mojo;
 
@@ -30,26 +25,13 @@ public class LinuxRuntimeHandlerImpl implements RuntimeHandler {
     public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
         return WebAppUtils.defineApp(mojo)
                 .withNewLinuxPlan(mojo.getPricingTier())
-                .withBuiltInImage(this.getJavaRunTimeStack(mojo.getLinuxRuntime()));
+                .withBuiltInImage(getLinuxRunTimeStack(mojo.getLinuxRuntime()));
     }
 
     @Override
-    public WebApp.Update updateAppRuntime(WebApp app) throws Exception {
+    public Update updateAppRuntime(WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
 
-        return app.update().withBuiltInImage(this.getJavaRunTimeStack(mojo.getLinuxRuntime()));
-    }
-
-    private RuntimeStack getJavaRunTimeStack(String imageName) throws MojoExecutionException {
-        if (isNotEmpty(imageName)) {
-            if (imageName.equalsIgnoreCase(RuntimeStack.TOMCAT_8_5_JRE8.toString())) {
-                return RuntimeStack.TOMCAT_8_5_JRE8;
-            } else if (imageName.equalsIgnoreCase(RuntimeStack.TOMCAT_9_0_JRE8.toString())) {
-                return RuntimeStack.TOMCAT_9_0_JRE8;
-            } else {
-                throw new MojoExecutionException(String.format(NOT_SUPPORTED_IMAGE, imageName));
-            }
-        }
-        throw new MojoExecutionException(IMAGE_NOT_GIVEN);
+        return app.update().withBuiltInImage(getLinuxRunTimeStack(mojo.getLinuxRuntime()));
     }
 }
