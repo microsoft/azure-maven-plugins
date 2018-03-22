@@ -14,9 +14,7 @@ import org.reflections.util.ClasspathHelper;
 
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
@@ -121,7 +119,7 @@ public class AnnotationHandlerImplTest {
     @Test
     public void findFunctions() throws Exception {
         final AnnotationHandler handler = getAnnotationHandler();
-        final Set<Method> functions = handler.findFunctions(getClassUrl());
+        final Set<Method> functions = handler.findFunctions(Arrays.asList(getClassUrl()));
 
         assertEquals(9, functions.size());
         final List<String> methodNames = functions.stream().map(f -> f.getName()).collect(Collectors.toList());
@@ -139,7 +137,7 @@ public class AnnotationHandlerImplTest {
     @Test
     public void generateConfigurations() throws Exception {
         final AnnotationHandler handler = getAnnotationHandler();
-        final Set<Method> functions = handler.findFunctions(getClassUrl());
+        final Set<Method> functions = handler.findFunctions(Arrays.asList(getClassUrl()));
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(functions);
         configMap.values().forEach(config -> config.validate());
 

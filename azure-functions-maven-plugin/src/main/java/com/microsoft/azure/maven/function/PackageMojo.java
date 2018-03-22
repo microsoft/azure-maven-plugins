@@ -133,7 +133,7 @@ public class PackageMojo extends AbstractFunctionMojo {
                     final Xpp3Dom dom = (Xpp3Dom) execution.getConfiguration();
                     if (dom != null && dom.getChild("outputDirectory") != null) {
                         final File outputDirectory = new File(dom.getChild("outputDirectory").getValue());
-                        File[] files = outputDirectory.listFiles();
+                        final File[] files = outputDirectory.listFiles();
                         if (files != null) {
                             for (final File f : files) {
                                 try {
