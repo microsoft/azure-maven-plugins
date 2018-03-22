@@ -135,11 +135,12 @@ public class DeployMojoTest {
 
         final Map map = mojo.getTelemetryProperties();
 
-        assertEquals(10, map.size());
+        assertEquals(11, map.size());
         assertTrue(map.containsKey(JAVA_VERSION_KEY));
         assertTrue(map.containsKey(JAVA_WEB_CONTAINER_KEY));
         assertTrue(map.containsKey(DOCKER_IMAGE_TYPE_KEY));
         assertTrue(map.containsKey(DEPLOYMENT_TYPE_KEY));
+        assertTrue(map.containsKey(LINUX_RUNTIME_KEY));
     }
 
     @Test
