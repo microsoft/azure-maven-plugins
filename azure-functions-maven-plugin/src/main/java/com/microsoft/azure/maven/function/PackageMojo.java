@@ -129,22 +129,25 @@ public class PackageMojo extends AbstractFunctionMojo {
         if (dependencyPlugin != null) {
             final List<PluginExecution> executions = dependencyPlugin.getExecutions();
             for (final PluginExecution execution: executions) {
-                if (execution.getId().equals("copy-dependencies")) {
-                    final Xpp3Dom dom = (Xpp3Dom) execution.getConfiguration();
-                    if (dom != null && dom.getChild("outputDirectory") != null) {
-                        final File outputDirectory = new File(dom.getChild("outputDirectory").getValue());
-                        final File[] files = outputDirectory.listFiles();
-                        if (files != null) {
-                            for (final File f : files) {
-                                try {
-                                    urlList.add(f.toURI().toURL());
-                                } catch (MalformedURLException e) {
-                                    debug("Failed to parse URI to URL. File: " + f.toString());
-                                }
-                            }
-                        } else {
-                            debug("Failed to list Files in directory: " + outputDirectory.toString());
-                        }
+                if (!execution.getGoals().contains("copy-dependencies")) {
+                    break;
+                }
+                final Xpp3Dom dom = (Xpp3Dom) execution.getConfiguration();
+                if (dom == null || dom.getChild("outputDirectory") == null) {
+                    debug("Failed to get output directory");
+                    break;
+                }
+                final File outputDirectory = new File(dom.getChild("outputDirectory").getValue());
+                final File[] files = outputDirectory.listFiles();
+                if (files == null) {
+                    debug("Failed to list Files in directory: " + outputDirectory.toString());
+                    break;
+                }
+                for (final File f : files) {
+                    try {
+                        urlList.add(f.toURI().toURL());
+                    } catch (MalformedURLException e) {
+                        debug("Failed to parse URI to URL. File: " + f.toString());
                     }
                 }
             }
