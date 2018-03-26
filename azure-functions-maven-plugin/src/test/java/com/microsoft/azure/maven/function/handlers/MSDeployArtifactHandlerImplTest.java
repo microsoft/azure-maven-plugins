@@ -88,7 +88,7 @@ public class MSDeployArtifactHandlerImplTest {
         final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
         final FunctionApp app = mock(FunctionApp.class);
         final Map appSettings = mock(Map.class);
-        doReturn(appSettings).when(app).appSettings();
+        doReturn(appSettings).when(app).getAppSettings();
         final AppSetting storageSetting = mock(AppSetting.class);
         doReturn(storageSetting).when(appSettings).get(anyString());
         doReturn(storageConnection).when(storageSetting).value();
@@ -102,7 +102,7 @@ public class MSDeployArtifactHandlerImplTest {
         final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
         final FunctionApp app = mock(FunctionApp.class);
         final Map appSettings = mock(Map.class);
-        doReturn(appSettings).when(app).appSettings();
+        doReturn(appSettings).when(app).getAppSettings();
         doReturn(null).when(appSettings).get(anyString());
 
         String exceptionMessage = null;

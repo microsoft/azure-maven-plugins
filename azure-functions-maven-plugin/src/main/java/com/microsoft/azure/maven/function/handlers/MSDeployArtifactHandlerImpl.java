@@ -100,7 +100,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
     }
 
     protected CloudStorageAccount getCloudStorageAccount(final FunctionApp app) throws Exception {
-        final AppSetting internalStorageSetting = app.appSettings().get(INTERNAL_STORAGE_KEY);
+        final AppSetting internalStorageSetting = app.getAppSettings().get(INTERNAL_STORAGE_KEY);
         if (internalStorageSetting == null || StringUtils.isEmpty(internalStorageSetting.value())) {
             logError(INTERNAL_STORAGE_NOT_FOUND);
             throw new Exception(INTERNAL_STORAGE_NOT_FOUND);
