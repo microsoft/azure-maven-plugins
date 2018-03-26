@@ -87,7 +87,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     //region Process annotations
 
-    protected AnnotationHandler getAnnotationHandler() throws Exception {
+    protected AnnotationHandler getAnnotationHandler() {
         return new AnnotationHandlerImpl(getLog());
     }
 

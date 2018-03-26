@@ -14,7 +14,10 @@ import org.reflections.util.ClasspathHelper;
 
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
