@@ -34,17 +34,18 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     }
 
     @Override
-    public Set<Method> findFunctions(final URL url) {
+    public Set<Method> findFunctions(final List<URL> urls) {
         return new Reflections(
                 new ConfigurationBuilder()
-                        .addUrls(url)
+                        .addUrls(urls)
                         .setScanners(new MethodAnnotationsScanner())
-                        .addClassLoader(getClassLoader(url)))
+                        .addClassLoader(getClassLoader(urls)))
                 .getMethodsAnnotatedWith(FunctionName.class);
     }
 
-    protected ClassLoader getClassLoader(final URL url) {
-        return new URLClassLoader(new URL[]{url}, this.getClass().getClassLoader());
+    protected ClassLoader getClassLoader(final List<URL> urlList) {
+        final URL[] urlArray = urlList.toArray(new URL[urlList.size()]);
+        return new URLClassLoader(urlArray, this.getClass().getClassLoader());
     }
 
     @Override

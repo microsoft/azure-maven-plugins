@@ -14,15 +14,19 @@ import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
 
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +35,8 @@ import java.util.Set;
 /**
  * Generate configuration files (host.json, function.json etc.) and copy JARs to staging directory.
  */
-@Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
+@Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE,
+        requiresDependencyResolution = ResolutionScope.COMPILE)
 public class PackageMojo extends AbstractFunctionMojo {
     public static final String SEARCH_FUNCTIONS = "Step 1 of 6: Searching for Azure Function entry points";
     public static final String FOUND_FUNCTIONS = " Azure Function entry point(s) found.";
@@ -80,7 +85,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     //region Process annotations
 
-    protected AnnotationHandler getAnnotationHandler() throws Exception {
+    protected AnnotationHandler getAnnotationHandler() {
         return new AnnotationHandlerImpl(getLog());
     }
 
@@ -90,11 +95,13 @@ public class PackageMojo extends AbstractFunctionMojo {
         Set<Method> functions;
         try {
             debug("ClassPath to resolve: " + getTargetClassUrl());
-            functions = handler.findFunctions(getTargetClassUrl());
+            final List<URL> dependencyWithTargetClass = getDependencyArtifactUrls();
+            dependencyWithTargetClass.add(getTargetClassUrl());
+            functions = handler.findFunctions(dependencyWithTargetClass);
         } catch (NoClassDefFoundError e) {
-            // fallback to reflect through artifact url
+            // fallback to reflect through artifact url, for shaded project(fat jar)
             debug("ClassPath to resolve: " + getArtifactUrl());
-            functions = handler.findFunctions(getArtifactUrl());
+            functions = handler.findFunctions(Arrays.asList(getArtifactUrl()));
         }
         info(functions.size() + FOUND_FUNCTIONS);
         return functions;
@@ -106,6 +113,28 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected URL getTargetClassUrl() throws Exception {
         return outputDirectory.toURI().toURL();
+    }
+
+    /**
+     * @return URLs for the classpath with compile scope needed jars
+     */
+    protected List<URL> getDependencyArtifactUrls() {
+        final List<URL> urlList = new ArrayList<>();
+        final List<String> compileClasspathElements = new ArrayList<>();
+        try {
+            compileClasspathElements.addAll(this.getProject().getCompileClasspathElements());
+        } catch (DependencyResolutionRequiredException e) {
+            debug("Failed to resolve dependencies for compile scope, exception: " + e.getMessage());
+        }
+        for (final String element: compileClasspathElements) {
+            final File f = new File(element);
+            try {
+                urlList.add(f.toURI().toURL());
+            } catch (MalformedURLException e) {
+                debug("Failed to get URL for file: " + f.toString());
+            }
+        }
+        return urlList;
     }
 
     //endregion
