@@ -14,12 +14,11 @@ import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
 
-import org.apache.maven.model.Plugin;
-import org.apache.maven.model.PluginExecution;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +35,8 @@ import java.util.Set;
 /**
  * Generate configuration files (host.json, function.json etc.) and copy JARs to staging directory.
  */
-@Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
+@Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE,
+        requiresDependencyResolution = ResolutionScope.COMPILE)
 public class PackageMojo extends AbstractFunctionMojo {
     public static final String SEARCH_FUNCTIONS = "Step 1 of 6: Searching for Azure Function entry points";
     public static final String FOUND_FUNCTIONS = " Azure Function entry point(s) found.";
@@ -57,8 +57,6 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     public static final String FUNCTION_JSON = "function.json";
     public static final String HOST_JSON = "host.json";
-
-    public static final String DEPENDENCY_PLUGIN_KEY = "org.apache.maven.plugins:maven-dependency-plugin";
 
     //region Entry Point
 
@@ -118,38 +116,22 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     /**
-     * This method will search the output directory which configured in the Maven Dependency Plugin.
-     * Maven Dependency Plugin will extract the runtime jars into the output directory,
-     * and these jars will be used for annotation search using reflection.
-     * @return URLs for the runtime needed jars
+     * @return URLs for the classpath with compile scope needed jars
      */
     protected List<URL> getDependencyArtifactUrls() {
         final List<URL> urlList = new ArrayList<>();
-        final Plugin dependencyPlugin = this.getProject().getPlugin(DEPENDENCY_PLUGIN_KEY);
-        if (dependencyPlugin != null) {
-            final List<PluginExecution> executions = dependencyPlugin.getExecutions();
-            for (final PluginExecution execution: executions) {
-                if (!execution.getGoals().contains("copy-dependencies")) {
-                    break;
-                }
-                final Xpp3Dom dom = (Xpp3Dom) execution.getConfiguration();
-                if (dom == null || dom.getChild("outputDirectory") == null) {
-                    debug("Failed to get output directory");
-                    break;
-                }
-                final File outputDirectory = new File(dom.getChild("outputDirectory").getValue());
-                final File[] files = outputDirectory.listFiles();
-                if (files == null) {
-                    debug("Failed to list Files in directory: " + outputDirectory.toString());
-                    break;
-                }
-                for (final File f : files) {
-                    try {
-                        urlList.add(f.toURI().toURL());
-                    } catch (MalformedURLException e) {
-                        debug("Failed to parse URI to URL. File: " + f.toString());
-                    }
-                }
+        final List<String> compileClasspathElements = new ArrayList<>();
+        try {
+            compileClasspathElements.addAll(this.getProject().getCompileClasspathElements());
+        } catch (DependencyResolutionRequiredException e) {
+            debug("Failed to resolve dependencies for compile scope, exception: " + e.getMessage());
+        }
+        for (final String element: compileClasspathElements) {
+            final File f = new File(element);
+            try {
+                urlList.add(f.toURI().toURL());
+            } catch (MalformedURLException e) {
+                debug("Failed to get URL for file: " + f.toString());
             }
         }
         return urlList;
