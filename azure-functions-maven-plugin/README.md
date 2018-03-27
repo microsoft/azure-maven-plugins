@@ -13,15 +13,13 @@
     - [Add new function to current project](#add-new-function-to-current-project)
     - [Generate `function.json` from current project](#generate-functionjson-from-current-project)
     - [Run Azure Functions locally](#run-azure-functions-locally)
-        - [Run all Azure Functions](#run-all-azure-functions)
-        - [Run a single Azure Function](#run-a-single-azure-function)
     - [Deploy Azure Functions to Azure](#deploy-azure-functions-to-azure)
 
 ## Prerequisites
 
 Tool | Required Version
 ---|---
-JDK | 1.8 and above
+JDK | 1.8
 Maven | 3.0 and above
 [.Net Core SDK](https://www.microsoft.com/net/core) | Latest version
 [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) | 2.0 and above
@@ -45,7 +43,6 @@ Maven | 3.0 and above
 
 #### `azure-functions:run`
 - Invoke Azure Functions Local Emulator to run all functions. Default working directory is the staging directory.
-- Use property `-Dfunctions.target=myFunction` to run a single function named `myFunction`
 
 #### `azure-functions:deploy` 
 - Deploy the staging directory to target Function App.
@@ -159,30 +156,15 @@ Follow below instructions, you don't need to handwrite `function.json` any more.
 
 ### Run Azure Functions locally
 
-With the help of goal `azure-functions:run`, you can run your Azure Functions locally.
->Note:
->Before you can run Azure Functions locally, install [.Net Core SDK](https://www.microsoft.com/net/core) and 
-[Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) first.
-
-#### Run all Azure Functions
-
-Run all Azure Functions in current project with below command.
+With the help of goal `azure-functions:run`, you can run your Azure Functions in current project locally with below command:
 
 ```cmd
 mvn azure-functions:run
 ```
 
-#### Run a single Azure Function
-
-You can also run a single Azure Function if you specify the target function on command line as below examples.
-
-- `mvn azure-functions:run -Dfunctions.target=HttpTrigger1 -Dfunctions.input=inputString`
-
-    Invoke function `HttpTrigger1` with input `inputString` from command line.
-
-- `mvn azure-functions:run -Dfunctions.target=HttpTrigger1 -Dfunctions.inputFile=C:\input.json`
-
-    Invoke function `HttpTrigger1` with input from file `C:\input.json`.
+>Note:
+>Before you can run Azure Functions locally, install [.Net Core SDK](https://www.microsoft.com/net/core) and 
+[Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) first.
 
 ### Deploy Azure Functions to Azure
 

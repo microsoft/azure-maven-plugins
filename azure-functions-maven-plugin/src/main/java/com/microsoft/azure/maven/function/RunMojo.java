@@ -34,54 +34,8 @@ public class RunMojo extends AbstractFunctionMojo {
     public static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
     public static final String START_RUN_FUNCTIONS = "Starting running Azure Functions...";
 
-    public static final String WINDOWS_FUNCTION_RUN = "cd /D %s && func function run %s --no-interactive";
-    public static final String LINUX_FUNCTION_RUN = "cd %s; func function run %s --no-interactive";
     public static final String WINDOWS_HOST_START = "cd /D %s && func host start";
     public static final String LINUX_HOST_START = "cd %s; func host start";
-
-    //region Properties
-
-    /**
-     * Run a single function with the specified name.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.target")
-    protected String targetFunction;
-
-    /**
-     * Specify input string which will be passed to target function. It is used with <targetFunction/> element.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.input")
-    protected String functionInputString;
-
-    /**
-     * Specify input file whose content will be passed to target function. It is used with <targetFunction/> element.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.inputFile")
-    protected File functionInputFile;
-
-    //endregion
-
-    //region Getter
-
-    public String getTargetFunction() {
-        return targetFunction;
-    }
-
-    public String getInputString() {
-        return functionInputString;
-    }
-
-    public File getInputFile() {
-        return functionInputFile;
-    }
-
-    //endregion
 
     //region Entry Point
 
@@ -106,7 +60,7 @@ public class RunMojo extends AbstractFunctionMojo {
 
     protected void runFunctions() throws Exception {
         info(START_RUN_FUNCTIONS);
-        runCommand(getRunFunctionCommand(), true, getValidReturnCodes(), RUN_FUNCTIONS_FAILURE);
+        runCommand(getStartFunctionHostCommand(), true, getValidReturnCodes(), RUN_FUNCTIONS_FAILURE);
     }
 
     //endregion
@@ -120,26 +74,6 @@ public class RunMojo extends AbstractFunctionMojo {
 
     protected String[] getCheckRuntimeCommand() {
         return buildCommand("func");
-    }
-
-    protected String[] getRunFunctionCommand() {
-        return StringUtils.isEmpty(getTargetFunction()) ?
-                getStartFunctionHostCommand() :
-                getRunSingleFunctionCommand();
-    }
-
-    protected String[] getRunSingleFunctionCommand() {
-        String command = format(getRunFunctionTemplate(), getDeploymentStageDirectory(), getTargetFunction());
-        if (StringUtils.isNotEmpty(getInputString())) {
-            command = command.concat(" -c ").concat(getInputString());
-        } else if (getInputFile() != null) {
-            command = command.concat(" -f ").concat(getInputFile().getAbsolutePath());
-        }
-        return buildCommand(command);
-    }
-
-    protected String getRunFunctionTemplate() {
-        return isWindows() ? WINDOWS_FUNCTION_RUN : LINUX_FUNCTION_RUN;
     }
 
     protected String[] getStartFunctionHostCommand() {
