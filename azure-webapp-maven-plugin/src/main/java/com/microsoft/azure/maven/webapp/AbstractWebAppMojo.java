@@ -52,9 +52,19 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter(property = "webapp.appName", required = true)
     protected String appName;
 
+    /**
+     * Resource group of App Service Plan. It will be created if it doesn't exist.
+     *
+     * @since 1.0.0
+     */
     @Parameter(property = "webapp.appServicePlanResourceGroup")
     protected String appServicePlanResourceGroup;
 
+    /**
+     * App Service Plan name. It will be created if it doesn't exist.
+     *
+     * @since 1.0.0
+     */
     @Parameter(property = "webapp.appServicePlanName")
     protected String appServicePlanName;
 
