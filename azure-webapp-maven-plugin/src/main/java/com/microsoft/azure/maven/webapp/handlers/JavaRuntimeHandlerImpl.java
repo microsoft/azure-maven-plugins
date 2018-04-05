@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.appservice.AppServicePlan;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
@@ -21,8 +23,8 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public WithCreate defineAppWithRuntime() throws Exception {
-        final WithCreate withCreate = WebAppUtils.defineApp(mojo)
-                .withNewWindowsPlan(mojo.getPricingTier());
+        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo, OperatingSystem.WINDOWS);
+        final WithCreate withCreate = WebAppUtils.defineWindowsApp(mojo, plan);
 
         withCreate.withJavaVersion(mojo.getJavaVersion())
                 .withWebContainer(mojo.getJavaWebContainer());
