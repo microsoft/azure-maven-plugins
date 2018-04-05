@@ -23,6 +23,8 @@ import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.util.UUID;
+
 public class WebAppUtils {
     public static final String CONTAINER_SETTING_NOT_APPLICABLE =
             "<containerSettings> is not applicable to Web App on Windows; " +
@@ -33,8 +35,7 @@ public class WebAppUtils {
     public static final String IMAGE_NOT_GIVEN = "Image name is not specified.";
     public static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
 
-    public static final String SERVICE_PLAN_NOT_EXIST = "App Service Plan '%s' doesn't exist in Resource Group '%s'." +
-            " Creating a new one...";
+    public static final String CREATE_SERVICE_PLAN = "Creating App Service Plan '%s'...";
     public static final String SERVICE_PLAN_EXIST = "Found existing App Service Plan '%s' in Resource Group '%s'.";
     public static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
 
@@ -98,15 +99,21 @@ public class WebAppUtils {
 
     public static AppServicePlan createOrGetAppServicePlan(final AbstractWebAppMojo mojo, OperatingSystem os)
             throws Exception {
-        final String servicePlanName = mojo.getAppServicePlanName();
+        AppServicePlan plan = null;
         final String servicePlanResGrp = StringUtils.isNotEmpty(mojo.getAppServicePlanResourceGroup()) ?
                 mojo.getAppServicePlanResourceGroup() : mojo.getResourceGroup();
-        AppServicePlan plan = mojo.getAzureClient().appServices().appServicePlans()
-                .getByResourceGroup(servicePlanResGrp, servicePlanName);
-        final Azure azure = mojo.getAzureClient();
 
+        String servicePlanName = mojo.getAppServicePlanName();
+        if (StringUtils.isNotEmpty(servicePlanName)) {
+            plan = mojo.getAzureClient().appServices().appServicePlans()
+                    .getByResourceGroup(servicePlanResGrp, servicePlanName);
+        } else {
+            servicePlanName = generateRandomServicePlanName();
+        }
+
+        final Azure azure = mojo.getAzureClient();
         if (plan == null) {
-            mojo.getLog().info(String.format(SERVICE_PLAN_NOT_EXIST, servicePlanName, servicePlanResGrp));
+            mojo.getLog().info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
 
             final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
                     .define(servicePlanName)
@@ -126,6 +133,10 @@ public class WebAppUtils {
         }
 
         return plan;
+    }
+
+    private static String generateRandomServicePlanName() {
+        return "ServicePlan" + UUID.randomUUID().toString().substring(0, 18);
     }
 
     public static DockerImageType getDockerImageType(final ContainerSetting containerSetting) {
