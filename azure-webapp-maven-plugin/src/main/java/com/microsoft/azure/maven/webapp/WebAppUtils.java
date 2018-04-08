@@ -57,10 +57,9 @@ public class WebAppUtils {
 
     public static WithDockerContainerImage defineLinuxApp(final AbstractWebAppMojo mojo, final AppServicePlan plan)
             throws Exception {
-        final String resourceGroup = mojo.getResourceGroup();
-
         assureLinuxPlan(plan);
 
+        final String resourceGroup = mojo.getResourceGroup();
         final ExistingLinuxPlanWithGroup existingLinuxPlanWithGroup = mojo.getAzureClient().webApps()
                 .define(mojo.getAppName())
                 .withExistingLinuxPlan(plan);
@@ -78,10 +77,9 @@ public class WebAppUtils {
 
     public static WithCreate defineWindowsApp(final AbstractWebAppMojo mojo, final AppServicePlan plan)
             throws Exception {
-        final String resourceGroup = mojo.getResourceGroup();
-
         assureWindowsPlan(plan);
 
+        final String resourceGroup = mojo.getResourceGroup();
         final ExistingWindowsPlanWithGroup existingWindowsPlanWithGroup = mojo.getAzureClient().webApps()
                 .define(mojo.getAppName())
                 .withExistingWindowsPlan(plan);
