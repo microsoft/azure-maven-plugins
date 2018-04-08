@@ -53,6 +53,22 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     protected String appName;
 
     /**
+     * Resource group of App Service Plan. It will be created if it doesn't exist.
+     *
+     * @since 1.0.0
+     */
+    @Parameter(property = "webapp.appServicePlanResourceGroup")
+    protected String appServicePlanResourceGroup;
+
+    /**
+     * App Service Plan name. It will be created if it doesn't exist.
+     *
+     * @since 1.0.0
+     */
+    @Parameter(property = "webapp.appServicePlanName")
+    protected String appServicePlanName;
+
+    /**
      * Web App region, which will only be used to create Web App at the first time.
      *
      * @since 0.1.0
@@ -213,6 +229,14 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public String getAppName() {
         return appName;
+    }
+
+    public String getAppServicePlanResourceGroup() {
+        return appServicePlanResourceGroup;
+    }
+
+    public String getAppServicePlanName() {
+        return appServicePlanName;
     }
 
     public String getRegion() {

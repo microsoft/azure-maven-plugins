@@ -8,14 +8,22 @@ package com.microsoft.azure.maven.webapp;
 
 import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.appservice.AppServicePlan;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithNewAppServicePlan;
-import com.microsoft.azure.management.resources.fluentcore.arm.models.GroupableResource.DefinitionStages.WithGroup;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.ExistingLinuxPlanWithGroup;
+import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.ExistingWindowsPlanWithGroup;
+
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
+
+import java.util.UUID;
 
 public class WebAppUtils {
     public static final String CONTAINER_SETTING_NOT_APPLICABLE =
@@ -25,6 +33,11 @@ public class WebAppUtils {
             "please use <containerSettings> to specify your runtime.";
     public static final String NOT_SUPPORTED_IMAGE = "The image: '%s' is not supported.";
     public static final String IMAGE_NOT_GIVEN = "Image name is not specified.";
+    public static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
+
+    public static final String CREATE_SERVICE_PLAN = "Creating App Service Plan '%s'...";
+    public static final String SERVICE_PLAN_EXIST = "Found existing App Service Plan '%s' in Resource Group '%s'.";
+    public static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
 
     private static boolean isLinuxWebApp(final WebApp app) {
         return app.inner().kind().contains("linux");
@@ -42,14 +55,86 @@ public class WebAppUtils {
         }
     }
 
-    public static WithNewAppServicePlan defineApp(final AbstractWebAppMojo mojo) throws Exception {
-        final WithGroup<WithNewAppServicePlan> withGroup = mojo.getAzureClient().webApps()
-                .define(mojo.getAppName())
-                .withRegion(mojo.getRegion());
+    public static WithDockerContainerImage defineLinuxApp(final AbstractWebAppMojo mojo, final AppServicePlan plan)
+            throws Exception {
+        assureLinuxPlan(plan);
+
         final String resourceGroup = mojo.getResourceGroup();
-        return mojo.getAzureClient().resourceGroups().checkExistence(resourceGroup) ?
-                withGroup.withExistingResourceGroup(resourceGroup) :
-                withGroup.withNewResourceGroup(resourceGroup);
+        final ExistingLinuxPlanWithGroup existingLinuxPlanWithGroup = mojo.getAzureClient().webApps()
+                .define(mojo.getAppName())
+                .withExistingLinuxPlan(plan);
+        return mojo.getAzureClient().resourceGroups().contain(resourceGroup) ?
+                existingLinuxPlanWithGroup.withExistingResourceGroup(resourceGroup) :
+                existingLinuxPlanWithGroup.withNewResourceGroup(resourceGroup);
+    }
+
+    private static void assureLinuxPlan(final AppServicePlan plan) throws MojoExecutionException {
+        if (!plan.operatingSystem().equals(OperatingSystem.LINUX)) {
+            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
+                    plan.name(), OperatingSystem.LINUX.name()));
+        }
+    }
+
+    public static WithCreate defineWindowsApp(final AbstractWebAppMojo mojo, final AppServicePlan plan)
+            throws Exception {
+        assureWindowsPlan(plan);
+
+        final String resourceGroup = mojo.getResourceGroup();
+        final ExistingWindowsPlanWithGroup existingWindowsPlanWithGroup = mojo.getAzureClient().webApps()
+                .define(mojo.getAppName())
+                .withExistingWindowsPlan(plan);
+        return mojo.getAzureClient().resourceGroups().contain(resourceGroup) ?
+                existingWindowsPlanWithGroup.withExistingResourceGroup(resourceGroup) :
+                existingWindowsPlanWithGroup.withNewResourceGroup(resourceGroup);
+    }
+
+    private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
+        if (!plan.operatingSystem().equals(OperatingSystem.WINDOWS)) {
+            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
+                    plan.name(), OperatingSystem.LINUX.name()));
+        }
+    }
+
+    public static AppServicePlan createOrGetAppServicePlan(final AbstractWebAppMojo mojo, OperatingSystem os)
+            throws Exception {
+        AppServicePlan plan = null;
+        final String servicePlanResGrp = StringUtils.isNotEmpty(mojo.getAppServicePlanResourceGroup()) ?
+                mojo.getAppServicePlanResourceGroup() : mojo.getResourceGroup();
+
+        String servicePlanName = mojo.getAppServicePlanName();
+        if (StringUtils.isNotEmpty(servicePlanName)) {
+            plan = mojo.getAzureClient().appServices().appServicePlans()
+                    .getByResourceGroup(servicePlanResGrp, servicePlanName);
+        } else {
+            servicePlanName = generateRandomServicePlanName();
+        }
+
+        final Azure azure = mojo.getAzureClient();
+        if (plan == null) {
+            mojo.getLog().info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
+
+            final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
+                    .define(servicePlanName)
+                    .withRegion(mojo.getRegion());
+
+            final AppServicePlan.DefinitionStages.WithPricingTier withPricingTier
+                    = azure.resourceGroups().contain(servicePlanResGrp) ?
+                    withGroup.withExistingResourceGroup(servicePlanResGrp) :
+                    withGroup.withNewResourceGroup(servicePlanResGrp);
+
+            plan = withPricingTier.withPricingTier(mojo.getPricingTier())
+                    .withOperatingSystem(os).create();
+
+            mojo.getLog().info(SERVICE_PLAN_CREATED);
+        } else {
+            mojo.getLog().info(String.format(SERVICE_PLAN_EXIST, servicePlanName, servicePlanResGrp));
+        }
+
+        return plan;
+    }
+
+    private static String generateRandomServicePlanName() {
+        return "ServicePlan" + UUID.randomUUID().toString().substring(0, 18);
     }
 
     public static DockerImageType getDockerImageType(final ContainerSetting containerSetting) {

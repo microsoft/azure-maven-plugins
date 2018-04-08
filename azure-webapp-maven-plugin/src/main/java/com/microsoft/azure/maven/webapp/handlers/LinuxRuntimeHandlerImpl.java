@@ -8,6 +8,8 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import static com.microsoft.azure.maven.webapp.WebAppUtils.getLinuxRunTimeStack;
 
+import com.microsoft.azure.management.appservice.AppServicePlan;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
@@ -23,8 +25,9 @@ public class LinuxRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
-        return WebAppUtils.defineApp(mojo)
-                .withNewLinuxPlan(mojo.getPricingTier())
+        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo, OperatingSystem.LINUX);
+
+        return WebAppUtils.defineLinuxApp(mojo, plan)
                 .withBuiltInImage(getLinuxRunTimeStack(mojo.getLinuxRuntime()));
     }
 
