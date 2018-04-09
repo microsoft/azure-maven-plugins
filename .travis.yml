@@ -24,6 +24,9 @@ addons:
       - python-dev
       - build-essential
 
+before_install:
+  - unset _JAVA_OPTIONS
+
 install:
   - pip install azure-cli --user
 
