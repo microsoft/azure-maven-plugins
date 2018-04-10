@@ -37,7 +37,7 @@ public class EventHubBinding extends BaseBinding {
         connection = eventHubOutput.connection();
     }
 
-    @JsonGetter("path")
+    @JsonGetter("eventHubName")
     public String getEventHubName() {
         return eventHubName;
     }
