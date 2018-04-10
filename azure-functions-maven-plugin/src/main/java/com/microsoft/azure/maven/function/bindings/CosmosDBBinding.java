@@ -8,12 +8,12 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.DocumentDBInput;
-import com.microsoft.azure.serverless.functions.annotation.DocumentDBOutput;
+import com.microsoft.azure.serverless.functions.annotation.CosmosDBInput;
+import com.microsoft.azure.serverless.functions.annotation.CosmosDBOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class DocumentDBBinding extends BaseBinding {
-    public static final String DOCUMENT_DB = "documentdb";
+public class CosmosDBBinding extends BaseBinding {
+    public static final String COSMOS_DB = "cosmosdb";
 
     private String databaseName = "";
 
@@ -23,26 +23,26 @@ public class DocumentDBBinding extends BaseBinding {
 
     private String sqlQuery = "";
 
-    private String connection = "";
+    private String connectionStringSetting = "";
 
     private boolean createIfNotExists = false;
 
-    public DocumentDBBinding(final DocumentDBInput dbInput) {
-        super(dbInput.name(), DOCUMENT_DB, Direction.IN, dbInput.dataType());
+    public CosmosDBBinding(final CosmosDBInput dbInput) {
+        super(dbInput.name(), COSMOS_DB, Direction.IN, dbInput.dataType());
 
         databaseName = dbInput.databaseName();
         collectionName = dbInput.collectionName();
         id = dbInput.id();
         sqlQuery = dbInput.sqlQuery();
-        connection = dbInput.connection();
+        connectionStringSetting = dbInput.connectionStringSetting();
     }
 
-    public DocumentDBBinding(final DocumentDBOutput dbOutput) {
-        super(dbOutput.name(), DOCUMENT_DB, Direction.OUT, dbOutput.dataType());
+    public CosmosDBBinding(final CosmosDBOutput dbOutput) {
+        super(dbOutput.name(), COSMOS_DB, Direction.OUT, dbOutput.dataType());
 
         databaseName = dbOutput.databaseName();
         collectionName = dbOutput.collectionName();
-        connection = dbOutput.connection();
+        connectionStringSetting = dbOutput.connectionStringSetting();
         createIfNotExists = dbOutput.createIfNotExists();
     }
 
@@ -67,8 +67,8 @@ public class DocumentDBBinding extends BaseBinding {
     }
 
     @JsonGetter
-    public String getConnection() {
-        return connection;
+    public String getConnectionStringSetting() {
+        return connectionStringSetting;
     }
 
     @JsonGetter
