@@ -24,6 +24,7 @@ public class BindingFactory {
         map.put(BlobOutput.class, BlobBinding.class);
         map.put(CosmosDBInput.class, CosmosDBBinding.class);
         map.put(CosmosDBOutput.class, CosmosDBBinding.class);
+        map.put(CosmosDBTrigger.class, CosmosDBBinding.class);
         map.put(EventHubTrigger.class, EventHubBinding.class);
         map.put(EventHubOutput.class, EventHubBinding.class);
         map.put(HttpTrigger.class, HttpBinding.class);

@@ -10,14 +10,18 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.microsoft.azure.serverless.functions.annotation.CosmosDBInput;
 import com.microsoft.azure.serverless.functions.annotation.CosmosDBOutput;
+import com.microsoft.azure.serverless.functions.annotation.CosmosDBTrigger;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class CosmosDBBinding extends BaseBinding {
+    public static final String COSMOS_DB_TRIGGER = "cosmosDBTrigger";
     public static final String COSMOS_DB = "cosmosdb";
 
     private String databaseName = "";
 
     private String collectionName = "";
+
+    private String leaseCollectionName = "";
 
     private String id = "";
 
@@ -26,6 +30,8 @@ public class CosmosDBBinding extends BaseBinding {
     private String connectionStringSetting = "";
 
     private boolean createIfNotExists = false;
+
+    private boolean createLeaseCollectionIfNotExists = false;
 
     public CosmosDBBinding(final CosmosDBInput dbInput) {
         super(dbInput.name(), COSMOS_DB, Direction.IN, dbInput.dataType());
@@ -44,6 +50,16 @@ public class CosmosDBBinding extends BaseBinding {
         collectionName = dbOutput.collectionName();
         connectionStringSetting = dbOutput.connectionStringSetting();
         createIfNotExists = dbOutput.createIfNotExists();
+    }
+
+    public CosmosDBBinding(final CosmosDBTrigger dbTrigger) {
+        super(dbTrigger.name(), COSMOS_DB_TRIGGER, Direction.IN, dbTrigger.dataType());
+
+        databaseName = dbTrigger.databaseName();
+        collectionName = dbTrigger.collectionName();
+        leaseCollectionName = dbTrigger.leaseCollectionName();
+        connectionStringSetting = dbTrigger.connectionStringSetting();
+        createLeaseCollectionIfNotExists = dbTrigger.createLeaseCollectionIfNotExists();
     }
 
     @JsonGetter
@@ -74,5 +90,15 @@ public class CosmosDBBinding extends BaseBinding {
     @JsonGetter
     public boolean isCreateIfNotExists() {
         return createIfNotExists;
+    }
+
+    @JsonGetter
+    public boolean isCreateLeaseCollectionIfNotExists() {
+        return createLeaseCollectionIfNotExists;
+    }
+
+    @JsonGetter
+    public String getLeaseCollectionName() {
+        return leaseCollectionName;
     }
 }
