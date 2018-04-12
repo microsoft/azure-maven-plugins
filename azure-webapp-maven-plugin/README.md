@@ -52,7 +52,7 @@ To use the Maven Plugin for Azure Web Apps in your Maven Java app, add the follo
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.2.0</version>
+               <version>1.0.0</version>
                <configuration>
                   ...
                </configuration>
@@ -76,19 +76,22 @@ Detailed documentation of common configurations is at [here](../docs/common-conf
 
 This Maven Plugin supports the following configuration properties:
 
-Property | Required | Description
----|---|---
-`<resourceGroup>` | true | Specifies the Azure Resource Group for your Web App.
-`<appName>` | true | Specifies the name of your Web App.
-`<region>`* | false | Specifies the region where your Web App will be hosted; the default value is **westus**. All valid regions at [Supported Regions](#supported-regions) section.
-`<pricingTier>`* | false | Specifies the pricing tier for your Web App; the default value is **S1**. All valid tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section.
-`<javaVersion>` | false | Specifies the JVM version for your Web App.<br>This setting is only applicable for normal Web App (Windows based); see the [Java Runtime](#java-runtime) section of this README for details.
-`<javaWebContainer>` | false | Specified the Web Container for your Web App.<br>This setting is only applicable for normal Web App (Windows based); see the [Web Container](#web-container) section of this README for details.
-`<containerSettings>` | false | Specifies the docker container image to deploy to your Web App.<br>Docker hubs and private container registries are both supported; see the [Container Setting](#container-setting) section of this README for details.
-`<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
-`<deploymentType>` | false | Specifies the deployment approach you want to use. Only `ftp` is supported right now.
-`<stopAppDuringDeployment>` | false | Specifies whether stop target Web App during deployment. This will prevent deployment failure caused by IIS locking files.
-`<resources>` | false | Specifies the artifacts to be deployed to your Web App; see the [Deploy via FTP](#deploy-via-ftp) section for more details.
+Property | Required | Description | Supported Version
+---|---|---|---
+`<resourceGroup>` | true | Specifies the Azure Resource Group for your Web App. | since 0.1.0
+`<appName>` | true | Specifies the name of your Web App. | since 0.1.0
+`<region>`* | false | Specifies the region where your Web App will be hosted; the default value is **westus**. All valid regions at [Supported Regions](#supported-regions) section. | since 0.1.0
+`<pricingTier>`* | false | Specifies the pricing tier for your Web App; the default value is **S1**. All valid tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section. | since 0.1.0
+`<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, plugin will use the value defined in <resourceGroup> | since 1.0.0
+`<appServicePlanName>` | false | Specifies the name of the existing App Service Plan when you do not want to create a new one. | since 1.0.0
+`<javaVersion>` | false | Specifies the JVM version for your Web App.<br>This setting is only applicable for Web App (on Windows); see the [Java Runtime](#java-runtime) section of this README for details. | since 0.1.0
+`<javaWebContainer>` | false | Specified the Web Container for your Web App.<br>This setting is only applicable for Web App (on Windows); see the [Web Container](#web-container) section of this README for details. | since 0.1.0
+`<linuxRuntime>` | false | Specified the runtime stack for your Web App.<br>This setting is only applicable for Web App (on Linux); see the [Java Runtime and Web Container](#java-runtime-and-web-container) section of this README for details. | since 0.2.0
+`<containerSettings>` | false | Specifies the docker container image to deploy to your Web App.<br>This setting is only applicable for Web App for Containers. Docker hubs and private container registries are both supported; see the [Container Setting](#container-setting) section of this README for details. | since 0.1.0
+`<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>` | since 0.1.0
+`<deploymentType>` | false | Specifies the deployment approach you want to use. Only `ftp` is supported right now. | since 0.1.0
+`<stopAppDuringDeployment>` | false | Specifies whether stop target Web App during deployment. This will prevent deployment failure caused by IIS locking files. | since 0.1.4
+`<resources>` | false | Specifies the artifacts to be deployed to your Web App; see the [Deploy via FTP](#deploy-via-ftp) section for more details. | since 0.1.0
 >*: This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored
 
 ### Web App (on Windows)
@@ -194,7 +197,7 @@ You can deploy your **WAR** file and other artifacts to Web App via FTP. The fol
 
 ### Web App (on Linux)
 
-#### Java Runtime and Web Container 
+#### Java Runtime and Web Container
 Use values from the following table to configure the JVM and Web Container you want to use in your Web App.
 
 Supported Value | Description
