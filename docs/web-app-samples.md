@@ -11,7 +11,7 @@
 
 - [Web App for Containers with docker container image in private container registry](#web-app-for-containers-private-registry)
 
-- [Web App deployment to an existing App Service Plan](#existing-app-service-plan)
+- [Deploy Web App to an existing App Service Plan](#existing-app-service-plan)
 
 <a name="web-app-on-windows"></a>
 ## Web App (on Windows) with Java 8, Tomcat and FTP deployment
