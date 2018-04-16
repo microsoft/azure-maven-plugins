@@ -91,7 +91,7 @@ public class WebAppUtils {
     private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
         if (!plan.operatingSystem().equals(OperatingSystem.WINDOWS)) {
             throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                    plan.name(), OperatingSystem.LINUX.name()));
+                    plan.name(), OperatingSystem.WINDOWS.name()));
         }
     }
 
