@@ -30,6 +30,7 @@ public class RunMojo extends AbstractFunctionMojo {
     public static final String START_RUN_FUNCTIONS = "Starting running Azure Functions...";
 
     public static final String FUNC_HOST_START_CMD = "func host start";
+    public static final String FUNC_CMD = "func";
 
     //region Entry Point
 
@@ -79,7 +80,7 @@ public class RunMojo extends AbstractFunctionMojo {
     //region Build commands
 
     protected String getCheckRuntimeCommand() {
-        return "func";
+        return FUNC_CMD;
     }
 
     protected String getStartFunctionHostCommand() {

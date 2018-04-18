@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import static com.microsoft.azure.maven.function.RunMojo.FUNC_CMD;
 import static com.microsoft.azure.maven.function.RunMojo.FUNC_HOST_START_CMD;
 import static com.microsoft.azure.maven.function.RunMojo.RUNTIME_NOT_FOUND;
 import static com.microsoft.azure.maven.function.RunMojo.RUN_FUNCTIONS_FAILURE;
@@ -110,7 +111,7 @@ public class RunMojoTest extends MojoTestBase {
     public void getCheckRuntimeCommand() throws Exception {
         final RunMojo mojo = getMojoFromPom();
         final RunMojo mojoSpy = spy(mojo);
-        assertEquals("func", mojoSpy.getCheckRuntimeCommand());
+        assertEquals(FUNC_CMD, mojoSpy.getCheckRuntimeCommand());
     }
 
     @Test
