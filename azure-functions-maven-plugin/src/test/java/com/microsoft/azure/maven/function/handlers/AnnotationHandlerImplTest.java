@@ -62,16 +62,16 @@ public class AnnotationHandlerImplTest {
         }
 
         @FunctionName(TIMER_TRIGGER_FUNCTION)
-        @DocumentDBOutput(name = "$return", databaseName = "db", collectionName = "col", connection = "conn")
+        @CosmosDBOutput(name = "$return", databaseName = "db", collectionName = "col", connectionStringSetting = "conn")
         @MobileTableOutput(name = "$return", tableName = "table", connection = "conn", apiKey = "key")
         @NotificationHubOutput(name = "$return", hubName = "hub", connection = "conn")
         @SendGridOutput(name = "$return", apiKey = "key", to = "to", from = "from", subject = "sub", text = "text")
         @TwilioSmsOutput(name = "$return", accountSid = "sid", authToken = "auth", to = "to", from = "from", body = "b")
         public String timerTriggerMethod(@TimerTrigger(name = "timer", schedule = "") String timer,
-                                         @DocumentDBInput(name = "in1",
+                                         @CosmosDBOutput(name = "in1",
                                                  databaseName = "db",
                                                  collectionName = "col",
-                                                 connection = "conn") String in1,
+                                                 connectionStringSetting = "conn") String in1,
                                          @MobileTableInput(name = "in2",
                                                  tableName = "table",
                                                  id = "id",
