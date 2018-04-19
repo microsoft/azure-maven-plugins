@@ -41,7 +41,7 @@ public class FunctionCoreToolsHandlerImplTest {
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
 
         doReturn("3.0.0").when(functionCoreToolsHandlerSpy).getLocalFunctionCoreToolsVersion();
-        doNothing().when(functionCoreToolsHandlerSpy).assureLocalVersionSupportAutoInstall(anyString());
+        doReturn(true).when(functionCoreToolsHandlerSpy).isLocalVersionSupportAutoInstall(anyString());
         doNothing().when(functionCoreToolsHandlerSpy).installFunctionExtension();
         doNothing().when(functionCoreToolsHandlerSpy).checkVersion(any());
 
@@ -98,30 +98,30 @@ public class FunctionCoreToolsHandlerImplTest {
     }
 
     @Test
-    public void assureLocalVersionSupportAutoInstall() throws Exception {
+    public void isLocalVersionSupportAutoInstall() throws Exception {
         final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
                 new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
-        functionCoreToolsHandler.assureLocalVersionSupportAutoInstall("2.0.1-beta.26");
+        assertTrue(functionCoreToolsHandler.isLocalVersionSupportAutoInstall("2.0.1-beta.26"));
     }
 
-    @Test(expected = MojoExecutionException.class)
+    @Test
     public void assureLocalVersionSupportAutoInstallWhenPassingNull() throws Exception {
         final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
                 new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
-        functionCoreToolsHandler.assureLocalVersionSupportAutoInstall(null);
+        assertFalse(functionCoreToolsHandler.isLocalVersionSupportAutoInstall(null));
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void assureLocalVersionSupportAutoInstallWhenLocalVersionTooLow() throws Exception {
+    @Test
+    public void isLocalVersionSupportAutoInstallWhenLocalVersionTooLow() throws Exception {
         final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
                 new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
-        functionCoreToolsHandler.assureLocalVersionSupportAutoInstall("2.0.0");
+        assertFalse(functionCoreToolsHandler.isLocalVersionSupportAutoInstall("2.0.0"));
     }
 
     @Test

@@ -44,9 +44,11 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         try {
             final String localVersion = getLocalFunctionCoreToolsVersion();
 
-            assureLocalVersionSupportAutoInstall(localVersion);
-
-            installFunctionExtension();
+            if (isLocalVersionSupportAutoInstall(localVersion)) {
+                installFunctionExtension();
+            } else {
+                this.mojo.warning(OUTDATED_LOCAL_FUNCTION_CORE_TOOLS);
+            }
 
             checkVersion(Version.valueOf(localVersion));
         } catch (Exception e) {
@@ -64,10 +66,11 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         );
     }
 
-    protected void assureLocalVersionSupportAutoInstall(final String localVersion) throws Exception {
+    protected boolean isLocalVersionSupportAutoInstall(final String localVersion) {
         if (localVersion == null || LEAST_SUPPORTED_VERSION.greaterThan(Version.valueOf(localVersion))) {
-            throw new MojoExecutionException(OUTDATED_LOCAL_FUNCTION_CORE_TOOLS);
+            return false;
         }
+        return true;
     }
 
     protected void checkVersion(final Version localVersion) throws Exception {
