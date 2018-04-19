@@ -13,6 +13,10 @@ import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.CommandHandler;
+import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandler;
+import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.Resource;
@@ -38,21 +42,23 @@ import java.util.Set;
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.COMPILE)
 public class PackageMojo extends AbstractFunctionMojo {
-    public static final String SEARCH_FUNCTIONS = "Step 1 of 6: Searching for Azure Function entry points";
+    public static final String SEARCH_FUNCTIONS = "Step 1 of 7: Searching for Azure Function entry points";
     public static final String FOUND_FUNCTIONS = " Azure Function entry point(s) found.";
-    public static final String GENERATE_CONFIG = "Step 2 of 6: Generating Azure Function configurations";
+    public static final String GENERATE_CONFIG = "Step 2 of 7: Generating Azure Function configurations";
     public static final String GENERATE_SKIP = "No Azure Functions found. Skip configuration generation.";
     public static final String GENERATE_DONE = "Generation done.";
-    public static final String VALIDATE_CONFIG = "Step 3 of 6: Validating generated configurations";
+    public static final String VALIDATE_CONFIG = "Step 3 of 7: Validating generated configurations";
     public static final String VALIDATE_SKIP = "No configurations found. Skip validation.";
     public static final String VALIDATE_DONE = "Validation done.";
-    public static final String SAVE_HOST_JSON = "Step 4 of 6: Saving empty host.json";
-    public static final String SAVE_FUNCTION_JSONS = "Step 5 of 6: Saving configurations to function.json";
+    public static final String SAVE_HOST_JSON = "Step 4 of 7: Saving empty host.json";
+    public static final String SAVE_FUNCTION_JSONS = "Step 5 of 7: Saving configurations to function.json";
     public static final String SAVE_SKIP = "No configurations found. Skip save.";
     public static final String SAVE_FUNCTION_JSON = "Starting processing function: ";
     public static final String SAVE_SUCCESS = "Successfully saved to ";
-    public static final String COPY_JARS = "Step 6 of 6: Copying JARs to staging directory ";
+    public static final String COPY_JARS = "Step 6 of 7: Copying JARs to staging directory";
     public static final String COPY_SUCCESS = "Copied successfully.";
+    public static final String INSTALL_EXTENSIONS = "Step 7 of 7: Installing function extensions if needed";
+    public static final String INSTALL_EXTENSIONS_FINISH = "Function extension installation done.";
     public static final String BUILD_SUCCESS = "Successfully built Azure Functions.";
 
     public static final String FUNCTION_JSON = "function.json";
@@ -62,11 +68,11 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     @Override
     protected void doExecute() throws Exception {
-        final AnnotationHandler handler = getAnnotationHandler();
+        final AnnotationHandler annotationHandler = getAnnotationHandler();
 
-        final Set<Method> methods = findAnnotatedMethods(handler);
+        final Set<Method> methods = findAnnotatedMethods(annotationHandler);
 
-        final Map<String, FunctionConfiguration> configMap = getFunctionConfigurations(handler, methods);
+        final Map<String, FunctionConfiguration> configMap = getFunctionConfigurations(annotationHandler, methods);
 
         validateFunctionConfigurations(configMap);
 
@@ -77,6 +83,11 @@ public class PackageMojo extends AbstractFunctionMojo {
         writeFunctionJsonFiles(objectWriter, configMap);
 
         copyJarsToStageDirectory();
+
+        final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
+        final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
+
+        installExtension(functionCoreToolsHandler);
 
         info(BUILD_SUCCESS);
     }
@@ -254,4 +265,19 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     //endregion
+
+    //region Azure Functions Core Tools task
+
+    protected FunctionCoreToolsHandler getFunctionCoreToolsHandler(final CommandHandler commandHandler) {
+        return new FunctionCoreToolsHandlerImpl(this, commandHandler);
+    }
+
+    protected void installExtension(final FunctionCoreToolsHandler handler) throws Exception {
+        info("");
+        info(INSTALL_EXTENSIONS);
+        handler.installExtension();
+        info(INSTALL_EXTENSIONS_FINISH);
+    }
+
+    // end region
 }
