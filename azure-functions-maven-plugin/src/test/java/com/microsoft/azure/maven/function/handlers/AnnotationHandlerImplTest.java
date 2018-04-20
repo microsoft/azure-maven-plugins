@@ -28,6 +28,8 @@ public class AnnotationHandlerImplTest {
     public static final String HTTP_TRIGGER_METHOD = "httpTriggerMethod";
     public static final String QUEUE_TRIGGER_FUNCTION = "QueueTriggerFunction";
     public static final String QUEUE_TRIGGER_METHOD = "queueTriggerMethod";
+    public static final String COSMOSDB_TRIGGER_FUNCTION = "cosmosDBTriggerFunction";
+    public static final String COSMOSDB_TRIGGER_METHOD = "cosmosDBTriggerMethod";
     public static final String TIMER_TRIGGER_FUNCTION = "TimerTriggerFunction";
     public static final String TIMER_TRIGGER_METHOD = "timerTriggerMethod";
     public static final String MULTI_OUTPUT_FUNCTION = "MultiOutputFunction";
@@ -36,6 +38,8 @@ public class AnnotationHandlerImplTest {
     public static final String BLOB_TRIGGER_METHOD = "blobTriggerMethod";
     public static final String EVENTHUB_TRIGGER_FUNCTION = "eventHubTriggerFunction";
     public static final String EVENTHUB_TRIGGER_METHOD = "eventHubTriggerMethod";
+    public static final String EVENTGRID_TRIGGER_FUNCTION = "eventGridTriggerFunction";
+    public static final String EVENTGRID_TRIGGER_METHOD = "eventGridTriggerMethod";
     public static final String SERVICE_BUS_QUEUE_TRIGGER_FUNCTION = "serviceBusQueueTriggerFunction";
     public static final String SERVICE_BUS_QUEUE_TRIGGER_METHOD = "serviceBusQueueTriggerMethod";
     public static final String SERVICE_BUS_TOPIC_TRIGGER_FUNCTION = "serviceBusTopicTriggerFunction";
@@ -59,6 +63,18 @@ public class AnnotationHandlerImplTest {
         @FunctionName(QUEUE_TRIGGER_FUNCTION)
         public void queueTriggerMethod(@QueueTrigger(name = "in", queueName = "qIn", connection = "conn") String in,
                                        @QueueOutput(name = "out", queueName = "qOut", connection = "conn") String out) {
+        }
+
+        @FunctionName(COSMOSDB_TRIGGER_FUNCTION)
+        public void cosmosDBTriggerMethod(@CosmosDBTrigger(name = "cosmos",
+                                                databaseName = "db",
+                                                collectionName = "cl",
+                                                connectionStringSetting = "conn",
+                                                leaseCollectionName = "lease") String in) {
+        }
+
+        @FunctionName(EVENTGRID_TRIGGER_FUNCTION)
+        public void eventGridTriggerMethod(@EventGridTrigger(name = "eventgrid") String in) {
         }
 
         @FunctionName(TIMER_TRIGGER_FUNCTION)
@@ -124,7 +140,7 @@ public class AnnotationHandlerImplTest {
         final AnnotationHandler handler = getAnnotationHandler();
         final Set<Method> functions = handler.findFunctions(Arrays.asList(getClassUrl()));
 
-        assertEquals(9, functions.size());
+        assertEquals(11, functions.size());
         final List<String> methodNames = functions.stream().map(f -> f.getName()).collect(Collectors.toList());
         assertTrue(methodNames.contains(HTTP_TRIGGER_METHOD));
         assertTrue(methodNames.contains(QUEUE_TRIGGER_METHOD));
@@ -135,6 +151,8 @@ public class AnnotationHandlerImplTest {
         assertTrue(methodNames.contains(SERVICE_BUS_QUEUE_TRIGGER_METHOD));
         assertTrue(methodNames.contains(SERVICE_BUS_TOPIC_TRIGGER_METHOD));
         assertTrue(methodNames.contains(API_HUB_FILE_TRIGGER_METHOD));
+        assertTrue(methodNames.contains(COSMOSDB_TRIGGER_METHOD));
+        assertTrue(methodNames.contains(EVENTGRID_TRIGGER_METHOD));
     }
 
     @Test
@@ -144,7 +162,7 @@ public class AnnotationHandlerImplTest {
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(functions);
         configMap.values().forEach(config -> config.validate());
 
-        assertEquals(9, configMap.size());
+        assertEquals(11, configMap.size());
 
         verifyFunctionConfiguration(configMap, HTTP_TRIGGER_FUNCTION, HTTP_TRIGGER_METHOD, 2);
 
@@ -163,6 +181,10 @@ public class AnnotationHandlerImplTest {
         verifyFunctionConfiguration(configMap, SERVICE_BUS_TOPIC_TRIGGER_FUNCTION, SERVICE_BUS_TOPIC_TRIGGER_METHOD, 2);
 
         verifyFunctionConfiguration(configMap, API_HUB_FILE_TRIGGER_FUNCTION, API_HUB_FILE_TRIGGER_METHOD, 3);
+
+        verifyFunctionConfiguration(configMap, COSMOSDB_TRIGGER_FUNCTION, COSMOSDB_TRIGGER_METHOD, 1);
+
+        verifyFunctionConfiguration(configMap, EVENTGRID_TRIGGER_FUNCTION, EVENTGRID_TRIGGER_METHOD, 1);
     }
 
     private AnnotationHandlerImpl getAnnotationHandler() {
