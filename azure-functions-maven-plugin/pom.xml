@@ -23,7 +23,7 @@
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.ai.version>1.0.9</azure.ai.version>
         <azure.maven-plugin-lib.version>1.0.0-SNAPSHOT</azure.maven-plugin-lib.version>
-        <azure.function.version>[1.0.0-beta-1,1.0.0)</azure.function.version>
+        <azure.function.version>1.0.0-beta-3</azure.function.version>
         <azure.storage.version>5.4.0</azure.storage.version>
         <reflections.version>0.9.11</reflections.version>
         <zeroturnaround.zip.version>1.12</zeroturnaround.zip.version>
