@@ -6,7 +6,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugin-lib</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
@@ -21,9 +21,7 @@
         <maven.filtering.version>3.0.0</maven.filtering.version>
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <codehaus.plexus-utils>3.0.20</codehaus.plexus-utils>
-        <azure.version>1.7.0</azure.version>
-        <azure.client-runtime.version>1.3.0</azure.client-runtime.version>
-        <azure.client-auth.version>1.3.0</azure.client-auth.version>
+        <azure.version>1.9.0</azure.version>
         <azure.ai.version>1.0.9</azure.ai.version>
         <common-net.version>3.6</common-net.version>
         <junit.version>4.12</junit.version>
@@ -112,31 +110,6 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure</artifactId>
             <version>${azure.version}</version>
-            <!--
-                Azure package depends on the latest version of below packages,
-                which will cause snapshot refresh every time it is used.
-                Exclude both of them and use fixed versions in the next two dependencies to prevent snapshot refresh.
-            -->
-            <exclusions>
-                <exclusion>
-                    <groupId>com.microsoft.azure</groupId>
-                    <artifactId>azure-client-runtime</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.microsoft.azure</groupId>
-                    <artifactId>azure-client-authentication</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-client-runtime</artifactId>
-            <version>${azure.client-runtime.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-client-authentication</artifactId>
-            <version>${azure.client-auth.version}</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
