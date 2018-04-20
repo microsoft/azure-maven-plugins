@@ -28,7 +28,7 @@ public class AnnotationHandlerImplTest {
     public static final String HTTP_TRIGGER_METHOD = "httpTriggerMethod";
     public static final String QUEUE_TRIGGER_FUNCTION = "QueueTriggerFunction";
     public static final String QUEUE_TRIGGER_METHOD = "queueTriggerMethod";
-    public static final String COSMOSDB_TRIGGER_FUNCTION = "cosmosDBTriggerMethod";
+    public static final String COSMOSDB_TRIGGER_FUNCTION = "cosmosDBTriggerFunction";
     public static final String COSMOSDB_TRIGGER_METHOD = "cosmosDBTriggerMethod";
     public static final String TIMER_TRIGGER_FUNCTION = "TimerTriggerFunction";
     public static final String TIMER_TRIGGER_METHOD = "timerTriggerMethod";
