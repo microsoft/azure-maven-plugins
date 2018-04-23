@@ -49,7 +49,8 @@ public class FTPArtifactHandlerImplTest {
 
         final List<Resource> resourceList = new ArrayList<>();
         resourceList.add(new Resource());
-        handlerSpy.publish(resourceList);
+        doReturn(resourceList).when(mojo).getResources();
+        handlerSpy.publish();
         verify(handlerSpy, times(1))
                 .copyResourcesToStageDirectory(ArgumentMatchers.<Resource>anyList());
         verify(handlerSpy, times(1)).uploadDirectoryToFTP();

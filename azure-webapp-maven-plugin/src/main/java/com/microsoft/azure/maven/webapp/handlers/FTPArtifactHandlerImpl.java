@@ -28,7 +28,8 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
     }
 
     @Override
-    public void publish(final List<Resource> resources) throws Exception {
+    public void publish() throws Exception {
+        final List<Resource> resources = mojo.getResources();
         if (resources == null || resources.isEmpty()) {
             mojo.getLog().info(NO_RESOURCES_CONFIG);
             return;

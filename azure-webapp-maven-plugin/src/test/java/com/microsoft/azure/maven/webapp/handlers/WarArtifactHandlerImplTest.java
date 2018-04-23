@@ -60,7 +60,7 @@ public class WarArtifactHandlerImplTest {
         doReturn(appMock).when(mojo).getWebApp();
         doNothing().when(appMock).warDeploy(any(File.class), anyString());
 
-        handlerSpy.publish(null);
+        handlerSpy.publish();
         verify(appMock, times(1)).warDeploy(file, path);
     }
 

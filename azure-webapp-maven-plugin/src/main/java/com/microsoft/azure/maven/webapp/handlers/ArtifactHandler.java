@@ -6,10 +6,6 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import org.apache.maven.model.Resource;
-
-import java.util.List;
-
 public interface ArtifactHandler {
-    void publish(final List<Resource> resources) throws Exception;
+    void publish() throws Exception;
 }

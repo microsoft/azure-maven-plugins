@@ -10,11 +10,8 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-
-import java.util.List;
 
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
@@ -74,10 +71,9 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     protected void deployArtifacts() throws Exception {
-        final List<Resource> resources = getResources();
         try {
             util.beforeDeployArtifacts();
-            getFactory().getArtifactHandler(this).publish(resources);
+            getFactory().getArtifactHandler(this).publish();
         } finally {
             util.afterDeployArtifacts();
         }

@@ -8,9 +8,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.List;
 
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -33,7 +31,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
     }
 
     @Override
-    public void publish(final List<Resource> resources) throws Exception {
+    public void publish() throws Exception {
         final File war = getWarFile();
 
         assureWarFileExisted(war);
