@@ -173,3 +173,37 @@ Directly deploy to target Function App by running `mvn azure-functions:deploy`.
 Supported deployment methods are listed as below. Default value is **MSDeploy**.
 - MSDeploy
 - FTP
+
+## Common Questions
+**Q: Can I upload other static content, e.g. html files, as part of the function deployment?**
+
+**A:** You can achieve this by adding configurations for the `maven-resources-plugin`. For example:
+```xml
+<plugin>
+  <artifactId>maven-resources-plugin</artifactId>
+  <executions>
+    <execution>
+      <id>copy-resources</id>
+      <phase>package</phase>
+      <goals>
+        <goal>copy-resources</goal>
+      </goals>
+      <configuration>
+        <overwrite>true</overwrite>
+        <outputDirectory>${stagingDirectory}</outputDirectory>
+        <resources>         
+          ...         
+          <!-- Your static resources -->
+          <resource>
+            <directory>${project.basedir}/src/main/resources</directory>
+            <includes>
+              <include>www/**</include>
+            </includes>
+          </resource>
+        </resources>
+      </configuration>
+    </execution>
+    ...
+  </executions>
+</plugin>
+``` 
