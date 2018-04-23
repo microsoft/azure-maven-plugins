@@ -14,6 +14,7 @@
     - [Generate `function.json` from current project](#generate-functionjson-from-current-project)
     - [Run Azure Functions locally](#run-azure-functions-locally)
     - [Deploy Azure Functions to Azure](#deploy-azure-functions-to-azure)
+- [Common Questions](#common-questions)    
 
 ## Prerequisites
 
