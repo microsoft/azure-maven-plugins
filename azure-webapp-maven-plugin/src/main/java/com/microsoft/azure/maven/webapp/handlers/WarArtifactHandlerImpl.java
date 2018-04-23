@@ -38,12 +38,11 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
 
         assureWarFileExisted(war);
 
-        mojo.getLog().info("Starting to deploy the war file...");
-
         final String path = getContextPath();
 
         final WebApp app = mojo.getWebApp();
         int retryCount = 0;
+        mojo.getLog().info("Starting to deploy the war file...");
         while (retryCount++ < DEFAULT_MAX_RETRY_TIMES) {
             try {
                 app.warDeploy(war, path);
