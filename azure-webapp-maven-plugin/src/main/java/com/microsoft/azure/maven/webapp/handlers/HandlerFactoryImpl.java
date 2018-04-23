@@ -77,7 +77,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 return new FTPArtifactHandlerImpl(mojo);
             case WAR:
             default:
-                return new WARHandlerImpl(mojo);
+                return new WarArtifactHandlerImpl(mojo);
         }
     }
 
