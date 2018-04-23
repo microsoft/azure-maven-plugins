@@ -19,12 +19,12 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 public class WarArtifactHandlerImpl implements ArtifactHandler  {
 
     public static final String FILE_IS_NOT_WAR = "The deployment file is not a war typed file.";
-    private AbstractWebAppMojo mojo;
-
     public static final String FIND_WAR_FILE_FAIL = "Failed to find the war file: '%s'";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
     public static final String UPLOAD_FAILURE = "Failed to deploy the war file to server, " +
             "retrying immediately (%d/%d)";
+
+    private AbstractWebAppMojo mojo;
 
     public WarArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
