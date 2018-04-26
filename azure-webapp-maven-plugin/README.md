@@ -91,9 +91,9 @@ Property | Required | Description | Version
 `<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>` | 0.1.0+
 `<stopAppDuringDeployment>` | false | Specifies whether stop target Web App during deployment. This will prevent deployment failure caused by IIS locking files. | 0.1.4+
 `<deploymentType>` | false | Specifies the deployment approach you want to use, available options: <br><ul><li>war (by default): since 1.1.0</li><li>ftp: since 0.1.0</li></ul> | 0.1.0+
-`<resources>` | false | Specifies the artifacts to be deployed to your Web App when `deploymentType` is set to `ftp`; see the [Deploy via FTP](#deploy-via-ftp) section for more details. | 0.1.0+
-`warFile` | false | Specifies the location of the war file which is to be deployed when `deploymentType` is set to `war`. If this configuration is not specified, plugin will find the war file according to the `finalName` in the project build directory. | 1.1.0+
-`path` | false | Specify the context path for the deployment when `deploymentType` is set to `war`. If this configuration is not specified, plugin will deploy to the context path: `/`, which is also known as the `ROOT`. | 1.1.0+
+`<resources>` | false | Specifies the artifacts to be deployed to your Web App when `<deploymentType>` is set to `ftp`; see the [Deploy via FTP](#deploy-via-ftp) section for more details. | 0.1.0+
+`<warFile>` | false | Specifies the location of the war file which is to be deployed when `<deploymentType>` is set to `war`. If this configuration is not specified, plugin will find the war file according to the `finalName` in the project build directory. | 1.1.0+
+`<path>` | false | Specify the context path for the deployment when `<deploymentType>` is set to `war`. If this configuration is not specified, plugin will deploy to the context path: `/`, which is also known as the `ROOT`. | 1.1.0+
 >*: This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored
 
 ### Web App (on Windows)
