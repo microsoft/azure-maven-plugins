@@ -1,7 +1,7 @@
 # Sample usages of Maven Plugin for Azure Web Apps
 
 #### Table of Content
-- [Web App (on Windows) with Java 8, Tomcat and FTP deployment](#web-app-on-windows)
+- [Web App (on Windows) with Java 8, Tomcat and WAR deployment](#web-app-on-windows)
 
 - [Web App (on Linux) with Java 8, Tomcat and FTP deployment](#web-app-on-linux)
 
@@ -14,12 +14,12 @@
 - [Deploy Web App to an existing App Service Plan](#existing-app-service-plan)
 
 <a name="web-app-on-windows"></a>
-## Web App (on Windows) with Java 8, Tomcat and FTP deployment
+## Web App (on Windows) with Java 8, Tomcat and WAR deployment
 The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Windows
 - Using Java 8 and Tomcat 8.5
-- Using FTP to deploy **WAR** file to `/site/wwwroot/webapps/` directory in your Web App server
+- Using WAR to deploy **WAR** file to context path: `/${project.build.finalName}` in your Web App server
 - Add Application Settings to your Web App
 
    ```xml
@@ -30,7 +30,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.0.0</version>
+               <version>1.1.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -48,9 +48,16 @@ The following configuration is applicable for below scenario:
                   <javaVersion>1.8</javaVersion>
                   <javaWebContainer>tomcat 8.5</javaWebContainer>
                   
-                  <!-- FTP deployment -->
-                  <deploymentType>ftp</deploymentType>
-                  <!-- Resources to be deployed to your Web App -->
+                  <!-- WAR deployment -->
+                  <deploymentType>war</deploymentType>
+
+                  <!-- Specify the war file location, optional if the war file location is: ${project.build.directory}/${project.build.finalName}.war -->
+                  <warFile>custom/absolute/path/deploy.war</warFile>
+
+                  <!-- Specify context path, optional if you want to deploy to ROOT -->
+                  <path>/${project.build.finalName}</path>
+                  
+                  <!-- War file to be deployed to your Web App -->
                   <resources>
                      <resource>
                         <!-- Where your artifacts are stored -->
@@ -95,7 +102,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.0.0</version>
+               <version>1.1.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -158,7 +165,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.0.0</version>
+               <version>1.1.0</version>
                <configuration>
                   <!-- Referencing ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -212,7 +219,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.0.0</version>
+               <version>1.1.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -267,7 +274,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.0.0</version>
+               <version>1.1.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -326,7 +333,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.0.0</version>
+               <version>1.1.0</version>
                <configuration>
                   
                   <!-- Web App information -->
