@@ -57,19 +57,6 @@ The following configuration is applicable for below scenario:
                   <!-- Specify context path, optional if you want to deploy to ROOT -->
                   <path>/${project.build.finalName}</path>
                   
-                  <!-- War file to be deployed to your Web App -->
-                  <resources>
-                     <resource>
-                        <!-- Where your artifacts are stored -->
-                        <directory>${project.basedir}/target</directory>
-                        <!-- Relative path to /site/wwwroot/ -->
-                        <targetPath>webapps</targetPath>
-                        <includes>
-                           <include>*.war</include>
-                        </includes>
-                     </resource>
-                  </resources>
-                  
                   <!-- Application Settings of your Web App -->
                   <appSettings>
                      <property>
