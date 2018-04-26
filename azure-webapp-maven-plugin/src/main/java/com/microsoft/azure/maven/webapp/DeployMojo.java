@@ -10,11 +10,8 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-
-import java.util.List;
 
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
@@ -27,7 +24,6 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String WEBAPP_CREATED = "Successfully created Web App.";
     public static final String UPDATE_WEBAPP = "Updating target Web App...";
     public static final String UPDATE_WEBAPP_DONE = "Successfully updated Web App.";
-    public static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
     public static final String STOP_APP = "Stopping Web App before deploying artifacts...";
     public static final String START_APP = "Starting Web App after deploying artifacts...";
     public static final String STOP_APP_DONE = "Successfully stopped Web App.";
@@ -75,16 +71,11 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     protected void deployArtifacts() throws Exception {
-        final List<Resource> resources = getResources();
-        if (resources == null || resources.isEmpty()) {
-            info(NO_RESOURCES_CONFIG);
-        } else {
-            try {
-                util.beforeDeployArtifacts();
-                getFactory().getArtifactHandler(this).publish(resources);
-            } finally {
-                util.afterDeployArtifacts();
-            }
+        try {
+            util.beforeDeployArtifacts();
+            getFactory().getArtifactHandler(this).publish();
+        } finally {
+            util.afterDeployArtifacts();
         }
     }
 

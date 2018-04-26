@@ -26,6 +26,7 @@ import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.microsoft.azure.maven.function.handlers.CommandHandler;
@@ -74,7 +75,7 @@ public class RunMojoTest extends MojoTestBase {
         final RunMojo mojoSpy = spy(mojo);
         final CommandHandler commandHandlerMock = mock(CommandHandlerImpl.class);
         doNothing().when(commandHandlerMock).runCommandWithReturnCodeCheck(anyString(), anyBoolean(),
-                anyString(), any(List.class), anyString());
+                anyString(), ArgumentMatchers.anyList(), anyString());
         mojoSpy.checkRuntimeExistence(commandHandlerMock);
 
         verify(commandHandlerMock, times(1))
@@ -93,7 +94,7 @@ public class RunMojoTest extends MojoTestBase {
         final RunMojo mojoSpy = spy(mojo);
         final CommandHandler commandHandlerMock = mock(CommandHandlerImpl.class);
         doNothing().when(commandHandlerMock).runCommandWithReturnCodeCheck(anyString(), anyBoolean(),
-                anyString(), any(List.class), anyString());
+                anyString(), ArgumentMatchers.anyList(), anyString());
         doReturn("buildDirectory").when(mojoSpy).getDeploymentStageDirectory();
         mojoSpy.runFunctions(commandHandlerMock);
 
