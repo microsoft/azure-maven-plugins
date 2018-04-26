@@ -52,7 +52,7 @@ To use the Maven Plugin for Azure Web Apps in your Maven Java app, add the follo
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.0.0</version>
+               <version>1.1.0</version>
                <configuration>
                   ...
                </configuration>
@@ -89,9 +89,11 @@ Property | Required | Description | Version
 `<linuxRuntime>` | false | Specified the runtime stack for your Web App.<br>This setting is only applicable for Web App (on Linux); see the [Java Runtime and Web Container](#java-runtime-and-web-container) section of this README for details. | 0.2.0+
 `<containerSettings>` | false | Specifies the docker container image to deploy to your Web App.<br>This setting is only applicable for Web App for Containers. Docker hubs and private container registries are both supported; see the [Container Setting](#container-setting) section of this README for details. | 0.1.0+
 `<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>` | 0.1.0+
-`<deploymentType>` | false | Specifies the deployment approach you want to use. Only `ftp` is supported right now. | 0.1.0+
 `<stopAppDuringDeployment>` | false | Specifies whether stop target Web App during deployment. This will prevent deployment failure caused by IIS locking files. | 0.1.4+
-`<resources>` | false | Specifies the artifacts to be deployed to your Web App; see the [Deploy via FTP](#deploy-via-ftp) section for more details. | 0.1.0+
+`<deploymentType>` | false | Specifies the deployment approach you want to use, available options: <br><ul><li>war (by default): since 1.1.0</li><li>ftp: since 0.1.0</li></ul> | 0.1.0+
+`<resources>` | false | Specifies the artifacts to be deployed to your Web App when `deploymentType` is set to `ftp`; see the [Deploy via FTP](#deploy-via-ftp) section for more details. | 0.1.0+
+`warFile` | false | Specifies the location of the war file which is to be deployed when `deploymentType` is set to `war`. If this configuration is not specified, plugin will find the war file according to the `finalName` in the project build directory. | 1.1.0+
+`path` | false | Specify the context path for the deployment when `deploymentType` is set to `war`. If this configuration is not specified, plugin will deploy to the context path: `/`, which is also known as the `ROOT`. | 1.1.0+
 >*: This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored
 
 ### Web App (on Windows)
