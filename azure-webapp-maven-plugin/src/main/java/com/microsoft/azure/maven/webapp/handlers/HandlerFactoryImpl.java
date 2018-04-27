@@ -74,8 +74,10 @@ public class HandlerFactoryImpl extends HandlerFactory {
             case UNKNOWN:
                 throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
             case FTP:
-            default:
                 return new FTPArtifactHandlerImpl(mojo);
+            case WAR:
+            default:
+                return new WarArtifactHandlerImpl(mojo);
         }
     }
 

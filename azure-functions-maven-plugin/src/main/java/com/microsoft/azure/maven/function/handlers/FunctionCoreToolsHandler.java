@@ -4,8 +4,8 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.function.handlers;
 
-public interface ArtifactHandler {
-    void publish() throws Exception;
+public interface FunctionCoreToolsHandler {
+    void installExtension() throws Exception;
 }

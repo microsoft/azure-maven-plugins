@@ -6,100 +6,120 @@
 
 package com.microsoft.azure.maven.function;
 
-import org.junit.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.util.Arrays;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static com.microsoft.azure.maven.function.RunMojo.FUNC_CMD;
+import static com.microsoft.azure.maven.function.RunMojo.FUNC_HOST_START_CMD;
+import static com.microsoft.azure.maven.function.RunMojo.RUNTIME_NOT_FOUND;
+import static com.microsoft.azure.maven.function.RunMojo.RUN_FUNCTIONS_FAILURE;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import java.util.List;
+
+import org.apache.maven.plugin.MojoExecutionException;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import com.microsoft.azure.maven.function.handlers.CommandHandler;
+import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
+import com.microsoft.azure.maven.function.utils.CommandUtils;
+
+@RunWith(MockitoJUnitRunner.class)
 public class RunMojoTest extends MojoTestBase {
+
     @Test
-    public void doExecuteOnWindows() throws Exception {
+    public void doExecute() throws Exception {
         final RunMojo mojo = getMojoFromPom();
         final RunMojo mojoSpy = spy(mojo);
-        doNothing().when(mojoSpy).runCommand(any(String[].class), anyBoolean(), anyList(), anyString());
-        doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
-        doReturn(true).when(mojoSpy).isWindows();
+        doNothing().when(mojoSpy).checkStageDirectoryExistence();
+        doNothing().when(mojoSpy).checkRuntimeExistence(any(CommandHandler.class));
+        doNothing().when(mojoSpy).runFunctions(any(CommandHandler.class));
 
         mojoSpy.doExecute();
-        final String stageDirectory = Paths.get("target", "azure-functions", "appName").toString();
-        verify(mojoSpy, times(1)).runCommand(
-                new String[]{"cmd.exe", "/c", "cd /D " + stageDirectory},
-                false,
-                Arrays.asList(0L),
-                RunMojo.STAGE_DIR_NOT_FOUND);
-        verify(mojoSpy, times(1)).runCommand(
-                new String[]{"cmd.exe", "/c", "func"},
-                false,
-                Arrays.asList(0L),
-                RunMojo.RUNTIME_NOT_FOUND);
-        verify(mojoSpy, times(1)).runCommand(
-                new String[]{"cmd.exe", "/c", "cd /D " + stageDirectory + " && func host start"},
-                true,
-                Arrays.asList(0L, 3221225786L),
-                RunMojo.RUN_FUNCTIONS_FAILURE);
+        verify(mojoSpy, times(1)).checkStageDirectoryExistence();
+        verify(mojoSpy, times(1)).checkRuntimeExistence(any(CommandHandler.class));
+        verify(mojoSpy, times(1)).runFunctions(any(CommandHandler.class));
     }
 
-    @Test
-    public void doExecuteOnLinux() throws Exception {
+
+    @Test(expected = MojoExecutionException.class)
+    public void checkStageDirectoryExistenceWhenIsNotDirectory() throws Exception {
         final RunMojo mojo = getMojoFromPom();
         final RunMojo mojoSpy = spy(mojo);
-        doNothing().when(mojoSpy).runCommand(any(String[].class), anyBoolean(), anyList(), anyString());
-        doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
-        doReturn(false).when(mojoSpy).isWindows();
 
-        mojoSpy.doExecute();
-        final String stageDirectory = Paths.get("target", "azure-functions", "appName").toString();
-        verify(mojoSpy, times(1)).runCommand(
-                new String[]{"sh", "-c", "cd " + stageDirectory},
-                false,
-                Arrays.asList(0L),
-                RunMojo.STAGE_DIR_NOT_FOUND);
-        verify(mojoSpy, times(1)).runCommand(
-                new String[]{"sh", "-c", "func"},
-                false,
-                Arrays.asList(0L),
-                RunMojo.RUNTIME_NOT_FOUND);
-        verify(mojoSpy, times(1)).runCommand(
-                new String[]{"sh", "-c", "cd " + stageDirectory + "; func host start"},
-                true,
-                Arrays.asList(0L, 130L),
-                RunMojo.RUN_FUNCTIONS_FAILURE);
+        doReturn("./RunMojoTest.java").when(mojoSpy).getDeploymentStageDirectory();
+        mojoSpy.checkStageDirectoryExistence();
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void checkStageDirectoryExistenceWhenNotExisting() throws Exception {
+        final RunMojo mojo = getMojoFromPom();
+        final RunMojo mojoSpy = spy(mojo);
+
+        doReturn("./NotExistFile").when(mojoSpy).getDeploymentStageDirectory();
+        mojoSpy.checkStageDirectoryExistence();
     }
 
     @Test
-    public void runCommand() throws Exception {
+    public void checkRuntimeExistence() throws Exception {
         final RunMojo mojo = getMojoFromPom();
+        final RunMojo mojoSpy = spy(mojo);
+        final CommandHandler commandHandlerMock = mock(CommandHandlerImpl.class);
+        doNothing().when(commandHandlerMock).runCommandWithReturnCodeCheck(anyString(), anyBoolean(),
+                anyString(), ArgumentMatchers.anyList(), anyString());
+        mojoSpy.checkRuntimeExistence(commandHandlerMock);
 
-        final String[] command = mojo.isWindows() ?
-                new String[]{"cmd.exe", "/c", "dir"} :
-                new String[]{"sh", "-c", "ls -al"};
-        mojo.runCommand(command, true, Arrays.asList(0L), "dir/ls error");
+        verify(commandHandlerMock, times(1))
+                .runCommandWithReturnCodeCheck(
+                        mojoSpy.getCheckRuntimeCommand(),
+                        false,
+                        null,
+                        CommandUtils.getDefaultValidReturnCodes(),
+                        RUNTIME_NOT_FOUND
+                );
     }
 
     @Test
-    public void handleExitValue() throws Exception {
+    public void runFunctions() throws Exception {
         final RunMojo mojo = getMojoFromPom();
+        final RunMojo mojoSpy = spy(mojo);
+        final CommandHandler commandHandlerMock = mock(CommandHandlerImpl.class);
+        doNothing().when(commandHandlerMock).runCommandWithReturnCodeCheck(anyString(), anyBoolean(),
+                anyString(), ArgumentMatchers.anyList(), anyString());
+        doReturn("buildDirectory").when(mojoSpy).getDeploymentStageDirectory();
+        mojoSpy.runFunctions(commandHandlerMock);
 
-        final String errorMessage = "commandError";
-        String caughtExceptionMessage = null;
-        try {
-            final InputStream inputStream = new ByteArrayInputStream("error details".getBytes());
-            mojo.handleExitValue(1, Arrays.asList(0L), errorMessage, inputStream);
-        } catch (Exception e) {
-            caughtExceptionMessage = e.getMessage();
-        } finally {
-            assertEquals(errorMessage, caughtExceptionMessage);
-        }
+        verify(commandHandlerMock, times(1))
+                .runCommandWithReturnCodeCheck(
+                        mojoSpy.getStartFunctionHostCommand(),
+                        true,
+                        mojoSpy.getDeploymentStageDirectory(),
+                        CommandUtils.getValidReturnCodes(),
+                        RUN_FUNCTIONS_FAILURE
+                );
+    }
+
+    @Test
+    public void getCheckRuntimeCommand() throws Exception {
+        final RunMojo mojo = getMojoFromPom();
+        final RunMojo mojoSpy = spy(mojo);
+        assertEquals(FUNC_CMD, mojoSpy.getCheckRuntimeCommand());
+    }
+
+    @Test
+    public void getStartFunctionHostCommand() throws Exception {
+        final RunMojo mojo = getMojoFromPom();
+        final RunMojo mojoSpy = spy(mojo);
+        assertEquals(FUNC_HOST_START_CMD, mojoSpy.getStartFunctionHostCommand());
     }
 
     private RunMojo getMojoFromPom() throws Exception {

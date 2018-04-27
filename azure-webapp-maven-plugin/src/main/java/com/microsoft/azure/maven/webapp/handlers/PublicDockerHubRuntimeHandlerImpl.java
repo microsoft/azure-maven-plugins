@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.appservice.AppServicePlan;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
@@ -22,8 +24,9 @@ public class PublicDockerHubRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public WithCreate defineAppWithRuntime() throws Exception {
-        return WebAppUtils.defineApp(mojo)
-                .withNewLinuxPlan(mojo.getPricingTier())
+        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo, OperatingSystem.LINUX);
+
+        return WebAppUtils.defineLinuxApp(mojo, plan)
                 .withPublicDockerHubImage(mojo.getContainerSettings().getImageName());
     }
 

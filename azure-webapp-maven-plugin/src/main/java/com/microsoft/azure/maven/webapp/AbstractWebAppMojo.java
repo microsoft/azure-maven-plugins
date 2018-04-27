@@ -53,6 +53,22 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     protected String appName;
 
     /**
+     * Resource group of App Service Plan. It will be created if it doesn't exist.
+     *
+     * @since 1.0.0
+     */
+    @Parameter(property = "webapp.appServicePlanResourceGroup")
+    protected String appServicePlanResourceGroup;
+
+    /**
+     * App Service Plan name. It will be created if it doesn't exist.
+     *
+     * @since 1.0.0
+     */
+    @Parameter(property = "webapp.appServicePlanName")
+    protected String appServicePlanName;
+
+    /**
      * Web App region, which will only be used to create Web App at the first time.
      *
      * @since 0.1.0
@@ -167,11 +183,16 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     protected Properties appSettings;
 
     /**
-     * Deployment type to deploy Web App. Only "ftp" is supported now.
+     * Deployment type to deploy Web App. The plugin contains two types now:
+     *
+     * <ul>
+     *      <li>FTP - {@code <resources>} specifies configurations for this kind of deployment.</li>
+     *      <li>WAR - {@code <warFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
+     * <ul/>
      *
      * @since 0.1.0
      */
-    @Parameter(property = "webapp.deploymentType", defaultValue = "ftp")
+    @Parameter(property = "webapp.deploymentType", defaultValue = "war")
     protected String deploymentType;
 
     /**
@@ -198,6 +219,24 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter(property = "webapp.skip", defaultValue = "false")
     protected boolean skip;
 
+    /**
+     * Location of the war file which is going to be deployed. If this field is not defined,
+     * plugin will find the war file with the final name in the build directory.
+     *
+     * @since 1.1.0
+     */
+    @Parameter(property = "webapp.warFile")
+    protected String warFile;
+
+    /**
+     * The context path for the deployment.
+     * By default it will be deployed to '/', which is also known as the ROOT.
+     *
+     * @since 1.1.0
+     */
+    @Parameter(property = "webapp.path", defaultValue = "/")
+    protected String path;
+
     //endregion
 
     //region Getter
@@ -213,6 +252,14 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public String getAppName() {
         return appName;
+    }
+
+    public String getAppServicePlanResourceGroup() {
+        return appServicePlanResourceGroup;
+    }
+
+    public String getAppServicePlanName() {
+        return appServicePlanName;
     }
 
     public String getRegion() {
@@ -261,6 +308,14 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public List<Resource> getResources() {
         return resources;
+    }
+
+    public String getWarFile() {
+        return warFile;
+    }
+
+    public String getPath() {
+        return path;
     }
 
     public WebApp getWebApp() throws AzureAuthFailureException {

@@ -5,7 +5,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-functions-maven-plugin</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Functions</name>
     <description>Maven Plugin for Azure Functions</description>
@@ -22,14 +22,15 @@
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.ai.version>1.0.9</azure.ai.version>
-        <azure.maven-plugin-lib.version>0.2.0</azure.maven-plugin-lib.version>
-        <azure.function.version>1.0.0-beta-2</azure.function.version>
+        <azure.maven-plugin-lib.version>1.0.0-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.function.version>1.0.0-beta-3</azure.function.version>
         <azure.storage.version>5.4.0</azure.storage.version>
         <reflections.version>0.9.11</reflections.version>
         <zeroturnaround.zip.version>1.12</zeroturnaround.zip.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.4.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
+        <semver.version>0.9.0</semver.version>
     </properties>
 
     <licenses>
@@ -194,6 +195,11 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-storage</artifactId>
             <version>${azure.storage.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.zafarkhaja</groupId>
+            <artifactId>java-semver</artifactId>
+            <version>${semver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.zeroturnaround</groupId>

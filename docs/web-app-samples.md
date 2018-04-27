@@ -1,7 +1,7 @@
 # Sample usages of Maven Plugin for Azure Web Apps
 
 #### Table of Content
-- [Web App (on Windows) with Java 8, Tomcat and FTP deployment](#web-app-on-windows)
+- [Web App (on Windows) with Java 8, Tomcat and WAR deployment](#web-app-on-windows)
 
 - [Web App (on Linux) with Java 8, Tomcat and FTP deployment](#web-app-on-linux)
 
@@ -11,14 +11,15 @@
 
 - [Web App for Containers with docker container image in private container registry](#web-app-for-containers-private-registry)
 
+- [Deploy Web App to an existing App Service Plan](#existing-app-service-plan)
 
 <a name="web-app-on-windows"></a>
-## Web App (on Windows) with Java 8, Tomcat and FTP deployment
+## Web App (on Windows) with Java 8, Tomcat and WAR deployment
 The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Windows
 - Using Java 8 and Tomcat 8.5
-- Using FTP to deploy **WAR** file to `/site/wwwroot/webapps/` directory in your Web App server
+- Using WAR to deploy **WAR** file to context path: `/${project.build.finalName}` in your Web App server
 - Add Application Settings to your Web App
 
    ```xml
@@ -29,7 +30,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.2.0</version>
+               <version>1.1.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -39,28 +40,22 @@ The following configuration is applicable for below scenario:
                   <!-- Web App information -->
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
-                  <!-- <region> and <pricingTier> are optional. They will be used to create new Web App if the specified Web App doesn't exist -->
+                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westus</region>
                   <pricingTier>S1</pricingTier>
-                  
+
                   <!-- Java Runtime Stack for Web App on Windows-->
                   <javaVersion>1.8</javaVersion>
                   <javaWebContainer>tomcat 8.5</javaWebContainer>
                   
-                  <!-- FTP deployment -->
-                  <deploymentType>ftp</deploymentType>
-                  <!-- Resources to be deployed to your Web App -->
-                  <resources>
-                     <resource>
-                        <!-- Where your artifacts are stored -->
-                        <directory>${project.basedir}/target</directory>
-                        <!-- Relative path to /site/wwwroot/ -->
-                        <targetPath>webapps</targetPath>
-                        <includes>
-                           <include>*.war</include>
-                        </includes>
-                     </resource>
-                  </resources>
+                  <!-- WAR deployment -->
+                  <deploymentType>war</deploymentType>
+
+                  <!-- Specify the war file location, optional if the war file location is: ${project.build.directory}/${project.build.finalName}.war -->
+                  <warFile>custom/absolute/path/deploy.war</warFile>
+
+                  <!-- Specify context path, optional if you want to deploy to ROOT -->
+                  <path>/${project.build.finalName}</path>
                   
                   <!-- Application Settings of your Web App -->
                   <appSettings>
@@ -94,7 +89,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.2.0</version>
+               <version>1.1.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -104,7 +99,7 @@ The following configuration is applicable for below scenario:
                   <!-- Web App information -->
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
-                  <!-- <region> and <pricingTier> are optional. They will be used to create new Web App if the specified Web App doesn't exist -->
+                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westus</region>
                   <pricingTier>S1</pricingTier>
                   
@@ -157,7 +152,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.2.0</version>
+               <version>1.1.0</version>
                <configuration>
                   <!-- Referencing ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -167,7 +162,7 @@ The following configuration is applicable for below scenario:
                   <!-- Web App information -->
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
-                  <!-- <region> and <pricingTier> are optional. They will be used to create new Web App if the specified Web App doesn't exist -->
+                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westus</region>
                   <pricingTier>S1</pricingTier>
                   
@@ -211,7 +206,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.2.0</version>
+               <version>1.1.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -221,7 +216,7 @@ The following configuration is applicable for below scenario:
                   <!-- Web App information -->
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
-                  <!-- <region> and <pricingTier> are optional. They will be used to create new Web App if the specified Web App doesn't exist -->
+                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westus</region>
                   <pricingTier>S1</pricingTier>
                   
@@ -266,7 +261,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>0.2.0</version>
+               <version>1.1.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -276,7 +271,7 @@ The following configuration is applicable for below scenario:
                   <!-- Web App information -->
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
-                  <!-- <region> and <pricingTier> are optional. They will be used to create new Web App if the specified Web App doesn't exist -->
+                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westus</region>
                   <pricingTier>S1</pricingTier>
                   
@@ -301,6 +296,58 @@ The following configuration is applicable for below scenario:
                         <value>your-setting-value</value>
                      </property>
                   </appSettings>
+               </configuration>
+            </plugin>
+            ...
+         </plugins>
+      </build>
+   <project>
+   ```
+
+<a name="existing-app-service-plan"></a>
+## Web App deployment to an existing App Service Plan
+The following configuration is applicable for below scenario:
+- Web App on Linux
+- Using existing App Service Plan
+- Using Java 8 and Tomcat 8.5
+- Using FTP to deploy **WAR** file to `/site/wwwroot/webapps/` directory in your Web App server
+
+   ```xml
+   <project>
+      ...
+      <build>
+         <plugins>
+            <plugin>
+               <groupId>com.microsoft.azure</groupId>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>1.1.0</version>
+               <configuration>
+                  
+                  <!-- Web App information -->
+                  <resourceGroup>your-resource-group</resourceGroup>
+                  <appName>your-app-name</appName>
+
+                  <!-- Deploy Web App to the existing App Service Plan -->
+                  <appServicePlanResourceGroup>plan-resource-group</appServicePlanResourceGroup>
+                  <appServicePlanName>plan-name</appServicePlanName>
+                  
+                  <!-- Java Runtime Stack for Web App on Linux-->
+                  <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
+                  
+                  <!-- FTP deployment -->
+                  <deploymentType>ftp</deploymentType>
+                  <!-- Resources to be deployed to your Web App -->
+                  <resources>
+                     <resource>
+                        <!-- Where your artifacts are stored -->
+                        <directory>${project.basedir}/target</directory>
+                        <!-- Relative path to /site/wwwroot/ -->
+                        <targetPath>webapps</targetPath>
+                        <includes>
+                           <include>*.war</include>
+                        </includes>
+                     </resource>
+                  </resources>
                </configuration>
             </plugin>
             ...

@@ -194,7 +194,6 @@ public class DeployMojoTest {
     public void deployArtifactsWithNoResources() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         final DeployMojo mojoSpy = spy(mojo);
-        doReturn(null).when(mojoSpy).getResources();
 
         mojoSpy.deployArtifacts();
     }
@@ -232,11 +231,10 @@ public class DeployMojoTest {
     public void deployArtifactsWithResources() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         final DeployMojo mojoSpy = spy(mojo);
-        doReturn(getResourceList()).when(mojoSpy).getResources();
 
         mojoSpy.deployArtifacts();
 
-        verify(artifactHandler, times(1)).publish(ArgumentMatchers.<Resource>anyList());
+        verify(artifactHandler, times(1)).publish();
         verifyNoMoreInteractions(artifactHandler);
     }
 

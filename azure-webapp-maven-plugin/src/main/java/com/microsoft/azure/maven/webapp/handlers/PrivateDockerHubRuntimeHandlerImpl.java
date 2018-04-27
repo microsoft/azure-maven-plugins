@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.appservice.AppServicePlan;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.maven.Utils;
@@ -31,8 +33,9 @@ public class PrivateDockerHubRuntimeHandlerImpl implements RuntimeHandler {
         if (server == null) {
             throw new MojoExecutionException(SERVER_ID_NOT_FOUND + containerSetting.getServerId());
         }
-        return WebAppUtils.defineApp(mojo)
-                .withNewLinuxPlan(mojo.getPricingTier())
+
+        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo, OperatingSystem.LINUX);
+        return WebAppUtils.defineLinuxApp(mojo, plan)
                 .withPrivateDockerHubImage(containerSetting.getImageName())
                 .withCredentials(server.getUsername(), server.getPassword());
     }

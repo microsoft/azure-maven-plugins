@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
-import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Locale;
@@ -14,6 +13,7 @@ import java.util.Locale;
 public enum DeploymentType {
     NONE,
     FTP,
+    WAR,
     UNKNOWN;
 
     public static DeploymentType fromString(final String input) {
@@ -24,6 +24,8 @@ public enum DeploymentType {
         switch (input.toUpperCase(Locale.ENGLISH)) {
             case "FTP":
                 return FTP;
+            case "WAR":
+                return WAR;
             default:
                 return UNKNOWN;
         }
