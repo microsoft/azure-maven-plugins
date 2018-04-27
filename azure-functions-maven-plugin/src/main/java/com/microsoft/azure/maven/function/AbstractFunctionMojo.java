@@ -28,7 +28,7 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     protected File outputDirectory;
 
     /**
-     * Resource group of Function App. It will be created if it doesn't exist.
+     * Resource group of Azure Functions. It will be created if it doesn't exist.
      *
      * @since 0.1.0
      */
@@ -36,7 +36,7 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     protected String resourceGroup;
 
     /**
-     * Function App name. It will be created if it doesn't exist.
+     * Azure Functions name. It will be created if it doesn't exist.
      *
      * @since 0.1.0
      */
@@ -44,7 +44,7 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     protected String appName;
 
     /**
-     * Function App region, which will only be used to create Function App at the first time.
+     * Azure Functions region, which will only be used to create Azure Functions at the first time.
      *
      * @since 0.1.0
      */
@@ -52,7 +52,7 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
     protected String region;
 
     /**
-     * Application settings of Function App, in the form of name-value pairs.
+     * Application settings of Azure Functions, in the form of name-value pairs.
      * <pre>
      * {@code
      * <appSettings>
@@ -118,7 +118,7 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
         } catch (AzureAuthFailureException authEx) {
             throw authEx;
         } catch (Exception ex) {
-            // Swallow exception for non-existing function app
+            // Swallow exception for non-existing Azure Functions
         }
         return null;
     }

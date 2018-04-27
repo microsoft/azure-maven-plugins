@@ -25,18 +25,18 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Deploy artifacts to target Function App in Azure. If target Function App doesn't exist, it will be created.
+ * Deploy artifacts to target Azure Functions in Azure. If target Azure Functions doesn't exist, it will be created.
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
-    public static final String FUNCTION_DEPLOY_START = "Starting deploying to Function App ";
+    public static final String FUNCTION_DEPLOY_START = "Starting deploying to Azure Functions ";
     public static final String FUNCTION_DEPLOY_SUCCESS =
-            "Successfully deployed Function App at https://%s.azurewebsites.net";
-    public static final String FUNCTION_APP_CREATE_START = "Target Function App does not exist. " +
-            "Creating a new Function App ...";
-    public static final String FUNCTION_APP_CREATED = "Successfully created Function App ";
-    public static final String FUNCTION_APP_UPDATE = "Updating Function App...";
-    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated Function App ";
+            "Successfully deployed Azure Functions at https://%s.azurewebsites.net";
+    public static final String FUNCTION_APP_CREATE_START = "Target Azure Functions does not exist. " +
+            "Creating a new Azure Functions ...";
+    public static final String FUNCTION_APP_CREATED = "Successfully created Azure Functions ";
+    public static final String FUNCTION_APP_UPDATE = "Updating Azure Functions...";
+    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated Azure Functions ";
 
     public static final String MS_DEPLOY = "msdeploy";
     public static final String FTP = "ftp";
@@ -44,7 +44,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     //region Properties
 
     /**
-     * Function App pricing tier, which will only be used to create Function App at the first time.<br/>
+     * Azure Functions pricing tier, which will only be used to create Azure Functions at the first time.<br/>
      * Below is the list of supported pricing tier. If left blank, Consumption plan is the default.
      * <ul>
      * <li>F1</li>
@@ -106,7 +106,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //endregion
 
-    //region Create or update function app
+    //region Create or update Azure Functions
 
     protected void createOrUpdateFunctionApp() throws Exception {
         final FunctionApp app = getFunctionApp();

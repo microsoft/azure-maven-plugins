@@ -63,7 +63,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
 
     protected void validateFunctionName(final Set<String> nameSet, final String functionName) throws Exception {
         if (StringUtils.isEmpty(functionName)) {
-            throw new Exception("Azure Function name cannot be empty.");
+            throw new Exception("Azure Functions name cannot be empty.");
         }
         if (nameSet.stream().anyMatch(n -> StringUtils.equalsIgnoreCase(n, functionName))) {
             throw new Exception("Found duplicate Azure Function: " + functionName);
