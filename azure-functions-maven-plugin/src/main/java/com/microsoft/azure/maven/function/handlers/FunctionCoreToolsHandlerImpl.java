@@ -9,15 +9,14 @@ package com.microsoft.azure.maven.function.handlers;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.maven.plugin.MojoExecutionException;
-
 import com.github.zafarkhaja.semver.Version;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
 
 public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
-    public static final String FUNC_EXTENSIONS_INSTALL_TEMPLATE = "func extensions install -c %s";
+    // Work around for issue: https://github.com/Azure/azure-functions-core-tools/issues/445
+    public static final String FUNC_EXTENSIONS_INSTALL_TEMPLATE = "func extensions install -c -- %s";
     public static final String INSTALL_FUNCTION_EXTENSIONS_FAIL = "Failed to install the Function extensions";
     public static final String OUTDATED_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
             "support extension auto-install, skip it in the package phase.";
