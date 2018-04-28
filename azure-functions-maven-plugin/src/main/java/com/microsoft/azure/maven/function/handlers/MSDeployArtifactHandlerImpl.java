@@ -29,7 +29,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
     public static final String REMOVE_LOCAL_SETTINGS = "Remove local.settings.json from ZIP package.";
     public static final String INTERNAL_STORAGE_KEY = "AzureWebJobsStorage";
     public static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found.";
-    public static final String INTERNAL_STORAGE_CONNECTION_STRING = "Azure Functions Internal Storage Connection String: ";
+    public static final String INTERNAL_STORAGE_CONNECTION_STRING = "Azure Functions Storage Connection String: ";
     public static final String UPLOAD_PACKAGE_START = "Step 2 of 4: Uploading ZIP package to Azure Storage...";
     public static final String UPLOAD_PACKAGE_DONE = "Successfully uploaded ZIP package to ";
     public static final String DEPLOY_PACKAGE_START = "Step 3 of 4: Deploying Azure Functions with package...";
