@@ -46,8 +46,8 @@ Maven | 3.0 and above
 - Invoke Azure Functions Local Emulator to run all functions. Default working directory is the staging directory.
 
 #### `azure-functions:deploy` 
-- Deploy the staging directory to target Function App.
-- If target Function App does not exist already, it will be created.
+- Deploy the staging directory to target Azure Functions.
+- If target Azure Functions does not exist already, it will be created.
  
 
 ## Usage
@@ -87,13 +87,13 @@ This Maven Plugin supports the following configuration properties:
 
 Property | Required | Description
 ---|---|---
-`<resourceGroup>` | true | Specifies the Azure Resource Group for your Function App.
-`<appName>` | true | Specifies the name of your Function App.
-`<region>`* | false | Specifies the region where your Function App will be hosted; default value is **westus**. All valid regions are at [Supported Regions](#supported-regions) section.
-`<pricingTier>`* | false | Specifies the pricing tier for your Function App; default value is **Consumption**. All valid pricing tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section.
-`<appSettings>` | false | Specifies the application settings for your Function App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
+`<resourceGroup>` | true | Specifies the Azure Resource Group for your Azure Functions.
+`<appName>` | true | Specifies the name of your Azure Functions.
+`<region>`* | false | Specifies the region where your Azure Functions will be hosted; default value is **westus**. All valid regions are at [Supported Regions](#supported-regions) section.
+`<pricingTier>`* | false | Specifies the pricing tier for your Azure Functions; default value is **Consumption**. All valid pricing tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section.
+`<appSettings>` | false | Specifies the application settings for your Azure Functions, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
 `<deploymentType>` | false | Specifies the deployment approach you want to use.<br>Supported values are `msdeploy` and `ftp`. Default value is **`msdeploy`**.
->*: This setting will be used to create a new Function App if specified Function App does not exist; if target Function App already exists, this setting will be ignored.
+>*: This setting will be used to create a new Azure Functions if specified Azure Functions does not exist; if target Azure Functions already exists, this setting will be ignored.
 
 ### Supported Regions
 All valid regions are listed as below. Read more at [Azure Region Availability](https://azure.microsoft.com/en-us/regions/services/).
@@ -169,7 +169,7 @@ mvn azure-functions:run
 
 ### Deploy Azure Functions to Azure
 
-Directly deploy to target Function App by running `mvn azure-functions:deploy`.
+Directly deploy to target Azure Functions by running `mvn azure-functions:deploy`.
 
 Supported deployment methods are listed as below. Default value is **MSDeploy**.
 - MSDeploy

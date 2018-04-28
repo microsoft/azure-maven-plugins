@@ -34,7 +34,7 @@ import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 import javax.annotation.Nullable;
 
 /**
- * Create new Azure Function (as Java class) and add to current project.
+ * Create new Azure Functions (as Java class) and add to current project.
  */
 @Mojo(name = "add")
 public class AddMojo extends AbstractFunctionMojo {

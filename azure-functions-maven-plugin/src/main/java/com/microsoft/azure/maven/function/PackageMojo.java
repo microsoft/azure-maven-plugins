@@ -42,9 +42,9 @@ import java.util.Set;
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.COMPILE)
 public class PackageMojo extends AbstractFunctionMojo {
-    public static final String SEARCH_FUNCTIONS = "Step 1 of 7: Searching for Azure Function entry points";
-    public static final String FOUND_FUNCTIONS = " Azure Function entry point(s) found.";
-    public static final String GENERATE_CONFIG = "Step 2 of 7: Generating Azure Function configurations";
+    public static final String SEARCH_FUNCTIONS = "Step 1 of 7: Searching for Azure Functions entry points";
+    public static final String FOUND_FUNCTIONS = " Azure Functions entry point(s) found.";
+    public static final String GENERATE_CONFIG = "Step 2 of 7: Generating Azure Functions configurations";
     public static final String GENERATE_SKIP = "No Azure Functions found. Skip configuration generation.";
     public static final String GENERATE_DONE = "Generation done.";
     public static final String VALIDATE_CONFIG = "Step 3 of 7: Validating generated configurations";
