@@ -21,8 +21,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     public static final String OUTDATED_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
             "support extension auto-install, skip it in the package phase.";
     public static final String NEED_UPDATE_FUNCTION_CORE_TOOLS = "Local version of Azure Functions Core Tools (%s) " +
-            "does not match the latest (%s). Please update using 'npm i -g azure-functions-core-tools@core' " +
-            "for the best experience.";
+            "does not match the latest (%s). Please it for the best experience. See: https://aka.ms/azfunc-install";
     public static final String GET_LATEST_VERSION_CMD = "npm view azure-functions-core-tools dist-tags.core";
     public static final String GET_LATEST_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
     public static final String GET_LOCAL_VERSION_CMD = "npm ls azure-functions-core-tools -g";

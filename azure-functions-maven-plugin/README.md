@@ -24,6 +24,7 @@ JDK | 1.8
 Maven | 3.0 and above
 [.Net Core SDK](https://www.microsoft.com/net/core) | Latest version
 [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) | 2.0 and above
+>Note: [See how to install Azure Functions Core Tools - 2.x](https://aka.ms/azfunc-install)
 
 ## Goals
 
