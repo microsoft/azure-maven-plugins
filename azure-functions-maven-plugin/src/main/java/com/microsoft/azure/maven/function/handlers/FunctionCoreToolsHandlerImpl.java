@@ -25,7 +25,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
             "See: https://aka.ms/azfunc-install";
     public static final String GET_LATEST_VERSION_CMD = "npm view azure-functions-core-tools dist-tags.core";
     public static final String GET_LATEST_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
-    public static final String GET_LOCAL_VERSION_CMD = "npm ls azure-functions-core-tools -g";
+    public static final String GET_LOCAL_VERSION_CMD = "func --version";
     public static final String GET_LOCAL_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
     public static final String VERSION_REGEX = "(?:.*)azure-functions-core-tools@(.*)";
     public static final Version LEAST_SUPPORTED_VERSION = Version.valueOf("2.0.1-beta.26");
@@ -89,7 +89,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
 
     protected String getLocalFunctionCoreToolsVersion() throws Exception {
-        final String versionInfo = commandHandler.runCommandAndGetOutput(
+        final String localVersion = commandHandler.runCommandAndGetOutput(
                 GET_LOCAL_VERSION_CMD,
                 false, /* showStdout */
                 null, /* workingDirectory */
@@ -97,13 +97,10 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
                 GET_LOCAL_VERSION_FAIL
         );
 
-        final Pattern regex = Pattern.compile(VERSION_REGEX);
-        final Matcher matcher = regex.matcher(versionInfo);
-
-        //Group zero denotes the entire pattern by convention. It is not included in groupCount().
-        if (matcher.find() && matcher.groupCount() >= 1) {
-            return matcher.group(1).trim();
-        } else {
+        try {
+            Version.valueOf(localVersion);
+            return localVersion;
+        } catch (Exception e) {
             return null;
         }
     }

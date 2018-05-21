@@ -57,10 +57,10 @@ public class FunctionCoreToolsHandlerImplTest {
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
                 new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
-        doReturn("C:\\Users\\user\\AppData\\Roaming\\npm\n`-- azure-functions-core-tools@2.0.1-beta.25")
+        doReturn("2.0.1-beta.26")
                 .when(commandHandler).runCommandAndGetOutput(anyString(),
                 anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
-        assertEquals("2.0.1-beta.25", functionCoreToolsHandlerSpy.getLocalFunctionCoreToolsVersion());
+        assertEquals("2.0.1-beta.26", functionCoreToolsHandlerSpy.getLocalFunctionCoreToolsVersion());
     }
 
     @Test
