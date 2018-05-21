@@ -57,10 +57,9 @@ public class FunctionCoreToolsHandlerImplTest {
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
                 new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
-        doReturn("C:\\Users\\user\\AppData\\Roaming\\npm\n`-- azure-functions-core-tools@2.0.1-beta.25")
-                .when(commandHandler).runCommandAndGetOutput(anyString(),
-                anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
-        assertEquals("2.0.1-beta.25", functionCoreToolsHandlerSpy.getLocalFunctionCoreToolsVersion());
+        doReturn("2.0.1-beta.26")
+                .when(commandHandler).runCommandAndGetOutput(anyString(), anyBoolean(), any());
+        assertEquals("2.0.1-beta.26", functionCoreToolsHandlerSpy.getLocalFunctionCoreToolsVersion());
     }
 
     @Test
@@ -71,8 +70,7 @@ public class FunctionCoreToolsHandlerImplTest {
                 new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
         doReturn("unexpected output")
-                .when(commandHandler).runCommandAndGetOutput(anyString(),
-                anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
+                .when(commandHandler).runCommandAndGetOutput(anyString(), anyBoolean(), any());
         assertNull(functionCoreToolsHandlerSpy.getLocalFunctionCoreToolsVersion());
     }
 
@@ -135,22 +133,22 @@ public class FunctionCoreToolsHandlerImplTest {
 
         // Equal to newest version
         doReturn("3.0.0").when(commandHandler).runCommandAndGetOutput(anyString(),
-                anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
-        functionCoreToolsHandlerSpy.checkVersion(Version.valueOf("3.0.0"));
+                anyBoolean(), any());
+        functionCoreToolsHandlerSpy.checkVersion("3.0.0");
         verify(mojo, never()).warning(anyString());
 
         // Less than least supported version
         reset(mojo);
         doReturn("2.0.1-beta.26").when(commandHandler).runCommandAndGetOutput(anyString(),
-                anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
-        functionCoreToolsHandlerSpy.checkVersion(Version.valueOf("2.0.1-beta.24"));
+                anyBoolean(), any());
+        functionCoreToolsHandlerSpy.checkVersion("2.0.1-beta.24");
         verify(mojo, times(1)).warning(anyString());
 
         // Less than newest version but higher than least supported version
         reset(mojo);
         doReturn("2.0.1-beta.27").when(commandHandler).runCommandAndGetOutput(anyString(),
-                anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
-        functionCoreToolsHandlerSpy.checkVersion(Version.valueOf("2.0.1-beta.26"));
+                anyBoolean(), any());
+        functionCoreToolsHandlerSpy.checkVersion("2.0.1-beta.26");
         verify(mojo, times(1)).warning(anyString());
     }
 }

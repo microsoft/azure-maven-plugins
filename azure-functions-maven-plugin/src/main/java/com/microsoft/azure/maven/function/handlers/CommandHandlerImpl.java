@@ -34,7 +34,7 @@ public class CommandHandlerImpl implements CommandHandler {
                                               final String workingDirectory,
                                               final List<Long> validReturnCodes,
                                               final String errorMessage) throws Exception {
-        final Process process = runCommand(command, showStdout, workingDirectory, validReturnCodes, errorMessage);
+        final Process process = runCommand(command, showStdout, workingDirectory);
 
         handleExitValue(process.exitValue(), validReturnCodes, errorMessage, process.getInputStream());
     }
@@ -42,10 +42,8 @@ public class CommandHandlerImpl implements CommandHandler {
     @Override
     public String runCommandAndGetOutput(final String command,
                                          final boolean showStdout,
-                                         final String workingDirectory,
-                                         final List<Long> validReturnCodes,
-                                         final String errorMessage) throws Exception {
-        final Process process = runCommand(command, showStdout, workingDirectory, validReturnCodes, errorMessage);
+                                         final String workingDirectory) throws Exception {
+        final Process process = runCommand(command, showStdout, workingDirectory);
 
         return getOutputFromProcess(process);
     }
@@ -64,9 +62,7 @@ public class CommandHandlerImpl implements CommandHandler {
 
     protected Process runCommand(final String command,
                                  final boolean showStdout,
-                                 final String workingDirectory,
-                                 final List<Long> validReturnCodes,
-                                 final String errorMessage) throws Exception {
+                                 final String workingDirectory) throws Exception {
         this.logger.debug("Executing command: " + StringUtils.join(command, " "));
 
         final ProcessBuilder.Redirect redirect = getStdoutRedirect(showStdout);

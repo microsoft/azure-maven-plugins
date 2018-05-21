@@ -24,10 +24,9 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
             "does not match the latest (%s). Please update it for the best experience. " + 
             "See: https://aka.ms/azfunc-install";
     public static final String GET_LATEST_VERSION_CMD = "npm view azure-functions-core-tools dist-tags.core";
-    public static final String GET_LATEST_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
-    public static final String GET_LOCAL_VERSION_CMD = "npm ls azure-functions-core-tools -g";
+    public static final String GET_LATEST_VERSION_FAIL = "Failed to check update for Azure Functions Core Tools";
+    public static final String GET_LOCAL_VERSION_CMD = "func --version";
     public static final String GET_LOCAL_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
-    public static final String VERSION_REGEX = "(?:.*)azure-functions-core-tools@(.*)";
     public static final Version LEAST_SUPPORTED_VERSION = Version.valueOf("2.0.1-beta.26");
 
     private AbstractFunctionMojo mojo;
@@ -49,7 +48,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
                 this.mojo.warning(OUTDATED_LOCAL_FUNCTION_CORE_TOOLS);
             }
 
-            checkVersion(Version.valueOf(localVersion));
+            checkVersion(localVersion);
         } catch (Exception e) {
             this.mojo.warning(e.getMessage());
         }
@@ -72,38 +71,35 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         return true;
     }
 
-    protected void checkVersion(final Version localVersion) throws Exception {
+    protected void checkVersion(final String localVersion) throws Exception {
         final String latestCoreVersion = commandHandler.runCommandAndGetOutput(
                 GET_LATEST_VERSION_CMD,
                 false, /* showStdout */
-                null, /* workingDirectory */
-                CommandUtils.getDefaultValidReturnCodes(),
-                GET_LATEST_VERSION_FAIL
+                null /* workingDirectory */
         );
 
-        if (localVersion.lessThan(LEAST_SUPPORTED_VERSION) ||
-                localVersion.lessThan(Version.valueOf(latestCoreVersion))) {
-            this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
+        try {
+            if (localVersion == null || Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
+                this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
+            }
+        } catch (Exception e) {
+            throw new Exception(GET_LATEST_VERSION_FAIL);
         }
+
     }
 
 
     protected String getLocalFunctionCoreToolsVersion() throws Exception {
-        final String versionInfo = commandHandler.runCommandAndGetOutput(
+        final String localVersion = commandHandler.runCommandAndGetOutput(
                 GET_LOCAL_VERSION_CMD,
                 false, /* showStdout */
-                null, /* workingDirectory */
-                CommandUtils.getDefaultValidReturnCodes(),
-                GET_LOCAL_VERSION_FAIL
+                null /* workingDirectory */
         );
 
-        final Pattern regex = Pattern.compile(VERSION_REGEX);
-        final Matcher matcher = regex.matcher(versionInfo);
-
-        //Group zero denotes the entire pattern by convention. It is not included in groupCount().
-        if (matcher.find() && matcher.groupCount() >= 1) {
-            return matcher.group(1).trim();
-        } else {
+        try {
+            Version.valueOf(localVersion);
+            return localVersion;
+        } catch (Exception e) {
             return null;
         }
     }

@@ -18,7 +18,5 @@ public interface CommandHandler {
 
     String runCommandAndGetOutput(final String command,
                                   final boolean showStdout,
-                                  final String workingDirectory,
-                                  final List<Long> validReturnCodes,
-                                  final String errorMessage) throws Exception;
+                                  final String workingDirectory) throws Exception;
 }
