@@ -81,7 +81,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
                 GET_LATEST_VERSION_FAIL
         );
 
-        if (localVersion.lessThan(LEAST_SUPPORTED_VERSION) ||
+        if (localVersion == null || localVersion.lessThan(LEAST_SUPPORTED_VERSION) ||
                 localVersion.lessThan(Version.valueOf(latestCoreVersion))) {
             this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
         }
