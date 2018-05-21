@@ -24,10 +24,9 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
             "does not match the latest (%s). Please update it for the best experience. " + 
             "See: https://aka.ms/azfunc-install";
     public static final String GET_LATEST_VERSION_CMD = "npm view azure-functions-core-tools dist-tags.core";
-    public static final String GET_LATEST_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
+    public static final String GET_LATEST_VERSION_FAIL = "Failed to check update for Azure Functions Core Tools";
     public static final String GET_LOCAL_VERSION_CMD = "func --version";
     public static final String GET_LOCAL_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
-    public static final String VERSION_REGEX = "(?:.*)azure-functions-core-tools@(.*)";
     public static final Version LEAST_SUPPORTED_VERSION = Version.valueOf("2.0.1-beta.26");
 
     private AbstractFunctionMojo mojo;
@@ -76,14 +75,17 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         final String latestCoreVersion = commandHandler.runCommandAndGetOutput(
                 GET_LATEST_VERSION_CMD,
                 false, /* showStdout */
-                null, /* workingDirectory */
-                CommandUtils.getDefaultValidReturnCodes(),
-                GET_LATEST_VERSION_FAIL
+                null /* workingDirectory */
         );
 
-        if (localVersion == null || Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
-            this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
+        try {
+            if (localVersion == null || Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
+                this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
+            }
+        } catch (Exception e) {
+            throw new Exception(GET_LATEST_VERSION_FAIL);
         }
+
     }
 
 
@@ -91,9 +93,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         final String localVersion = commandHandler.runCommandAndGetOutput(
                 GET_LOCAL_VERSION_CMD,
                 false, /* showStdout */
-                null, /* workingDirectory */
-                CommandUtils.getDefaultValidReturnCodes(),
-                GET_LOCAL_VERSION_FAIL
+                null /* workingDirectory */
         );
 
         try {
