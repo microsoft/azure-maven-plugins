@@ -136,21 +136,21 @@ public class FunctionCoreToolsHandlerImplTest {
         // Equal to newest version
         doReturn("3.0.0").when(commandHandler).runCommandAndGetOutput(anyString(),
                 anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
-        functionCoreToolsHandlerSpy.checkVersion(Version.valueOf("3.0.0"));
+        functionCoreToolsHandlerSpy.checkVersion("3.0.0");
         verify(mojo, never()).warning(anyString());
 
         // Less than least supported version
         reset(mojo);
         doReturn("2.0.1-beta.26").when(commandHandler).runCommandAndGetOutput(anyString(),
                 anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
-        functionCoreToolsHandlerSpy.checkVersion(Version.valueOf("2.0.1-beta.24"));
+        functionCoreToolsHandlerSpy.checkVersion("2.0.1-beta.24");
         verify(mojo, times(1)).warning(anyString());
 
         // Less than newest version but higher than least supported version
         reset(mojo);
         doReturn("2.0.1-beta.27").when(commandHandler).runCommandAndGetOutput(anyString(),
                 anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
-        functionCoreToolsHandlerSpy.checkVersion(Version.valueOf("2.0.1-beta.26"));
+        functionCoreToolsHandlerSpy.checkVersion("2.0.1-beta.26");
         verify(mojo, times(1)).warning(anyString());
     }
 }
