@@ -11,7 +11,7 @@ import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
 
 public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
-    
+
     public static final String FUNC_EXTENSIONS_INSTALL_TEMPLATE = "func extensions install -c \"%s\"";
     public static final String INSTALL_FUNCTION_EXTENSIONS_FAIL = "Failed to install the Function extensions";
     public static final String OUTDATED_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
