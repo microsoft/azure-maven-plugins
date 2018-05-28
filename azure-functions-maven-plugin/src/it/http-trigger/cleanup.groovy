@@ -8,14 +8,20 @@
 def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/hello?json={\"body\":\"Azure\"}".toURL()
 
 // Functions need some time to warm up
-for (int i = 0; i < 5; i++) {
+int i = 0
+while (i < 5) {
     try {
         def response = url.getText()
         assert response == "Hello, Azure"
         break
     } catch (Exception e) {
+        i++
         // ignore warm-up exception
     }
+}
+
+if (i >= 5) {
+    throw new Exception("Integration test fail for Azure Functions http-trigger")
 }
 
 // Clean up resources created in test
