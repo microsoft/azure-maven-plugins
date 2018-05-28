@@ -5,14 +5,18 @@
  */
 
 // Verify Azure Functions
-def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/hello?name=Azure".toURL()
-try {
-    url.getText() // warm up
-} catch (Exception e) {
-    // ignore warm-up exception
+def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/hello?json={\"body\":\"Azure\"}".toURL()
+
+// Functions need some time to warm up
+for (int i = 0; i < 5; i++) {
+    try {
+        def response = url.getText()
+        assert response == "Hello, Azure"
+        break
+    } catch (Exception e) {
+        // ignore warm-up exception
+    }
 }
-def response = url.getText()
-assert response == "Hello, Azure"
 
 // Clean up resources created in test
 def clientId = System.getenv("CLIENT_ID")

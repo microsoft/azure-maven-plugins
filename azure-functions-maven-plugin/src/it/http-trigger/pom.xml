@@ -17,6 +17,8 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <functionAppName>maven-functions-it-${timestamp}-1</functionAppName>
         <functionAppRegion>westus</functionAppRegion>
+        <stagingDirectory>${project.build.directory}/azure-functions/${functionAppName}</stagingDirectory>
+        <functionResourceGroup>java-functions-group</functionResourceGroup>
     </properties>
 
     <dependencies>
@@ -25,13 +27,10 @@
             <artifactId>azure-functions-java-core</artifactId>
             <version>[1.0.0-beta-1,1.0.0)</version>
         </dependency>
-
-        <!-- Test -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.4</version>
         </dependency>
     </dependencies>
 
@@ -88,8 +87,7 @@
                         </goals>
                         <configuration>
                             <overwrite>true</overwrite>
-                            <outputDirectory>${project.build.directory}/azure-functions/${functionAppName}
-                            </outputDirectory>
+                            <outputDirectory>${stagingDirectory}</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${project.basedir}</directory>
@@ -99,6 +97,28 @@
                                     </includes>
                                 </resource>
                             </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.0.2</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${stagingDirectory}/lib</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>false</overWriteSnapshots>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                            <includeScope>runtime</includeScope>
+                            <excludeArtifactIds>azure-functions-java-core</excludeArtifactIds>
                         </configuration>
                     </execution>
                 </executions>
