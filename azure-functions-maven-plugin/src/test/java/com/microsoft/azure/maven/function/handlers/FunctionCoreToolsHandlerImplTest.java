@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 
@@ -66,6 +67,9 @@ public class FunctionCoreToolsHandlerImplTest {
     public void getLocalFunctionCoreToolsVersionFailed() throws Exception {
         final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).warn(anyString());
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
                 new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);

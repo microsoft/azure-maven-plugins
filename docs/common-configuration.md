@@ -63,7 +63,7 @@ The following methods are supported for authenticating with Azure.
 
 #### Authentication Method #2: Use an authentication file
 
-1. Follow instructions in [Creating a Service Principal in Azure](https://github.com/Azure/azure-sdk-for-java/blob/master/AUTH.md#creating-a-service-principal-in-azure)
+1. Follow instructions in [Auth file formats](https://github.com/Azure/azure-libraries-for-java/blob/master/AUTH.md#auth-file-formats)
 to create an authentication file.
 
 2. Configure the plugin to use this file as below.
