@@ -20,6 +20,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -188,6 +189,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      * <ul>
      *      <li>FTP - {@code <resources>} specifies configurations for this kind of deployment.</li>
      *      <li>WAR - {@code <warFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
+     *      <li>JAR - {@code <jarFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
      * <ul/>
      *
      * @since 0.1.0
@@ -209,7 +211,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      * @since 0.1.0
      */
     @Parameter
-    protected List<Resource> resources;
+    protected List<Resource> resources = Collections.emptyList();
 
     /**
      * Skip execution.
@@ -227,6 +229,23 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      */
     @Parameter(property = "webapp.warFile")
     protected String warFile;
+
+    /**
+     * Location of the jar file which is going to be deployed. If this field is not defined,
+     * plugin will find the jar file with the final name in the build directory.
+     *
+     * @since 1.2.0
+     */
+    @Parameter(property = "webapp.jarFile")
+    protected String jarFile;
+
+     /**
+     * Jar command arguments to be used by web.config
+     *
+     * @since 1.2.0
+     */
+    @Parameter(property = "webapp.jarCommand")
+    protected String jarCommand;
 
     /**
      * The context path for the deployment.
@@ -312,6 +331,14 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public String getWarFile() {
         return warFile;
+    }
+
+    public String getJarFile() {
+        return jarFile;
+    }
+
+    public String getJarCommand() {
+        return jarCommand;
     }
 
     public String getPath() {

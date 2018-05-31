@@ -75,6 +75,8 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
             case WAR:
                 return new WarArtifactHandlerImpl(mojo);
+            case JAR:
+                return new JarArtifactHandlerImpl(mojo);
             case FTP:
             default:
                 return new FTPArtifactHandlerImpl(mojo);

@@ -21,7 +21,7 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
     public static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
 
-    private AbstractWebAppMojo mojo;
+    protected AbstractWebAppMojo mojo;
 
     public FTPArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
