@@ -1,4 +1,4 @@
-# Maven Plugin for Azure Web Apps
+# Maven Plugin for Azure App Service
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22)
 
 #### Table of Content
@@ -19,10 +19,8 @@
     - [Supported Pricing Tiers](#supported-pricing-tiers)
 
 
-The Maven Plugin for Azure Web Apps provides seamless integration of Azure Web Apps into Maven, 
+The Maven Plugin for Azure App Service Web Apps provides seamless integration into Maven projects, 
 and makes it easier for developers to deploy to Web App (on Windows) and [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro) in Azure.
-
-**Note**: This plugin is still in preview; feedback and feature requests are warmly welcome.
 
 ## Prerequisites
 
@@ -34,7 +32,7 @@ Maven | 3.0 and above
 <a name="goals"></a>
 ## Goals
 
-The Maven Plugin for Azure Web Apps has only one goal: `azure-webapp:deploy`. 
+The Maven Plugin for Azure App Service Web Apps has only one goal: `azure-webapp:deploy`. 
 
 Goal | Description
 --- | ---
@@ -42,17 +40,24 @@ Goal | Description
 
 ## Usage
 
-To use the Maven Plugin for Azure Web Apps in your Maven Java app, add the following settings for the plugin to your `pom.xml` file:
+To use this plugin in your Maven project, add the following settings for the plugin to your `pom.xml` file:
 
    ```xml
    <project>
       ...
       <build>
+         <pluginManagement>
+            <plugins>
+               <groupId>com.microsoft.azure</groupId>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <!-- check Maven Central for the latest version -->
+               <version>1.10</version>
+            </plugins>
+         </pluginManagement>
          <plugins>
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.1.0</version>
                <configuration>
                   ...
                </configuration>
@@ -64,7 +69,7 @@ To use the Maven Plugin for Azure Web Apps in your Maven Java app, add the follo
    ```
 
 ## Quick Samples
-A few typical usages of Maven Plugin for Azure Web Apps are listed at [Web App Samples](../docs/web-app-samples.md).
+A few typical usages of Maven Plugin for Azure App Service Web Apps are listed at [Web App Samples](../docs/web-app-samples.md).
 You can choose one to quickly get started.
 
 ## Common Configuration
