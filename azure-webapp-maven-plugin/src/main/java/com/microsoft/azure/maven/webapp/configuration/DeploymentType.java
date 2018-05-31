@@ -14,6 +14,7 @@ public enum DeploymentType {
     NONE,
     FTP,
     WAR,
+    JAR,
     UNKNOWN;
 
     public static DeploymentType fromString(final String input) {
@@ -26,6 +27,8 @@ public enum DeploymentType {
                 return FTP;
             case "WAR":
                 return WAR;
+            case "JAR":
+                return JAR;
             default:
                 return UNKNOWN;
         }

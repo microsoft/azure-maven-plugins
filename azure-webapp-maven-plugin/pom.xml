@@ -217,7 +217,7 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>**/ApplicationInsights.xml</include>
+                    <include>**/*</include>
                 </includes>
             </resource>
         </resources>
