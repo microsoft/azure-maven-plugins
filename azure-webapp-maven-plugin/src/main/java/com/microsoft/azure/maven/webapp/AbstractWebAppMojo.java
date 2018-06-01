@@ -194,7 +194,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      *
      * @since 0.1.0
      */
-    @Parameter(property = "webapp.deploymentType", defaultValue = "ftp")
+    @Parameter(property = "webapp.deploymentType")
     protected String deploymentType;
 
     /**
