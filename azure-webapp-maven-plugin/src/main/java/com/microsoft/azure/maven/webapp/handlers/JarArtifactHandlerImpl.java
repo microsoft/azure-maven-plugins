@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for
+ * license information.
+ */
+
 package com.microsoft.azure.maven.webapp.handlers;
 
 import java.io.File;
@@ -15,17 +21,20 @@ import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
 /**
- * Artifact handler for deploying a JAR, self-contained, Java application (e.g. Spring Boot) to Azure App Service through FTP
+ * Artifact handler for deploying a JAR, self-contained, Java application (e.g.
+ * Spring Boot) to Azure App Service through FTP
  * 
  * @since 1.2.0
  */
-public class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
+public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";
 
     private static final String JAR_CMD = "__JAR_COMMAND__";
-    private static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true -Dserver.port=%HTTP_PLATFORM_PORT% -jar &quot;%HOME%\\\\site\\\\wwwroot\\\\FILENAME&quot;";
+    private static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true "
+            + "-Dserver.port=%HTTP_PLATFORM_PORT% "
+            + "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\FILENAME&quot;";
 
     public JarArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
         super(mojo);
@@ -34,7 +43,7 @@ public class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
     @Override
     public void publish() throws Exception {
         // Ensure stage directory exists
-        File parent = new File(mojo.getDeploymentStageDirectory());
+        final File parent = new File(mojo.getDeploymentStageDirectory());
         parent.mkdirs();
 
         // Copy JAR file to stage dir
@@ -58,18 +67,19 @@ public class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
     }
 
     private void generateWebConfigFile(String jarFileName) throws Exception {
-        InputStream is = getClass().getResourceAsStream("web.config.template");
-        String out = IOUtils.toString(is, "UTF-8");
+        final InputStream is = getClass().getResourceAsStream("web.config.template");
+        final String templateContent = IOUtils.toString(is, "UTF-8");
         is.close();
 
-        String updatedFile = out.toString().replaceAll(JAR_CMD, getJarCommand());
-        updatedFile = updatedFile.replaceAll("FILENAME", jarFileName);
+        final String webConfigFile = templateContent
+                                .replaceAll(JAR_CMD, getJarCommand())
+                                .replaceAll("FILENAME", jarFileName);
 
-        File webconfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
+        final File webconfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
         webconfig.createNewFile();
 
-        FileOutputStream fos = new FileOutputStream(webconfig);
-        IOUtils.write(updatedFile, fos, "UTF-8");
+        final FileOutputStream fos = new FileOutputStream(webconfig);
+        IOUtils.write(webConfigFile, fos, "UTF-8");
         fos.close();
     }
 
