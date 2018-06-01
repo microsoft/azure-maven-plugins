@@ -1,4 +1,3 @@
-
 /**
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for
@@ -7,15 +6,18 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import com.microsoft.azure.management.appservice.PublishingProfile;
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.FTPUploader;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.DeployMojo;
-import org.apache.maven.execution.MavenSession;
+
 import org.apache.maven.model.Resource;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,11 +25,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JarArtifactHandlerImplTest {
@@ -44,19 +41,9 @@ public class JarArtifactHandlerImplTest {
 
     @Test
     public void publish() throws Exception {
-        // TODO: test if web.config was properly generated and uploaded
+        // TODO: test if web.config was properly generated
+        // TODO: test if web.cofing and JAR were both uploaded
         
-        final JarArtifactHandlerImpl handlerSpy = spy(handler);
-        doNothing().when(handlerSpy).copyResourcesToStageDirectory(ArgumentMatchers.<Resource>anyList());
-        doNothing().when(handlerSpy).uploadDirectoryToFTP();
-
-        final List<Resource> resourceList = new ArrayList<>();
-        resourceList.add(new Resource());
-        doReturn(resourceList).when(mojo).getResources();
-        handlerSpy.publish();
-        verify(handlerSpy, times(1))
-                .copyResourcesToStageDirectory(ArgumentMatchers.<Resource>anyList());
-        verify(handlerSpy, times(1)).uploadDirectoryToFTP();
     }
 
 }
