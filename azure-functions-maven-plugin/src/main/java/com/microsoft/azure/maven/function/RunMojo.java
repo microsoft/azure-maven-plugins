@@ -22,10 +22,10 @@ import com.microsoft.azure.maven.function.utils.CommandUtils;
 public class RunMojo extends AbstractFunctionMojo {
     public static final String STAGE_DIR_FOUND = "Azure Functions stage directory found at: ";
     public static final String STAGE_DIR_NOT_FOUND =
-            "Stage directory not found. Please run mvn:package or azure-functions:package first.";
+            "Stage directory not found. Please run mvn package first.";
     public static final String RUNTIME_FOUND = "Azure Functions Core Tools found.";
     public static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
-            "Please run 'npm i -g azure-functions-core-tools@core' to install Azure Functions Core Tools first.";
+            "Please go to https://aka.ms/azfunc-install to install Azure Functions Core Tools first.";
     public static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
     public static final String START_RUN_FUNCTIONS = "Starting running Azure Functions...";
 
