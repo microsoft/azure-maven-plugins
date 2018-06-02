@@ -99,9 +99,6 @@
                         <configuration>
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <streamLogs>true</streamLogs>
-                            <setupIncludes>
-                                <setupInclude>abstractmethod-library/pom.xml</setupInclude>
-                            </setupIncludes>
                             <pomIncludes>
                                 <pomInclude>*/pom.xml</pomInclude>
                             </pomIncludes>
