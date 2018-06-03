@@ -66,21 +66,25 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         return mojo.getJarCommand() == null ? DEFAULT_JAR_COMMAND : mojo.getJarCommand();
     }
 
-    private void generateWebConfigFile(String jarFileName) throws Exception {
-        final InputStream is = getClass().getResourceAsStream("web.config.template");
-        final String templateContent = IOUtils.toString(is, "UTF-8");
-        is.close();
+    private void generateWebConfigFile(String jarFileName) {
+        try {
+            final InputStream is = getClass().getResourceAsStream("web.config.template");
+            final String templateContent = IOUtils.toString(is, "UTF-8");
+            is.close();
 
-        final String webConfigFile = templateContent
+            final String webConfigFile = templateContent
                                 .replaceAll(JAR_CMD, getJarCommand())
                                 .replaceAll("FILENAME", jarFileName);
 
-        final File webconfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
-        webconfig.createNewFile();
+            final File webconfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
+            webconfig.createNewFile();
 
-        final FileOutputStream fos = new FileOutputStream(webconfig);
-        IOUtils.write(webConfigFile, fos, "UTF-8");
-        fos.close();
+            final FileOutputStream fos = new FileOutputStream(webconfig);
+            IOUtils.write(webConfigFile, fos, "UTF-8");
+            fos.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e, "It was not possible to generate web.config file for JAR deployment");
+        }
     }
 
     protected File getJarFile() {

@@ -40,7 +40,7 @@ public enum DeploymentType {
      * @param mojo for the Maven project
      * @return an ArtifactHandler mapped to the deployment type identified
      */
-    public ArtifactHandler fromMojo(AbstractWebAppMojo mojo) {
+    public ArtifactHandler getArtifactHandlerFromMojo(AbstractWebAppMojo mojo) {
         return getHandler.apply(mojo);
     }
 
@@ -74,7 +74,7 @@ public enum DeploymentType {
                 case "jar":
                     return new JarArtifactHandlerImpl(m);
                 default:
-                    throw new RuntimeException("You must set a packaging type of (jar,war) or a " +
+                    throw new RuntimeException("You must set a packaging type of (jar, war) or a " +
                             "deployment type in the Maven plugin configuration.");
             }
         }
