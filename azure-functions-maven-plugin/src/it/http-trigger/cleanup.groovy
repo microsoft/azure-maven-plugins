@@ -5,14 +5,24 @@
  */
 
 // Verify Azure Functions
-def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/hello?name=Azure".toURL()
-try {
-    url.getText() // warm up
-} catch (Exception e) {
-    // ignore warm-up exception
+def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/hello?json={\"body\":\"Azure\"}".toURL()
+
+// Functions need some time to warm up
+int i = 0
+while (i < 5) {
+    try {
+        def response = url.getText()
+        assert response == "Hello, Azure"
+        break
+    } catch (Exception e) {
+        i++
+        // ignore warm-up exception
+    }
 }
-def response = url.getText()
-assert response == "Hello, Azure"
+
+if (i >= 5) {
+    throw new Exception("Integration test fail for Azure Functions http-trigger")
+}
 
 // Clean up resources created in test
 def clientId = System.getenv("CLIENT_ID")
