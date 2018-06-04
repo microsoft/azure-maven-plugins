@@ -28,3 +28,9 @@ provided by the bot. You will only need to do this once across all repos using o
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+### Telemetry
+This project collects usage data and sends it to Microsoft to help improve our products and services.
+Read Microsoft's [privacy statement](https://privacy.microsoft.com/en-us/privacystatement) to learn more.
+If you would like to opt out of sending telemetry data to Microsoft, you can set `allowTelemetry` to false in the plugin configuration.
+Please read our [documents](https://aka.ms/azure-maven-config) to find more details.
