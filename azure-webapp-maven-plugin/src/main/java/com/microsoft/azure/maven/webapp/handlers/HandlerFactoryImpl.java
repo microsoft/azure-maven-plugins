@@ -67,8 +67,8 @@ public class HandlerFactoryImpl extends HandlerFactory {
     }
 
     @Override
-    public ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) {
-        return mojo.getDeploymentType().fromMojo(mojo);
+    public ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+        return mojo.getDeploymentType().getArtifactHandlerFromMojo(mojo);
     }
 
     private boolean isDuplicatedRuntimeDefined(final JavaVersion javaVersion, final String linuxRuntime,

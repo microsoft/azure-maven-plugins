@@ -6,24 +6,24 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.util.List;
-
 import com.google.common.io.Files;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
+import java.util.List;
+
 /**
  * Artifact handler for deploying a JAR, self-contained, Java application (e.g.
  * Spring Boot) to Azure App Service through FTP
- * 
+ *
  * @since 1.2.0
  */
 public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
@@ -66,32 +66,35 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         return mojo.getJarCommand() == null ? DEFAULT_JAR_COMMAND : mojo.getJarCommand();
     }
 
-    private void generateWebConfigFile(String jarFileName) {
-        try {
-            final InputStream is = getClass().getResourceAsStream("web.config.template");
-            final String templateContent = IOUtils.toString(is, "UTF-8");
-            is.close();
+    private void generateWebConfigFile(String jarFileName) throws IOException {
+        String templateContent;
+        try (final InputStream is = getClass().getResourceAsStream("web.config.template")) {
+            templateContent = IOUtils.toString(is, "UTF-8");
+        } catch (IOException e) {
+            mojo.getLog().error("Failed to read the content of web.config.template.");
+            throw e;
+        }
 
-            final String webConfigFile = templateContent
-                                .replaceAll(JAR_CMD, getJarCommand())
-                                .replaceAll("FILENAME", jarFileName);
+        final String webConfigFile = templateContent
+                .replaceAll(JAR_CMD, getJarCommand())
+                .replaceAll("FILENAME", jarFileName);
 
-            final File webconfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
-            webconfig.createNewFile();
+        final File webconfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
+        webconfig.createNewFile();
 
-            final FileOutputStream fos = new FileOutputStream(webconfig);
+        try (final FileOutputStream fos = new FileOutputStream(webconfig)) {
             IOUtils.write(webConfigFile, fos, "UTF-8");
-            fos.close();
         } catch (Exception e) {
-            throw new RuntimeException(e, "It was not possible to generate web.config file for JAR deployment");
+            mojo.getLog().error("Failed to generate web.config file for JAR deployment.");
+            throw e;
         }
     }
 
     protected File getJarFile() {
         return StringUtils.isNotEmpty(mojo.getJarFile()) ? new File(mojo.getJarFile())
                 : new File(Paths
-                        .get(mojo.getBuildDirectoryAbsolutePath(), mojo.getProject().getBuild().getFinalName() + ".jar")
-                        .toString());
+                .get(mojo.getBuildDirectoryAbsolutePath(), mojo.getProject().getBuild().getFinalName() + ".jar")
+                .toString());
     }
 
     protected void assureJarFileExisted(File jar) throws MojoExecutionException {
