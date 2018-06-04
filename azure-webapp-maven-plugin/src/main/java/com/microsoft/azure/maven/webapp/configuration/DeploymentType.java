@@ -10,6 +10,7 @@ import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.webapp.handlers.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Locale;
@@ -40,7 +41,7 @@ public enum DeploymentType {
      * @param mojo for the Maven project
      * @return an ArtifactHandler mapped to the deployment type identified
      */
-    public ArtifactHandler getArtifactHandlerFromMojo(AbstractWebAppMojo mojo) {
+    public ArtifactHandler getArtifactHandlerFromMojo(AbstractWebAppMojo mojo) throws MojoExecutionException {
         return getHandler.apply(mojo);
     }
 
@@ -63,18 +64,18 @@ public enum DeploymentType {
 
     // TODO: Change to lambda once on Java 8+
     interface Function<T, R> {
-        ArtifactHandler apply(AbstractWebAppMojo m);
+        ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException;
     }
 
     static class NONEHandler implements Function {
-        public ArtifactHandler apply(AbstractWebAppMojo m) {
+        public ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException {
             switch (m.getProject().getPackaging()) {
                 case "war":
                     return new WarArtifactHandlerImpl(m);
                 case "jar":
                     return new JarArtifactHandlerImpl(m);
                 default:
-                    throw new RuntimeException("You must set a packaging type of (jar, war) or a " +
+                    throw new MojoExecutionException("You must set a packaging type of (jar, war) or a " +
                             "deployment type in the Maven plugin configuration.");
             }
         }
