@@ -109,6 +109,7 @@ public class WebAppUtilsTest {
     public void getLinuxRunTimeStack() throws MojoExecutionException {
         assertEquals(RuntimeStack.TOMCAT_8_5_JRE8, WebAppUtils.getLinuxRunTimeStack("tomcat 8.5-jre8"));
         assertEquals(RuntimeStack.TOMCAT_9_0_JRE8, WebAppUtils.getLinuxRunTimeStack("tomcat 9.0-jre8"));
+        assertEquals(RuntimeStack.JAVA_8_JRE8, WebAppUtils.getLinuxRunTimeStack("java 8-jre8"));
     }
 
     @Test(expected = MojoExecutionException.class)

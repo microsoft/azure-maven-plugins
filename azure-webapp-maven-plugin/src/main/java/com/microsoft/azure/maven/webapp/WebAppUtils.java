@@ -158,6 +158,8 @@ public class WebAppUtils {
                 return RuntimeStack.TOMCAT_8_5_JRE8;
             } else if (imageName.equalsIgnoreCase(RuntimeStack.TOMCAT_9_0_JRE8.toString())) {
                 return RuntimeStack.TOMCAT_9_0_JRE8;
+            } else if (imageName.equalsIgnoreCase(RuntimeStack.JAVA_8_JRE8.toString())) {
+                return RuntimeStack.JAVA_8_JRE8;
             } else {
                 throw new MojoExecutionException(String.format(NOT_SUPPORTED_IMAGE, imageName));
             }
