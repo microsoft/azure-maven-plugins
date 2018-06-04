@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.maven.function.bindings;
 
-import com.microsoft.azure.serverless.functions.annotation.*;
+import com.microsoft.azure.functions.annotation.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;

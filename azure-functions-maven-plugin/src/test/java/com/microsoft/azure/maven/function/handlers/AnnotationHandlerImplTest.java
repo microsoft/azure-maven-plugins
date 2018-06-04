@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.function.handlers;
 
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
-import com.microsoft.azure.serverless.functions.annotation.*;
+import com.microsoft.azure.functions.annotation.*;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.reflections.util.ClasspathHelper;

@@ -8,9 +8,9 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.ApiHubFileInput;
-import com.microsoft.azure.serverless.functions.annotation.ApiHubFileOutput;
-import com.microsoft.azure.serverless.functions.annotation.ApiHubFileTrigger;
+import com.microsoft.azure.functions.annotation.ApiHubFileInput;
+import com.microsoft.azure.functions.annotation.ApiHubFileOutput;
+import com.microsoft.azure.functions.annotation.ApiHubFileTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ApiHubFileBinding extends BaseBinding {
