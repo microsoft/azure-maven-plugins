@@ -5,7 +5,7 @@
  */
 
 // Verify Azure Functions
-def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/hello?json={\"body\":\"Azure\"}".toURL()
+def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/HttpTriggerJava?json={\"body\":\"Azure\"}".toURL()
 
 // Functions need some time to warm up
 int i = 0

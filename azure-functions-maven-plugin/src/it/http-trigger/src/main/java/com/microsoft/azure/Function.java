@@ -15,8 +15,8 @@ import com.google.gson.Gson;
  * Azure Functions with HTTP Trigger.
  */
 public class Function {
-    @FunctionName("hello")
-    public HttpResponseMessage<String> hello(
+    @FunctionName("HttpTriggerJava")
+    public HttpResponseMessage<String> httpTrigger(
             @HttpTrigger(name = "req", methods = {"get", "post"}, authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
         context.getLogger().info("Java HTTP trigger processed a request.");
