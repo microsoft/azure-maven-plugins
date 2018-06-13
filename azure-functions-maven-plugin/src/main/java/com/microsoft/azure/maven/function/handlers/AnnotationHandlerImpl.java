@@ -8,9 +8,9 @@ package com.microsoft.azure.maven.function.handlers;
 
 import com.microsoft.azure.maven.function.bindings.*;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
-import com.microsoft.azure.serverless.functions.annotation.FunctionName;
-import com.microsoft.azure.serverless.functions.annotation.HttpTrigger;
-import com.microsoft.azure.serverless.functions.annotation.StorageAccount;
+import com.microsoft.azure.functions.annotation.FunctionName;
+import com.microsoft.azure.functions.annotation.HttpTrigger;
+import com.microsoft.azure.functions.annotation.StorageAccount;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
 import org.reflections.Reflections;

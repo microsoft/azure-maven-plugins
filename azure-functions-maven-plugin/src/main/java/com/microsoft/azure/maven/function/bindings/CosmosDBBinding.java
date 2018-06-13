@@ -8,9 +8,9 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.CosmosDBInput;
-import com.microsoft.azure.serverless.functions.annotation.CosmosDBOutput;
-import com.microsoft.azure.serverless.functions.annotation.CosmosDBTrigger;
+import com.microsoft.azure.functions.annotation.CosmosDBInput;
+import com.microsoft.azure.functions.annotation.CosmosDBOutput;
+import com.microsoft.azure.functions.annotation.CosmosDBTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class CosmosDBBinding extends BaseBinding {
