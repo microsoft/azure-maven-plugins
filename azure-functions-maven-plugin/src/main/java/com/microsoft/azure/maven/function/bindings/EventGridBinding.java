@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.EventGridTrigger;
+import com.microsoft.azure.functions.annotation.EventGridTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class EventGridBinding extends BaseBinding {

@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.function.handlers;
 
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
-import com.microsoft.azure.serverless.functions.annotation.*;
+import com.microsoft.azure.functions.annotation.*;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.reflections.util.ClasspathHelper;
@@ -44,8 +44,6 @@ public class AnnotationHandlerImplTest {
     public static final String SERVICE_BUS_QUEUE_TRIGGER_METHOD = "serviceBusQueueTriggerMethod";
     public static final String SERVICE_BUS_TOPIC_TRIGGER_FUNCTION = "serviceBusTopicTriggerFunction";
     public static final String SERVICE_BUS_TOPIC_TRIGGER_METHOD = "serviceBusTopicTriggerMethod";
-    public static final String API_HUB_FILE_TRIGGER_FUNCTION = "apiHubFileTriggerFunction";
-    public static final String API_HUB_FILE_TRIGGER_METHOD = "apiHubFileTriggerMethod";
 
     public class FunctionEntryPoints {
         @FunctionName(HTTP_TRIGGER_FUNCTION)
@@ -126,13 +124,6 @@ public class AnnotationHandlerImplTest {
                 subscriptionName = "subs", connection = "conn") String in) {
             return "Hello!";
         }
-
-        @FunctionName(API_HUB_FILE_TRIGGER_FUNCTION)
-        @ApiHubFileOutput(name = "$return", path = "", connection = "conn")
-        public String apiHubFileTriggerMethod(@ApiHubFileTrigger(name = "in1", path = "p", connection = "c") String in1,
-                                              @ApiHubFileInput(name = "in2", path = "p", connection = "c") String in2) {
-            return "Hello!";
-        }
     }
 
     @Test
@@ -140,7 +131,7 @@ public class AnnotationHandlerImplTest {
         final AnnotationHandler handler = getAnnotationHandler();
         final Set<Method> functions = handler.findFunctions(Arrays.asList(getClassUrl()));
 
-        assertEquals(11, functions.size());
+        assertEquals(10, functions.size());
         final List<String> methodNames = functions.stream().map(f -> f.getName()).collect(Collectors.toList());
         assertTrue(methodNames.contains(HTTP_TRIGGER_METHOD));
         assertTrue(methodNames.contains(QUEUE_TRIGGER_METHOD));
@@ -150,7 +141,6 @@ public class AnnotationHandlerImplTest {
         assertTrue(methodNames.contains(EVENTHUB_TRIGGER_METHOD));
         assertTrue(methodNames.contains(SERVICE_BUS_QUEUE_TRIGGER_METHOD));
         assertTrue(methodNames.contains(SERVICE_BUS_TOPIC_TRIGGER_METHOD));
-        assertTrue(methodNames.contains(API_HUB_FILE_TRIGGER_METHOD));
         assertTrue(methodNames.contains(COSMOSDB_TRIGGER_METHOD));
         assertTrue(methodNames.contains(EVENTGRID_TRIGGER_METHOD));
     }
@@ -162,7 +152,7 @@ public class AnnotationHandlerImplTest {
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(functions);
         configMap.values().forEach(config -> config.validate());
 
-        assertEquals(11, configMap.size());
+        assertEquals(10, configMap.size());
 
         verifyFunctionConfiguration(configMap, HTTP_TRIGGER_FUNCTION, HTTP_TRIGGER_METHOD, 2);
 
@@ -179,8 +169,6 @@ public class AnnotationHandlerImplTest {
         verifyFunctionConfiguration(configMap, SERVICE_BUS_QUEUE_TRIGGER_FUNCTION, SERVICE_BUS_QUEUE_TRIGGER_METHOD, 2);
 
         verifyFunctionConfiguration(configMap, SERVICE_BUS_TOPIC_TRIGGER_FUNCTION, SERVICE_BUS_TOPIC_TRIGGER_METHOD, 2);
-
-        verifyFunctionConfiguration(configMap, API_HUB_FILE_TRIGGER_FUNCTION, API_HUB_FILE_TRIGGER_METHOD, 3);
 
         verifyFunctionConfiguration(configMap, COSMOSDB_TRIGGER_FUNCTION, COSMOSDB_TRIGGER_METHOD, 1);
 

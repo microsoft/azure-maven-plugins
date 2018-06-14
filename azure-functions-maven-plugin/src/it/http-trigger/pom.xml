@@ -23,8 +23,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-functions-java-core</artifactId>
+            <groupId>com.microsoft.azure.functions</groupId>
+            <artifactId>azure-functions-java-library</artifactId>
             <version>[1.0.0-beta-1,1.0.0)</version>
         </dependency>
         <dependency>
@@ -118,7 +118,7 @@
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
                             <includeScope>runtime</includeScope>
-                            <excludeArtifactIds>azure-functions-java-core</excludeArtifactIds>
+                            <excludeArtifactIds>azure-functions-java-library</excludeArtifactIds>
                         </configuration>
                     </execution>
                 </executions>
