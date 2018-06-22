@@ -8,8 +8,8 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.TableInput;
-import com.microsoft.azure.serverless.functions.annotation.TableOutput;
+import com.microsoft.azure.functions.annotation.TableInput;
+import com.microsoft.azure.functions.annotation.TableOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TableBinding extends StorageBaseBinding {

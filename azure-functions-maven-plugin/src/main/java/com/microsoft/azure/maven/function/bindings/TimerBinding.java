@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.TimerTrigger;
+import com.microsoft.azure.functions.annotation.TimerTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TimerBinding extends BaseBinding {
