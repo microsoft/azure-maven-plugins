@@ -73,7 +73,7 @@ Maven | 3.0 and above
    
 3. Use the following commands to deploy your project to Azure App Service. 
 
-    ```bash
+    ```
     $ mvn azure-webapp:deploy
     ```
 
@@ -95,7 +95,7 @@ You can use the Azure CLI 2.0 for authenticatin. More authentication methods can
 
 2. Run the following commands to log into your Azure subscription:
 
-    ```bash
+    ```
     $ az login
     $ az account set --subscription <subscription Id>
     ```
