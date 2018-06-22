@@ -111,7 +111,7 @@ In this section, you can see how to integrate the Maven plugin with different ki
 
 ### Web App on Windows
 
-For Web App on Windows, only Java runtime stack is supported in our plugin.
+For `Web App on Windows`, only Java runtime stack is supported in our plugin.
 You can use `<javaVersion>` and `<javaWebContainer>` to configure the runtime of your Web App.
 
 #### Java Runtime
@@ -177,7 +177,7 @@ Supported Value | Description
 ### Web App on Linux
 
 #### Runtime Stacks
-Use values from the following table to configure the runtime stack you want to use in your Web App on Linux.
+Use values from the following table to configure the runtime stack you want to use in your `Web App on Linux`.
 
 Supported Value | Description
 ---|---
@@ -333,9 +333,9 @@ Property | Required | Description | Version
 `<pricingTier>`* | false | Specifies the pricing tier for your Web App; the default value is **S1**. All valid tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section. | 0.1.0+
 `<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, plugin will use the value defined in `<resourceGroup>`. | 1.0.0+
 `<appServicePlanName>` | false | Specifies the name of the existing App Service Plan when you do not want to create a new one. | 1.0.0+
-`<javaVersion>` | false | Specifies the JVM version for your Web App.<br>This setting is only applicable for Web App on Windows; see the [Java Runtime](#java-runtime) section of this README for details. | 0.1.0+
-`<javaWebContainer>` | false | Specified the Web Container for your Web App.<br>This setting is only applicable for Web App on Windows; see the [Web Container](#web-container) section of this README for details. | 0.1.0+
-`<linuxRuntime>` | false | Specified the runtime stack for your Web App.<br>This setting is only applicable for Web App on Linux; see the [Runtime Stacks](#runtime-stacks) section of this README for details. | 0.2.0+
+`<javaVersion>` | false | Specifies the JVM version for your Web App.<br>This setting is only applicable for `Web App on Windows`; see the [Java Runtime](#java-runtime) section of this README for details. | 0.1.0+
+`<javaWebContainer>` | false | Specified the Web Container for your Web App.<br>This setting is only applicable for `Web App on Windows`; see the [Web Container](#web-container) section of this README for details. | 0.1.0+
+`<linuxRuntime>` | false | Specified the runtime stack for your Web App.<br>This setting is only applicable for `Web App on Linux`; see the [Runtime Stacks](#runtime-stacks) section of this README for details. | 0.2.0+
 `<containerSettings>` | false | Specifies the docker container image to deploy to your Web App.<br>This setting is only applicable for Web App for Containers. Docker hubs and private container registries are both supported; see the [Container Setting](#container-setting) section of this README for details. | 0.1.0+
 `<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>` | 0.1.0+
 `<stopAppDuringDeployment>` | false | Specifies whether stop target Web App during deployment. This will prevent deployment failure caused by IIS locking files. | 0.1.4+
