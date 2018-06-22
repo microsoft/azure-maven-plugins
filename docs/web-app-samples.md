@@ -3,7 +3,9 @@
 #### Table of Content
 - [Web App (on Windows) with Java 8, Tomcat and WAR deployment](#web-app-on-windows)
 
-- [Web App (on Linux) with Java 8, Tomcat and FTP deployment](#web-app-on-linux)
+- [Web App (on Linux) with Java 8, Tomcat and FTP deployment](#web-app-on-linux-tomcat)
+
+- [Web App (on Linux) with Java 8 and FTP deployment](#web-app-on-linux-jre8)
 
 - [Web App for Containers with public DockerHub container image](#web-app-for-containers-public-docker)
 
@@ -30,7 +32,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.1.0</version>
+               <version>1.2.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -69,10 +71,10 @@ The following configuration is applicable for below scenario:
             ...
          </plugins>
       </build>
-   <project>
+   </project>
    ```
    
-<a name="web-app-on-linux"></a>
+<a name="web-app-on-linux-tomcat"></a>
 ## Web App (on Linux) with Java 8, Tomcat and FTP deployment
 The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
@@ -89,7 +91,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.1.0</version>
+               <version>1.2.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -133,8 +135,78 @@ The following configuration is applicable for below scenario:
             ...
          </plugins>
       </build>
-   <project>
+   </project>
    ```
+   
+<a name="web-app-on-linux-jre8"></a>
+## Web App (on Linux) with Java 8 and FTP deployment
+The following configuration is applicable for below scenario:
+- Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
+- Web App on Linux
+- Using Java 8
+- Using FTP to deploy an executable jar file to `/site/wwwroot/` directory in your Web App server
+> Note: Please make sure your jar file name is `app.jar`, this is the name that Web App server will search and execute.
+- Add Application Settings to your Web App
+> Note: Currently we need to make sure the `JAVA_OPTS` contains `-Djava.security.egd=file:/dev/./urandom`, otherwise the Web App might not successfully start up.
+
+   ```xml
+   <project>
+      ...
+      <build>
+         <finalName>app</finalName>
+         <plugins>
+            <plugin>
+               <groupId>com.microsoft.azure</groupId>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>1.2.0</version>
+               <configuration>
+                  <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
+                  <authentication>
+                    <serverId>azure-auth</serverId>
+                  </authentication>
+                  
+                  <!-- Web App information -->
+                  <resourceGroup>your-resource-group</resourceGroup>
+                  <appName>your-app-name</appName>
+                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
+                  <region>westus</region>
+                  <pricingTier>S1</pricingTier>
+                  
+                  <!-- Java Runtime Stack for Web App on Linux -->
+                  <linuxRuntime>jre8</linuxRuntime>
+                  
+                  <!-- This is to make sure the jar file can be released at the server side -->
+                  <stopAppDuringDeployment>true</stopAppDuringDeployment>
+                  
+                  <!-- FTP deployment -->
+                  <deploymentType>ftp</deploymentType>
+                  <!-- Resources to be deployed to your Web App -->
+                  <resources>
+                     <resource>
+                        <!-- Where your artifacts are stored -->
+                        <directory>${project.basedir}/target</directory>
+                        <!-- Relative path to /site/wwwroot/ -->
+                        <targetPath>/</targetPath>
+                        <includes>
+                           <include>app.jar</include>
+                        </includes>
+                     </resource>
+                  </resources>
+                  
+                  <!-- Application Settings of your Web App -->
+                  <appSettings>
+                      <property>
+                          <name>JAVA_OPTS</name>
+                          <value>-Djava.security.egd=file:/dev/./urandom</value>
+                      </property>
+                  </appSettings>
+               </configuration>
+            </plugin>
+            ...
+         </plugins>
+      </build>
+   </project>
+   ```   
 
 <a name="web-app-for-containers-public-docker"></a>
 ## Web App for Containers with public DockerHub container image
@@ -152,7 +224,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.1.0</version>
+               <version>1.2.0</version>
                <configuration>
                   <!-- Referencing ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -187,7 +259,7 @@ The following configuration is applicable for below scenario:
             ...
          </plugins>
       </build>
-   <project>
+   </project>
    ```
 
 <a name="web-app-for-containers-private-docker"></a>
@@ -206,7 +278,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.1.0</version>
+               <version>1.2.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -242,7 +314,7 @@ The following configuration is applicable for below scenario:
             ...
          </plugins>
       </build>
-   <project>
+   </project>
    ```
 
 <a name="web-app-for-containers-private-registry"></a>
@@ -261,7 +333,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.1.0</version>
+               <version>1.2.0</version>
                <configuration>
                   <!-- Referencing <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -301,7 +373,7 @@ The following configuration is applicable for below scenario:
             ...
          </plugins>
       </build>
-   <project>
+   </project>
    ```
 
 <a name="existing-app-service-plan"></a>
@@ -320,7 +392,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.1.0</version>
+               <version>1.2.0</version>
                <configuration>
                   
                   <!-- Web App information -->
@@ -353,5 +425,5 @@ The following configuration is applicable for below scenario:
             ...
          </plugins>
       </build>
-   <project>
+   </project>
    ```
