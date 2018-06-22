@@ -23,6 +23,7 @@ import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.util.Locale;
 import java.util.UUID;
 
 public class WebAppUtils {
@@ -38,6 +39,10 @@ public class WebAppUtils {
     public static final String CREATE_SERVICE_PLAN = "Creating App Service Plan '%s'...";
     public static final String SERVICE_PLAN_EXIST = "Found existing App Service Plan '%s' in Resource Group '%s'.";
     public static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
+
+    public static final String TOMCAT_8_5_JRE8 = "tomcat 8.5-jre8";
+    public static final String TOMCAT_9_0_JRE8 = "tomcat 9.0-jre8";
+    public static final String JRE8 = "jre8";
 
     private static boolean isLinuxWebApp(final WebApp app) {
         return app.inner().kind().contains("linux");
@@ -154,12 +159,15 @@ public class WebAppUtils {
 
     public static RuntimeStack getLinuxRunTimeStack(String imageName) throws MojoExecutionException {
         if (isNotEmpty(imageName)) {
-            if (imageName.equalsIgnoreCase(RuntimeStack.TOMCAT_8_5_JRE8.toString())) {
-                return RuntimeStack.TOMCAT_8_5_JRE8;
-            } else if (imageName.equalsIgnoreCase(RuntimeStack.TOMCAT_9_0_JRE8.toString())) {
-                return RuntimeStack.TOMCAT_9_0_JRE8;
-            } else {
-                throw new MojoExecutionException(String.format(NOT_SUPPORTED_IMAGE, imageName));
+            switch (imageName.toLowerCase(Locale.ENGLISH)) {
+                case TOMCAT_8_5_JRE8:
+                    return RuntimeStack.TOMCAT_8_5_JRE8;
+                case TOMCAT_9_0_JRE8:
+                    return RuntimeStack.TOMCAT_9_0_JRE8;
+                case JRE8:
+                    return RuntimeStack.JAVA_8_JRE8;
+                default:
+                    throw new MojoExecutionException(String.format(NOT_SUPPORTED_IMAGE, imageName));
             }
         }
         throw new MojoExecutionException(IMAGE_NOT_GIVEN);
