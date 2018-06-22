@@ -8,8 +8,8 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.EventHubOutput;
-import com.microsoft.azure.serverless.functions.annotation.EventHubTrigger;
+import com.microsoft.azure.functions.annotation.EventHubOutput;
+import com.microsoft.azure.functions.annotation.EventHubTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class EventHubBinding extends BaseBinding {

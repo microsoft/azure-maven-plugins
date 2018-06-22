@@ -8,8 +8,8 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.HttpOutput;
-import com.microsoft.azure.serverless.functions.annotation.HttpTrigger;
+import com.microsoft.azure.functions.annotation.HttpOutput;
+import com.microsoft.azure.functions.annotation.HttpTrigger;
 
 import java.util.Locale;
 

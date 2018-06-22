@@ -8,10 +8,10 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.ServiceBusQueueOutput;
-import com.microsoft.azure.serverless.functions.annotation.ServiceBusQueueTrigger;
-import com.microsoft.azure.serverless.functions.annotation.ServiceBusTopicOutput;
-import com.microsoft.azure.serverless.functions.annotation.ServiceBusTopicTrigger;
+import com.microsoft.azure.functions.annotation.ServiceBusQueueOutput;
+import com.microsoft.azure.functions.annotation.ServiceBusQueueTrigger;
+import com.microsoft.azure.functions.annotation.ServiceBusTopicOutput;
+import com.microsoft.azure.functions.annotation.ServiceBusTopicTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ServiceBusBinding extends BaseBinding {

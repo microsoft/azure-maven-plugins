@@ -153,7 +153,7 @@ You don't have to provide all properties on command line. Missing properties wil
 ### Generate `function.json` from current project
 
 Follow below instructions, you don't need to handwrite `function.json` any more.
-1. Use annotations from package `com.microsoft.azure:azure-functions-java-core` to decorate your functions. 
+1. Use annotations from package `com.microsoft.azure:azure-functions-java-library` to decorate your functions. 
 2. Run `mvn clean package azure-functions:package`; then `function.json` files will be automatically generated for all functions in your project.
 
 ### Run Azure Functions locally

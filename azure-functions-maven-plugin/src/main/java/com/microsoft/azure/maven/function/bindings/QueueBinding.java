@@ -8,8 +8,8 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.QueueOutput;
-import com.microsoft.azure.serverless.functions.annotation.QueueTrigger;
+import com.microsoft.azure.functions.annotation.QueueOutput;
+import com.microsoft.azure.functions.annotation.QueueTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class QueueBinding extends StorageBaseBinding {
