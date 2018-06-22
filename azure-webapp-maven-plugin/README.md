@@ -1,6 +1,12 @@
 # Maven Plugin for Azure App Service
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22)
 
+The Maven Plugin for Azure App Service provides seamless integration into Maven projects, 
+and makes it easier for developers to deploy to different kinds of Azure Web Apps:
+  - Web App on Windows
+  - [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro)
+  - Web App for Containers
+  
 #### Table of Content
 - [Prerequisites](#prerequisites)
 - [Goals](#goals)
@@ -14,13 +20,6 @@
     - [FTP Deployment](#deploy-via-ftp)
     - [WAR Deployment](#war-deployment)
  - [Advanced Configurations](#advanced-configurations)
-
-
-The Maven Plugin for Azure App Service provides seamless integration into Maven projects, 
-and makes it easier for developers to deploy to different kinds of Azure Web Apps:
-  - Web App on Windows
-  - [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro)
-  - Web App for Containers
 
 ## Prerequisites
 
