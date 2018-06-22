@@ -9,9 +9,10 @@ and makes it easier for developers to deploy to different kinds of Azure Web App
   
 #### Table of Content
 - [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
 - [Goals](#goals)
 - [Authentication with Azure](#authentication-with-azure)
-- [Quick Start](#quick-start)
+- [More Usage Samples](#more-usages-samples)
 - [Azure App Service](#azure-app-service)
     - [Web App on Windows](#web-app-on-windows)
     - [Web App on Linux](#web-app-on-linux)
@@ -99,9 +100,12 @@ You can use the Azure CLI 2.0 for authenticatin. More authentication methods can
     $ az account set --subscription <subscription Id>
     ```
 
-## Usage
+## More Usages Samples
 A few typical usages of Maven Plugin for Azure App Service Web Apps are listed at [Web App Samples](../docs/web-app-samples.md).
 You can choose one to quickly get started.
+
+## Azure App Service
+In this section, you can see how to integrate the Maven plugin with different kinds of Azure App Services.
 
 ### Web App on Windows
 
@@ -208,7 +212,7 @@ Check out samples at [Web App Samples](../docs/web-app-samples.md) for the confi
 
 ## Deployment Type 
 
-#### Deploy via FTP
+### Deploy via FTP
 You can deploy your **WAR** file and other artifacts/resources to Web App via FTP. The following example shows all configuration elements.
 
 ```xml
@@ -243,7 +247,7 @@ Property | Description
 `includes` | A list of patterns to include, e.g. `**/*.war`.
 `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
 
-#### WAR Deployment 
+### WAR Deployment 
 You can deploy your **WAR** file with WAR Deployment. The following example shows the configuration elements.
 
 ```xml
