@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.maven.function.bindings;
 
-import com.microsoft.azure.serverless.functions.annotation.*;
+import com.microsoft.azure.functions.annotation.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -16,9 +16,6 @@ public class BindingFactory {
     private static Map<Class<? extends Annotation>, Class<? extends BaseBinding>> map = new ConcurrentHashMap();
 
     static {
-        map.put(ApiHubFileTrigger.class, ApiHubFileBinding.class);
-        map.put(ApiHubFileInput.class, ApiHubFileBinding.class);
-        map.put(ApiHubFileOutput.class, ApiHubFileBinding.class);
         map.put(BlobTrigger.class, BlobBinding.class);
         map.put(BlobInput.class, BlobBinding.class);
         map.put(BlobOutput.class, BlobBinding.class);
