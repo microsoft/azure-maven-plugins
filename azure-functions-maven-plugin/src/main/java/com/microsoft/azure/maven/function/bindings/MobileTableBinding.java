@@ -8,8 +8,8 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.serverless.functions.annotation.MobileTableInput;
-import com.microsoft.azure.serverless.functions.annotation.MobileTableOutput;
+import com.microsoft.azure.functions.annotation.MobileTableInput;
+import com.microsoft.azure.functions.annotation.MobileTableOutput;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class MobileTableBinding extends BaseBinding {

@@ -5,7 +5,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-functions-maven-plugin</artifactId>
-    <version>1.0.0-beta-1</version>
+    <version>1.0.0-beta-3-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Functions</name>
     <description>Maven Plugin for Azure Functions</description>
@@ -22,8 +22,8 @@
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.ai.version>1.0.9</azure.ai.version>
-        <azure.maven-plugin-lib.version>1.0.0-SNAPSHOT</azure.maven-plugin-lib.version>
-        <azure.function.version>1.0.0-beta-3</azure.function.version>
+        <azure.maven-plugin-lib.version>1.0.0</azure.maven-plugin-lib.version>
+        <azure.function.version>1.0.0-beta-4</azure.function.version>
         <azure.storage.version>5.4.0</azure.storage.version>
         <reflections.version>0.9.11</reflections.version>
         <zeroturnaround.zip.version>1.12</zeroturnaround.zip.version>
@@ -179,8 +179,8 @@
             <version>${azure.maven-plugin-lib.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-functions-java-core</artifactId>
+            <groupId>com.microsoft.azure.functions</groupId>
+            <artifactId>azure-functions-java-library</artifactId>
             <version>${azure.function.version}</version>
         </dependency>
         <dependency>
