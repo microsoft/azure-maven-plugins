@@ -37,5 +37,6 @@
         <module>azure-maven-plugin-lib</module>
         <module>azure-webapp-maven-plugin</module>
         <module>azure-functions-maven-plugin</module>
+        <module>build-tools</module>
     </modules>
 </project>
