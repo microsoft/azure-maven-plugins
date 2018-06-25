@@ -95,7 +95,7 @@ public class GetHashMac {
             return null;
         }
 
-        String ret;
+        final String ret;
         try {
             final MessageDigest md = MessageDigest.getInstance("SHA-256");
             final byte[] bytes = mac.getBytes("UTF-8");
