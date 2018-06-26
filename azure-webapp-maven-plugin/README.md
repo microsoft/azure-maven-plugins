@@ -10,6 +10,7 @@ and makes it easier for developers to deploy to different kinds of Azure Web App
 #### Table of Content
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
+- [More Samples](#more-samples)
 - [Goals](#goals)
 - [Authentication with Azure](#authentication-with-azure)
 - [Azure App Service](#azure-app-service)
@@ -77,7 +78,11 @@ Maven | 3.0 and above
     ```
     $ mvn azure-webapp:deploy
     ```
-4. For more usage examples, please explore our [Wiki](https://github.com/Microsoft/azure-maven-plugins/wiki/Usages) to get started.
+
+<a name="more-samples"></a>
+## More Samples	
+-A few typical usages of Maven Plugin for Azure App Service Web Apps are listed at [Web App Samples](https://github.com/Microsoft/azure-maven-plugins/wiki/Usages-of-Maven-Plugin-for-Azure-App-Service).	
+-You can choose one to quickly get started.
 
 <a name="goals"></a>
 ## Goals
