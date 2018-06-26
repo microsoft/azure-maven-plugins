@@ -10,9 +10,9 @@ and makes it easier for developers to deploy to different kinds of Azure Web App
 #### Table of Content
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
+- [More Samples](#more-samples)
 - [Goals](#goals)
 - [Authentication with Azure](#authentication-with-azure)
-- [More Samples](#more-samples)
 - [Azure App Service](#azure-app-service)
     - [Web App on Windows](#web-app-on-windows)
     - [Web App on Linux](#web-app-on-linux)
@@ -79,6 +79,9 @@ Maven | 3.0 and above
     $ mvn azure-webapp:deploy
     ```
 
+<a name="more-samples"></a>
+## More Samples	
+A few typical usages of Maven Plugin for Azure App Service Web Apps are listed at [Web App Samples](https://github.com/Microsoft/azure-maven-plugins/wiki/Usages-of-Maven-Plugin-for-Azure-App-Service). You can choose one to quickly get started.
 
 <a name="goals"></a>
 ## Goals
@@ -101,10 +104,6 @@ You can use the Azure CLI 2.0 for authenticatin. More authentication methods can
     $ az login
     $ az account set --subscription <subscription Id>
     ```
-
-## More Samples
-A few typical usages of Maven Plugin for Azure App Service Web Apps are listed at [Web App Samples](../docs/web-app-samples.md).
-You can choose one to quickly get started.
 
 ## Azure App Service
 In this section, you can see how to integrate the Maven plugin with different kinds of Azure App Services.
