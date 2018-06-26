@@ -21,9 +21,10 @@ install:
 
 build_script:
   # - mvnw.cmd clean install -B -V
-  - ps: >-
-      If ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
-        ./mvnw.cmd clean install -B -V
-      } Else {
-        ./mvnw.cmd clean install -P it -B -V
-      }
+  # - ps: >-
+  #     If ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
+  #       ./mvnw.cmd clean install -B -V
+  #     } Else {
+  #       ./mvnw.cmd clean install -P it -B -V
+  #     }
+  - IF DEFINED APPVEYOR_PULL_REQUEST_NUMBER (mvnw.cmd clean install) ELSE (mvnw.cmd clean install -P it)
