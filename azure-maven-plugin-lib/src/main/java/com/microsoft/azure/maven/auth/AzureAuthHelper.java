@@ -255,7 +255,7 @@ public class AzureAuthHelper {
 
         final String certificatePassword = Utils.getValueFromServerConfiguration(server, CERTIFICATE_PASSWORD);
         try {
-            byte[] cert;
+            final byte[] cert;
             cert = Files.readAllBytes(Paths.get(certificate, new String[0]));
             getLog().debug(USE_CERTIFICATE_TO_AUTH + certificate);
             return new ApplicationTokenCredentials(clientId, tenantId, cert, certificatePassword, azureEnvironment);

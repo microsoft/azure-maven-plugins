@@ -127,7 +127,7 @@ public class FTPUploader {
         }
 
         final String nextLevelPrefix = logPrefix + "..";
-        for (File file : files) {
+        for (final File file : files) {
             if (file.isFile()) {
                 uploadFile(ftpClient, file.getAbsolutePath(), targetDirectoryPath, nextLevelPrefix);
             } else {
