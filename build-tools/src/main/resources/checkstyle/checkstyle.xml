@@ -11,11 +11,11 @@ page at http://checkstyle.sourceforge.net/config.html -->
 <module name="Checker">
 
     <module name="SuppressionFilter">
-        <property name="file" value="config/checkstyle-suppressions.xml"/>
+        <property name="file" value="${checkstyle.suppressions.file}"/>
     </module>
 
     <module name="Header">
-        <property name="headerFile" value="config/java.header"/>
+        <property name="headerFile" value="${checkstyle.header.file}"/>
         <property name="fileExtensions" value="java"/>
     </module>
 

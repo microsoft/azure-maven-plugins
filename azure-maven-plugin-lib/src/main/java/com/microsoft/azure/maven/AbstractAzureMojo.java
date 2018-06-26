@@ -272,7 +272,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             // Before this issue is fixed, set default uncaught exception handler for all threads as work around.
             Thread.setDefaultUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler());
 
-            Properties prop = new Properties();
+            final Properties prop = new Properties();
             if (isFirstRun(prop)) {
                 infoWithMultipleLines(PRIVACY_STATEMENT);
                 updateConfigurationFile(prop);
@@ -351,11 +351,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     private boolean isFirstRun(Properties prop) {
         try {
-            File configurationFile = new File(CONFIGURATION_PATH);
+            final File configurationFile = new File(CONFIGURATION_PATH);
             if (configurationFile.exists()) {
                 try (InputStream input = new FileInputStream(CONFIGURATION_PATH)) {
                     prop.load(input);
-                    String firstRunValue = prop.getProperty(FIRST_RUN_KEY);
+                    final String firstRunValue = prop.getProperty(FIRST_RUN_KEY);
                     if (firstRunValue != null && !firstRunValue.isEmpty() && firstRunValue.equalsIgnoreCase("false")) {
                         return false;
                     }
@@ -402,7 +402,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     public void infoWithMultipleLines(final String messages) {
         final String[] messageArray = messages.split("\\n");
-        for (String line : messageArray) {
+        for (final String line : messageArray) {
             getLog().info(line);
         }
     }

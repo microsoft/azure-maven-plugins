@@ -62,7 +62,7 @@ public class AppInsightsProxy implements TelemetryProxy {
 
     public void trackEvent(final String eventName, final Map<String, String> customProperties,
                            final boolean overrideDefaultProperties) {
-        if (!isEnabled ) {
+        if (!isEnabled) {
             return;
         }
 
@@ -88,7 +88,7 @@ public class AppInsightsProxy implements TelemetryProxy {
             merged.putAll(customProperties);
             merged.putAll(defaultProperties);
         }
-        Iterator<Map.Entry<String, String>> it = merged.entrySet().iterator();
+        final Iterator<Map.Entry<String, String>> it = merged.entrySet().iterator();
         while (it.hasNext()) {
             if (StringUtils.isEmpty(it.next().getValue())) {
                 it.remove();
