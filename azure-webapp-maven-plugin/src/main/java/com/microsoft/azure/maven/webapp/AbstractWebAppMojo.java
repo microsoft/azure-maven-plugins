@@ -147,6 +147,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      * <ul>
      *     <li>tomcat 8.5-jre8</li>
      *     <li>tomcat 9.0-jre8</li>
+     *     <li>jre8</li>
      * </ul>
      */
     @Parameter(property = "webapp.linuxRuntime")

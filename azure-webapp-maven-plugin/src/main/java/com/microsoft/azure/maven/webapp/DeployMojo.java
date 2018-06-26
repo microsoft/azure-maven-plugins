@@ -13,6 +13,8 @@ import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
  */
@@ -91,6 +93,11 @@ public class DeployMojo extends AbstractWebAppMojo {
                 info(STOP_APP);
 
                 getWebApp().stop();
+
+                // workaround for the resources release problem.
+                // More details: https://github.com/Microsoft/azure-maven-plugins/issues/191
+                TimeUnit.SECONDS.sleep(10 /* 10 seconds */);
+
                 isAppStopped = true;
 
                 info(STOP_APP_DONE);
