@@ -23,7 +23,7 @@ build_script:
   # - mvnw.cmd clean install -B -V
   - ps: >-
       If ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
-        mvnw.cmd verify 
+        ./mvnw.cmd verify 
       } Else {
-        mvnw.cmd verify -P it 
+        ./mvnw.cmd verify -P it 
       }
