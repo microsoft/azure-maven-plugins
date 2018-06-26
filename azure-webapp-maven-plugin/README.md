@@ -81,8 +81,7 @@ Maven | 3.0 and above
 
 <a name="more-samples"></a>
 ## More Samples	
--A few typical usages of Maven Plugin for Azure App Service Web Apps are listed at [Web App Samples](https://github.com/Microsoft/azure-maven-plugins/wiki/Usages-of-Maven-Plugin-for-Azure-App-Service).	
--You can choose one to quickly get started.
+A few typical usages of Maven Plugin for Azure App Service Web Apps are listed at [Web App Samples](https://github.com/Microsoft/azure-maven-plugins/wiki/Usages-of-Maven-Plugin-for-Azure-App-Service). You can choose one to quickly get started.
 
 <a name="goals"></a>
 ## Goals
