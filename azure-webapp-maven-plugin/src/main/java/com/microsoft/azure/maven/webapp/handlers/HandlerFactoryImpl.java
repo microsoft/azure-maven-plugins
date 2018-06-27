@@ -19,8 +19,6 @@ public class HandlerFactoryImpl extends HandlerFactory {
     public static final String NO_RUNTIME_HANDLER = "Not able to process the runtime stack configuration; "
             + "please check <javaVersion>, <linuxRuntime> or <containerSettings> tag in pom.xml";
     public static final String IMAGE_NAME_MISSING = "<imageName> not found within <containerSettings> tag.";
-    public static final String DEPLOYMENT_TYPE_NOT_FOUND = "<deploymentType> is not configured.";
-    public static final String UNKNOWN_DEPLOYMENT_TYPE = "Unknown value from <deploymentType> tag.";
 
     @Override
     public RuntimeHandler getRuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
@@ -48,14 +46,14 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
         final DockerImageType imageType = WebAppUtils.getDockerImageType(containerSetting);
         switch (imageType) {
-        case PUBLIC_DOCKER_HUB:
-            return new PublicDockerHubRuntimeHandlerImpl(mojo);
-        case PRIVATE_DOCKER_HUB:
-            return new PrivateDockerHubRuntimeHandlerImpl(mojo);
-        case PRIVATE_REGISTRY:
-            return new PrivateRegistryRuntimeHandlerImpl(mojo);
-        case NONE:
-            throw new MojoExecutionException(IMAGE_NAME_MISSING);
+            case PUBLIC_DOCKER_HUB:
+                return new PublicDockerHubRuntimeHandlerImpl(mojo);
+            case PRIVATE_DOCKER_HUB:
+                return new PrivateDockerHubRuntimeHandlerImpl(mojo);
+            case PRIVATE_REGISTRY:
+                return new PrivateRegistryRuntimeHandlerImpl(mojo);
+            case NONE:
+                throw new MojoExecutionException(IMAGE_NAME_MISSING);
         }
 
         throw new MojoExecutionException(NO_RUNTIME_HANDLER);

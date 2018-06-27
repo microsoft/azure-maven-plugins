@@ -27,10 +27,10 @@ public enum DeploymentType {
     JAR(new JARHandler()),
     UNKNOWN(new UNKNOWNHandler());
 
-    private Function getHandler;
+    private Handler handler;
 
-    DeploymentType(Function<AbstractWebAppMojo, ArtifactHandler> getHandler) {
-        this.getHandler = getHandler;
+    DeploymentType(Handler handler) {
+        this.handler = handler;
     }
 
     /**
@@ -42,7 +42,7 @@ public enum DeploymentType {
      * @return an ArtifactHandler mapped to the deployment type identified
      */
     public ArtifactHandler getArtifactHandlerFromMojo(AbstractWebAppMojo mojo) throws MojoExecutionException {
-        return getHandler.apply(mojo);
+        return handler.apply(mojo);
     }
 
     public static DeploymentType fromString(final String input) {
@@ -63,11 +63,11 @@ public enum DeploymentType {
     }
 
     // TODO: Change to lambda once on Java 8+
-    interface Function<T, R> {
+    interface Handler {
         ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException;
     }
 
-    static class NONEHandler implements Function {
+    static class NONEHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException {
             switch (m.getProject().getPackaging()) {
                 case "war":
@@ -81,25 +81,25 @@ public enum DeploymentType {
         }
     }
 
-    static class FTPHandler implements Function {
+    static class FTPHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) {
             return new FTPArtifactHandlerImpl(m);
         }
     }
 
-    static class WARHandler implements Function {
+    static class WARHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) {
             return new WarArtifactHandlerImpl(m);
         }
     }
 
-    static class JARHandler implements Function {
+    static class JARHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) {
             return new JarArtifactHandlerImpl(m);
         }
     }
 
-    static class UNKNOWNHandler implements Function {
+    static class UNKNOWNHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) {
             throw new RuntimeException("Unknown deployment type.");
         }
