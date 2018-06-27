@@ -66,13 +66,6 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         }
     }
 
-    private String getJarCommand(String jarFileName) {
-        if (StringUtils.isEmpty(mojo.getJarCommand())) {
-            return DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName);
-        }
-        return mojo.getJarCommand();
-    }
-
     private void generateWebConfigFile(String jarFileName) throws IOException {
         mojo.getLog().info(GENERATING_WEB_CONFIG);
         final String templateContent;
@@ -84,7 +77,7 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         }
 
         final String webConfigFile = templateContent
-                .replaceAll(JAR_CMD, getJarCommand(jarFileName));
+                .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
 
         final File webConfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
         webConfig.createNewFile();

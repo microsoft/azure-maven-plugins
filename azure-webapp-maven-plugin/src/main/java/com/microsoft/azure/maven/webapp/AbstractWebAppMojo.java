@@ -240,14 +240,6 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter(property = "webapp.jarFile")
     protected String jarFile;
 
-     /**
-     * Jar command arguments to be used by web.config (Web App on Windows)
-     *
-     * @since 1.3.0
-     */
-    @Parameter(property = "webapp.jarCommand")
-    protected String jarCommand;
-
     /**
      * The context path for the deployment.
      * By default it will be deployed to '/', which is also known as the ROOT.
@@ -336,10 +328,6 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public String getJarFile() {
         return jarFile;
-    }
-
-    public String getJarCommand() {
-        return jarCommand;
     }
 
     public String getPath() {
