@@ -10,7 +10,6 @@ import com.google.common.io.Files;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
@@ -18,7 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.List;
 
 /**
  * Artifact handler for deploying a JAR, self-contained, Java application (e.g.
@@ -31,10 +29,15 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";
 
-    private static final String JAR_CMD = "__JAR_COMMAND__";
-    private static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true "
+    public static final String DEFAULT_LINUX_JAR_NAME = "app.jar";
+    public static final String JAR_CMD = ":JAR_COMMAND:";
+    public static final String FILENAME = ":FILENAME:";
+    public static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true "
             + "-Dserver.port=%HTTP_PLATFORM_PORT% "
-            + "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\FILENAME&quot;";
+            + "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
+    public static final String GENERATE_WEB_CONFIG_FAIL = "Failed to generate web.config file for JAR deployment.";
+    public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
+    public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
 
     public JarArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
         super(mojo);
@@ -42,50 +45,46 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
 
     @Override
     public void publish() throws Exception {
-        // Ensure stage directory exists
-        final File parent = new File(mojo.getDeploymentStageDirectory());
-        parent.mkdirs();
-
-        // Copy JAR file to stage dir
         final File jar = getJarFile();
         assureJarFileExisted(jar);
-        Files.copy(jar, new File(parent, jar.getName()));
 
-        // Generate web.config file
-        generateWebConfigFile(jar.getName());
+        prepareDeploymentFiles(jar);
 
-        // Copy any other resource
-        final List<Resource> resources = mojo.getResources();
-        copyResourcesToStageDirectory(resources);
-
-        // FTP Upload all to wwwroot
         uploadDirectoryToFTP();
     }
 
-    private String getJarCommand() {
-        return mojo.getJarCommand() == null ? DEFAULT_JAR_COMMAND : mojo.getJarCommand();
+    private void prepareDeploymentFiles(File jar) throws IOException {
+        final File parent = new File(mojo.getDeploymentStageDirectory());
+        parent.mkdirs();
+
+        if (StringUtils.isNotEmpty(mojo.getLinuxRuntime())) {
+            Files.copy(jar, new File(parent, DEFAULT_LINUX_JAR_NAME));
+        } else {
+            Files.copy(jar, new File(parent, jar.getName()));
+            generateWebConfigFile(jar.getName());
+        }
     }
 
     private void generateWebConfigFile(String jarFileName) throws IOException {
-        String templateContent;
+        mojo.getLog().info(GENERATING_WEB_CONFIG);
+        final String templateContent;
         try (final InputStream is = getClass().getResourceAsStream("web.config.template")) {
             templateContent = IOUtils.toString(is, "UTF-8");
         } catch (IOException e) {
-            mojo.getLog().error("Failed to read the content of web.config.template.");
+            mojo.getLog().error(READ_WEB_CONFIG_TEMPLATE_FAIL);
             throw e;
         }
 
         final String webConfigFile = templateContent
-                .replaceAll(JAR_CMD, getJarCommand())
-                .replaceAll("FILENAME", jarFileName);
+                .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
 
-        final File webconfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
-        webconfig.createNewFile();
+        final File webConfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
+        webConfig.createNewFile();
 
-        try (final FileOutputStream fos = new FileOutputStream(webconfig)) {
+        try (final FileOutputStream fos = new FileOutputStream(webConfig)) {
             IOUtils.write(webConfigFile, fos, "UTF-8");
         } catch (Exception e) {
-            mojo.getLog().error("Failed to generate web.config file for JAR deployment.");
+            mojo.getLog().error(GENERATE_WEB_CONFIG_FAIL);
             throw e;
         }
     }

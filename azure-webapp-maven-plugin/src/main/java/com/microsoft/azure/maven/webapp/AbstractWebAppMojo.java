@@ -235,18 +235,10 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      * Location of the jar file which is going to be deployed. If this field is not defined,
      * plugin will find the jar file with the final name in the build directory.
      *
-     * @since 1.2.0
+     * @since 1.3.0
      */
     @Parameter(property = "webapp.jarFile")
     protected String jarFile;
-
-     /**
-     * Jar command arguments to be used by web.config
-     *
-     * @since 1.2.0
-     */
-    @Parameter(property = "webapp.jarCommand")
-    protected String jarCommand;
 
     /**
      * The context path for the deployment.
@@ -336,10 +328,6 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public String getJarFile() {
         return jarFile;
-    }
-
-    public String getJarCommand() {
-        return jarCommand;
     }
 
     public String getPath() {

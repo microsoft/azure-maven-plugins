@@ -19,8 +19,6 @@ public class HandlerFactoryImpl extends HandlerFactory {
     public static final String NO_RUNTIME_HANDLER = "Not able to process the runtime stack configuration; "
             + "please check <javaVersion>, <linuxRuntime> or <containerSettings> tag in pom.xml";
     public static final String IMAGE_NAME_MISSING = "<imageName> not found within <containerSettings> tag.";
-    public static final String DEPLOYMENT_TYPE_NOT_FOUND = "<deploymentType> is not configured.";
-    public static final String UNKNOWN_DEPLOYMENT_TYPE = "Unknown value from <deploymentType> tag.";
 
     @Override
     public RuntimeHandler getRuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
