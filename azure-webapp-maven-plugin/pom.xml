@@ -218,6 +218,7 @@
                 <filtering>true</filtering>
                 <includes>
                     <include>**/ApplicationInsights.xml</include>
+                    <include>**/web.config.template</include>
                 </includes>
             </resource>
         </resources>
