@@ -62,16 +62,33 @@
     }
   },
   {
-    "id":"EventGridTrigger-Java",
-    "metadata":{
-      "name":"EventGridTrigger",
+    "id": "EventGridTrigger-Java",
+    "metadata": {
+      "name": "EventGridTrigger",
       "description": "$EventGridTrigger_description",
       "defaultFunctionName": "eventGridTriggerJava",
       "language": "Java",
       "userPrompt": []
     },
     "files": {
-      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Grid trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Grid.\n     */\n    @FunctionName(\"$functionName$\")\n    public void timerHandler(@EventGridTrigger(name = \"eventgrid\") String in, final ExecutionContext context) {\n        context.getLogger().info(\"Java Event Grid trigger function executed.\");\n        context.getLogger().info(in);\n    }\n}\n"
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Grid trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Grid.\n     */\n    @FunctionName(\"$functionName$\")\n    public void eventGridHandler(@EventGridTrigger(name = \"eventgrid\") String message, final ExecutionContext context) {\n        context.getLogger().info(\"Java Event Grid trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
+    }
+  },
+  {
+    "id": "EventHubTrigger-Java",
+    "metadata": {
+      "name": "EventHubTrigger",
+      "description": "$EventHubTrigger_description",
+      "defaultFunctionName": "eventHubTriggerJava",
+      "language": "Java",
+      "userPrompt": [
+        "connection",
+        "eventHubName",
+        "consumerGroup"
+      ]
+    },
+    "files": {
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Hub trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Hub.\n     */\n    @FunctionName(\"$functionName$\")\n    public void eventHubHandler(\n        @EventHubTrigger(name = \"message\", eventHubName = \"$eventHubName$\", connection = \"$connection$\", consumerGroup = \"$consumerGroup$\") String message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Event Hub trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
     }
   }
 ]
