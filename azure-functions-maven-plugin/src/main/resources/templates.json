@@ -60,5 +60,18 @@
     "files": {
       "function.java": "package $packageName$;\n\nimport java.time.*;\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Timer trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked periodically according to the specified schedule.\n     */\n    @FunctionName(\"$functionName$\")\n    public void timerHandler(\n        @TimerTrigger(name = \"timerInfo\", schedule = \"$schedule$\") String timerInfo,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Timer trigger function executed at: \" + LocalDateTime.now());\n    }\n}\n"
     }
+  },
+  {
+    "id":"EventGridTrigger-Java",
+    "metadata":{
+      "name":"EventGridTrigger",
+      "description": "$EventGridTrigger_description",
+      "defaultFunctionName": "eventGridTriggerJava",
+      "language": "Java",
+      "userPrompt": []
+    },
+    "files": {
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Grid trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Grid.\n     */\n    @FunctionName(\"$functionName$\")\n    public void timerHandler(@EventGridTrigger(name = \"eventgrid\") String in, final ExecutionContext context) {\n        context.getLogger().info(\"Java Event Grid trigger function executed.\");\n        context.getLogger().info(in);\n    }\n}\n"
+    }
   }
 ]
