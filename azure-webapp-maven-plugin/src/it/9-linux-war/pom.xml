@@ -18,7 +18,7 @@
                     <authentication>
                         <serverId>azure-auth</serverId>
                     </authentication>
-                    <resourceGroup>maven-webapp-it-rg-5</resourceGroup>
+                    <resourceGroup>maven-webapp-it-rg-9</resourceGroup>
                     <appName>maven-it-app-${maven.build.timestamp}</appName>
                     <region>westus</region>
                     <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>

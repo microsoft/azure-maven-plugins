@@ -4,13 +4,13 @@
  * license information.
  */
 
-// Clean up resources created in test
+// Delete resources before test
 def clientId = System.getenv("CLIENT_ID")
 def tenantId = System.getenv("TENANT_ID")
 def key = System.getenv("KEY")
 def command = """
     az login --service-principal -u ${clientId}  -p ${key} --tenant ${tenantId}
-    az group delete -y -n maven-webapp-it-rg-1 --no-wait
+    az group delete -y -n maven-webapp-it-rg-11
     az logout
 """
 def process = ["bash", "-c", command].execute()

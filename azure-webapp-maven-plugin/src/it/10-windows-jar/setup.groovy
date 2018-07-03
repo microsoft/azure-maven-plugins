@@ -10,7 +10,7 @@ def tenantId = System.getenv("TENANT_ID")
 def key = System.getenv("KEY")
 def command = """
     az login --service-principal -u ${clientId}  -p ${key} --tenant ${tenantId}
-    az group delete -y -n maven-webapp-it-rg-5
+    az group delete -y -n maven-webapp-it-rg-10
     az logout
 """
 def process = ["bash", "-c", command].execute()
