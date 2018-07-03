@@ -125,5 +125,22 @@
     "files": {
       "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Service Bus Trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new message is received at the Service Bus Queue.\n     */\n    @FunctionName(\"$functionName$\")\n    public void serviceBusHandler(\n            @ServiceBusQueueTrigger(name = \"message\", queueName = \"$queueName$\", connection = \"$connection$\") String message,\n            final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Service Bus Queue trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
     }
+  },
+  {
+    "id": "ServiceBusTopicTrigger-Java",
+    "metadata": {
+      "name": "ServiceBusTopicTrigger",
+      "description": "$ServiceBusTopicTrigger_description",
+      "defaultFunctionName": "ServiceBusTopicTriggerJava",
+      "language": "Java",
+      "userPrompt": [
+        "connection",
+        "topicName",
+        "subscriptionName"
+      ]
+    },
+    "files": {
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Service Topic Trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new message is received at the Service Bus Topic.\n     */\n    @FunctionName(\"$functionName$\")\n    public void serviceBusHandler(\n        @ServiceBusTopicTrigger(\n            name = \"message\",\n            topicName = \"$topicName$\",\n            subscriptionName = \"$subscriptionName$\",\n            connection = \"$connection$\"\n        )\n        String message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Service Bus Topic trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}"
+    }
   }
 ]
