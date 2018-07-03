@@ -22,7 +22,7 @@ import java.nio.file.Paths;
  * Artifact handler for deploying a JAR, self-contained, Java application (e.g.
  * Spring Boot) to Azure App Service through FTP
  *
- * @since 1.2.0
+ * @since 1.3.0
  */
 public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
 
@@ -53,7 +53,7 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         uploadDirectoryToFTP();
     }
 
-    private void prepareDeploymentFiles(File jar) throws IOException {
+    protected void prepareDeploymentFiles(File jar) throws IOException {
         final File parent = new File(mojo.getDeploymentStageDirectory());
         parent.mkdirs();
 
@@ -65,7 +65,7 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         }
     }
 
-    private void generateWebConfigFile(String jarFileName) throws IOException {
+    protected void generateWebConfigFile(String jarFileName) throws IOException {
         mojo.getLog().info(GENERATING_WEB_CONFIG);
         final String templateContent;
         try (final InputStream is = getClass().getResourceAsStream("web.config.template")) {

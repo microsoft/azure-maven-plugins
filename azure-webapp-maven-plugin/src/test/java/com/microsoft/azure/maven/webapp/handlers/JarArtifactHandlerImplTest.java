@@ -6,22 +6,25 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.spy;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
 
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 
-import org.apache.maven.model.Resource;
+import org.apache.maven.model.Build;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -33,17 +36,88 @@ public class JarArtifactHandlerImplTest {
 
     private JarArtifactHandlerImpl handler = null;
 
+    private JarArtifactHandlerImpl handlerSpy = null;
+
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
         handler = new JarArtifactHandlerImpl(mojo);
+        handlerSpy = spy(handler);
     }
 
     @Test
     public void publish() throws Exception {
-        // TODO: test if web.config was properly generated
-        // TODO: test if web.cofing and JAR were both uploaded
+        final File file = new File("");
+        doReturn(file).when(handlerSpy).getJarFile();
+        doNothing().when(handlerSpy).assureJarFileExisted(any(File.class));
+        doNothing().when(handlerSpy).prepareDeploymentFiles(any(File.class));
+        doNothing().when(handlerSpy).uploadDirectoryToFTP();
+
+        handlerSpy.publish();
+        verify(handlerSpy).uploadDirectoryToFTP();
         
     }
 
+    @Test
+    public void prepareDeploymentFiles() throws IOException {
+
+    }
+
+    @Test
+    public void generateWebConfigFile() {
+
+    }
+
+    @Test
+    public void getJarFile() {
+        doReturn("test.jar").when(mojo).getJarFile();
+        assertEquals("test.jar", handlerSpy.getJarFile().getName());
+
+        doReturn("").when(mojo).getJarFile();
+        doReturn("").when(mojo).getBuildDirectoryAbsolutePath();
+        final MavenProject project = mock(MavenProject.class);
+        doReturn(project).when(mojo).getProject();
+        final Build build = mock(Build.class);
+        doReturn(build).when(project).getBuild();
+        doReturn("test").when(build).getFinalName();
+        assertEquals("test.jar", handlerSpy.getJarFile().getName());
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void assureJarFileExistedWhenFileExtWrong() throws MojoExecutionException {
+        handlerSpy.assureJarFileExisted(new File("test.jar"));
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void assureJarFileExistedWhenFileNotExist() throws MojoExecutionException {
+        final File fileMock = mock(File.class);
+
+        doReturn("test.jar").when(fileMock).getName();
+        doReturn(false).when(fileMock).exists();
+        handlerSpy.assureJarFileExisted(fileMock);
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void assureJarFileExistedWhenIsNotAFile() throws MojoExecutionException {
+        final File fileMock = mock(File.class);
+
+        doReturn("test.jar").when(fileMock).getName();
+        doReturn(false).when(fileMock).exists();
+        doReturn(false).when(fileMock).isFile();
+        handlerSpy.assureJarFileExisted(fileMock);
+    }
+
+    @Test
+    public void assureJarFileExisted() throws MojoExecutionException {
+        final File file = mock(File.class);
+        doReturn("test.jar").when(file).getName();
+        doReturn(true).when(file).exists();
+        doReturn(true).when(file).isFile();
+
+        handlerSpy.assureJarFileExisted(file);
+
+        verify(file).getName();
+        verify(file).exists();
+        verify(file).isFile();
+    }
 }
