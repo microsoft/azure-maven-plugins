@@ -473,8 +473,13 @@ public class AddMojo extends AbstractFunctionMojo {
 
     @Nullable
     private List<String> getOptionsForUserPrompt(final String promptName) {
+        // HTTP Trigger
         if ("authlevel".equalsIgnoreCase(promptName.trim())) {
             return Arrays.asList("ANONYMOUS", "FUNCTION", "ADMIN");
+        }
+        // Cosmos DB Trigger
+        if ("createLeaseCollectionIfNotExists".equalsIgnoreCase(promptName.trim())) {
+            return Arrays.asList("true", "false");
         }
         return null;
     }
