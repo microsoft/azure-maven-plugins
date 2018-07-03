@@ -38,15 +38,17 @@ public class WarArtifactHandlerImplTest {
 
     private WarArtifactHandlerImpl handler = null;
 
+    private WarArtifactHandlerImpl handlerSpy = null;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         handler = new WarArtifactHandlerImpl(mojo);
+        handlerSpy = spy(handler);
     }
 
     @Test
     public void publish() throws Exception {
-        final WarArtifactHandlerImpl handlerSpy = spy(handler);
         final File file = new File("");
         final String path = "";
         doReturn(file).when(handlerSpy).getWarFile();
@@ -66,7 +68,6 @@ public class WarArtifactHandlerImplTest {
 
     @Test
     public void getContextPath() {
-        final WarArtifactHandlerImpl handlerSpy = spy(handler);
         doReturn("/").when(mojo).getPath();
         assertEquals(handlerSpy.getContextPath(), "");
 
@@ -88,7 +89,6 @@ public class WarArtifactHandlerImplTest {
 
     @Test
     public void getWarFile() {
-        final WarArtifactHandlerImpl handlerSpy = spy(handler);
         doReturn(null).when(mojo).getWarFile();
         doReturn("buildDirectory").when(mojo).getBuildDirectoryAbsolutePath();
 
@@ -110,13 +110,11 @@ public class WarArtifactHandlerImplTest {
 
     @Test(expected = MojoExecutionException.class)
     public void assureWarFileExistedWhenFileExtWrong() throws MojoExecutionException {
-        final WarArtifactHandlerImpl handlerSpy = spy(handler);
         handlerSpy.assureWarFileExisted(new File("test.jar"));
     }
 
     @Test(expected = MojoExecutionException.class)
     public void assureWarFileExistedWhenFileNotExist() throws MojoExecutionException {
-        final WarArtifactHandlerImpl handlerSpy = spy(handler);
         final File fileMock = mock(File.class);
 
         doReturn("test.war").when(fileMock).getName();
@@ -126,12 +124,25 @@ public class WarArtifactHandlerImplTest {
 
     @Test(expected = MojoExecutionException.class)
     public void assureWarFileExistedWhenIsNotAFile() throws MojoExecutionException {
-        final WarArtifactHandlerImpl handlerSpy = spy(handler);
         final File fileMock = mock(File.class);
 
         doReturn("test.war").when(fileMock).getName();
         doReturn(false).when(fileMock).exists();
         doReturn(false).when(fileMock).isFile();
         handlerSpy.assureWarFileExisted(fileMock);
+    }
+
+    @Test
+    public void assureWarFileExisted() throws MojoExecutionException {
+        final File file = mock(File.class);
+        doReturn("test.war").when(file).getName();
+        doReturn(true).when(file).exists();
+        doReturn(true).when(file).isFile();
+
+        handlerSpy.assureWarFileExisted(file);
+
+        verify(file).getName();
+        verify(file).exists();
+        verify(file).isFile();
     }
 }
