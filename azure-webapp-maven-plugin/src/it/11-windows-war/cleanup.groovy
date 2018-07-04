@@ -13,12 +13,14 @@ def command1 = "az login --service-principal -u ${clientId}  -p ${key} --tenant 
 def command2 = "az group delete -y -n maven-webapp-it-rg-11 --no-wait"
 def command3 = "az logout"
 
+def commands = [command1, command2, command3]
+
 if (System.properties['os.name'].contains('Windows')) {
-    println "cmd /c ${command1}".execute().text
-    println "cmd /c ${command2}".execute().text
-    println "cmd /c ${command3}".execute().text
+    for (c in commands) {
+        println "cmd /c ${c}".execute().text
+    }
 } else {
-    println "bash -c ${command1}".execute().text
-    println "bash -c ${command2}".execute().text
-    println "bash -c ${command3}".execute().text
+    for (c in commands) {
+        println "bash -c ${c}".execute().text
+    }
 }
