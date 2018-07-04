@@ -110,6 +110,7 @@
                             <invokerPropertiesFile>invoker.properties</invokerPropertiesFile>
                             <goals>
                                 <goal>clean</goal>
+                                <goal>package</goal>
                                 <goal>azure-webapp:deploy</goal>
                             </goals>
                         </configuration>
