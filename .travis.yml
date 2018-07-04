@@ -22,10 +22,11 @@ install:
   - npm i -g azure-functions-core-tools@core --unsafe-perm true
 
 script:
-  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ];
-    then ./mvnw verify -P it;
-    else ./mvnw verify;
-    fi
+  # - if [ "${TRAVIS_PULL_REQUEST}" = "false" ];
+  #   then ./mvnw verify -P it;
+  #   else ./mvnw verify;
+  #   fi
+  - './mvnw verify'
   - './mvnw cobertura:cobertura'
 
 after_success:
