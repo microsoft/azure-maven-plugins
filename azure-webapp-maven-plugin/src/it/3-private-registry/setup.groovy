@@ -8,12 +8,11 @@
 def clientId = System.getenv("CLIENT_ID")
 def tenantId = System.getenv("TENANT_ID")
 def key = System.getenv("KEY")
-
-def command1 = "az login --service-principal -u ${clientId}  -p ${key} --tenant ${tenantId}"
-def command2 = "az group delete -y -n maven-webapp-it-rg-3"
-def command3 = "az logout"
-
-def commands = [command1, command2, command3]
+def commands = [
+    "az login --service-principal -u ${clientId}  -p ${key} --tenant ${tenantId}",
+    "az group delete -y -n maven-webapp-it-rg-3",
+    "az logout"
+]
 
 if (System.properties['os.name'].contains('Windows')) {
     for (c in commands) {
