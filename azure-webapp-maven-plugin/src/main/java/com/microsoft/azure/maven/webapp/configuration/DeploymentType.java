@@ -3,18 +3,47 @@
  * Licensed under the MIT License. See License.txt in the project root for
  * license information.
  */
-
 package com.microsoft.azure.maven.webapp.configuration;
 
+import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
+import com.microsoft.azure.maven.webapp.handlers.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.JarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Locale;
 
+/**
+ * Types of deployments supported by this Maven plugin.
+ *
+ * @since 0.1
+ */
 public enum DeploymentType {
-    NONE,
-    FTP,
-    WAR,
-    UNKNOWN;
+    NONE(new NONEHandler()),
+    FTP(new FTPHandler()),
+    WAR(new WARHandler()),
+    JAR(new JARHandler()),
+    UNKNOWN(new UNKNOWNHandler());
+
+    private Handler handler;
+
+    DeploymentType(Handler handler) {
+        this.handler = handler;
+    }
+
+    /**
+     * Identifies the proper artifact handler based on the type of the deployment configured in the Maven Mojo object.
+     * It will inspect first the <deploymentType> property. If NONE, it will look into <packaging> of the Maven
+     * artifact.
+     *
+     * @param mojo for the Maven project
+     * @return an ArtifactHandler mapped to the deployment type identified
+     */
+    public ArtifactHandler getArtifactHandlerFromMojo(AbstractWebAppMojo mojo) throws MojoExecutionException {
+        return handler.apply(mojo);
+    }
 
     public static DeploymentType fromString(final String input) {
         if (StringUtils.isEmpty(input)) {
@@ -26,8 +55,53 @@ public enum DeploymentType {
                 return FTP;
             case "WAR":
                 return WAR;
+            case "JAR":
+                return JAR;
             default:
                 return UNKNOWN;
+        }
+    }
+
+    // TODO: Change to lambda once on Java 8+
+    interface Handler {
+        ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException;
+    }
+
+    static class NONEHandler implements Handler {
+        public ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException {
+            switch (m.getProject().getPackaging()) {
+                case "war":
+                    return new WarArtifactHandlerImpl(m);
+                case "jar":
+                    return new JarArtifactHandlerImpl(m);
+                default:
+                    throw new MojoExecutionException("You must set a packaging type of (jar, war) or a " +
+                            "deployment type in the Maven plugin configuration.");
+            }
+        }
+    }
+
+    static class FTPHandler implements Handler {
+        public ArtifactHandler apply(AbstractWebAppMojo m) {
+            return new FTPArtifactHandlerImpl(m);
+        }
+    }
+
+    static class WARHandler implements Handler {
+        public ArtifactHandler apply(AbstractWebAppMojo m) {
+            return new WarArtifactHandlerImpl(m);
+        }
+    }
+
+    static class JARHandler implements Handler {
+        public ArtifactHandler apply(AbstractWebAppMojo m) {
+            return new JarArtifactHandlerImpl(m);
+        }
+    }
+
+    static class UNKNOWNHandler implements Handler {
+        public ArtifactHandler apply(AbstractWebAppMojo m) {
+            throw new RuntimeException("Unknown deployment type.");
         }
     }
 }

@@ -32,8 +32,9 @@ Maven | 3.0 and above
 - Scan the output directory (default is `${project.basedir}/target/classes`) and generating `function.json` for each function (method annotated with `FunctionName`) in the staging directory.
 - Copy JAR files from the build directory (default is `${project.basedir}/target/`) to the staging directory.
 
->NOTE:
->Default staging directory is `${project.basedir}/target/azure-functions/${function-app-name}/`
+> The default lifecycle phase for `azure-functions:package` is `package`. You can simply run `mvn package` to generate all the outputs you need to run/deploy your project.
+
+> Default staging directory is `${project.basedir}/target/azure-functions/${function-app-name}/`
 
 #### `azure-functions:add`
 - Create new Java function and add to current project.

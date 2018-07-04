@@ -36,3 +36,6 @@ hs_err_pid*
 
 # mvnw
 !.mvn/wrapper/maven-wrapper.jar
+
+# integration test
+*/src/it/*/bin

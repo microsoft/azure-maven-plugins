@@ -14,13 +14,11 @@ import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class HandlerFactoryImpl extends HandlerFactory {
-    public static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>" +
-            "and <containerSettings> should not be set at the same time.";
-    public static final String NO_RUNTIME_HANDLER = "Not able to process the runtime stack configuration; " +
-            "please check <javaVersion>, <linuxRuntime> or <containerSettings> tag in pom.xml";
+    public static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>"
+            + "and <containerSettings> should not be set at the same time.";
+    public static final String NO_RUNTIME_HANDLER = "Not able to process the runtime stack configuration; "
+            + "please check <javaVersion>, <linuxRuntime> or <containerSettings> tag in pom.xml";
     public static final String IMAGE_NAME_MISSING = "<imageName> not found within <containerSettings> tag.";
-    public static final String DEPLOYMENT_TYPE_NOT_FOUND = "<deploymentType> is not configured.";
-    public static final String UNKNOWN_DEPLOYMENT_TYPE = "Unknown value from <deploymentType> tag.";
 
     @Override
     public RuntimeHandler getRuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
@@ -48,14 +46,14 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
         final DockerImageType imageType = WebAppUtils.getDockerImageType(containerSetting);
         switch (imageType) {
-            case PUBLIC_DOCKER_HUB:
-                return new PublicDockerHubRuntimeHandlerImpl(mojo);
-            case PRIVATE_DOCKER_HUB:
-                return new PrivateDockerHubRuntimeHandlerImpl(mojo);
-            case PRIVATE_REGISTRY:
-                return new PrivateRegistryRuntimeHandlerImpl(mojo);
-            case NONE:
-                throw new MojoExecutionException(IMAGE_NAME_MISSING);
+        case PUBLIC_DOCKER_HUB:
+            return new PublicDockerHubRuntimeHandlerImpl(mojo);
+        case PRIVATE_DOCKER_HUB:
+            return new PrivateDockerHubRuntimeHandlerImpl(mojo);
+        case PRIVATE_REGISTRY:
+            return new PrivateRegistryRuntimeHandlerImpl(mojo);
+        case NONE:
+            throw new MojoExecutionException(IMAGE_NAME_MISSING);
         }
 
         throw new MojoExecutionException(NO_RUNTIME_HANDLER);
@@ -68,23 +66,13 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
     @Override
     public ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
-        switch (mojo.getDeploymentType()) {
-            case NONE:
-                throw new MojoExecutionException(DEPLOYMENT_TYPE_NOT_FOUND);
-            case UNKNOWN:
-                throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
-            case WAR:
-                return new WarArtifactHandlerImpl(mojo);
-            case FTP:
-            default:
-                return new FTPArtifactHandlerImpl(mojo);
-        }
+        return mojo.getDeploymentType().getArtifactHandlerFromMojo(mojo);
     }
 
     private boolean isDuplicatedRuntimeDefined(final JavaVersion javaVersion, final String linuxRuntime,
-                                               final ContainerSetting containerSetting) {
-        return javaVersion != null ? linuxRuntime != null || !isContainerSettingEmpty(containerSetting) :
-                linuxRuntime != null && !isContainerSettingEmpty(containerSetting);
+            final ContainerSetting containerSetting) {
+        return javaVersion != null ? linuxRuntime != null || !isContainerSettingEmpty(containerSetting)
+                : linuxRuntime != null && !isContainerSettingEmpty(containerSetting);
     }
 
     private boolean isContainerSettingEmpty(final ContainerSetting containerSetting) {
