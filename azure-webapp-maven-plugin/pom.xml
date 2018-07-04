@@ -103,6 +103,7 @@
                             <pomIncludes>
                                 <pomInclude>*/pom.xml</pomInclude>
                             </pomIncludes>
+                            <addTestClassPath>true</addTestClassPath>
                             <preBuildHookScript>setup</preBuildHookScript>
                             <postBuildHookScript>cleanup</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
