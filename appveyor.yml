@@ -19,4 +19,5 @@ install:
   - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
 
 build_script:
-  - mvnw.cmd clean install -B -V
+  # - mvnw.cmd clean install -B -V
+  - IF DEFINED APPVEYOR_PULL_REQUEST_NUMBER (mvnw.cmd clean install) ELSE (mvnw.cmd clean install -P it)
