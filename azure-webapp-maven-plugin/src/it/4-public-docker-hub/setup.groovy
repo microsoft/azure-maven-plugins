@@ -16,10 +16,10 @@ def commands = [
 
 if (System.properties['os.name'].contains('Windows')) {
     for (c in commands) {
-        println "cmd /c ${c}".execute().text
+       "cmd /c ${c}".execute().text
     }
 } else {
     for (c in commands) {
-        println "bash -c ${c}".execute().text
+        "bash -c ${c}".execute().text
     }
 }
