@@ -23,12 +23,10 @@ public class TestUtils {
 
         if (System.getProperty("os.name").contains("Windows")) {
             for (final String command : commands) {
-                System.out.println(command);
                 Runtime.getRuntime().exec(String.format("cmd /c %s", command)).waitFor();
             }
         } else {
             for (final String command : commands) {
-                System.out.println(command);
                 Runtime.getRuntime().exec(String.format("bash -c %s", command)).waitFor();
             }
         }
