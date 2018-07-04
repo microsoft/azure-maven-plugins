@@ -10,6 +10,7 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
@@ -28,7 +29,7 @@ import java.util.Properties;
 /**
  * Base abstract class for Web App Mojos.
  */
-public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
+public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String JAVA_VERSION_KEY = "javaVersion";
     public static final String JAVA_WEB_CONTAINER_KEY = "javaWebContainer";
     public static final String LINUX_RUNTIME_KEY = "linuxRuntime";
@@ -36,68 +37,6 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
     //region Properties
-
-    /**
-     * Resource group of Web App. It will be created if it doesn't exist.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.resourceGroup", required = true)
-    protected String resourceGroup;
-
-    /**
-     * Web App name. It will be created if it doesn't exist.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.appName", required = true)
-    protected String appName;
-
-    /**
-     * Resource group of App Service Plan. It will be created if it doesn't exist.
-     *
-     * @since 1.0.0
-     */
-    @Parameter(property = "webapp.appServicePlanResourceGroup")
-    protected String appServicePlanResourceGroup;
-
-    /**
-     * App Service Plan name. It will be created if it doesn't exist.
-     *
-     * @since 1.0.0
-     */
-    @Parameter(property = "webapp.appServicePlanName")
-    protected String appServicePlanName;
-
-    /**
-     * Web App region, which will only be used to create Web App at the first time.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.region", defaultValue = "westus")
-    protected String region;
-
-    /**
-     * Web App pricing tier, which will only be used to create Web App at the first time.<br/>
-     * Below is the list of supported pricing tier:
-     * <ul>
-     *     <li>F1</li>
-     *     <li>D1</li>
-     *     <li>B1</li>
-     *     <li>B2</li>
-     *     <li>B3</li>
-     *     <li>S1</li>
-     *     <li>S2</li>
-     *     <li>S3</li>
-     *     <li>P1</li>
-     *     <li>P2</li>
-     *     <li>P3</li>
-     * </ul>
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.pricingTier", defaultValue = "S1")
-    protected PricingTierEnum pricingTier;
 
     /**
      * JVM version of Web App. This only applies to Windows-based Web App.<br/>
@@ -165,24 +104,6 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      */
     @Parameter
     protected ContainerSetting containerSettings;
-
-    /**
-     * Application settings of Web App, in the form of name-value pairs.
-     * <pre>
-     * {@code
-     * <appSettings>
-     *         <property>
-     *                 <name>setting-name</name>
-     *                 <value>setting-value</value>
-     *         </property>
-     * </appSettings>
-     * }
-     * </pre>
-     *
-     * @since 0.1.0
-     */
-    @Parameter
-    protected Properties appSettings;
 
     /**
      * Deployment type to deploy Web App. The plugin contains two types now:
@@ -258,29 +179,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         return skip;
     }
 
-    public String getResourceGroup() {
-        return resourceGroup;
-    }
 
-    public String getAppName() {
-        return appName;
-    }
-
-    public String getAppServicePlanResourceGroup() {
-        return appServicePlanResourceGroup;
-    }
-
-    public String getAppServicePlanName() {
-        return appServicePlanName;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public PricingTier getPricingTier() {
-        return pricingTier == null ? PricingTier.STANDARD_S1 : pricingTier.toPricingTier();
-    }
 
     public JavaVersion getJavaVersion() {
         return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
@@ -300,9 +199,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         return containerSettings;
     }
 
-    public Map getAppSettings() {
-        return appSettings;
-    }
+
 
     public DeploymentType getDeploymentType() {
         return DeploymentType.fromString(deploymentType);

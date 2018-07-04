@@ -6,15 +6,19 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -120,11 +124,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void createFunctionApp() throws Exception {
         info(FUNCTION_APP_CREATE_START);
 
-        final NewAppServicePlanWithGroup newAppServicePlanWithGroup = defineApp(getAppName(), getRegion());
-        final WithCreate withCreate = configureResourceGroup(newAppServicePlanWithGroup, getResourceGroup());
-        configurePricingTier(withCreate, getPricingTier());
-        configureAppSettings(withCreate::withAppSettings, getAppSettings());
-        withCreate.create();
+        createFunctionApp(getAppName(), getRegion());
 
         info(FUNCTION_APP_CREATED + getAppName());
     }
@@ -142,8 +142,23 @@ public class DeployMojo extends AbstractFunctionMojo {
         info(FUNCTION_APP_UPDATE_DONE + getAppName());
     }
 
-    protected NewAppServicePlanWithGroup defineApp(final String appName, final String region) throws Exception {
-        return getAzureClient().appServices().functionApps().define(appName).withRegion(region);
+    protected void createFunctionApp(final String appName, final String region) throws Exception {
+        AppServicePlan plan = AppServiceUtils.getExistingAppServicePlan(this);
+        final Blank functionApp = getAzureClient().appServices().functionApps().define(appName);
+        final String resGrp = getResourceGroup();
+        final WithCreate withCreate;
+        if (plan == null) {
+            final NewAppServicePlanWithGroup newAppServicePlanWithGroup = functionApp.withRegion(region);
+            withCreate = configureResourceGroup(newAppServicePlanWithGroup, resGrp);
+            configurePricingTier(withCreate, getPricingTier());
+        } else {
+            final ExistingAppServicePlanWithGroup planWithGroup = functionApp.withExistingAppServicePlan(plan);
+            withCreate = isResourceGroupExist(resGrp) ?
+                    planWithGroup.withExistingResourceGroup(resGrp) :
+                    planWithGroup.withNewResourceGroup(resGrp);
+        }
+        configureAppSettings(withCreate::withAppSettings, getAppSettings());
+        withCreate.create();
     }
 
     protected WithCreate configureResourceGroup(final NewAppServicePlanWithGroup newAppServicePlanWithGroup,
@@ -154,7 +169,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected boolean isResourceGroupExist(final String resourceGroup) throws Exception {
-        return getAzureClient().resourceGroups().checkExistence(resourceGroup);
+        return getAzureClient().resourceGroups().contain(resourceGroup);
     }
 
     protected void configurePricingTier(final WithCreate withCreate, final PricingTier pricingTier) {

@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -16,7 +17,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
+public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     public static final String AZURE_FUNCTIONS = "azure-functions";
 
     //region Properties
@@ -26,48 +27,6 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
 
     @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true, required = true)
     protected File outputDirectory;
-
-    /**
-     * Resource group of Azure Functions. It will be created if it doesn't exist.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.resourceGroup", required = true)
-    protected String resourceGroup;
-
-    /**
-     * Azure Functions name. It will be created if it doesn't exist.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.appName", required = true)
-    protected String appName;
-
-    /**
-     * Azure Functions region, which will only be used to create Azure Functions at the first time.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.region", defaultValue = "westus")
-    protected String region;
-
-    /**
-     * Application settings of Azure Functions, in the form of name-value pairs.
-     * <pre>
-     * {@code
-     * <appSettings>
-     *         <property>
-     *                 <name>setting-name</name>
-     *                 <value>setting-value</value>
-     *         </property>
-     * </appSettings>
-     * }
-     * </pre>
-     *
-     * @since 0.1.0
-     */
-    @Parameter
-    protected Properties appSettings;
 
     /**
      * Skip execution.
@@ -88,22 +47,6 @@ public abstract class AbstractFunctionMojo extends AbstractAzureMojo {
 
     public String getFinalName() {
         return finalName;
-    }
-
-    public String getResourceGroup() {
-        return resourceGroup;
-    }
-
-    public String getAppName() {
-        return appName;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public Map getAppSettings() {
-        return appSettings;
     }
 
     public String getDeploymentStageDirectory() {
