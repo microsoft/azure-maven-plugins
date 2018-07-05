@@ -4,22 +4,8 @@
  * license information.
  */
 
-// Delete resources before test
-def clientId = System.getenv("CLIENT_ID")
-def tenantId = System.getenv("TENANT_ID")
-def key = System.getenv("KEY")
-def commands = [
-    "az login --service-principal -u ${clientId}  -p ${key} --tenant ${tenantId}",
-    "az group delete -y -n maven-webapp-it-rg-6",
-    "az logout"
-]
+import com.microsoft.azure.maven.webapp.utils.TestUtils;
 
-if (System.properties['os.name'].contains('Windows')) {
-    for (c in commands) {
-       "cmd /c ${c}".execute().text
-    }
-} else {
-    for (c in commands) {
-        "bash -c ${c}".execute().text
-    }
-}
+TestUtils.deleteAzureResouceGroup("maven-webapp-it-rg-6", true)
+
+return true
