@@ -7,3 +7,5 @@
 import com.microsoft.azure.maven.webapp.utils.TestUtils;
 
 TestUtils.deleteAzureResouceGroup("maven-webapp-it-rg-7", true)
+
+return true
