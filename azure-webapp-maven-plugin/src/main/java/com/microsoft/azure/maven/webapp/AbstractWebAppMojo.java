@@ -185,17 +185,20 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     protected Properties appSettings;
 
     /**
-     * Deployment type to deploy Web App. The plugin contains two types now:
+     * Deployment type to deploy Web App. The plugin contains five deployment types:
      *
      * <ul>
      *      <li>FTP - {@code <resources>} specifies configurations for this kind of deployment.</li>
      *      <li>WAR - {@code <warFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
      *      <li>JAR - {@code <jarFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
+     *      <li>AUTO - inspects {@code <packaging>} of the Maven project and uses WAR, JAR, or NONE </li>
+     *      <li>NONE - does nothing</li>
+     *      <li>* defaults to AUTO if nothing is specified</li>
      * <ul/>
      *
      * @since 0.1.0
      */
-    @Parameter(property = "webapp.deploymentType")
+    @Parameter(property = "webapp.deploymentType", defaultValue = "AUTO")
     protected String deploymentType;
 
     /**

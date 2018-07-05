@@ -25,6 +25,7 @@ public enum DeploymentType {
     FTP(new FTPHandler()),
     WAR(new WARHandler()),
     JAR(new JARHandler()),
+    AUTO(new AUTOHandler()),
     UNKNOWN(new UNKNOWNHandler());
 
     private Handler handler;
@@ -57,6 +58,10 @@ public enum DeploymentType {
                 return WAR;
             case "JAR":
                 return JAR;
+            case "NONE":
+                return NONE;
+            case "AUTO":
+                return AUTO;
             default:
                 return UNKNOWN;
         }
@@ -67,16 +72,30 @@ public enum DeploymentType {
         ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException;
     }
 
+    private static class NONEArtifactHandlerImplementation implements ArtifactHandler {
+        @Override
+        public void publish() throws Exception {
+            // does nothing
+        }
+    }
+
     static class NONEHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException {
-            switch (m.getProject().getPackaging()) {
+            return new NONEArtifactHandlerImplementation();
+        }
+    }
+
+    static class AUTOHandler implements Handler {
+        public ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException {
+            String packaging = m.getProject().getPackaging();
+            packaging = packaging != null ? packaging.toLowerCase().trim() : packaging;
+            switch (packaging) {
                 case "war":
                     return new WarArtifactHandlerImpl(m);
                 case "jar":
                     return new JarArtifactHandlerImpl(m);
                 default:
-                    throw new MojoExecutionException("You must set a packaging type of (jar, war) or a " +
-                            "deployment type in the Maven plugin configuration.");
+                    return new NONEArtifactHandlerImplementation();
             }
         }
     }
