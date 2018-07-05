@@ -107,8 +107,8 @@ public class WebAppUtils {
 
         final Azure azure = mojo.getAzureClient();
         if (plan == null) {
-            String servicePlanName = generateRandomServicePlanName();
-            String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(mojo);
+            final String servicePlanName = generateRandomServicePlanName();
+            final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(mojo);
             mojo.getLog().info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
 
             final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
