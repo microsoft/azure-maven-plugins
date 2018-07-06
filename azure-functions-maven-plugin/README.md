@@ -140,7 +140,7 @@ Read more at [Azure App Service Plan Pricing](https://azure.microsoft.com/en-us/
 ## How-To
 
 ### Generate the function archetype
-By running the following command to generate the function archetype:
+Run below command to generate the function archetype:
 
 ```cmd
 mvn archetype:generate -DarchetypeGroupId=com.microsoft.azure -DarchetypeArtifactId=azure-functions-archetype
