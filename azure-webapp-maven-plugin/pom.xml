@@ -104,6 +104,7 @@
                                 <pomInclude>*/pom.xml</pomInclude>
                             </pomIncludes>
                             <addTestClassPath>true</addTestClassPath>
+                            <parallelThreads>4</parallelThreads>
                             <preBuildHookScript>setup</preBuildHookScript>
                             <postBuildHookScript>cleanup</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
