@@ -9,7 +9,7 @@ package com.microsoft.azure.maven.webapp.utils;
 import java.io.IOException;
 
 public class TestUtils {
-    public static void deleteAzureResouceGroup(String resourceGroupName, boolean waitForOperationFinish)
+    public static void deleteAzureResourceGroup(String resourceGroupName, boolean waitForOperationFinish)
             throws InterruptedException, IOException {
         final String clientId = System.getenv("CLIENT_ID");
         final String tenantId = System.getenv("TENANT_ID");
