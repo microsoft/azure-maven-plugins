@@ -14,7 +14,6 @@ import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
@@ -102,25 +101,6 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void createFunctionApp() throws Exception {
         info(FUNCTION_APP_CREATE_START);
 
-        createFunctionApp(getAppName(), getRegion());
-
-        info(FUNCTION_APP_CREATED + getAppName());
-    }
-
-    protected void updateFunctionApp(final FunctionApp app) {
-        info(FUNCTION_APP_UPDATE);
-
-        // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
-        app.inner().withTags(null);
-
-        final Update update = app.update();
-        configureAppSettings(update::withAppSettings, getAppSettings());
-        update.apply();
-
-        info(FUNCTION_APP_UPDATE_DONE + getAppName());
-    }
-
-    protected void createFunctionApp(final String appName, final String region) throws Exception {
         final AppServicePlan plan = AppServiceUtils.getExistingAppServicePlan(this);
         final Blank functionApp = getAzureClient().appServices().functionApps().define(appName);
         final String resGrp = getResourceGroup();
@@ -137,6 +117,21 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
         configureAppSettings(withCreate::withAppSettings, getAppSettings());
         withCreate.create();
+
+        info(FUNCTION_APP_CREATED + getAppName());
+    }
+
+    protected void updateFunctionApp(final FunctionApp app) {
+        info(FUNCTION_APP_UPDATE);
+
+        // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
+        app.inner().withTags(null);
+
+        final Update update = app.update();
+        configureAppSettings(update::withAppSettings, getAppSettings());
+        update.apply();
+
+        info(FUNCTION_APP_UPDATE_DONE + getAppName());
     }
 
     protected WithCreate configureResourceGroup(final NewAppServicePlanWithGroup newAppServicePlanWithGroup,
