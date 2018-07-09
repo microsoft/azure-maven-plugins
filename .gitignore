@@ -30,6 +30,7 @@ hs_err_pid*
 .project
 .settings/
 .checkstyle
+.vscode/
 
 # macOS
 .DS_Store
