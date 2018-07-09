@@ -71,7 +71,7 @@
       "userPrompt": []
     },
     "files": {
-      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Grid trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Grid.\n     */\n    @FunctionName(\"$functionName$\")\n    public void eventGridHandler(@EventGridTrigger(name = \"eventgrid\") String message, final ExecutionContext context) {\n        context.getLogger().info(\"Java Event Grid trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
+      "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Grid trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Grid.\n     */\n    @FunctionName(\"$functionName$\")\n    public void eventGridHandler(@EventGridTrigger(name = \"eventGridEvent\") String message, final ExecutionContext context) {\n        context.getLogger().info(\"Java Event Grid trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
     }
   },
   {
