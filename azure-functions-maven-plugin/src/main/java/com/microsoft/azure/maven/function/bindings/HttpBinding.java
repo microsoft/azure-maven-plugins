@@ -14,8 +14,6 @@ import com.microsoft.azure.functions.annotation.HttpTrigger;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class HttpBinding extends BaseBinding {
