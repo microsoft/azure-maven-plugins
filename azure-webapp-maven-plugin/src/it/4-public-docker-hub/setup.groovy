@@ -6,6 +6,6 @@
 
 import com.microsoft.azure.maven.webapp.utils.TestUtils;
 
-TestUtils.deleteAzureResouceGroup("maven-webapp-it-rg-4", true)
+TestUtils.deleteAzureResourceGroup("maven-webapp-it-rg-4", true)
 
 return true

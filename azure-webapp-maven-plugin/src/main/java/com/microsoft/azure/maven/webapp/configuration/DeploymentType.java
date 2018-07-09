@@ -74,22 +74,22 @@ public enum DeploymentType {
 
     private static class NONEArtifactHandlerImplementation implements ArtifactHandler {
         @Override
-        public void publish() throws Exception {
+        public void publish() {
             // does nothing
         }
     }
 
     static class NONEHandler implements Handler {
-        public ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException {
+        public ArtifactHandler apply(AbstractWebAppMojo m)  {
             return new NONEArtifactHandlerImplementation();
         }
     }
 
     static class AUTOHandler implements Handler {
-        public ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException {
+        public ArtifactHandler apply(AbstractWebAppMojo m) {
             String packaging = m.getProject().getPackaging();
-            packaging = packaging != null ? packaging.toLowerCase().trim() : packaging;
-            switch (packaging) {
+            packaging = packaging != null ? packaging.toLowerCase(Locale.ENGLISH) : "";
+            switch (packaging.trim()) {
                 case "war":
                     return new WarArtifactHandlerImpl(m);
                 case "jar":

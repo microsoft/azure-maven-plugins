@@ -139,6 +139,13 @@ Read more at [Azure App Service Plan Pricing](https://azure.microsoft.com/en-us/
 
 ## How-To
 
+### Generate the function archetype
+Run below command to generate the function archetype:
+
+```cmd
+mvn archetype:generate -DarchetypeGroupId=com.microsoft.azure -DarchetypeArtifactId=azure-functions-archetype
+```
+
 ### Add new function to current project
 Run below command to create a new function:
 - In package `com.your.package`
@@ -155,7 +162,7 @@ You don't have to provide all properties on command line. Missing properties wil
 
 Follow below instructions, you don't need to handwrite `function.json` any more.
 1. Use annotations from package `com.microsoft.azure:azure-functions-java-library` to decorate your functions. 
-2. Run `mvn clean package azure-functions:package`; then `function.json` files will be automatically generated for all functions in your project.
+2. Run `mvn clean package`; then `function.json` files will be automatically generated for all functions in your project.
 
 ### Run Azure Functions locally
 
