@@ -263,7 +263,6 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter(property = "webapp.deploymentSlotSetting", required = false)
     protected DeploymentSlotSetting deploymentSlotSetting;
 
-
     //endregion
 
     //region Getter
@@ -369,7 +368,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
         if (!StringUtils.isEmpty(slotName)) {
             try {
                 slot = app.deploymentSlots().getByName(slotName);
-            } catch (NoSuchElementException e) {
+            } catch (NoSuchElementException deploymentSlotNotExistException) {
             }
         }
         return slot;

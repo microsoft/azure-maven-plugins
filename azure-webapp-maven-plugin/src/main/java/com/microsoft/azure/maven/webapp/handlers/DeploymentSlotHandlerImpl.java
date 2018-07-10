@@ -42,12 +42,12 @@ public class DeploymentSlotHandlerImpl implements DeploymentSlotHandler {
 
         this.mojo.getLog().info(CREATE_DEPLOYMENT_SLOT);
 
-        createDeploymentSlotByConfigurationSource(app, slotName, slotSetting.getConfigurationSource());
+        createDeploymentSlotWithConfigurationSource(app, slotName, slotSetting.getConfigurationSource());
 
         this.mojo.getLog().info(CREATE_DEPLOYMENT_SLOT_DONE);
     }
 
-    protected void createDeploymentSlotByConfigurationSource (final WebApp app, final String slotName,
+    protected void createDeploymentSlotWithConfigurationSource (final WebApp app, final String slotName,
                                                               final String configurationSource) {
         final DeploymentSlot cSlot = this.mojo.getDeploymentSlot(app, configurationSource);
 
