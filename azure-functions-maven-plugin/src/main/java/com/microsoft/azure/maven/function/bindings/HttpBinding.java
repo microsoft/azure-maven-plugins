@@ -8,9 +8,11 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.microsoft.azure.functions.HttpMethod;
 import com.microsoft.azure.functions.annotation.HttpOutput;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -31,8 +33,9 @@ public class HttpBinding extends BaseBinding {
 
         route = httpTrigger.route();
         authLevel = httpTrigger.authLevel().toString().toLowerCase(Locale.ENGLISH);
-        methods = httpTrigger.methods();
-        webHookType = httpTrigger.webHookType();
+        methods = Arrays.copyOf(Arrays.stream(httpTrigger.methods()).map(HttpMethod::toString).toArray(),
+                httpTrigger.methods().length, String[].class);
+        webHookType = httpTrigger.webHookType().toString();
     }
 
     public HttpBinding(final HttpOutput httpOutput) {
