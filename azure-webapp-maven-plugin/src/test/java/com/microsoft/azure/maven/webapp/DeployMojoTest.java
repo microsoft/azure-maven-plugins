@@ -10,6 +10,8 @@ import com.microsoft.azure.management.appservice.*;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
@@ -232,9 +234,9 @@ public class DeployMojoTest {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         final DeployMojo mojoSpy = spy(mojo);
 
+        final IDeployTargetAdapter deployTarget = new WebAppAdapter(mojo.getWebApp());
         mojoSpy.deployArtifacts();
-
-        verify(artifactHandler, times(1)).publish();
+        verify(artifactHandler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(artifactHandler);
     }
 

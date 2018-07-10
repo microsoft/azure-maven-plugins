@@ -9,6 +9,8 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -75,7 +77,8 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void deployArtifacts() throws Exception {
         try {
             util.beforeDeployArtifacts();
-            getFactory().getArtifactHandler(this).publish();
+            final IDeployTargetAdapter target = new WebAppAdapter(this.getWebApp());
+            getFactory().getArtifactHandler(this).publish(target);
         } finally {
             util.afterDeployArtifacts();
         }
