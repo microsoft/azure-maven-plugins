@@ -11,6 +11,11 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.DeployMojo;
+import com.microsoft.azure.maven.webapp.WebAppUtils;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
@@ -44,16 +49,38 @@ public class FTPArtifactHandlerImplTest {
     @Test
     public void publish() throws Exception {
         final FTPArtifactHandlerImpl handlerSpy = spy(handler);
+        final IDeployAdapter deployTarget = new WebAppAdapter(this.mojo.getWebApp());
         doNothing().when(handlerSpy).copyResourcesToStageDirectory(ArgumentMatchers.<Resource>anyList());
-        doNothing().when(handlerSpy).uploadDirectoryToFTP();
+        doNothing().when(handlerSpy).uploadDirectoryToFTP(deployTarget);
 
         final List<Resource> resourceList = new ArrayList<>();
         resourceList.add(new Resource());
         doReturn(resourceList).when(mojo).getResources();
-        handlerSpy.publish();
+        handlerSpy.publish(deployTarget);
         verify(handlerSpy, times(1))
                 .copyResourcesToStageDirectory(ArgumentMatchers.<Resource>anyList());
-        verify(handlerSpy, times(1)).uploadDirectoryToFTP();
+        verify(handlerSpy, times(1)).uploadDirectoryToFTP(deployTarget);
+    }
+
+    @Test
+    public void publishToDeploymentSlot() throws Exception {
+        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
+        final WebApp app = mock(WebApp.class);
+        final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
+        doReturn(app).when(mojo).getWebApp();
+        doReturn(slotSetting).when(mojo).getDeploymentSlotSetting();
+        doReturn("").when(slotSetting).getSlotName();
+        final IDeployAdapter deployTarget = new DeploymentSlotAdapter(this.mojo.getDeploymentSlot(app, ""));
+        doNothing().when(handlerSpy).copyResourcesToStageDirectory(ArgumentMatchers.<Resource>anyList());
+        doNothing().when(handlerSpy).uploadDirectoryToFTP(deployTarget);
+
+        final List<Resource> resourceList = new ArrayList<>();
+        resourceList.add(new Resource());
+        doReturn(resourceList).when(mojo).getResources();
+        handlerSpy.publish(deployTarget);
+        verify(handlerSpy, times(1))
+                .copyResourcesToStageDirectory(ArgumentMatchers.<Resource>anyList());
+        verify(handlerSpy, times(1)).uploadDirectoryToFTP(deployTarget);
     }
 
     @Test
@@ -83,9 +110,10 @@ public class FTPArtifactHandlerImplTest {
         final FTPUploader uploader = mock(FTPUploader.class);
         final FTPArtifactHandlerImpl handler = new FTPArtifactHandlerImpl(mojo);
         final FTPArtifactHandlerImpl handlerSpy = spy(handler);
+        final IDeployAdapter deployTarget = new WebAppAdapter(mojo.getWebApp());
         doReturn(uploader).when(handlerSpy).getUploader();
 
-        handlerSpy.uploadDirectoryToFTP();
+        handlerSpy.uploadDirectoryToFTP(deployTarget);
         verify(mojo, times(1)).getWebApp();
         verify(mojo, times(1)).getDeploymentStageDirectory();
         verifyNoMoreInteractions(mojo);

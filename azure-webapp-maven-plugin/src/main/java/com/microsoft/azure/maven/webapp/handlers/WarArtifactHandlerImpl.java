@@ -9,11 +9,11 @@ package com.microsoft.azure.maven.webapp.handlers;
 import java.io.File;
 import java.nio.file.Paths;
 
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
 import com.google.common.io.Files;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 
 public class WarArtifactHandlerImpl implements ArtifactHandler  {
@@ -31,25 +31,23 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
     }
 
     @Override
-    public void publish() throws Exception {
+    public void publish(IDeployAdapter deployTarget) throws MojoExecutionException {
         final File war = getWarFile();
 
         assureWarFileExisted(war);
 
         final String path = getContextPath();
 
-        final WebApp app = mojo.getWebApp();
         int retryCount = 0;
         mojo.getLog().info("Starting to deploy the war file...");
         while (retryCount++ < DEFAULT_MAX_RETRY_TIMES) {
             try {
-                app.warDeploy(war, path);
+                deployTarget.warDeploy(war, path);
                 return;
             } catch (Exception e) {
                 mojo.getLog().warn(String.format(UPLOAD_FAILURE, retryCount, DEFAULT_MAX_RETRY_TIMES));
             }
         }
-
     }
 
     protected String getContextPath() {

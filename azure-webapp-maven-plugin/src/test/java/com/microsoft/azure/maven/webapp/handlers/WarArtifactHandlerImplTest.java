@@ -19,6 +19,11 @@ import static org.mockito.Mockito.verify;
 import java.io.File;
 import java.nio.file.Paths;
 
+import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -62,8 +67,32 @@ public class WarArtifactHandlerImplTest {
         doReturn(appMock).when(mojo).getWebApp();
         doNothing().when(appMock).warDeploy(any(File.class), anyString());
 
-        handlerSpy.publish();
+        handlerSpy.publish(new WebAppAdapter(appMock));
         verify(appMock, times(1)).warDeploy(file, path);
+    }
+
+    @Test
+    public void publishToDeploymentSlot() throws Exception {
+        final File file = new File("");
+        final String path = "";
+        doReturn(file).when(handlerSpy).getWarFile();
+        doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
+        doReturn(path).when(handlerSpy).getContextPath();
+
+        final Log logMock = mock(Log.class);
+        final WebApp appMock = mock(WebApp.class);
+        final DeploymentSlotSetting slotSettingMock = mock(DeploymentSlotSetting.class);
+        final DeploymentSlot slotMock = mock(DeploymentSlot.class);
+        doReturn(logMock).when(mojo).getLog();
+        doReturn(appMock).when(mojo).getWebApp();
+        doReturn(slotSettingMock).when(mojo).getDeploymentSlotSetting();
+        doNothing().when(logMock).info(anyString());
+        doReturn("").when(slotSettingMock).getSlotName();
+        doReturn(slotMock).when(mojo).getDeploymentSlot(appMock, "");
+        doNothing().when(slotMock).warDeploy(any(File.class), anyString());
+        handlerSpy.publish(new DeploymentSlotAdapter(slotMock));
+
+        verify(slotMock, times(1)).warDeploy(file, path);
     }
 
     @Test

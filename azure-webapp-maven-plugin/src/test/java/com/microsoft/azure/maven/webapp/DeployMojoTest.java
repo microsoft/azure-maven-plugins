@@ -9,8 +9,13 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.management.appservice.*;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
+import com.microsoft.azure.maven.webapp.handlers.DeploymentSlotHandler;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
@@ -23,7 +28,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -63,6 +67,9 @@ public class DeployMojoTest {
     @Mock
     protected SettingsHandler settingsHandler;
 
+    @Mock
+    protected DeploymentSlotHandler deploymentSlotHandler;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -86,6 +93,12 @@ public class DeployMojoTest {
             @Override
             public ArtifactHandler getArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
                 return artifactHandler;
+            }
+
+            @Override
+            public DeploymentSlotHandler getDeploymentSlotHandler(AbstractWebAppMojo mojo)
+                    throws MojoExecutionException {
+                return deploymentSlotHandler;
             }
         });
     }
@@ -231,10 +244,33 @@ public class DeployMojoTest {
     public void deployArtifactsWithResources() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         final DeployMojo mojoSpy = spy(mojo);
-
+        final IDeployAdapter deployTarget = new WebAppAdapter(mojo.getWebApp());
         mojoSpy.deployArtifacts();
 
-        verify(artifactHandler, times(1)).publish();
+        verify(artifactHandler, times(1)).publish(refEq(deployTarget));
+        verifyNoMoreInteractions(artifactHandler);
+    }
+
+
+    @Test
+    public void deployToDeploymentSlot() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        final WebApp app = mock(WebApp.class);
+        final DeploymentSlots slots = mock(DeploymentSlots.class);
+        final DeploymentSlot slot = mock(DeploymentSlot.class);
+        final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
+
+        doReturn(app).when(mojoSpy).getWebApp();
+        doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
+        doReturn(slots).when(app).deploymentSlots();
+        doReturn("").when(slotSetting).getSlotName();
+        doReturn(slot).when(slots).getByName(anyString());
+
+        final IDeployAdapter deployTarget = new DeploymentSlotAdapter(slot);
+        mojoSpy.deployArtifacts();
+
+        verify(artifactHandler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(artifactHandler);
     }
 

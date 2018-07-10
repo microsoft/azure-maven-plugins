@@ -6,7 +6,9 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public abstract class HandlerFactory {
@@ -21,4 +23,7 @@ public abstract class HandlerFactory {
     public abstract SettingsHandler getSettingsHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException;
 
     public abstract ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException;
+
+    public abstract DeploymentSlotHandler getDeploymentSlotHandler(final AbstractWebAppMojo mojo)
+            throws MojoExecutionException;
 }

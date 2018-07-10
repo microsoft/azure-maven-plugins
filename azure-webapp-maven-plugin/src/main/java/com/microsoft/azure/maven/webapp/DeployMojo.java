@@ -6,10 +6,15 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -30,6 +35,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String START_APP = "Starting Web App after deploying artifacts...";
     public static final String STOP_APP_DONE = "Successfully stopped Web App.";
     public static final String START_APP_DONE = "Successfully started Web App.";
+    public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "Please configure an existing web app for slot deployment.";
 
     protected DeploymentUtil util = new DeploymentUtil();
 
@@ -45,6 +51,9 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     protected void createOrUpdateWebApp() throws Exception {
         final WebApp app = getWebApp();
+        if (app == null && this.isDeployToDeploymentSlot()) {
+            throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+        }
         if (app == null) {
             createWebApp();
         } else {
@@ -70,12 +79,22 @@ public class DeployMojo extends AbstractWebAppMojo {
         update.apply();
 
         info(UPDATE_WEBAPP_DONE);
+
+        if (isDeployToDeploymentSlot()) {
+            getFactory().getDeploymentSlotHandler(this).handleDeploymentSlot();
+        }
     }
 
     protected void deployArtifacts() throws Exception {
         try {
             util.beforeDeployArtifacts();
-            getFactory().getArtifactHandler(this).publish();
+
+            final DeploymentSlot slot = getDeploymentSlot(getWebApp(), getDeploymentSlotSetting().getSlotName());
+
+            final IDeployAdapter target = this.isDeployToDeploymentSlot() ?
+                    new DeploymentSlotAdapter(slot) :
+                    new WebAppAdapter(this.getWebApp());
+            getFactory().getArtifactHandler(this).publish(target);
         } finally {
             util.afterDeployArtifacts();
         }

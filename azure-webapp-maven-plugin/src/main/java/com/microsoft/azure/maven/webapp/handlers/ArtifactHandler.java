@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
+
 public interface ArtifactHandler {
-    void publish() throws Exception;
+    void publish(IDeployAdapter deployTarget) throws Exception;
 }
