@@ -19,6 +19,7 @@ import static org.mockito.Mockito.verify;
 import java.io.File;
 import java.nio.file.Paths;
 
+import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -62,7 +63,7 @@ public class WarArtifactHandlerImplTest {
         doReturn(appMock).when(mojo).getWebApp();
         doNothing().when(appMock).warDeploy(any(File.class), anyString());
 
-        handlerSpy.publish();
+        handlerSpy.publish(new WebAppAdapter(appMock));
         verify(appMock, times(1)).warDeploy(file, path);
     }
 

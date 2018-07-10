@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -48,14 +50,14 @@ public class JarArtifactHandlerImplTest {
     @Test
     public void publish() throws Exception {
         final File file = new File("");
+        final IDeployTargetAdapter deployTarget = new WebAppAdapter(this.mojo.getWebApp());
         doReturn(file).when(handlerSpy).getJarFile();
         doNothing().when(handlerSpy).assureJarFileExisted(any(File.class));
         doNothing().when(handlerSpy).prepareDeploymentFiles(any(File.class));
-        doNothing().when(handlerSpy).uploadDirectoryToFTP();
+        doNothing().when(handlerSpy).uploadDirectoryToFTP(deployTarget);
 
-        handlerSpy.publish();
-        verify(handlerSpy).uploadDirectoryToFTP();
-        
+        handlerSpy.publish(deployTarget);
+        verify(handlerSpy).uploadDirectoryToFTP(deployTarget);
     }
 
     @Test
