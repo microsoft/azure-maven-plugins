@@ -17,6 +17,7 @@
                     <appName>appName</appName>
                     <deploymentSlotSetting>
                         <slotName>slot</slotName>
+                        <configurationSource>test</configurationSource>
                     </deploymentSlotSetting>
                     <region>westeurope</region>
                     <pricingTier>s2</pricingTier>

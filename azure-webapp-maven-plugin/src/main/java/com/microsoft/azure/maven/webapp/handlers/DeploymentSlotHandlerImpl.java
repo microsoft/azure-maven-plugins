@@ -10,18 +10,16 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
-
-import java.util.NoSuchElementException;
 
 public class DeploymentSlotHandlerImpl implements DeploymentSlotHandler {
     private static final String INVALID_SLOT_SETTINGS = "<deploymentSlotSetting> is NULL." +
             "Need configure it in pom.xml for deploying it to deployment slot.";
-    private static final String UNRECOGNIZED_CONFIGURATION_SOURCE =
-            "Empty or unrecognized configuration source, create a brand new deployment slot without any configuration";
+    private static final String NULL_CONFIGURATION_SOURCE =
+            "Empty configuration source, create a brand new deployment slot without any configuration.";
+    private static final String DEFAULT_CONFIGURATION_SOURCE =
+            "Null or unrecognized configuration source, create deployment slot and copy configuration from parent.";
     private static final String CREATE_DEPLOYMENT_SLOT = "Start create deployment slot...";
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created deployment slot.";
 
@@ -52,22 +50,30 @@ public class DeploymentSlotHandlerImpl implements DeploymentSlotHandler {
     protected void createDeploymentSlotByConfigurationSource (final WebApp app, final String slotName,
                                                               final String configurationSource) {
         final DeploymentSlot cSlot = this.mojo.getDeploymentSlot(app, configurationSource);
+
         if (cSlot != null) {
             app.deploymentSlots().define(slotName).withConfigurationFromDeploymentSlot(cSlot).create();
-        } else if (app.name().equalsIgnoreCase(configurationSource)) {
-            app.deploymentSlots().define(slotName).withConfigurationFromParent().create();
-        } else {
-            this.mojo.getLog().info(UNRECOGNIZED_CONFIGURATION_SOURCE);
+        } else if (isCreateSlotWithoutConfiguration(configurationSource)) {
+            this.mojo.getLog().info(NULL_CONFIGURATION_SOURCE);
+
             app.deploymentSlots().define(slotName).withBrandNewConfiguration().create();
+        } else {
+            this.mojo.getLog().info(DEFAULT_CONFIGURATION_SOURCE);
+
+            app.deploymentSlots().define(slotName).withConfigurationFromParent().create();
         }
     }
 
-    protected boolean isDeploymentSlotExists(final WebApp app, final String slotName) {
+    protected boolean isCreateSlotWithoutConfiguration(final String configurationSource) {
+        return configurationSource != null && configurationSource.equalsIgnoreCase("");
+    }
+
+    private boolean isDeploymentSlotExists(final WebApp app, final String slotName) {
         return this.mojo.getDeploymentSlot(app, slotName) != null;
     }
 
     protected void assureValidSlotSetting(DeploymentSlotSetting slotSetting) throws MojoExecutionException {
-        if (slotSetting == null || StringUtils.isEmpty(slotSetting.getSlotName())) {
+        if (slotSetting == null) {
             throw new MojoExecutionException(INVALID_SLOT_SETTINGS);
         }
     }

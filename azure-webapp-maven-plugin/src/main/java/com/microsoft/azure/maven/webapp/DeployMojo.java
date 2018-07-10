@@ -10,10 +10,11 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
-import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
+import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -88,16 +89,21 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void deployArtifacts() throws Exception {
         try {
             util.beforeDeployArtifacts();
-
-            final DeploymentSlot slot = getDeploymentSlot(getWebApp(), getDeploymentSlotSetting().getSlotName());
-
-            final IDeployAdapter target = this.isDeployToDeploymentSlot() ?
-                    new DeploymentSlotAdapter(slot) :
-                    new WebAppAdapter(this.getWebApp());
+            final IDeployTargetAdapter target = getDeployTarget();
             getFactory().getArtifactHandler(this).publish(target);
         } finally {
             util.afterDeployArtifacts();
         }
+    }
+
+    protected IDeployTargetAdapter getDeployTarget() throws AzureAuthFailureException {
+        final WebApp app = getWebApp();
+        if (this.isDeployToDeploymentSlot()) {
+            final String slotName = getDeploymentSlotSetting().getSlotName();
+            final DeploymentSlot slot = getDeploymentSlot(app, slotName);
+            return new DeploymentSlotAdapter(slot);
+        }
+        return new WebAppAdapter(app);
     }
 
     protected HandlerFactory getFactory() {

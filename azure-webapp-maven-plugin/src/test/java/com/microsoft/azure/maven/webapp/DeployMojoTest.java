@@ -11,7 +11,7 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCre
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
@@ -244,30 +244,26 @@ public class DeployMojoTest {
     public void deployArtifactsWithResources() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         final DeployMojo mojoSpy = spy(mojo);
-        final IDeployAdapter deployTarget = new WebAppAdapter(mojo.getWebApp());
+        final WebApp app = mock(WebApp.class);
+
+        doReturn(app).when(mojoSpy).getWebApp();
+        doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
+
+        final IDeployTargetAdapter deployTarget = new WebAppAdapter(app);
         mojoSpy.deployArtifacts();
 
         verify(artifactHandler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(artifactHandler);
     }
 
-
     @Test
     public void deployToDeploymentSlot() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
         final DeployMojo mojoSpy = spy(mojo);
-        final WebApp app = mock(WebApp.class);
-        final DeploymentSlots slots = mock(DeploymentSlots.class);
-        final DeploymentSlot slot = mock(DeploymentSlot.class);
-        final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
+        final DeploymentSlotAdapter deployTarget = mock(DeploymentSlotAdapter.class);
+        doReturn(deployTarget).when(mojoSpy).getDeployTarget();
+        doReturn(true).when(mojoSpy).isDeployToDeploymentSlot();
 
-        doReturn(app).when(mojoSpy).getWebApp();
-        doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
-        doReturn(slots).when(app).deploymentSlots();
-        doReturn("").when(slotSetting).getSlotName();
-        doReturn(slot).when(slots).getByName(anyString());
-
-        final IDeployAdapter deployTarget = new DeploymentSlotAdapter(slot);
         mojoSpy.deployArtifacts();
 
         verify(artifactHandler, times(1)).publish(refEq(deployTarget));

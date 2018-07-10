@@ -9,7 +9,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 import java.io.File;
 import java.nio.file.Paths;
 
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -31,7 +31,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
     }
 
     @Override
-    public void publish(IDeployAdapter deployTarget) throws MojoExecutionException {
+    public void publish(IDeployTargetAdapter deployTarget) throws MojoExecutionException {
         final File war = getWarFile();
 
         assureWarFileExisted(war);

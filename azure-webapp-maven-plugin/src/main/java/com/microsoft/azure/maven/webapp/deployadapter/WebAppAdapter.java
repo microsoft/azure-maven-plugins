@@ -11,7 +11,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 
 import java.io.File;
 
-public class WebAppAdapter implements IDeployAdapter {
+public class WebAppAdapter implements IDeployTargetAdapter {
     private WebApp app;
 
     public WebAppAdapter(WebApp app) {

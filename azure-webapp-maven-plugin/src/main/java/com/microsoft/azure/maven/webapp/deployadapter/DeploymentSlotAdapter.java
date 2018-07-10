@@ -11,7 +11,7 @@ import com.microsoft.azure.management.appservice.PublishingProfile;
 
 import java.io.File;
 
-public class DeploymentSlotAdapter implements IDeployAdapter {
+public class DeploymentSlotAdapter implements IDeployTargetAdapter {
     private DeploymentSlot slot;
 
     public DeploymentSlotAdapter(DeploymentSlot slot) {

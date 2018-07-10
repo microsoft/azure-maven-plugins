@@ -11,18 +11,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.spy;
 
 import java.io.File;
 import java.io.IOException;
 
+import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -53,7 +55,7 @@ public class JarArtifactHandlerImplTest {
     @Test
     public void publish() throws Exception {
         final File file = new File("");
-        final IDeployAdapter deployTarget = new WebAppAdapter(this.mojo.getWebApp());
+        final IDeployTargetAdapter deployTarget = new WebAppAdapter(this.mojo.getWebApp());
         doReturn(file).when(handlerSpy).getJarFile();
         doNothing().when(handlerSpy).assureJarFileExisted(any(File.class));
         doNothing().when(handlerSpy).prepareDeploymentFiles(any(File.class));
@@ -66,12 +68,9 @@ public class JarArtifactHandlerImplTest {
     @Test
     public void publishToDeploymentSlot() throws Exception {
         final File file = new File("");
-        final WebApp app = mock(WebApp.class);
-        final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
-        doReturn(app).when(mojo).getWebApp();
-        doReturn(slotSetting).when(mojo).getDeploymentSlotSetting();
-        doReturn("").when(slotSetting).getSlotName();
-        final IDeployAdapter deployTarget = new DeploymentSlotAdapter(this.mojo.getDeploymentSlot(app, ""));
+        final DeploymentSlot slot = mock(DeploymentSlot.class);
+        final IDeployTargetAdapter deployTarget = new DeploymentSlotAdapter(slot);
+
         doReturn(file).when(handlerSpy).getJarFile();
         doNothing().when(handlerSpy).assureJarFileExisted(any(File.class));
         doNothing().when(handlerSpy).prepareDeploymentFiles(any(File.class));

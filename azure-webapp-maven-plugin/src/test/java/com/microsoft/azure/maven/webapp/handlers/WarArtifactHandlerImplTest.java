@@ -22,7 +22,6 @@ import java.nio.file.Paths;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;

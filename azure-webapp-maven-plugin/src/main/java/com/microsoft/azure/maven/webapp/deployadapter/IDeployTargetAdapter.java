@@ -10,7 +10,7 @@ import com.microsoft.azure.management.appservice.PublishingProfile;
 
 import java.io.File;
 
-public interface IDeployAdapter {
+public interface IDeployTargetAdapter {
     void warDeploy(File war, String contextPath);
     PublishingProfile getPublishingProfile();
 }
