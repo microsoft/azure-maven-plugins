@@ -43,6 +43,11 @@ Maven | 3.0 and above
     - Azure Storage Blob Trigger
     - Azure Storage Queue Trigger
     - Timer Trigger
+    - Event Grid Trigger
+    - Event Hub Trigger
+    - Cosmos DB Trigger
+    - Service Bus Queue Trigger
+    - Service Bus Topic Trigger
 
 #### `azure-functions:run`
 - Invoke Azure Functions Local Emulator to run all functions. Default working directory is the staging directory.
@@ -66,7 +71,7 @@ To use the Maven Plugin for Azure Functions in your Maven Java app, add the foll
       <plugin>
         <groupId>com.microsoft.azure</groupId>
           <artifactId>azure-functions-maven-plugin</artifactId>
-          <version>0.1.5</version>
+          <version>1.0.0-beta-3</version>
           <configuration>
             ...
           </configuration>
