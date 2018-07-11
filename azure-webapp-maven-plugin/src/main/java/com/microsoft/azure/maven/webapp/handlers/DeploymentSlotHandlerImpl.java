@@ -68,7 +68,7 @@ public class DeploymentSlotHandlerImpl implements DeploymentSlotHandler {
         return configurationSource != null && configurationSource.equalsIgnoreCase("");
     }
 
-    private boolean isDeploymentSlotExists(final WebApp app, final String slotName) {
+    protected boolean isDeploymentSlotExists(final WebApp app, final String slotName) {
         return this.mojo.getDeploymentSlot(app, slotName) != null;
     }
 
