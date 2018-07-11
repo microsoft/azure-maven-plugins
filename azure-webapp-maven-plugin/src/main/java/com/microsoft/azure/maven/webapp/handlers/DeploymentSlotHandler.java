@@ -17,7 +17,7 @@ import org.codehaus.plexus.util.StringUtils;
 public class DeploymentSlotHandler {
     private static final String INVALID_SLOT_SETTINGS = "<deploymentSlotSetting> is NULL." +
             "Need configure it in pom.xml for deploying it to deployment slot.";
-    private static final String NULL_CONFIGURATION_SOURCE =
+    private static final String EMPTY_CONFIGURATION_SOURCE =
             "Empty configuration source, create a brand new deployment slot without any configuration.";
     private static final String DEFAULT_CONFIGURATION_SOURCE =
             "Null or unrecognized configuration source, create deployment slot and copy configuration from parent.";
@@ -54,7 +54,7 @@ public class DeploymentSlotHandler {
         if (configurationSourceSlot != null) {
             definedSlot.withConfigurationFromDeploymentSlot(configurationSourceSlot).create();
         } else if ("".equalsIgnoreCase(configurationSource)) {
-            this.mojo.getLog().info(NULL_CONFIGURATION_SOURCE);
+            this.mojo.getLog().info(EMPTY_CONFIGURATION_SOURCE);
             definedSlot.withBrandNewConfiguration().create();
         } else {
             this.mojo.getLog().info(DEFAULT_CONFIGURATION_SOURCE);
@@ -63,7 +63,6 @@ public class DeploymentSlotHandler {
 
         this.mojo.getLog().info(CREATE_DEPLOYMENT_SLOT_DONE);
     }
-
 
     protected void assureValidSlotSetting(DeploymentSlotSetting slotSetting) throws MojoExecutionException {
         if (slotSetting == null) {

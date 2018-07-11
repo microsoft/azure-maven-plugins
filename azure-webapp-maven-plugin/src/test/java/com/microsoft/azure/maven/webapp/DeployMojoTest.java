@@ -12,6 +12,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
@@ -270,6 +271,7 @@ public class DeployMojoTest {
         final IDeployTargetAdapter deployTarget = new WebAppAdapter(app);
         mojoSpy.deployArtifacts();
 
+        verify(mojoSpy, times(1)).getDeployTarget();
         verify(artifactHandler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(artifactHandler);
     }
@@ -284,8 +286,35 @@ public class DeployMojoTest {
 
         mojoSpy.deployArtifacts();
 
+        verify(mojoSpy, times(1)).getDeployTarget();
         verify(artifactHandler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(artifactHandler);
+    }
+
+    @Test
+    public void getDeployTarget() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
+        mojoSpy.getDeployTarget();
+
+        verify(mojoSpy, times(1)).getDeployTarget();
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void getDeployTargetThrowException() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        final WebApp app = mock(WebApp.class);
+
+        doReturn(app).when(mojoSpy).getWebApp();
+        final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
+        doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
+        doReturn(true).when(mojoSpy).isDeployToDeploymentSlot();
+        doReturn("").when(slotSetting).getSlotName();
+        doReturn(null).when(mojoSpy).getDeploymentSlot(app, "");
+
+        mojoSpy.getDeployTarget();
     }
 
     private DeployMojo getMojoFromPom(String filename) throws Exception {
