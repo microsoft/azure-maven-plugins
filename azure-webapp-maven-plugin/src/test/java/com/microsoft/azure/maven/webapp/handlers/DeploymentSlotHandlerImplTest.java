@@ -44,7 +44,7 @@ public class DeploymentSlotHandlerImplTest {
     }
 
     @Test
-    public void handleDeploymentSlot() throws AzureAuthFailureException, MojoExecutionException {
+    public void handleExistingDeploymentSlot() throws AzureAuthFailureException, MojoExecutionException {
         final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
         final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
         final WebApp app = mock(WebApp.class);
@@ -60,7 +60,7 @@ public class DeploymentSlotHandlerImplTest {
     }
 
     @Test
-    public void handleDeploymentSlot_2() throws AzureAuthFailureException, MojoExecutionException {
+    public void handleNoneExistingDeploymentSlot() throws AzureAuthFailureException, MojoExecutionException {
         final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
         final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
         final WebApp app = mock(WebApp.class);
@@ -81,7 +81,7 @@ public class DeploymentSlotHandlerImplTest {
     }
 
     @Test
-    public void createDeploymentSlotWithConfigurationSource() {
+    public void createDeploymentSlotWithConfigurationSourceFromParent() {
         final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
@@ -103,7 +103,7 @@ public class DeploymentSlotHandlerImplTest {
     }
 
     @Test
-    public void createDeploymentSlotWithConfigurationSource_2() {
+    public void createDeploymentSlotWithConfigurationSourceFromDeploymentSlot() {
         final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
@@ -125,7 +125,7 @@ public class DeploymentSlotHandlerImplTest {
     }
 
     @Test
-    public void createDeploymentSlotWithConfigurationSource_3() {
+    public void createDeploymentSlotWithoutConfigurationSource() {
         final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
