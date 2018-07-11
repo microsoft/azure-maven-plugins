@@ -6,14 +6,16 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.appservice.*;
+import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.webapp.handlers.DeploymentSlotHandler;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
@@ -38,9 +40,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DEPLOYMENT_TYPE_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DOCKER_IMAGE_TYPE_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_VERSION_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_WEB_CONTAINER_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.LINUX_RUNTIME_KEY;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.refEq;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeployMojoTest {

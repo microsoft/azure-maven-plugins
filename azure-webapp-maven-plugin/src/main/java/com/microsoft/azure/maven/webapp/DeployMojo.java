@@ -82,7 +82,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         info(UPDATE_WEBAPP_DONE);
 
         if (isDeployToDeploymentSlot()) {
-            getFactory().getDeploymentSlotHandler(this).handleDeploymentSlot();
+            getFactory().getDeploymentSlotHandler(this).createDeploymentSlotIfNotExist();
         }
     }
 
@@ -96,11 +96,14 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    protected IDeployTargetAdapter getDeployTarget() throws AzureAuthFailureException {
+    protected IDeployTargetAdapter getDeployTarget() throws AzureAuthFailureException, MojoExecutionException {
         final WebApp app = getWebApp();
         if (this.isDeployToDeploymentSlot()) {
             final String slotName = getDeploymentSlotSetting().getSlotName();
             final DeploymentSlot slot = getDeploymentSlot(app, slotName);
+            if (slot == null) {
+                throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+            }
             return new DeploymentSlotAdapter(slot);
         }
         return new WebAppAdapter(app);
