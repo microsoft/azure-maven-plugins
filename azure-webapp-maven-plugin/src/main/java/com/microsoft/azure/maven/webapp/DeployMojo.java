@@ -37,7 +37,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String STOP_APP_DONE = "Successfully stopped Web App.";
     public static final String START_APP_DONE = "Successfully started Web App.";
     public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "Please configure an existing web app for slot deployment.";
-    public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot is still not exist." +
+    public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist." +
             "Please check if any error message during creation";
 
     protected DeploymentUtil util = new DeploymentUtil();
