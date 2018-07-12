@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
@@ -13,6 +14,7 @@ import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import org.apache.maven.model.Resource;
@@ -24,6 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.NoSuchElementException;
+
 
 /**
  * Base abstract class for Web App Mojos.
@@ -252,6 +256,13 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter(property = "webapp.path", defaultValue = "/")
     protected String path;
 
+    /**
+     * Deployment Slot. It will be created if it does not exist.
+     * It requires the web app exists already.
+     */
+    @Parameter(property = "webapp.deploymentSlotSetting", required = false)
+    protected DeploymentSlotSetting deploymentSlotSetting;
+
     //endregion
 
     //region Getter
@@ -267,6 +278,10 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public String getAppName() {
         return appName;
+    }
+
+    public DeploymentSlotSetting getDeploymentSlotSetting() {
+        return deploymentSlotSetting;
     }
 
     public String getAppServicePlanResourceGroup() {
@@ -346,6 +361,21 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
             // Swallow exception for non-existing web app
         }
         return null;
+    }
+
+    public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {
+        DeploymentSlot slot = null;
+        if (StringUtils.isNotEmpty(slotName)) {
+            try {
+                slot = app.deploymentSlots().getByName(slotName);
+            } catch (NoSuchElementException deploymentSlotNotExistException) {
+            }
+        }
+        return slot;
+    }
+
+    public boolean isDeployToDeploymentSlot() {
+        return getDeploymentSlotSetting() != null;
     }
 
     //endregion

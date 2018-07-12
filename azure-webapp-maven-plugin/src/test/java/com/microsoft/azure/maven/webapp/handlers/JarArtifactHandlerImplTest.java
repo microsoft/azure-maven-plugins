@@ -11,14 +11,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.spy;
 
 import java.io.File;
 import java.io.IOException;
 
+import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import org.apache.maven.model.Build;
@@ -51,6 +56,21 @@ public class JarArtifactHandlerImplTest {
     public void publish() throws Exception {
         final File file = new File("");
         final IDeployTargetAdapter deployTarget = new WebAppAdapter(this.mojo.getWebApp());
+        doReturn(file).when(handlerSpy).getJarFile();
+        doNothing().when(handlerSpy).assureJarFileExisted(any(File.class));
+        doNothing().when(handlerSpy).prepareDeploymentFiles(any(File.class));
+        doNothing().when(handlerSpy).uploadDirectoryToFTP(deployTarget);
+
+        handlerSpy.publish(deployTarget);
+        verify(handlerSpy).uploadDirectoryToFTP(deployTarget);
+    }
+
+    @Test
+    public void publishToDeploymentSlot() throws Exception {
+        final File file = new File("");
+        final DeploymentSlot slot = mock(DeploymentSlot.class);
+        final IDeployTargetAdapter deployTarget = new DeploymentSlotAdapter(slot);
+
         doReturn(file).when(handlerSpy).getJarFile();
         doNothing().when(handlerSpy).assureJarFileExisted(any(File.class));
         doNothing().when(handlerSpy).prepareDeploymentFiles(any(File.class));
