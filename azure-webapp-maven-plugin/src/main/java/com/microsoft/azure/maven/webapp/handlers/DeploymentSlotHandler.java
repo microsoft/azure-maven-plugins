@@ -12,6 +12,7 @@ import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ConfigurationSourceType;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.regex.Pattern;
