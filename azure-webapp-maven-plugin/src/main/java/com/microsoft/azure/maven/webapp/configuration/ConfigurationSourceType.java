@@ -6,14 +6,26 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
+import org.codehaus.plexus.util.StringUtils;
+
 import java.util.Locale;
 
+/**
+ * Values of <configurationSource> property..
+ * If it is null or empty, PARENT will be used as default.
+ * If set the value NEW, a brand new deployment slot without any configuration will be created.
+ * If set the value PARENT, will create a new deployment slot and copy the configuration from parent.
+ * Any other value will be treated as the deployment slot name to copy configuration from during creation.
+ */
 public enum ConfigurationSourceType {
     NEW,
     PARENT,
     OTHERS;
 
     public static ConfigurationSourceType fromString(String input) {
+        if (StringUtils.isEmpty(input)) {
+            return PARENT;
+        }
         switch (input.toUpperCase(Locale.ENGLISH)) {
             case "NEW":
                 return NEW;

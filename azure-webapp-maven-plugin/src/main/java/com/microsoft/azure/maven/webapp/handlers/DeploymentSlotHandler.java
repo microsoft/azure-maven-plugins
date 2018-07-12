@@ -25,7 +25,8 @@ public class DeploymentSlotHandler {
             "Creating a brand new deployment slot without any configuration.";
     private static final String DEFAULT_CONFIGURATION_SOURCE =
             "Creating deployment slot and copy configuration from parent.";
-    private static final String COPY_CONFIGURATION_FROM_SLOT = "Creating deployment slot and copy configuration from %s";
+    private static final String COPY_CONFIGURATION_FROM_SLOT =
+            "Creating deployment slot and copy configuration from %s";
     private static final String CREATE_DEPLOYMENT_SLOT = "Start create deployment slot...";
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created deployment slot.";
     private static final String UNKNOWN_CONFIGURATION_SOURCE =
@@ -46,8 +47,8 @@ public class DeploymentSlotHandler {
 
         final WebApp app = this.mojo.getWebApp();
         final String slotName = slotSetting.getSlotName();
-        final DeploymentSlot slot = this.mojo.getDeploymentSlot(app, slotName);
-        if (slot == null) {
+
+        if (this.mojo.getDeploymentSlot(app, slotName) == null) {
             createDeploymentSlot(app, slotName, slotSetting.getConfigurationSource());
         }
     }
@@ -84,16 +85,16 @@ public class DeploymentSlotHandler {
         this.mojo.getLog().info(CREATE_DEPLOYMENT_SLOT_DONE);
     }
 
-    protected void assureValidSlotSetting(DeploymentSlotSetting slotSetting) throws MojoExecutionException {
+    protected void assureValidSlotSetting(final DeploymentSlotSetting slotSetting) throws MojoExecutionException {
         if (slotSetting == null) {
             throw new MojoExecutionException(INVALID_SLOT_SETTINGS);
         }
     }
 
     protected void assureValidSlotName(final String slotName) throws MojoExecutionException {
-        Pattern pattern = Pattern.compile(SLOT_NAME_PATTERN, Pattern.CASE_INSENSITIVE);
+        final Pattern pattern = Pattern.compile(SLOT_NAME_PATTERN, Pattern.CASE_INSENSITIVE);
 
-        if (!pattern.matcher(slotName).matches()) {
+        if (StringUtils.isEmpty(slotName) || !pattern.matcher(slotName).matches()) {
             throw new MojoExecutionException(INVALID_SLOT_NAME);
         }
     }
