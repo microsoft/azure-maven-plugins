@@ -6,8 +6,13 @@
 
 package com.microsoft.azure.maven.function;
 
-import static com.microsoft.azure.maven.function.RunMojo.*;
-import static org.junit.Assert.*;
+import static com.microsoft.azure.maven.function.RunMojo.FUNC_CMD;
+import static com.microsoft.azure.maven.function.RunMojo.FUNC_HOST_START_CMD;
+import static com.microsoft.azure.maven.function.RunMojo.RUNTIME_NOT_FOUND;
+import static com.microsoft.azure.maven.function.RunMojo.RUN_FUNCTIONS_FAILURE;
+import static com.microsoft.azure.maven.function.RunMojo.FUNC_HOST_START_WITH_DEBUG_CMD;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
