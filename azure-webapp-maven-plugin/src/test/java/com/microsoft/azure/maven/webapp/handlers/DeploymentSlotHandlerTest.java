@@ -119,22 +119,14 @@ public class DeploymentSlotHandlerTest {
         verify(withCreate, times(1)).create();
     }
 
-    @Test(expected =  MojoExecutionException.class)
+    @Test(expected = MojoExecutionException.class)
     public void createDeploymentSlotFromOtherDeploymentSlotThrowException() throws MojoExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
-        final DeploymentSlots slots = mock(DeploymentSlots.class);
-        final Blank stage1 = mock(Blank.class);
-        final DeploymentSlot slot = mock(DeploymentSlot.class);
-        final WithCreate withCreate = mock(WithCreate.class);
 
         doReturn(logMock).when(mojo).getLog();
-        doReturn(slots).when(app).deploymentSlots();
-        doReturn(stage1).when(slots).define("");
         doReturn(null).when(mojo).getDeploymentSlot(app, "otherSlot");
-        doNothing().when(handlerSpy).assureValidSlotName("");
-        doReturn(withCreate).when(stage1).withConfigurationFromDeploymentSlot(slot);
 
         handlerSpy.createDeploymentSlot(app, "", "otherSlot");
     }
