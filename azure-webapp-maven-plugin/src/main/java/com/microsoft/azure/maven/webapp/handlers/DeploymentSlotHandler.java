@@ -13,6 +13,7 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ConfigurationSourceType;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.util.regex.Pattern;
 
@@ -94,7 +95,7 @@ public class DeploymentSlotHandler {
     protected void assureValidSlotName(final String slotName) throws MojoExecutionException {
         final Pattern pattern = Pattern.compile(SLOT_NAME_PATTERN, Pattern.CASE_INSENSITIVE);
 
-        if (!pattern.matcher(slotName).matches()) {
+        if (StringUtils.isEmpty(slotName) || !pattern.matcher(slotName).matches()) {
             throw new MojoExecutionException(INVALID_SLOT_NAME);
         }
     }

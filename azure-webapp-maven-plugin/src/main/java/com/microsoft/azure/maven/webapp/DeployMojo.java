@@ -37,6 +37,8 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String STOP_APP_DONE = "Successfully stopped Web App.";
     public static final String START_APP_DONE = "Successfully started Web App.";
     public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "Please configure an existing web app for slot deployment.";
+    public static final String SLOT_SHOULD_EXIST_NOW =
+            "Deployment slot still does not exist, check the error message during creation.";
 
     protected DeploymentUtil util = new DeploymentUtil();
 
@@ -102,7 +104,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             final String slotName = getDeploymentSlotSetting().getSlotName();
             final DeploymentSlot slot = getDeploymentSlot(app, slotName);
             if (slot == null) {
-                throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+                throw new MojoExecutionException(SLOT_SHOULD_EXIST_NOW);
             }
             return new DeploymentSlotAdapter(slot);
         }
