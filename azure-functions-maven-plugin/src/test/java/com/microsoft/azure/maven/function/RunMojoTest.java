@@ -6,10 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
-import static com.microsoft.azure.maven.function.RunMojo.FUNC_CMD;
-import static com.microsoft.azure.maven.function.RunMojo.FUNC_HOST_START_CMD;
-import static com.microsoft.azure.maven.function.RunMojo.RUNTIME_NOT_FOUND;
-import static com.microsoft.azure.maven.function.RunMojo.RUN_FUNCTIONS_FAILURE;
+import static com.microsoft.azure.maven.function.RunMojo.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -20,8 +17,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
-import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
@@ -120,6 +115,9 @@ public class RunMojoTest extends MojoTestBase {
         final RunMojo mojo = getMojoFromPom();
         final RunMojo mojoSpy = spy(mojo);
         assertEquals(FUNC_HOST_START_CMD, mojoSpy.getStartFunctionHostCommand());
+
+        System.setProperty("enableDebug", "true");
+        assertEquals(FUNC_HOST_START_WITH_DEBUG_CMD, mojoSpy.getStartFunctionHostCommand());
     }
 
     private RunMojo getMojoFromPom() throws Exception {
