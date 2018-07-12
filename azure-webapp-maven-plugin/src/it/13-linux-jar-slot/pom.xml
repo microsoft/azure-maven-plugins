@@ -2,8 +2,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure.it</groupId>
-    <artifactId>windows-war-slot</artifactId>
-    <packaging>war</packaging>
+    <artifactId>linux-jar-slot</artifactId>
+    <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
     <properties>
         <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
@@ -18,15 +18,24 @@
                     <authentication>
                         <serverId>azure-auth</serverId>
                     </authentication>
-                    <resourceGroup>maven-webapp-it-rg-12</resourceGroup>
-                    <appName>maven-webapp-it-rg-12-webapp</appName>
+                    <resourceGroup>maven-webapp-it-rg-13</resourceGroup>
+                    <appName>maven-webapp-it-rg-13-webapp-linux</appName>
+                    <region>westus</region>
                     <deploymentSlotSetting>
                         <slotName>test</slotName>
+                        <configurationSource>parent</configurationSource>
                     </deploymentSlotSetting>
-                    <region>westus</region>
-                    <javaVersion>1.8</javaVersion>
-                    <javaWebContainer>tomcat 8.5</javaWebContainer>
-                    <deploymentType>war</deploymentType>
+                    <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
+                    <deploymentType>jar</deploymentType>
+                    <resources>
+                        <resource>
+                            <directory>${project.basedir}</directory>
+                            <targetPath>webapps</targetPath>
+                            <includes>
+                                <include>pom.xml</include>
+                            </includes>
+                        </resource>
+                    </resources>
                 </configuration>
             </plugin>
         </plugins>

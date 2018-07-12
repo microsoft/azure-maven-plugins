@@ -9,6 +9,6 @@ import com.microsoft.azure.maven.webapp.utils.TestUtils;
 TestUtils.deleteAzureResourceGroup("maven-webapp-it-rg-12", true)
 
 TestUtils.createAzureWebApp("maven-webapp-it-rg-12", "westus",
-        "maven-webapp-it-rg-12-service-plan", "maven-webapp-it-rg-12-web-app")
+        "maven-webapp-it-rg-12-service-plan", "maven-webapp-it-rg-12-webapp")
 
 return true

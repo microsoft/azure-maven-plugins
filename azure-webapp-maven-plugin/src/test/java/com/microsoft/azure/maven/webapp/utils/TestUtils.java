@@ -34,24 +34,46 @@ public class TestUtils {
         azureLogout();
     }
 
-    public static void createAzureWebApp(final String resourceGroupName, final String location,
-                                         final String servicePlanName, final String webAppName)
+    public static void createWindowsAzureWebApp(final String resourceGroupName, final String location,
+                                                final String servicePlanName, final String webAppName)
             throws IOException, InterruptedException {
-        final String azResourceGroupCreateTemplate = "az group create --name %s --location %s";
-        final String azAppServicePlanCreateTemplate =
-                "az appservice plan create --resource-group %s --name %s --sku S1";
-        final String azWebAppCreateTemplate = "az webapp create --resource-group %s --name %s --plan %s";
+        final String azResourceGroupCreateTemplate = "az group create -n %s --location %s";
+        final String azAppServicePlanCreateTemplate = "az appservice plan create -g %s -n %s --sku S1";
+        final String azWebAppCreateTemplate = "az webapp create -g %s -n %s --plan %s";
+
         azureLogin();
-        Runtime.getRuntime()
-                .exec(formatCommand(azResourceGroupCreateTemplate, new String[]{resourceGroupName, location}))
-                .waitFor();
-        Runtime.getRuntime().exec(
-                formatCommand(azAppServicePlanCreateTemplate, new String[]{resourceGroupName, servicePlanName}))
-                .waitFor();
-        Runtime.getRuntime().exec(
-                formatCommand(azWebAppCreateTemplate, new String[]{resourceGroupName, webAppName, servicePlanName}))
-                .waitFor();
+        final String[] commands = new String[]{
+                formatCommand(azResourceGroupCreateTemplate, new String[]{resourceGroupName, location}),
+                formatCommand(azAppServicePlanCreateTemplate, new String[]{resourceGroupName, servicePlanName}),
+                formatCommand(azWebAppCreateTemplate, new String[]{resourceGroupName, webAppName, servicePlanName})
+        };
+        executeCommands(commands);
         azureLogout();
+    }
+
+    public static void createLinuxAzureWebApp(final String resourceGroupName, final String location,
+                                              final String servicePlanName, final String webAppName,
+                                              final String runtime) throws IOException, InterruptedException {
+        final String azResourceGroupCreateTemplate = "az group create -g %s -l %s";
+        final String azAppServicePlanCreateTemplate = "az appservice plan create -g %s -n %s --sku S1 --is-linux";
+        final String azWebAppCreateTemplate = "az webapp create -g %s -n %s --plan %s --runtime \"%s\"";
+        azureLogin();
+        final String[] commands = new String[]{
+                formatCommand(azResourceGroupCreateTemplate, new String[]{resourceGroupName, location}),
+                formatCommand(azAppServicePlanCreateTemplate, new String[]{resourceGroupName, servicePlanName}),
+                formatCommand(azWebAppCreateTemplate, new String[]{
+                        resourceGroupName, webAppName, servicePlanName, runtime})
+        };
+        executeCommands(commands);
+        azureLogout();
+    }
+
+    private static void executeCommands(final String[] commands) throws IOException, InterruptedException {
+        if (commands != null && commands.length > 0) {
+            for (final String command : commands) {
+                Runtime.getRuntime().exec(command).waitFor();
+            }
+        }
     }
 
     private static String formatCommand(String template, String[] args) {
