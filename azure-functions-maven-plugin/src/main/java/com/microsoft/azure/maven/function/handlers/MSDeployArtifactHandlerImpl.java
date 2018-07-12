@@ -21,19 +21,19 @@ import java.util.Date;
 public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
     public static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-deployment-packages";
     public static final String ZIP_EXT = ".zip";
-    public static final String CREATE_ZIP_START = "Step 1 of 4: Creating ZIP package...";
-    public static final String CREATE_ZIP_DONE = "Successfully saved ZIP package at ";
+    public static final String CREATE_ZIP_START = "Step 1 of 4: Creating ZIP file...";
+    public static final String CREATE_ZIP_DONE = "Successfully saved ZIP file at ";
     public static final String STAGE_DIR_NOT_FOUND = "Azure Functions stage directory not found. " +
             "Please run 'mvn package azure-functions:package' first.";
     public static final String LOCAL_SETTINGS_FILE = "local.settings.json";
     public static final String REMOVE_LOCAL_SETTINGS = "Remove local.settings.json from ZIP package.";
     public static final String INTERNAL_STORAGE_KEY = "AzureWebJobsStorage";
     public static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found.";
-    public static final String INTERNAL_STORAGE_CONNECTION_STRING = "Azure Functions Storage Connection String: ";
-    public static final String UPLOAD_PACKAGE_START = "Step 2 of 4: Uploading ZIP package to Azure Storage...";
-    public static final String UPLOAD_PACKAGE_DONE = "Successfully uploaded ZIP package to ";
-    public static final String DEPLOY_PACKAGE_START = "Step 3 of 4: Deploying Azure Functions with package...";
-    public static final String DEPLOY_PACKAGE_DONE = "Successfully deployed Azure Functions with package.";
+    public static final String INTERNAL_STORAGE_CONNECTION_STRING = "Azure Function App's Storage Connection String: ";
+    public static final String UPLOAD_PACKAGE_START = "Step 2 of 4: Uploading ZIP file to Azure Storage...";
+    public static final String UPLOAD_PACKAGE_DONE = "Successfully uploaded ZIP file to ";
+    public static final String DEPLOY_PACKAGE_START = "Step 3 of 4: Deploying Azure Function App with package...";
+    public static final String DEPLOY_PACKAGE_DONE = "Successfully deployed Azure Function App.";
     public static final String DELETE_PACKAGE_START = "Step 4 of 4: Deleting deployment package from Azure Storage...";
     public static final String DELETE_PACKAGE_DONE = "Successfully deleted deployment package ";
     public static final String DELETE_PACKAGE_FAIL = "Failed to delete deployment package ";
