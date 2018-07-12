@@ -365,7 +365,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {
         DeploymentSlot slot = null;
-        if (!StringUtils.isEmpty(slotName)) {
+        if (StringUtils.isNotEmpty(slotName)) {
             try {
                 slot = app.deploymentSlots().getByName(slotName);
             } catch (NoSuchElementException deploymentSlotNotExistException) {
