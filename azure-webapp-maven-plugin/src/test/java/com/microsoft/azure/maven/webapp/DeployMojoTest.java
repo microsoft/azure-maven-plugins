@@ -6,12 +6,14 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
@@ -179,6 +181,43 @@ public class DeployMojoTest {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
 
         assertNull(mojo.getWebApp());
+    }
+
+    @Test
+    public void getDeploymentSlotSetting() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
+        assertNotNull(mojo.getDeploymentSlotSetting());
+    }
+
+    @Test
+    public void getNUllDeploymentSlotSetting() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        assertNull(mojo.getDeploymentSlotSetting());
+    }
+
+    @Test
+    public void getNUllDeploymentSlot() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        final WebApp app = mock(WebApp.class);
+
+        doReturn(app).when(mojoSpy).getWebApp();
+
+        assertNull(mojoSpy.getDeploymentSlot(app, ""));
+    }
+
+    @Test
+    public void getDeploymentSlot() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        final WebApp app = mock(WebApp.class);
+
+        doReturn(app).when(mojoSpy).getWebApp();
+        doReturn(mock(DeploymentSlot.class)).when(mojoSpy).getDeploymentSlot(app, "");
+
+        mojoSpy.getDeploymentSlot(app, "");
+
+        verify(mojoSpy, times(1)).getDeploymentSlot(app, "");
     }
 
     @Test

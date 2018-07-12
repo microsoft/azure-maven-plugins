@@ -31,58 +31,56 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DeploymentSlotHandlerImplTest {
+public class DeploymentSlotHandlerTest {
     @Mock
     private AbstractWebAppMojo mojo;
 
-    private DeploymentSlotHandlerImpl handler = null;
+    private DeploymentSlotHandler handler = null;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        handler = new DeploymentSlotHandlerImpl(mojo);
+        handler = new DeploymentSlotHandler(mojo);
     }
 
     @Test
-    public void handleExistingDeploymentSlot() throws AzureAuthFailureException, MojoExecutionException {
-        final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
+    public void notCreateDeploymentSlotIfExist() throws AzureAuthFailureException, MojoExecutionException {
+        final DeploymentSlotHandler handlerSpy = spy(handler);
         final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
         final WebApp app = mock(WebApp.class);
+        final DeploymentSlot slot = mock(DeploymentSlot.class);
 
         doReturn(slotSetting).when(mojo).getDeploymentSlotSetting();
         doReturn(app).when(mojo).getWebApp();
         doReturn("").when(slotSetting).getSlotName();
-        doReturn(true).when(handlerSpy).isDeploymentSlotExists(app, "");
-        handlerSpy.handleDeploymentSlot();
-        verify(handlerSpy, times(0)).
-                createDeploymentSlotWithConfigurationSource(app, "", "");
-        verify(handlerSpy, times(1)).handleDeploymentSlot();
+        doReturn(slot).when(mojo).getDeploymentSlot(app, "");
+        handlerSpy.createDeploymentSlotIfNotExist();
+
+        verify(handlerSpy, times(0)).createDeploymentSlot(app, "", "");
+        verify(handlerSpy, times(1)).createDeploymentSlotIfNotExist();
     }
 
     @Test
-    public void handleNoneExistingDeploymentSlot() throws AzureAuthFailureException, MojoExecutionException {
-        final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
+    public void createDeploymentSlotIfNotExist() throws AzureAuthFailureException, MojoExecutionException {
+        final DeploymentSlotHandler handlerSpy = spy(handler);
         final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
         final WebApp app = mock(WebApp.class);
-        final Log logMock = mock(Log.class);
 
-        doReturn(logMock).when(mojo).getLog();
-        doReturn(slotSetting).when(mojo).getDeploymentSlotSetting();
         doReturn(app).when(mojo).getWebApp();
-        doReturn("").when(slotSetting).getSlotName();
+        doReturn(slotSetting).when(mojo).getDeploymentSlotSetting();
         doReturn("").when(slotSetting).getConfigurationSource();
-        doReturn(false).when(handlerSpy).isDeploymentSlotExists(app, "");
-        doNothing().when(handlerSpy).createDeploymentSlotWithConfigurationSource(app, "", "");
+        doReturn("").when(slotSetting).getSlotName();
+        doReturn(null).when(mojo).getDeploymentSlot(app, "");
+        doNothing().when(handlerSpy).createDeploymentSlot(app, "", "");
 
-        handlerSpy.handleDeploymentSlot();
-        verify(handlerSpy, times(1)).handleDeploymentSlot();
-        verify(handlerSpy, times(1)).
-                createDeploymentSlotWithConfigurationSource(app, "", "");
+        handlerSpy.createDeploymentSlotIfNotExist();
+        verify(handlerSpy, times(1)).createDeploymentSlotIfNotExist();
+        verify(handlerSpy, times(1)).createDeploymentSlot(app, "", "");
     }
 
     @Test
-    public void createDeploymentSlotWithConfigurationSourceFromParent() {
-        final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
+    public void createDeploymentSlotFromParent() throws MojoExecutionException {
+        final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
         final DeploymentSlots slots = mock(DeploymentSlots.class);
@@ -94,17 +92,16 @@ public class DeploymentSlotHandlerImplTest {
         doReturn(slots).when(app).deploymentSlots();
         doReturn(stage1).when(slots).define("");
         doReturn(null).when(mojo).getDeploymentSlot(app, "");
-        doReturn(false).when(handlerSpy).isCreateSlotWithoutConfiguration("");
         doReturn(withCreate).when(stage1).withConfigurationFromParent();
 
-        handlerSpy.createDeploymentSlotWithConfigurationSource(app, "", "");
+        handlerSpy.createDeploymentSlot(app, "", "");
 
         verify(withCreate, times(1)).create();
     }
 
     @Test
-    public void createDeploymentSlotWithConfigurationSourceFromDeploymentSlot() {
-        final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
+    public void createDeploymentSlotFromDeploymentSlot() throws MojoExecutionException {
+        final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
         final DeploymentSlots slots = mock(DeploymentSlots.class);
@@ -112,21 +109,21 @@ public class DeploymentSlotHandlerImplTest {
         final Blank stage1 = mock(Blank.class);
         final WithCreate withCreate = mock(WithCreate.class);
 
-
         doReturn(logMock).when(mojo).getLog();
         doReturn(slots).when(app).deploymentSlots();
         doReturn(slot).when(mojo).getDeploymentSlot(app, "");
         doReturn(stage1).when(slots).define("");
         doReturn(withCreate).when(stage1).withConfigurationFromDeploymentSlot(slot);
+        doNothing().when(handlerSpy).assureValidSlotName("");
 
-        handlerSpy.createDeploymentSlotWithConfigurationSource(app, "", "");
+        handlerSpy.createDeploymentSlot(app, "", "");
 
         verify(withCreate, times(1)).create();
     }
 
     @Test
-    public void createDeploymentSlotWithoutConfigurationSource() {
-        final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
+    public void createDeploymentSlotWithoutConfigurationSource() throws MojoExecutionException {
+        final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
         final DeploymentSlots slots = mock(DeploymentSlots.class);
@@ -136,23 +133,12 @@ public class DeploymentSlotHandlerImplTest {
         doReturn(logMock).when(mojo).getLog();
         doReturn(slots).when(app).deploymentSlots();
         doReturn(null).when(mojo).getDeploymentSlot(app, "");
-        doReturn(true).when(handlerSpy).isCreateSlotWithoutConfiguration("");
         doReturn(stage1).when(slots).define("");
         doReturn(withCreate).when(stage1).withBrandNewConfiguration();
+        doNothing().when(handlerSpy).assureValidSlotName("");
 
-        handlerSpy.createDeploymentSlotWithConfigurationSource(app, "", "");
+        handlerSpy.createDeploymentSlot(app, "", "");
 
         verify(withCreate, times(1)).create();
-    }
-
-    @Test
-    public void isDeploymentSlotExist() throws AzureAuthFailureException {
-        final DeploymentSlotHandlerImpl handlerSpy = spy(handler);
-        final WebApp app = mock(WebApp.class);
-        doReturn(app).when(mojo).getWebApp();
-
-        handlerSpy.isDeploymentSlotExists(app, "");
-
-        verify(handlerSpy, times(1)).isDeploymentSlotExists(app, "");
     }
 }
