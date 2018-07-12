@@ -6,11 +6,19 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.appservice.*;
+import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
+import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
+import com.microsoft.azure.maven.webapp.handlers.DeploymentSlotHandler;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
@@ -23,7 +31,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -34,9 +41,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DEPLOYMENT_TYPE_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DOCKER_IMAGE_TYPE_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_VERSION_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_WEB_CONTAINER_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.LINUX_RUNTIME_KEY;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.refEq;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeployMojoTest {
@@ -63,6 +86,9 @@ public class DeployMojoTest {
     @Mock
     protected SettingsHandler settingsHandler;
 
+    @Mock
+    protected DeploymentSlotHandler deploymentSlotHandler;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -86,6 +112,12 @@ public class DeployMojoTest {
             @Override
             public ArtifactHandler getArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
                 return artifactHandler;
+            }
+
+            @Override
+            public DeploymentSlotHandler getDeploymentSlotHandler(AbstractWebAppMojo mojo)
+                    throws MojoExecutionException {
+                return deploymentSlotHandler;
             }
         });
     }
@@ -231,11 +263,58 @@ public class DeployMojoTest {
     public void deployArtifactsWithResources() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         final DeployMojo mojoSpy = spy(mojo);
+        final WebApp app = mock(WebApp.class);
+
+        doReturn(app).when(mojoSpy).getWebApp();
+        doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
+
+        final IDeployTargetAdapter deployTarget = new WebAppAdapter(app);
+        mojoSpy.deployArtifacts();
+
+        verify(mojoSpy, times(1)).getDeployTarget();
+        verify(artifactHandler, times(1)).publish(refEq(deployTarget));
+        verifyNoMoreInteractions(artifactHandler);
+    }
+
+    @Test
+    public void deployToDeploymentSlot() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        final DeploymentSlotAdapter deployTarget = mock(DeploymentSlotAdapter.class);
+        doReturn(deployTarget).when(mojoSpy).getDeployTarget();
+        doReturn(true).when(mojoSpy).isDeployToDeploymentSlot();
 
         mojoSpy.deployArtifacts();
 
-        verify(artifactHandler, times(1)).publish();
+        verify(mojoSpy, times(1)).getDeployTarget();
+        verify(artifactHandler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(artifactHandler);
+    }
+
+    @Test
+    public void getDeployTarget() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
+        mojoSpy.getDeployTarget();
+
+        verify(mojoSpy, times(1)).getDeployTarget();
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void getDeployTargetThrowException() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        final WebApp app = mock(WebApp.class);
+
+        doReturn(app).when(mojoSpy).getWebApp();
+        final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
+        doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
+        doReturn(true).when(mojoSpy).isDeployToDeploymentSlot();
+        doReturn("").when(slotSetting).getSlotName();
+        doReturn(null).when(mojoSpy).getDeploymentSlot(app, "");
+
+        mojoSpy.getDeployTarget();
     }
 
     private DeployMojo getMojoFromPom(String filename) throws Exception {

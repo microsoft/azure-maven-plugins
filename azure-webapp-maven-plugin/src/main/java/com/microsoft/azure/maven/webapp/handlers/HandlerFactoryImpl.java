@@ -69,6 +69,11 @@ public class HandlerFactoryImpl extends HandlerFactory {
         return mojo.getDeploymentType().getArtifactHandlerFromMojo(mojo);
     }
 
+    @Override
+    public DeploymentSlotHandler getDeploymentSlotHandler(AbstractWebAppMojo mojo) {
+        return new DeploymentSlotHandler(mojo);
+    }
+
     private boolean isDuplicatedRuntimeDefined(final JavaVersion javaVersion, final String linuxRuntime,
             final ContainerSetting containerSetting) {
         return javaVersion != null ? linuxRuntime != null || !isContainerSettingEmpty(containerSetting)
