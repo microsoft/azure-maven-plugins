@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.webapp.configuration;
 
 /**
- * Deployment SLot setting class.
+ * Deployment Slot setting class.
  */
 public class DeploymentSlotSetting {
     protected String slotName;

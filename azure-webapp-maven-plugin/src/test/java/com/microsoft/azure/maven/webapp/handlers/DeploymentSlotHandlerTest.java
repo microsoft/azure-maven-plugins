@@ -87,42 +87,73 @@ public class DeploymentSlotHandlerTest {
         final Blank stage1 = mock(Blank.class);
         final WithCreate withCreate = mock(WithCreate.class);
 
-
         doReturn(logMock).when(mojo).getLog();
         doReturn(slots).when(app).deploymentSlots();
-        doReturn(stage1).when(slots).define("");
-        doReturn(null).when(mojo).getDeploymentSlot(app, "");
+        doReturn(stage1).when(slots).define("test");
         doReturn(withCreate).when(stage1).withConfigurationFromParent();
 
-        handlerSpy.createDeploymentSlot(app, "", "");
+        handlerSpy.createDeploymentSlot(app, "test", "parent");
 
         verify(withCreate, times(1)).create();
     }
 
     @Test
-    public void createDeploymentSlotFromDeploymentSlot() throws MojoExecutionException {
+    public void createDeploymentSlotFromOtherDeploymentSlot() throws MojoExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
         final DeploymentSlots slots = mock(DeploymentSlots.class);
+        final Blank stage1 = mock(Blank.class);
         final DeploymentSlot slot = mock(DeploymentSlot.class);
-        final Blank stage1 = mock(Blank.class);
         final WithCreate withCreate = mock(WithCreate.class);
 
         doReturn(logMock).when(mojo).getLog();
         doReturn(slots).when(app).deploymentSlots();
-        doReturn(slot).when(mojo).getDeploymentSlot(app, "");
         doReturn(stage1).when(slots).define("");
-        doReturn(withCreate).when(stage1).withConfigurationFromDeploymentSlot(slot);
+        doReturn(slot).when(mojo).getDeploymentSlot(app, "otherSlot");
         doNothing().when(handlerSpy).assureValidSlotName("");
+        doReturn(withCreate).when(stage1).withConfigurationFromDeploymentSlot(slot);
 
-        handlerSpy.createDeploymentSlot(app, "", "");
+        handlerSpy.createDeploymentSlot(app, "", "otherSlot");
 
         verify(withCreate, times(1)).create();
     }
 
+    @Test(expected =  MojoExecutionException.class)
+    public void createDeploymentSlotFromOtherDeploymentSlotThrowException() throws MojoExecutionException {
+        final DeploymentSlotHandler handlerSpy = spy(handler);
+        final WebApp app = mock(WebApp.class);
+        final Log logMock = mock(Log.class);
+        final DeploymentSlots slots = mock(DeploymentSlots.class);
+        final Blank stage1 = mock(Blank.class);
+        final DeploymentSlot slot = mock(DeploymentSlot.class);
+        final WithCreate withCreate = mock(WithCreate.class);
+
+        doReturn(logMock).when(mojo).getLog();
+        doReturn(slots).when(app).deploymentSlots();
+        doReturn(stage1).when(slots).define("");
+        doReturn(null).when(mojo).getDeploymentSlot(app, "otherSlot");
+        doNothing().when(handlerSpy).assureValidSlotName("");
+        doReturn(withCreate).when(stage1).withConfigurationFromDeploymentSlot(slot);
+
+        handlerSpy.createDeploymentSlot(app, "", "otherSlot");
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void assureValidSlotNameThrowException() throws MojoExecutionException {
+        final DeploymentSlotHandler handlerSpy = spy(handler);
+        handlerSpy.assureValidSlotName("@#123");
+    }
+
     @Test
-    public void createDeploymentSlotWithoutConfigurationSource() throws MojoExecutionException {
+    public void assureValidSlotName() throws MojoExecutionException {
+        final DeploymentSlotHandler handlerSpy = spy(handler);
+        handlerSpy.assureValidSlotName("slot-Name");
+        verify(handlerSpy, times(1)).assureValidSlotName("slot-Name");
+    }
+
+    @Test
+    public void createBreadNewDeploymentSlot() throws MojoExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
@@ -132,12 +163,10 @@ public class DeploymentSlotHandlerTest {
 
         doReturn(logMock).when(mojo).getLog();
         doReturn(slots).when(app).deploymentSlots();
-        doReturn(null).when(mojo).getDeploymentSlot(app, "");
-        doReturn(stage1).when(slots).define("");
+        doReturn(stage1).when(slots).define("test");
         doReturn(withCreate).when(stage1).withBrandNewConfiguration();
-        doNothing().when(handlerSpy).assureValidSlotName("");
 
-        handlerSpy.createDeploymentSlot(app, "", "");
+        handlerSpy.createDeploymentSlot(app, "test", "new");
 
         verify(withCreate, times(1)).create();
     }
