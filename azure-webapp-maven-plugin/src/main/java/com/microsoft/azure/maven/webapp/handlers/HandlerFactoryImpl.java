@@ -71,7 +71,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
     @Override
     public DeploymentSlotHandler getDeploymentSlotHandler(AbstractWebAppMojo mojo) {
-        return new DeploymentSlotHandlerImpl(mojo);
+        return new DeploymentSlotHandler(mojo);
     }
 
     private boolean isDuplicatedRuntimeDefined(final JavaVersion javaVersion, final String linuxRuntime,
