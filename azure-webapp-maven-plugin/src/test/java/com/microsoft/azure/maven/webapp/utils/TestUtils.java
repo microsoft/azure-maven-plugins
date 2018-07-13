@@ -17,7 +17,6 @@ public class TestUtils {
 
     private static final String deleteResourceGroup = "az group delete -y -n %s%s";
     private static final String loginAzureCli = "az login --service-principal -u %s -p %s --tenant %s";
-    private static final String logoutAzureCli = "az logout";
     private static final String createResourceGroup = "az group create -n %s --location %s";
     private static final String createAppServicePlan = "az appservice plan create -g %s -n %s --sku S1";
     private static final String createWebApp = "az webapp create -g %s -p %s -n %s";
@@ -29,29 +28,22 @@ public class TestUtils {
 
     private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
 
-    private static void azureLogin() throws IOException, InterruptedException {
+    public static void azureLogin() throws IOException, InterruptedException {
         executeCommand(String.format(loginAzureCli, clientId, key, tenantId));
-    }
-
-    private static void azureLogout() throws IOException, InterruptedException {
-        executeCommand(logoutAzureCli);
     }
 
     public static void deleteAzureResourceGroup(String resourceGroupName, boolean waitForOperationFinish)
             throws InterruptedException, IOException {
 
-        azureLogin();
         executeCommand(
                 String.format(deleteResourceGroup,
                         resourceGroupName,
                         waitForOperationFinish ? "" : " --no-wait"));
-        azureLogout();
     }
 
     private static void createWebApp(final String resourceGroupName, final String location,
                                      final String servicePlanName, final String webAppName,
                                      final boolean isLinux) throws IOException, InterruptedException {
-        azureLogin();
 
         executeCommand(
                 String.format(createResourceGroup,
@@ -67,7 +59,6 @@ public class TestUtils {
                         servicePlanName,
                         webAppName));
 
-        azureLogout();
     }
 
     private static void executeCommand(final String command) throws IOException, InterruptedException {
