@@ -430,7 +430,7 @@ The following configuration is applicable for below scenario:
    </project>
    ```
 
-<a href = "web-application-to-deployment-slot"></a>
+<a name = "web-application-to-deployment-slot"></a>
 ## Deploy a web application to web app deployment slot
 The following configuration is applicable for below scenario:
 
