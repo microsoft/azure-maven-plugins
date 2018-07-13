@@ -29,14 +29,14 @@ import java.util.function.Consumer;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
-    public static final String FUNCTION_DEPLOY_START = "Starting deploying to Azure Functions ";
+    public static final String FUNCTION_DEPLOY_START = "Starting deployment to Azure Function App ";
     public static final String FUNCTION_DEPLOY_SUCCESS =
-            "Successfully deployed Azure Functions at https://%s.azurewebsites.net";
-    public static final String FUNCTION_APP_CREATE_START = "Target Azure Functions does not exist. " +
-            "Creating a new Azure Functions ...";
-    public static final String FUNCTION_APP_CREATED = "Successfully created Azure Functions ";
-    public static final String FUNCTION_APP_UPDATE = "Updating Azure Functions...";
-    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated Azure Functions ";
+            "Successfully deployed Azure Function App at https://%s.azurewebsites.net";
+    public static final String FUNCTION_APP_CREATE_START = "Target Azure Function App does not exist. " +
+            "Creating a new Azure Function App ...";
+    public static final String FUNCTION_APP_CREATED = "Successfully created Azure Function App ";
+    public static final String FUNCTION_APP_UPDATE = "Updating Azure Function App...";
+    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated Azure Function App ";
 
     public static final String MS_DEPLOY = "msdeploy";
     public static final String FTP = "ftp";
