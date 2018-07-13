@@ -212,9 +212,31 @@ Property | Required | Description
 Check out samples at [Web App Samples](../docs/web-app-samples.md) for the configuration settings for different image sources.
 
 
-## Deployment Type 
+## Deployment Type
 
-### Deploy via FTP
+### AUTO Deployment
+By default, the plugin will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. Currently two types of packaging are supported: `war` and`jar` 
+
+#### WAR
+If the `<packaging>` is set to `war`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.war` and deploy it as the `ROOT` application of your web container. Meanwhile, there are some optional settings that you can configure for it:
+
+Property | Description
+---|---
+`warFile` | Specify the war file location, optional if the war file location is: `${project.build.directory}/${project.build.finalName}.war`
+`path` | Specify context path, optional if you want to deploy to ROOT.
+
+#### JAR
+If the `<packaging>` is set to `jar`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.jar`, rename the file name to `app.jar` and deploy it to `%HOME%\site\wwwroot\` of your Web App. Please note that for Windows Web App, we will generate a `web.config` file, you can file more details [here](https://github.com/Azure/azure-docs-sdk-java/blob/master/docs-ref-conceptual/spring-framework/deploy-spring-boot-java-web-app-on-azure.md#deploy-your-spring-boot-web-app-to-azure).
+
+There is one optional settings that you can configure for it:
+
+Property | Description
+---|---
+`jarFile` | Specify the jar file location, optional if the jar file location is: `${project.build.directory}/${project.build.finalName}.jar`
+
+> Note: If you do not want the plugin to inspect the `<packaging>` field. Just explicitly set the `<deploymentType>` to `jar` or `war`.
+
+### FTP Deployment
 You can deploy your **WAR** file and other artifacts/resources to Web App via FTP. The following example shows all configuration elements.
 
 ```xml
@@ -239,6 +261,9 @@ You can deploy your **WAR** file and other artifacts/resources to Web App via FT
    </configuration>
 </plugin>
 ```
+
+### NONE Deployment
+If you do not want to deploy anything, just simply set the `deploymentType` to `NONE`.
    
 Detailed explanation of the `<resource>` element is listed in the following table.
 
@@ -248,32 +273,6 @@ Property | Description
 `targetPath` | Specifies the target path where the resources will be deployed to.<br>This is a relative path to the `/site/wwwroot/` folder of FTP server in your Web App.
 `includes` | A list of patterns to include, e.g. `**/*.war`.
 `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
-
-### WAR Deployment 
-You can deploy your **WAR** file with WAR Deployment. The following example shows the configuration elements.
-
-```xml
-<plugin>
-   <groupId>com.microsoft.azure</groupId>
-   <artifactId>azure-webapp-maven-plugin</artifactId>
-   <configuration>
-      <deploymentType>war</deploymentType>
-      
-      <warFile>custom/absolute/path/deploy.war</warFile>
-
-      <path>/${project.build.finalName}</path>
-       
-      ...
-   </configuration>
-</plugin>
-```
-
-Detailed explanation of the WAR deployment configurations are listed in the following table.
-
-Property | Description
----|---
-`warFile` | Specify the war file location, optional if the war file location is: `${project.build.directory}/${project.build.finalName}.war`
-`path` | Specify context path, optional if you want to deploy to ROOT.
 
 ## Advanced Configurations 
 
