@@ -288,6 +288,10 @@ Property | Required | Description
 
 > Note`<slotName>` is pure slot name, not the name with webapp name as prefix in the portal.
 
+If you specify an existing deployment slot to do the deploy, `<configurationSource>` will be ignored even it's configured.
+
+Or, if you want to do the deployment slot create and deploy at the same time, you could specify configuration source as you like.
+
 `<configurationSource>` could be set to **New** to create a brand new slot without any configuration,
 or set to **Parent** to create a slot and copy the configuration from parent webapp.
 Besides, you could set it another existing deployment slot name to copy configuration from during creation.
