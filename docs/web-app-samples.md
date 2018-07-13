@@ -438,7 +438,7 @@ The following configuration is applicable for below scenario:
 - Web App on Linux
 - Using Java 8 and Tomat 8.5
 - Using JAR to deploy **JAR** file to context path `/${project.build.finalName}` in your Web App server
-- Create a deployment named slot and copy configuration from parent web app
+- Create a deployment slot and copy configuration from parent web app then do the deploy
 
 ```xml
 <project>
