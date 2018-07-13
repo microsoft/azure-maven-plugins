@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -30,6 +31,8 @@ public class RunMojo extends AbstractFunctionMojo {
     public static final String START_RUN_FUNCTIONS = "Starting running Azure Functions...";
 
     public static final String FUNC_HOST_START_CMD = "func host start";
+    public static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start --language-worker -- " +
+            "\"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005\"";
     public static final String FUNC_CMD = "func";
 
     //region Entry Point
@@ -84,7 +87,12 @@ public class RunMojo extends AbstractFunctionMojo {
     }
 
     protected String getStartFunctionHostCommand() {
-        return FUNC_HOST_START_CMD;
+        final String enableDebug = System.getProperty("enableDebug");
+        if (StringUtils.isNotEmpty(enableDebug) && enableDebug.equalsIgnoreCase("true")) {
+            return FUNC_HOST_START_WITH_DEBUG_CMD;
+        } else {
+            return FUNC_HOST_START_CMD;
+        }
     }
 
     //endregion
