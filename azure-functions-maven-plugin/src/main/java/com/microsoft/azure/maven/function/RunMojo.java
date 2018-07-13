@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -20,16 +21,17 @@ import com.microsoft.azure.maven.function.utils.CommandUtils;
  */
 @Mojo(name = "run")
 public class RunMojo extends AbstractFunctionMojo {
-    public static final String STAGE_DIR_FOUND = "Azure Functions stage directory found at: ";
+    public static final String STAGE_DIR_FOUND = "Azure Function App's staging directory found at: ";
     public static final String STAGE_DIR_NOT_FOUND =
             "Stage directory not found. Please run mvn package first.";
     public static final String RUNTIME_FOUND = "Azure Functions Core Tools found.";
     public static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
             "Please go to https://aka.ms/azfunc-install to install Azure Functions Core Tools first.";
     public static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
-    public static final String START_RUN_FUNCTIONS = "Starting running Azure Functions...";
-
+    
     public static final String FUNC_HOST_START_CMD = "func host start";
+    public static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start --language-worker -- " +
+            "\"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005\"";
     public static final String FUNC_CMD = "func";
 
     //region Entry Point
@@ -64,8 +66,7 @@ public class RunMojo extends AbstractFunctionMojo {
         info(RUNTIME_FOUND);
     }
 
-    protected void runFunctions(final CommandHandler handler) throws Exception {
-        info(START_RUN_FUNCTIONS);
+    protected void runFunctions(final CommandHandler handler) throws Exception {        
         handler.runCommandWithReturnCodeCheck(
                 getStartFunctionHostCommand(),
                 true, /* showStdout */
@@ -84,7 +85,12 @@ public class RunMojo extends AbstractFunctionMojo {
     }
 
     protected String getStartFunctionHostCommand() {
-        return FUNC_HOST_START_CMD;
+        final String enableDebug = System.getProperty("enableDebug");
+        if (StringUtils.isNotEmpty(enableDebug) && enableDebug.equalsIgnoreCase("true")) {
+            return FUNC_HOST_START_WITH_DEBUG_CMD;
+        } else {
+            return FUNC_HOST_START_CMD;
+        }
     }
 
     //endregion
