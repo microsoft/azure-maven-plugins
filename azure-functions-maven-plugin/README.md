@@ -177,6 +177,11 @@ With the help of goal `azure-functions:run`, you can run your Azure Functions in
 mvn azure-functions:run
 ```
 
+If you want to start the function host in debug mode, please add `-DenableDebug` as the argument.
+```cmd
+mvn azure-functions:run -DenableDebug
+``` 
+
 >Note:
 >Before you can run Azure Functions locally, install [.Net Core SDK](https://www.microsoft.com/net/core) and 
 [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools) first.
