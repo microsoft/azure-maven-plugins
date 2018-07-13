@@ -232,8 +232,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return containerSettings;
     }
 
-
-
     public DeploymentType getDeploymentType() {
         return DeploymentType.fromString(deploymentType);
     }

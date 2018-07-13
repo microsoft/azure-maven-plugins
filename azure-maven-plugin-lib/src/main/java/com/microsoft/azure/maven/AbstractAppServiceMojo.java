@@ -20,31 +20,31 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     /**
      * Resource group of App Service. It will be created if it doesn't exist.
      */
-    @Parameter(property = "webapp.resourceGroup", required = true)
+    @Parameter(property = "resourceGroup", required = true)
     protected String resourceGroup;
 
     /**
      * App Service name. It will be created if it doesn't exist.
      */
-    @Parameter(property = "webapp.appName", required = true)
+    @Parameter(property = "appName", required = true)
     protected String appName;
 
     /**
      * Resource group of App Service Plan. It will be created if it doesn't exist.
      */
-    @Parameter(property = "webapp.appServicePlanResourceGroup")
+    @Parameter(property = "appServicePlanResourceGroup")
     protected String appServicePlanResourceGroup;
 
     /**
      * App Service Plan name. It will be created if it doesn't exist.
      */
-    @Parameter(property = "webapp.appServicePlanName")
+    @Parameter(property = "appServicePlanName")
     protected String appServicePlanName;
 
     /**
-     * Web App region, which will only be used to create App Service at the first time.
+     * App Service region, which will only be used to create App Service at the first time.
      */
-    @Parameter(property = "webapp.region", defaultValue = "westus")
+    @Parameter(property = "region", defaultValue = "westus")
     protected String region;
 
     /**
@@ -64,11 +64,11 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      *     <li>P3</li>
      * </ul>
      */
-    @Parameter(property = "webapp.pricingTier", defaultValue = "S1")
+    @Parameter(property = "pricingTier", defaultValue = "S1")
     protected PricingTierEnum pricingTier;
 
     /**
-     * Application settings of Web App, in the form of name-value pairs.
+     * Application settings of App Service, in the form of name-value pairs.
      * <pre>
      * {@code
      * <appSettings>
