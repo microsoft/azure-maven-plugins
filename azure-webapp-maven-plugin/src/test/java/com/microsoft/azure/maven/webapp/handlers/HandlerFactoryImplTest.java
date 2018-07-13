@@ -99,4 +99,13 @@ public class HandlerFactoryImplTest {
         assertNotNull(handler);
         assertTrue(handler instanceof SettingsHandlerImpl);
     }
+
+    @Test
+    public void getDeploymentSlotHandler() throws Exception {
+        final HandlerFactory factory = new HandlerFactoryImpl();
+
+        final DeploymentSlotHandler handler = factory.getDeploymentSlotHandler(mojo);
+        assertNotNull(handler);
+        assertTrue(handler instanceof  DeploymentSlotHandler);
+    }
 }
