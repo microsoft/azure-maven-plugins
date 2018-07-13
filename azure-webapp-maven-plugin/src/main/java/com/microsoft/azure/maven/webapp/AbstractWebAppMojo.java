@@ -6,16 +6,15 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
@@ -24,7 +23,8 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.NoSuchElementException;
+
 
 /**
  * Base abstract class for Web App Mojos.
@@ -112,11 +112,14 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *      <li>FTP - {@code <resources>} specifies configurations for this kind of deployment.</li>
      *      <li>WAR - {@code <warFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
      *      <li>JAR - {@code <jarFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
+     *      <li>AUTO - inspects {@code <packaging>} of the Maven project and uses WAR, JAR, or NONE </li>
+     *      <li>NONE - does nothing</li>
+     *      <li>* defaults to AUTO if nothing is specified</li>
      * <ul/>
      *
      * @since 0.1.0
      */
-    @Parameter(property = "webapp.deploymentType")
+    @Parameter(property = "webapp.deploymentType", defaultValue = "AUTO")
     protected String deploymentType;
 
     /**
@@ -170,6 +173,13 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Parameter(property = "webapp.path", defaultValue = "/")
     protected String path;
 
+    /**
+     * Deployment Slot. It will be created if it does not exist.
+     * It requires the web app exists already.
+     */
+    @Parameter
+    protected DeploymentSlotSetting deploymentSlotSetting;
+
     //endregion
 
     //region Getter
@@ -179,6 +189,29 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return skip;
     }
 
+    public String getResourceGroup() {
+        return resourceGroup;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public DeploymentSlotSetting getDeploymentSlotSetting() {
+        return deploymentSlotSetting;
+    }
+
+    public String getAppServicePlanResourceGroup() {
+        return appServicePlanResourceGroup;
+    }
+
+    public String getAppServicePlanName() {
+        return appServicePlanName;
+    }
+
+    public String getRegion() {
+        return region;
+    }
 
 
     public JavaVersion getJavaVersion() {
@@ -240,6 +273,21 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             // Swallow exception for non-existing web app
         }
         return null;
+    }
+
+    public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {
+        DeploymentSlot slot = null;
+        if (StringUtils.isNotEmpty(slotName)) {
+            try {
+                slot = app.deploymentSlots().getByName(slotName);
+            } catch (NoSuchElementException deploymentSlotNotExistException) {
+            }
+        }
+        return slot;
+    }
+
+    public boolean isDeployToDeploymentSlot() {
+        return getDeploymentSlotSetting() != null;
     }
 
     //endregion

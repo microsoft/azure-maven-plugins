@@ -6,19 +6,12 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.io.File;
-import java.nio.file.Paths;
-
+import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
+import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -28,8 +21,19 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import java.io.File;
+import java.nio.file.Paths;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class WarArtifactHandlerImplTest {
 
@@ -62,8 +66,32 @@ public class WarArtifactHandlerImplTest {
         doReturn(appMock).when(mojo).getWebApp();
         doNothing().when(appMock).warDeploy(any(File.class), anyString());
 
-        handlerSpy.publish();
+        handlerSpy.publish(new WebAppAdapter(appMock));
         verify(appMock, times(1)).warDeploy(file, path);
+    }
+
+    @Test
+    public void publishToDeploymentSlot() throws Exception {
+        final File file = new File("");
+        final String path = "";
+        doReturn(file).when(handlerSpy).getWarFile();
+        doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
+        doReturn(path).when(handlerSpy).getContextPath();
+
+        final Log logMock = mock(Log.class);
+        final WebApp appMock = mock(WebApp.class);
+        final DeploymentSlotSetting slotSettingMock = mock(DeploymentSlotSetting.class);
+        final DeploymentSlot slotMock = mock(DeploymentSlot.class);
+        doReturn(logMock).when(mojo).getLog();
+        doReturn(appMock).when(mojo).getWebApp();
+        doReturn(slotSettingMock).when(mojo).getDeploymentSlotSetting();
+        doNothing().when(logMock).info(anyString());
+        doReturn("").when(slotSettingMock).getSlotName();
+        doReturn(slotMock).when(mojo).getDeploymentSlot(appMock, "");
+        doNothing().when(slotMock).warDeploy(any(File.class), anyString());
+        handlerSpy.publish(new DeploymentSlotAdapter(slotMock));
+
+        verify(slotMock, times(1)).warDeploy(file, path);
     }
 
     @Test

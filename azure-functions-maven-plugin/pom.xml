@@ -5,8 +5,9 @@
 
     <parent>
         <groupId>com.microsoft.azure</groupId>
-        <artifactId>azure-maven-plugins</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <artifactId>azure-maven-plugins-pom</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
     <groupId>com.microsoft.azure</groupId>
@@ -28,7 +29,7 @@
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.maven-plugin-lib.version>1.0.2-SNAPSHOT</azure.maven-plugin-lib.version>
-        <azure.function.version>1.0.0-beta-4</azure.function.version>
+        <azure.function.version>1.0.0-beta-5</azure.function.version>
         <azure.storage.version>5.4.0</azure.storage.version>
         <reflections.version>0.9.11</reflections.version>
         <zeroturnaround.zip.version>1.12</zeroturnaround.zip.version>

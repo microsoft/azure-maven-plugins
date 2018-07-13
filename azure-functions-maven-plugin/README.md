@@ -43,6 +43,11 @@ Maven | 3.0 and above
     - Azure Storage Blob Trigger
     - Azure Storage Queue Trigger
     - Timer Trigger
+    - Event Grid Trigger
+    - Event Hub Trigger
+    - Cosmos DB Trigger
+    - Service Bus Queue Trigger
+    - Service Bus Topic Trigger
 
 #### `azure-functions:run`
 - Invoke Azure Functions Local Emulator to run all functions. Default working directory is the staging directory.
@@ -66,7 +71,7 @@ To use the Maven Plugin for Azure Functions in your Maven Java app, add the foll
       <plugin>
         <groupId>com.microsoft.azure</groupId>
           <artifactId>azure-functions-maven-plugin</artifactId>
-          <version>0.1.5</version>
+          <version>1.0.0-beta-3</version>
           <configuration>
             ...
           </configuration>
@@ -139,6 +144,13 @@ Read more at [Azure App Service Plan Pricing](https://azure.microsoft.com/en-us/
 
 ## How-To
 
+### Generate the function archetype
+Run below command to generate the function archetype:
+
+```cmd
+mvn archetype:generate -DarchetypeGroupId=com.microsoft.azure -DarchetypeArtifactId=azure-functions-archetype
+```
+
 ### Add new function to current project
 Run below command to create a new function:
 - In package `com.your.package`
@@ -155,7 +167,7 @@ You don't have to provide all properties on command line. Missing properties wil
 
 Follow below instructions, you don't need to handwrite `function.json` any more.
 1. Use annotations from package `com.microsoft.azure:azure-functions-java-library` to decorate your functions. 
-2. Run `mvn clean package azure-functions:package`; then `function.json` files will be automatically generated for all functions in your project.
+2. Run `mvn clean package`; then `function.json` files will be automatically generated for all functions in your project.
 
 ### Run Azure Functions locally
 
@@ -164,6 +176,11 @@ With the help of goal `azure-functions:run`, you can run your Azure Functions in
 ```cmd
 mvn azure-functions:run
 ```
+
+If you want to start the function host in debug mode, please add `-DenableDebug` as the argument.
+```cmd
+mvn azure-functions:run -DenableDebug
+``` 
 
 >Note:
 >Before you can run Azure Functions locally, install [.Net Core SDK](https://www.microsoft.com/net/core) and 

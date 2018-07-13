@@ -7,10 +7,10 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.PublishingProfile;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
 import org.apache.maven.model.Resource;
 
 import java.io.IOException;
@@ -28,14 +28,14 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
     }
 
     @Override
-    public void publish() throws Exception {
+    public void publish(IDeployTargetAdapter deployTarget) throws Exception {
         final List<Resource> resources = mojo.getResources();
         if (resources == null || resources.isEmpty()) {
             mojo.getLog().info(NO_RESOURCES_CONFIG);
             return;
         }
         copyResourcesToStageDirectory(resources);
-        uploadDirectoryToFTP();
+        uploadDirectoryToFTP(deployTarget);
     }
 
     protected void copyResourcesToStageDirectory(final List<Resource> resources) throws IOException {
@@ -46,10 +46,9 @@ public class FTPArtifactHandlerImpl implements ArtifactHandler {
                 mojo.getDeploymentStageDirectory());
     }
 
-    protected void uploadDirectoryToFTP() throws Exception {
+    protected void uploadDirectoryToFTP(IDeployTargetAdapter deployTarget) throws Exception {
         final FTPUploader uploader = getUploader();
-        final WebApp app = mojo.getWebApp();
-        final PublishingProfile profile = app.getPublishingProfile();
+        final PublishingProfile profile = deployTarget.getPublishingProfile();
         final String serverUrl = profile.ftpUrl().split("/", 2)[0];
 
         uploader.uploadDirectoryWithRetries(serverUrl,

@@ -6,8 +6,9 @@
 
     <parent>
         <groupId>com.microsoft.azure</groupId>
-        <artifactId>azure-maven-plugins</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <artifactId>azure-maven-plugins-pom</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
     <groupId>com.microsoft.azure</groupId>
@@ -103,6 +104,8 @@
                             <pomIncludes>
                                 <pomInclude>*/pom.xml</pomInclude>
                             </pomIncludes>
+                            <addTestClassPath>true</addTestClassPath>
+                            <parallelThreads>4</parallelThreads>
                             <preBuildHookScript>setup</preBuildHookScript>
                             <postBuildHookScript>cleanup</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
