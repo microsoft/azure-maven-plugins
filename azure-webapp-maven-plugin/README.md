@@ -18,8 +18,9 @@ and makes it easier for developers to deploy to different kinds of Azure Web App
     - [Web App on Linux](#web-app-on-linux)
     - [Web App for Containers](#web-app-for-containers)
 - [Deployment Type](#deployment-type)
-    - [FTP Deployment](#deploy-via-ftp)
-    - [WAR Deployment](#war-deployment)
+    - [AUTO Deployment](#auto-deployment)
+    - [FTP Deployment](#ftp-deployment)
+    - [NONE Deployment](#none-deployment)
 - [Advanced Configurations](#advanced-configurations)
 - [Supported Regions](#supported-regions)
 - [Supported Pricing Tiers](#supported-pricing-tiers)
@@ -226,9 +227,9 @@ Property | Description
 `path` | Specify context path, optional if you want to deploy to ROOT.
 
 #### JAR
-If the `<packaging>` is set to `jar`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.jar`, rename the file name to `app.jar` and deploy it to `%HOME%\site\wwwroot\` of your Web App. Please note that for Windows Web App, we will generate a `web.config` file, you can file more details [here](https://github.com/Azure/azure-docs-sdk-java/blob/master/docs-ref-conceptual/spring-framework/deploy-spring-boot-java-web-app-on-azure.md#deploy-your-spring-boot-web-app-to-azure).
+If the `<packaging>` is set to `jar`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.jar`, rename it to `app.jar` and deploy it to `%HOME%\site\wwwroot\` of your Web App. Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](https://github.com/Azure/azure-docs-sdk-java/blob/master/docs-ref-conceptual/spring-framework/deploy-spring-boot-java-web-app-on-azure.md#deploy-your-spring-boot-web-app-to-azure).
 
-There is one optional settings that you can configure for it:
+There is one optional setting that you can configure for it:
 
 Property | Description
 ---|---
@@ -262,9 +263,6 @@ You can deploy your **WAR** file and other artifacts/resources to Web App via FT
 </plugin>
 ```
 
-### NONE Deployment
-If you do not want to deploy anything, just simply set the `deploymentType` to `NONE`.
-   
 Detailed explanation of the `<resource>` element is listed in the following table.
 
 Property | Description
@@ -273,6 +271,9 @@ Property | Description
 `targetPath` | Specifies the target path where the resources will be deployed to.<br>This is a relative path to the `/site/wwwroot/` folder of FTP server in your Web App.
 `includes` | A list of patterns to include, e.g. `**/*.war`.
 `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
+
+### NONE Deployment
+If you do not want to deploy anything, just simply set the `deploymentType` to `NONE`.
 
 ## Advanced Configurations 
 
