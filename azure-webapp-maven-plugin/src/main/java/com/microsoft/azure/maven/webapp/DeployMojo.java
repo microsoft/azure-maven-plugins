@@ -6,12 +6,16 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
 import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -32,6 +36,9 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String START_APP = "Starting Web App after deploying artifacts...";
     public static final String STOP_APP_DONE = "Successfully stopped Web App.";
     public static final String START_APP_DONE = "Successfully started Web App.";
+    public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "Please configure an existing web app for slot deployment.";
+    public static final String SLOT_SHOULD_EXIST_NOW =
+            "Deployment slot still does not exist, check the error message during creation.";
 
     protected DeploymentUtil util = new DeploymentUtil();
 
@@ -47,6 +54,9 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     protected void createOrUpdateWebApp() throws Exception {
         final WebApp app = getWebApp();
+        if (app == null && this.isDeployToDeploymentSlot()) {
+            throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+        }
         if (app == null) {
             createWebApp();
         } else {
@@ -72,16 +82,33 @@ public class DeployMojo extends AbstractWebAppMojo {
         update.apply();
 
         info(UPDATE_WEBAPP_DONE);
+
+        if (isDeployToDeploymentSlot()) {
+            getFactory().getDeploymentSlotHandler(this).createDeploymentSlotIfNotExist();
+        }
     }
 
     protected void deployArtifacts() throws Exception {
         try {
             util.beforeDeployArtifacts();
-            final IDeployTargetAdapter target = new WebAppAdapter(this.getWebApp());
+            final IDeployTargetAdapter target = getDeployTarget();
             getFactory().getArtifactHandler(this).publish(target);
         } finally {
             util.afterDeployArtifacts();
         }
+    }
+
+    protected IDeployTargetAdapter getDeployTarget() throws AzureAuthFailureException, MojoExecutionException {
+        final WebApp app = getWebApp();
+        if (this.isDeployToDeploymentSlot()) {
+            final String slotName = getDeploymentSlotSetting().getSlotName();
+            final DeploymentSlot slot = getDeploymentSlot(app, slotName);
+            if (slot == null) {
+                throw new MojoExecutionException(SLOT_SHOULD_EXIST_NOW);
+            }
+            return new DeploymentSlotAdapter(slot);
+        }
+        return new WebAppAdapter(app);
     }
 
     protected HandlerFactory getFactory() {
