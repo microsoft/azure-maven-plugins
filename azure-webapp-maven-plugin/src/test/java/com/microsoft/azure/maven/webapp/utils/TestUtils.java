@@ -6,29 +6,74 @@
 
 package com.microsoft.azure.maven.webapp.utils;
 
+import org.codehaus.plexus.util.StringUtils;
+
 import java.io.IOException;
 
 public class TestUtils {
+    private static final String clientId = System.getenv("CLIENT_ID");
+    private static final String tenantId = System.getenv("TENANT_ID");
+    private static final String key = System.getenv("KEY");
+
+    private static final String deleteResourceGroup = "az group delete -y -n %s%s";
+    private static final String loginAzureCli = "az login --service-principal -u %s -p %s --tenant %s";
+    private static final String logoutAzureCli = "az logout";
+    private static final String createResourceGroup = "az group create -n %s --location %s";
+    private static final String createAppServicePlan = "az appservice plan create -g %s -n %s --sku S1";
+    private static final String createWebApp = "az webapp create -g %s -p %s -n %s";
+    private static final String createLinuxWebApp = createWebApp + " --runtime \"TOMCAT|8.5-jre8\"";
+    private static final String createLinuxAppServicePlan = createAppServicePlan + " --is-linux";
+
+    private static final String windowsCommand = "cmd /c %s";
+    private static final String nonWindowsCommand = "bash -c %s";
+
+    private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
+
+    private static void azureLogin() throws IOException, InterruptedException {
+        executeCommand(String.format(loginAzureCli, clientId, key, tenantId));
+    }
+
+    private static void azureLogout() throws IOException, InterruptedException {
+        executeCommand(logoutAzureCli);
+    }
+
     public static void deleteAzureResourceGroup(String resourceGroupName, boolean waitForOperationFinish)
             throws InterruptedException, IOException {
-        final String clientId = System.getenv("CLIENT_ID");
-        final String tenantId = System.getenv("TENANT_ID");
-        final String key = System.getenv("KEY");
-        final String azLoginTemplate = "az login --service-principal -u %s -p %s --tenant %s";
-        final String azDelteTemplate = "az group delete -y -n %s%s";
 
-        final String[] commands = { String.format(azLoginTemplate, clientId, key, tenantId),
-                String.format(azDelteTemplate, resourceGroupName, waitForOperationFinish ? "" : " --no-wait"),
-                "az logout" };
+        azureLogin();
+        executeCommand(
+                String.format(deleteResourceGroup,
+                        resourceGroupName,
+                        waitForOperationFinish ? "" : " --no-wait"));
+        azureLogout();
+    }
 
-        if (System.getProperty("os.name").contains("Windows")) {
-            for (final String command : commands) {
-                Runtime.getRuntime().exec(String.format("cmd /c %s", command)).waitFor();
-            }
-        } else {
-            for (final String command : commands) {
-                Runtime.getRuntime().exec(String.format("bash -c %s", command)).waitFor();
-            }
+    private static void createWebApp(final String resourceGroupName, final String location,
+                                     final String servicePlanName, final String webAppName,
+                                     final boolean isLinux) throws IOException, InterruptedException {
+        azureLogin();
+
+        executeCommand(
+                String.format(createResourceGroup,
+                        resourceGroupName,
+                        location));
+        executeCommand(
+                String.format(isLinux ? createLinuxAppServicePlan : createAppServicePlan,
+                        resourceGroupName,
+                        servicePlanName));
+        executeCommand(
+                String.format(isLinux ? createLinuxWebApp : createWebApp,
+                        resourceGroupName,
+                        servicePlanName,
+                        webAppName));
+
+        azureLogout();
+    }
+
+    private static void executeCommand(final String command) throws IOException, InterruptedException {
+        if (StringUtils.isNotEmpty(command)) {
+            final String wholeCommand = String.format(isWindows ? windowsCommand : nonWindowsCommand, command);
+            Runtime.getRuntime().exec(wholeCommand).waitFor();
         }
     }
 }
