@@ -264,7 +264,12 @@ public class DeployMojoTest {
     public void deployArtifactsWithNoResources() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         final DeployMojo mojoSpy = spy(mojo);
+        final WebApp app = mock(WebApp.class);
 
+        doReturn(app).when(mojoSpy).getWebApp();
+        doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
+
+        final IDeployTargetAdapter deployTarget = new WebAppAdapter(app);
         mojoSpy.deployArtifacts();
     }
 
