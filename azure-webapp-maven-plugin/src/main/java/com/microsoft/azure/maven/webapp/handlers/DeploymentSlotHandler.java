@@ -24,11 +24,11 @@ public class DeploymentSlotHandler {
     private static final String INVALID_SLOT_NAME = String.format(
             "Invalid <slotName> in pom.xml, it need to match the pattern '%s'", SLOT_NAME_PATTERN);
     private static final String EMPTY_CONFIGURATION_SOURCE =
-            "Start creating a brand new deployment slot without any configuration.";
+            "Start creating a brand new deployment slot without any configuration...";
     private static final String DEFAULT_CONFIGURATION_SOURCE =
-            "Start creating a deployment slot and copy configuration from parent.";
+            "Start creating a deployment slot and copy configuration from parent...";
     private static final String COPY_CONFIGURATION_FROM_SLOT =
-            "Start creating a deployment slot and copy configuration from slot '%s'";
+            "Start creating a deployment slot and copy configuration from slot '%s'...";
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created deployment slot.";
     private static final String UNKNOWN_CONFIGURATION_SOURCE =
             "Unknown <configurationSource> value for creating deployment slot. " +
