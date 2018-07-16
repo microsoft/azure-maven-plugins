@@ -275,7 +275,7 @@ Property | Description
 `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
 
 ### NONE Deployment
-If you do not want to deploy anything, just simply set the `deploymentType` to `NONE`.
+If you do not want to deploy anything, just simply set the `<deploymentType>` to `NONE`.
 
 ## Advanced Configurations 
 
