@@ -21,7 +21,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PrivateDockerHubRuntimeHandlerImplTest {
@@ -35,6 +39,7 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
         MockitoAnnotations.initMocks(this);
         handler = new PrivateDockerHubRuntimeHandlerImpl(mojo);
     }
+
     @Test
     public void defineAppWithRuntime() throws Exception {
     }

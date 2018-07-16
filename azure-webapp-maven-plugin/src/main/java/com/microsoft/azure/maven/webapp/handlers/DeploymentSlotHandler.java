@@ -19,22 +19,22 @@ import java.util.regex.Pattern;
 
 public class DeploymentSlotHandler {
     private static final String INVALID_SLOT_SETTINGS = "No <deploymentSlotSetting> is specified in pom.xml. " +
-            "Please configure it for slot deployment.";
+        "Please configure it for slot deployment.";
     private static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
     private static final String INVALID_SLOT_NAME = String.format(
-            "Invalid <slotName> in pom.xml, it needs to match the pattern '%s'", SLOT_NAME_PATTERN);
+        "Invalid <slotName> in pom.xml, it needs to match the pattern '%s'", SLOT_NAME_PATTERN);
     private static final String EMPTY_CONFIGURATION_SOURCE =
-            "Creating a new deployment slot without any configuration...";
+        "Creating a new deployment slot without any configuration...";
     private static final String DEFAULT_CONFIGURATION_SOURCE =
-            "Creating a new deployment slot and copying configuration from parent...";
+        "Creating a new deployment slot and copying configuration from parent...";
     private static final String COPY_CONFIGURATION_FROM_SLOT =
-            "Creating a new deployment slot and copying configuration from slot '%s'...";
+        "Creating a new deployment slot and copying configuration from slot '%s'...";
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created deployment slot.";
     private static final String UNKNOWN_CONFIGURATION_SOURCE =
-            "Unknown <configurationSource> value for creating deployment slot. " +
-                    "Please use 'NEW', 'PARENT' or specify an existing slot.";
+        "Unknown <configurationSource> value for creating deployment slot. " +
+            "Please use 'NEW', 'PARENT' or specify an existing slot.";
     private static final String TARGET_CONFIGURATION_SOURCE_SLOT_NOT_EXIST =
-            "The deployment slot specified in <configurationSource> does not exist.";
+        "The deployment slot specified in <configurationSource> does not exist.";
 
 
     private AbstractWebAppMojo mojo;

@@ -75,17 +75,17 @@ public class RunMojoTest extends MojoTestBase {
         final RunMojo mojoSpy = spy(mojo);
         final CommandHandler commandHandlerMock = mock(CommandHandlerImpl.class);
         doNothing().when(commandHandlerMock).runCommandWithReturnCodeCheck(anyString(), anyBoolean(),
-                anyString(), ArgumentMatchers.anyList(), anyString());
+            anyString(), ArgumentMatchers.anyList(), anyString());
         mojoSpy.checkRuntimeExistence(commandHandlerMock);
 
         verify(commandHandlerMock, times(1))
-                .runCommandWithReturnCodeCheck(
-                        mojoSpy.getCheckRuntimeCommand(),
-                        false,
-                        null,
-                        CommandUtils.getDefaultValidReturnCodes(),
-                        RUNTIME_NOT_FOUND
-                );
+            .runCommandWithReturnCodeCheck(
+                mojoSpy.getCheckRuntimeCommand(),
+                false,
+                null,
+                CommandUtils.getDefaultValidReturnCodes(),
+                RUNTIME_NOT_FOUND
+            );
     }
 
     @Test
@@ -94,18 +94,18 @@ public class RunMojoTest extends MojoTestBase {
         final RunMojo mojoSpy = spy(mojo);
         final CommandHandler commandHandlerMock = mock(CommandHandlerImpl.class);
         doNothing().when(commandHandlerMock).runCommandWithReturnCodeCheck(anyString(), anyBoolean(),
-                anyString(), ArgumentMatchers.anyList(), anyString());
+            anyString(), ArgumentMatchers.anyList(), anyString());
         doReturn("buildDirectory").when(mojoSpy).getDeploymentStageDirectory();
         mojoSpy.runFunctions(commandHandlerMock);
 
         verify(commandHandlerMock, times(1))
-                .runCommandWithReturnCodeCheck(
-                        mojoSpy.getStartFunctionHostCommand(),
-                        true,
-                        mojoSpy.getDeploymentStageDirectory(),
-                        CommandUtils.getValidReturnCodes(),
-                        RUN_FUNCTIONS_FAILURE
-                );
+            .runCommandWithReturnCodeCheck(
+                mojoSpy.getStartFunctionHostCommand(),
+                true,
+                mojoSpy.getDeploymentStageDirectory(),
+                CommandUtils.getValidReturnCodes(),
+                RUN_FUNCTIONS_FAILURE
+            );
     }
 
     @Test

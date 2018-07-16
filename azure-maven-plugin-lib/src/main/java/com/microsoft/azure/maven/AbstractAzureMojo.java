@@ -11,7 +11,10 @@ import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.auth.AzureAuthHelper;
-import com.microsoft.azure.maven.telemetry.*;
+import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
+import com.microsoft.azure.maven.telemetry.GetHashMac;
+import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
+import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
