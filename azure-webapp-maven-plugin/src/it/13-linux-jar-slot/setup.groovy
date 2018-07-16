@@ -6,6 +6,8 @@
 
 import com.microsoft.azure.maven.webapp.utils.TestUtils
 
+TestUtils.azureLogin()
+
 TestUtils.deleteAzureResourceGroup("maven-webapp-it-rg-13", true)
 
 TestUtils.createWebApp("maven-webapp-it-rg-13", "westus",
