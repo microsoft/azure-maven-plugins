@@ -18,23 +18,22 @@ import org.codehaus.plexus.util.StringUtils;
 import java.util.regex.Pattern;
 
 public class DeploymentSlotHandler {
-    private static final String INVALID_SLOT_SETTINGS = "<deploymentSlotSetting> is NULL." +
-            "Need configure it in pom.xml for deploying it to deployment slot.";
+    private static final String INVALID_SLOT_SETTINGS = "<deploymentSlotSetting> is NULL. " +
+        "Need configure it in pom.xml for deploying it to deployment slot.";
     private static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
     private static final String INVALID_SLOT_NAME = String.format("<slotName> must match %s", SLOT_NAME_PATTERN);
     private static final String EMPTY_CONFIGURATION_SOURCE =
-            "Creating a brand new deployment slot without any configuration.";
+        "Creating a brand new deployment slot without any configuration.";
     private static final String DEFAULT_CONFIGURATION_SOURCE =
-            "Creating deployment slot and copy configuration from parent.";
+        "Creating deployment slot and copy configuration from parent.";
     private static final String COPY_CONFIGURATION_FROM_SLOT =
-            "Creating deployment slot and copy configuration from slot '%s'";
+        "Creating deployment slot and copy configuration from slot '%s'";
     private static final String CREATE_DEPLOYMENT_SLOT = "Start create deployment slot...";
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created deployment slot.";
     private static final String UNKNOWN_CONFIGURATION_SOURCE =
-            "Unknown <configurationSource> value. Please use 'NEW', 'PARENT' or other slot name.";
+        "Unknown <configurationSource> value. Please use 'NEW', 'PARENT' or other slot name.";
     private static final String TARGET_CONFIGURATION_SOURCE_SLOT_NOT_EXIST =
-            "The slot configured in <configurationSource> to copy configuration from does not exist.";
-
+        "The slot configured in <configurationSource> to copy configuration from does not exist.";
 
     private AbstractWebAppMojo mojo;
 

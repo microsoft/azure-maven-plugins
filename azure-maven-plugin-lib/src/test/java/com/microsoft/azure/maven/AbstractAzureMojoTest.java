@@ -27,12 +27,16 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.File;
 import java.util.Map;
 
-import static com.microsoft.azure.maven.AbstractAzureMojo.*;
+import static com.microsoft.azure.maven.AbstractAzureMojo.AUTH_TYPE;
+import static com.microsoft.azure.maven.AbstractAzureMojo.INSTALLATION_ID_KEY;
+import static com.microsoft.azure.maven.AbstractAzureMojo.PLUGIN_NAME_KEY;
+import static com.microsoft.azure.maven.AbstractAzureMojo.PLUGIN_VERSION_KEY;
+import static com.microsoft.azure.maven.AbstractAzureMojo.SESSION_ID_KEY;
+import static com.microsoft.azure.maven.AbstractAzureMojo.SUBSCRIPTION_ID_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractAzureMojoTest {

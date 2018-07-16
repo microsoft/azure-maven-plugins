@@ -6,8 +6,33 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.functions.annotation.BlobInput;
+import com.microsoft.azure.functions.annotation.BlobOutput;
+import com.microsoft.azure.functions.annotation.BlobTrigger;
+import com.microsoft.azure.functions.annotation.CosmosDBOutput;
+import com.microsoft.azure.functions.annotation.CosmosDBTrigger;
+import com.microsoft.azure.functions.annotation.EventGridTrigger;
+import com.microsoft.azure.functions.annotation.EventHubOutput;
+import com.microsoft.azure.functions.annotation.EventHubTrigger;
+import com.microsoft.azure.functions.annotation.FunctionName;
+import com.microsoft.azure.functions.annotation.HttpOutput;
+import com.microsoft.azure.functions.annotation.HttpTrigger;
+import com.microsoft.azure.functions.annotation.MobileTableInput;
+import com.microsoft.azure.functions.annotation.MobileTableOutput;
+import com.microsoft.azure.functions.annotation.NotificationHubOutput;
+import com.microsoft.azure.functions.annotation.QueueOutput;
+import com.microsoft.azure.functions.annotation.QueueTrigger;
+import com.microsoft.azure.functions.annotation.SendGridOutput;
+import com.microsoft.azure.functions.annotation.ServiceBusQueueOutput;
+import com.microsoft.azure.functions.annotation.ServiceBusQueueTrigger;
+import com.microsoft.azure.functions.annotation.ServiceBusTopicOutput;
+import com.microsoft.azure.functions.annotation.ServiceBusTopicTrigger;
+import com.microsoft.azure.functions.annotation.StorageAccount;
+import com.microsoft.azure.functions.annotation.TableInput;
+import com.microsoft.azure.functions.annotation.TableOutput;
+import com.microsoft.azure.functions.annotation.TimerTrigger;
+import com.microsoft.azure.functions.annotation.TwilioSmsOutput;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
-import com.microsoft.azure.functions.annotation.*;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.reflections.util.ClasspathHelper;
@@ -20,7 +45,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 public class AnnotationHandlerImplTest {

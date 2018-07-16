@@ -9,7 +9,6 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.Map;
