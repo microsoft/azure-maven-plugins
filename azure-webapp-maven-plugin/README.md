@@ -18,6 +18,8 @@ and makes it easier for developers to deploy to different kinds of Azure Web App
     - [Web App on Linux](#web-app-on-linux)
     - [Web App for Containers](#web-app-for-containers)
 - [Deployment Type](#deployment-type)
+    - [WAR Deployment](#war-deployment)
+    - [JAR Deployment](#jar-deployment)
     - [AUTO Deployment](#auto-deployment)
     - [FTP Deployment](#ftp-deployment)
     - [NONE Deployment](#none-deployment)
