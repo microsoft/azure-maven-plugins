@@ -8,14 +8,16 @@ package com.microsoft.azure.maven.webapp.deployadapter;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.PublishingProfile;
+import com.microsoft.azure.maven.webapp.configuration.DeployTargetType;
 
 import java.io.File;
 
 public class DeploymentSlotAdapter implements IDeployTargetAdapter {
-    private static final String TYPE = "Deployment Slot";
+    private DeployTargetType type;
     private DeploymentSlot slot;
 
     public DeploymentSlotAdapter(DeploymentSlot slot) {
+        this.type = DeployTargetType.SLOT;
         this.slot = slot;
     }
     @Override
@@ -35,7 +37,7 @@ public class DeploymentSlotAdapter implements IDeployTargetAdapter {
 
     @Override
     public String getType() {
-        return TYPE;
+        return type.toString();
     }
 
     @Override

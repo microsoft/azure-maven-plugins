@@ -8,14 +8,16 @@ package com.microsoft.azure.maven.webapp.deployadapter;
 
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.maven.webapp.configuration.DeployTargetType;
 
 import java.io.File;
 
 public class WebAppAdapter implements IDeployTargetAdapter {
-    private static final String TYPE = "Web App";
+    private DeployTargetType type;
     private WebApp app;
 
     public WebAppAdapter(WebApp app) {
+        this.type = DeployTargetType.WEBAPP;
         this.app = app;
     }
 
@@ -36,7 +38,7 @@ public class WebAppAdapter implements IDeployTargetAdapter {
 
     @Override
     public String getType() {
-        return TYPE;
+        return type.toString();
     }
 
     @Override
