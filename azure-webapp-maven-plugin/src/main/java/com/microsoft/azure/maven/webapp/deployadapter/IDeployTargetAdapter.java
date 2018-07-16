@@ -11,6 +11,9 @@ import com.microsoft.azure.management.appservice.PublishingProfile;
 import java.io.File;
 
 public interface IDeployTargetAdapter {
+    String getName();
+    String getType();
+    String getDefaultHostName();
     void warDeploy(File war, String contextPath);
     PublishingProfile getPublishingProfile();
 }

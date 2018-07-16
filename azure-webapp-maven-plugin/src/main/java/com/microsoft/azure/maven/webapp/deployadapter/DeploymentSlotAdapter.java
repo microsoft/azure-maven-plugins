@@ -12,6 +12,7 @@ import com.microsoft.azure.management.appservice.PublishingProfile;
 import java.io.File;
 
 public class DeploymentSlotAdapter implements IDeployTargetAdapter {
+    private static final String TYPE = "Deployment Slot";
     private DeploymentSlot slot;
 
     public DeploymentSlotAdapter(DeploymentSlot slot) {
@@ -25,5 +26,20 @@ public class DeploymentSlotAdapter implements IDeployTargetAdapter {
     @Override
     public PublishingProfile getPublishingProfile() {
         return slot.getPublishingProfile();
+    }
+
+    @Override
+    public String getName() {
+        return slot.name();
+    }
+
+    @Override
+    public String getType() {
+        return TYPE;
+    }
+
+    @Override
+    public String getDefaultHostName() {
+        return slot.defaultHostName();
     }
 }

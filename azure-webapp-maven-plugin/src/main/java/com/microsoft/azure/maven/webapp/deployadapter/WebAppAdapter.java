@@ -12,6 +12,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import java.io.File;
 
 public class WebAppAdapter implements IDeployTargetAdapter {
+    private static final String TYPE = "Web App";
     private WebApp app;
 
     public WebAppAdapter(WebApp app) {
@@ -26,5 +27,20 @@ public class WebAppAdapter implements IDeployTargetAdapter {
     @Override
     public PublishingProfile getPublishingProfile() {
         return app.getPublishingProfile();
+    }
+
+    @Override
+    public String getName() {
+        return app.name();
+    }
+
+    @Override
+    public String getType() {
+        return TYPE;
+    }
+
+    @Override
+    public String getDefaultHostName() {
+        return app.defaultHostName();
     }
 }

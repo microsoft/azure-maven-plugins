@@ -24,17 +24,17 @@ public class DeploymentSlotHandler {
     private static final String INVALID_SLOT_NAME = String.format(
             "Invalid <slotName> in pom.xml, it need to match the pattern '%s'", SLOT_NAME_PATTERN);
     private static final String EMPTY_CONFIGURATION_SOURCE =
-            "Start creating a brand new deployment slot without any configuration...";
+            "Creating a brand new deployment slot without any configuration...";
     private static final String DEFAULT_CONFIGURATION_SOURCE =
-            "Start creating a deployment slot and copy configuration from parent...";
+            "Creating a new deployment slot and copy configuration from parent...";
     private static final String COPY_CONFIGURATION_FROM_SLOT =
-            "Start creating a deployment slot and copy configuration from slot '%s'...";
+            "Creating a new deployment slot and copy configuration from slot '%s'...";
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created deployment slot.";
     private static final String UNKNOWN_CONFIGURATION_SOURCE =
             "Unknown <configurationSource> value for creating deployment slot. " +
                     "Please use 'NEW', 'PARENT' or other deployment slot's name.";
     private static final String TARGET_CONFIGURATION_SOURCE_SLOT_NOT_EXIST =
-            "The deployment slot specified in <configurationSource> to copy configuration from does not exist.";
+            "The deployment slot specified in <configurationSource> does not exist.";
 
 
     private AbstractWebAppMojo mojo;
