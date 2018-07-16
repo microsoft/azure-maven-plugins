@@ -290,11 +290,12 @@ Property | Required | Description
 
 If you specify an existing deployment slot to do the deploy, `<configurationSource>` will be ignored even it's configured.
 
-Or, if you want to do the deployment slot create and deploy at the same time, you could specify configuration source as you like.
+Or, if you want to create a new deployment slot and deploy to it at the same time, you could specify configuration source as you like.
 
 `<configurationSource>` could be set to **New** to create a brand new slot without any configuration,
 or set to **Parent** to create a slot and copy the configuration from parent webapp.
-Besides, you could set it another existing deployment slot name to copy configuration from during creation.
+Besides, you could set it to the name of another existing deployment slot.
+It will copy the configuration of that slot during creation.
 If not configured, **Parent** will be used as default.
 
 Check out samples at [Web App Samples](../docs/web-app-samples.md) for the configuration settings.
