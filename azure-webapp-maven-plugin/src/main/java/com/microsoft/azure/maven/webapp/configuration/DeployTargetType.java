@@ -11,7 +11,7 @@ public enum DeployTargetType {
 
     SLOT("Deployment Slot");
 
-    private String value;
+    private final String value;
 
     DeployTargetType(String value) {
         this.value = value;
