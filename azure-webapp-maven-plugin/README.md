@@ -215,19 +215,16 @@ Check out samples at [Web App Samples](../docs/web-app-samples.md) for the confi
 
 ## Deployment Type
 
-### AUTO Deployment
-By default, the plugin will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. Currently two types of packaging are supported: `war` and`jar` 
-
-#### WAR
-If the `<packaging>` is set to `war`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.war` and deploy it as the `ROOT` application of your web container. Meanwhile, there are some optional settings that you can configure for it:
+### WAR Deployment
+You can deploy your **WAR** file with WAR Deployment by setting the `<deploymentType>` to `war`. The plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.war` and deploy it as the `ROOT` application of your web container. Meanwhile, there are some optional settings that you can configure for it:
 
 Property | Description
 ---|---
 `warFile` | Specify the war file location, optional if the war file location is: `${project.build.directory}/${project.build.finalName}.war`
 `path` | Specify context path, optional if you want to deploy to ROOT.
 
-#### JAR
-If the `<packaging>` is set to `jar`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.jar`, rename it to `app.jar` and deploy it to `%HOME%\site\wwwroot\` of your Web App. Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](https://github.com/Azure/azure-docs-sdk-java/blob/master/docs-ref-conceptual/spring-framework/deploy-spring-boot-java-web-app-on-azure.md#deploy-your-spring-boot-web-app-to-azure).
+### JAR Deployment
+If the `<deploymentType>` is set to `jar`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.jar`, rename it to `app.jar` and deploy it to `%HOME%\site\wwwroot\` of your Web App. Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](https://github.com/Azure/azure-docs-sdk-java/blob/master/docs-ref-conceptual/spring-framework/deploy-spring-boot-java-web-app-on-azure.md#deploy-your-spring-boot-web-app-to-azure).
 
 There is one optional setting that you can configure for it:
 
@@ -235,7 +232,10 @@ Property | Description
 ---|---
 `jarFile` | Specify the jar file location, optional if the jar file location is: `${project.build.directory}/${project.build.finalName}.jar`
 
-> Note: If you do not want the plugin to inspect the `<packaging>` field. Just explicitly set the `<deploymentType>` to `jar` or `war`.
+### AUTO Deployment
+This is the default deployment type used by the plugin. It will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. If the `<packaging>` is set to `war`, the plugin will use war deployment. On the other hand, if the `<packaging>` is set to `jar`, the plugin will use jar deployment.
+
+> Note: If you want the plugin to inspect the `<packaging>` field. Just not set `<deploymentType>` in the configuration. The plugin will use `AUTO` deployment as default.
 
 ### FTP Deployment
 You can deploy your **WAR** file and other artifacts/resources to Web App via FTP. The following example shows all configuration elements.
