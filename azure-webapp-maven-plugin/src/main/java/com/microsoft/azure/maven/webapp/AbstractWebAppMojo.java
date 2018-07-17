@@ -263,7 +263,6 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     @Parameter(alias = "deploymentSlot")
     protected DeploymentSlotSetting deploymentSlotSetting;
 
-
     //endregion
 
     //region Getter
@@ -383,8 +382,9 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     //region Setter
 
-    // Set method to get value from configuration
-    // It is required when we use @Parameter(alias="")
+    // Set method to get value from configuration.
+    // Required by maven plugin testing package when use @Parameter(alias="").
+    // And the name has to be "set<Alias>"
     public void setDeploymentSlot(DeploymentSlotSetting slotSetting) {
         this.deploymentSlotSetting = slotSetting;
     }
