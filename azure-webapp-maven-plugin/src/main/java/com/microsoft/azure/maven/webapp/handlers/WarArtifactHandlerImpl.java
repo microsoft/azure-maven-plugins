@@ -21,7 +21,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
     public static final String FIND_WAR_FILE_FAIL = "Failed to find the war file: '%s'";
     public static final String UPLOAD_FAILURE = "Exception occurred when deploying war file to server: %s, " +
         "retrying immediately (%d/%d)";
-    public static final String DEPLOY_FAILURE = "Failed to deploy the war file after three times trying.";
+    public static final String DEPLOY_FAILURE = "Failed to deploy war file after %d retries...";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
 
     private AbstractWebAppMojo mojo;
@@ -40,7 +40,8 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
 
         int retryCount = 0;
         mojo.getLog().info("Deploying the war file...");
-        while (retryCount++ < DEFAULT_MAX_RETRY_TIMES) {
+        while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
+            retryCount++;
             try {
                 deployTarget.warDeploy(war, path);
                 return;
@@ -49,9 +50,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
             }
         }
 
-        if (retryCount > DEFAULT_MAX_RETRY_TIMES) {
-            throw new MojoExecutionException(DEPLOY_FAILURE);
-        }
+        throw new MojoExecutionException(String.format(DEPLOY_FAILURE, retryCount));
     }
 
     protected String getContextPath() {

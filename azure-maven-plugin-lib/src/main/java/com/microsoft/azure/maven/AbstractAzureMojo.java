@@ -30,7 +30,6 @@ import org.codehaus.plexus.util.StringUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
@@ -54,15 +53,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     public static final String FAILURE_REASON = "failureReason";
     private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
-            ".azure", "mavenplugins.properties").toString();
+        ".azure", "mavenplugins.properties").toString();
     private static final String FIRST_RUN_KEY = "first.run";
-    private static final String PRIVACY_STATEMENT =
-            "\nData/Telemetry\n" +
-            "---------\n" +
-            "This project collects usage data and sends it to Microsoft to help improve our products and services.\n" +
-            "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
-            "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
-            "For more information, please go to https://aka.ms/azure-maven-config.\n";
+    private static final String PRIVACY_STATEMENT = "\nData/Telemetry\n" +
+        "---------\n" +
+        "This project collects usage data and sends it to Microsoft to help improve our products and services.\n" +
+        "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
+        "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
+        "For more information, please go to https://aka.ms/azure-maven-config.\n";
 
     //region Properties
 
