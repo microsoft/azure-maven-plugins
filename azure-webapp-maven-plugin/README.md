@@ -226,7 +226,7 @@ Property | Description
 `path` | Specify context path, optional if you want to deploy to ROOT.
 
 ### JAR Deployment
-If the `<deploymentType>` is set to `jar`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.jar`, rename it to `app.jar` and deploy it to `%HOME%\site\wwwroot\` of your Web App. Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](https://github.com/Azure/azure-docs-sdk-java/blob/master/docs-ref-conceptual/spring-framework/deploy-spring-boot-java-web-app-on-azure.md#deploy-your-spring-boot-web-app-to-azure).
+If the `<deploymentType>` is set to `jar`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.jar` and deploy it to `%HOME%\site\wwwroot\` of your Web App. Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](../docs/web-config.md).
 
 There is one optional setting that you can configure for it:
 
