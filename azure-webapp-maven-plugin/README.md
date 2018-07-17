@@ -20,9 +20,9 @@ and makes it easier for developers to deploy to different kinds of Azure Web App
 - [Deployment Type](#deployment-type)
     - [WAR Deployment](#war-deployment)
     - [JAR Deployment](#jar-deployment)
+    - [NONE Deployment](#none-deployment)
     - [AUTO Deployment](#auto-deployment)
     - [FTP Deployment](#ftp-deployment)
-    - [NONE Deployment](#none-deployment)
 - [Advanced Configurations](#advanced-configurations)
 - [Supported Regions](#supported-regions)
 - [Supported Pricing Tiers](#supported-pricing-tiers)
@@ -234,13 +234,17 @@ Property | Description
 ---|---
 `jarFile` | Specify the jar file location, optional if the jar file location is: `${project.build.directory}/${project.build.finalName}.jar`
 
+### NONE Deployment
+If you do not want to deploy anything, just simply set the `<deploymentType>` to `NONE`.
+
 ### AUTO Deployment
-This is the default deployment type used by the plugin. It will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. If the `<packaging>` is set to `war`, the plugin will use war deployment. On the other hand, if the `<packaging>` is set to `jar`, the plugin will use jar deployment.
+This is the default deployment type used by the plugin. It will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. If the `<packaging>` is set to `war`, the plugin will use war deployment. If the `<packaging>` is set to `jar`, the plugin will use jar deployment.
+Otherwise, the plugin will skip the deployment, which is the same as `NONE` deployment.
 
 > Note: If you want the plugin to inspect the `<packaging>` field. Just not set `<deploymentType>` in the configuration. The plugin will use `AUTO` deployment as default.
 
 ### FTP Deployment
-You can deploy your **WAR** file and other artifacts/resources to Web App via FTP. The following example shows all configuration elements.
+You can deploy your artifacts/resources to Web App via FTP. The following example shows all configuration elements.
 
 ```xml
 <plugin>
@@ -273,9 +277,6 @@ Property | Description
 `targetPath` | Specifies the target path where the resources will be deployed to.<br>This is a relative path to the `/site/wwwroot/` folder of FTP server in your Web App.
 `includes` | A list of patterns to include, e.g. `**/*.war`.
 `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
-
-### NONE Deployment
-If you do not want to deploy anything, just simply set the `<deploymentType>` to `NONE`.
 
 ### Deployment Slot
 In the `<deploymentSlotSetting>` element of your `pom.xml` file, you can specify which deployment slot to deploy your Web App.
