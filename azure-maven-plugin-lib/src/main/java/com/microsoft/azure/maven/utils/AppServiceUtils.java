@@ -10,6 +10,8 @@ import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.util.UUID;
+
 public class AppServiceUtils {
     public static AppServicePlan getAppServicePlan(final AbstractAppServiceMojo mojo)
             throws Exception {
@@ -27,5 +29,14 @@ public class AppServiceUtils {
         
         return StringUtils.isEmpty(mojo.getAppServicePlanResourceGroup()) ?
             defaultResourceGroup : mojo.getAppServicePlanResourceGroup();
+    }
+
+    public static String getAppServicePlanName(final AbstractAppServiceMojo mojo) {
+        return StringUtils.isEmpty(mojo.getAppServicePlanName()) ?
+                generateRandomServicePlanName() : mojo.getAppServicePlanName();
+    }
+
+    private static String generateRandomServicePlanName() {
+        return "ServicePlan" + UUID.randomUUID().toString().substring(0, 18);
     }
 }

@@ -48,26 +48,6 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected String region;
 
     /**
-     * App Service pricing tier, which will only be used to create Web App at the first time.<br/>
-     * Below is the list of supported pricing tier:
-     * <ul>
-     *     <li>F1</li>
-     *     <li>D1</li>
-     *     <li>B1</li>
-     *     <li>B2</li>
-     *     <li>B3</li>
-     *     <li>S1</li>
-     *     <li>S2</li>
-     *     <li>S3</li>
-     *     <li>P1</li>
-     *     <li>P2</li>
-     *     <li>P3</li>
-     * </ul>
-     */
-    @Parameter(property = "pricingTier", defaultValue = "S1")
-    protected PricingTierEnum pricingTier;
-
-    /**
      * Application settings of App Service, in the form of name-value pairs.
      * <pre>
      * {@code
@@ -101,10 +81,6 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
 
     public String getRegion() {
         return region;
-    }
-
-    public PricingTier getPricingTier() {
-        return pricingTier == null ? PricingTier.STANDARD_S1 : pricingTier.toPricingTier();
     }
 
     public Map getAppSettings() {

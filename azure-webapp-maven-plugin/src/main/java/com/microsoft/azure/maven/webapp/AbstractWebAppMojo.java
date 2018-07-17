@@ -8,9 +8,11 @@ package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
+import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
@@ -37,6 +39,26 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
     //region Properties
+
+    /**
+     * App Service pricing tier, which will only be used to create Web App at the first time.<br/>
+     * Below is the list of supported pricing tier:
+     * <ul>
+     *     <li>F1</li>
+     *     <li>D1</li>
+     *     <li>B1</li>
+     *     <li>B2</li>
+     *     <li>B3</li>
+     *     <li>S1</li>
+     *     <li>S2</li>
+     *     <li>S3</li>
+     *     <li>P1</li>
+     *     <li>P2</li>
+     *     <li>P3</li>
+     * </ul>
+     */
+    @Parameter(property = "webapp.pricingTier", defaultValue = "S1")
+    protected PricingTierEnum pricingTier;
 
     /**
      * JVM version of Web App. This only applies to Windows-based Web App.<br/>
@@ -213,6 +235,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return region;
     }
 
+    public PricingTier getPricingTier() {
+        return pricingTier == null ? PricingTier.STANDARD_S1 : pricingTier.toPricingTier();
+    }
 
     public JavaVersion getJavaVersion() {
         return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);

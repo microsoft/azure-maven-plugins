@@ -62,10 +62,6 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //region Getter
 
-    public PricingTier getPricingTier() {
-        return pricingTier == null ? null : pricingTier.toPricingTier();
-    }
-
     public String getDeploymentType() {
         return StringUtils.isEmpty(deploymentType) ? MS_DEPLOY : deploymentType;
     }

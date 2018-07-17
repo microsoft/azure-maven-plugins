@@ -7,8 +7,10 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.AbstractAzureMojo;
+import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -21,6 +23,26 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     public static final String AZURE_FUNCTIONS = "azure-functions";
 
     //region Properties
+
+    /**
+     * App Service pricing tier, which will only be used to create Functions App at the first time.<br/>
+     * Below is the list of supported pricing tier:
+     * <ul>
+     *     <li>F1</li>
+     *     <li>D1</li>
+     *     <li>B1</li>
+     *     <li>B2</li>
+     *     <li>B3</li>
+     *     <li>S1</li>
+     *     <li>S2</li>
+     *     <li>S3</li>
+     *     <li>P1</li>
+     *     <li>P2</li>
+     *     <li>P3</li>
+     * </ul>
+     */
+    @Parameter(property = "functions.pricingTier")
+    protected PricingTierEnum pricingTier;
 
     @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
     protected String finalName;
@@ -39,6 +61,10 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     //endregion
 
     //region Getter
+
+    public PricingTier getPricingTier() {
+        return pricingTier == null ? null : pricingTier.toPricingTier();
+    }
 
     @Override
     protected boolean isSkipMojo() {

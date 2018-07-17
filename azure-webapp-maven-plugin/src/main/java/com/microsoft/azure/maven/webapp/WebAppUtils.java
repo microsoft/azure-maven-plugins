@@ -107,7 +107,7 @@ public class WebAppUtils {
 
         final Azure azure = mojo.getAzureClient();
         if (plan == null) {
-            final String servicePlanName = generateRandomServicePlanName();
+            final String servicePlanName = AppServiceUtils.getAppServicePlanName(mojo);
             final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(mojo);
             mojo.getLog().info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
 
@@ -129,10 +129,6 @@ public class WebAppUtils {
         }
 
         return plan;
-    }
-
-    private static String generateRandomServicePlanName() {
-        return "ServicePlan" + UUID.randomUUID().toString().substring(0, 18);
     }
 
     public static DockerImageType getDockerImageType(final ContainerSetting containerSetting) {
