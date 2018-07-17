@@ -37,7 +37,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String STOP_APP_DONE = "Successfully stopped Web App.";
     public static final String START_APP_DONE = "Successfully started Web App.";
     public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "The Web App specified in pom.xml does not exist. " +
-            "Please make sure the Web App name is correct.";
+        "Please make sure the Web App name is correct.";
     public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist." +
         "Please check if any error message during creation";
 
@@ -103,7 +103,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected IDeployTargetAdapter getDeployTarget() throws AzureAuthFailureException, MojoExecutionException {
         final WebApp app = getWebApp();
         if (this.isDeployToDeploymentSlot()) {
-            final String slotName = getDeploymentSlotSetting().getSlotName();
+            final String slotName = getDeploymentSlotSetting().getName();
             final DeploymentSlot slot = getDeploymentSlot(app, slotName);
             if (slot == null) {
                 throw new MojoExecutionException(SLOT_SHOULD_EXIST_NOW);

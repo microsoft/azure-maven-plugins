@@ -20,9 +20,9 @@
                     </authentication>
                     <resourceGroup>maven-webapp-it-rg-12</resourceGroup>
                     <appName>maven-webapp-it-rg-12-webapp</appName>
-                    <deploymentSlotSetting>
-                        <slotName>test</slotName>
-                    </deploymentSlotSetting>
+                    <deploymentSlot>
+                        <name>test</name>
+                    </deploymentSlot>
                     <region>westus</region>
                     <javaVersion>1.8</javaVersion>
                     <javaWebContainer>tomcat 8.5</javaWebContainer>

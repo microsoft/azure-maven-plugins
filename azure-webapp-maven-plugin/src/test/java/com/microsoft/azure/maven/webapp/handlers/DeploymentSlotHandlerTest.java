@@ -52,7 +52,7 @@ public class DeploymentSlotHandlerTest {
 
         doReturn(slotSetting).when(mojo).getDeploymentSlotSetting();
         doReturn(app).when(mojo).getWebApp();
-        doReturn("").when(slotSetting).getSlotName();
+        doReturn("").when(slotSetting).getName();
         doReturn(slot).when(mojo).getDeploymentSlot(app, "");
         handlerSpy.createDeploymentSlotIfNotExist();
 
@@ -69,7 +69,7 @@ public class DeploymentSlotHandlerTest {
         doReturn(app).when(mojo).getWebApp();
         doReturn(slotSetting).when(mojo).getDeploymentSlotSetting();
         doReturn("").when(slotSetting).getConfigurationSource();
-        doReturn("").when(slotSetting).getSlotName();
+        doReturn("").when(slotSetting).getName();
         doReturn(null).when(mojo).getDeploymentSlot(app, "");
         doNothing().when(handlerSpy).createDeploymentSlot(app, "", "");
 

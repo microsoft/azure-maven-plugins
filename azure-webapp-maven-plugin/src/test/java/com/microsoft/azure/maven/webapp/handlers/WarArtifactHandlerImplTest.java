@@ -87,7 +87,7 @@ public class WarArtifactHandlerImplTest {
         doReturn(appMock).when(mojo).getWebApp();
         doReturn(slotSettingMock).when(mojo).getDeploymentSlotSetting();
         doNothing().when(logMock).info(anyString());
-        doReturn("").when(slotSettingMock).getSlotName();
+        doReturn("").when(slotSettingMock).getName();
         doReturn(slotMock).when(mojo).getDeploymentSlot(appMock, "");
         doNothing().when(slotMock).warDeploy(any(File.class), anyString());
         handlerSpy.publish(new DeploymentSlotAdapter(slotMock));

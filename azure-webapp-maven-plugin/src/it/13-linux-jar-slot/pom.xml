@@ -21,10 +21,10 @@
                     <resourceGroup>maven-webapp-it-rg-13</resourceGroup>
                     <appName>maven-webapp-it-rg-13-webapp-linux</appName>
                     <region>westus</region>
-                    <deploymentSlotSetting>
-                        <slotName>test</slotName>
+                    <deploymentSlot>
+                        <name>test</name>
                         <configurationSource>parent</configurationSource>
-                    </deploymentSlotSetting>
+                    </deploymentSlot>
                     <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
                     <deploymentType>jar</deploymentType>
                     <resources>

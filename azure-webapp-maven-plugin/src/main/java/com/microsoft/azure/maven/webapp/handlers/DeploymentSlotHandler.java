@@ -18,11 +18,12 @@ import org.codehaus.plexus.util.StringUtils;
 import java.util.regex.Pattern;
 
 public class DeploymentSlotHandler {
-    private static final String INVALID_SLOT_SETTINGS = "No <deploymentSlotSetting> is specified in pom.xml. " +
+    private static final String INVALID_SLOT_SETTINGS = "No <deploymentSlot> is specified in pom.xml. " +
         "Please configure it for slot deployment.";
     private static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
     private static final String INVALID_SLOT_NAME = String.format(
-        "Invalid <slotName> in pom.xml, it needs to match the pattern '%s'", SLOT_NAME_PATTERN);
+        "Invalid value of <name> inside <deploymentSlot> in pom.xml, " +
+            "it needs to match the pattern '%s'", SLOT_NAME_PATTERN);
     private static final String EMPTY_CONFIGURATION_SOURCE =
         "Creating a new deployment slot without any configuration...";
     private static final String DEFAULT_CONFIGURATION_SOURCE =
@@ -48,7 +49,7 @@ public class DeploymentSlotHandler {
         assureValidSlotSetting(slotSetting);
 
         final WebApp app = this.mojo.getWebApp();
-        final String slotName = slotSetting.getSlotName();
+        final String slotName = slotSetting.getName();
 
         if (this.mojo.getDeploymentSlot(app, slotName) == null) {
             createDeploymentSlot(app, slotName, slotSetting.getConfigurationSource());

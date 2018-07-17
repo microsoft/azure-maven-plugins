@@ -260,7 +260,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      * Deployment Slot. It will be created if it does not exist.
      * It requires the web app exists already.
      */
-    @Parameter
+    @Parameter(alias = "deploymentSlot")
     protected DeploymentSlotSetting deploymentSlotSetting;
 
     //endregion
@@ -376,6 +376,17 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public boolean isDeployToDeploymentSlot() {
         return getDeploymentSlotSetting() != null;
+    }
+
+    //endregion
+
+    //region Setter
+
+    // Set method to get value from configuration.
+    // Required by maven plugin testing package when use @Parameter(alias="").
+    // And the name has to be "set<Alias>"
+    public void setDeploymentSlot(DeploymentSlotSetting slotSetting) {
+        this.deploymentSlotSetting = slotSetting;
     }
 
     //endregion
