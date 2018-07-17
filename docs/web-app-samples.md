@@ -15,6 +15,8 @@
 
 - [Deploy Web App to an existing App Service Plan](#existing-app-service-plan)
 
+- [Deploy web application to Web App Deployment Slot](#web-application-to-deployment-slot)
+
 <a name="web-app-on-windows"></a>
 ## Web App (on Windows) with Java 8, Tomcat and WAR deployment
 The following configuration is applicable for below scenario:
@@ -427,3 +429,49 @@ The following configuration is applicable for below scenario:
       </build>
    </project>
    ```
+
+<a name = "web-application-to-deployment-slot"></a>
+## Deploy a web application to web app deployment slot
+The following configuration is applicable for below scenario:
+
+- Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
+- Web App on Linux
+- Using Java 8 and Tomat 8.5
+- Using JAR to deploy **JAR** file to context path `/${project.build.finalName}` in your Web App server
+- Create a deployment slot and copy configuration from parent web app then do the deploy
+
+```xml
+<project>
+    ...
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>@project.groupId@</groupId>
+                <artifactId>@project.artifactId@</artifactId>
+                <version>@project.version@</version>
+                <configuration>
+                    <authentication>
+                        <serverId>azure-auth</serverId>
+                    </authentication>
+                    
+                    <!-- Web App information -->
+                    <resourceGroup>your-resource-group</resourceGroup>
+                    <appName>your-webapp-name</appName>
+
+                    <!-- Deployment Slot Setting -->
+                    <deploymentSlotSetting>
+                        <slotName>pure-slot-name</slotName>
+                        <configurationSource>parent</configurationSource>
+                    </deploymentSlotSetting>
+                    
+                    <!-- Java Runtime Stack for Web App on Linux-->
+                    <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
+                    
+                    <!-- Jar Deploy -->
+                    <deploymentType>jar</deploymentType>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```

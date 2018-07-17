@@ -6,8 +6,6 @@
 
 import com.microsoft.azure.maven.webapp.utils.TestUtils
 
-TestUtils.azureLogin()
-
-TestUtils.deleteAzureResourceGroup("maven-webapp-it-rg-11", true)
+TestUtils.deleteAzureResourceGroup("maven-webapp-it-rg-13", false)
 
 return true

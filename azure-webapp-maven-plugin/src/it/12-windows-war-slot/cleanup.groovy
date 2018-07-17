@@ -4,10 +4,8 @@
  * license information.
  */
 
-import com.microsoft.azure.maven.webapp.utils.TestUtils
+import com.microsoft.azure.maven.webapp.utils.TestUtils;
 
-TestUtils.azureLogin()
-
-TestUtils.deleteAzureResourceGroup("maven-webapp-it-rg-11", true)
+TestUtils.deleteAzureResourceGroup("maven-webapp-it-rg-12", false)
 
 return true

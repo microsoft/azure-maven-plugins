@@ -4,10 +4,14 @@
  * license information.
  */
 
+
 import com.microsoft.azure.maven.webapp.utils.TestUtils
 
 TestUtils.azureLogin()
 
-TestUtils.deleteAzureResourceGroup("maven-webapp-it-rg-11", true)
+TestUtils.deleteAzureResourceGroup("maven-webapp-it-rg-12", true)
+
+TestUtils.createWebApp("maven-webapp-it-rg-12", "westus",
+        "maven-webapp-it-rg-12-service-plan", "maven-webapp-it-rg-12-webapp", false)
 
 return true

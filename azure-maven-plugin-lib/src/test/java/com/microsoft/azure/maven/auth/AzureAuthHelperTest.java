@@ -26,10 +26,26 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.File;
 import java.io.IOException;
 
-import static com.microsoft.azure.maven.auth.AzureAuthHelper.*;
-import static org.junit.Assert.*;
+import static com.microsoft.azure.maven.auth.AzureAuthHelper.CERTIFICATE;
+import static com.microsoft.azure.maven.auth.AzureAuthHelper.CERTIFICATE_PASSWORD;
+import static com.microsoft.azure.maven.auth.AzureAuthHelper.CLIENT_ID;
+import static com.microsoft.azure.maven.auth.AzureAuthHelper.KEY;
+import static com.microsoft.azure.maven.auth.AzureAuthHelper.TENANT_ID;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AzureAuthHelperTest {
@@ -111,7 +127,7 @@ public class AzureAuthHelperTest {
         helperSpy.getAzureClient();
         verify(authenticated, times(1)).withSubscription(any(String.class));
         verify(authenticated, never()).withDefaultSubscription();
-        Mockito.clearInvocations(authenticated);
+        clearInvocations(authenticated);
 
         // <subscriptionId> is null
         when(mojo.getSubscriptionId()).thenReturn(null);

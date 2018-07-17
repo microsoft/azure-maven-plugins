@@ -8,13 +8,16 @@ package com.microsoft.azure.maven.webapp.deployadapter;
 
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.maven.webapp.configuration.DeployTargetType;
 
 import java.io.File;
 
 public class WebAppAdapter implements IDeployTargetAdapter {
+    private DeployTargetType type;
     private WebApp app;
 
     public WebAppAdapter(WebApp app) {
+        this.type = DeployTargetType.WEBAPP;
         this.app = app;
     }
 
@@ -26,5 +29,20 @@ public class WebAppAdapter implements IDeployTargetAdapter {
     @Override
     public PublishingProfile getPublishingProfile() {
         return app.getPublishingProfile();
+    }
+
+    @Override
+    public String getName() {
+        return app.name();
+    }
+
+    @Override
+    public String getType() {
+        return type.toString();
+    }
+
+    @Override
+    public String getDefaultHostName() {
+        return app.defaultHostName();
     }
 }
