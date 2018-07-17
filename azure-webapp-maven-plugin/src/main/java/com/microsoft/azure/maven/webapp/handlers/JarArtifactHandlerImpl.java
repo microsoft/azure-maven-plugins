@@ -33,9 +33,9 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
     public static final String DEFAULT_LINUX_JAR_NAME = "app.jar";
     public static final String JAR_CMD = ":JAR_COMMAND:";
     public static final String FILENAME = ":FILENAME:";
-    public static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true "
-            + "-Dserver.port=%HTTP_PLATFORM_PORT% "
-            + "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
+    public static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true " +
+        "-Dserver.port=%HTTP_PLATFORM_PORT% " +
+        "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
     public static final String GENERATE_WEB_CONFIG_FAIL = "Failed to generate web.config file for JAR deployment.";
     public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
     public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";

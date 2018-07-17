@@ -20,14 +20,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.lang.System.out;
-import static javax.lang.model.SourceVersion.*;
+import static javax.lang.model.SourceVersion.isName;
 import static org.codehaus.plexus.util.IOUtil.copy;
 import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 
@@ -176,17 +182,17 @@ public class AddMojo extends AbstractFunctionMojo {
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionTemplate(),
-                    str -> getTemplateNames(templates)
-                            .stream()
-                            .filter(Objects::nonNull)
-                            .anyMatch(o -> o.equalsIgnoreCase(str)),
-                    this::setFunctionTemplate,
-                    true);
+                str -> getTemplateNames(templates)
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .anyMatch(o -> o.equalsIgnoreCase(str)),
+                this::setFunctionTemplate,
+                true);
         } else {
             assureInputFromUser("template for new function",
-                    getFunctionTemplate(),
-                    getTemplateNames(templates),
-                    this::setFunctionTemplate);
+                getFunctionTemplate(),
+                getTemplateNames(templates),
+                this::setFunctionTemplate);
         }
 
         return findTemplateByName(templates, getFunctionTemplate());
@@ -200,8 +206,8 @@ public class AddMojo extends AbstractFunctionMojo {
             throws Exception {
         info("Selected function template: " + templateName);
         final Optional<FunctionTemplate> template = templates.stream()
-                .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
-                .findFirst();
+            .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
+            .findFirst();
 
         if (template.isPresent()) {
             info(FIND_TEMPLATE_DONE + templateName);
@@ -241,15 +247,15 @@ public class AddMojo extends AbstractFunctionMojo {
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionName(),
-                    str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
-                    this::setFunctionName,
-                    true);
+                str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
+                this::setFunctionName,
+                true);
         } else {
             assureInputFromUser("Enter value for Function Name: ",
-                    getFunctionName(),
-                    str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
-                    "Function name must start with a letter and can contain letters, digits, '_' and '-'",
-                    this::setFunctionName);
+                getFunctionName(),
+                str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
+                "Function name must start with a letter and can contain letters, digits, '_' and '-'",
+                this::setFunctionName);
         }
     }
 
@@ -258,15 +264,15 @@ public class AddMojo extends AbstractFunctionMojo {
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionPackageName(),
-                    str -> isNotEmpty(str) && isName(str),
-                    this::setFunctionPackageName,
-                    true);
+                str -> isNotEmpty(str) && isName(str),
+                this::setFunctionPackageName,
+                true);
         } else {
             assureInputFromUser("Enter value for Package Name: ",
-                    getFunctionPackageName(),
-                    str -> isNotEmpty(str) && isName(str),
-                    "Input should be a valid Java package name.",
-                    this::setFunctionPackageName);
+                getFunctionPackageName(),
+                str -> isNotEmpty(str) && isName(str),
+                "Input should be a valid Java package name.",
+                this::setFunctionPackageName);
         }
     }
 
@@ -285,26 +291,26 @@ public class AddMojo extends AbstractFunctionMojo {
                 }
 
                 assureInputInBatchMode(
-                        initValue,
-                        StringUtils::isNotEmpty,
-                        str -> params.put(property, str),
-                        false
+                    initValue,
+                    StringUtils::isNotEmpty,
+                    str -> params.put(property, str),
+                    false
                 );
             } else {
                 if (options == null) {
                     assureInputFromUser(
-                            format("Enter value for %s: ", property),
-                            System.getProperty(property),
-                            StringUtils::isNotEmpty,
-                            "Input should be a non-empty string.",
-                            str -> params.put(property, str)
+                        format("Enter value for %s: ", property),
+                        System.getProperty(property),
+                        StringUtils::isNotEmpty,
+                        "Input should be a non-empty string.",
+                        str -> params.put(property, str)
                     );
                 } else {
                     assureInputFromUser(
-                            format("Enter value for %s: ", property),
-                            System.getProperty(property),
-                            options,
-                            str -> params.put(property, str)
+                        format("Enter value for %s: ", property),
+                        System.getProperty(property),
+                        options,
+                        str -> params.put(property, str)
                     );
                 }
             }
@@ -317,9 +323,7 @@ public class AddMojo extends AbstractFunctionMojo {
         info("");
         info("Summary of parameters for function template:");
 
-        params.entrySet()
-                .stream()
-                .forEach(e -> info(format("%s: %s", e.getKey(), e.getValue())));
+        params.entrySet().stream().forEach(e -> info(format("%s: %s", e.getKey(), e.getValue())));
     }
 
     //endregion
@@ -398,21 +402,20 @@ public class AddMojo extends AbstractFunctionMojo {
             out.printf("%d. %s%n", i, options.get(i));
         }
 
-        assureInputFromUser("Enter index to use: ",
-                null,
-                str -> {
-                    try {
-                        final int index = Integer.parseInt(str);
-                        return 0 <= index && index < options.size();
-                    } catch (Exception e) {
-                        return false;
-                    }
-                },
-                "Invalid index.",
-                str -> {
+        assureInputFromUser("Enter index to use: ", null,
+            str -> {
+                try {
                     final int index = Integer.parseInt(str);
-                    setter.accept(options.get(index));
-                });
+                    return 0 <= index && index < options.size();
+                } catch (Exception e) {
+                    return false;
+                }
+            },
+            "Invalid index.", str -> {
+                final int index = Integer.parseInt(str);
+                setter.accept(options.get(index));
+            }
+        );
     }
 
     protected void assureInputFromUser(final String prompt, final String initValue,
@@ -466,9 +469,9 @@ public class AddMojo extends AbstractFunctionMojo {
     @Nullable
     private String findElementInOptions(List<String> options, String item) {
         return options.stream()
-                .filter(o -> o != null && o.equalsIgnoreCase(item))
-                .findFirst()
-                .orElse(null);
+            .filter(o -> o != null && o.equalsIgnoreCase(item))
+            .findFirst()
+            .orElse(null);
     }
 
     @Nullable

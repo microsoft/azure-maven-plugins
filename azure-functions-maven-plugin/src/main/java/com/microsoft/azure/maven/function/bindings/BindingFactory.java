@@ -5,7 +5,31 @@
  */
 package com.microsoft.azure.maven.function.bindings;
 
-import com.microsoft.azure.functions.annotation.*;
+import com.microsoft.azure.functions.annotation.BlobInput;
+import com.microsoft.azure.functions.annotation.BlobOutput;
+import com.microsoft.azure.functions.annotation.BlobTrigger;
+import com.microsoft.azure.functions.annotation.CosmosDBInput;
+import com.microsoft.azure.functions.annotation.CosmosDBOutput;
+import com.microsoft.azure.functions.annotation.CosmosDBTrigger;
+import com.microsoft.azure.functions.annotation.EventGridTrigger;
+import com.microsoft.azure.functions.annotation.EventHubOutput;
+import com.microsoft.azure.functions.annotation.EventHubTrigger;
+import com.microsoft.azure.functions.annotation.HttpOutput;
+import com.microsoft.azure.functions.annotation.HttpTrigger;
+import com.microsoft.azure.functions.annotation.MobileTableInput;
+import com.microsoft.azure.functions.annotation.MobileTableOutput;
+import com.microsoft.azure.functions.annotation.NotificationHubOutput;
+import com.microsoft.azure.functions.annotation.QueueOutput;
+import com.microsoft.azure.functions.annotation.QueueTrigger;
+import com.microsoft.azure.functions.annotation.SendGridOutput;
+import com.microsoft.azure.functions.annotation.ServiceBusQueueOutput;
+import com.microsoft.azure.functions.annotation.ServiceBusQueueTrigger;
+import com.microsoft.azure.functions.annotation.ServiceBusTopicOutput;
+import com.microsoft.azure.functions.annotation.ServiceBusTopicTrigger;
+import com.microsoft.azure.functions.annotation.TableInput;
+import com.microsoft.azure.functions.annotation.TableOutput;
+import com.microsoft.azure.functions.annotation.TimerTrigger;
+import com.microsoft.azure.functions.annotation.TwilioSmsOutput;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;

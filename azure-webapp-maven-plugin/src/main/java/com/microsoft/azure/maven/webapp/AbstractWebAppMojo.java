@@ -309,9 +309,9 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     }
 
     public WebContainer getJavaWebContainer() {
-        return StringUtils.isEmpty(javaWebContainer)
-                ? WebContainer.TOMCAT_8_5_NEWEST
-                : WebContainer.fromString(javaWebContainer);
+        return StringUtils.isEmpty(javaWebContainer) ?
+            WebContainer.TOMCAT_8_5_NEWEST :
+            WebContainer.fromString(javaWebContainer);
     }
 
     public ContainerSetting getContainerSettings() {
@@ -332,8 +332,8 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public String getDeploymentStageDirectory() {
         return Paths.get(getBuildDirectoryAbsolutePath(),
-                "azure-webapps",
-                getAppName()).toString();
+            "azure-webapps",
+            getAppName()).toString();
     }
 
     public List<Resource> getResources() {

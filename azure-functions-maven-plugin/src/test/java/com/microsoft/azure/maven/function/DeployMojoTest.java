@@ -26,8 +26,23 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.anyMap;
+import static org.mockito.Mockito.isNull;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeployMojoTest extends MojoTestBase {

@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
-    public static final String WEBAPP_DEPLOY_START = "Start deploying to Web App %s...";
-    public static final String WEBAPP_DEPLOY_SUCCESS = "Successfully deployed Web App at https://%s.azurewebsites.net";
+    public static final String DEPLOY_START = "Deploying to %s '%s'...";
+    public static final String DEPLOY_SUCCESS = "Successfully deployed %s at 'https://%s'";
     public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
     public static final String WEBAPP_CREATED = "Successfully created Web App.";
     public static final String UPDATE_WEBAPP = "Updating target Web App...";
@@ -36,20 +36,17 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String START_APP = "Starting Web App after deploying artifacts...";
     public static final String STOP_APP_DONE = "Successfully stopped Web App.";
     public static final String START_APP_DONE = "Successfully started Web App.";
-    public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "Please configure an existing web app for slot deployment.";
+    public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "The Web App specified in pom.xml does not exist. " +
+            "Please make sure the Web App name is correct.";
     public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist." +
-            "Please check if any error message during creation";
+        "Please check if any error message during creation";
 
     protected DeploymentUtil util = new DeploymentUtil();
 
     @Override
     protected void doExecute() throws Exception {
-        getLog().info(String.format(WEBAPP_DEPLOY_START, getAppName()));
-
         createOrUpdateWebApp();
         deployArtifacts();
-
-        getLog().info(String.format(WEBAPP_DEPLOY_SUCCESS, getAppName()));
     }
 
     protected void createOrUpdateWebApp() throws Exception {
@@ -92,7 +89,12 @@ public class DeployMojo extends AbstractWebAppMojo {
         try {
             util.beforeDeployArtifacts();
             final IDeployTargetAdapter target = getDeployTarget();
+
+            getLog().info(String.format(DEPLOY_START, target.getType(), target.getName()));
+
             getFactory().getArtifactHandler(this).publish(target);
+
+            getLog().info(String.format(DEPLOY_SUCCESS, target.getType(), target.getDefaultHostName()));
         } finally {
             util.afterDeployArtifacts();
         }

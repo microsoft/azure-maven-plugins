@@ -31,8 +31,8 @@ and makes it easier for developers to deploy to different kinds of Azure Web App
 
 Tool | Required Version
 ---|---
-JDK | 1.7 and above
-Maven | 3.0 and above
+JDK | 1.7 or above
+Maven | 3.0 or above
 
 ## Quick Start 
 
@@ -202,7 +202,7 @@ Supported Value | Description
 
 #### Container Setting
 
-In the `<containerSettings>` element of your `pom.xml` file, you can sepcify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
+In the `<containerSettings>` element of your `pom.xml` file, you can specify which docker container image to deploy to your Web App. Typically, this image should be from a private container registry which is built from your app, but you can also use images from a docker hub.
 
 You can specify the following properties within the `<containerSettings>` element:
 
@@ -277,6 +277,31 @@ Property | Description
 ### NONE Deployment
 If you do not want to deploy anything, just simply set the `<deploymentType>` to `NONE`.
 
+### Deployment Slot
+In the `<deploymentSlotSetting>` element of your `pom.xml` file, you can specify which deployment slot to deploy your Web App.
+It requires you to configure an existing web app. And the deployment slot configured will be created first if it does not exist.
+
+You can specify the following properties within the `<deploymentSlotSetting>` element:
+
+Property | Required | Description
+---|---|---
+`<slotName>` | true | Specifies the slot name. Valid slot name must match this kind of regex expression: [a-zA-Z0-9-]{1, 60}. 
+`<configurationSource>` | false | The configuration source used to create a deployment slot.
+
+> Note`<slotName>` is pure slot name, not the name with webapp name as prefix in the portal.
+
+If you specify an existing deployment slot to do the deploy, `<configurationSource>` will be ignored even it's configured.
+
+Or, if you want to create a new deployment slot and deploy to it at the same time, you could specify configuration source as you like.
+
+`<configurationSource>` could be set to **New** to create a brand new slot without any configuration,
+or set to **Parent** to create a slot and copy the configuration from parent webapp.
+Besides, you could set it to the name of another existing deployment slot.
+It will copy the configuration of that slot during creation.
+If not configured, **Parent** will be used as default.
+
+Check out samples at [Web App Samples](../docs/web-app-samples.md) for the configuration settings.
+
 ## Advanced Configurations 
 
 Common configurations of all Maven Plugins for Azure can be found at [here](../docs/common-configuration.md).
@@ -289,6 +314,7 @@ Property | Required | Description | Version
 `<appName>` | true | Specifies the name of your Web App. | 0.1.0+
 `<region>`* | false | Specifies the region where your Web App will be hosted; the default value is **westus**. All valid regions at [Supported Regions](#supported-regions) section. | 0.1.0+
 `<pricingTier>`* | false | Specifies the pricing tier for your Web App; the default value is **S1**. All valid tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section. | 0.1.0+
+`<deploymentSlotSetting>` | false | Specifies the deployment slot to deploy your web app. | 1.3.0+
 `<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, plugin will use the value defined in `<resourceGroup>`. | 1.0.0+
 `<appServicePlanName>` | false | Specifies the name of the existing App Service Plan when you do not want to create a new one. | 1.0.0+
 `<javaVersion>` | false | Specifies the JVM version for your Web App.<br>This setting is only applicable for `Web App on Windows`; see the [Java Runtime](#java-runtime) section of this README for details. | 0.1.0+
