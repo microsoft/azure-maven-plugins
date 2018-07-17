@@ -19,7 +19,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
 
     public static final String FILE_IS_NOT_WAR = "The deployment file is not a war typed file.";
     public static final String FIND_WAR_FILE_FAIL = "Failed to find the war file: '%s'";
-    public static final String UPLOAD_FAILURE = "Failed to deploy the war file to server, " +
+    public static final String UPLOAD_FAILURE = "Exception occurred when deploying war file to server: %s, " +
         "retrying immediately (%d/%d)";
     public static final String DEPLOY_FAILURE = "Failed to deploy the war file after three times trying.";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
@@ -45,7 +45,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
                 deployTarget.warDeploy(war, path);
                 return;
             } catch (Exception e) {
-                mojo.getLog().warn(String.format(UPLOAD_FAILURE, retryCount, DEFAULT_MAX_RETRY_TIMES));
+                mojo.getLog().warn(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
             }
         }
 
