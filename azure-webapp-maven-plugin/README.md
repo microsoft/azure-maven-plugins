@@ -276,17 +276,17 @@ Property | Description
 `path` | Specify context path, optional if you want to deploy to ROOT.
 
 ### Deployment Slot
-In the `<deploymentSlotSetting>` element of your `pom.xml` file, you can specify which deployment slot to deploy your Web App.
+In the `<deploymentSlot>` element of your `pom.xml` file, you can specify which deployment slot to deploy your Web App.
 It requires you to configure an existing web app. And the deployment slot configured will be created first if it does not exist.
 
-You can specify the following properties within the `<deploymentSlotSetting>` element:
+You can specify the following properties within the `<deploymentSlot>` element:
 
 Property | Required | Description
 ---|---|---
-`<slotName>` | true | Specifies the slot name. Valid slot name must match this kind of regex expression: [a-zA-Z0-9-]{1, 60}. 
+`<name>` | true | Specifies the slot name. Valid slot name must match this kind of regex expression: [a-zA-Z0-9-]{1, 60}. 
 `<configurationSource>` | false | The configuration source used to create a deployment slot.
 
-> Note`<slotName>` is pure slot name, not the name with webapp name as prefix in the portal.
+> Note`<name>` is pure slot name, not the name with webapp name as prefix in the portal.
 
 If you specify an existing deployment slot to do the deploy, `<configurationSource>` will be ignored even it's configured.
 
@@ -312,7 +312,7 @@ Property | Required | Description | Version
 `<appName>` | true | Specifies the name of your Web App. | 0.1.0+
 `<region>`* | false | Specifies the region where your Web App will be hosted; the default value is **westus**. All valid regions at [Supported Regions](#supported-regions) section. | 0.1.0+
 `<pricingTier>`* | false | Specifies the pricing tier for your Web App; the default value is **S1**. All valid tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section. | 0.1.0+
-`<deploymentSlotSetting>` | false | Specifies the deployment slot to deploy your web app. | 1.3.0+
+`<deploymentSlot>` | false | Specifies the deployment slot to deploy your web app. | 1.3.0+
 `<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, plugin will use the value defined in `<resourceGroup>`. | 1.0.0+
 `<appServicePlanName>` | false | Specifies the name of the existing App Service Plan when you do not want to create a new one. | 1.0.0+
 `<javaVersion>` | false | Specifies the JVM version for your Web App.<br>This setting is only applicable for `Web App on Windows`; see the [Java Runtime](#java-runtime) section of this README for details. | 0.1.0+
