@@ -103,7 +103,7 @@ public class WebAppUtils {
 
     public static AppServicePlan createOrGetAppServicePlan(final AbstractWebAppMojo mojo, OperatingSystem os)
             throws Exception {
-        AppServicePlan plan = AppServiceUtils.getExistingAppServicePlan(mojo);
+        AppServicePlan plan = AppServiceUtils.getAppServicePlan(mojo);
 
         final Azure azure = mojo.getAzureClient();
         if (plan == null) {

@@ -11,12 +11,11 @@ import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import org.codehaus.plexus.util.StringUtils;
 
 public class AppServiceUtils {
-    public static AppServicePlan getExistingAppServicePlan(final AbstractAppServiceMojo mojo)
+    public static AppServicePlan getAppServicePlan(final AbstractAppServiceMojo mojo)
             throws Exception {
-        final String servicePlanResGrp = getAppServicePlanResourceGroup(mojo);
-
         final String servicePlanName = mojo.getAppServicePlanName();
         if (StringUtils.isNotEmpty(servicePlanName)) {
+            final String servicePlanResGrp = getAppServicePlanResourceGroup(mojo);
             return mojo.getAzureClient().appServices().appServicePlans()
                     .getByResourceGroup(servicePlanResGrp, servicePlanName);
         }
@@ -24,7 +23,9 @@ public class AppServiceUtils {
     }
 
     public static String getAppServicePlanResourceGroup(final AbstractAppServiceMojo mojo) {
-        return StringUtils.isNotEmpty(mojo.getAppServicePlanResourceGroup()) ?
-                mojo.getAppServicePlanResourceGroup() : mojo.getResourceGroup();
+        final String defaultResourceGroup = mojo.getResourceGroup();
+        
+        return StringUtils.isEmpty(mojo.getAppServicePlanResourceGroup()) ?
+            defaultResourceGroup : mojo.getAppServicePlanResourceGroup();
     }
 }

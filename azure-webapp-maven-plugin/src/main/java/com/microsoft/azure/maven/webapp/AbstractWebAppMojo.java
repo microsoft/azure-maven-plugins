@@ -106,7 +106,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected ContainerSetting containerSettings;
 
     /**
-     * Deployment type to deploy Web App. The plugin contains two types now:
+     * Deployment type to deploy Web App. The plugin contains five types now:
      *
      * <ul>
      *      <li>FTP - {@code <resources>} specifies configurations for this kind of deployment.</li>
