@@ -50,7 +50,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
             }
         }
 
-        throw new MojoExecutionException(DEPLOY_FAILURE);
+        throw new MojoExecutionException(String.format(DEPLOY_FAILURE, retryCount));
     }
 
     protected String getContextPath() {
