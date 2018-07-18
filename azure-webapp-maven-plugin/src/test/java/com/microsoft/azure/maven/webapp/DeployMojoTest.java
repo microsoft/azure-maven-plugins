@@ -354,7 +354,7 @@ public class DeployMojoTest {
         final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
         doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
         doReturn(true).when(mojoSpy).isDeployToDeploymentSlot();
-        doReturn("").when(slotSetting).getSlotName();
+        doReturn("").when(slotSetting).getName();
         doReturn(null).when(mojoSpy).getDeploymentSlot(app, "");
 
         mojoSpy.getDeployTarget();

@@ -30,6 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -86,12 +87,30 @@ public class WarArtifactHandlerImplTest {
         doReturn(appMock).when(mojo).getWebApp();
         doReturn(slotSettingMock).when(mojo).getDeploymentSlotSetting();
         doNothing().when(logMock).info(anyString());
-        doReturn("").when(slotSettingMock).getSlotName();
+        doReturn("").when(slotSettingMock).getName();
         doReturn(slotMock).when(mojo).getDeploymentSlot(appMock, "");
         doNothing().when(slotMock).warDeploy(any(File.class), anyString());
         handlerSpy.publish(new DeploymentSlotAdapter(slotMock));
 
         verify(slotMock, times(1)).warDeploy(file, path);
+    }
+
+
+    @Test(expected = MojoExecutionException.class)
+    public void publishFailed() throws Exception {
+        final File file = new File("");
+        doReturn(file).when(handlerSpy).getWarFile();
+        doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
+        doReturn("").when(handlerSpy).getContextPath();
+
+        final Log log = mock(Log.class);
+        final WebApp app = mock(WebApp.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).info(anyString());
+        doReturn(app).when(mojo).getWebApp();
+        doThrow(Exception.class).when(app).warDeploy(file, "");
+
+        handlerSpy.publish(new WebAppAdapter(app));
     }
 
     @Test

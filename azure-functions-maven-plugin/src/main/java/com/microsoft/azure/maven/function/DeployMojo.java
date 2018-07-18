@@ -6,15 +6,18 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -44,28 +47,6 @@ public class DeployMojo extends AbstractFunctionMojo {
     //region Properties
 
     /**
-     * Azure Functions pricing tier, which will only be used to create Azure Functions at the first time.<br/>
-     * Below is the list of supported pricing tier. If left blank, Consumption plan is the default.
-     * <ul>
-     * <li>F1</li>
-     * <li>D1</li>
-     * <li>B1</li>
-     * <li>B2</li>
-     * <li>B3</li>
-     * <li>S1</li>
-     * <li>S2</li>
-     * <li>S3</li>
-     * <li>P1</li>
-     * <li>P2</li>
-     * <li>P3</li>
-     * </ul>
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.pricingTier")
-    protected PricingTierEnum pricingTier;
-
-    /**
      * Deployment type to deploy Web App. Supported values:
      * <ul>
      * <li>msdeploy</li>
@@ -80,10 +61,6 @@ public class DeployMojo extends AbstractFunctionMojo {
     //endregion
 
     //region Getter
-
-    public PricingTier getPricingTier() {
-        return pricingTier == null ? null : pricingTier.toPricingTier();
-    }
 
     public String getDeploymentType() {
         return StringUtils.isEmpty(deploymentType) ? MS_DEPLOY : deploymentType;
@@ -120,9 +97,20 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void createFunctionApp() throws Exception {
         info(FUNCTION_APP_CREATE_START);
 
-        final NewAppServicePlanWithGroup newAppServicePlanWithGroup = defineApp(getAppName(), getRegion());
-        final WithCreate withCreate = configureResourceGroup(newAppServicePlanWithGroup, getResourceGroup());
-        configurePricingTier(withCreate, getPricingTier());
+        final AppServicePlan plan = AppServiceUtils.getAppServicePlan(this);
+        final Blank functionApp = getAzureClient().appServices().functionApps().define(appName);
+        final String resGrp = getResourceGroup();
+        final WithCreate withCreate;
+        if (plan == null) {
+            final NewAppServicePlanWithGroup newAppServicePlanWithGroup = functionApp.withRegion(region);
+            withCreate = configureResourceGroup(newAppServicePlanWithGroup, resGrp);
+            configurePricingTier(withCreate, getPricingTier());
+        } else {
+            final ExistingAppServicePlanWithGroup planWithGroup = functionApp.withExistingAppServicePlan(plan);
+            withCreate = isResourceGroupExist(resGrp) ?
+                    planWithGroup.withExistingResourceGroup(resGrp) :
+                    planWithGroup.withNewResourceGroup(resGrp);
+        }
         configureAppSettings(withCreate::withAppSettings, getAppSettings());
         withCreate.create();
 
@@ -142,10 +130,6 @@ public class DeployMojo extends AbstractFunctionMojo {
         info(FUNCTION_APP_UPDATE_DONE + getAppName());
     }
 
-    protected NewAppServicePlanWithGroup defineApp(final String appName, final String region) throws Exception {
-        return getAzureClient().appServices().functionApps().define(appName).withRegion(region);
-    }
-
     protected WithCreate configureResourceGroup(final NewAppServicePlanWithGroup newAppServicePlanWithGroup,
                                                 final String resourceGroup) throws Exception {
         return isResourceGroupExist(resourceGroup) ?
@@ -154,7 +138,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected boolean isResourceGroupExist(final String resourceGroup) throws Exception {
-        return getAzureClient().resourceGroups().checkExistence(resourceGroup);
+        return getAzureClient().resourceGroups().contain(resourceGroup);
     }
 
     protected void configurePricingTier(final WithCreate withCreate, final PricingTier pricingTier) {
