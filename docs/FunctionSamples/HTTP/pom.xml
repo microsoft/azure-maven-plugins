@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.microsoft.azure.functions.samples</groupId>
-    <artifactId>azure-functions-samples</artifactId>
+    <artifactId>azure-functions-samples-http</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
