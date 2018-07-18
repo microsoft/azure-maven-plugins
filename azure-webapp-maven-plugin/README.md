@@ -43,13 +43,15 @@ Maven | 3.0 or above
     ```xml
     <project>
        ...
+       <packaging>war</packaging>
+       ...
        <build>
           <pluginManagement>
              <plugins>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <!-- check Maven Central for the latest version -->
-                <version>1.1.0</version>
+                <version>1.3.0</version>
              </plugins>
           </pluginManagement>
           <plugins>
@@ -57,17 +59,13 @@ Maven | 3.0 or above
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <configuration>
-                   
-                <!-- Web App information -->
-                <resourceGroup>your-resource-group</resourceGroup>
-                <appName>your-app-name</appName>
-                 
-                 <!-- Java Runtime Stack for Web App on Linux-->
-                <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
-     
-                <!-- WAR deployment -->
-                <deploymentType>war</deploymentType>
-     
+
+                    <!-- Web App information -->
+                    <resourceGroup>your-resource-group</resourceGroup>
+                    <appName>your-app-name</appName>
+
+                    <!-- Java Runtime Stack for Web App on Linux-->
+                    <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
                 </configuration>
              </plugin>
              ...
