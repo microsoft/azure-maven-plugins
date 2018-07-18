@@ -26,7 +26,6 @@
                     <region>westus</region>
                     <javaVersion>1.8</javaVersion>
                     <javaWebContainer>tomcat 8.5</javaWebContainer>
-                    <deploymentType>AUTO</deploymentType>
                 </configuration>
             </plugin>
         </plugins>
