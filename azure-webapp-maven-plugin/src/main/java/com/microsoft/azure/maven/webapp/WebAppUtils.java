@@ -18,6 +18,7 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDoc
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.ExistingLinuxPlanWithGroup;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.ExistingWindowsPlanWithGroup;
 
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -102,20 +103,12 @@ public class WebAppUtils {
 
     public static AppServicePlan createOrGetAppServicePlan(final AbstractWebAppMojo mojo, OperatingSystem os)
             throws Exception {
-        AppServicePlan plan = null;
-        final String servicePlanResGrp = StringUtils.isNotEmpty(mojo.getAppServicePlanResourceGroup()) ?
-                mojo.getAppServicePlanResourceGroup() : mojo.getResourceGroup();
-
-        String servicePlanName = mojo.getAppServicePlanName();
-        if (StringUtils.isNotEmpty(servicePlanName)) {
-            plan = mojo.getAzureClient().appServices().appServicePlans()
-                    .getByResourceGroup(servicePlanResGrp, servicePlanName);
-        } else {
-            servicePlanName = generateRandomServicePlanName();
-        }
+        AppServicePlan plan = AppServiceUtils.getAppServicePlan(mojo);
 
         final Azure azure = mojo.getAzureClient();
         if (plan == null) {
+            final String servicePlanName = AppServiceUtils.getAppServicePlanName(mojo);
+            final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(mojo);
             mojo.getLog().info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
 
             final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
@@ -132,14 +125,10 @@ public class WebAppUtils {
 
             mojo.getLog().info(SERVICE_PLAN_CREATED);
         } else {
-            mojo.getLog().info(String.format(SERVICE_PLAN_EXIST, servicePlanName, servicePlanResGrp));
+            mojo.getLog().info(String.format(SERVICE_PLAN_EXIST, plan.name(), plan.resourceGroupName()));
         }
 
         return plan;
-    }
-
-    private static String generateRandomServicePlanName() {
-        return "ServicePlan" + UUID.randomUUID().toString().substring(0, 18);
     }
 
     public static DockerImageType getDockerImageType(final ContainerSetting containerSetting) {

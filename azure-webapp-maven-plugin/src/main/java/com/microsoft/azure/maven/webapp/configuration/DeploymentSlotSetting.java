@@ -10,15 +10,15 @@ package com.microsoft.azure.maven.webapp.configuration;
  * Deployment Slot setting class.
  */
 public class DeploymentSlotSetting {
-    protected String slotName;
+    protected String name;
     protected String configurationSource;
 
-    public String getSlotName() {
-        return this.slotName;
+    public String getName() {
+        return this.name;
     }
 
-    public void setSlotName(String slotName) {
-        this.slotName = slotName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getConfigurationSource() {
