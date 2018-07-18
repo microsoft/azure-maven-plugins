@@ -1,21 +1,16 @@
 # Sample usages of Maven Plugin for Azure Web Apps
 
 #### Table of Content
-- [Web App (on Windows) with Java 8, Tomcat and WAR deployment](#web-app-on-windows)
-
-- [Web App (on Linux) with Java 8, Tomcat and FTP deployment](#web-app-on-linux-tomcat)
-
-- [Web App (on Linux) with Java 8 and FTP deployment](#web-app-on-linux-jre8)
-
-- [Web App for Containers with public DockerHub container image](#web-app-for-containers-public-docker)
-
-- [Web App for Containers with private DockerHub container image](#web-app-for-containers-private-docker)
-
-- [Web App for Containers with docker container image in private container registry](#web-app-for-containers-private-registry)
-
-- [Deploy Web App to an existing App Service Plan](#existing-app-service-plan)
-
-- [Deploy web application to Web App Deployment Slot](#web-application-to-deployment-slot)
+* [Web App on Windows](#web-app-on-windows)
+* Web App on Linux
+  * [Tomcat with JRE 8](#web-app-on-linux-tomcat)
+  * [JRE 8](#web-app-on-linux-jre8)
+* Web App for Containers
+  * [Public Docker Hub](#web-app-for-containers-public-docker)
+  * [Private Docker Hub](#web-app-for-containers-private-docker)
+  * [Private Container Registry](#web-app-for-containers-private-registry)
+* [Deploy to Existing App Service Plan](#existing-app-service-plan)
+* [Deploy a web application to Web App deployment slot](#web-application-to-deployment-slot)
 
 <a name="web-app-on-windows"></a>
 ## Web App (on Windows) with Java 8, Tomcat and WAR deployment
@@ -82,7 +77,8 @@ The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Linux
 - Using Java 8 and Tomcat 8.5
-- Using FTP to deploy **WAR** file to `/site/wwwroot/webapps/` directory in your Web App server
+- Using WAR to deploy **WAR** file to ROOT: `/` in your Web App server
+  > Note: Currently the **Linux** Web App with Tomcat runtime only supports deploy to ROOT. If you specify <path> in the plugin configurations, it will not take effect.
 - Add Application Settings to your Web App
 
    ```xml
@@ -110,20 +106,11 @@ The following configuration is applicable for below scenario:
                   <!-- Java Runtime Stack for Web App on Linux-->
                   <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
                   
-                  <!-- FTP deployment -->
-                  <deploymentType>ftp</deploymentType>
-                  <!-- Resources to be deployed to your Web App -->
-                  <resources>
-                     <resource>
-                        <!-- Where your artifacts are stored -->
-                        <directory>${project.basedir}/target</directory>
-                        <!-- Relative path to /site/wwwroot/ -->
-                        <targetPath>webapps</targetPath>
-                        <includes>
-                           <include>*.war</include>
-                        </includes>
-                     </resource>
-                  </resources>
+                  <!-- WAR deployment -->
+                  <deploymentType>war</deploymentType>
+
+                  <!-- If <warFile> is not specified, ${project.build.directory}/${project.build.finalName}.war will be used as default. -->
+                  <warFile>custom/absolute/path/deploy.war</warFile>
                   
                   <!-- Application Settings of your Web App -->
                   <appSettings>
@@ -147,9 +134,8 @@ The following configuration is applicable for below scenario:
 - Web App on Linux
 - Using Java 8
 - Using FTP to deploy an executable jar file to `/site/wwwroot/` directory in your Web App server
-> Note: Please make sure your jar file name is `app.jar`, this is the name that Web App server will search and execute.
+  > Note: Please make sure your jar file name is `app.jar`, this is the name that Web App server will search and execute.
 - Add Application Settings to your Web App
-> Note: Currently we need to make sure the `JAVA_OPTS` contains `-Djava.security.egd=file:/dev/./urandom`, otherwise the Web App might not successfully start up.
 
    ```xml
    <project>
@@ -431,14 +417,14 @@ The following configuration is applicable for below scenario:
    ```
 
 <a name = "web-application-to-deployment-slot"></a>
-## Deploy a web application to web app deployment slot
+## Deploy a web application to Web App deployment slot
 The following configuration is applicable for below scenario:
 
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Linux
-- Using Java 8 and Tomat 8.5
-- Using JAR to deploy **JAR** file to context path `/${project.build.finalName}` in your Web App server
-- Create a deployment slot and copy configuration from parent web app then do the deploy
+- Using Java 8 and Tomcat 8.5
+- Using **WAR** deployment to deploy war file to context path `/${project.build.finalName}` in your Web App server
+- Create a deployment slot and copy configuration from parent Web App then do the deploy
 
 ```xml
 <project>
@@ -446,9 +432,9 @@ The following configuration is applicable for below scenario:
     <build>
         <plugins>
             <plugin>
-                <groupId>@project.groupId@</groupId>
-                <artifactId>@project.artifactId@</artifactId>
-                <version>@project.version@</version>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-webapp-maven-plugin</artifactId>
+                <version>1.3.0</version>
                 <configuration>
                     <authentication>
                         <serverId>azure-auth</serverId>
@@ -467,8 +453,8 @@ The following configuration is applicable for below scenario:
                     <!-- Java Runtime Stack for Web App on Linux-->
                     <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
                     
-                    <!-- Jar Deploy -->
-                    <deploymentType>jar</deploymentType>
+                    <!-- War Deploy -->
+                    <deploymentType>war</deploymentType>
                 </configuration>
             </plugin>
         </plugins>
