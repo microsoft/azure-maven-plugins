@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure.it</groupId>
     <artifactId>linux-jar-slot</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
     <properties>
         <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
@@ -26,16 +26,7 @@
                         <configurationSource>parent</configurationSource>
                     </deploymentSlot>
                     <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
-                    <deploymentType>jar</deploymentType>
-                    <resources>
-                        <resource>
-                            <directory>${project.basedir}</directory>
-                            <targetPath>webapps</targetPath>
-                            <includes>
-                                <include>pom.xml</include>
-                            </includes>
-                        </resource>
-                    </resources>
+                    <deploymentType>war</deploymentType>
                 </configuration>
             </plugin>
         </plugins>

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure.it</groupId>
     <artifactId>windows-war-slot</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
     <properties>
         <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
@@ -26,7 +26,6 @@
                     <region>westus</region>
                     <javaVersion>1.8</javaVersion>
                     <javaWebContainer>tomcat 8.5</javaWebContainer>
-                    <deploymentType>war</deploymentType>
                 </configuration>
             </plugin>
         </plugins>
