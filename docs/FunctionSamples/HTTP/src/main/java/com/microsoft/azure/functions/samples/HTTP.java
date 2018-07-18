@@ -9,9 +9,7 @@ import com.microsoft.azure.functions.*;
  */
 public class HTTP {
     /**
-     * This function will listen at HTTP endpoint "/api/HttpTriggerJava". Two approaches to invoke it using "curl" command in bash:
-     *   1. curl -d "Http Body" {your host}/api/HttpTriggerJava
-     *   2. curl {your host}/api/HttpTriggerJava?name=World
+     * This function will listen at HTTP endpoint "/api/HttpTriggerJava".
      */
     @FunctionName("HttpTriggerJava")
     public HttpResponseMessage<String> httpHandler(
