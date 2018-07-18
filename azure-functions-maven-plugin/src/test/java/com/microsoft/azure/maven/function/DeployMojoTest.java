@@ -7,18 +7,24 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.appservice.AppServicePlan;
+import com.microsoft.azure.management.appservice.AppServicePlans;
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionApps;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
+
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -38,18 +44,25 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.anyMap;
-import static org.mockito.Mockito.isNull;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeployMojoTest extends MojoTestBase {
+    private DeployMojo mojo = null;
+    private DeployMojo mojoSpy = null;
+
+    @Before
+    public void setUp() throws Exception {
+        mojo = getMojoFromPom();
+        mojoSpy = spy(mojo);
+    }
+
     @Test
     public void getConfiguration() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-
         assertEquals("resourceGroupName", mojo.getResourceGroup());
 
         assertEquals("appName", mojo.getAppName());
@@ -59,8 +72,6 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getDeploymentStageDirectory() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
         doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
         assertEquals(Paths.get("target", "azure-functions", "appName").toString(),
                 mojoSpy.getDeploymentStageDirectory());
@@ -68,16 +79,12 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getFunctionApp() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
         doReturn(null).when(mojoSpy).getAzureClient();
         assertNull(mojoSpy.getFunctionApp());
     }
 
     @Test
     public void doExecute() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
         doCallRealMethod().when(mojoSpy).getLog();
         final ArtifactHandler handler = mock(ArtifactHandler.class);
         doReturn(handler).when(mojoSpy).getArtifactHandler();
@@ -97,31 +104,16 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void createFunctionAppIfNotExist() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
         doReturn(null).when(mojoSpy).getFunctionApp();
-        final NewAppServicePlanWithGroup withGroup = mock(NewAppServicePlanWithGroup.class);
-        doReturn(withGroup).when(mojoSpy).defineApp(anyString(), anyString());
-        final WithCreate withCreate = mock(WithCreate.class);
-        doReturn(withCreate).when(mojoSpy).configureResourceGroup(any(NewAppServicePlanWithGroup.class), anyString());
-        doNothing().when(mojoSpy).configurePricingTier(any(WithCreate.class), isNull());
-        doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
+        doNothing().when(mojoSpy).createFunctionApp();
 
         mojoSpy.createOrUpdateFunctionApp();
 
-        verify(mojoSpy, times(2)).getAppName();
-        verify(mojoSpy, times(1)).defineApp(anyString(), anyString());
-        verify(mojoSpy, times(1))
-                .configureResourceGroup(any(NewAppServicePlanWithGroup.class), anyString());
-        verify(mojoSpy, times(1)).configurePricingTier(any(WithCreate.class), isNull());
-        verify(mojoSpy, times(1)).configureAppSettings(any(Consumer.class), anyMap());
-        verify(withCreate, times(1)).create();
+        verify(mojoSpy).createFunctionApp();
     }
 
     @Test
     public void updateFunctionApp() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
         final FunctionApp app = mock(FunctionApp.class);
         final SiteInner siteInner = mock(SiteInner.class);
         doReturn(siteInner).when(app).inner();
@@ -135,29 +127,59 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void defineApp() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
+    public void createFunctionAppWithExistingAppServicePlan() throws Exception {
         final Azure azure = mock(Azure.class);
-        doReturn(azure).when(mojoSpy).getAzureClient();
         final AppServiceManager appServiceManager = mock(AppServiceManager.class);
-        doReturn(appServiceManager).when(azure).appServices();
+        final AppServicePlans appServicePlans = mock(AppServicePlans.class);
         final FunctionApps functionApps = mock(FunctionApps.class);
-        doReturn(functionApps).when(appServiceManager).functionApps();
         final Blank blank = mock(Blank.class);
-        doReturn(blank).when(functionApps).define(anyString());
+        prepareFunctionAppCreation(azure, appServiceManager, appServicePlans, functionApps, blank);
+
+        final AppServicePlan appServicePlan = mock(AppServicePlan.class);
+        doReturn(appServicePlan).when(appServicePlans).getByResourceGroup(anyString(), anyString());
+        final ExistingAppServicePlanWithGroup existingAppServicePlanWithGroup =
+                mock(ExistingAppServicePlanWithGroup.class);
+        doReturn(existingAppServicePlanWithGroup).when(blank).withExistingAppServicePlan(appServicePlan);
+        final WithCreate withCreate = mock(WithCreate.class);
+        doReturn(withCreate).when(existingAppServicePlanWithGroup).withExistingResourceGroup(anyString());
+        doReturn(true).when(mojoSpy).isResourceGroupExist(anyString());
+        doNothing().when(mojoSpy).configureAppSettings(any(), anyMap());
+        doReturn(null).when(withCreate).create();
+
+        mojoSpy.createFunctionApp();
+
+        verify(existingAppServicePlanWithGroup).withExistingResourceGroup(anyString());
+        verify(existingAppServicePlanWithGroup, never()).withNewResourceGroup(anyString());
+        verify(mojoSpy).configureAppSettings(any(), anyMap());
+        verify(withCreate).create();
+    }
+
+    @Test
+    public void createFunctionAppWithNewAppServicePlan() throws Exception {
+        final Azure azure = mock(Azure.class);
+        final AppServiceManager appServiceManager = mock(AppServiceManager.class);
+        final AppServicePlans appServicePlans = mock(AppServicePlans.class);
+        final FunctionApps functionApps = mock(FunctionApps.class);
+        final Blank blank = mock(Blank.class);
+        prepareFunctionAppCreation(azure, appServiceManager, appServicePlans, functionApps, blank);
+
+
         final NewAppServicePlanWithGroup newAppServicePlanWithGroup = mock(NewAppServicePlanWithGroup.class);
         doReturn(newAppServicePlanWithGroup).when(blank).withRegion(anyString());
+        final WithCreate withCreate = mock(WithCreate.class);
+        doReturn(withCreate).when(mojoSpy).configureResourceGroup(any(), anyString());
+        doReturn(PricingTier.STANDARD_S1).when(mojoSpy).getPricingTier();
+        doNothing().when(mojoSpy).configurePricingTier(any(), any());
 
-        final NewAppServicePlanWithGroup ret = mojoSpy.defineApp(anyString(), anyString());
+        mojoSpy.createFunctionApp();
 
-        assertSame(newAppServicePlanWithGroup, ret);
+        verify(mojoSpy).configurePricingTier(any(), any());
+        verify(mojoSpy).configureAppSettings(any(), anyMap());
+        verify(withCreate).create();
     }
 
     @Test
     public void configureExistingResourceGroup() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
         doReturn(true).when(mojoSpy).isResourceGroupExist(anyString());
         final NewAppServicePlanWithGroup newAppServicePlanWithGroup = mock(NewAppServicePlanWithGroup.class);
         final WithCreate withCreate = mock(WithCreate.class);
@@ -170,8 +192,6 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void configureNewResourceGroup() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
         doReturn(false).when(mojoSpy).isResourceGroupExist(anyString());
         final NewAppServicePlanWithGroup newAppServicePlanWithGroup = mock(NewAppServicePlanWithGroup.class);
         final WithCreate withCreate = mock(WithCreate.class);
@@ -184,8 +204,6 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void configurePricingTier() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
         final WithCreate withCreate = mock(WithCreate.class);
         doReturn(withCreate).when(withCreate).withNewAppServicePlan(any(PricingTier.class));
 
@@ -197,7 +215,6 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void configureAppSettings() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
         final WithCreate withCreate = mock(WithCreate.class);
 
         mojo.configureAppSettings(withCreate::withAppSettings, mojo.getAppSettings());
@@ -207,8 +224,6 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getMSDeployArtifactHandler() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-
         final ArtifactHandler handler = mojo.getArtifactHandler();
 
         assertNotNull(handler);
@@ -217,8 +232,6 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getFTPArtifactHandler() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        final DeployMojo mojoSpy = spy(mojo);
         doReturn("ftp").when(mojoSpy).getDeploymentType();
 
         final ArtifactHandler handler = mojoSpy.getArtifactHandler();
@@ -231,5 +244,19 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployMojo mojo = (DeployMojo) getMojoFromPom("/pom.xml", "deploy");
         assertNotNull(mojo);
         return mojo;
+    }
+
+    private void prepareFunctionAppCreation(Azure azure, AppServiceManager appServiceManager,
+                                            AppServicePlans appServicePlans, FunctionApps functionApps,
+                                            Blank blank) throws AzureAuthFailureException {
+        doNothing().when(mojoSpy).info(anyString());
+        doReturn(azure).when(mojoSpy).getAzureClient();
+        doReturn("resGrp").when(mojoSpy).getResourceGroup();
+        doReturn("").when(mojoSpy).getAppServicePlanResourceGroup();
+        doReturn("appServicePlanName").when(mojoSpy).getAppServicePlanName();
+        doReturn(appServiceManager).when(azure).appServices();
+        doReturn(appServicePlans).when(appServiceManager).appServicePlans();
+        doReturn(functionApps).when(appServiceManager).functionApps();
+        doReturn(blank).when(functionApps).define(anyString());
     }
 }

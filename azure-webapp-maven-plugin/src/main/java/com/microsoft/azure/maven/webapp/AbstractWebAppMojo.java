@@ -11,12 +11,12 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.maven.AbstractAzureMojo;
+import com.microsoft.azure.maven.AbstractAppServiceMojo;
+import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
@@ -25,14 +25,13 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.NoSuchElementException;
 
 
 /**
  * Base abstract class for Web App Mojos.
  */
-public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
+public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String JAVA_VERSION_KEY = "javaVersion";
     public static final String JAVA_WEB_CONTAINER_KEY = "javaWebContainer";
     public static final String LINUX_RUNTIME_KEY = "linuxRuntime";
@@ -42,47 +41,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     //region Properties
 
     /**
-     * Resource group of Web App. It will be created if it doesn't exist.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.resourceGroup", required = true)
-    protected String resourceGroup;
-
-    /**
-     * Web App name. It will be created if it doesn't exist.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.appName", required = true)
-    protected String appName;
-
-    /**
-     * Resource group of App Service Plan. It will be created if it doesn't exist.
-     *
-     * @since 1.0.0
-     */
-    @Parameter(property = "webapp.appServicePlanResourceGroup")
-    protected String appServicePlanResourceGroup;
-
-    /**
-     * App Service Plan name. It will be created if it doesn't exist.
-     *
-     * @since 1.0.0
-     */
-    @Parameter(property = "webapp.appServicePlanName")
-    protected String appServicePlanName;
-
-    /**
-     * Web App region, which will only be used to create Web App at the first time.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.region", defaultValue = "westus")
-    protected String region;
-
-    /**
-     * Web App pricing tier, which will only be used to create Web App at the first time.<br/>
+     * App Service pricing tier, which will only be used to create Web App at the first time.<br/>
      * Below is the list of supported pricing tier:
      * <ul>
      *     <li>F1</li>
@@ -97,8 +56,6 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
      *     <li>P2</li>
      *     <li>P3</li>
      * </ul>
-     *
-     * @since 0.1.0
      */
     @Parameter(property = "webapp.pricingTier", defaultValue = "S1")
     protected PricingTierEnum pricingTier;
@@ -171,25 +128,7 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
     protected ContainerSetting containerSettings;
 
     /**
-     * Application settings of Web App, in the form of name-value pairs.
-     * <pre>
-     * {@code
-     * <appSettings>
-     *         <property>
-     *                 <name>setting-name</name>
-     *                 <value>setting-value</value>
-     *         </property>
-     * </appSettings>
-     * }
-     * </pre>
-     *
-     * @since 0.1.0
-     */
-    @Parameter
-    protected Properties appSettings;
-
-    /**
-     * Deployment type to deploy Web App. The plugin contains five deployment types:
+     * Deployment type to deploy Web App. The plugin contains five types now:
      *
      * <ul>
      *      <li>FTP - {@code <resources>} specifies configurations for this kind of deployment.</li>
@@ -316,10 +255,6 @@ public abstract class AbstractWebAppMojo extends AbstractAzureMojo {
 
     public ContainerSetting getContainerSettings() {
         return containerSettings;
-    }
-
-    public Map getAppSettings() {
-        return appSettings;
     }
 
     public DeploymentType getDeploymentType() {
