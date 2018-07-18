@@ -109,7 +109,7 @@ The following configuration is applicable for below scenario:
                   <!-- WAR deployment -->
                   <deploymentType>war</deploymentType>
 
-                  <!-- Specify the war file location, optional if the war file location is: ${project.build.directory}/${project.build.finalName}.war -->
+                  <!-- If <warFIle> is not specified, ${project.build.directory}/${project.build.finalName}.war will be used as default. -->
                   <warFile>custom/absolute/path/deploy.war</warFile>
                   
                   <!-- Application Settings of your Web App -->
