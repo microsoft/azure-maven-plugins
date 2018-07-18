@@ -51,7 +51,7 @@ The following configuration is applicable for below scenario:
                   <javaVersion>1.8</javaVersion>
                   <javaWebContainer>tomcat 8.5</javaWebContainer>
 
-                  <!-- If <warFile> is not specified, ${project.build.directory}/${project.build.finalName}.war will be used as default -->
+                  <!-- If <warFile> is not specified, ${project.build.directory}/${project.build.finalName}.war will be used by default -->
                   <warFile>custom/absolute/path/deploy.war</warFile>
 
                   <!-- Specify context path, optional if you want to deploy to ROOT -->
@@ -108,7 +108,7 @@ The following configuration is applicable for below scenario:
                   <!-- Java Runtime Stack for Web App on Windows-->
                   <javaVersion>1.8</javaVersion>
 
-                  <!-- If <jarFile> is not specified, ${project.build.directory}/${project.build.finalName}.jar will be used as default -->
+                  <!-- If <jarFile> is not specified, ${project.build.directory}/${project.build.finalName}.jar will be used by default -->
                   <jarFile>custom/absolute/path/deploy.jar</jarFile>
                   
                   <!-- Application Settings of your Web App -->
@@ -163,7 +163,7 @@ The following configuration is applicable for below scenario:
                   <!-- Java Runtime Stack for Web App on Linux-->
                   <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
 
-                  <!-- If <warFile> is not specified, ${project.build.directory}/${project.build.finalName}.war will be used as default -->
+                  <!-- If <warFile> is not specified, ${project.build.directory}/${project.build.finalName}.war will be used by default -->
                   <warFile>custom/absolute/path/deploy.war</warFile>
                   
                   <!-- Application Settings of your Web App -->
@@ -221,7 +221,7 @@ The following configuration is applicable for below scenario:
                   <!-- This is to make sure the jar file can be released at the server side -->
                   <stopAppDuringDeployment>true</stopAppDuringDeployment>
                   
-                  <!-- If <jarFile> is not specified, ${project.build.directory}/${project.build.finalName}.jar will be used as default  -->
+                  <!-- If <jarFile> is not specified, ${project.build.directory}/${project.build.finalName}.jar will be used by default  -->
                   <jarFile>custom/absolute/path/deploy.jar</jarFile>
                   
                   <!-- Application Settings of your Web App -->
