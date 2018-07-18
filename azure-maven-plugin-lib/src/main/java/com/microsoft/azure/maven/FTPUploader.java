@@ -21,12 +21,12 @@ import java.nio.file.Paths;
  * Utility class to upload directory to FTP server
  */
 public class FTPUploader {
-    public static final String UPLOAD_START = "Starting uploading files to FTP server: ";
+    public static final String UPLOAD_START = "Uploading files to FTP server: ";
     public static final String UPLOAD_SUCCESS = "Successfully uploaded files to FTP server: ";
     public static final String UPLOAD_FAILURE = "Failed to upload files to FTP server, retrying immediately (%d/%d)";
     public static final String UPLOAD_RETRY_FAILURE = "Failed to upload files to FTP server after %d retries...";
-    public static final String UPLOAD_DIR_START = "Starting uploading directory: %s --> %s";
-    public static final String UPLOAD_DIR_FINISH = "Finished uploading directory: %s --> %s";
+    public static final String UPLOAD_DIR_START = "Uploading directory: %s --> %s";
+    public static final String UPLOAD_DIR_FINISH = "Successfully uploaded directory: %s --> %s";
     public static final String UPLOAD_DIR_FAILURE = "Failed to upload directory: %s --> %s";
     public static final String UPLOAD_DIR = "%s[DIR] %s --> %s";
     public static final String UPLOAD_FILE = "%s[FILE] %s --> %s";

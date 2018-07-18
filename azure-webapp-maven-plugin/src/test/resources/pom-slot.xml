@@ -15,10 +15,10 @@
                     </authentication>
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
-                    <deploymentSlotSetting>
-                        <slotName>slot</slotName>
+                    <deploymentSlot implementation="com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting">
+                        <name>slot</name>
                         <configurationSource>test</configurationSource>
-                    </deploymentSlotSetting>
+                    </deploymentSlot>
                     <region>westeurope</region>
                     <pricingTier>s2</pricingTier>
                     <javaVersion>1.8</javaVersion>
