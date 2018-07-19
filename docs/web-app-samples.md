@@ -2,8 +2,8 @@
 
 #### Table of Content
 * Web App on Windows
-  * [Tomcat WAR deployment](#windows-tomcat-war-deployment)
-  * [Tomcat JAR deployment](#windows-jar-deployment)
+  * [Deploy War File to Tomcat](#windows-tomcat-war-deployment)
+  * [Deploy Executable Far File](#windows-jar-deployment)
 * Web App on Linux
   * [Tomcat with JRE 8](#web-app-on-linux-tomcat)
   * [JRE 8](#web-app-on-linux-jre8)
@@ -12,7 +12,7 @@
   * [Private Docker Hub](#web-app-for-containers-private-docker)
   * [Private Container Registry](#web-app-for-containers-private-registry)
 * [Deploy to Existing App Service Plan](#existing-app-service-plan)
-* [Deploy a web application to Web App deployment slot](#web-application-to-deployment-slot)
+* [Deploy to Web App Deployment Slot](#web-application-to-deployment-slot)
 
 <a name="windows-tomcat-war-deployment"></a>
 ## Web App (on Windows) with Java 8, Tomcat and WAR deployment
@@ -460,7 +460,7 @@ The following configuration is applicable for below scenario:
    ```
 
 <a name = "web-application-to-deployment-slot"></a>
-## Deploy a web application to Web App deployment slot
+## Deploy to Web App Deployment Slot
 The following configuration is applicable for below scenario:
 
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
