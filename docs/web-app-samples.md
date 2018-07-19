@@ -78,7 +78,7 @@ The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Windows
 - Using Java 8
-- Using JAR to deploy **JAR** file to context path: `/${project.build.finalName}` in your Web App server
+- Using JAR to deploy **JAR** file to `/site/wwwroot/` directory in your Web App server
 - Add Application Settings to your Web App
 
    ```xml
@@ -132,7 +132,7 @@ The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Linux
 - Using Java 8 and Tomcat 8.5
-- Using WAR to deploy **WAR** file to ROOT: `/` in your Web App server
+- Using WAR to deploy **WAR** file to ROOT: `/` in Tomcat
   > Note: Currently the **Linux** Web App with Tomcat runtime only supports deploy to ROOT. If you specify <path> in the plugin configurations, it will not take effect.
 - Add Application Settings to your Web App
 
@@ -413,10 +413,12 @@ The following configuration is applicable for below scenario:
 - Web App on Linux
 - Using existing App Service Plan
 - Using Java 8 and Tomcat 8.5
-- Using FTP to deploy **WAR** file to `/site/wwwroot/webapps/` directory in your Web App server
+- Using WAR to deploy **WAR** file to ROOT: `/` in Tomcat
 
    ```xml
    <project>
+      ...
+      <packaging>war</packaging>
       ...
       <build>
          <plugins>
@@ -436,21 +438,6 @@ The following configuration is applicable for below scenario:
                   
                   <!-- Java Runtime Stack for Web App on Linux-->
                   <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
-                  
-                  <!-- FTP deployment -->
-                  <deploymentType>ftp</deploymentType>
-                  <!-- Resources to be deployed to your Web App -->
-                  <resources>
-                     <resource>
-                        <!-- Where your artifacts are stored -->
-                        <directory>${project.basedir}/target</directory>
-                        <!-- Relative path to /site/wwwroot/ -->
-                        <targetPath>webapps</targetPath>
-                        <includes>
-                           <include>*.war</include>
-                        </includes>
-                     </resource>
-                  </resources>
                </configuration>
             </plugin>
             ...
