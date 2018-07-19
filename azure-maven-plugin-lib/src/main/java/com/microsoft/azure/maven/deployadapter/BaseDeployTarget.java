@@ -12,7 +12,7 @@ import com.microsoft.azure.maven.appservice.DeployTargetType;
 
 import java.io.File;
 
-public abstract class BaseDeployTarget implements IDeployTargetAdapter {
+public abstract class BaseDeployTarget {
     protected DeployTargetType type;
     protected WebAppBase baseApp;
 
@@ -21,27 +21,22 @@ public abstract class BaseDeployTarget implements IDeployTargetAdapter {
         this.type = type;
     }
 
-    @Override
     public PublishingProfile getPublishingProfile() {
         return baseApp.getPublishingProfile();
     }
 
-    @Override
     public String getName() {
         return baseApp.name();
     }
 
-    @Override
     public String getType() {
         return type.toString();
     }
 
-    @Override
     public String getDefaultHostName() {
         return baseApp.defaultHostName();
     }
 
-    @Override
     public void postPublish() {
         // do nothing
     }
