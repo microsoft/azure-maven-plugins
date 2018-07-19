@@ -38,7 +38,8 @@ public abstract class BaseDeployTarget {
     }
 
     public void postPublish() {
-        // do nothing
+        // default do nothing
+        // function app need to do syncTriggers() in post publish
     }
 
     public abstract void zipDeploy(File file);

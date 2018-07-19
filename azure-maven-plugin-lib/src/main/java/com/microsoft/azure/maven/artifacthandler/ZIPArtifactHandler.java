@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.artifacthandler;
 
+import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class ZIPArtifactHandler implements IArtifactHandler<BaseDeployTarget> {
+    // not used for now, comment to avoid check style error
 //    protected AbstractAzureMojo mojo;
 //    public ZIPArtifactHandler(final AbstractAzureMojo mojo) {
 //        this.mojo = mojo;
