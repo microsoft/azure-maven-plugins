@@ -18,8 +18,11 @@ and makes it easier for developers to deploy to different kinds of Azure Web App
     - [Web App on Linux](#web-app-on-linux)
     - [Web App for Containers](#web-app-for-containers)
 - [Deployment Type](#deployment-type)
-    - [FTP Deployment](#deploy-via-ftp)
     - [WAR Deployment](#war-deployment)
+    - [JAR Deployment](#jar-deployment)
+    - [NONE Deployment](#none-deployment)
+    - [AUTO Deployment](#auto-deployment)
+    - [FTP Deployment](#ftp-deployment)
 - [Advanced Configurations](#advanced-configurations)
 - [Supported Regions](#supported-regions)
 - [Supported Pricing Tiers](#supported-pricing-tiers)
@@ -40,13 +43,15 @@ Maven | 3.0 or above
     ```xml
     <project>
        ...
+       <packaging>war</packaging>
+       ...
        <build>
           <pluginManagement>
              <plugins>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <!-- check Maven Central for the latest version -->
-                <version>1.1.0</version>
+                <version>1.3.0</version>
              </plugins>
           </pluginManagement>
           <plugins>
@@ -54,17 +59,13 @@ Maven | 3.0 or above
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <configuration>
-                   
-                <!-- Web App information -->
-                <resourceGroup>your-resource-group</resourceGroup>
-                <appName>your-app-name</appName>
-                 
-                 <!-- Java Runtime Stack for Web App on Linux-->
-                <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
-     
-                <!-- WAR deployment -->
-                <deploymentType>war</deploymentType>
-     
+
+                    <!-- Web App information -->
+                    <resourceGroup>your-resource-group</resourceGroup>
+                    <appName>your-app-name</appName>
+
+                    <!-- Java Runtime Stack for Web App on Linux-->
+                    <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
                 </configuration>
              </plugin>
              ...
@@ -81,7 +82,7 @@ Maven | 3.0 or above
 
 <a name="more-samples"></a>
 ## More Samples	
-A few typical usages of Maven Plugin for Azure App Service Web Apps are listed at [Web App Samples](https://github.com/Microsoft/azure-maven-plugins/wiki/Usages-of-Maven-Plugin-for-Azure-App-Service). You can choose one to quickly get started.
+A few typical usages of Maven Plugin for Azure App Service Web Apps are listed at [Web App Samples](../docs/web-app-samples.md). You can choose one to quickly get started.
 
 <a name="goals"></a>
 ## Goals
@@ -212,10 +213,36 @@ Property | Required | Description
 Check out samples at [Web App Samples](../docs/web-app-samples.md) for the configuration settings for different image sources.
 
 
-## Deployment Type 
+## Deployment Type
 
-### Deploy via FTP
-You can deploy your **WAR** file and other artifacts/resources to Web App via FTP. The following example shows all configuration elements.
+### WAR Deployment
+You can deploy your **WAR** file with WAR Deployment by setting the `<deploymentType>` to `war`. The plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.war` and deploy it as the `ROOT` application of your web container. Meanwhile, there are some optional settings that you can configure for it:
+
+Property | Description
+---|---
+`warFile` | Specify the war file location, optional if the war file location is: `${project.build.directory}/${project.build.finalName}.war`
+`path` | Specify context path, optional if you want to deploy to ROOT.
+
+### JAR Deployment
+If the `<deploymentType>` is set to `jar`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.jar` and deploy it to `%HOME%\site\wwwroot\` of your Web App. Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](../docs/web-config.md).
+
+There is one optional setting that you can configure for it:
+
+Property | Description
+---|---
+`jarFile` | Specify the jar file location, optional if the jar file location is: `${project.build.directory}/${project.build.finalName}.jar`
+
+### NONE Deployment
+If you do not want to deploy anything, just simply set the `<deploymentType>` to `NONE`.
+
+### AUTO Deployment
+This is the default deployment type used by the plugin. It will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. If the `<packaging>` is set to `war`, the plugin will use war deployment. If the `<packaging>` is set to `jar`, the plugin will use jar deployment.
+Otherwise, the plugin will skip the deployment, which is the same as `NONE` deployment.
+
+> Note: If you want the plugin to inspect the `<packaging>` field. Just not set `<deploymentType>` in the configuration. The plugin will use `AUTO` deployment as default.
+
+### FTP Deployment
+You can deploy your artifacts/resources to Web App via FTP. The following example shows all configuration elements.
 
 ```xml
 <plugin>
@@ -239,7 +266,7 @@ You can deploy your **WAR** file and other artifacts/resources to Web App via FT
    </configuration>
 </plugin>
 ```
-   
+
 Detailed explanation of the `<resource>` element is listed in the following table.
 
 Property | Description
@@ -248,32 +275,6 @@ Property | Description
 `targetPath` | Specifies the target path where the resources will be deployed to.<br>This is a relative path to the `/site/wwwroot/` folder of FTP server in your Web App.
 `includes` | A list of patterns to include, e.g. `**/*.war`.
 `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
-
-### WAR Deployment 
-You can deploy your **WAR** file with WAR Deployment. The following example shows the configuration elements.
-
-```xml
-<plugin>
-   <groupId>com.microsoft.azure</groupId>
-   <artifactId>azure-webapp-maven-plugin</artifactId>
-   <configuration>
-      <deploymentType>war</deploymentType>
-      
-      <warFile>custom/absolute/path/deploy.war</warFile>
-
-      <path>/${project.build.finalName}</path>
-       
-      ...
-   </configuration>
-</plugin>
-```
-
-Detailed explanation of the WAR deployment configurations are listed in the following table.
-
-Property | Description
----|---
-`warFile` | Specify the war file location, optional if the war file location is: `${project.build.directory}/${project.build.finalName}.war`
-`path` | Specify context path, optional if you want to deploy to ROOT.
 
 ### Deployment Slot
 In the `<deploymentSlot>` element of your `pom.xml` file, you can specify which deployment slot to deploy your Web App.
