@@ -24,15 +24,6 @@
                     <javaVersion>1.8</javaVersion>
                     <javaWebContainer>tomcat 8.5</javaWebContainer>
                     <deploymentType>war</deploymentType>
-                    <resources>
-                        <resource>
-                            <directory>${project.basedir}</directory>
-                            <targetPath>webapps</targetPath>
-                            <includes>
-                                <include>pom.xml</include>
-                            </includes>
-                        </resource>
-                    </resources>
                 </configuration>
             </plugin>
         </plugins>
