@@ -6,11 +6,13 @@
 
 package com.microsoft.azure.maven.deployadapter;
 
+import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 
 import java.io.File;
+import java.util.Map;
 
 public abstract class BaseDeployTarget {
     protected DeployTargetType type;
@@ -40,6 +42,10 @@ public abstract class BaseDeployTarget {
     public void postPublish() {
         // default do nothing
         // function app need to do syncTriggers() in post publish
+    }
+
+    public Map<String, AppSetting> getAppSettings() {
+        return baseApp.getAppSettings();
     }
 
     public abstract void zipDeploy(File file);

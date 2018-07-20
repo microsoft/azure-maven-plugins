@@ -7,10 +7,7 @@
 package com.microsoft.azure.maven.artifacthandler;
 
 import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
-import org.apache.maven.plugin.MojoExecutionException;
-
-import java.io.IOException;
 
 public interface IArtifactHandler <T extends BaseDeployTarget> {
-    void publish(T deployTarget) throws IOException, MojoExecutionException;
+    void publish(T deployTarget) throws Exception;
 }
