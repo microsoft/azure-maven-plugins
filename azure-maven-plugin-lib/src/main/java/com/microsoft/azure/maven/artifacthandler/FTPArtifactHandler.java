@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.artifacthandler;
 
 import com.microsoft.azure.management.appservice.PublishingProfile;
-import com.microsoft.azure.maven.AbstractAzureMojo;
+import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
@@ -24,20 +24,18 @@ public class FTPArtifactHandler implements IArtifactHandler<BaseDeployTarget> {
     private static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
     private static final String WEBAPP_PLUGIN_NAME = "azure-webapp-maven-plugin";
     private static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
-    protected String appName;
     protected List<Resource> resources;
 
-    protected AbstractAzureMojo mojo;
+    protected AbstractAppServiceMojo mojo;
 
-    public FTPArtifactHandler(final AbstractAzureMojo mojo, final String appName, final List<Resource> resources) {
+    public FTPArtifactHandler(final AbstractAppServiceMojo mojo, final List<Resource> resources) {
         this.mojo = mojo;
-        this.appName = appName;
         this.resources = resources;
     }
 
     protected String getDeploymentStageDirectory() {
         final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
-        return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, appName).toString();
+        return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName()).toString();
     }
 
     @Override
@@ -64,7 +62,5 @@ public class FTPArtifactHandler implements IArtifactHandler<BaseDeployTarget> {
             getDeploymentStageDirectory(),
             DEFAULT_WEBAPP_ROOT,
             DEFAULT_MAX_RETRY_TIMES);
-
-        target.postPublish();
     }
 }

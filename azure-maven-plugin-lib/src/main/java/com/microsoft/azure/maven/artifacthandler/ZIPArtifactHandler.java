@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class ZIPArtifactHandler implements IArtifactHandler<BaseDeployTarget> {
-    // not used for now, comment to avoid check style error
+    // todo qisun
 //    protected AbstractAzureMojo mojo;
 //    public ZIPArtifactHandler(final AbstractAzureMojo mojo) {
 //        this.mojo = mojo;

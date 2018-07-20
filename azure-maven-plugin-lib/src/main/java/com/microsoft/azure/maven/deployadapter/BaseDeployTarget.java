@@ -39,11 +39,6 @@ public abstract class BaseDeployTarget {
         return baseApp.defaultHostName();
     }
 
-    public void postPublish() {
-        // default do nothing
-        // function app need to do syncTriggers() in post publish
-    }
-
     public Map<String, AppSetting> getAppSettings() {
         return baseApp.getAppSettings();
     }
