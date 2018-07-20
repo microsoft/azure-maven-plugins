@@ -16,8 +16,6 @@ public class TestUtils {
     private static final String key = System.getenv("KEY");
 
     private static final String loginAzureCli = "az login --service-principal -u %s -p %s --tenant %s";
-    private static final String logoutAzureCli = "az logout";
-    private static final String createResourceGroup = "az group create -n %s --location %s";
     private static final String deleteResourceGroup = "az group delete -y -n %s%s";
 
     private static final String windowsCommand = "cmd /c %s";
@@ -29,19 +27,12 @@ public class TestUtils {
         executeCommand(String.format(loginAzureCli, clientId, key, tenantId));
     }
 
-    private static void azureLogout() throws IOException, InterruptedException {
-        executeCommand(logoutAzureCli);
-    }
-
     public static void deleteAzureResourceGroup(String resourceGroupName, boolean waitForOperationFinish)
             throws InterruptedException, IOException {
-
-        azureLogin();
         executeCommand(
                 String.format(deleteResourceGroup,
                         resourceGroupName,
                         waitForOperationFinish ? "" : " --no-wait"));
-        azureLogout();
     }
 
     private static void executeCommand(final String command) throws IOException, InterruptedException {
