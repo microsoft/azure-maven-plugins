@@ -4,8 +4,10 @@
  * license information.
  */
 
+import com.microsoft.azure.maven.function.utils.TestUtils
+
 // Verify Azure Functions
-def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/HttpTriggerJava?json={\"body\":\"Azure\"}".toURL()
+def url = "https://maven-functions-it-${timestamp}-0.azurewebsites.net/api/HttpTriggerJava?json={\"body\":\"Azure\"}".toURL()
 
 // Functions need some time to warm up
 int i = 0
@@ -25,13 +27,6 @@ if (i >= 5) {
 }
 
 // Clean up resources created in test
-def clientId = System.getenv("CLIENT_ID")
-def tenantId = System.getenv("TENANT_ID")
-def key = System.getenv("KEY")
-def command = """
-    az login --service-principal -u ${clientId}  -p ${key} --tenant ${tenantId}
-    az group delete -y -n maven-functions-it-rg-1 --no-wait
-    az logout
-"""
-def process = ["bash", "-c", command].execute()
-println process.text
+TestUtils.deleteAzureResourceGroup("maven-functions-it-rg-0", false)
+
+return true
