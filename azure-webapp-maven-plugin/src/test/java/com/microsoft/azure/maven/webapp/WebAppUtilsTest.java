@@ -159,13 +159,16 @@ public class WebAppUtilsTest {
         doReturn(true).when(resourceGroupsMock).contain(anyString());
 
         WebAppUtils.defineLinuxApp(mojoMock, planMock);
-        verify(groupMock, times(1)).withExistingResourceGroup(resourceGroup);
-        verify(groupMock, never()).withNewResourceGroup(mojoMock.resourceGroup);
 
+        verify(groupMock, times(1)).withExistingResourceGroup(resourceGroup);
+        verify(groupMock, never()).withNewResourceGroup(resourceGroup);
+
+        reset(groupMock);
         doReturn(false).when(resourceGroupsMock).contain(anyString());
 
         WebAppUtils.defineLinuxApp(mojoMock, planMock);
-        verify(groupMock, never()).withExistingResourceGroup(mojoMock.resourceGroup);
+
+        verify(groupMock, never()).withExistingResourceGroup(resourceGroup);
         verify(groupMock, times(1)).withNewResourceGroup(resourceGroup);
     }
 
@@ -205,13 +208,16 @@ public class WebAppUtilsTest {
         doReturn(true).when(resourceGroupsMock).contain(anyString());
 
         WebAppUtils.defineWindowsApp(mojoMock, planMock);
-        verify(groupMock, times(1)).withExistingResourceGroup(resourceGroup);
-        verify(groupMock, never()).withNewResourceGroup(mojoMock.resourceGroup);
 
+        verify(groupMock, times(1)).withExistingResourceGroup(resourceGroup);
+        verify(groupMock, never()).withNewResourceGroup(resourceGroup);
+
+        reset(groupMock);
         doReturn(false).when(resourceGroupsMock).contain(anyString());
 
         WebAppUtils.defineWindowsApp(mojoMock, planMock);
-        verify(groupMock, never()).withExistingResourceGroup(mojoMock.resourceGroup);
+
+        verify(groupMock, never()).withExistingResourceGroup(resourceGroup);
         verify(groupMock, times(1)).withNewResourceGroup(resourceGroup);
     }
 
