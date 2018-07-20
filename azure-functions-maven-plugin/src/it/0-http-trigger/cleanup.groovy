@@ -7,7 +7,7 @@
 import com.microsoft.azure.maven.function.utils.TestUtils
 
 // Verify Azure Functions
-def url = "https://maven-functions-it-${timestamp}-1.azurewebsites.net/api/HttpTriggerJava?json={\"body\":\"Azure\"}".toURL()
+def url = "https://maven-functions-it-${timestamp}-0.azurewebsites.net/api/HttpTriggerJava?json={\"body\":\"Azure\"}".toURL()
 
 // Functions need some time to warm up
 int i = 0
@@ -27,6 +27,6 @@ if (i >= 5) {
 }
 
 // Clean up resources created in test
-TestUtils.deleteAzureResourceGroup("maven-functions-it-rg-1", false)
+TestUtils.deleteAzureResourceGroup("maven-functions-it-rg-0", false)
 
 return true

@@ -6,6 +6,6 @@
 
 import com.microsoft.azure.maven.function.utils.TestUtils
 
-TestUtils.deleteAzureResourceGroup("maven-functions-it-rg-1", true)
+TestUtils.deleteAzureResourceGroup("maven-functions-it-rg-0", true)
 
 return true
