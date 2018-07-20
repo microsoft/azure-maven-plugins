@@ -4,13 +4,15 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.function.utils;
+package com.microsoft.azure.maven.function.invoker;
 
 import org.codehaus.plexus.util.StringUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
-public class TestUtils {
+public class CommonUtils {
     private static final String clientId = System.getenv("CLIENT_ID");
     private static final String tenantId = System.getenv("TENANT_ID");
     private static final String key = System.getenv("KEY");
@@ -35,10 +37,21 @@ public class TestUtils {
                         waitForOperationFinish ? "" : " --no-wait"));
     }
 
-    private static void executeCommand(final String command) throws IOException, InterruptedException {
+    public static String executeCommand(final String command) throws IOException, InterruptedException {
         if (StringUtils.isNotEmpty(command)) {
             final String wholeCommand = String.format(isWindows ? windowsCommand : nonWindowsCommand, command);
-            Runtime.getRuntime().exec(wholeCommand).waitFor();
+            final Process process = Runtime.getRuntime().exec(wholeCommand);
+            process.waitFor();
+            final BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream())
+            );
+            final StringBuilder builder = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+            }
+            return builder.toString();
         }
+        return "";
     }
 }

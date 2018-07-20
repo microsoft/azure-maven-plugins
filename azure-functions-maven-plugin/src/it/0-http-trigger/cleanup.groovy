@@ -4,7 +4,7 @@
  * license information.
  */
 
-import com.microsoft.azure.maven.function.utils.TestUtils
+import com.microsoft.azure.maven.function.invoker.CommonUtils
 
 // Verify Azure Functions
 def url = "https://maven-functions-it-${timestamp}-0.azurewebsites.net/api/HttpTriggerJava?json={\"body\":\"Azure\"}".toURL()
@@ -17,8 +17,10 @@ while (i < 5) {
         assert response == "Hello, Azure"
         break
     } catch (Exception e) {
+        e.printStackTrace()
+        // ignore warm-up exception and wait for 5 seconds
         i++
-        // ignore warm-up exception
+        sleep(5000)
     }
 }
 
@@ -27,6 +29,6 @@ if (i >= 5) {
 }
 
 // Clean up resources created in test
-TestUtils.deleteAzureResourceGroup("maven-functions-it-rg-0", false)
+CommonUtils.deleteAzureResourceGroup("maven-functions-it-rg-0", false)
 
 return true
