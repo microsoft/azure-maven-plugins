@@ -17,10 +17,6 @@ CommonUtils.runVerification(new Runnable() {
     }
 })
 
-if (i >= 5) {
-    throw new Exception("Integration test fail for Azure Functions http-trigger")
-}
-
 // Clean up resources created in test
 CommonUtils.deleteAzureResourceGroup("maven-functions-it-rg-0", false)
 
