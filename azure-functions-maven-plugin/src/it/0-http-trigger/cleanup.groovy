@@ -9,20 +9,13 @@ import com.microsoft.azure.maven.function.invoker.CommonUtils
 // Verify Azure Functions
 def url = "https://maven-functions-it-${timestamp}-0.azurewebsites.net/api/HttpTriggerJava?json={\"body\":\"Azure\"}".toURL()
 
-// Functions need some time to warm up
-int i = 0
-while (i < 5) {
-    try {
+CommonUtils.runVerification(new Runnable() {
+    @Override
+    void run() {
         def response = url.getText()
         assert response == "Hello, Azure"
-        break
-    } catch (Exception e) {
-        e.printStackTrace()
-        // ignore warm-up exception and wait for 5 seconds
-        i++
-        sleep(5000)
     }
-}
+})
 
 if (i >= 5) {
     throw new Exception("Integration test fail for Azure Functions http-trigger")

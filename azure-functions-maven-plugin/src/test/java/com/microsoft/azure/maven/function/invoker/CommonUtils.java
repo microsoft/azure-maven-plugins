@@ -11,6 +11,7 @@ import org.codehaus.plexus.util.StringUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
 
 public class CommonUtils {
     private static final String clientId = System.getenv("CLIENT_ID");
@@ -22,6 +23,9 @@ public class CommonUtils {
 
     private static final String windowsCommand = "cmd /c %s";
     private static final String nonWindowsCommand = "bash -c %s";
+
+    private static final int RETRY_TIMES = 5;
+    private static final int WAIT_IN_SECOND = 5;
 
     private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
 
@@ -37,6 +41,12 @@ public class CommonUtils {
                         waitForOperationFinish ? "" : " --no-wait"));
     }
 
+    /**
+     * @param command input command
+     * @return output of the process
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public static String executeCommand(final String command) throws IOException, InterruptedException {
         if (StringUtils.isNotEmpty(command)) {
             final String wholeCommand = String.format(isWindows ? windowsCommand : nonWindowsCommand, command);
@@ -46,12 +56,35 @@ public class CommonUtils {
                     new InputStreamReader(process.getInputStream())
             );
             final StringBuilder builder = new StringBuilder();
-            String line = null;
+            String line;
             while ((line = reader.readLine()) != null) {
                 builder.append(line);
             }
             return builder.toString();
         }
         return "";
+    }
+
+    /**
+     * @param verification the Runnable class which contains the verification logic
+     * @throws Exception
+     */
+    public static void runVerification(Runnable verification) throws Exception {
+        int i = 0;
+        while (i < RETRY_TIMES) {
+            try {
+                verification.run();
+                break;
+            } catch (Exception e) {
+                // ignore warm-up exception and wait for 5 seconds
+                e.printStackTrace();
+                i++;
+                TimeUnit.SECONDS.sleep(WAIT_IN_SECOND);
+            }
+        }
+
+        if (i >= RETRY_TIMES) {
+            throw new Exception("Integration test fail for Azure Functions storage-queue-trigger");
+        }
     }
 }
