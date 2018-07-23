@@ -14,21 +14,21 @@ import com.microsoft.azure.maven.appservice.DeployTargetType;
 import java.io.File;
 import java.util.Map;
 
-public abstract class BaseDeployTarget {
+public abstract class BaseDeployTarget <T extends WebAppBase> {
     protected DeployTargetType type;
-    protected WebAppBase baseApp;
+    protected T app;
 
-    public BaseDeployTarget(WebAppBase baseApp, DeployTargetType type) {
-        this.baseApp = baseApp;
+    public BaseDeployTarget(T app, DeployTargetType type) {
+        this.app = app;
         this.type = type;
     }
 
     public PublishingProfile getPublishingProfile() {
-        return baseApp.getPublishingProfile();
+        return app.getPublishingProfile();
     }
 
     public String getName() {
-        return baseApp.name();
+        return app.name();
     }
 
     public String getType() {
@@ -36,11 +36,11 @@ public abstract class BaseDeployTarget {
     }
 
     public String getDefaultHostName() {
-        return baseApp.defaultHostName();
+        return app.defaultHostName();
     }
 
     public Map<String, AppSetting> getAppSettings() {
-        return baseApp.getAppSettings();
+        return app.getAppSettings();
     }
 
     public abstract void zipDeploy(File file);

@@ -6,22 +6,21 @@
 
 package com.microsoft.azure.maven.artifacthandler;
 
-import com.microsoft.azure.maven.AbstractAzureMojo;
+//import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
-import java.io.IOException;
 
-public class ZIPArtifactHandler implements IArtifactHandler<BaseDeployTarget> {
+public class ZIPArtifactHandler implements IArtifactHandler {
     // todo qisun
 //    protected AbstractAzureMojo mojo;
+
 //    public ZIPArtifactHandler(final AbstractAzureMojo mojo) {
 //        this.mojo = mojo;
 //    }
 
     @Override
-    public void publish(BaseDeployTarget target) throws IOException, MojoExecutionException {
+    public void publish(BaseDeployTarget target) {
         target.zipDeploy(getZipFile());
     }
 
