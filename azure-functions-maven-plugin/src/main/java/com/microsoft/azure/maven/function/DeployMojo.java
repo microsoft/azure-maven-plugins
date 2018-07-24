@@ -75,9 +75,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void doExecute() throws Exception {
         info(FUNCTION_DEPLOY_START + getAppName() + "...");
 
-        final FunctionApp app = getFunctionApp();
-        createOrUpdateFunctionApp(app);
-        final FunctionAppDeployTarget deployTarget = new FunctionAppDeployTarget(app);
+        createOrUpdateFunctionApp();
+
+        final FunctionAppDeployTarget deployTarget = new FunctionAppDeployTarget(getFunctionApp());
+
         getArtifactHandler().publish(deployTarget);
 
         info(String.format(FUNCTION_DEPLOY_SUCCESS, getAppName()));
@@ -87,7 +88,8 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //region Create or update Azure Functions
 
-    protected void createOrUpdateFunctionApp(final FunctionApp app) throws Exception {
+    protected void createOrUpdateFunctionApp() throws Exception {
+        final FunctionApp app = getFunctionApp();
         if (app == null) {
             createFunctionApp();
         } else {

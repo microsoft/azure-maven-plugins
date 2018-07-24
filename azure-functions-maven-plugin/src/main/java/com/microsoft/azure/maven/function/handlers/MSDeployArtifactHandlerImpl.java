@@ -82,7 +82,7 @@ public class MSDeployArtifactHandlerImpl implements IArtifactHandler<FunctionApp
         }
     }
 
-    protected File createZipPackage() throws MojoExecutionException {
+    protected File createZipPackage() throws Exception {
         logInfo("");
         logInfo(CREATE_ZIP_START);
 
@@ -92,7 +92,7 @@ public class MSDeployArtifactHandlerImpl implements IArtifactHandler<FunctionApp
 
         if (!stageDirectory.exists()) {
             logError(STAGE_DIR_NOT_FOUND);
-            throw new MojoExecutionException(STAGE_DIR_NOT_FOUND);
+            throw new Exception(STAGE_DIR_NOT_FOUND);
         }
 
         ZipUtil.pack(stageDirectory, zipPackage);
@@ -104,13 +104,12 @@ public class MSDeployArtifactHandlerImpl implements IArtifactHandler<FunctionApp
         return zipPackage;
     }
 
-    protected CloudStorageAccount getCloudStorageAccount(final FunctionAppDeployTarget deployTarget)
-        throws MojoExecutionException, URISyntaxException, InvalidKeyException {
+    protected CloudStorageAccount getCloudStorageAccount(final FunctionAppDeployTarget deployTarget) throws Exception {
         final Map<String, AppSetting> settingMap = deployTarget.getAppSettings();
         if (settingMap == null || settingMap.get(INTERNAL_STORAGE_KEY) == null ||
             StringUtils.isEmpty(settingMap.get(INTERNAL_STORAGE_KEY).value())) {
             logError(INTERNAL_STORAGE_NOT_FOUND);
-            throw new MojoExecutionException(INTERNAL_STORAGE_NOT_FOUND);
+            throw new Exception(INTERNAL_STORAGE_NOT_FOUND);
         }
         final AppSetting internalStorageSetting = settingMap.get(INTERNAL_STORAGE_KEY);
         logDebug(INTERNAL_STORAGE_CONNECTION_STRING + internalStorageSetting.value());
