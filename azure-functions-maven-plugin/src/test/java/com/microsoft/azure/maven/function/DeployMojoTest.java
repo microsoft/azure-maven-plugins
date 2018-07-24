@@ -91,13 +91,13 @@ public class DeployMojoTest extends MojoTestBase {
         final FunctionApp app = mock(FunctionApp.class);
         doReturn(app).when(mojoSpy).getFunctionApp();
         doReturn(handler).when(mojoSpy).getArtifactHandler();
-        doCallRealMethod().when(mojoSpy).createOrUpdateFunctionApp(app);
+        doCallRealMethod().when(mojoSpy).createOrUpdateFunctionApp();
         doCallRealMethod().when(mojoSpy).getAppName();
         final FunctionAppDeployTarget deployTarget = new FunctionAppDeployTarget(app);
         doNothing().when(mojoSpy).updateFunctionApp(app);
 
         mojoSpy.doExecute();
-        verify(mojoSpy, times(1)).createOrUpdateFunctionApp(app);
+        verify(mojoSpy, times(1)).createOrUpdateFunctionApp();
         verify(mojoSpy, times(1)).doExecute();
         verify(mojoSpy, times(1)).updateFunctionApp(any(FunctionApp.class));
         verify(handler, times(1)).publish(refEq(deployTarget));
@@ -109,7 +109,7 @@ public class DeployMojoTest extends MojoTestBase {
         doReturn(null).when(mojoSpy).getFunctionApp();
         doNothing().when(mojoSpy).createFunctionApp();
 
-        mojoSpy.createOrUpdateFunctionApp(null);
+        mojoSpy.createOrUpdateFunctionApp();
 
         verify(mojoSpy).createFunctionApp();
     }
