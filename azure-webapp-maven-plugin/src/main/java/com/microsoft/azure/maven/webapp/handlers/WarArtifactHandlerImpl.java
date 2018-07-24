@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
-import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
@@ -18,7 +18,7 @@ import org.codehaus.plexus.util.StringUtils;
 import java.io.File;
 import java.nio.file.Paths;
 
-public class WarArtifactHandlerImpl implements IArtifactHandler {
+public class WarArtifactHandlerImpl implements ArtifactHandler {
 
     public static final String FILE_IS_NOT_WAR = "The deployment file is not a war typed file.";
     public static final String FIND_WAR_FILE_FAIL = "Failed to find the war file: '%s'";

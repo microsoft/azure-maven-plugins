@@ -13,7 +13,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
@@ -79,7 +79,7 @@ public class DeployMojoTest {
     protected PluginDescriptor plugin;
 
     @Mock
-    protected IArtifactHandler artifactHandler;
+    protected ArtifactHandler artifactHandler;
 
     @Mock
     protected RuntimeHandler runtimeHandler;
@@ -111,7 +111,7 @@ public class DeployMojoTest {
             }
 
             @Override
-            public IArtifactHandler getArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+            public ArtifactHandler getArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
                 return artifactHandler;
             }
 

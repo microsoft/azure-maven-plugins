@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
-import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.commons.io.IOUtils;
@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @since 1.3.0
  */
-public final class JarArtifactHandlerImpl extends FTPArtifactHandler {
+public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";

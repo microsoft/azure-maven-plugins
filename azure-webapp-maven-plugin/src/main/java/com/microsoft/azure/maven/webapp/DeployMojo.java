@@ -101,7 +101,9 @@ public class DeployMojo extends AbstractWebAppMojo {
             }
 
             getLog().info(String.format(DEPLOY_START, target.getType(), target.getName()));
+
             getFactory().getArtifactHandler(this).publish(target);
+
             getLog().info(String.format(DEPLOY_SUCCESS, target.getType(), target.getDefaultHostName()));
         } finally {
             util.afterDeployArtifacts();
