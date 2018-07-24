@@ -41,8 +41,8 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
 
         assureWarFileExisted(war);
 
-        final Runnable runnable = getRealWarDeployRunnable(deployTarget, war, getContextPath());
-        if (runnable == null) {
+        final Runnable warDeployExecutor = getRealWarDeployExecutor(deployTarget, war, getContextPath());
+        if (warDeployExecutor == null) {
             throw new MojoExecutionException(DEPLOY_TARGET_TYPE_UNKNOWN);
         }
         int retryCount = 0;
@@ -50,7 +50,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
         while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
             retryCount++;
             try {
-                runnable.run();
+                warDeployExecutor.run();
                 return;
             } catch (Exception e) {
                 mojo.getLog().warn(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
@@ -84,7 +84,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
         }
     }
 
-    protected Runnable getRealWarDeployRunnable(final BaseDeployTarget target, final File war, final String path) {
+    protected Runnable getRealWarDeployExecutor(final BaseDeployTarget target, final File war, final String path) {
         if (target instanceof WebAppDeployTarget) {
             return new Runnable() {
                 @Override

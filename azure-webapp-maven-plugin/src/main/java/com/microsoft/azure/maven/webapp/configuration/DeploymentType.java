@@ -14,7 +14,6 @@ import com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.io.IOException;
 import java.util.Locale;
 
 /**

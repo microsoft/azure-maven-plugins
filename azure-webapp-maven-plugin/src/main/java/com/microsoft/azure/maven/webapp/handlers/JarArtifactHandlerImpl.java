@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.List;
 
 /**
  * Artifact handler for deploying a JAR, self-contained, Java application (e.g.
