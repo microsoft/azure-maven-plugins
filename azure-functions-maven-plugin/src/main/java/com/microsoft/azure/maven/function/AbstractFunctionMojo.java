@@ -16,8 +16,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.Map;
-import java.util.Properties;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     public static final String AZURE_FUNCTIONS = "azure-functions";

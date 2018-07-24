@@ -19,10 +19,10 @@ import com.microsoft.azure.management.appservice.FunctionApps;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.deploytarget.FunctionAppDeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +37,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertSame;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doNothing;
@@ -86,19 +87,20 @@ public class DeployMojoTest extends MojoTestBase {
     @Test
     public void doExecute() throws Exception {
         doCallRealMethod().when(mojoSpy).getLog();
-        final ArtifactHandler handler = mock(ArtifactHandler.class);
-        doReturn(handler).when(mojoSpy).getArtifactHandler();
-        doCallRealMethod().when(mojoSpy).createOrUpdateFunctionApp();
-        doCallRealMethod().when(mojoSpy).getAppName();
+        final IArtifactHandler handler = mock(IArtifactHandler.class);
         final FunctionApp app = mock(FunctionApp.class);
         doReturn(app).when(mojoSpy).getFunctionApp();
+        doReturn(handler).when(mojoSpy).getArtifactHandler();
+        doCallRealMethod().when(mojoSpy).createOrUpdateFunctionApp(app);
+        doCallRealMethod().when(mojoSpy).getAppName();
+        final FunctionAppDeployTarget deployTarget = new FunctionAppDeployTarget(app);
         doNothing().when(mojoSpy).updateFunctionApp(app);
 
         mojoSpy.doExecute();
-        verify(mojoSpy, times(1)).createOrUpdateFunctionApp();
+        verify(mojoSpy, times(1)).createOrUpdateFunctionApp(app);
         verify(mojoSpy, times(1)).doExecute();
         verify(mojoSpy, times(1)).updateFunctionApp(any(FunctionApp.class));
-        verify(handler, times(1)).publish();
+        verify(handler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(handler);
     }
 
@@ -107,7 +109,7 @@ public class DeployMojoTest extends MojoTestBase {
         doReturn(null).when(mojoSpy).getFunctionApp();
         doNothing().when(mojoSpy).createFunctionApp();
 
-        mojoSpy.createOrUpdateFunctionApp();
+        mojoSpy.createOrUpdateFunctionApp(null);
 
         verify(mojoSpy).createFunctionApp();
     }
@@ -224,7 +226,7 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getMSDeployArtifactHandler() throws Exception {
-        final ArtifactHandler handler = mojo.getArtifactHandler();
+        final IArtifactHandler handler = mojo.getArtifactHandler();
 
         assertNotNull(handler);
         assertTrue(handler instanceof MSDeployArtifactHandlerImpl);
@@ -234,10 +236,10 @@ public class DeployMojoTest extends MojoTestBase {
     public void getFTPArtifactHandler() throws Exception {
         doReturn("ftp").when(mojoSpy).getDeploymentType();
 
-        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
+        final IArtifactHandler handler = mojoSpy.getArtifactHandler();
 
         assertNotNull(handler);
-        assertTrue(handler instanceof FTPArtifactHandlerImpl);
+        assertTrue(handler instanceof FTPArtifactHandler);
     }
 
     private DeployMojo getMojoFromPom() throws Exception {

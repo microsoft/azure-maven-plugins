@@ -6,19 +6,26 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.management.appservice.AppServicePlans;
 import com.microsoft.azure.management.appservice.AppSetting;
-import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
+import com.microsoft.azure.maven.function.deploytarget.FunctionAppDeployTarget;
 import com.microsoft.azure.storage.CloudStorageAccount;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
-public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
+public class MSDeployArtifactHandlerImpl implements IArtifactHandler<FunctionAppDeployTarget> {
     public static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-deployment-packages";
     public static final String ZIP_EXT = ".zip";
     public static final String CREATE_ZIP_START = "Step 1 of 4: Creating ZIP file...";
@@ -45,18 +52,16 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
     }
 
     @Override
-    public void publish() throws Exception {
+    public void publish(FunctionAppDeployTarget deployTarget) throws Exception {
         final File zipPackage = createZipPackage();
 
-        final FunctionApp app = mojo.getFunctionApp();
-
-        final CloudStorageAccount storageAccount = getCloudStorageAccount(app);
+        final CloudStorageAccount storageAccount = getCloudStorageAccount(deployTarget);
 
         final String blobName = getBlobName();
 
         final String packageUri = uploadPackageToAzureStorage(zipPackage, storageAccount, blobName);
 
-        deployWithPackageUri(app, packageUri, () -> deletePackageFromAzureStorage(storageAccount, blobName));
+        deployWithPackageUri(deployTarget, packageUri, () -> deletePackageFromAzureStorage(storageAccount, blobName));
     }
 
     protected void logInfo(final String message) {
@@ -77,7 +82,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
         }
     }
 
-    protected File createZipPackage() throws Exception {
+    protected File createZipPackage() throws MojoExecutionException {
         logInfo("");
         logInfo(CREATE_ZIP_START);
 
@@ -87,7 +92,7 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
 
         if (!stageDirectory.exists()) {
             logError(STAGE_DIR_NOT_FOUND);
-            throw new Exception(STAGE_DIR_NOT_FOUND);
+            throw new MojoExecutionException(STAGE_DIR_NOT_FOUND);
         }
 
         ZipUtil.pack(stageDirectory, zipPackage);
@@ -99,12 +104,15 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
         return zipPackage;
     }
 
-    protected CloudStorageAccount getCloudStorageAccount(final FunctionApp app) throws Exception {
-        final AppSetting internalStorageSetting = app.getAppSettings().get(INTERNAL_STORAGE_KEY);
-        if (internalStorageSetting == null || StringUtils.isEmpty(internalStorageSetting.value())) {
+    protected CloudStorageAccount getCloudStorageAccount(final FunctionAppDeployTarget deployTarget)
+        throws MojoExecutionException, URISyntaxException, InvalidKeyException {
+        final Map<String, AppSetting> settingMap = deployTarget.getAppSettings();
+        if (settingMap == null || settingMap.get(INTERNAL_STORAGE_KEY) == null ||
+            StringUtils.isEmpty(settingMap.get(INTERNAL_STORAGE_KEY).value())) {
             logError(INTERNAL_STORAGE_NOT_FOUND);
-            throw new Exception(INTERNAL_STORAGE_NOT_FOUND);
+            throw new MojoExecutionException(INTERNAL_STORAGE_NOT_FOUND);
         }
+        final AppSetting internalStorageSetting = settingMap.get(INTERNAL_STORAGE_KEY);
         logDebug(INTERNAL_STORAGE_CONNECTION_STRING + internalStorageSetting.value());
         return CloudStorageAccount.parse(internalStorageSetting.value());
     }
@@ -125,14 +133,12 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
         return packageUri;
     }
 
-    protected void deployWithPackageUri(final FunctionApp app, final String packageUri, Runnable onDeployFinish) {
+    protected void deployWithPackageUri(final FunctionAppDeployTarget deployTarget,
+                                        final String packageUri, Runnable onDeployFinish) {
         try {
             logInfo("");
             logInfo(DEPLOY_PACKAGE_START);
-            app.deploy()
-                    .withPackageUri(packageUri)
-                    .withExistingDeploymentsDeleted(false)
-                    .execute();
+            deployTarget.deploy(packageUri, false);
             logInfo(DEPLOY_PACKAGE_DONE);
         } finally {
             onDeployFinish.run();
@@ -141,7 +147,6 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
 
     protected void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName) {
         try {
-            logInfo("");
             logInfo(DELETE_PACKAGE_START);
             AzureStorageHelper.deleteBlob(storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);
             logInfo(DELETE_PACKAGE_DONE + blobName);

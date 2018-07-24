@@ -14,8 +14,9 @@ import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
+import com.microsoft.azure.maven.function.deploytarget.FunctionAppDeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -74,9 +75,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void doExecute() throws Exception {
         info(FUNCTION_DEPLOY_START + getAppName() + "...");
 
-        createOrUpdateFunctionApp();
-
-        getArtifactHandler().publish();
+        final FunctionApp app = getFunctionApp();
+        createOrUpdateFunctionApp(app);
+        final FunctionAppDeployTarget deployTarget = new FunctionAppDeployTarget(app);
+        getArtifactHandler().publish(deployTarget);
 
         info(String.format(FUNCTION_DEPLOY_SUCCESS, getAppName()));
     }
@@ -85,8 +87,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //region Create or update Azure Functions
 
-    protected void createOrUpdateFunctionApp() throws Exception {
-        final FunctionApp app = getFunctionApp();
+    protected void createOrUpdateFunctionApp(final FunctionApp app) throws Exception {
         if (app == null) {
             createFunctionApp();
         } else {
@@ -158,10 +159,10 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //endregion
 
-    protected ArtifactHandler getArtifactHandler() {
+    protected IArtifactHandler getArtifactHandler() {
         switch (getDeploymentType().toLowerCase(Locale.ENGLISH)) {
             case FTP:
-                return new FTPArtifactHandlerImpl(this);
+                return new FTPArtifactHandler(this, null);
             case MS_DEPLOY:
             default:
                 return new MSDeployArtifactHandlerImpl(this);
