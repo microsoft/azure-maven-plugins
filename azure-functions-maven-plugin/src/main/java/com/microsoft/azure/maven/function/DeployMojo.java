@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.Resource;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
@@ -14,8 +15,9 @@ import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
+import com.microsoft.azure.maven.function.deploytarget.FunctionAppDeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -23,6 +25,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -76,7 +82,9 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         createOrUpdateFunctionApp();
 
-        getArtifactHandler().publish();
+        final FunctionAppDeployTarget deployTarget = new FunctionAppDeployTarget(getFunctionApp());
+
+        getArtifactHandler().publish(deployTarget);
 
         info(String.format(FUNCTION_DEPLOY_SUCCESS, getAppName()));
     }
@@ -158,10 +166,11 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //endregion
 
-    protected ArtifactHandler getArtifactHandler() {
+    protected IArtifactHandler getArtifactHandler() {
         switch (getDeploymentType().toLowerCase(Locale.ENGLISH)) {
             case FTP:
-                return new FTPArtifactHandlerImpl(this);
+                // function app does not need to copy resources to stage directory during publish, pass in empty list
+                return new FTPArtifactHandler(this, Collections.EMPTY_LIST);
             case MS_DEPLOY:
             default:
                 return new MSDeployArtifactHandlerImpl(this);
