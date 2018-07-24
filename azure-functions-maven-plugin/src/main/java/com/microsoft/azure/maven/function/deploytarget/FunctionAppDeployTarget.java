@@ -17,7 +17,7 @@ public class FunctionAppDeployTarget extends BaseDeployTarget<FunctionApp> {
         super(app, DeployTargetType.FUNCTION);
     }
 
-    public void deploy(final String packageUri,
+    public void msDeploy(final String packageUri,
                        final boolean deleteExistingDeploymentSlot) {
         app.deploy()
             .withPackageUri(packageUri)

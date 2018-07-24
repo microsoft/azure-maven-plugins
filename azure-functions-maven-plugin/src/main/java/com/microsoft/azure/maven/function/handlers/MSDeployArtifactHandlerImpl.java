@@ -13,6 +13,7 @@ import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
 import com.microsoft.azure.maven.function.deploytarget.FunctionAppDeployTarget;
 import com.microsoft.azure.storage.CloudStorageAccount;
+import com.sun.org.apache.bcel.internal.generic.INEG;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
@@ -105,15 +106,20 @@ public class MSDeployArtifactHandlerImpl implements IArtifactHandler<FunctionApp
     }
 
     protected CloudStorageAccount getCloudStorageAccount(final FunctionAppDeployTarget deployTarget) throws Exception {
-        final Map<String, AppSetting> settingMap = deployTarget.getAppSettings();
-        if (settingMap == null || settingMap.get(INTERNAL_STORAGE_KEY) == null ||
-            StringUtils.isEmpty(settingMap.get(INTERNAL_STORAGE_KEY).value())) {
-            logError(INTERNAL_STORAGE_NOT_FOUND);
-            throw new Exception(INTERNAL_STORAGE_NOT_FOUND);
+        final Map<String, AppSetting> settingsMap = deployTarget.getAppSettings();
+
+        if (settingsMap != null) {
+            final AppSetting setting = settingsMap.get(INTERNAL_STORAGE_KEY);
+            if (setting != null) {
+                final String value = setting.value();
+                if (StringUtils.isNotEmpty(value)) {
+                    logDebug(INTERNAL_STORAGE_CONNECTION_STRING + value);
+                    return CloudStorageAccount.parse(value);
+                }
+            }
         }
-        final AppSetting internalStorageSetting = settingMap.get(INTERNAL_STORAGE_KEY);
-        logDebug(INTERNAL_STORAGE_CONNECTION_STRING + internalStorageSetting.value());
-        return CloudStorageAccount.parse(internalStorageSetting.value());
+        logError(INTERNAL_STORAGE_NOT_FOUND);
+        throw new Exception(INTERNAL_STORAGE_NOT_FOUND);
     }
 
     protected String getBlobName() {
@@ -124,7 +130,6 @@ public class MSDeployArtifactHandlerImpl implements IArtifactHandler<FunctionApp
 
     protected String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
                                                  final String blobName) throws Exception {
-        logInfo("");
         logInfo(UPLOAD_PACKAGE_START);
         final String packageUri = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, blobName);
@@ -137,7 +142,7 @@ public class MSDeployArtifactHandlerImpl implements IArtifactHandler<FunctionApp
         try {
             logInfo("");
             logInfo(DEPLOY_PACKAGE_START);
-            deployTarget.deploy(packageUri, false);
+            deployTarget.msDeploy(packageUri, false);
             logInfo(DEPLOY_PACKAGE_DONE);
         } finally {
             onDeployFinish.run();

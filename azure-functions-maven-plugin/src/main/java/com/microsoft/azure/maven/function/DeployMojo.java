@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.Resource;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
@@ -24,6 +25,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -164,7 +169,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected IArtifactHandler getArtifactHandler() {
         switch (getDeploymentType().toLowerCase(Locale.ENGLISH)) {
             case FTP:
-                return new FTPArtifactHandler(this, null);
+                // function app does not need to copy resources to stage directory during publish, pass in empty list
+                return new FTPArtifactHandler(this, Collections.EMPTY_LIST);
             case MS_DEPLOY:
             default:
                 return new MSDeployArtifactHandlerImpl(this);

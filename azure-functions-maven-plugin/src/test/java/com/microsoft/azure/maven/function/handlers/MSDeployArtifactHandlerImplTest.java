@@ -180,12 +180,12 @@ public class MSDeployArtifactHandlerImplTest {
         doReturn(withExecute).when(withPackageUri).withPackageUri(anyString());
         doReturn(withExecute).when(withExecute).withExistingDeploymentsDeleted(false);
         final Runnable runnable = mock(Runnable.class);
-        doNothing().when(deployTarget).deploy("uri", false);
+        doNothing().when(deployTarget).msDeploy("uri", false);
         handlerSpy.deployWithPackageUri(deployTarget, "uri", runnable);
 
         verify(handlerSpy, times(1)).deployWithPackageUri(deployTarget, "uri", runnable);
         verify(runnable, times(1)).run();
-        verify(deployTarget, times(1)).deploy("uri", false);
+        verify(deployTarget, times(1)).msDeploy("uri", false);
     }
 
     @Test
