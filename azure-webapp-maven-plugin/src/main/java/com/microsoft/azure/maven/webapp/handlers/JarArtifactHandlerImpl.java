@@ -7,10 +7,12 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandler;
+import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
@@ -18,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * Artifact handler for deploying a JAR, self-contained, Java application (e.g.
@@ -25,7 +28,7 @@ import java.nio.file.Paths;
  *
  * @since 1.3.0
  */
-public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
+public final class JarArtifactHandlerImpl extends FTPArtifactHandler {
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";
@@ -40,25 +43,31 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
     public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
     public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
 
-    public JarArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
-        super(mojo);
+    private boolean isLinuxRuntime;
+    private String jarFilePath;
+
+    public JarArtifactHandlerImpl(final AbstractWebAppMojo mojo, final List<Resource> resources,
+                                  final String jarFilePath, final boolean isLinuxRuntime) {
+        super(mojo, resources);
+        this.isLinuxRuntime = isLinuxRuntime;
+        this.jarFilePath = jarFilePath;
     }
 
     @Override
-    public void publish(IDeployTargetAdapter deployTarget) throws Exception {
-        final File jar = getJarFile();
+    public void publish(BaseDeployTarget deployTarget) throws IOException, MojoExecutionException {
+        final File jar = getJarFile(jarFilePath);
         assureJarFileExisted(jar);
 
         prepareDeploymentFiles(jar);
 
-        uploadDirectoryToFTP(deployTarget);
+        super.publish(deployTarget);
     }
 
     protected void prepareDeploymentFiles(File jar) throws IOException {
-        final File parent = new File(mojo.getDeploymentStageDirectory());
+        final File parent = new File(getDeploymentStageDirectory());
         parent.mkdirs();
 
-        if (StringUtils.isNotEmpty(mojo.getLinuxRuntime())) {
+        if (isLinuxRuntime) {
             Files.copy(jar, new File(parent, DEFAULT_LINUX_JAR_NAME));
         } else {
             Files.copy(jar, new File(parent, jar.getName()));
@@ -79,7 +88,7 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         final String webConfigFile = templateContent
                 .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
 
-        final File webConfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
+        final File webConfig = new File(getDeploymentStageDirectory(), "web.config");
         webConfig.createNewFile();
 
         try (final FileOutputStream fos = new FileOutputStream(webConfig)) {
@@ -90,8 +99,8 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         }
     }
 
-    protected File getJarFile() {
-        return StringUtils.isNotEmpty(mojo.getJarFile()) ? new File(mojo.getJarFile())
+    protected File getJarFile(final String jarFilePath) {
+        return StringUtils.isNotEmpty(jarFilePath) ? new File(jarFilePath)
                 : new File(Paths
                 .get(mojo.getBuildDirectoryAbsolutePath(), mojo.getProject().getBuild().getFinalName() + ".jar")
                 .toString());

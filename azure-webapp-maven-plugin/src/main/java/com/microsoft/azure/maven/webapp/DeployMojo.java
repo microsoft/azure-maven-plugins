@@ -11,9 +11,9 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
-import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
+import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
+import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -88,29 +88,24 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void deployArtifacts() throws Exception {
         try {
             util.beforeDeployArtifacts();
-            final IDeployTargetAdapter target = getDeployTarget();
+            final WebApp app = getWebApp();
+            BaseDeployTarget target = new WebAppDeployTarget(app);
+
+            if (this.isDeployToDeploymentSlot()) {
+                final String slotName = getDeploymentSlotSetting().getName();
+                final DeploymentSlot slot = getDeploymentSlot(app, slotName);
+                if (slot == null) {
+                    throw new MojoExecutionException(SLOT_SHOULD_EXIST_NOW);
+                }
+                target = new DeploymentSlotDeployTarget(slot);
+            }
 
             getLog().info(String.format(DEPLOY_START, target.getType(), target.getName()));
-
             getFactory().getArtifactHandler(this).publish(target);
-
             getLog().info(String.format(DEPLOY_SUCCESS, target.getType(), target.getDefaultHostName()));
         } finally {
             util.afterDeployArtifacts();
         }
-    }
-
-    protected IDeployTargetAdapter getDeployTarget() throws AzureAuthFailureException, MojoExecutionException {
-        final WebApp app = getWebApp();
-        if (this.isDeployToDeploymentSlot()) {
-            final String slotName = getDeploymentSlotSetting().getName();
-            final DeploymentSlot slot = getDeploymentSlot(app, slotName);
-            if (slot == null) {
-                throw new MojoExecutionException(SLOT_SHOULD_EXIST_NOW);
-            }
-            return new DeploymentSlotAdapter(slot);
-        }
-        return new WebAppAdapter(app);
     }
 
     protected HandlerFactory getFactory() {

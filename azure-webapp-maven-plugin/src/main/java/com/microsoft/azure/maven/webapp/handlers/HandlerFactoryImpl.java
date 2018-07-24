@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
@@ -65,7 +66,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
     }
 
     @Override
-    public ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+    public IArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
         return mojo.getDeploymentType().getArtifactHandlerFromMojo(mojo);
     }
 

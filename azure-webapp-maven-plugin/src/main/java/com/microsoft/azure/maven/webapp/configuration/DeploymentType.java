@@ -5,15 +5,16 @@
  */
 package com.microsoft.azure.maven.webapp.configuration;
 
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
+import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
-import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.webapp.handlers.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.io.IOException;
 import java.util.Locale;
 
 /**
@@ -43,7 +44,7 @@ public enum DeploymentType {
      * @param mojo for the Maven project
      * @return an ArtifactHandler mapped to the deployment type identified
      */
-    public ArtifactHandler getArtifactHandlerFromMojo(AbstractWebAppMojo mojo) throws MojoExecutionException {
+    public IArtifactHandler getArtifactHandlerFromMojo(AbstractWebAppMojo mojo) throws MojoExecutionException {
         return handler.apply(mojo);
     }
 
@@ -70,31 +71,32 @@ public enum DeploymentType {
 
     // TODO: Change to lambda once on Java 8+
     interface Handler {
-        ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException;
+        IArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException;
     }
 
-    private static class NONEArtifactHandlerImplementation implements ArtifactHandler {
+    private static class NONEArtifactHandlerImplementation implements IArtifactHandler {
         @Override
-        public void publish(IDeployTargetAdapter deployTarget) {
+        public void publish(BaseDeployTarget deployTarget) throws IOException, MojoExecutionException {
             // does nothing
         }
     }
 
     static class NONEHandler implements Handler {
-        public ArtifactHandler apply(AbstractWebAppMojo m)  {
+        public IArtifactHandler apply(AbstractWebAppMojo m)  {
             return new NONEArtifactHandlerImplementation();
         }
     }
 
     static class AUTOHandler implements Handler {
-        public ArtifactHandler apply(AbstractWebAppMojo m) {
+        public IArtifactHandler apply(AbstractWebAppMojo m) {
             String packaging = m.getProject().getPackaging();
             packaging = packaging != null ? packaging.toLowerCase(Locale.ENGLISH) : "";
             switch (packaging.trim()) {
                 case "war":
                     return new WarArtifactHandlerImpl(m);
                 case "jar":
-                    return new JarArtifactHandlerImpl(m);
+                    return new JarArtifactHandlerImpl(m, m.getResources(),
+                        m.getJarFile(), StringUtils.isNotEmpty(m.getLinuxRuntime()));
                 default:
                     return new NONEArtifactHandlerImplementation();
             }
@@ -102,25 +104,26 @@ public enum DeploymentType {
     }
 
     static class FTPHandler implements Handler {
-        public ArtifactHandler apply(AbstractWebAppMojo m) {
-            return new FTPArtifactHandlerImpl(m);
+        public IArtifactHandler apply(AbstractWebAppMojo m) {
+            return new FTPArtifactHandler(m, m.getResources());
         }
     }
 
     static class WARHandler implements Handler {
-        public ArtifactHandler apply(AbstractWebAppMojo m) {
+        public IArtifactHandler apply(AbstractWebAppMojo m) {
             return new WarArtifactHandlerImpl(m);
         }
     }
 
     static class JARHandler implements Handler {
-        public ArtifactHandler apply(AbstractWebAppMojo m) {
-            return new JarArtifactHandlerImpl(m);
+        public IArtifactHandler apply(AbstractWebAppMojo m) {
+            return new JarArtifactHandlerImpl(m, m.getResources(),
+                m.getJarFile(), StringUtils.isNotEmpty(m.getLinuxRuntime()));
         }
     }
 
     static class UNKNOWNHandler implements Handler {
-        public ArtifactHandler apply(AbstractWebAppMojo m) {
+        public IArtifactHandler apply(AbstractWebAppMojo m) {
             throw new RuntimeException("Unknown deployment type.");
         }
     }

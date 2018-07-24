@@ -7,15 +7,20 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
+import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
+import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
+import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
+import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.nio.file.Paths;
 
-public class WarArtifactHandlerImpl implements ArtifactHandler  {
+public class WarArtifactHandlerImpl implements IArtifactHandler {
 
     public static final String FILE_IS_NOT_WAR = "The deployment file is not a war typed file.";
     public static final String FIND_WAR_FILE_FAIL = "Failed to find the war file: '%s'";
@@ -31,7 +36,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
     }
 
     @Override
-    public void publish(IDeployTargetAdapter deployTarget) throws MojoExecutionException {
+    public void publish(BaseDeployTarget deployTarget) throws MojoExecutionException {
         final File war = getWarFile();
 
         assureWarFileExisted(war);
@@ -43,7 +48,11 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
         while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
             retryCount++;
             try {
-                deployTarget.warDeploy(war, path);
+                if (deployTarget instanceof WebAppDeployTarget) {
+                    ((WebAppDeployTarget) deployTarget).warDeploy(war, path);
+                } else if (deployTarget instanceof DeploymentSlotDeployTarget) {
+                    ((DeploymentSlotDeployTarget) deployTarget).warDeploy(war, path);
+                }
                 return;
             } catch (Exception e) {
                 mojo.getLog().warn(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));

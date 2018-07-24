@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -20,7 +21,7 @@ public abstract class HandlerFactory {
 
     public abstract SettingsHandler getSettingsHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException;
 
-    public abstract ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException;
+    public abstract IArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException;
 
     public abstract DeploymentSlotHandler getDeploymentSlotHandler(final AbstractWebAppMojo mojo)
             throws MojoExecutionException;
