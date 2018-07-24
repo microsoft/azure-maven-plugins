@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 
-public class FTPArtifactHandler implements IArtifactHandler {
+public class FTPArtifactHandlerImpl implements ArtifactHandler {
     private static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
     private static final int DEFAULT_MAX_RETRY_TIMES = 3;
     private static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
@@ -28,7 +28,7 @@ public class FTPArtifactHandler implements IArtifactHandler {
 
     protected AbstractAppServiceMojo mojo;
 
-    public FTPArtifactHandler(final AbstractAppServiceMojo mojo, final List<Resource> resources) {
+    public FTPArtifactHandlerImpl(final AbstractAppServiceMojo mojo, final List<Resource> resources) {
         this.mojo = mojo;
         this.resources = resources;
     }

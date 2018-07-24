@@ -11,7 +11,7 @@ import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 
 import java.io.File;
 
-public class ZIPArtifactHandler implements IArtifactHandler {
+public class ZIPArtifactHandler implements ArtifactHandler {
     // todo qisun
 //    protected AbstractAzureMojo mojo;
 

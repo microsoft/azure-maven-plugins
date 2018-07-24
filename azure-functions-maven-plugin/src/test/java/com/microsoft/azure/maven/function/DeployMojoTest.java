@@ -19,10 +19,10 @@ import com.microsoft.azure.management.appservice.FunctionApps;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.deploytarget.FunctionAppDeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +37,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertSame;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doNothing;
@@ -87,18 +88,19 @@ public class DeployMojoTest extends MojoTestBase {
     public void doExecute() throws Exception {
         doCallRealMethod().when(mojoSpy).getLog();
         final ArtifactHandler handler = mock(ArtifactHandler.class);
+        final FunctionApp app = mock(FunctionApp.class);
+        doReturn(app).when(mojoSpy).getFunctionApp();
         doReturn(handler).when(mojoSpy).getArtifactHandler();
         doCallRealMethod().when(mojoSpy).createOrUpdateFunctionApp();
         doCallRealMethod().when(mojoSpy).getAppName();
-        final FunctionApp app = mock(FunctionApp.class);
-        doReturn(app).when(mojoSpy).getFunctionApp();
+        final FunctionAppDeployTarget deployTarget = new FunctionAppDeployTarget(app);
         doNothing().when(mojoSpy).updateFunctionApp(app);
 
         mojoSpy.doExecute();
         verify(mojoSpy, times(1)).createOrUpdateFunctionApp();
         verify(mojoSpy, times(1)).doExecute();
         verify(mojoSpy, times(1)).updateFunctionApp(any(FunctionApp.class));
-        verify(handler, times(1)).publish();
+        verify(handler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(handler);
     }
 

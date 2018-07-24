@@ -14,8 +14,9 @@ import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.deploytarget.FunctionAppDeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -23,6 +24,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -76,7 +78,9 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         createOrUpdateFunctionApp();
 
-        getArtifactHandler().publish();
+        final FunctionAppDeployTarget deployTarget = new FunctionAppDeployTarget(getFunctionApp());
+
+        getArtifactHandler().publish(deployTarget);
 
         info(String.format(FUNCTION_DEPLOY_SUCCESS, getAppName()));
     }
@@ -161,7 +165,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected ArtifactHandler getArtifactHandler() {
         switch (getDeploymentType().toLowerCase(Locale.ENGLISH)) {
             case FTP:
-                return new FTPArtifactHandlerImpl(this);
+                // function app does not need to copy resources to stage directory during publish, pass in empty list
+                return new FTPArtifactHandlerImpl(this, Collections.EMPTY_LIST);
             case MS_DEPLOY:
             default:
                 return new MSDeployArtifactHandlerImpl(this);
