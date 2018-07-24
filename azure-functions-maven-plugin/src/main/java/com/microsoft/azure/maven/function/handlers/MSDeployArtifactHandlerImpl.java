@@ -6,27 +6,21 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
-import com.microsoft.azure.management.appservice.AppServicePlans;
 import com.microsoft.azure.management.appservice.AppSetting;
-import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
 import com.microsoft.azure.maven.function.deploytarget.FunctionAppDeployTarget;
 import com.microsoft.azure.storage.CloudStorageAccount;
-import com.sun.org.apache.bcel.internal.generic.INEG;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
-public class MSDeployArtifactHandlerImpl implements IArtifactHandler<FunctionAppDeployTarget> {
+public class MSDeployArtifactHandlerImpl implements ArtifactHandler<FunctionAppDeployTarget> {
     public static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-deployment-packages";
     public static final String ZIP_EXT = ".zip";
     public static final String CREATE_ZIP_START = "Step 1 of 4: Creating ZIP file...";
