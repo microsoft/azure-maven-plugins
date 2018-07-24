@@ -84,7 +84,6 @@ public class WarArtifactHandlerImpl implements IArtifactHandler {
         }
     }
 
-    @SuppressWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
     protected Runnable getRealWarDeployRunnable(final BaseDeployTarget target, final File war, final String path) {
         if (target instanceof WebAppDeployTarget) {
             return new Runnable() {
