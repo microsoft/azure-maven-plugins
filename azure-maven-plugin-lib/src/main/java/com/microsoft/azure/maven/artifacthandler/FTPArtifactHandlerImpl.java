@@ -28,8 +28,9 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
 
     protected T mojo;
 
-    public FTPArtifactHandlerImpl(final T mojo) {
+    public FTPArtifactHandlerImpl(final T mojo, final List<Resource> resources) {
         this.mojo = mojo;
+        this.resources = resources;
     }
 
     protected String getDeploymentStageDirectory() {
