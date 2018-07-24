@@ -19,8 +19,8 @@ import com.microsoft.azure.management.appservice.FunctionApps;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandler;
-import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.function.deploytarget.FunctionAppDeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
@@ -87,7 +87,7 @@ public class DeployMojoTest extends MojoTestBase {
     @Test
     public void doExecute() throws Exception {
         doCallRealMethod().when(mojoSpy).getLog();
-        final IArtifactHandler handler = mock(IArtifactHandler.class);
+        final ArtifactHandler handler = mock(ArtifactHandler.class);
         final FunctionApp app = mock(FunctionApp.class);
         doReturn(app).when(mojoSpy).getFunctionApp();
         doReturn(handler).when(mojoSpy).getArtifactHandler();
@@ -226,7 +226,7 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getMSDeployArtifactHandler() throws Exception {
-        final IArtifactHandler handler = mojo.getArtifactHandler();
+        final ArtifactHandler handler = mojo.getArtifactHandler();
 
         assertNotNull(handler);
         assertTrue(handler instanceof MSDeployArtifactHandlerImpl);
@@ -236,10 +236,10 @@ public class DeployMojoTest extends MojoTestBase {
     public void getFTPArtifactHandler() throws Exception {
         doReturn("ftp").when(mojoSpy).getDeploymentType();
 
-        final IArtifactHandler handler = mojoSpy.getArtifactHandler();
+        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
         assertNotNull(handler);
-        assertTrue(handler instanceof FTPArtifactHandler);
+        assertTrue(handler instanceof FTPArtifactHandlerImpl);
     }
 
     private DeployMojo getMojoFromPom() throws Exception {
