@@ -95,8 +95,7 @@ public enum DeploymentType {
                 case "war":
                     return new WarArtifactHandlerImpl(m);
                 case "jar":
-                    return new JarArtifactHandlerImpl(m, m.getResources(),
-                        m.getJarFile(), StringUtils.isNotEmpty(m.getLinuxRuntime()));
+                    return new JarArtifactHandlerImpl(m, m.getResources());
                 default:
                     return new NONEArtifactHandlerImplementation();
             }
@@ -117,8 +116,7 @@ public enum DeploymentType {
 
     static class JARHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) {
-            return new JarArtifactHandlerImpl(m, m.getResources(),
-                m.getJarFile(), StringUtils.isNotEmpty(m.getLinuxRuntime()));
+            return new JarArtifactHandlerImpl(m, m.getResources());
         }
     }
 

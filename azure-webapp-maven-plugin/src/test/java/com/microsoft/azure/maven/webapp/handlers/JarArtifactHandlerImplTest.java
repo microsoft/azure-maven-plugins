@@ -44,8 +44,7 @@ public class JarArtifactHandlerImplTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        handler = new JarArtifactHandlerImpl(mojo, mojo.getResources(),
-            mojo.getJarFile(), StringUtils.isNotEmpty(mojo.getLinuxRuntime()));
+        handler = new JarArtifactHandlerImpl(mojo, mojo.getResources());
         handlerSpy = spy(handler);
     }
 
@@ -81,15 +80,17 @@ public class JarArtifactHandlerImplTest {
 
     @Test
     public void getJarFile() {
-        assertEquals("test.jar", handlerSpy.getJarFile("test.jar").getName());
+        doReturn("test.jar").when(mojo).getJarFile();
+        assertEquals("test.jar", handlerSpy.getJarFile().getName());
 
+        doReturn("").when(mojo).getJarFile();
         doReturn("").when(mojo).getBuildDirectoryAbsolutePath();
         final MavenProject project = mock(MavenProject.class);
         doReturn(project).when(mojo).getProject();
         final Build build = mock(Build.class);
         doReturn(build).when(project).getBuild();
         doReturn("test").when(build).getFinalName();
-        assertEquals("test.jar", handlerSpy.getJarFile("").getName());
+        assertEquals("test.jar", handlerSpy.getJarFile().getName());
     }
 
     @Test(expected = MojoExecutionException.class)

@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
@@ -28,7 +29,7 @@ import java.util.List;
  *
  * @since 1.3.0
  */
-public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
+public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl<AbstractWebAppMojo> {
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";
@@ -43,19 +44,13 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
     public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
     public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
 
-    private boolean isLinuxRuntime;
-    private String jarFilePath;
-
-    public JarArtifactHandlerImpl(final AbstractWebAppMojo mojo, final List<Resource> resources,
-                                  final String jarFilePath, final boolean isLinuxRuntime) {
+    public JarArtifactHandlerImpl(final AbstractWebAppMojo mojo, final List<Resource> resources) {
         super(mojo, resources);
-        this.isLinuxRuntime = isLinuxRuntime;
-        this.jarFilePath = jarFilePath;
     }
 
     @Override
     public void publish(BaseDeployTarget deployTarget) throws IOException, MojoExecutionException {
-        final File jar = getJarFile(jarFilePath);
+        final File jar = getJarFile();
         assureJarFileExisted(jar);
 
         prepareDeploymentFiles(jar);
@@ -67,7 +62,7 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         final File parent = new File(getDeploymentStageDirectory());
         parent.mkdirs();
 
-        if (isLinuxRuntime) {
+        if (StringUtils.isNotEmpty(mojo.getLinuxRuntime())) {
             Files.copy(jar, new File(parent, DEFAULT_LINUX_JAR_NAME));
         } else {
             Files.copy(jar, new File(parent, jar.getName()));
@@ -99,8 +94,8 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         }
     }
 
-    protected File getJarFile(final String jarFilePath) {
-        return StringUtils.isNotEmpty(jarFilePath) ? new File(jarFilePath)
+    protected File getJarFile() {
+        return StringUtils.isNotEmpty(mojo.getJarFile()) ? new File(mojo.getJarFile())
                 : new File(Paths
                 .get(mojo.getBuildDirectoryAbsolutePath(), mojo.getProject().getBuild().getFinalName() + ".jar")
                 .toString());

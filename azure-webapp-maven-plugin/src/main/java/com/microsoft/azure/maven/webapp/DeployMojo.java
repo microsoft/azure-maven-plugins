@@ -89,7 +89,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         try {
             util.beforeDeployArtifacts();
             final WebApp app = getWebApp();
-            BaseDeployTarget target = new WebAppDeployTarget(app);
+            final BaseDeployTarget target;
 
             if (this.isDeployToDeploymentSlot()) {
                 final String slotName = getDeploymentSlotSetting().getName();
@@ -98,6 +98,8 @@ public class DeployMojo extends AbstractWebAppMojo {
                     throw new MojoExecutionException(SLOT_SHOULD_EXIST_NOW);
                 }
                 target = new DeploymentSlotDeployTarget(slot);
+            } else {
+                target = new WebAppDeployTarget(app);
             }
 
             getLog().info(String.format(DEPLOY_START, target.getType(), target.getName()));
