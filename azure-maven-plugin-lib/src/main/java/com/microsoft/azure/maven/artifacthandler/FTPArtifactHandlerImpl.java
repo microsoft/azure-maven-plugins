@@ -24,13 +24,11 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
     private static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
     private static final String WEBAPP_PLUGIN_NAME = "azure-webapp-maven-plugin";
     private static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
-    protected List<Resource> resources;
 
     protected T mojo;
 
-    public FTPArtifactHandlerImpl(final T mojo, final List<Resource> resources) {
+    public FTPArtifactHandlerImpl(final T mojo) {
         this.mojo = mojo;
-        this.resources = resources;
     }
 
     protected String getDeploymentStageDirectory() {
@@ -45,6 +43,7 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
         final String serverUrl = profile.ftpUrl().split("/", 2)[0];
 
         if (this.mojo.getPluginName().equalsIgnoreCase(WEBAPP_PLUGIN_NAME)) {
+            final List<Resource> resources = this.mojo.getResources();
             if (resources == null || resources.isEmpty()) {
                 mojo.getLog().info(NO_RESOURCES_CONFIG);
                 return;

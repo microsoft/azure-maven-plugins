@@ -7,13 +7,11 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
-import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
@@ -44,8 +42,8 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl<Abstrac
     public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
     public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
 
-    public JarArtifactHandlerImpl(final AbstractWebAppMojo mojo, final List<Resource> resources) {
-        super(mojo, resources);
+    public JarArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
+        super(mojo);
     }
 
     @Override

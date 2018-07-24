@@ -24,7 +24,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -165,8 +164,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected ArtifactHandler getArtifactHandler() {
         switch (getDeploymentType().toLowerCase(Locale.ENGLISH)) {
             case FTP:
-                // function app does not need to copy resources to stage directory during publish, pass in empty list
-                return new FTPArtifactHandlerImpl(this, Collections.EMPTY_LIST);
+                return new FTPArtifactHandlerImpl(this);
             case MS_DEPLOY:
             default:
                 return new MSDeployArtifactHandlerImpl(this);

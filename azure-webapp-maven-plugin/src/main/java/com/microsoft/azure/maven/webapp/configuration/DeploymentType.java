@@ -95,7 +95,7 @@ public enum DeploymentType {
                 case "war":
                     return new WarArtifactHandlerImpl(m);
                 case "jar":
-                    return new JarArtifactHandlerImpl(m, m.getResources());
+                    return new JarArtifactHandlerImpl(m);
                 default:
                     return new NONEArtifactHandlerImplementation();
             }
@@ -104,7 +104,7 @@ public enum DeploymentType {
 
     static class FTPHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) {
-            return new FTPArtifactHandlerImpl(m, m.getResources());
+            return new FTPArtifactHandlerImpl(m);
         }
     }
 
@@ -116,7 +116,7 @@ public enum DeploymentType {
 
     static class JARHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) {
-            return new JarArtifactHandlerImpl(m, m.getResources());
+            return new JarArtifactHandlerImpl(m);
         }
     }
 

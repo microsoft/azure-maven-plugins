@@ -24,7 +24,6 @@ import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +43,7 @@ public class JarArtifactHandlerImplTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        handler = new JarArtifactHandlerImpl(mojo, mojo.getResources());
+        handler = new JarArtifactHandlerImpl(mojo);
         handlerSpy = spy(handler);
     }
 
