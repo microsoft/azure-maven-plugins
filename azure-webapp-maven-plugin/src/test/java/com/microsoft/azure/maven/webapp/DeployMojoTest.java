@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.management.appservice.DeploymentSlots;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
@@ -15,6 +16,7 @@ import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.artifacthandler.IArtifactHandler;
 import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
@@ -32,6 +34,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -320,8 +323,15 @@ public class DeployMojoTest {
     public void deployToDeploymentSlot() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
         final DeployMojo mojoSpy = spy(mojo);
-        final BaseDeployTarget deployTarget = mock(DeploymentSlotDeployTarget.class);
-        doReturn(true).when(mojoSpy).isDeployToDeploymentSlot();
+        final DeploymentSlot slot = mock(DeploymentSlot.class);
+        final WebApp app = mock(WebApp.class);
+        final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
+        doReturn(app).when(mojoSpy).getWebApp();
+        doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
+        doReturn("test").when(slotSetting).getName();
+        doReturn(slot).when(mojoSpy).getDeploymentSlot(app, "test");
+
+        final BaseDeployTarget deployTarget = new DeploymentSlotDeployTarget(slot);
 
         mojoSpy.deployArtifacts();
 

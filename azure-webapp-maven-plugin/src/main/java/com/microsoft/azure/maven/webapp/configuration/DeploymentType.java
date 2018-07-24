@@ -76,7 +76,7 @@ public enum DeploymentType {
 
     private static class NONEArtifactHandlerImplementation implements IArtifactHandler {
         @Override
-        public void publish(BaseDeployTarget deployTarget) throws IOException, MojoExecutionException {
+        public void publish(BaseDeployTarget deployTarget) {
             // does nothing
         }
     }
