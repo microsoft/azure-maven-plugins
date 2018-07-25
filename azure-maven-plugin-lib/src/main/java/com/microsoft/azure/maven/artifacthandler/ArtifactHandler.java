@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.maven.artifacthandler;
 
-import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
-public interface ArtifactHandler<T extends BaseDeployTarget> {
+public interface ArtifactHandler<T extends DeployTarget> {
     void publish(T deployTarget) throws Exception;
 }

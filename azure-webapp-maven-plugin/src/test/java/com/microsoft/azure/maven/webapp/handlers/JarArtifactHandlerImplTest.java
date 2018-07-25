@@ -6,26 +6,11 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockingDetails;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.spy;
-
-import java.io.File;
-import java.io.IOException;
-
 import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-
-import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
-import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
+import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
+import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -35,6 +20,16 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import java.io.File;
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JarArtifactHandlerImplTest {
@@ -54,30 +49,22 @@ public class JarArtifactHandlerImplTest {
 
     @Test
     public void publish() throws Exception {
-        final File file = new File("");
-        final IDeployTargetAdapter deployTarget = new WebAppAdapter(this.mojo.getWebApp());
-        doReturn(file).when(handlerSpy).getJarFile();
-        doNothing().when(handlerSpy).assureJarFileExisted(any(File.class));
-        doNothing().when(handlerSpy).prepareDeploymentFiles(any(File.class));
-        doNothing().when(handlerSpy).uploadDirectoryToFTP(deployTarget);
+        final DeployTarget deployTarget = new WebAppDeployTarget(this.mojo.getWebApp());
+        doNothing().when(handlerSpy).publish(deployTarget);
 
         handlerSpy.publish(deployTarget);
-        verify(handlerSpy).uploadDirectoryToFTP(deployTarget);
+        verify(handlerSpy).publish(deployTarget);
     }
 
     @Test
     public void publishToDeploymentSlot() throws Exception {
-        final File file = new File("");
         final DeploymentSlot slot = mock(DeploymentSlot.class);
-        final IDeployTargetAdapter deployTarget = new DeploymentSlotAdapter(slot);
+        final DeployTarget deployTarget = new DeploymentSlotDeployTarget(slot);
 
-        doReturn(file).when(handlerSpy).getJarFile();
-        doNothing().when(handlerSpy).assureJarFileExisted(any(File.class));
-        doNothing().when(handlerSpy).prepareDeploymentFiles(any(File.class));
-        doNothing().when(handlerSpy).uploadDirectoryToFTP(deployTarget);
+        doNothing().when(handlerSpy).publish(deployTarget);
 
         handlerSpy.publish(deployTarget);
-        verify(handlerSpy).uploadDirectoryToFTP(deployTarget);
+        verify(handlerSpy).publish(deployTarget);
     }
 
     @Test

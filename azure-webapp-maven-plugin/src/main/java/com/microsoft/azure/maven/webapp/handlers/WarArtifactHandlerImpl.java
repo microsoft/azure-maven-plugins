@@ -7,15 +7,18 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
+import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
+import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.nio.file.Paths;
 
-public class WarArtifactHandlerImpl implements ArtifactHandler  {
+public class WarArtifactHandlerImpl implements ArtifactHandler {
 
     public static final String FILE_IS_NOT_WAR = "The deployment file is not a war typed file.";
     public static final String FIND_WAR_FILE_FAIL = "Failed to find the war file: '%s'";
@@ -23,6 +26,8 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
         "retrying immediately (%d/%d)";
     public static final String DEPLOY_FAILURE = "Failed to deploy war file after %d retries...";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
+    public static final String DEPLOY_TARGET_TYPE_UNKNOWN =
+        "Unknown type of deploy target, it is neither web app nor deployment slot.";
 
     private AbstractWebAppMojo mojo;
 
@@ -31,19 +36,21 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
     }
 
     @Override
-    public void publish(IDeployTargetAdapter deployTarget) throws MojoExecutionException {
+    public void publish(final DeployTarget deployTarget) throws MojoExecutionException {
         final File war = getWarFile();
 
         assureWarFileExisted(war);
 
-        final String path = getContextPath();
-
+        final Runnable warDeployExecutor = getRealWarDeployExecutor(deployTarget, war, getContextPath());
+        if (warDeployExecutor == null) {
+            throw new MojoExecutionException(DEPLOY_TARGET_TYPE_UNKNOWN);
+        }
         int retryCount = 0;
         mojo.getLog().info("Deploying the war file...");
         while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
             retryCount++;
             try {
-                deployTarget.warDeploy(war, path);
+                warDeployExecutor.run();
                 return;
             } catch (Exception e) {
                 mojo.getLog().warn(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
@@ -67,7 +74,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
                             mojo.getProject().getBuild().getFinalName() + ".war").toString());
     }
 
-    protected void assureWarFileExisted(File war) throws MojoExecutionException {
+    protected void assureWarFileExisted(final File war) throws MojoExecutionException {
         if (!Files.getFileExtension(war.getName()).equalsIgnoreCase("war")) {
             throw new MojoExecutionException(FILE_IS_NOT_WAR);
         }
@@ -75,5 +82,24 @@ public class WarArtifactHandlerImpl implements ArtifactHandler  {
         if (!war.exists() || !war.isFile()) {
             throw new MojoExecutionException(String.format(FIND_WAR_FILE_FAIL, war.getAbsolutePath()));
         }
+    }
+
+    protected Runnable getRealWarDeployExecutor(final DeployTarget target, final File war, final String path) {
+        if (target instanceof WebAppDeployTarget) {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    ((WebAppDeployTarget) target).warDeploy(war, path);
+                }
+            };
+        } else if (target instanceof DeploymentSlotDeployTarget) {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    ((DeploymentSlotDeployTarget) target).warDeploy(war, path);
+                }
+            };
+        }
+        return null;
     }
 }

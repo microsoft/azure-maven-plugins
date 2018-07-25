@@ -10,8 +10,8 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.deployadapter.DeploymentSlotAdapter;
-import com.microsoft.azure.maven.webapp.deployadapter.WebAppAdapter;
+import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
+import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -67,7 +67,7 @@ public class WarArtifactHandlerImplTest {
         doReturn(appMock).when(mojo).getWebApp();
         doNothing().when(appMock).warDeploy(any(File.class), anyString());
 
-        handlerSpy.publish(new WebAppAdapter(appMock));
+        handlerSpy.publish(new WebAppDeployTarget(appMock));
         verify(appMock, times(1)).warDeploy(file, path);
     }
 
@@ -90,7 +90,7 @@ public class WarArtifactHandlerImplTest {
         doReturn("").when(slotSettingMock).getName();
         doReturn(slotMock).when(mojo).getDeploymentSlot(appMock, "");
         doNothing().when(slotMock).warDeploy(any(File.class), anyString());
-        handlerSpy.publish(new DeploymentSlotAdapter(slotMock));
+        handlerSpy.publish(new DeploymentSlotDeployTarget(slotMock));
 
         verify(slotMock, times(1)).warDeploy(file, path);
     }
@@ -110,7 +110,7 @@ public class WarArtifactHandlerImplTest {
         doReturn(app).when(mojo).getWebApp();
         doThrow(Exception.class).when(app).warDeploy(file, "");
 
-        handlerSpy.publish(new WebAppAdapter(app));
+        handlerSpy.publish(new WebAppDeployTarget(app));
     }
 
     @Test

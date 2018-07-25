@@ -271,6 +271,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             getAppName()).toString();
     }
 
+    @Override
     public List<Resource> getResources() {
         return resources;
     }

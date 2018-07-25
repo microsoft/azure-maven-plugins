@@ -8,9 +8,9 @@ package com.microsoft.azure.maven.function.handlers;
 
 import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
-import com.microsoft.azure.maven.function.deploytarget.FunctionAppDeployTarget;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import org.codehaus.plexus.util.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
@@ -20,7 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
-public class MSDeployArtifactHandlerImpl implements ArtifactHandler<FunctionAppDeployTarget> {
+public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
     public static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-deployment-packages";
     public static final String ZIP_EXT = ".zip";
     public static final String CREATE_ZIP_START = "Step 1 of 4: Creating ZIP file...";
@@ -47,16 +47,16 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler<FunctionAppD
     }
 
     @Override
-    public void publish(FunctionAppDeployTarget deployTarget) throws Exception {
+    public void publish(final DeployTarget target) throws Exception {
         final File zipPackage = createZipPackage();
 
-        final CloudStorageAccount storageAccount = getCloudStorageAccount(deployTarget);
+        final CloudStorageAccount storageAccount = getCloudStorageAccount(target);
 
         final String blobName = getBlobName();
 
         final String packageUri = uploadPackageToAzureStorage(zipPackage, storageAccount, blobName);
 
-        deployWithPackageUri(deployTarget, packageUri, () -> deletePackageFromAzureStorage(storageAccount, blobName));
+        deployWithPackageUri(target, packageUri, () -> deletePackageFromAzureStorage(storageAccount, blobName));
     }
 
     protected void logInfo(final String message) {
@@ -99,8 +99,8 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler<FunctionAppD
         return zipPackage;
     }
 
-    protected CloudStorageAccount getCloudStorageAccount(final FunctionAppDeployTarget deployTarget) throws Exception {
-        final Map<String, AppSetting> settingsMap = deployTarget.getAppSettings();
+    protected CloudStorageAccount getCloudStorageAccount(final DeployTarget target) throws Exception {
+        final Map<String, AppSetting> settingsMap = target.getAppSettings();
 
         if (settingsMap != null) {
             final AppSetting setting = settingsMap.get(INTERNAL_STORAGE_KEY);
@@ -131,12 +131,10 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler<FunctionAppD
         return packageUri;
     }
 
-    protected void deployWithPackageUri(final FunctionAppDeployTarget deployTarget,
-                                        final String packageUri, Runnable onDeployFinish) {
+    protected void deployWithPackageUri(final DeployTarget target, final String packageUri, Runnable onDeployFinish) {
         try {
-            logInfo("");
             logInfo(DEPLOY_PACKAGE_START);
-            deployTarget.msDeploy(packageUri, false);
+            target.msDeploy(packageUri, false);
             logInfo(DEPLOY_PACKAGE_DONE);
         } finally {
             onDeployFinish.run();
