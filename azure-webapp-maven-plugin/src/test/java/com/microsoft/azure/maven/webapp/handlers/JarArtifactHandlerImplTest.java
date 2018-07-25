@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -50,11 +49,7 @@ public class JarArtifactHandlerImplTest {
 
     @Test
     public void publish() throws Exception {
-        final File file = new File("");
         final DeployTarget deployTarget = new WebAppDeployTarget(this.mojo.getWebApp());
-        doReturn(file).when(handlerSpy).getJarFile();
-        doNothing().when(handlerSpy).assureJarFileExisted(any(File.class));
-        doNothing().when(handlerSpy).prepareDeploymentFiles(any(File.class));
         doNothing().when(handlerSpy).publish(deployTarget);
 
         handlerSpy.publish(deployTarget);
