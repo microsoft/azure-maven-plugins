@@ -6,10 +6,11 @@
 
 package com.microsoft.azure.maven;
 
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -85,5 +86,9 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
 
     public Map getAppSettings() {
         return appSettings;
+    }
+
+    public List<Resource> getResources() {
+        return Collections.EMPTY_LIST;
     }
 }

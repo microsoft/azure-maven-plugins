@@ -255,7 +255,8 @@ public class PackageMojo extends AbstractFunctionMojo {
         info(COPY_SUCCESS);
     }
 
-    protected List<Resource> getResources() {
+    @Override
+    public List<Resource> getResources() {
         final Resource resource = new Resource();
         resource.setDirectory(getBuildDirectoryAbsolutePath());
         resource.setTargetPath("/");

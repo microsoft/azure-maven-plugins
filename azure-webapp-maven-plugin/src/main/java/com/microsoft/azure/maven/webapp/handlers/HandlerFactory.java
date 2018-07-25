@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 

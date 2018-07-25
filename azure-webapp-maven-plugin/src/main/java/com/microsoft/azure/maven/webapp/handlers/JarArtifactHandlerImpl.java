@@ -7,8 +7,9 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -25,7 +26,7 @@ import java.nio.file.Paths;
  *
  * @since 1.3.0
  */
-public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
+public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl<AbstractWebAppMojo> {
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";
@@ -45,17 +46,17 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
     }
 
     @Override
-    public void publish(IDeployTargetAdapter deployTarget) throws Exception {
+    public void publish(BaseDeployTarget deployTarget) throws IOException, MojoExecutionException {
         final File jar = getJarFile();
         assureJarFileExisted(jar);
 
         prepareDeploymentFiles(jar);
 
-        uploadDirectoryToFTP(deployTarget);
+        super.publish(deployTarget);
     }
 
     protected void prepareDeploymentFiles(File jar) throws IOException {
-        final File parent = new File(mojo.getDeploymentStageDirectory());
+        final File parent = new File(getDeploymentStageDirectory());
         parent.mkdirs();
 
         if (StringUtils.isNotEmpty(mojo.getLinuxRuntime())) {
@@ -79,7 +80,7 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl {
         final String webConfigFile = templateContent
                 .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
 
-        final File webConfig = new File(mojo.getDeploymentStageDirectory(), "web.config");
+        final File webConfig = new File(getDeploymentStageDirectory(), "web.config");
         webConfig.createNewFile();
 
         try (final FileOutputStream fos = new FileOutputStream(webConfig)) {
