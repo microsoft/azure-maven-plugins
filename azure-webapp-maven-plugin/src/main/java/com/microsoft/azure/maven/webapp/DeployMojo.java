@@ -10,8 +10,7 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
@@ -89,7 +88,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         try {
             util.beforeDeployArtifacts();
             final WebApp app = getWebApp();
-            final BaseDeployTarget target;
+            final DeployTarget target;
 
             if (this.isDeployToDeploymentSlot()) {
                 final String slotName = getDeploymentSlotSetting().getName();

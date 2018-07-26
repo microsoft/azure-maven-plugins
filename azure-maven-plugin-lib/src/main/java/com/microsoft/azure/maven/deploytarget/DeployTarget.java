@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.deployadapter;
+package com.microsoft.azure.maven.deploytarget;
 
 import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.management.appservice.PublishingProfile;
@@ -14,11 +14,11 @@ import com.microsoft.azure.maven.appservice.DeployTargetType;
 import java.io.File;
 import java.util.Map;
 
-public abstract class BaseDeployTarget <T extends WebAppBase> {
+public class DeployTarget<T extends WebAppBase> {
     protected DeployTargetType type;
     protected T app;
 
-    public BaseDeployTarget(T app, DeployTargetType type) {
+    public DeployTarget(final T app, final DeployTargetType type) {
         this.app = app;
         this.type = type;
     }
@@ -43,5 +43,14 @@ public abstract class BaseDeployTarget <T extends WebAppBase> {
         return app.getAppSettings();
     }
 
-    public abstract void zipDeploy(File file);
+    public void zipDeploy(final File file) {
+//        app.zipDeploy(file);
+    }
+
+    public void msDeploy(final String packageUri, final boolean deleteExistingDeploymentSlot) {
+        app.deploy()
+            .withPackageUri(packageUri)
+            .withExistingDeploymentsDeleted(deleteExistingDeploymentSlot)
+            .execute();
+    }
 }

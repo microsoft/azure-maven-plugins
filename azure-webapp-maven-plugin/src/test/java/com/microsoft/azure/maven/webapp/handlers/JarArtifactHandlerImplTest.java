@@ -6,18 +6,8 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.spy;
-
-import java.io.File;
-import java.io.IOException;
-
 import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
@@ -30,6 +20,16 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import java.io.File;
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JarArtifactHandlerImplTest {
@@ -49,7 +49,7 @@ public class JarArtifactHandlerImplTest {
 
     @Test
     public void publish() throws Exception {
-        final BaseDeployTarget deployTarget = new WebAppDeployTarget(this.mojo.getWebApp());
+        final DeployTarget deployTarget = new WebAppDeployTarget(this.mojo.getWebApp());
         doNothing().when(handlerSpy).publish(deployTarget);
 
         handlerSpy.publish(deployTarget);
@@ -59,7 +59,7 @@ public class JarArtifactHandlerImplTest {
     @Test
     public void publishToDeploymentSlot() throws Exception {
         final DeploymentSlot slot = mock(DeploymentSlot.class);
-        final BaseDeployTarget deployTarget = new DeploymentSlotDeployTarget(slot);
+        final DeployTarget deployTarget = new DeploymentSlotDeployTarget(slot);
 
         doNothing().when(handlerSpy).publish(deployTarget);
 

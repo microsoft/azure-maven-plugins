@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.artifacthandler;
 
 //import com.microsoft.azure.maven.AbstractAzureMojo;
-import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
 import java.io.File;
 
@@ -20,7 +20,7 @@ public class ZIPArtifactHandler implements ArtifactHandler {
 //    }
 
     @Override
-    public void publish(BaseDeployTarget target) {
+    public void publish(DeployTarget target) {
         target.zipDeploy(getZipFile());
     }
 

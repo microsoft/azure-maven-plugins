@@ -10,7 +10,7 @@ import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.Utils;
-import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -37,7 +37,7 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
     }
 
     @Override
-    public void publish(BaseDeployTarget target) throws IOException, MojoExecutionException {
+    public void publish(DeployTarget target) throws IOException, MojoExecutionException {
         final FTPUploader uploader = new FTPUploader(mojo.getLog());
         final PublishingProfile profile = target.getPublishingProfile();
         final String serverUrl = profile.ftpUrl().split("/", 2)[0];

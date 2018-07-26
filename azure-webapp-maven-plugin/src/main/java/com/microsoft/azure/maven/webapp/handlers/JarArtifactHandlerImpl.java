@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
-import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,7 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl<Abstrac
     }
 
     @Override
-    public void publish(BaseDeployTarget deployTarget) throws IOException, MojoExecutionException {
+    public void publish(DeployTarget deployTarget) throws IOException, MojoExecutionException {
         final File jar = getJarFile();
         assureJarFileExisted(jar);
 

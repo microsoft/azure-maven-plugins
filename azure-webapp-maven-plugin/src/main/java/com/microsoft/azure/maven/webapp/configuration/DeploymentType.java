@@ -5,9 +5,9 @@
  */
 package com.microsoft.azure.maven.webapp.configuration;
 
-import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
-import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.handlers.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl;
@@ -75,7 +75,7 @@ public enum DeploymentType {
 
     private static class NONEArtifactHandlerImplementation implements ArtifactHandler {
         @Override
-        public void publish(BaseDeployTarget deployTarget) {
+        public void publish(DeployTarget deployTarget) {
             // does nothing
         }
     }

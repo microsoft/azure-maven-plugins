@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
-import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
@@ -36,7 +36,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
     }
 
     @Override
-    public void publish(final BaseDeployTarget deployTarget) throws MojoExecutionException {
+    public void publish(final DeployTarget deployTarget) throws MojoExecutionException {
         final File war = getWarFile();
 
         assureWarFileExisted(war);
@@ -84,7 +84,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
         }
     }
 
-    protected Runnable getRealWarDeployExecutor(final BaseDeployTarget target, final File war, final String path) {
+    protected Runnable getRealWarDeployExecutor(final DeployTarget target, final File war, final String path) {
         if (target instanceof WebAppDeployTarget) {
             return new Runnable() {
                 @Override

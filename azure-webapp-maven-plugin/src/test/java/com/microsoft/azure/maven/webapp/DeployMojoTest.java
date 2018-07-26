@@ -14,7 +14,7 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCre
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
-import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
@@ -310,7 +310,7 @@ public class DeployMojoTest {
         doReturn(app).when(mojoSpy).getWebApp();
         doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
 
-        final BaseDeployTarget deployTarget = new WebAppDeployTarget(app);
+        final DeployTarget deployTarget = new WebAppDeployTarget(app);
         mojoSpy.deployArtifacts();
 
         verify(artifactHandler, times(1)).publish(refEq(deployTarget));
@@ -329,7 +329,7 @@ public class DeployMojoTest {
         doReturn("test").when(slotSetting).getName();
         doReturn(slot).when(mojoSpy).getDeploymentSlot(app, "test");
 
-        final BaseDeployTarget deployTarget = new DeploymentSlotDeployTarget(slot);
+        final DeployTarget deployTarget = new DeploymentSlotDeployTarget(slot);
 
         mojoSpy.deployArtifacts();
 

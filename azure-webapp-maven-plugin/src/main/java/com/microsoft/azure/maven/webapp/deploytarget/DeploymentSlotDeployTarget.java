@@ -8,18 +8,13 @@ package com.microsoft.azure.maven.webapp.deploytarget;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
-import com.microsoft.azure.maven.deployadapter.BaseDeployTarget;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
 import java.io.File;
 
-public class DeploymentSlotDeployTarget extends BaseDeployTarget<DeploymentSlot> {
+public class DeploymentSlotDeployTarget extends DeployTarget<DeploymentSlot> {
     public DeploymentSlotDeployTarget(final DeploymentSlot slot) {
         super(slot, DeployTargetType.SLOT);
-    }
-
-    @Override
-    public void zipDeploy(File file) {
-        app.zipDeploy(file);
     }
 
     public void warDeploy(final File war, final String path) {
