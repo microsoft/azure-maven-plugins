@@ -13,10 +13,10 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.rest.LogLevel;
-import org.codehaus.plexus.util.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.nio.file.Files;

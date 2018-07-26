@@ -8,9 +8,9 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.functions.annotation.BlobTrigger;
 import com.microsoft.azure.functions.annotation.BlobInput;
 import com.microsoft.azure.functions.annotation.BlobOutput;
+import com.microsoft.azure.functions.annotation.BlobTrigger;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class BlobBinding extends StorageBaseBinding {

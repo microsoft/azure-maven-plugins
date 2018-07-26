@@ -6,12 +6,12 @@
 
 package com.microsoft.azure.maven.function.utils;
 
-import static org.junit.Assert.assertEquals;
+import org.apache.commons.lang3.SystemUtils;
+import org.junit.Test;
 
 import java.util.Arrays;
 
-import org.apache.commons.lang3.SystemUtils;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class CommandUtilsTest {
 

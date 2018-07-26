@@ -6,11 +6,20 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.maven.function.handlers.CommandHandler;
+import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
+import com.microsoft.azure.maven.function.utils.CommandUtils;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
+import org.mockito.junit.MockitoJUnitRunner;
+
 import static com.microsoft.azure.maven.function.RunMojo.FUNC_CMD;
 import static com.microsoft.azure.maven.function.RunMojo.FUNC_HOST_START_CMD;
+import static com.microsoft.azure.maven.function.RunMojo.FUNC_HOST_START_WITH_DEBUG_CMD;
 import static com.microsoft.azure.maven.function.RunMojo.RUNTIME_NOT_FOUND;
 import static com.microsoft.azure.maven.function.RunMojo.RUN_FUNCTIONS_FAILURE;
-import static com.microsoft.azure.maven.function.RunMojo.FUNC_HOST_START_WITH_DEBUG_CMD;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,16 +31,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
-import org.apache.maven.plugin.MojoExecutionException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import com.microsoft.azure.maven.function.handlers.CommandHandler;
-import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
-import com.microsoft.azure.maven.function.utils.CommandUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RunMojoTest extends MojoTestBase {

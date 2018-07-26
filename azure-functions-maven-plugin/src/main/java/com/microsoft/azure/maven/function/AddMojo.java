@@ -14,6 +14,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -36,8 +37,6 @@ import static java.lang.System.out;
 import static javax.lang.model.SourceVersion.isName;
 import static org.codehaus.plexus.util.IOUtil.copy;
 import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
-
-import javax.annotation.Nullable;
 
 /**
  * Create new Azure Functions (as Java class) and add to current project.

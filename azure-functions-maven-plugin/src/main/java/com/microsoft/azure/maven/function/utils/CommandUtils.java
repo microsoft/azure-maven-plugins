@@ -6,10 +6,10 @@
 
 package com.microsoft.azure.maven.function.utils;
 
+import org.apache.commons.lang3.SystemUtils;
+
 import java.util.Arrays;
 import java.util.List;
-
-import org.apache.commons.lang3.SystemUtils;
 
 public class CommandUtils {
 

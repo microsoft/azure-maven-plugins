@@ -6,12 +6,18 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.maven.function.AbstractFunctionMojo;
+import com.microsoft.azure.maven.function.utils.CommandUtils;
+import org.apache.maven.plugin.logging.Log;
+import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+
 import static com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl.FUNC_EXTENSIONS_INSTALL_TEMPLATE;
 import static com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl.INSTALL_FUNCTION_EXTENSIONS_FAIL;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -23,13 +29,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
-import org.apache.maven.plugin.logging.Log;
-import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-
-import com.microsoft.azure.maven.function.AbstractFunctionMojo;
-import com.microsoft.azure.maven.function.utils.CommandUtils;
 
 public class FunctionCoreToolsHandlerImplTest {
 
