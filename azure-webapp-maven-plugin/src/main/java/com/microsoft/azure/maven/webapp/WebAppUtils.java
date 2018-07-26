@@ -18,7 +18,6 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDoc
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 

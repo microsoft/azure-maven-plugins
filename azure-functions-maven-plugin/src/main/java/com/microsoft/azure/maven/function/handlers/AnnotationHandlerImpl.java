@@ -14,7 +14,6 @@ import com.microsoft.azure.maven.function.bindings.BindingFactory;
 import com.microsoft.azure.maven.function.bindings.HttpBinding;
 import com.microsoft.azure.maven.function.bindings.StorageBaseBinding;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
-
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
 import org.reflections.Reflections;

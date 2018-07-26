@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.microsoft.azure.maven.function.bindings.BaseBinding;
 import com.microsoft.azure.maven.function.bindings.StorageBaseBinding;
-
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.ArrayList;
