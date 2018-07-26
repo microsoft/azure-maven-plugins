@@ -313,7 +313,6 @@ page at http://checkstyle.sourceforge.net/config.html -->
             <property name="sortImportsInGroupAlphabetically" value="true"/>
             <property name="separateLineBetweenGroups" value="false"/>
         </module>
-        <module name="RedundantImport"/>
         <module name="UnusedImports"/>
 
     </module>
