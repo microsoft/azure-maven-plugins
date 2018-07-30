@@ -23,8 +23,7 @@ import java.util.Date;
 import java.util.List;
 
 public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements ArtifactHandler {
-    private static final String NO_RESOURCES_CONFIG =
-        "No resources specified in pom.xml. Skip resources copy to stage directory.";
+    private static final String NO_RESOURCES = "No resources were specified in pom.xml or copied to stage directory.";
     protected T mojo;
 
     public ZIPArtifactHandler(final T mojo) {
@@ -37,21 +36,28 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
 
     @Override
     public void publish(DeployTarget target) throws ZipException, MojoExecutionException, IOException {
+        // todo: function app zip deploy could not be tested until the sdk 1.14.0 release
         prepareResources();
+        assureStageDirectoryNotEmpty();
         target.zipDeploy(getZipFile());
     }
 
     protected void prepareResources() throws IOException {
         final List<Resource> resources = this.mojo.getResources();
-        if (resources == null || resources.isEmpty()) {
-            mojo.getLog().info(NO_RESOURCES_CONFIG);
-            return;
+
+        if (resources != null && !resources.isEmpty()) {
+            Utils.copyResources(mojo.getProject(), mojo.getSession(),
+                mojo.getMavenResourcesFiltering(), resources, getDeploymentStageDirectory());
         }
-        Utils.copyResources(mojo.getProject(),
-            mojo.getSession(),
-            mojo.getMavenResourcesFiltering(),
-            resources,
-            getDeploymentStageDirectory());
+    }
+
+    protected void assureStageDirectoryNotEmpty() throws MojoExecutionException {
+        final String stageDirectory = getDeploymentStageDirectory();
+        final File stageFolder = new File(stageDirectory);
+        final File[] files = stageFolder.listFiles();
+        if (!stageFolder.exists() || !stageFolder.isDirectory() || files == null || files.length == 0) {
+            throw new MojoExecutionException(NO_RESOURCES);
+        }
     }
 
     protected File getZipFile() throws ZipException {

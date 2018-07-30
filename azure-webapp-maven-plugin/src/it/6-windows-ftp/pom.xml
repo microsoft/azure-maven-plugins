@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure.it</groupId>
     <artifactId>windows-ftp</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
     <properties>
         <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
@@ -27,11 +27,14 @@
                     <stopAppDuringDeployment>true</stopAppDuringDeployment>
                     <resources>
                         <resource>
-                            <directory>${project.basedir}</directory>
+                            <directory>${project.basedir}/target</directory>
                             <targetPath>webapps</targetPath>
                             <includes>
-                                <include>pom.xml</include>
+                                <include>*.war</include>
                             </includes>
+                            <excludes>
+                                <exclude>*.xml</exclude>
+                            </excludes>
                         </resource>
                     </resources>
                 </configuration>

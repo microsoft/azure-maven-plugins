@@ -16,6 +16,7 @@ import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
@@ -23,8 +24,7 @@ import java.util.List;
 public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements ArtifactHandler {
     private static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
     private static final int DEFAULT_MAX_RETRY_TIMES = 3;
-    private static final String NO_RESOURCES_CONFIG = "No resources specified in pom.xml. Skip artifacts deployment.";
-    private static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
+    private static final String NO_RESOURCES = "No resources were specified in pom.xml or copied to stage directory.";
 
     protected T mojo;
 
@@ -33,28 +33,19 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
     }
 
     protected String getDeploymentStageDirectory() {
-        final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
-        return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName()).toString();
+        return Paths.get(mojo.getBuildDirectoryAbsolutePath(), this.mojo.getAppName()).toString();
     }
 
     @Override
     public void publish(DeployTarget target) throws IOException, MojoExecutionException {
+        if (target.getApp() instanceof WebApp) {
+            prepareResources();
+            assureStageDirectoryNotEmpty();
+        }
+
         final FTPUploader uploader = new FTPUploader(mojo.getLog());
         final PublishingProfile profile = target.getPublishingProfile();
         final String serverUrl = profile.ftpUrl().split("/", 2)[0];
-
-        if (target.getApp() instanceof WebApp) {
-            final List<Resource> resources = this.mojo.getResources();
-            if (resources == null || resources.isEmpty()) {
-                mojo.getLog().info(NO_RESOURCES_CONFIG);
-                return;
-            }
-            Utils.copyResources(mojo.getProject(),
-                mojo.getSession(),
-                mojo.getMavenResourcesFiltering(),
-                resources,
-                getDeploymentStageDirectory());
-        }
 
         uploader.uploadDirectoryWithRetries(serverUrl,
             profile.ftpUsername(),
@@ -65,6 +56,24 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
 
         if (target.getApp() instanceof FunctionApp) {
             ((FunctionApp) target.getApp()).syncTriggers();
+        }
+    }
+
+    protected void prepareResources() throws IOException {
+        final List<Resource> resources = this.mojo.getResources();
+
+        if (resources != null && !resources.isEmpty()) {
+            Utils.copyResources(mojo.getProject(), mojo.getSession(),
+                mojo.getMavenResourcesFiltering(), resources, getDeploymentStageDirectory());
+        }
+    }
+
+    protected void assureStageDirectoryNotEmpty() throws MojoExecutionException {
+        final String stageDirectory = getDeploymentStageDirectory();
+        final File stageFolder = new File(stageDirectory);
+        final File[] files = stageFolder.listFiles();
+        if (!stageFolder.exists() || !stageFolder.isDirectory() || files == null || files.length == 0) {
+            throw new MojoExecutionException(NO_RESOURCES);
         }
     }
 }
