@@ -34,6 +34,7 @@ public class LinuxRuntimeHandlerImpl implements RuntimeHandler {
     @Override
     public Update updateAppRuntime(WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
+        WebAppUtils.clearTags(app);
 
         return app.update().withBuiltInImage(getLinuxRunTimeStack(mojo.getLinuxRuntime()));
     }

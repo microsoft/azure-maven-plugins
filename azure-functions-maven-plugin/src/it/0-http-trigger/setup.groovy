@@ -4,8 +4,10 @@
  * license information.
  */
 
-import com.microsoft.azure.maven.webapp.utils.TestUtils;
+import com.microsoft.azure.maven.function.invoker.CommonUtils
 
-TestUtils.deleteAzureResourceGroup("maven-webapp-it-rg-8", false)
+CommonUtils.azureLogin()
+
+CommonUtils.deleteAzureResourceGroup("maven-functions-it-rg-0", true)
 
 return true

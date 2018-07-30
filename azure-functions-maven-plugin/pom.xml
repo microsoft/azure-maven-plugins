@@ -12,7 +12,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-functions-maven-plugin</artifactId>
-    <version>1.0.0-beta-3-SNAPSHOT</version>
+    <version>1.0.0-beta-4-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Functions</name>
     <description>Maven Plugin for Azure Functions</description>
@@ -28,7 +28,7 @@
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
-        <azure.maven-plugin-lib.version>1.0.2-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.0.2</azure.maven-plugin-lib.version>
         <azure.function.version>1.0.0-beta-5</azure.function.version>
         <azure.storage.version>5.4.0</azure.storage.version>
         <reflections.version>0.9.11</reflections.version>
@@ -108,6 +108,8 @@
                             <pomIncludes>
                                 <pomInclude>*/pom.xml</pomInclude>
                             </pomIncludes>
+                            <addTestClassPath>true</addTestClassPath>
+                            <parallelThreads>4</parallelThreads>
                             <preBuildHookScript>setup</preBuildHookScript>
                             <postBuildHookScript>cleanup</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
