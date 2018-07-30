@@ -74,7 +74,7 @@ public class CommonUtils {
         while (i < RETRY_TIMES) {
             try {
                 verification.run();
-                break;
+                return;
             } catch (Exception e) {
                 // ignore warm-up exception and wait for 5 seconds
                 e.printStackTrace();
