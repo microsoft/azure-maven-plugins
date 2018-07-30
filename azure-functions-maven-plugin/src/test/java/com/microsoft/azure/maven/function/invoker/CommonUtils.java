@@ -74,7 +74,7 @@ public class CommonUtils {
         while (i < RETRY_TIMES) {
             try {
                 verification.run();
-                break;
+                return;
             } catch (Exception e) {
                 // ignore warm-up exception and wait for 5 seconds
                 e.printStackTrace();
@@ -83,8 +83,6 @@ public class CommonUtils {
             }
         }
 
-        if (i >= RETRY_TIMES) {
-            throw new Exception("Integration test fail for Azure Functions storage-queue-trigger");
-        }
+        throw new Exception("Integration test fails for 5 times.");
     }
 }
