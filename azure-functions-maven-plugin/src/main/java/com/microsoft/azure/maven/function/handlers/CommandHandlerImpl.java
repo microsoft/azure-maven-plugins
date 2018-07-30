@@ -6,6 +6,11 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.maven.function.utils.CommandUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.plugin.logging.Log;
+import org.codehaus.plexus.util.IOUtil;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -13,12 +18,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.IOUtil;
-
-import com.microsoft.azure.maven.function.utils.CommandUtils;
 
 public class CommandHandlerImpl implements CommandHandler {
 

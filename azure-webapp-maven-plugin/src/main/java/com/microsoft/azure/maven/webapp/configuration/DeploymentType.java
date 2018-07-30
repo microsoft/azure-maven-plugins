@@ -5,10 +5,10 @@
  */
 package com.microsoft.azure.maven.webapp.configuration;
 
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.deployadapter.IDeployTargetAdapter;
-import com.microsoft.azure.maven.webapp.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.webapp.handlers.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -75,7 +75,7 @@ public enum DeploymentType {
 
     private static class NONEArtifactHandlerImplementation implements ArtifactHandler {
         @Override
-        public void publish(IDeployTargetAdapter deployTarget) {
+        public void publish(DeployTarget deployTarget) {
             // does nothing
         }
     }

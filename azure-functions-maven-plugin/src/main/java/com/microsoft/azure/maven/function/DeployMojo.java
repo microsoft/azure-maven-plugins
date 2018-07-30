@@ -8,14 +8,16 @@ package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -76,7 +78,9 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         createOrUpdateFunctionApp();
 
-        getArtifactHandler().publish();
+        final DeployTarget deployTarget = new DeployTarget(getFunctionApp(), DeployTargetType.FUNCTION);
+
+        getArtifactHandler().publish(deployTarget);
 
         info(String.format(FUNCTION_DEPLOY_SUCCESS, getAppName()));
     }

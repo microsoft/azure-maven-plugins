@@ -6,14 +6,14 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
-import static com.microsoft.azure.maven.webapp.WebAppUtils.getLinuxRunTimeStack;
-
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
+
+import static com.microsoft.azure.maven.webapp.WebAppUtils.getLinuxRunTimeStack;
 
 public class LinuxRuntimeHandlerImpl implements RuntimeHandler {
 

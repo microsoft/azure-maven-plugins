@@ -10,6 +10,7 @@ import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.WebDeployment.DefinitionStages.WithExecute;
 import com.microsoft.azure.management.appservice.WebDeployment.DefinitionStages.WithPackageUri;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
@@ -27,22 +28,24 @@ import java.io.FileInputStream;
 import java.net.URI;
 import java.util.Map;
 
+import static com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl.INTERNAL_STORAGE_KEY;
 import static com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl.INTERNAL_STORAGE_NOT_FOUND;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class MSDeployArtifactHandlerImplTest {
@@ -63,21 +66,30 @@ public class MSDeployArtifactHandlerImplTest {
     public void publish() throws Exception {
         final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
         final MSDeployArtifactHandlerImpl handlerSpy = spy(handler);
-        doReturn(null).when(handlerSpy).createZipPackage();
-        doReturn(null).when(handlerSpy).getCloudStorageAccount(isNull());
-        doReturn(null).when(handlerSpy).uploadPackageToAzureStorage(isNull(), isNull(), anyString());
-        doNothing().when(handlerSpy).deployWithPackageUri(isNull(), isNull(), any(Runnable.class));
+        final DeployTarget deployTarget = mock(DeployTarget.class);
+        final Map mapSettings = mock(Map.class);
+        final File file = mock(File.class);
+        final AppSetting storageSetting = mock(AppSetting.class);
 
-        handlerSpy.publish();
+        mapSettings.put(INTERNAL_STORAGE_KEY, storageSetting);
+        doReturn(mapSettings).when(deployTarget).getAppSettings();
+        doReturn(storageSetting).when(mapSettings).get(anyString());
+        doReturn(null).when(handlerSpy).getCloudStorageAccount(deployTarget);
+        doReturn("").when(handlerSpy).uploadPackageToAzureStorage(file, null, "");
+        doReturn("").when((handlerSpy)).getBlobName();
+        doReturn(mapSettings).when(deployTarget).getAppSettings();
+        doNothing().when(handlerSpy).deployWithPackageUri(eq(deployTarget), eq(""), any(Runnable.class));
+        doReturn(file).when(handlerSpy).createZipPackage();
 
-        verify(handlerSpy, times(1)).publish();
+        handlerSpy.publish(deployTarget);
+
+        verify(handlerSpy, times(1)).publish(deployTarget);
         verify(handlerSpy, times(1)).createZipPackage();
-        verify(handlerSpy, times(1)).getCloudStorageAccount(isNull());
+        verify(handlerSpy, times(1)).getCloudStorageAccount(deployTarget);
         verify(handlerSpy, times(1)).getBlobName();
-        verify(handlerSpy, times(1)).uploadPackageToAzureStorage(isNull(), isNull(), anyString());
-        verify(handlerSpy, times(1)).deployWithPackageUri(isNull(), isNull(), any(Runnable.class));
+        verify(handlerSpy, times(1)).uploadPackageToAzureStorage(file, null, "");
+        verify(handlerSpy, times(1)).deployWithPackageUri(eq(deployTarget), eq(""), any(Runnable.class));
         verifyNoMoreInteractions(handlerSpy);
-        verify(mojo, times(1)).getFunctionApp();
     }
 
     @Test
@@ -96,14 +108,15 @@ public class MSDeployArtifactHandlerImplTest {
         final String storageConnection =
                 "DefaultEndpointsProtocol=https;AccountName=123456;AccountKey=12345678;EndpointSuffix=core.windows.net";
         final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
-        final FunctionApp app = mock(FunctionApp.class);
-        final Map appSettings = mock(Map.class);
-        doReturn(appSettings).when(app).getAppSettings();
+        final Map mapSettings = mock(Map.class);
+        final DeployTarget deployTarget = mock(DeployTarget.class);
         final AppSetting storageSetting = mock(AppSetting.class);
-        doReturn(storageSetting).when(appSettings).get(anyString());
+        mapSettings.put(INTERNAL_STORAGE_KEY, storageSetting);
+        doReturn(mapSettings).when(deployTarget).getAppSettings();
+        doReturn(storageSetting).when(mapSettings).get(anyString());
         doReturn(storageConnection).when(storageSetting).value();
 
-        final CloudStorageAccount storageAccount = handler.getCloudStorageAccount(app);
+        final CloudStorageAccount storageAccount = handler.getCloudStorageAccount(deployTarget);
         assertNotNull(storageAccount);
     }
 
@@ -111,13 +124,14 @@ public class MSDeployArtifactHandlerImplTest {
     public void getCloudStorageAccountWithException() throws Exception {
         final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
         final FunctionApp app = mock(FunctionApp.class);
+        final DeployTarget deployTarget = mock(DeployTarget.class);
         final Map appSettings = mock(Map.class);
         doReturn(appSettings).when(app).getAppSettings();
         doReturn(null).when(appSettings).get(anyString());
 
         String exceptionMessage = null;
         try {
-            handler.getCloudStorageAccount(app);
+            handler.getCloudStorageAccount(deployTarget);
         } catch (Exception e) {
             exceptionMessage = e.getMessage();
         } finally {
@@ -149,18 +163,21 @@ public class MSDeployArtifactHandlerImplTest {
     @Test
     public void deployWithPackageUri() throws Exception {
         final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
+        final MSDeployArtifactHandlerImpl handlerSpy = spy(handler);
         final FunctionApp app = mock(FunctionApp.class);
+        final DeployTarget deployTarget = mock(DeployTarget.class);
         final WithPackageUri withPackageUri = mock(WithPackageUri.class);
         doReturn(withPackageUri).when(app).deploy();
         final WithExecute withExecute = mock(WithExecute.class);
         doReturn(withExecute).when(withPackageUri).withPackageUri(anyString());
         doReturn(withExecute).when(withExecute).withExistingDeploymentsDeleted(false);
         final Runnable runnable = mock(Runnable.class);
+        doNothing().when(deployTarget).msDeploy("uri", false);
+        handlerSpy.deployWithPackageUri(deployTarget, "uri", runnable);
 
-        handler.deployWithPackageUri(app, "uri", runnable);
-
-        verify(withExecute, times(1)).execute();
+        verify(handlerSpy, times(1)).deployWithPackageUri(deployTarget, "uri", runnable);
         verify(runnable, times(1)).run();
+        verify(deployTarget, times(1)).msDeploy("uri", false);
     }
 
     @Test

@@ -10,19 +10,20 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.AppServicePlans;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
+import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionApps;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-
+import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.function.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.function.handlers.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,22 +34,23 @@ import java.nio.file.Paths;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.anyMap;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeployMojoTest extends MojoTestBase {
@@ -87,18 +89,19 @@ public class DeployMojoTest extends MojoTestBase {
     public void doExecute() throws Exception {
         doCallRealMethod().when(mojoSpy).getLog();
         final ArtifactHandler handler = mock(ArtifactHandler.class);
+        final FunctionApp app = mock(FunctionApp.class);
+        doReturn(app).when(mojoSpy).getFunctionApp();
         doReturn(handler).when(mojoSpy).getArtifactHandler();
         doCallRealMethod().when(mojoSpy).createOrUpdateFunctionApp();
         doCallRealMethod().when(mojoSpy).getAppName();
-        final FunctionApp app = mock(FunctionApp.class);
-        doReturn(app).when(mojoSpy).getFunctionApp();
+        final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
         doNothing().when(mojoSpy).updateFunctionApp(app);
 
         mojoSpy.doExecute();
         verify(mojoSpy, times(1)).createOrUpdateFunctionApp();
         verify(mojoSpy, times(1)).doExecute();
         verify(mojoSpy, times(1)).updateFunctionApp(any(FunctionApp.class));
-        verify(handler, times(1)).publish();
+        verify(handler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(handler);
     }
 

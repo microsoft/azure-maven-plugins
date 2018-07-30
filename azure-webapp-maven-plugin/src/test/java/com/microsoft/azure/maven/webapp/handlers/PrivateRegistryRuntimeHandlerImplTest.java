@@ -21,11 +21,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PrivateRegistryRuntimeHandlerImplTest {

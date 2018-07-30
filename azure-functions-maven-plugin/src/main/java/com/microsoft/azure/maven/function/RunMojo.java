@@ -6,15 +6,14 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.maven.function.handlers.CommandHandler;
+import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
+import com.microsoft.azure.maven.function.utils.CommandUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.File;
-
-import com.microsoft.azure.maven.function.handlers.CommandHandler;
-import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
-import com.microsoft.azure.maven.function.utils.CommandUtils;
 
 /**
  * Run Azure Java Functions locally. Azure Functions Core Tools is required to be installed first.

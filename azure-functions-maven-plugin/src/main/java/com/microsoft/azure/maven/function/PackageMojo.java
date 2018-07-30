@@ -17,7 +17,6 @@ import com.microsoft.azure.maven.function.handlers.CommandHandler;
 import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl;
-
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -255,7 +254,8 @@ public class PackageMojo extends AbstractFunctionMojo {
         info(COPY_SUCCESS);
     }
 
-    protected List<Resource> getResources() {
+    @Override
+    public List<Resource> getResources() {
         final Resource resource = new Resource();
         resource.setDirectory(getBuildDirectoryAbsolutePath());
         resource.setTargetPath("/");

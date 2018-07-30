@@ -6,16 +6,15 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import org.apache.maven.plugin.logging.Log;
+import org.junit.Test;
+
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-
-import java.util.Arrays;
-
-import org.junit.Test;
-
-import org.apache.maven.plugin.logging.Log;
 
 public class CommandHandlerImplTest {
     @Test
