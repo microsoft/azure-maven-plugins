@@ -83,8 +83,6 @@ public class CommonUtils {
             }
         }
 
-        if (i >= RETRY_TIMES) {
-            throw new Exception("Integration test fails for 5 times.");
-        }
+        throw new Exception("Integration test fails for 5 times.");
     }
 }
