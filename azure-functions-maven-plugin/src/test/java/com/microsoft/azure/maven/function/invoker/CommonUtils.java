@@ -84,7 +84,7 @@ public class CommonUtils {
         }
 
         if (i >= RETRY_TIMES) {
-            throw new Exception("Integration test fail for Azure Functions storage-queue-trigger");
+            throw new Exception("Integration test fails for 5 times.");
         }
     }
 }
