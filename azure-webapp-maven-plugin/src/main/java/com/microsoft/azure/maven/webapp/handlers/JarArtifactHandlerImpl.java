@@ -7,9 +7,10 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
-import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandler;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,7 +27,7 @@ import java.nio.file.Paths;
  *
  * @since 1.3.0
  */
-public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl<AbstractWebAppMojo> {
+public final class JarArtifactHandlerImpl extends ZIPArtifactHandler<AbstractWebAppMojo> {
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";
@@ -46,7 +47,7 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl<Abstrac
     }
 
     @Override
-    public void publish(DeployTarget deployTarget) throws IOException, MojoExecutionException {
+    public void publish(DeployTarget deployTarget) throws IOException, MojoExecutionException, ZipException {
         final File jar = getJarFile();
         assureJarFileExisted(jar);
 

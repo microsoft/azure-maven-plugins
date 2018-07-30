@@ -53,4 +53,8 @@ public class DeployTarget<T extends WebAppBase> {
             .withExistingDeploymentsDeleted(deleteExistingDeploymentSlot)
             .execute();
     }
+
+    public T getApp() {
+        return this.app;
+    }
 }
