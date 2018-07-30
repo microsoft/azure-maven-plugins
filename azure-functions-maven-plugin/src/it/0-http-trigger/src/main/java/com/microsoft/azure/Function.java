@@ -22,13 +22,13 @@ public class Function {
         context.getLogger().info("Java HTTP trigger processed a request.");
 
         // Parse query parameter
-        String query = request.getQueryParameters().get("name");
-        String name = request.getBody().orElse(query);
+        String query = request.getQueryParameters().get("json");
+        Gson gson = new Gson();
 
-        if (name == null) {
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST).body("Please pass a name on the query string or in the request body").build();
-        } else {
-            return request.createResponseBuilder(HttpStatus.OK).body("Hello, " + name).build();
+        try {
+            return request.createResponseBuilder(HttpStatus.OK).body("Hello, " + gson.fromJson(query, GsonFunctionBody.class).body).build();
+        } catch (Exception e) {
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST).body("Format error").build();
         }
     }
 }
