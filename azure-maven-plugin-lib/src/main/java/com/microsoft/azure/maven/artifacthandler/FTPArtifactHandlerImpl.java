@@ -24,6 +24,7 @@ import java.util.List;
 public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements ArtifactHandler {
     private static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
     private static final int DEFAULT_MAX_RETRY_TIMES = 3;
+    private static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
     private static final String NO_RESOURCES = "No resources were specified in pom.xml or copied to staging directory.";
 
     protected T mojo;
@@ -33,7 +34,8 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
     }
 
     protected String getDeploymentStageDirectory() {
-        return Paths.get(mojo.getBuildDirectoryAbsolutePath(), this.mojo.getAppName()).toString();
+        final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
+        return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName()).toString();
     }
 
     @Override

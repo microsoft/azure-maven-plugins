@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements ArtifactHandler {
+    private static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
     private static final String NO_RESOURCES = "No resources were specified in pom.xml or copied to staging directory.";
     protected T mojo;
 
@@ -28,7 +29,8 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
     }
 
     protected String getDeploymentStageDirectory() {
-        return Paths.get(mojo.getBuildDirectoryAbsolutePath(), this.mojo.getAppName()).toString();
+        final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
+        return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName()).toString();
     }
 
     @Override
@@ -60,10 +62,11 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
 
     protected String getZipFile() throws MojoExecutionException {
         final String stageDirectory = getDeploymentStageDirectory();
-        final File stageFolder = new File(stageDirectory);
-
-        final String zipFile = Paths.get(mojo.getBuildDirectoryAbsolutePath(), this.mojo.getAppName() + ".zip")
+        final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
+        final String zipFile = Paths.get(
+            mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName() + ".zip")
             .toString();
+        final File stageFolder = new File(stageDirectory);
         final List<File> fileList = new ArrayList<>();
 
         try {
