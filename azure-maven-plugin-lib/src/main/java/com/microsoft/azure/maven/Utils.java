@@ -82,7 +82,12 @@ public final class Utils {
                                      final MavenResourcesFiltering filtering, final List<Resource> resources,
                                      final String targetDirectory) throws IOException {
         for (final Resource resource : resources) {
-            resource.setTargetPath(Paths.get(targetDirectory, resource.getTargetPath()).toString());
+            final String targetPath = resource.getTargetPath();
+            if (targetPath == null) {
+                resource.setTargetPath(targetDirectory);
+            } else {
+                resource.setTargetPath(Paths.get(targetDirectory, resource.getTargetPath()).toString());
+            }
             resource.setFiltering(false);
         }
 
