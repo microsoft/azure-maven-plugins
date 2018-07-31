@@ -10,7 +10,6 @@ import com.google.common.io.Files;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandler;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -47,7 +46,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandler<AbstractWeb
     }
 
     @Override
-    public void publish(DeployTarget deployTarget) throws IOException, MojoExecutionException, ZipException {
+    public void publish(DeployTarget deployTarget) throws IOException, MojoExecutionException {
         final File jar = getJarFile();
         assureJarFileExisted(jar);
 

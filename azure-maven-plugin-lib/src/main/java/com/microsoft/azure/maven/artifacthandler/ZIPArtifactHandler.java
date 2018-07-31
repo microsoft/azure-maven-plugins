@@ -9,21 +9,18 @@ package com.microsoft.azure.maven.artifacthandler;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.ZipParameters;
+import com.microsoft.azure.maven.utils.ZipUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements ArtifactHandler {
-    private static final String NO_RESOURCES = "No resources were specified in pom.xml or copied to stage directory.";
+    private static final String NO_RESOURCES = "No resources were specified in pom.xml or copied to staging directory.";
     protected T mojo;
 
     public ZIPArtifactHandler(final T mojo) {
@@ -35,11 +32,12 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
     }
 
     @Override
-    public void publish(DeployTarget target) throws ZipException, MojoExecutionException, IOException {
+    public void publish(DeployTarget target) throws MojoExecutionException, IOException {
         // todo: function app zip deploy could not be tested until the sdk 1.14.0 release
         prepareResources();
         assureStageDirectoryNotEmpty();
-        target.zipDeploy(getZipFile());
+
+        target.zipDeploy(new File(getZipFile()));
     }
 
     protected void prepareResources() throws IOException {
@@ -60,15 +58,20 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
         }
     }
 
-    protected File getZipFile() throws ZipException {
+    protected String getZipFile() throws MojoExecutionException {
         final String stageDirectory = getDeploymentStageDirectory();
         final File stageFolder = new File(stageDirectory);
 
-        final ZipFile zipFile = new ZipFile(Paths.get(mojo.getBuildDirectoryAbsolutePath(),
-            new SimpleDateFormat("yyyyMMddHHmm'_app.zip'").format(new Date())).toString());
-        final ZipParameters zipParameters = new ZipParameters();
-        zipParameters.setIncludeRootFolder(false);
-        zipFile.createZipFileFromFolder(stageFolder, zipParameters, false, -1);
-        return zipFile.getFile();
+        final String zipFile = Paths.get(mojo.getBuildDirectoryAbsolutePath(), this.mojo.getAppName() + ".zip")
+            .toString();
+        final List<File> fileList = new ArrayList<>();
+
+        try {
+            ZipUtils.getAllFiles(stageFolder, fileList);
+            ZipUtils.writeZipFile(stageFolder, fileList, zipFile);
+            return zipFile;
+        } catch (Exception e) {
+            throw new MojoExecutionException("Exception when zip staging folder contents: " + e.getMessage());
+        }
     }
 }

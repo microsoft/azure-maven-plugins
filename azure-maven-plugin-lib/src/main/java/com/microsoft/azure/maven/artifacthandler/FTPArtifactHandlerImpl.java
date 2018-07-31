@@ -24,7 +24,7 @@ import java.util.List;
 public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements ArtifactHandler {
     private static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
     private static final int DEFAULT_MAX_RETRY_TIMES = 3;
-    private static final String NO_RESOURCES = "No resources were specified in pom.xml or copied to stage directory.";
+    private static final String NO_RESOURCES = "No resources were specified in pom.xml or copied to staging directory.";
 
     protected T mojo;
 
@@ -40,8 +40,9 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
     public void publish(DeployTarget target) throws IOException, MojoExecutionException {
         if (target.getApp() instanceof WebApp) {
             prepareResources();
-            assureStageDirectoryNotEmpty();
         }
+        
+        assureStageDirectoryNotEmpty();
 
         final FTPUploader uploader = new FTPUploader(mojo.getLog());
         final PublishingProfile profile = target.getPublishingProfile();
