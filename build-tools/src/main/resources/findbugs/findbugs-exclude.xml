@@ -23,14 +23,4 @@
         </Or>
         <Bug pattern = "BC_UNCONFIRMED_CAST" />
     </Match>
-    <Match>
-        <Class name = "com.microsoft.azure.maven.utils.ZipUtils"/>
-        <Method name = "getAllFiles" />
-        <Bug pattern = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" />
-    </Match>
-    <Match>
-        <Class name = "com.microsoft.azure.maven.utils.ZipUtils"/>
-        <Method name = "addToZip" />
-        <Bug pattern = "OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE" />
-    </Match>
 </FindBugsFilter>
