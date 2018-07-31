@@ -33,7 +33,7 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
         this.mojo = mojo;
     }
 
-    protected String getDeploymentStageDirectory() {
+    protected String getDeploymentStagingDirectory() {
         final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
         return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName()).toString();
     }
@@ -44,7 +44,7 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
             prepareResources();
         }
         
-        assureStageDirectoryNotEmpty();
+        assureStagingDirectoryNotEmpty();
 
         final FTPUploader uploader = new FTPUploader(mojo.getLog());
         final PublishingProfile profile = target.getPublishingProfile();
@@ -53,7 +53,7 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
         uploader.uploadDirectoryWithRetries(serverUrl,
             profile.ftpUsername(),
             profile.ftpPassword(),
-            getDeploymentStageDirectory(),
+            getDeploymentStagingDirectory(),
             DEFAULT_WEBAPP_ROOT,
             DEFAULT_MAX_RETRY_TIMES);
 
@@ -67,15 +67,15 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
 
         if (resources != null && !resources.isEmpty()) {
             Utils.copyResources(mojo.getProject(), mojo.getSession(),
-                mojo.getMavenResourcesFiltering(), resources, getDeploymentStageDirectory());
+                mojo.getMavenResourcesFiltering(), resources, getDeploymentStagingDirectory());
         }
     }
 
-    protected void assureStageDirectoryNotEmpty() throws MojoExecutionException {
-        final String stageDirectory = getDeploymentStageDirectory();
-        final File stageFolder = new File(stageDirectory);
-        final File[] files = stageFolder.listFiles();
-        if (!stageFolder.exists() || !stageFolder.isDirectory() || files == null || files.length == 0) {
+    protected void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
+        final String stagingDirectory = getDeploymentStagingDirectory();
+        final File stagingFolder = new File(stagingDirectory);
+        final File[] files = stagingFolder.listFiles();
+        if (!stagingFolder.exists() || !stagingFolder.isDirectory() || files == null || files.length == 0) {
             throw new MojoExecutionException(NO_RESOURCES);
         }
     }

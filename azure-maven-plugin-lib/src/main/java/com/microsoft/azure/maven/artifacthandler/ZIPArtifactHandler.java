@@ -27,7 +27,7 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
         this.mojo = mojo;
     }
 
-    protected String getDeploymentStageDirectory() {
+    protected String getDeploymentStagingDirectory() {
         final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
         return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName()).toString();
     }
@@ -36,7 +36,7 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
     public void publish(DeployTarget target) throws MojoExecutionException, IOException {
         // todo: function app zip deploy could not be tested until the sdk 1.14.0 release
         prepareResources();
-        assureStageDirectoryNotEmpty();
+        assureStagingDirectoryNotEmpty();
 
         target.zipDeploy(getZipFile());
     }
@@ -46,28 +46,28 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
 
         if (resources != null && !resources.isEmpty()) {
             Utils.copyResources(mojo.getProject(), mojo.getSession(),
-                mojo.getMavenResourcesFiltering(), resources, getDeploymentStageDirectory());
+                mojo.getMavenResourcesFiltering(), resources, getDeploymentStagingDirectory());
         }
     }
 
-    protected void assureStageDirectoryNotEmpty() throws MojoExecutionException {
-        final String stageDirectory = getDeploymentStageDirectory();
-        final File stageFolder = new File(stageDirectory);
-        final File[] files = stageFolder.listFiles();
-        if (!stageFolder.exists() || !stageFolder.isDirectory() || files == null || files.length == 0) {
-            throw new MojoExecutionException(String.format(NO_RESOURCES, stageDirectory));
+    protected void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
+        final String stagingDirectoryPath = getDeploymentStagingDirectory();
+        final File stagingDirectory = new File(stagingDirectoryPath);
+        final File[] files = stagingDirectory.listFiles();
+        if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
+            throw new MojoExecutionException(String.format(NO_RESOURCES, stagingDirectoryPath));
         }
     }
 
     protected File getZipFile() throws MojoExecutionException {
-        final String stageDirectory = getDeploymentStageDirectory();
+        final String stagingDirectoryPath = getDeploymentStagingDirectory();
         final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
         final File zipFile = new File(
             Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName() + ".zip")
                 .toString());
-        final File stageFolder = new File(stageDirectory);
+        final File stagingDirectory = new File(stagingDirectoryPath);
 
-        ZipUtil.pack(stageFolder, zipFile);
+        ZipUtil.pack(stagingDirectory, zipFile);
 
         return zipFile;
     }

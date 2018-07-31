@@ -56,7 +56,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandler<AbstractWeb
     }
 
     protected void prepareDeploymentFiles(File jar) throws IOException {
-        final File parent = new File(getDeploymentStageDirectory());
+        final File parent = new File(getDeploymentStagingDirectory());
         parent.mkdirs();
 
         if (StringUtils.isNotEmpty(mojo.getLinuxRuntime())) {
@@ -80,7 +80,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandler<AbstractWeb
         final String webConfigFile = templateContent
                 .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
 
-        final File webConfig = new File(getDeploymentStageDirectory(), "web.config");
+        final File webConfig = new File(getDeploymentStagingDirectory(), "web.config");
         webConfig.createNewFile();
 
         try (final FileOutputStream fos = new FileOutputStream(webConfig)) {
