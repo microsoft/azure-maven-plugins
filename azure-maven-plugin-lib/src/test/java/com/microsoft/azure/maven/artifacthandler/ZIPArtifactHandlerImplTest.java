@@ -53,7 +53,7 @@ public class ZIPArtifactHandlerImplTest {
         final File file = mock(File.class);
 
         doReturn(file).when(handlerSpy).getZipFile();
-        // comment this line since we commented the real zipDeploy function
+        // todo: uncomment this when call zipDeploy in publish
         // doNothing().when(app).zipDeploy(file);
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
 
@@ -111,6 +111,7 @@ public class ZIPArtifactHandlerImplTest {
         final String result = handlerSpy.getDeploymentStagingDirectoryPath();
         assertEquals(result, Paths.get(mockBuildDirectoryPath, "azure-webapp", mockAppName).toString());
     }
+
     @Test
     public void getFunctionDeploymentStagingDirectoryPath() {
         final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
