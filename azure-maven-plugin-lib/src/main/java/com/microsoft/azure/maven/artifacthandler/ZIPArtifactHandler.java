@@ -27,7 +27,7 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
         this.mojo = mojo;
     }
 
-    protected String getDeploymentStagingDirectory() {
+    protected String getDeploymentStagingDirectoryPath() {
         final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
         return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName()).toString();
     }
@@ -46,12 +46,12 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
 
         if (resources != null && !resources.isEmpty()) {
             Utils.copyResources(mojo.getProject(), mojo.getSession(),
-                mojo.getMavenResourcesFiltering(), resources, getDeploymentStagingDirectory());
+                mojo.getMavenResourcesFiltering(), resources, getDeploymentStagingDirectoryPath());
         }
     }
 
     protected void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
-        final String stagingDirectoryPath = getDeploymentStagingDirectory();
+        final String stagingDirectoryPath = getDeploymentStagingDirectoryPath();
         final File stagingDirectory = new File(stagingDirectoryPath);
         final File[] files = stagingDirectory.listFiles();
         if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
@@ -60,7 +60,7 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
     }
 
     protected File getZipFile() throws MojoExecutionException {
-        final String stagingDirectoryPath = getDeploymentStagingDirectory();
+        final String stagingDirectoryPath = getDeploymentStagingDirectoryPath();
         final File zipFile = new File(stagingDirectoryPath + ".zip");
         final File stagingDirectory = new File(stagingDirectoryPath);
 
