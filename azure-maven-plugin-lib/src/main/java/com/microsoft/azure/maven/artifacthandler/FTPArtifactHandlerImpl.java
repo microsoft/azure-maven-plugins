@@ -39,13 +39,13 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
         return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName()).toString();
     }
 
-    protected boolean isPrepareResourceRequired(final DeployTarget target) {
+    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
         return target.getApp() instanceof WebApp || target.getApp() instanceof DeploymentSlot;
     }
 
     @Override
     public void publish(final DeployTarget target) throws IOException, MojoExecutionException {
-        if (isPrepareResourceRequired(target)) {
+        if (isResourcesPreparationRequired(target)) {
             prepareResources();
         }
         

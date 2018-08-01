@@ -135,7 +135,7 @@ public class FTPArtifactHandlerImplTest {
 
         handlerSpy.publish(target);
 
-        verify(handlerSpy, times(1)).isPrepareResourceRequired(target);
+        verify(handlerSpy, times(1)).isResourcesPreparationRequired(target);
         verify(handlerSpy, times(1)).prepareResources();
         verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
         verify(handlerSpy, times(1)).uploadDirectoryToFTP(target);
@@ -156,7 +156,7 @@ public class FTPArtifactHandlerImplTest {
 
         handlerSpy.publish(target);
 
-        verify(handlerSpy, times(1)).isPrepareResourceRequired(target);
+        verify(handlerSpy, times(1)).isResourcesPreparationRequired(target);
         verify(handlerSpy, times(1)).prepareResources();
         verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
         verify(handlerSpy, times(1)).uploadDirectoryToFTP(target);
@@ -177,7 +177,7 @@ public class FTPArtifactHandlerImplTest {
 
         handlerSpy.publish(target);
 
-        verify(handlerSpy, times(1)).isPrepareResourceRequired(target);
+        verify(handlerSpy, times(1)).isResourcesPreparationRequired(target);
         verify(handlerSpy, times(0)).prepareResources();
         verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
         verify(handlerSpy, times(1)).uploadDirectoryToFTP(target);
@@ -186,17 +186,17 @@ public class FTPArtifactHandlerImplTest {
     }
 
     @Test
-    public void isPrepareResourceRequired() {
+    public void isResourcesPreparationRequired() {
         final FTPArtifactHandlerImpl handlerSpy = spy(handler);
 
         DeployTarget target = new DeployTarget(mock(WebApp.class), DeployTargetType.WEBAPP);
-        assertTrue(handlerSpy.isPrepareResourceRequired(target));
+        assertTrue(handlerSpy.isResourcesPreparationRequired(target));
 
         target = new DeployTarget(mock(DeploymentSlot.class), DeployTargetType.SLOT);
-        assertTrue(handlerSpy.isPrepareResourceRequired(target));
+        assertTrue(handlerSpy.isResourcesPreparationRequired(target));
 
         target = new DeployTarget(mock(FunctionApp.class), DeployTargetType.FUNCTION);
-        assertFalse(handlerSpy.isPrepareResourceRequired(target));
+        assertFalse(handlerSpy.isResourcesPreparationRequired(target));
     }
 
     @Test
