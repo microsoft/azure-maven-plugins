@@ -2,14 +2,40 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure.it</groupId>
-    <artifactId>windows-ftp</artifactId>
-    <packaging>war</packaging>
+    <artifactId>linux-zip</artifactId>
     <version>1.0-SNAPSHOT</version>
     <properties>
         <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
     </properties>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.3.RELEASE</version>
+    </parent>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <!-- Exclude the Tomcat dependency -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jetty</artifactId>
+        </dependency>
+    </dependencies>
     <build>
+        <finalName>app</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>@project.groupId@</groupId>
                 <artifactId>@project.artifactId@</artifactId>
@@ -18,25 +44,29 @@
                     <authentication>
                         <serverId>azure-auth</serverId>
                     </authentication>
-                    <resourceGroup>maven-webapp-it-rg-6</resourceGroup>
+                    <resourceGroup>maven-webapp-it-rg-14</resourceGroup>
                     <appName>maven-it-app-${maven.build.timestamp}</appName>
                     <region>westus</region>
-                    <javaVersion>1.8</javaVersion>
-                    <javaWebContainer>tomcat 8.5</javaWebContainer>
-                    <deploymentType>ftp</deploymentType>
+                    <linuxRuntime>jre8</linuxRuntime>
+                    <deploymentType>zip</deploymentType>
                     <stopAppDuringDeployment>true</stopAppDuringDeployment>
                     <resources>
                         <resource>
                             <directory>${project.basedir}/target</directory>
-                            <targetPath>webapps</targetPath>
                             <includes>
-                                <include>*.war</include>
+                                <include>*.jar</include>
                             </includes>
                             <excludes>
                                 <exclude>*.xml</exclude>
                             </excludes>
                         </resource>
                     </resources>
+                    <appSettings>
+                        <property>
+                            <name>PORT</name>
+                            <value>8080</value>
+                        </property>
+                    </appSettings>
                 </configuration>
             </plugin>
         </plugins>

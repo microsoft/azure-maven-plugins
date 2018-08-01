@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
-import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandler;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.commons.io.IOUtils;
@@ -26,7 +26,7 @@ import java.nio.file.Paths;
  *
  * @since 1.3.0
  */
-public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl<AbstractWebAppMojo> {
+public final class JarArtifactHandlerImpl extends ZIPArtifactHandler<AbstractWebAppMojo> {
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";
@@ -56,7 +56,7 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl<Abstrac
     }
 
     protected void prepareDeploymentFiles(File jar) throws IOException {
-        final File parent = new File(getDeploymentStageDirectory());
+        final File parent = new File(getDeploymentStagingDirectoryPath());
         parent.mkdirs();
 
         if (StringUtils.isNotEmpty(mojo.getLinuxRuntime())) {
@@ -80,7 +80,7 @@ public final class JarArtifactHandlerImpl extends FTPArtifactHandlerImpl<Abstrac
         final String webConfigFile = templateContent
                 .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
 
-        final File webConfig = new File(getDeploymentStageDirectory(), "web.config");
+        final File webConfig = new File(getDeploymentStagingDirectoryPath(), "web.config");
         webConfig.createNewFile();
 
         try (final FileOutputStream fos = new FileOutputStream(webConfig)) {

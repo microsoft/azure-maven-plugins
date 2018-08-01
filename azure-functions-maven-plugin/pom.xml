@@ -32,7 +32,6 @@
         <azure.function.version>1.0.0-beta-5</azure.function.version>
         <azure.storage.version>5.4.0</azure.storage.version>
         <reflections.version>0.9.11</reflections.version>
-        <zeroturnaround.zip.version>1.12</zeroturnaround.zip.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.4.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
@@ -205,12 +204,6 @@
             <groupId>com.github.zafarkhaja</groupId>
             <artifactId>java-semver</artifactId>
             <version>${semver.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.zeroturnaround</groupId>
-            <artifactId>zt-zip</artifactId>
-            <version>${zeroturnaround.zip.version}</version>
-            <type>jar</type>
         </dependency>
 
         <!-- TEST -->

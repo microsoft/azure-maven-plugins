@@ -7,6 +7,7 @@ package com.microsoft.azure.maven.webapp.configuration;
 
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandler;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.handlers.JarArtifactHandlerImpl;
@@ -24,6 +25,7 @@ import java.util.Locale;
 public enum DeploymentType {
     NONE(new NONEHandler()),
     FTP(new FTPHandler()),
+    ZIP(new ZIPHandler()),
     WAR(new WARHandler()),
     JAR(new JARHandler()),
     AUTO(new AUTOHandler()),
@@ -55,6 +57,8 @@ public enum DeploymentType {
         switch (input.toUpperCase(Locale.ENGLISH)) {
             case "FTP":
                 return FTP;
+            case "ZIP":
+                return ZIP;
             case "WAR":
                 return WAR;
             case "JAR":
@@ -104,6 +108,12 @@ public enum DeploymentType {
     static class FTPHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) {
             return new FTPArtifactHandlerImpl(m);
+        }
+    }
+
+    static class ZIPHandler implements Handler {
+        public ArtifactHandler apply(AbstractWebAppMojo m) {
+            return new ZIPArtifactHandler(m);
         }
     }
 
