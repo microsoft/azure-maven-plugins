@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.google.common.io.Files;
-import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.commons.io.IOUtils;
@@ -26,7 +26,7 @@ import java.nio.file.Paths;
  *
  * @since 1.3.0
  */
-public final class JarArtifactHandlerImpl extends ZIPArtifactHandler<AbstractWebAppMojo> {
+public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl<AbstractWebAppMojo> {
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";

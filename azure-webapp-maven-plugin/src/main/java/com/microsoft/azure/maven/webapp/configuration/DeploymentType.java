@@ -7,7 +7,7 @@ package com.microsoft.azure.maven.webapp.configuration;
 
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
-import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.handlers.JarArtifactHandlerImpl;
@@ -113,7 +113,7 @@ public enum DeploymentType {
 
     static class ZIPHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) {
-            return new ZIPArtifactHandler(m);
+            return new ZIPArtifactHandlerImpl(m);
         }
     }
 

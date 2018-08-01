@@ -18,12 +18,12 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 
-public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements ArtifactHandler {
+public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements ArtifactHandler {
     private static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
     private static final String NO_RESOURCES = "Staging directory: '%s' is empty.";
     protected T mojo;
 
-    public ZIPArtifactHandler(final T mojo) {
+    public ZIPArtifactHandlerImpl(final T mojo) {
         this.mojo = mojo;
     }
 
@@ -59,7 +59,7 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
         }
     }
 
-    protected File getZipFile() throws MojoExecutionException {
+    protected File getZipFile() {
         final String stagingDirectoryPath = getDeploymentStagingDirectoryPath();
         final File zipFile = new File(stagingDirectoryPath + ".zip");
         final File stagingDirectory = new File(stagingDirectoryPath);
