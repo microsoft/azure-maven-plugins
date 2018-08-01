@@ -20,6 +20,7 @@ import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -78,7 +79,12 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         createOrUpdateFunctionApp();
 
-        final DeployTarget deployTarget = new DeployTarget(getFunctionApp(), DeployTargetType.FUNCTION);
+        final FunctionApp app = getFunctionApp();
+        if (app == null) {
+            throw new MojoExecutionException(String.format("Failed to get Function App with name: %s", getAppName()));
+        }
+
+        final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
 
         getArtifactHandler().publish(deployTarget);
 

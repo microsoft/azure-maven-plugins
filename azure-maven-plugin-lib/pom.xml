@@ -139,7 +139,6 @@
             <groupId>org.zeroturnaround</groupId>
             <artifactId>zt-zip</artifactId>
             <version>${zeroturnaround.zip.version}</version>
-            <type>jar</type>
         </dependency>
 
         <!-- TEST -->
