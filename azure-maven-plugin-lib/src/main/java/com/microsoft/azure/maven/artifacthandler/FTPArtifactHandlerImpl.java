@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.artifacthandler;
 
+import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
@@ -38,15 +39,27 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
         return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName()).toString();
     }
 
+    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
+        return target.getApp() instanceof WebApp || target.getApp() instanceof DeploymentSlot;
+    }
+
     @Override
-    public void publish(DeployTarget target) throws IOException, MojoExecutionException {
-        if (target.getApp() instanceof WebApp) {
+    public void publish(final DeployTarget target) throws IOException, MojoExecutionException {
+        if (isResourcesPreparationRequired(target)) {
             prepareResources();
         }
         
         assureStagingDirectoryNotEmpty();
 
-        final FTPUploader uploader = new FTPUploader(mojo.getLog());
+        uploadDirectoryToFTP(target);
+
+        if (target.getApp() instanceof FunctionApp) {
+            ((FunctionApp) target.getApp()).syncTriggers();
+        }
+    }
+
+    protected void uploadDirectoryToFTP(DeployTarget target) throws MojoExecutionException {
+        final FTPUploader uploader = getUploader();
         final PublishingProfile profile = target.getPublishingProfile();
         final String serverUrl = profile.ftpUrl().split("/", 2)[0];
 
@@ -56,10 +69,10 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
             getDeploymentStagingDirectoryPath(),
             DEFAULT_WEBAPP_ROOT,
             DEFAULT_MAX_RETRY_TIMES);
+    }
 
-        if (target.getApp() instanceof FunctionApp) {
-            ((FunctionApp) target.getApp()).syncTriggers();
-        }
+    protected FTPUploader getUploader() {
+        return new FTPUploader(mojo.getLog());
     }
 
     protected void prepareResources() throws IOException {
