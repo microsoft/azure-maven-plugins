@@ -36,7 +36,6 @@
         <mockito.version>2.4.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
         <semver.version>0.9.0</semver.version>
-        <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
     </properties>
 
     <licenses>
@@ -205,11 +204,6 @@
             <groupId>com.github.zafarkhaja</groupId>
             <artifactId>java-semver</artifactId>
             <version>${semver.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.zeroturnaround</groupId>
-            <artifactId>zt-zip</artifactId>
-            <version>${zeroturnaround.zip.version}</version>
         </dependency>
 
         <!-- TEST -->
