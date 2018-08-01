@@ -61,14 +61,10 @@ public class ZIPArtifactHandler<T extends AbstractAppServiceMojo> implements Art
 
     protected File getZipFile() throws MojoExecutionException {
         final String stagingDirectoryPath = getDeploymentStagingDirectory();
-        final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
-        final File zipFile = new File(
-            Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName() + ".zip")
-                .toString());
+        final File zipFile = new File(stagingDirectoryPath + ".zip");
         final File stagingDirectory = new File(stagingDirectoryPath);
 
         ZipUtil.pack(stagingDirectory, zipFile);
-
         return zipFile;
     }
 }
