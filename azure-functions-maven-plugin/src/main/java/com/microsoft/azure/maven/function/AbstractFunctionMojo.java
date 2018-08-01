@@ -13,6 +13,7 @@ import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Paths;
 
@@ -78,12 +79,14 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
                 getAppName()).toString();
     }
 
+    @Nullable
     public FunctionApp getFunctionApp() throws AzureAuthFailureException {
         try {
             return getAzureClient().appServices().functionApps().getByResourceGroup(getResourceGroup(), getAppName());
         } catch (AzureAuthFailureException authEx) {
             throw authEx;
         } catch (Exception ex) {
+            this.getLog().debug(ex);
             // Swallow exception for non-existing Azure Functions
         }
         return null;
