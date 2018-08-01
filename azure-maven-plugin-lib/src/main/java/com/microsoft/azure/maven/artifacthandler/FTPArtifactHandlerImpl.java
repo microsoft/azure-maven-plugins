@@ -25,7 +25,7 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
     private static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
     private static final int DEFAULT_MAX_RETRY_TIMES = 3;
     private static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
-    private static final String NO_RESOURCES = "No resources were specified in pom.xml or copied to staging directory.";
+    private static final String NO_RESOURCES = "Staging directory: '%s' is empty.";
 
     protected T mojo;
 
@@ -72,11 +72,11 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
     }
 
     protected void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
-        final String stagingDirectory = getDeploymentStagingDirectory();
-        final File stagingFolder = new File(stagingDirectory);
-        final File[] files = stagingFolder.listFiles();
-        if (!stagingFolder.exists() || !stagingFolder.isDirectory() || files == null || files.length == 0) {
-            throw new MojoExecutionException(NO_RESOURCES);
+        final String stagingDirectoryPath = getDeploymentStagingDirectory();
+        final File stagingDirectory = new File(stagingDirectoryPath);
+        final File[] files = stagingDirectory.listFiles();
+        if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
+            throw new MojoExecutionException(String.format(NO_RESOURCES, stagingDirectoryPath));
         }
     }
 }
