@@ -53,8 +53,7 @@ public class ZIPArtifactHandlerImplTest {
         final File file = mock(File.class);
 
         doReturn(file).when(handlerSpy).getZipFile();
-        // todo: uncomment this when call zipDeploy in publish
-        // doNothing().when(app).zipDeploy(file);
+        doNothing().when(app).zipDeploy(file);
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
 
         handlerSpy.publish(target);

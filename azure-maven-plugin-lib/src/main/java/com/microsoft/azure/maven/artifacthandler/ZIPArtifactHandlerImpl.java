@@ -34,7 +34,6 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
 
     @Override
     public void publish(DeployTarget target) throws MojoExecutionException, IOException {
-        // todo: function app zip deploy could not be tested until the sdk 1.14.0 release
         prepareResources();
         assureStagingDirectoryNotEmpty();
 
