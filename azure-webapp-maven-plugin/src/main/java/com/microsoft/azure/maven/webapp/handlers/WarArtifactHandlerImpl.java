@@ -19,7 +19,6 @@ import java.io.File;
 import java.nio.file.Paths;
 
 public class WarArtifactHandlerImpl implements ArtifactHandler {
-
     public static final String FILE_IS_NOT_WAR = "The deployment file is not a war typed file.";
     public static final String FIND_WAR_FILE_FAIL = "Failed to find the war file: '%s'";
     public static final String UPLOAD_FAILURE = "Exception occurred when deploying war file to server: %s, " +
@@ -36,12 +35,14 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
     }
 
     @Override
-    public void publish(final DeployTarget deployTarget) throws MojoExecutionException {
+    public void publish(final DeployTarget target) throws MojoExecutionException {
+        this.mojo.getLog().info(String.format(DEPLOY_START, target.getType(), target.getName()));
+
         final File war = getWarFile();
 
         assureWarFileExisted(war);
 
-        final Runnable warDeployExecutor = getRealWarDeployExecutor(deployTarget, war, getContextPath());
+        final Runnable warDeployExecutor = getRealWarDeployExecutor(target, war, getContextPath());
         if (warDeployExecutor == null) {
             throw new MojoExecutionException(DEPLOY_TARGET_TYPE_UNKNOWN);
         }
@@ -51,6 +52,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
             retryCount++;
             try {
                 warDeployExecutor.run();
+                this.mojo.getLog().info(String.format(DEPLOY_FINISH, target.getName(), target.getDefaultHostName()));
                 return;
             } catch (Exception e) {
                 mojo.getLog().warn(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));

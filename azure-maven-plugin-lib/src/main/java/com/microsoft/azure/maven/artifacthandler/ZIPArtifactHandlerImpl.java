@@ -34,11 +34,14 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
 
     @Override
     public void publish(DeployTarget target) throws MojoExecutionException, IOException {
+        this.mojo.getLog().info(String.format(DEPLOY_START, target.getType(), target.getName()));
+
         // todo: function app zip deploy could not be tested until the sdk 1.14.0 release
         prepareResources();
         assureStagingDirectoryNotEmpty();
 
         target.zipDeploy(getZipFile());
+        this.mojo.getLog().info(String.format(DEPLOY_FINISH, target.getName(), target.getDefaultHostName()));
     }
 
     protected void prepareResources() throws IOException {
