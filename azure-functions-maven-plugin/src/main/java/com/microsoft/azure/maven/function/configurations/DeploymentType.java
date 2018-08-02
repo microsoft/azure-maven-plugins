@@ -19,6 +19,7 @@ public enum DeploymentType {
         if (StringUtils.isEmpty(input)) {
             return MS_DEPLOY;
         }
+
         switch (input.toUpperCase(Locale.ENGLISH)) {
             case "FTP":
                 return FTP;

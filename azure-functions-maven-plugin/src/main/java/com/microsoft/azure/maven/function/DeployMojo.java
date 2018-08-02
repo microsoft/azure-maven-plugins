@@ -47,7 +47,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     //region Properties
 
     /**
-     * Deployment type to deploy Web App. Supported values:
+     * Deployment type to deploy Web App.
+     * Default value is msdeploy, supported values:
      * <ul>
      * <li>msdeploy</li>
      * <li>ftp</li>
