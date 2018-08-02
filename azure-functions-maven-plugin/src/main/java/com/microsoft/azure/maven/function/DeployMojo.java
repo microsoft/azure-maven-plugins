@@ -30,6 +30,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.util.Map;
 import java.util.function.Consumer;
 
+
 /**
  * Deploy artifacts to target Azure Functions in Azure. If target Azure Functions doesn't exist, it will be created.
  */
@@ -47,8 +48,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     //region Properties
 
     /**
-     * Deployment type to deploy Web App.
-     * Default value is msdeploy, supported values:
+     * Deployment type to deploy Web App. Supported values:
      * <ul>
      * <li>msdeploy</li>
      * <li>ftp</li>
@@ -57,7 +57,7 @@ public class DeployMojo extends AbstractFunctionMojo {
      *
      * @since 0.1.0
      */
-    @Parameter(property = "functions.deploymentType")
+    @Parameter(property = "functions.deploymentType", defaultValue = "msdeploy")
     protected String deploymentType;
 
     //endregion
