@@ -317,6 +317,7 @@ page at http://checkstyle.sourceforge.net/config.html -->
 
         <module name="EmptyLineSeparator">
             <property name="allowNoEmptyLineBetweenFields" value="true"/>
+             <property name="allowMultipleEmptyLines" value="false"/>
         </module>
 
     </module>

@@ -37,7 +37,6 @@ public class DeploymentSlotHandler {
     private static final String TARGET_CONFIGURATION_SOURCE_SLOT_NOT_EXIST =
         "The deployment slot specified in <configurationSource> does not exist.";
 
-
     private AbstractWebAppMojo mojo;
 
     public DeploymentSlotHandler(final AbstractWebAppMojo mojo) {
