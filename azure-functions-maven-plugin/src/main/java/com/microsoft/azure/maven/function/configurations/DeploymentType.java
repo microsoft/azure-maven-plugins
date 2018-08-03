@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.configurations;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Locale;
@@ -13,8 +14,7 @@ import java.util.Locale;
 public enum DeploymentType {
     MS_DEPLOY(ConstantValues.MS_DEPLOY_VALUE),
     ZIP(ConstantValues.ZIP_VALUE),
-    FTP(ConstantValues.FTP_VALUE),
-    UNKNOWN(null);
+    FTP(ConstantValues.FTP_VALUE);
 
     public static class ConstantValues {
         public static final String MS_DEPLOY_VALUE = "msdeploy";
@@ -24,13 +24,16 @@ public enum DeploymentType {
 
     private final String value;
 
+    public static final String UNKNOWN_DEPLOYMENT_TYPE =
+        "Unknown deployment type, supported values are: zip, ftp and msdeploy.";
+
     DeploymentType(final String value) {
         this.value = value;
     }
 
-    public static DeploymentType fromString(final String input) {
+    public static DeploymentType fromString(final String input) throws MojoExecutionException {
         if (StringUtils.isEmpty(input)) {
-            return UNKNOWN;
+            throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
 
         switch (input.toLowerCase(Locale.ENGLISH)) {
@@ -41,7 +44,7 @@ public enum DeploymentType {
             case ConstantValues.ZIP_VALUE:
                 return ZIP;
             default:
-                return UNKNOWN;
+                throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
     }
 

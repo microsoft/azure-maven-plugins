@@ -43,8 +43,6 @@ public class DeployMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_APP_CREATED = "Successfully created Azure Function App ";
     public static final String FUNCTION_APP_UPDATE = "Updating Azure Function App...";
     public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated Azure Function App ";
-    public static final String UNKNOWN_DEPLOYMENT_TYPE = "Unknown deployment type, " +
-        "supported values are: zip, ftp and msdeploy.";
 
     //region Properties
 
@@ -176,9 +174,8 @@ public class DeployMojo extends AbstractFunctionMojo {
                 return new FTPArtifactHandlerImpl(this);
             case ZIP:
                 return new ZIPArtifactHandlerImpl(this);
-            case UNKNOWN:
             default:
-                throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
+                throw new MojoExecutionException(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
         }
     }
 }
