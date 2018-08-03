@@ -17,16 +17,16 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.function.configurations.DeploymentType;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.util.StringUtils;
 
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -44,9 +44,6 @@ public class DeployMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_APP_UPDATE = "Updating Azure Function App...";
     public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated Azure Function App ";
 
-    public static final String MS_DEPLOY = "msdeploy";
-    public static final String FTP = "ftp";
-
     //region Properties
 
     /**
@@ -54,11 +51,12 @@ public class DeployMojo extends AbstractFunctionMojo {
      * <ul>
      * <li>msdeploy</li>
      * <li>ftp</li>
+     * <li>zip</li>
      * </ul>
      *
      * @since 0.1.0
      */
-    @Parameter(property = "functions.deploymentType", defaultValue = MS_DEPLOY)
+    @Parameter(property = "functions.deploymentType", defaultValue = DeploymentType.ConstantValues.MS_DEPLOY_VALUE)
     protected String deploymentType;
 
     //endregion
@@ -66,7 +64,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     //region Getter
 
     public String getDeploymentType() {
-        return StringUtils.isEmpty(deploymentType) ? MS_DEPLOY : deploymentType;
+        return deploymentType;
     }
 
     //endregion
@@ -169,9 +167,11 @@ public class DeployMojo extends AbstractFunctionMojo {
     //endregion
 
     protected ArtifactHandler getArtifactHandler() {
-        switch (getDeploymentType().toLowerCase(Locale.ENGLISH)) {
+        switch (DeploymentType.fromString(getDeploymentType())) {
             case FTP:
                 return new FTPArtifactHandlerImpl(this);
+            case ZIP:
+                return new ZIPArtifactHandlerImpl(this);
             case MS_DEPLOY:
             default:
                 return new MSDeployArtifactHandlerImpl(this);
