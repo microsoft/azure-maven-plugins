@@ -11,23 +11,40 @@ import org.codehaus.plexus.util.StringUtils;
 import java.util.Locale;
 
 public enum DeploymentType {
-    MS_DEPLOY,
-    ZIP,
-    FTP;
+    MS_DEPLOY(ConstantValues.MS_DEPLOY_VALUE),
+    ZIP(ConstantValues.ZIP_VALUE),
+    FTP(ConstantValues.FTP_VALUE);
+
+    public static class ConstantValues {
+        public static final String MS_DEPLOY_VALUE = "msdeploy";
+        public static final String ZIP_VALUE = "zip";
+        public static final String FTP_VALUE = "ftp";
+    }
+
+    private final String value;
+
+    DeploymentType(final String value) {
+        this.value = value;
+    }
 
     public static DeploymentType fromString(final String input) {
         if (StringUtils.isEmpty(input)) {
             return MS_DEPLOY;
         }
 
-        switch (input.toUpperCase(Locale.ENGLISH)) {
-            case "FTP":
+        switch (input.toLowerCase(Locale.ENGLISH)) {
+            case ConstantValues.FTP_VALUE:
                 return FTP;
-            case "ZIP":
+            case ConstantValues.ZIP_VALUE:
                 return ZIP;
-            case "MSDEPLOY":
+            case ConstantValues.MS_DEPLOY_VALUE:
             default:
                 return MS_DEPLOY;
         }
+    }
+
+    @Override
+    public String toString() {
+        return this.value;
     }
 }
