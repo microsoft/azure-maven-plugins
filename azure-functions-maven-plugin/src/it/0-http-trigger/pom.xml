@@ -18,7 +18,7 @@
         <functionAppName>maven-functions-it-${timestamp}-0</functionAppName>
         <functionAppRegion>westus</functionAppRegion>
         <stagingDirectory>${project.build.directory}/azure-functions/${functionAppName}</stagingDirectory>
-        <functionResourceGroup>java-functions-group</functionResourceGroup>
+        <functionResourceGroup>maven-functions-it-rg-0</functionResourceGroup>
     </properties>
 
     <dependencies>
@@ -57,7 +57,7 @@
                     <authentication>
                         <serverId>azure-auth</serverId>
                     </authentication>
-                    <resourceGroup>maven-functions-it-rg-0</resourceGroup>
+                    <resourceGroup>${functionResourceGroup}</resourceGroup>
                     <appName>${functionAppName}</appName>
                     <region>${functionAppRegion}</region>
                     <appSettings>
