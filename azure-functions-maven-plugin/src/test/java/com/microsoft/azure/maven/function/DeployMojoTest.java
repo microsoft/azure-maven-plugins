@@ -26,6 +26,7 @@ import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -227,7 +228,7 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void getMSDeployArtifactHandler() {
+    public void getMSDeployArtifactHandler() throws MojoExecutionException {
         doReturn("msdeploy").when(mojoSpy).getDeploymentType();
         final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
@@ -236,7 +237,7 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void getFTPArtifactHandler() {
+    public void getFTPArtifactHandler() throws MojoExecutionException {
         doReturn("ftp").when(mojoSpy).getDeploymentType();
         final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
@@ -245,11 +246,17 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void getZIPArtifactHandler() {
-        final ArtifactHandler handler = mojo.getArtifactHandler();
+    public void getZIPArtifactHandler() throws MojoExecutionException {
+        doReturn("zip").when(mojoSpy).getDeploymentType();
+        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
         assertNotNull(handler);
         assertTrue(handler instanceof ZIPArtifactHandlerImpl);
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void getArtifactHandlerThrowException() throws MojoExecutionException {
+        mojo.getArtifactHandler();
     }
 
     private DeployMojo getMojoFromPom() throws Exception {

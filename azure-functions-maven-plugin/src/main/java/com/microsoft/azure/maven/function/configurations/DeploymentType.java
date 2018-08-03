@@ -13,7 +13,8 @@ import java.util.Locale;
 public enum DeploymentType {
     MS_DEPLOY(ConstantValues.MS_DEPLOY_VALUE),
     ZIP(ConstantValues.ZIP_VALUE),
-    FTP(ConstantValues.FTP_VALUE);
+    FTP(ConstantValues.FTP_VALUE),
+    UNKNOWN(null);
 
     public static class ConstantValues {
         public static final String MS_DEPLOY_VALUE = "msdeploy";
@@ -29,7 +30,7 @@ public enum DeploymentType {
 
     public static DeploymentType fromString(final String input) {
         if (StringUtils.isEmpty(input)) {
-            return ZIP;
+            return UNKNOWN;
         }
 
         switch (input.toLowerCase(Locale.ENGLISH)) {
@@ -38,8 +39,9 @@ public enum DeploymentType {
             case ConstantValues.MS_DEPLOY_VALUE:
                 return MS_DEPLOY;
             case ConstantValues.ZIP_VALUE:
-            default:
                 return ZIP;
+            default:
+                return UNKNOWN;
         }
     }
 

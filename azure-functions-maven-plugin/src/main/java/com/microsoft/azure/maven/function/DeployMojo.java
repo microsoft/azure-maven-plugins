@@ -37,12 +37,14 @@ import java.util.function.Consumer;
 public class DeployMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_DEPLOY_START = "Starting deployment to Azure Function App ";
     public static final String FUNCTION_DEPLOY_SUCCESS =
-            "Successfully deployed Azure Function App at https://%s.azurewebsites.net";
+        "Successfully deployed Azure Function App at https://%s.azurewebsites.net";
     public static final String FUNCTION_APP_CREATE_START = "Target Azure Function App does not exist. " +
-            "Creating a new Azure Function App ...";
+        "Creating a new Azure Function App ...";
     public static final String FUNCTION_APP_CREATED = "Successfully created Azure Function App ";
     public static final String FUNCTION_APP_UPDATE = "Updating Azure Function App...";
     public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated Azure Function App ";
+    public static final String UNKNOWN_DEPLOYMENT_TYPE = "Unknown deployment type, " +
+        "supported values are: zip, ftp and msdeploy.";
 
     //region Properties
 
@@ -166,15 +168,17 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //endregion
 
-    protected ArtifactHandler getArtifactHandler() {
+    protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
         switch (DeploymentType.fromString(getDeploymentType())) {
             case MS_DEPLOY:
                 return new MSDeployArtifactHandlerImpl(this);
             case FTP:
                 return new FTPArtifactHandlerImpl(this);
             case ZIP:
-            default:
                 return new ZIPArtifactHandlerImpl(this);
+            case UNKNOWN:
+            default:
+                throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
     }
 }
