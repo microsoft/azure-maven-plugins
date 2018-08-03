@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for
  * license information.
  */
+
 package com.microsoft.azure.maven.function.bindings;
 
 import com.microsoft.azure.functions.annotation.BlobInput;

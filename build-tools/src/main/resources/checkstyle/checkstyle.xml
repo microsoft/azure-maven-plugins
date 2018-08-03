@@ -315,5 +315,10 @@ page at http://checkstyle.sourceforge.net/config.html -->
         </module>
         <module name="UnusedImports"/>
 
+        <module name="EmptyLineSeparator">
+            <property name="allowNoEmptyLineBetweenFields" value="true"/>
+             <property name="allowMultipleEmptyLines" value="false"/>
+        </module>
+
     </module>
 </module>

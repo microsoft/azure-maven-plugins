@@ -95,7 +95,6 @@ public class WarArtifactHandlerImplTest {
         verify(slotMock, times(1)).warDeploy(file, path);
     }
 
-
     @Test(expected = MojoExecutionException.class)
     public void publishFailed() throws Exception {
         final File file = new File("");
