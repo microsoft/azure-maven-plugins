@@ -29,17 +29,17 @@ public enum DeploymentType {
 
     public static DeploymentType fromString(final String input) {
         if (StringUtils.isEmpty(input)) {
-            return MS_DEPLOY;
+            return ZIP;
         }
 
         switch (input.toLowerCase(Locale.ENGLISH)) {
             case ConstantValues.FTP_VALUE:
                 return FTP;
-            case ConstantValues.ZIP_VALUE:
-                return ZIP;
             case ConstantValues.MS_DEPLOY_VALUE:
-            default:
                 return MS_DEPLOY;
+            case ConstantValues.ZIP_VALUE:
+            default:
+                return ZIP;
         }
     }
 

@@ -56,7 +56,7 @@ public class DeployMojo extends AbstractFunctionMojo {
      *
      * @since 0.1.0
      */
-    @Parameter(property = "functions.deploymentType", defaultValue = DeploymentType.ConstantValues.MS_DEPLOY_VALUE)
+    @Parameter(property = "functions.deploymentType", defaultValue = DeploymentType.ConstantValues.ZIP_VALUE)
     protected String deploymentType;
 
     //endregion
@@ -168,13 +168,13 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected ArtifactHandler getArtifactHandler() {
         switch (DeploymentType.fromString(getDeploymentType())) {
+            case MS_DEPLOY:
+                return new MSDeployArtifactHandlerImpl(this);
             case FTP:
                 return new FTPArtifactHandlerImpl(this);
             case ZIP:
-                return new ZIPArtifactHandlerImpl(this);
-            case MS_DEPLOY:
             default:
-                return new MSDeployArtifactHandlerImpl(this);
+                return new ZIPArtifactHandlerImpl(this);
         }
     }
 }

@@ -227,17 +227,17 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void getMSDeployArtifactHandler() throws Exception {
-        final ArtifactHandler handler = mojo.getArtifactHandler();
+    public void getMSDeployArtifactHandler() {
+        doReturn("msdeploy").when(mojoSpy).getDeploymentType();
+        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
         assertNotNull(handler);
         assertTrue(handler instanceof MSDeployArtifactHandlerImpl);
     }
 
     @Test
-    public void getFTPArtifactHandler() throws Exception {
+    public void getFTPArtifactHandler() {
         doReturn("ftp").when(mojoSpy).getDeploymentType();
-
         final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
         assertNotNull(handler);
@@ -245,10 +245,8 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void getZIPArtifactHandler() throws Exception {
-        doReturn("zip").when(mojoSpy).getDeploymentType();
-
-        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
+    public void getZIPArtifactHandler() {
+        final ArtifactHandler handler = mojo.getArtifactHandler();
 
         assertNotNull(handler);
         assertTrue(handler instanceof ZIPArtifactHandlerImpl);
