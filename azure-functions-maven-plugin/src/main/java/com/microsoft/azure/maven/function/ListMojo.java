@@ -18,8 +18,8 @@ import java.io.InputStream;
 @Mojo(name = "list")
 public class ListMojo extends AbstractFunctionMojo {
 
-    public static final String PRINTING_START = "Printing Java Azure Functions templates information...";
-    public static final String PRINT_END = "Printing Java Azure Functions templates information done.";
+    public static final String PRINTING_START = ">> templates begin <<";
+    public static final String PRINT_END = ">> templates end <<";
 
     @Override
     protected void doExecute() throws Exception {
