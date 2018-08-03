@@ -49,7 +49,6 @@ public class RunMojoTest extends MojoTestBase {
         verify(mojoSpy, times(1)).runFunctions(any(CommandHandler.class));
     }
 
-
     @Test(expected = MojoExecutionException.class)
     public void checkStageDirectoryExistenceWhenIsNotDirectory() throws Exception {
         final RunMojo mojo = getMojoFromPom();
