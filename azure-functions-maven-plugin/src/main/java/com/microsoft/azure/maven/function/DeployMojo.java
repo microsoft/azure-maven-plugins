@@ -171,7 +171,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             case FTP:
                 return new FTPArtifactHandlerImpl(this);
             case ZIP:
-                return new ZIPArtifactHandlerImpl(this);
+                return new ZIPArtifactHandlerImpl<AbstractFunctionMojo>(this);
             case MS_DEPLOY:
             default:
                 return new MSDeployArtifactHandlerImpl(this);
