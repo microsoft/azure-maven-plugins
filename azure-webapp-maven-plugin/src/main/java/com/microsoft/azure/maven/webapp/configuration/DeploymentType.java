@@ -29,10 +29,11 @@ public enum DeploymentType {
     ZIP(new ZIPHandler()),
     WAR(new WARHandler()),
     JAR(new JARHandler()),
-    AUTO(new AUTOHandler()),
-    UNKNOWN(new UNKNOWNHandler());
+    AUTO(new AUTOHandler());
 
     private Handler handler;
+
+    public static final String UNKNOWN_DEPLOYMENT_TYPE = "Unknown deployment type.";
 
     DeploymentType(Handler handler) {
         this.handler = handler;
@@ -50,9 +51,9 @@ public enum DeploymentType {
         return handler.apply(mojo);
     }
 
-    public static DeploymentType fromString(final String input) {
+    public static DeploymentType fromString(final String input) throws MojoExecutionException {
         if (StringUtils.isEmpty(input)) {
-            return NONE;
+            throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
 
         switch (input.toUpperCase(Locale.ENGLISH)) {
@@ -69,7 +70,7 @@ public enum DeploymentType {
             case "AUTO":
                 return AUTO;
             default:
-                return UNKNOWN;
+                throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
     }
 
@@ -85,16 +86,16 @@ public enum DeploymentType {
     }
 
     static class AUTOHandler implements Handler {
-        public ArtifactHandler apply(AbstractWebAppMojo m) {
+        public ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException {
             String packaging = m.getProject().getPackaging();
-            packaging = packaging != null ? packaging.toLowerCase(Locale.ENGLISH) : "";
-            switch (packaging.trim()) {
+            packaging = packaging != null ? packaging.toLowerCase(Locale.ENGLISH).trim() : "";
+            switch (packaging) {
                 case "war":
                     return new WarArtifactHandlerImpl(m);
                 case "jar":
                     return new JarArtifactHandlerImpl(m);
                 default:
-                    return new NONEArtifactHandlerImpl(m);
+                    throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
             }
         }
     }
@@ -120,12 +121,6 @@ public enum DeploymentType {
     static class JARHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m) {
             return new JarArtifactHandlerImpl(m);
-        }
-    }
-
-    static class UNKNOWNHandler implements Handler {
-        public ArtifactHandler apply(AbstractWebAppMojo m) {
-            throw new RuntimeException("Unknown deployment type.");
         }
     }
 }

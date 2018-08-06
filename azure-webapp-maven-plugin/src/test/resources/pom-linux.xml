@@ -25,6 +25,7 @@
                             <value>80</value>
                         </property>
                     </appSettings>
+                    <deploymentType>auto</deploymentType>
                     <resources>
                         <resource>
                             <directory>${baseDir}/target</directory>
