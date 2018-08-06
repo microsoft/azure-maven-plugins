@@ -16,6 +16,7 @@ public class NONEArtifactHandlerImpl implements ArtifactHandler {
     public NONEArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
     }
+
     @Override
     public void publish(DeployTarget deployTarget) {
         this.mojo.getLog().info("<deploymentType> was set to NONE. Skip deployment.");
