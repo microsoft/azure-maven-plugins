@@ -92,10 +92,12 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl<Abstrac
     }
 
     protected File getJarFile() {
-        return StringUtils.isNotEmpty(mojo.getJarFile()) ? new File(mojo.getJarFile())
-                : new File(Paths
-                .get(mojo.getBuildDirectoryAbsolutePath(), mojo.getProject().getBuild().getFinalName() + ".jar")
-                .toString());
+        final String jarFilePath = StringUtils.isNotEmpty(mojo.getJarFile()) ? mojo.getJarFile() :
+                Paths.get(
+                        mojo.getBuildDirectoryAbsolutePath(),
+                        mojo.getProject().getBuild().getFinalName() + ".jar"
+                ).toString();
+        return new File(jarFilePath);
     }
 
     protected void assureJarFileExisted(File jar) throws MojoExecutionException {

@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.function.handlers;
 
 import com.microsoft.azure.management.appservice.AppSetting;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
@@ -15,12 +15,13 @@ import com.microsoft.azure.storage.CloudStorageAccount;
 import org.codehaus.plexus.util.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
-public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
+public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase<AbstractFunctionMojo> {
     public static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-deployment-packages";
     public static final String ZIP_EXT = ".zip";
     public static final String CREATE_ZIP_START = "Step 1 of 4: Creating ZIP file...";
@@ -40,10 +41,8 @@ public class MSDeployArtifactHandlerImpl implements ArtifactHandler {
     public static final String DELETE_PACKAGE_DONE = "Successfully deleted deployment package ";
     public static final String DELETE_PACKAGE_FAIL = "Failed to delete deployment package ";
 
-    private AbstractFunctionMojo mojo;
-
-    public MSDeployArtifactHandlerImpl(final AbstractFunctionMojo mojo) {
-        this.mojo = mojo;
+    public MSDeployArtifactHandlerImpl(@Nonnull final AbstractFunctionMojo mojo) {
+        super(mojo);
     }
 
     @Override
