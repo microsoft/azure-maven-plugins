@@ -71,7 +71,7 @@ To use the Maven Plugin for Azure Functions in your Maven Java app, add the foll
       <plugin>
         <groupId>com.microsoft.azure</groupId>
           <artifactId>azure-functions-maven-plugin</artifactId>
-          <version>1.0.0-beta-3</version>
+          <version>1.0.0-beta-5</version>
           <configuration>
             ...
           </configuration>
@@ -192,7 +192,8 @@ mvn azure-functions:run -DenableDebug
 
 Directly deploy to target Azure Functions by running `mvn azure-functions:deploy`.
 
-Supported deployment methods are listed as below. Default value is **MSDeploy**.
+Supported deployment methods are listed as below. Default value is **ZIP**.
+- ZIP
 - MSDeploy
 - FTP
 
