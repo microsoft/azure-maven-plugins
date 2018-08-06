@@ -72,11 +72,12 @@ public class MSDeployArtifactHandlerImplTest {
         final AppSetting storageSetting = mock(AppSetting.class);
 
         mapSettings.put(INTERNAL_STORAGE_KEY, storageSetting);
+        doReturn("azure-functions-maven-plugin").when(mojo).getPluginName();
         doReturn(mapSettings).when(deployTarget).getAppSettings();
         doReturn(storageSetting).when(mapSettings).get(anyString());
         doReturn(null).when(handlerSpy).getCloudStorageAccount(deployTarget);
         doReturn("").when(handlerSpy).uploadPackageToAzureStorage(file, null, "");
-        doReturn("").when((handlerSpy)).getBlobName();
+        doReturn("").when(handlerSpy).getBlobName();
         doReturn(mapSettings).when(deployTarget).getAppSettings();
         doNothing().when(handlerSpy).deployWithPackageUri(eq(deployTarget), eq(""), any(Runnable.class));
         doReturn(file).when(handlerSpy).createZipPackage();
