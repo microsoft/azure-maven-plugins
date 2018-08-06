@@ -3,7 +3,7 @@
     "id": "HttpTrigger-Java",
     "metadata": {
       "name": "HttpTrigger",
-      "description": "$HttpTriggerJava_description",
+      "description": "$HttpTrigger_description",
       "defaultFunctionName": "httpTriggerJava",
       "language": "Java",
       "userPrompt": [
@@ -18,7 +18,7 @@
     "id": "BlobTrigger-Java",
     "metadata": {
       "name": "BlobTrigger",
-      "description": "$BlobTriggerJava_description",
+      "description": "$BlobTrigger_description",
       "defaultFunctionName": "blobTriggerJava",
       "language": "Java",
       "userPrompt": [
@@ -34,7 +34,7 @@
     "id": "QueueTrigger-Java",
     "metadata": {
       "name": "QueueTrigger",
-      "description": "$QueueTriggerJava_description",
+      "description": "$QueueTrigger_description",
       "defaultFunctionName": "queueTriggerJava",
       "language": "Java",
       "userPrompt": [
@@ -50,7 +50,7 @@
     "id": "TimerTrigger-Java",
     "metadata": {
       "name": "TimerTrigger",
-      "description": "$TimerTriggerJava_description",
+      "description": "$TimerTrigger_description",
       "defaultFunctionName": "timerTriggerJava",
       "language": "Java",
       "userPrompt": [
