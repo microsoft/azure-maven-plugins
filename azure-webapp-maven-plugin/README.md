@@ -95,7 +95,7 @@ Goal | Description
 
 ## Authentication with Azure
 
-You can use the Azure CLI 2.0 for authenticatin. More authentication methods can be found [here](../docs/common-configuration.md).  
+You can use the Azure CLI 2.0 for authentication. More authentication methods can be found [here](../docs/common-configuration.md).  
 
 1. Install the Azure CLI 2.0 by following the instructions in the [Install Azure CLI 2.0](https://docs.microsoft.com/cli/azure/install-azure-cli) article.
 
@@ -130,7 +130,7 @@ Supported Value | Description
 `1.8.0_92` | Azul's Zulu OpenJDK 8, Update 92
 `1.8.0_102` | Azul's Zulu OpenJDK 8, Update 102
 
-> Note: It is recommended to ignore the minor version number like the following example, so that the latest supported JVM will be used in your Web App.
+> Note: It is recommended to ignore the minor version number like the following example so that the latest supported JVM will be used in your Web App.
 
 ```xml
 <plugin>
@@ -161,7 +161,7 @@ Supported Value | Description
 `jetty 9.3` | Newest Jetty 9.3
 `jetty 9.3.13.20161014` | Jetty 9.3.13.v20161014
 
-> Note: It is recommended to ignore the minor version number like the following example, so that the latest supported web container will be used in your Web App.
+> Note: It is recommended to ignore the minor version number like the following example so that the latest supported web container will be used in your Web App.
 
 ```xml
 <plugin>
@@ -242,7 +242,7 @@ Otherwise, the plugin will skip the deployment, which is the same as `NONE` depl
 > Note: If you want the plugin to inspect the `<packaging>` field. Just not set `<deploymentType>` in the configuration. The plugin will use `AUTO` deployment as default.
 
 ### FTP Deployment
-You can deploy your artifacts/resources to Web App via FTP. The following example shows all configuration elements.
+You can deploy your artifacts/resources to Web App via FTP. The following example shows all the configuration elements.
 
 ```xml
 <plugin>
@@ -267,7 +267,7 @@ You can deploy your artifacts/resources to Web App via FTP. The following exampl
 </plugin>
 ```
 
-Detailed explanation of the `<resource>` element is listed in the following table.
+The detailed explanation of the `<resource>` element is listed in the following table.
 
 Property | Description
 ---|---
@@ -287,14 +287,14 @@ Property | Required | Description
 `<name>` | true | Specifies the slot name. Valid slot name must match this kind of regex expression: [a-zA-Z0-9-]{1, 60}. 
 `<configurationSource>` | false | The configuration source used to create a deployment slot.
 
-> Note`<name>` is pure slot name, not the name with webapp name as prefix in the portal.
+> Note the `<name>` is pure slot name, not the name with web app name as the prefix in the portal.
 
 If you specify an existing deployment slot to do the deploy, `<configurationSource>` will be ignored even it's configured.
 
 Or, if you want to create a new deployment slot and deploy to it at the same time, you could specify configuration source as you like.
 
 `<configurationSource>` could be set to **New** to create a brand new slot without any configuration,
-or set to **Parent** to create a slot and copy the configuration from parent webapp.
+or set to **Parent** to create a slot and copy the configuration from parent web app.
 Besides, you could set it to the name of another existing deployment slot.
 It will copy the configuration of that slot during creation.
 If not configured, **Parent** will be used as default.

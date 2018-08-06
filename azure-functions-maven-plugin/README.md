@@ -37,8 +37,8 @@ Maven | 3.0 and above
 > Default staging directory is `${project.basedir}/target/azure-functions/${function-app-name}/`
 
 #### `azure-functions:add`
-- Create new Java function and add to current project.
-- You will be prompted to choose template and enter parameters. Templates for below triggers are supported as of now:
+- Create a new Java function and add to the current project.
+- You will be prompted to choose a template and enter parameters. Templates for below triggers are supported as of now:
     - HTTP Trigger
     - Azure Storage Blob Trigger
     - Azure Storage Queue Trigger
@@ -98,10 +98,10 @@ Property | Required | Description
 `<appName>` | true | Specifies the name of your Azure Functions.
 `<region>`* | false | Specifies the region where your Azure Functions will be hosted; default value is **westus**. All valid regions are at [Supported Regions](#supported-regions) section.
 `<pricingTier>`* | false | Specifies the pricing tier for your Azure Functions; default value is **Consumption**. All valid pricing tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section.
-`<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, plugin will use the value defined in `<resourceGroup>`.
+`<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, a plugin will use the value defined in `<resourceGroup>`.
 `<appServicePlanName>` | false | Specifies the name of the existing App Service Plan when you do not want to create a new one.
 `<appSettings>` | false | Specifies the application settings for your Azure Functions, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
-`<deploymentType>` | false | Specifies the deployment approach you want to use.<br>Supported values are `msdeploy` and `ftp`. Default value is **`msdeploy`**.
+`<deploymentType>` | false | Specifies the deployment approach you want to use.<br>Supported values are `msdeploy` and `ftp`. The default value is **`msdeploy`**.
 >*: This setting will be used to create a new Azure Functions if specified Azure Functions does not exist; if target Azure Functions already exists, this setting will be ignored.
 
 ### Supported Regions
@@ -163,11 +163,11 @@ Run below command to create a new function:
 mvn azure-functions:add -Dfunctions.package=com.your.package -Dfunctions.name=NewFunction -Dfunctions.template=HttpTrigger
 ```
 
-You don't have to provide all properties on command line. Missing properties will be prompted for input during the execution of the goal.
+You don't have to provide all the properties on the command line. Missing properties will be prompted for input during the execution of the goal.
 
 ### Generate `function.json` from current project
 
-Follow below instructions, you don't need to handwrite `function.json` any more.
+Follow below instructions, you don't need to handwrite `function.json` anymore.
 1. Use annotations from package `com.microsoft.azure:azure-functions-java-library` to decorate your functions. 
 2. Run `mvn clean package`; then `function.json` files will be automatically generated for all functions in your project.
 
@@ -192,12 +192,12 @@ mvn azure-functions:run -DenableDebug
 
 Directly deploy to target Azure Functions by running `mvn azure-functions:deploy`.
 
-Supported deployment methods are listed as below. Default value is **MSDeploy**.
+Supported deployment methods are listed as below. The default value is **MSDeploy**.
 - MSDeploy
 - FTP
 
 ## Common Questions
-**Q: Can I upload other static content, e.g. html files, as part of the function deployment?**
+**Q: Can I upload other static content, e.g. HTML files, as part of the function deployment?**
 
 **A:** You can achieve this by adding configurations for the `maven-resources-plugin`. For example:
 ```xml
