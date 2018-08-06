@@ -25,8 +25,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
-    public static final String DEPLOY_START = "Start executing the deploy goal.";
-    public static final String DEPLOY_END = "Finish executing the deploy goal.";
+    public static final String DEPLOY_START = "Start executing deploy...";
+    public static final String DEPLOY_END = "Finish executing deploy.";
     public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
     public static final String WEBAPP_CREATED = "Successfully created Web App.";
     public static final String UPDATE_WEBAPP = "Updating target Web App...";

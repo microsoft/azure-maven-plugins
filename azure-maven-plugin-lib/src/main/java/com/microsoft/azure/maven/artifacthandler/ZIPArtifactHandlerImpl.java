@@ -36,7 +36,6 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
     public void publish(DeployTarget target) throws MojoExecutionException, IOException {
         this.mojo.getLog().info(String.format(DEPLOY_START, target.getType(), target.getName()));
 
-        // todo: function app zip deploy could not be tested until the sdk 1.14.0 release
         prepareResources();
         assureStagingDirectoryNotEmpty();
 

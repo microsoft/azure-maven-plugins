@@ -45,7 +45,7 @@ public class DeployTarget<T extends WebAppBase> {
     }
 
     public void zipDeploy(final File file) {
-//        app.zipDeploy(file);
+        app.zipDeploy(file);
     }
 
     public void msDeploy(final String packageUri, final boolean deleteExistingDeploymentSlot) {
