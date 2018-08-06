@@ -40,7 +40,7 @@ public class PackageMojoTest extends MojoTestBase {
         doReturn(ClasspathHelper.forPackage("com.microsoft.azure.maven.function.handlers").toArray()[0])
                 .when(mojoSpy)
                 .getTargetClassUrl();
-        doReturn("target/azure-functions").when(mojoSpy).getDeploymentStageDirectory();
+        doReturn("target/azure-functions").when(mojoSpy).getDeploymentStagingDirectoryPath();
         doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(mock(MavenProject.class)).when(mojoSpy).getProject();
         doReturn(mock(MavenSession.class)).when(mojoSpy).getSession();
@@ -73,7 +73,7 @@ public class PackageMojoTest extends MojoTestBase {
     public void writeFunctionJsonFile() throws Exception {
         final PackageMojo mojo = getMojoFromPom();
         final PackageMojo mojoSpy = spy(mojo);
-        doReturn("target/azure-functions").when(mojoSpy).getDeploymentStageDirectory();
+        doReturn("target/azure-functions").when(mojoSpy).getDeploymentStagingDirectoryPath();
         doNothing().when(mojoSpy).writeObjectToFile(isNull(), isNull(), isNotNull());
 
         mojoSpy.writeFunctionJsonFile(null, "httpTrigger", null);

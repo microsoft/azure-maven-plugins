@@ -54,7 +54,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         commandHandler.runCommandWithReturnCodeCheck(
                 String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, getProjectBasePath()),
                 true,
-                this.mojo.getDeploymentStageDirectory(),
+                this.mojo.getDeploymentStagingDirectoryPath(),
                 CommandUtils.getDefaultValidReturnCodes(),
                 INSTALL_FUNCTION_EXTENSIONS_FAIL
         );

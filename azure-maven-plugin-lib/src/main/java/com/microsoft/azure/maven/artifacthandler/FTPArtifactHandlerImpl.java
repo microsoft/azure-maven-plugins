@@ -53,7 +53,7 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
         uploader.uploadDirectoryWithRetries(serverUrl,
             profile.ftpUsername(),
             profile.ftpPassword(),
-            getDeploymentStagingDirectoryPath(),
+            mojo.getDeploymentStagingDirectoryPath(),
             DEFAULT_WEBAPP_ROOT,
             DEFAULT_MAX_RETRY_TIMES);
     }

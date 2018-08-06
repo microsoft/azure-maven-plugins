@@ -47,11 +47,11 @@ public class RunMojo extends AbstractFunctionMojo {
     }
 
     protected void checkStageDirectoryExistence() throws Exception {
-        final File file = new File(getDeploymentStageDirectory());
+        final File file = new File(getDeploymentStagingDirectoryPath());
         if (!file.exists() || !file.isDirectory()) {
             throw new MojoExecutionException(STAGE_DIR_NOT_FOUND);
         }
-        info(STAGE_DIR_FOUND + getDeploymentStageDirectory());
+        info(STAGE_DIR_FOUND + getDeploymentStagingDirectoryPath());
     }
 
     protected void checkRuntimeExistence(final CommandHandler handler) throws Exception {
@@ -69,7 +69,7 @@ public class RunMojo extends AbstractFunctionMojo {
         handler.runCommandWithReturnCodeCheck(
                 getStartFunctionHostCommand(),
                 true, /* showStdout */
-                getDeploymentStageDirectory(),
+                getDeploymentStagingDirectoryPath(),
                 CommandUtils.getValidReturnCodes(),
                 RUN_FUNCTIONS_FAILURE
         );

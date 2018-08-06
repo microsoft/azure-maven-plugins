@@ -21,7 +21,6 @@ import org.zeroturnaround.zip.ZipException;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;
@@ -76,7 +75,7 @@ public class ZIPArtifactHandlerImplTest {
     @Test(expected = MojoExecutionException.class)
     public void assureStagingDirectoryNotEmptyThrowException() throws MojoExecutionException {
         final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
-        doReturn("").when(handlerSpy).getDeploymentStagingDirectoryPath();
+        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
         handlerSpy.assureStagingDirectoryNotEmpty();
     }
 
@@ -84,7 +83,7 @@ public class ZIPArtifactHandlerImplTest {
     public void getZipFile() {
         final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
         final File zipTestDirectory = new File("src/test/resources/ziptest");
-        doReturn(zipTestDirectory.getAbsolutePath()).when(handlerSpy).getDeploymentStagingDirectoryPath();
+        doReturn(zipTestDirectory.getAbsolutePath()).when(mojo).getDeploymentStagingDirectoryPath();
 
         assertEquals(zipTestDirectory.getAbsolutePath() + ".zip", handlerSpy.getZipFile().getAbsolutePath());
     }
@@ -92,35 +91,8 @@ public class ZIPArtifactHandlerImplTest {
     @Test(expected = ZipException.class)
     public void getZipFileThrowException() {
         final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
-        doReturn("").when(handlerSpy).getDeploymentStagingDirectoryPath();
+        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
 
         handlerSpy.getZipFile();
     }
-
-    @Test
-    public void getWebAppDeploymentStagingDirectoryPath() {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
-        final String mockPluginName = "azure-webapp-maven-plugin";
-        final String mockBuildDirectoryPath = "D:\\test-project\\target";
-        final String mockAppName = "test-webapp";
-        doReturn(mockPluginName).when(mojo).getPluginName();
-        doReturn(mockBuildDirectoryPath).when(mojo).getBuildDirectoryAbsolutePath();
-        doReturn(mockAppName).when(mojo).getAppName();
-        final String result = handlerSpy.getDeploymentStagingDirectoryPath();
-        assertEquals(result, Paths.get(mockBuildDirectoryPath, "azure-webapp", mockAppName).toString());
-    }
-
-    @Test
-    public void getFunctionDeploymentStagingDirectoryPath() {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
-        final String mockPluginName = "azure-functions-maven-plugin";
-        final String mockBuildDirectoryPath = "D:\\test-project\\target";
-        final String mockAppName = "test-functions";
-        doReturn(mockPluginName).when(mojo).getPluginName();
-        doReturn(mockBuildDirectoryPath).when(mojo).getBuildDirectoryAbsolutePath();
-        doReturn(mockAppName).when(mojo).getAppName();
-        final String result = handlerSpy.getDeploymentStagingDirectoryPath();
-        assertEquals(result, Paths.get(mockBuildDirectoryPath, "azure-functions", mockAppName).toString());
-    }
 }
-

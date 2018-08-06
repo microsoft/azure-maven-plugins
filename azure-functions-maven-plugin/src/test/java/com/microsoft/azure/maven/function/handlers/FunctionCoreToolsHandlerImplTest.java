@@ -86,13 +86,13 @@ public class FunctionCoreToolsHandlerImplTest {
         doNothing().when(commandHandler).runCommandWithReturnCodeCheck(anyString(),
                 anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
         doReturn("path").when(functionCoreToolsHandlerSpy).getProjectBasePath();
-        doReturn("path").when(mojo).getDeploymentStageDirectory();
+        doReturn("path").when(mojo).getDeploymentStagingDirectoryPath();
 
         functionCoreToolsHandlerSpy.installFunctionExtension();
         verify(commandHandler, times(1)).runCommandWithReturnCodeCheck(
                 String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, functionCoreToolsHandlerSpy.getProjectBasePath()),
                 true,
-                mojo.getDeploymentStageDirectory(),
+                mojo.getDeploymentStagingDirectoryPath(),
                 CommandUtils.getDefaultValidReturnCodes(),
                 INSTALL_FUNCTION_EXTENSIONS_FAIL
         );
