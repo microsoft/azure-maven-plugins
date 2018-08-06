@@ -71,7 +71,7 @@ To use the Maven Plugin for Azure Functions in your Maven Java app, add the foll
       <plugin>
         <groupId>com.microsoft.azure</groupId>
           <artifactId>azure-functions-maven-plugin</artifactId>
-          <version>1.0.0-beta-3</version>
+          <version>1.0.0-beta-5</version>
           <configuration>
             ...
           </configuration>
@@ -98,7 +98,7 @@ Property | Required | Description
 `<appName>` | true | Specifies the name of your Azure Functions.
 `<region>`* | false | Specifies the region where your Azure Functions will be hosted; default value is **westus**. All valid regions are at [Supported Regions](#supported-regions) section.
 `<pricingTier>`* | false | Specifies the pricing tier for your Azure Functions; default value is **Consumption**. All valid pricing tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section.
-`<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, our plugin will use the value defined in `<resourceGroup>`.
+`<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, the plugin will use the value defined in `<resourceGroup>`.
 `<appServicePlanName>` | false | Specifies the name of the existing App Service Plan when you do not want to create a new one.
 `<appSettings>` | false | Specifies the application settings for your Azure Functions, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
 `<deploymentType>` | false | Specifies the deployment approach you want to use.<br>Supported values are `msdeploy` and `ftp`. The default value is **`msdeploy`**.
@@ -192,7 +192,8 @@ mvn azure-functions:run -DenableDebug
 
 Directly deploy to target Azure Functions by running `mvn azure-functions:deploy`.
 
-Supported deployment methods are listed as below. The default value is **MSDeploy**.
+Supported deployment methods are listed as below. The default value is **ZIP**.
+- ZIP
 - MSDeploy
 - FTP
 
