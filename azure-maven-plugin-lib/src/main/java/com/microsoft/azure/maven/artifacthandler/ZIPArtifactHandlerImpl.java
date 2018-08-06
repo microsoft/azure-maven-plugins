@@ -7,29 +7,17 @@
 package com.microsoft.azure.maven.artifacthandler;
 
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.zeroturnaround.zip.ZipUtil;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.List;
 
-public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements ArtifactHandler {
-    private static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
-    private static final String NO_RESOURCES = "Staging directory: '%s' is empty.";
-    protected T mojo;
-
-    public ZIPArtifactHandlerImpl(final T mojo) {
-        this.mojo = mojo;
-    }
-
-    protected String getDeploymentStagingDirectoryPath() {
-        final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
-        return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, this.mojo.getAppName()).toString();
+public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> extends ArtifactHandlerBase<T> {
+    public ZIPArtifactHandlerImpl(@Nonnull final T mojo) {
+        super(mojo);
     }
 
     @Override
@@ -38,24 +26,6 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
         assureStagingDirectoryNotEmpty();
 
         target.zipDeploy(getZipFile());
-    }
-
-    protected void prepareResources() throws IOException {
-        final List<Resource> resources = this.mojo.getResources();
-
-        if (resources != null && !resources.isEmpty()) {
-            Utils.copyResources(mojo.getProject(), mojo.getSession(),
-                mojo.getMavenResourcesFiltering(), resources, getDeploymentStagingDirectoryPath());
-        }
-    }
-
-    protected void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
-        final String stagingDirectoryPath = getDeploymentStagingDirectoryPath();
-        final File stagingDirectory = new File(stagingDirectoryPath);
-        final File[] files = stagingDirectory.listFiles();
-        if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
-            throw new MojoExecutionException(String.format(NO_RESOURCES, stagingDirectoryPath));
-        }
     }
 
     protected File getZipFile() {

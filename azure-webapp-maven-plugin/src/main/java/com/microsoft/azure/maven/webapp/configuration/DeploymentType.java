@@ -9,9 +9,9 @@ package com.microsoft.azure.maven.webapp.configuration;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.handlers.JarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.NONEArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
@@ -78,16 +78,9 @@ public enum DeploymentType {
         ArtifactHandler apply(AbstractWebAppMojo m) throws MojoExecutionException;
     }
 
-    private static class NONEArtifactHandlerImplementation implements ArtifactHandler {
-        @Override
-        public void publish(DeployTarget deployTarget) {
-            // does nothing
-        }
-    }
-
     static class NONEHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m)  {
-            return new NONEArtifactHandlerImplementation();
+            return new NONEArtifactHandlerImpl(m);
         }
     }
 
@@ -101,7 +94,7 @@ public enum DeploymentType {
                 case "jar":
                     return new JarArtifactHandlerImpl(m);
                 default:
-                    return new NONEArtifactHandlerImplementation();
+                    return new NONEArtifactHandlerImpl(m);
             }
         }
     }

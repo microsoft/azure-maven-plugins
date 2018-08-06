@@ -18,6 +18,12 @@ import org.codehaus.plexus.util.StringUtils;
 import java.io.File;
 import java.nio.file.Paths;
 
+/**
+ * Artifact handler used to deploy war file. Typically, each artifact handler needs to extends
+ * {@link com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase}
+ * WarArtifactHandler is a special case because it does not need staging folder.
+ * Thus, the methods shared in ArtifactHandlerBase is not needed here.
+ */
 public class WarArtifactHandlerImpl implements ArtifactHandler {
 
     public static final String FILE_IS_NOT_WAR = "The deployment file is not a war typed file.";
@@ -36,12 +42,13 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
     }
 
     @Override
-    public void publish(final DeployTarget deployTarget) throws MojoExecutionException {
+    public void publish(final DeployTarget target) throws MojoExecutionException {
+
         final File war = getWarFile();
 
         assureWarFileExisted(war);
 
-        final Runnable warDeployExecutor = getRealWarDeployExecutor(deployTarget, war, getContextPath());
+        final Runnable warDeployExecutor = getRealWarDeployExecutor(target, war, getContextPath());
         if (warDeployExecutor == null) {
             throw new MojoExecutionException(DEPLOY_TARGET_TYPE_UNKNOWN);
         }
