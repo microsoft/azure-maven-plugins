@@ -67,7 +67,6 @@ public class ZIPArtifactHandlerImplTest {
         verifyNoMoreInteractions(handlerSpy);
     }
 
-
     @Test
     public void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
         final ZIPArtifactHandlerImpl handlerSpy = spy(handler);

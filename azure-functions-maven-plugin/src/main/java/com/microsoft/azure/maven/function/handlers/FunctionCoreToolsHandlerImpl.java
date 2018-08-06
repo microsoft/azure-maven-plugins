@@ -84,7 +84,6 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
     }
 
-
     protected String getLocalFunctionCoreToolsVersion() throws Exception {
         final String localVersion = commandHandler.runCommandAndGetOutput(
                 GET_LOCAL_VERSION_CMD,
