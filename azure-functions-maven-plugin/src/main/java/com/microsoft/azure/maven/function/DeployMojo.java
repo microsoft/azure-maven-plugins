@@ -35,14 +35,14 @@ import java.util.function.Consumer;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
-    public static final String FUNCTION_DEPLOY_START = "Starting deployment to function app...";
+    public static final String FUNCTION_DEPLOY_START = "Starting deployment to the specified function app...";
     public static final String FUNCTION_DEPLOY_SUCCESS =
-        "Successfully deployed function app at https://%s.azurewebsites.net.";
-    public static final String FUNCTION_APP_CREATE_START = "Target function app does not exist. " +
+        "Successfully deployed the function app at https://%s.azurewebsites.net.";
+    public static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
         "Creating a new function app...";
-    public static final String FUNCTION_APP_CREATED = "Successfully created function app.";
-    public static final String FUNCTION_APP_UPDATE = "Updating function app...";
-    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated function app.";
+    public static final String FUNCTION_APP_CREATED = "Successfully created a function app.";
+    public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
+    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
 
     //region Properties
 
@@ -79,7 +79,8 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         final FunctionApp app = getFunctionApp();
         if (app == null) {
-            throw new MojoExecutionException(String.format("Failed to get function app with name: %s", getAppName()));
+            throw new MojoExecutionException(
+                String.format("Failed to get the function app with name: %s", getAppName()));
         }
 
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
