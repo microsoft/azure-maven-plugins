@@ -31,7 +31,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.nio.file.Paths;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
@@ -39,10 +38,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyMap;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -71,13 +70,6 @@ public class DeployMojoTest extends MojoTestBase {
         assertEquals("appName", mojo.getAppName());
 
         assertEquals("westeurope", mojo.getRegion());
-    }
-
-    @Test
-    public void getDeploymentStageDirectory() throws Exception {
-        doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
-        assertEquals(Paths.get("target", "azure-functions", "appName").toString(),
-                mojoSpy.getDeploymentStageDirectory());
     }
 
     @Test

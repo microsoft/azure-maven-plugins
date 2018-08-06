@@ -9,6 +9,7 @@ package com.microsoft.azure.maven;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.Properties;
  * Base abstract class for all Azure App Service Mojos.
  */
 public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
+    protected static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
     /**
      * Resource group of App Service. It will be created if it doesn't exist.
      */
@@ -90,5 +92,13 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
 
     public List<Resource> getResources() {
         return Collections.EMPTY_LIST;
+    }
+
+    public String getDeploymentStagingDirectoryPath() {
+        final String outputFolder = this.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
+        return Paths.get(
+                this.getBuildDirectoryAbsolutePath(),
+                outputFolder, this.getAppName()
+        ).toString();
     }
 }

@@ -80,7 +80,7 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase<AbstractFun
         logInfo("");
         logInfo(CREATE_ZIP_START);
 
-        final String stageDirectoryPath = mojo.getDeploymentStageDirectory();
+        final String stageDirectoryPath = mojo.getDeploymentStagingDirectoryPath();
         final File stageDirectory = new File(stageDirectoryPath);
         final File zipPackage = new File(stageDirectoryPath.concat(ZIP_EXT));
 

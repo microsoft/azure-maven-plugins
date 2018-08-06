@@ -29,7 +29,7 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> extends Ar
     }
 
     protected File getZipFile() {
-        final String stagingDirectoryPath = getDeploymentStagingDirectoryPath();
+        final String stagingDirectoryPath = mojo.getDeploymentStagingDirectoryPath();
         final File zipFile = new File(stagingDirectoryPath + ".zip");
         final File stagingDirectory = new File(stagingDirectoryPath);
 

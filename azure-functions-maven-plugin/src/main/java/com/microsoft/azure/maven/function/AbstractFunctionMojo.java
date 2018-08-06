@@ -15,11 +15,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.nio.file.Paths;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
-    public static final String AZURE_FUNCTIONS = "azure-functions";
-
     //region Properties
 
     /**
@@ -71,12 +68,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     public String getFinalName() {
         return finalName;
-    }
-
-    public String getDeploymentStageDirectory() {
-        return Paths.get(getBuildDirectoryAbsolutePath(),
-                AZURE_FUNCTIONS,
-                getAppName()).toString();
     }
 
     @Nullable

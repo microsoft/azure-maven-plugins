@@ -14,7 +14,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 
 public abstract class ArtifactHandlerBase<T extends AbstractAppServiceMojo> implements ArtifactHandler {
@@ -25,13 +24,8 @@ public abstract class ArtifactHandlerBase<T extends AbstractAppServiceMojo> impl
         this.mojo = mojo;
     }
 
-    protected String getDeploymentStagingDirectoryPath() {
-        final String outputFolder = this.mojo.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
-        return Paths.get(mojo.getBuildDirectoryAbsolutePath(), outputFolder, mojo.getAppName()).toString();
-    }
-
     protected void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
-        final File stagingDirectory = new File(getDeploymentStagingDirectoryPath());
+        final File stagingDirectory = new File(mojo.getDeploymentStagingDirectoryPath());
         final File[] files = stagingDirectory.listFiles();
         if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
             throw new MojoExecutionException(String.format("Staging directory: '%s' is empty.",
@@ -44,7 +38,7 @@ public abstract class ArtifactHandlerBase<T extends AbstractAppServiceMojo> impl
 
         if (resources != null && !resources.isEmpty()) {
             Utils.copyResources(mojo.getProject(), mojo.getSession(),
-                    mojo.getMavenResourcesFiltering(), resources, getDeploymentStagingDirectoryPath());
+                    mojo.getMavenResourcesFiltering(), resources, mojo.getDeploymentStagingDirectoryPath());
         }
     }
 }

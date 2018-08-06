@@ -97,7 +97,7 @@ public class MSDeployArtifactHandlerImplTest {
     public void createZipPackage() throws Exception {
         final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
         final MSDeployArtifactHandlerImpl handlerSpy = spy(handler);
-        when(mojo.getDeploymentStageDirectory()).thenReturn("target/classes");
+        when(mojo.getDeploymentStagingDirectoryPath()).thenReturn("target/classes");
 
         final File zipPackage = handlerSpy.createZipPackage();
 
