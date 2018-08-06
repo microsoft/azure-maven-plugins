@@ -36,12 +36,13 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
     }
 
     @Override
-    public void publish(final DeployTarget deployTarget) throws MojoExecutionException {
+    public void publish(final DeployTarget target) throws MojoExecutionException {
+
         final File war = getWarFile();
 
         assureWarFileExisted(war);
 
-        final Runnable warDeployExecutor = getRealWarDeployExecutor(deployTarget, war, getContextPath());
+        final Runnable warDeployExecutor = getRealWarDeployExecutor(target, war, getContextPath());
         if (warDeployExecutor == null) {
             throw new MojoExecutionException(DEPLOY_TARGET_TYPE_UNKNOWN);
         }
