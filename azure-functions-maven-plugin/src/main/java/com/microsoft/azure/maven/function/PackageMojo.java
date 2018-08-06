@@ -211,7 +211,8 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected void writeFunctionJsonFile(final ObjectWriter objectWriter, final String functionName,
                                          final FunctionConfiguration config) throws IOException {
         info(SAVE_FUNCTION_JSON + functionName);
-        final File functionJsonFile = Paths.get(getDeploymentStageDirectory(), functionName, FUNCTION_JSON).toFile();
+        final File functionJsonFile = Paths.get(getDeploymentStagingDirectoryPath(),
+                functionName, FUNCTION_JSON).toFile();
         writeObjectToFile(objectWriter, config, functionJsonFile);
         info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
     }
@@ -219,7 +220,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected void writeEmptyHostJsonFile(final ObjectWriter objectWriter) throws IOException {
         info("");
         info(SAVE_HOST_JSON);
-        final File hostJsonFile = Paths.get(getDeploymentStageDirectory(), HOST_JSON).toFile();
+        final File hostJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
         writeObjectToFile(objectWriter, new Object(), hostJsonFile);
         info(SAVE_SUCCESS + hostJsonFile.getAbsolutePath());
     }
@@ -242,7 +243,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Copy Jars to stage directory
 
     protected void copyJarsToStageDirectory() throws IOException {
-        final String stagingDirectory = getDeploymentStageDirectory();
+        final String stagingDirectory = getDeploymentStagingDirectoryPath();
         info("");
         info(COPY_JARS + stagingDirectory);
         Utils.copyResources(

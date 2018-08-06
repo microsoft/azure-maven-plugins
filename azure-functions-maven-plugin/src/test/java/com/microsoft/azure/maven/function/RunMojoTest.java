@@ -54,7 +54,7 @@ public class RunMojoTest extends MojoTestBase {
         final RunMojo mojo = getMojoFromPom();
         final RunMojo mojoSpy = spy(mojo);
 
-        doReturn("./RunMojoTest.java").when(mojoSpy).getDeploymentStageDirectory();
+        doReturn("./RunMojoTest.java").when(mojoSpy).getDeploymentStagingDirectoryPath();
         mojoSpy.checkStageDirectoryExistence();
     }
 
@@ -63,7 +63,7 @@ public class RunMojoTest extends MojoTestBase {
         final RunMojo mojo = getMojoFromPom();
         final RunMojo mojoSpy = spy(mojo);
 
-        doReturn("./NotExistFile").when(mojoSpy).getDeploymentStageDirectory();
+        doReturn("./NotExistFile").when(mojoSpy).getDeploymentStagingDirectoryPath();
         mojoSpy.checkStageDirectoryExistence();
     }
 
@@ -93,14 +93,14 @@ public class RunMojoTest extends MojoTestBase {
         final CommandHandler commandHandlerMock = mock(CommandHandlerImpl.class);
         doNothing().when(commandHandlerMock).runCommandWithReturnCodeCheck(anyString(), anyBoolean(),
             anyString(), ArgumentMatchers.anyList(), anyString());
-        doReturn("buildDirectory").when(mojoSpy).getDeploymentStageDirectory();
+        doReturn("buildDirectory").when(mojoSpy).getDeploymentStagingDirectoryPath();
         mojoSpy.runFunctions(commandHandlerMock);
 
         verify(commandHandlerMock, times(1))
             .runCommandWithReturnCodeCheck(
                 mojoSpy.getStartFunctionHostCommand(),
                 true,
-                mojoSpy.getDeploymentStageDirectory(),
+                mojoSpy.getDeploymentStagingDirectoryPath(),
                 CommandUtils.getValidReturnCodes(),
                 RUN_FUNCTIONS_FAILURE
             );

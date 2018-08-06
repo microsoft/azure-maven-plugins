@@ -27,11 +27,9 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doNothing;
@@ -56,36 +54,6 @@ public class FTPArtifactHandlerImplTest {
     }
 
     @Test
-    public void getWebAppDeploymentStagingDirectoryPath() {
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
-        final String mockPluginName = "azure-webapp-maven-plugin";
-        final String mockBuildDirectoryPath = "D:\\test-project\\target";
-        final String mockAppName = "test-webapp";
-        doReturn(mockPluginName).when(mojo).getPluginName();
-        doReturn(mockBuildDirectoryPath).when(mojo).getBuildDirectoryAbsolutePath();
-        doReturn(mockAppName).when(mojo).getAppName();
-
-        final String result = handlerSpy.getDeploymentStagingDirectoryPath();
-
-        assertEquals(result, Paths.get(mockBuildDirectoryPath, "azure-webapp", mockAppName).toString());
-    }
-
-    @Test
-    public void getFunctionDeploymentStagingDirectoryPath() {
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
-        final String mockPluginName = "azure-functions-maven-plugin";
-        final String mockBuildDirectoryPath = "D:\\test-project\\target";
-        final String mockAppName = "test-functions";
-        doReturn(mockPluginName).when(mojo).getPluginName();
-        doReturn(mockBuildDirectoryPath).when(mojo).getBuildDirectoryAbsolutePath();
-        doReturn(mockAppName).when(mojo).getAppName();
-
-        final String result = handlerSpy.getDeploymentStagingDirectoryPath();
-
-        assertEquals(result, Paths.get(mockBuildDirectoryPath, "azure-functions", mockAppName).toString());
-    }
-
-    @Test
     public void prepareResources() throws IOException {
         final FTPArtifactHandlerImpl handlerSpy = spy(handler);
         final List<Resource> resourceList = new ArrayList<>();
@@ -94,20 +62,17 @@ public class FTPArtifactHandlerImplTest {
         doReturn(mock(MavenResourcesFiltering.class)).when(mojo).getMavenResourcesFiltering();
         resourceList.add(new Resource());
         doReturn(resourceList).when(mojo).getResources();
-        doReturn("").when(mojo).getBuildDirectoryAbsolutePath();
-        doReturn("").when(mojo).getAppName();
-        doReturn("").when(mojo).getPluginName();
+        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
 
         handlerSpy.prepareResources();
 
-        verify(handlerSpy, times(1)).getDeploymentStagingDirectoryPath();
         verify(handlerSpy, times(1)).prepareResources();
     }
 
     @Test(expected = MojoExecutionException.class)
     public void assureStagingDirectoryNotEmptyThrowException() throws MojoExecutionException {
         final FTPArtifactHandlerImpl handlerSpy = spy(handler);
-        doReturn("").when(handlerSpy).getDeploymentStagingDirectoryPath();
+        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
 
         handlerSpy.assureStagingDirectoryNotEmpty();
     }
@@ -128,7 +93,7 @@ public class FTPArtifactHandlerImplTest {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
 
-        doReturn("").when(handlerSpy).getDeploymentStagingDirectoryPath();
+        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
         doNothing().when(handlerSpy).prepareResources();
         doNothing().when(handlerSpy).uploadDirectoryToFTP(target);
@@ -149,7 +114,7 @@ public class FTPArtifactHandlerImplTest {
         final DeploymentSlot slot = mock(DeploymentSlot.class);
         final DeployTarget target = new DeployTarget(slot, DeployTargetType.SLOT);
 
-        doReturn("").when(handlerSpy).getDeploymentStagingDirectoryPath();
+        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
         doNothing().when(handlerSpy).prepareResources();
         doNothing().when(handlerSpy).uploadDirectoryToFTP(target);
@@ -170,7 +135,7 @@ public class FTPArtifactHandlerImplTest {
         final FunctionApp app = mock(FunctionApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.FUNCTION);
 
-        doReturn("").when(handlerSpy).getDeploymentStagingDirectoryPath();
+        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
         doNothing().when(handlerSpy).prepareResources();
         doNothing().when(handlerSpy).uploadDirectoryToFTP(target);
@@ -210,7 +175,7 @@ public class FTPArtifactHandlerImplTest {
         doReturn(uploader).when(handlerSpy).getUploader();
         doReturn(ftpUrl).when(profile).ftpUrl();
         doReturn(profile).when(app).getPublishingProfile();
-        doReturn("").when(handlerSpy).getDeploymentStagingDirectoryPath();
+        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
 
         handlerSpy.uploadDirectoryToFTP(deployTarget);
 

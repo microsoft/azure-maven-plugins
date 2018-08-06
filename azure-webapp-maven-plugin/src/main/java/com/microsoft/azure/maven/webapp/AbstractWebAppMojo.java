@@ -21,7 +21,6 @@ import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -263,12 +262,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     public boolean isStopAppDuringDeployment() {
         return stopAppDuringDeployment;
-    }
-
-    public String getDeploymentStageDirectory() {
-        return Paths.get(getBuildDirectoryAbsolutePath(),
-            "azure-webapps",
-            getAppName()).toString();
     }
 
     @Override
