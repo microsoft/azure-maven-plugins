@@ -30,16 +30,16 @@ public class AbstractAppServiceMojoTest {
 
     @Test
     public void getDeploymentStagingDirectory() {
-        final AbstractAppServiceMojo spy = spy(mojo);
+        final AbstractAppServiceMojo mojoSpy = spy(mojo);
         final String pluginName = "azure-functions-maven-plugin";
         final String buildDirectoryAbsolutePath = "target";
         final String appName = "app";
-        doReturn(pluginName).when(spy).getPluginName();
-        doReturn(buildDirectoryAbsolutePath).when(spy).getBuildDirectoryAbsolutePath();
-        doReturn(appName).when(spy).getAppName();
+        doReturn(pluginName).when(mojoSpy).getPluginName();
+        doReturn(buildDirectoryAbsolutePath).when(mojoSpy).getBuildDirectoryAbsolutePath();
+        doReturn(appName).when(mojoSpy).getAppName();
 
         assertEquals(
-            spy.getDeploymentStagingDirectoryPath(),
+            mojoSpy.getDeploymentStagingDirectoryPath(),
             Paths.get(buildDirectoryAbsolutePath, "azure-functions", appName).toString()
         );
     }
