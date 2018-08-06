@@ -18,6 +18,12 @@ import org.codehaus.plexus.util.StringUtils;
 import java.io.File;
 import java.nio.file.Paths;
 
+/**
+ * Artifact handler used to deploy war file. Typically, each artifact handler needs to extends
+ * {@link com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase}
+ * WarArtifactHandler is a special case because it does not need staging folder.
+ * Thus, the methods shared in ArtifactHandlerBase is not needed here.
+ */
 public class WarArtifactHandlerImpl implements ArtifactHandler {
 
     public static final String FILE_IS_NOT_WAR = "The deployment file is not a war typed file.";
