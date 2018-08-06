@@ -35,14 +35,14 @@ import java.util.function.Consumer;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
-    public static final String FUNCTION_DEPLOY_START = "Starting deployment to Azure Function App ";
+    public static final String FUNCTION_DEPLOY_START = "Deploying the function app...";
     public static final String FUNCTION_DEPLOY_SUCCESS =
-            "Successfully deployed Azure Function App at https://%s.azurewebsites.net";
-    public static final String FUNCTION_APP_CREATE_START = "Target Azure Function App does not exist. " +
-            "Creating a new Azure Function App ...";
-    public static final String FUNCTION_APP_CREATED = "Successfully created Azure Function App ";
-    public static final String FUNCTION_APP_UPDATE = "Updating Azure Function App...";
-    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated Azure Function App ";
+        "Successfully deployed the function app at https://%s.azurewebsites.net.";
+    public static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
+        "Creating a new function app...";
+    public static final String FUNCTION_APP_CREATED = "Successfully created a function app.";
+    public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
+    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
 
     //region Properties
 
@@ -56,7 +56,7 @@ public class DeployMojo extends AbstractFunctionMojo {
      *
      * @since 0.1.0
      */
-    @Parameter(property = "functions.deploymentType", defaultValue = DeploymentType.ConstantValues.MS_DEPLOY_VALUE)
+    @Parameter(property = "functions.deploymentType", defaultValue = DeploymentType.ConstantValues.ZIP_VALUE)
     protected String deploymentType;
 
     //endregion
@@ -79,7 +79,8 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         final FunctionApp app = getFunctionApp();
         if (app == null) {
-            throw new MojoExecutionException(String.format("Failed to get Function App with name: %s", getAppName()));
+            throw new MojoExecutionException(
+                String.format("Failed to get the function app with name: %s", getAppName()));
         }
 
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
@@ -166,15 +167,16 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //endregion
 
-    protected ArtifactHandler getArtifactHandler() {
+    protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
         switch (DeploymentType.fromString(getDeploymentType())) {
+            case MS_DEPLOY:
+                return new MSDeployArtifactHandlerImpl(this);
             case FTP:
                 return new FTPArtifactHandlerImpl(this);
             case ZIP:
                 return new ZIPArtifactHandlerImpl(this);
-            case MS_DEPLOY:
             default:
-                return new MSDeployArtifactHandlerImpl(this);
+                throw new MojoExecutionException(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
         }
     }
 }
