@@ -79,7 +79,7 @@ public enum DeploymentType {
 
     static class NONEHandler implements Handler {
         public ArtifactHandler apply(AbstractWebAppMojo m)  {
-            return new NONEArtifactHandlerImpl();
+            return new NONEArtifactHandlerImpl(m);
         }
     }
 
@@ -93,7 +93,7 @@ public enum DeploymentType {
                 case "jar":
                     return new JarArtifactHandlerImpl(m);
                 default:
-                    return new NONEArtifactHandlerImpl();
+                    return new NONEArtifactHandlerImpl(m);
             }
         }
     }

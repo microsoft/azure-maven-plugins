@@ -11,6 +11,7 @@ import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +53,7 @@ public class ZIPArtifactHandlerImplTest {
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         final File file = mock(File.class);
 
+        doReturn(mock(Log.class)).when(mojo).getLog();
         doReturn(file).when(handlerSpy).getZipFile();
         doNothing().when(app).zipDeploy(file);
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
