@@ -17,7 +17,6 @@ import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Before;
@@ -129,7 +128,6 @@ public class FTPArtifactHandlerImplTest {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
 
-        doReturn(mock(Log.class)).when(mojo).getLog();
         doReturn("").when(handlerSpy).getDeploymentStagingDirectoryPath();
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
         doNothing().when(handlerSpy).prepareResources();
@@ -151,7 +149,6 @@ public class FTPArtifactHandlerImplTest {
         final DeploymentSlot slot = mock(DeploymentSlot.class);
         final DeployTarget target = new DeployTarget(slot, DeployTargetType.SLOT);
 
-        doReturn(mock(Log.class)).when(mojo).getLog();
         doReturn("").when(handlerSpy).getDeploymentStagingDirectoryPath();
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
         doNothing().when(handlerSpy).prepareResources();
@@ -173,7 +170,6 @@ public class FTPArtifactHandlerImplTest {
         final FunctionApp app = mock(FunctionApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.FUNCTION);
 
-        doReturn(mock(Log.class)).when(mojo).getLog();
         doReturn("").when(handlerSpy).getDeploymentStagingDirectoryPath();
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
         doNothing().when(handlerSpy).prepareResources();

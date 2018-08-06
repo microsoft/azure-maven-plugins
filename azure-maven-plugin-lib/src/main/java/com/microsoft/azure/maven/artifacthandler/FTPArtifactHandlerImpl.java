@@ -45,8 +45,6 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
 
     @Override
     public void publish(final DeployTarget target) throws IOException, MojoExecutionException {
-        this.mojo.getLog().info(String.format(DEPLOY_START, target.getType(), target.getName()));
-
         if (isResourcesPreparationRequired(target)) {
             prepareResources();
         }
@@ -54,8 +52,6 @@ public class FTPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
         assureStagingDirectoryNotEmpty();
 
         uploadDirectoryToFTP(target);
-
-        this.mojo.getLog().info(String.format(DEPLOY_FINISH, target.getName(), target.getDefaultHostName()));
 
         if (target.getApp() instanceof FunctionApp) {
             ((FunctionApp) target.getApp()).syncTriggers();

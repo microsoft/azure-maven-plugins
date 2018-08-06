@@ -10,7 +10,4 @@ import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
 public interface ArtifactHandler<T extends DeployTarget> {
     void publish(T deployTarget) throws Exception;
-
-    String DEPLOY_START = "Deploying '%s' to '%s'...";
-    String DEPLOY_FINISH = "Successfully deployed '%s' at '%s'";
 }

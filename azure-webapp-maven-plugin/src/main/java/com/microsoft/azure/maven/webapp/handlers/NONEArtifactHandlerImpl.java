@@ -19,6 +19,6 @@ public class NONEArtifactHandlerImpl implements ArtifactHandler {
 
     @Override
     public void publish(DeployTarget deployTarget) {
-        this.mojo.getLog().info("<deploymentType> was set to NONE. Skip deployment.");
+        this.mojo.getLog().info("Detect <deploymentType> was set to NONE, skip deployment.");
     }
 }

@@ -37,7 +37,6 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
 
     @Override
     public void publish(final DeployTarget target) throws MojoExecutionException {
-        this.mojo.getLog().info(String.format(DEPLOY_START, target.getType(), target.getName()));
 
         final File war = getWarFile();
 
@@ -53,7 +52,6 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
             retryCount++;
             try {
                 warDeployExecutor.run();
-                this.mojo.getLog().info(String.format(DEPLOY_FINISH, target.getName(), target.getDefaultHostName()));
                 return;
             } catch (Exception e) {
                 mojo.getLog().warn(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));

@@ -34,13 +34,10 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> implements
 
     @Override
     public void publish(DeployTarget target) throws MojoExecutionException, IOException {
-        this.mojo.getLog().info(String.format(DEPLOY_START, target.getType(), target.getName()));
-
         prepareResources();
         assureStagingDirectoryNotEmpty();
 
         target.zipDeploy(getZipFile());
-        this.mojo.getLog().info(String.format(DEPLOY_FINISH, target.getName(), target.getDefaultHostName()));
     }
 
     protected void prepareResources() throws IOException {
