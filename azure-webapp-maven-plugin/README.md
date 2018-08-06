@@ -18,11 +18,12 @@ and makes it easier for developers to deploy to different kinds of Azure Web App
     - [Web App on Linux](#web-app-on-linux)
     - [Web App for Containers](#web-app-for-containers)
 - [Deployment Type](#deployment-type)
+    - [ZIP Deployment](#zip-deployment)
+    - [FTP Deployment](#ftp-deployment)
     - [WAR Deployment](#war-deployment)
     - [JAR Deployment](#jar-deployment)
-    - [NONE Deployment](#none-deployment)
     - [AUTO Deployment](#auto-deployment)
-    - [FTP Deployment](#ftp-deployment)
+    - [NONE Deployment](#none-deployment)
 - [Advanced Configurations](#advanced-configurations)
 - [Supported Regions](#supported-regions)
 - [Supported Pricing Tiers](#supported-pricing-tiers)
@@ -215,31 +216,31 @@ Check out samples at [Web App Samples](../docs/web-app-samples.md) for the confi
 
 ## Deployment Type
 
-### WAR Deployment
-You can deploy your **WAR** file with WAR Deployment by setting the `<deploymentType>` to `war`. The plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.war` and deploy it as the `ROOT` application of your web container. Meanwhile, there are some optional settings that you can configure for it:
+### ZIP Deployment
+ZIP deploy is intended for fast and easy deployments.
+You can deploy your artifacts with ZIP Deployment by setting the `<deploymentType>` to `zip`. The following shows a sample configuration:
 
-Property | Description
----|---
-`warFile` | Specify the war file location, optional if the war file location is: `${project.build.directory}/${project.build.finalName}.war`
-`path` | Specify context path, optional if you want to deploy to ROOT.
-
-### JAR Deployment
-If the `<deploymentType>` is set to `jar`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.jar` and deploy it to `%HOME%\site\wwwroot\` of your Web App. Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](../docs/web-config.md).
-
-There is one optional setting that you can configure for it:
-
-Property | Description
----|---
-`jarFile` | Specify the jar file location, optional if the jar file location is: `${project.build.directory}/${project.build.finalName}.jar`
-
-### NONE Deployment
-If you do not want to deploy anything, just simply set the `<deploymentType>` to `NONE`.
-
-### AUTO Deployment
-This is the default deployment type used by the plugin. It will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. If the `<packaging>` is set to `war`, the plugin will use war deployment. If the `<packaging>` is set to `jar`, the plugin will use jar deployment.
-Otherwise, the plugin will skip the deployment, which is the same as `NONE` deployment.
-
-> Note: If you want the plugin to inspect the `<packaging>` field. Just not set `<deploymentType>` in the configuration. The plugin will use `AUTO` deployment as default.
+```xml
+<plugin>
+   <groupId>com.microsoft.azure</groupId>
+   <artifactId>azure-webapp-maven-plugin</artifactId>
+   <configuration>
+      <deploymentType>zip</deploymentType>
+      <resources>
+         <resource>
+             <directory>${project.basedir}/target</directory>
+             <includes>
+                 <include>*.jar</include>
+             </includes>
+             <excludes>
+                 <exclude>*.xml</exclude>
+             </excludes>
+         </resource>
+      </resources>
+      ...
+   </configuration>
+</plugin>
+```
 
 ### FTP Deployment
 You can deploy your artifacts/resources to Web App via FTP. The following example shows all configuration elements.
@@ -276,6 +277,32 @@ Property | Description
 `includes` | A list of patterns to include, e.g. `**/*.war`.
 `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
 
+### WAR Deployment
+You can deploy your **WAR** file with WAR Deployment by setting the `<deploymentType>` to `war`. The plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.war` and deploy it as the `ROOT` application of your web container. Meanwhile, there are some optional settings that you can configure for it:
+
+Property | Description
+---|---
+`warFile` | Specify the war file location, optional if the war file location is: `${project.build.directory}/${project.build.finalName}.war`
+`path` | Specify context path, optional if you want to deploy to ROOT.
+
+### JAR Deployment
+If the `<deploymentType>` is set to `jar`, the plugin will find the artifact at `${project.build.directory}/${project.build.finalName}.jar` and deploy it to `%HOME%\site\wwwroot\` of your Web App. Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](../docs/web-config.md).
+
+There is one optional setting that you can configure for it:
+
+Property | Description
+---|---
+`jarFile` | Specify the jar file location, optional if the jar file location is: `${project.build.directory}/${project.build.finalName}.jar`
+
+### AUTO Deployment
+This is the default deployment type used by the plugin. It will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. If the `<packaging>` is set to `war`, the plugin will use war deployment. If the `<packaging>` is set to `jar`, the plugin will use jar deployment.
+Otherwise, the plugin will skip the deployment, which is the same as `NONE` deployment.
+
+> Note: If you want the plugin to inspect the `<packaging>` field. Just not set `<deploymentType>` in the configuration. The plugin will use `AUTO` deployment as default.
+
+### NONE Deployment
+If you do not want to deploy anything, just simply set the `<deploymentType>` to `NONE`.
+
 ### Deployment Slot
 In the `<deploymentSlot>` element of your `pom.xml` file, you can specify which deployment slot to deploy your Web App.
 It requires you to configure an existing web app. And the deployment slot configured will be created first if it does not exist.
@@ -303,7 +330,7 @@ Check out samples at [Web App Samples](../docs/web-app-samples.md) for the confi
 
 ## Advanced Configurations 
 
-Common configurations of all Maven Plugins for Azure can be found at [here](../docs/common-configuration.md).
+Common configurations of all Maven Plugins for Azure can be found [here](../docs/common-configuration.md).
 
 Maven Plugin for Azure App Service supports the following configuration properties:
 
@@ -323,7 +350,7 @@ Property | Required | Description | Version
 `<appSettings>` | false | Specifies the application settings for your Web App, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>` | 0.1.0+
 `<stopAppDuringDeployment>` | false | Specifies whether stop target Web App during deployment. This will prevent deployment failure caused by IIS locking files. | 0.1.4+
 `<deploymentType>` | false | Specifies the deployment approach you want to use, available options: <br><ul><li>ftp (by default): since 0.1.0</li><li>war: since 1.1.0</li></ul> | 0.1.0+
-`<resources>` | false | Specifies the artifacts to be deployed to your Web App when `<deploymentType>` is set to `ftp`.<br>See the [Deploy via FTP](#deploy-via-ftp) section for more details. | 0.1.0+
+`<resources>` | false | Specifies the artifacts to be deployed to your Web App when `<deploymentType>` is set to `ftp` or `zip`. | 0.1.0+
 `<warFile>` | false | Specifies the location of the war file which is to be deployed when `<deploymentType>` is set to `war`.<br>If this configuration is not specified, plugin will find the war file according to the `finalName` in the project build directory. | 1.1.0+
 `<path>` | false | Specify the context path for the deployment when `<deploymentType>` is set to `war`.<br>If this configuration is not specified, plugin will deploy to the context path: `/`, which is also known as the `ROOT`. | 1.1.0+
 >*: This setting will be used only when you are creating a new Web App; if the Web App already exists, this setting will be ignored
