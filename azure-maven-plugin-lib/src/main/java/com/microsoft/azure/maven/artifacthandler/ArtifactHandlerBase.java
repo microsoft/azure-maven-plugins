@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.util.List;
 
 public abstract class ArtifactHandlerBase<T extends AbstractAppServiceMojo> implements ArtifactHandler {
-    private static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
     protected T mojo;
 
     public ArtifactHandlerBase(@Nonnull final T mojo) {

@@ -35,8 +35,8 @@ import java.util.function.Consumer;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
-    public static final String FUNCTION_DEPLOY_START = "Deploying the function app...";
-    public static final String FUNCTION_DEPLOY_SUCCESS =
+    public static final String DEPLOY_START = "Trying to deploy the project to %s...";
+    public static final String DEPLOY_FINISH =
         "Successfully deployed the function app at https://%s.azurewebsites.net.";
     public static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
         "Creating a new function app...";
@@ -73,8 +73,6 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     @Override
     protected void doExecute() throws Exception {
-        info(FUNCTION_DEPLOY_START + getAppName() + "...");
-
         createOrUpdateFunctionApp();
 
         final FunctionApp app = getFunctionApp();
@@ -85,9 +83,11 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
 
+        info(DEPLOY_START + getAppName());
+
         getArtifactHandler().publish(deployTarget);
 
-        info(String.format(FUNCTION_DEPLOY_SUCCESS, getAppName()));
+        info(String.format(DEPLOY_FINISH, getAppName()));
     }
 
     //endregion
