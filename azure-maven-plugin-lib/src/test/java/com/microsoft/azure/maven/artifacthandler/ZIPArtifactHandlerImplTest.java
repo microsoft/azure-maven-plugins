@@ -65,6 +65,23 @@ public class ZIPArtifactHandlerImplTest {
     }
 
     @Test
+    public void publishThrowException() throws MojoExecutionException, IOException {
+        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
+        final WebApp app = mock(WebApp.class);
+        final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
+        final File file = mock(File.class);
+
+        doReturn(file).when(handlerSpy).getZipFile();
+        doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
+
+        try {
+            handlerSpy.publish(target);
+        } catch (final MojoExecutionException e) {
+            assertEquals("The zip deploy failed after 3 times of retry.", e.getMessage());
+        }
+    }
+
+    @Test
     public void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
         final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();

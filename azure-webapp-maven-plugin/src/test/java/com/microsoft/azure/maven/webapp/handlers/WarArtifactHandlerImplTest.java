@@ -113,6 +113,24 @@ public class WarArtifactHandlerImplTest {
     }
 
     @Test
+    public void publishThrowException() throws MojoExecutionException {
+        final File file = new File("");
+        final String path = "";
+        doReturn(file).when(handlerSpy).getWarFile();
+        doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
+        doReturn(path).when(handlerSpy).getContextPath();
+        final WebApp app = mock(WebApp.class);
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+
+        try {
+            handlerSpy.publish(new WebAppDeployTarget(app));
+        } catch (final MojoExecutionException e) {
+            assertEquals("Failed to deploy war file after 3 times of retry.", e.getMessage());
+        }
+    }
+
+    @Test
     public void getContextPath() {
         doReturn("/").when(mojo).getPath();
         assertEquals(handlerSpy.getContextPath(), "");
