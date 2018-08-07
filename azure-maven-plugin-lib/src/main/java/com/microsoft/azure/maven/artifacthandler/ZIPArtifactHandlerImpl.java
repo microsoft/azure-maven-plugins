@@ -29,18 +29,18 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> extends Ar
 
         final File zipFile = getZipFile();
         int retryCount = 0;
-
         while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
             retryCount += 1;
             try {
                 target.zipDeploy(zipFile);
                 return;
             } catch (Exception e) {
-                mojo.getLog().warn(
+                mojo.getLog().debug(
                     String.format("Exception occurred when deploying the zip package: %s, " +
                         "retrying immediately (%d/%d)", e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
             }
         }
+
         throw new MojoExecutionException(String.format("The zip deploy failed after %d times of retry.", retryCount));
     }
 

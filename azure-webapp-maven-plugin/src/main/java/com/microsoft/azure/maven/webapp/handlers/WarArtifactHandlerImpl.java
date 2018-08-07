@@ -58,7 +58,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
                 warDeployExecutor.run();
                 return;
             } catch (Exception e) {
-                mojo.getLog().warn(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
+                mojo.getLog().debug(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
             }
         }
 
