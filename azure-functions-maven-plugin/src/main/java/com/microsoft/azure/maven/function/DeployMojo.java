@@ -35,7 +35,7 @@ import java.util.function.Consumer;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
-    public static final String DEPLOY_START = "Trying to deploy the project to %s...";
+    public static final String DEPLOY_START = "Trying to deploy the function app...";
     public static final String DEPLOY_FINISH =
         "Successfully deployed the function app at https://%s.azurewebsites.net.";
     public static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
@@ -83,7 +83,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
 
-        info(DEPLOY_START + getAppName());
+        info(DEPLOY_START);
 
         getArtifactHandler().publish(deployTarget);
 
