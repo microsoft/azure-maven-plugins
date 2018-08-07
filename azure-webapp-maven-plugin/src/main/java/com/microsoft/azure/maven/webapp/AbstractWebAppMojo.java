@@ -334,7 +334,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
         } catch (MojoExecutionException e) {
-            getLog().debug(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
+            map.put(DEPLOYMENT_TYPE_KEY, DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
         }
         return map;
     }
