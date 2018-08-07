@@ -30,10 +30,10 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
     public static final String FIND_WAR_FILE_FAIL = "Failed to find the war file: '%s'";
     public static final String UPLOAD_FAILURE = "Exception occurred when deploying war file to server: %s, " +
         "retrying immediately (%d/%d)";
-    public static final String DEPLOY_FAILURE = "Failed to deploy war file after %d retries...";
+    public static final String DEPLOY_FAILURE = "Failed to deploy war file after %d times of retry.";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
     public static final String DEPLOY_TARGET_TYPE_UNKNOWN =
-        "Unknown type of deploy target, it is neither web app nor deployment slot.";
+        "The type of deploy target is unknown, supported types are WebApp and DeploymentSlot.";
 
     private AbstractWebAppMojo mojo;
 
@@ -49,11 +49,9 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
         assureWarFileExisted(war);
 
         final Runnable warDeployExecutor = getRealWarDeployExecutor(target, war, getContextPath());
-        if (warDeployExecutor == null) {
-            throw new MojoExecutionException(DEPLOY_TARGET_TYPE_UNKNOWN);
-        }
         int retryCount = 0;
         mojo.getLog().info("Deploying the war file...");
+
         while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
             retryCount++;
             try {
@@ -91,7 +89,14 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
         }
     }
 
-    protected Runnable getRealWarDeployExecutor(final DeployTarget target, final File war, final String path) {
+    /**
+     * Interfaces WebApp && DeploymentSlot define their own warDeploy API separately.
+     * Ideally, it should be defined in their base interface WebAppBase.
+     * Comparing to abstracting an adapter for WebApp && DeploymentSlot, we choose a lighter solution:
+     * work around to get the real implementation of warDeploy.
+     */
+    protected Runnable getRealWarDeployExecutor(final DeployTarget target, final File war, final String path)
+        throws MojoExecutionException {
         if (target instanceof WebAppDeployTarget) {
             return new Runnable() {
                 @Override
@@ -99,7 +104,9 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
                     ((WebAppDeployTarget) target).warDeploy(war, path);
                 }
             };
-        } else if (target instanceof DeploymentSlotDeployTarget) {
+        }
+
+        if (target instanceof DeploymentSlotDeployTarget) {
             return new Runnable() {
                 @Override
                 public void run() {
@@ -107,6 +114,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
                 }
             };
         }
-        return null;
+
+        throw new MojoExecutionException(DEPLOY_TARGET_TYPE_UNKNOWN);
     }
 }
