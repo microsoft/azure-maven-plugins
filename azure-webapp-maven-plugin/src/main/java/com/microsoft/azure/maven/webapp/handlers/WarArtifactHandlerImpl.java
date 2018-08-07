@@ -92,6 +92,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
     /**
      * Interfaces WebApp && DeploymentSlot define their own warDeploy API separately.
      * Ideally, it should be defined in their base interface WebAppBase.
+     * {@link com.microsoft.azure.management.appservice.WebAppBase}
      * Comparing to abstracting an adapter for WebApp && DeploymentSlot, we choose a lighter solution:
      * work around to get the real implementation of warDeploy.
      */
