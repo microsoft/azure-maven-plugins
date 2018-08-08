@@ -16,7 +16,8 @@ import java.io.File;
 import java.io.IOException;
 
 public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> extends ArtifactHandlerBase<T> {
-    public static final int DEFAULT_MAX_RETRY_TIMES = 3;
+    private static final int DEFAULT_MAX_RETRY_TIMES = 3;
+    private static final String LOCAL_SETTINGS_FILE = "local.settings.json";
 
     public ZIPArtifactHandlerImpl(@Nonnull final T mojo) {
         super(mojo);
@@ -50,6 +51,7 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> extends Ar
         final File stagingDirectory = new File(stagingDirectoryPath);
 
         ZipUtil.pack(stagingDirectory, zipFile);
+        ZipUtil.removeEntry(zipFile, LOCAL_SETTINGS_FILE);
         return zipFile;
     }
 }
