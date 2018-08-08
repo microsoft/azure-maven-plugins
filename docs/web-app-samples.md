@@ -54,7 +54,7 @@ The following configuration is applicable for below scenario:
                   <!-- If <warFile> is not specified, ${project.build.directory}/${project.build.finalName}.war will be used by default -->
                   <warFile>custom/absolute/path/deploy.war</warFile>
 
-                  <!-- Specify context path, optional if you want to deploy to ROOT -->
+                  <!-- If <path> is not specified, the war file will be deployed to ROOT -->
                   <path>/${project.build.finalName}</path>
                   
                   <!-- Application Settings of your Web App -->
@@ -132,8 +132,7 @@ The following configuration is applicable for below scenario:
 - Referencing `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Linux
 - Using Java 8 and Tomcat 8.5
-- Using WAR to deploy **WAR** file to ROOT: `/` in Tomcat
-  > Note: Currently the **Linux** Web App with Tomcat runtime only supports deploy to ROOT. If you specify <path> in the plugin configurations, it will not take effect.
+- Using WAR to deploy **WAR** file to context path: `/${project.build.finalName}` in your Web App server
 - Add Application Settings to your Web App
 
    ```xml
@@ -165,6 +164,9 @@ The following configuration is applicable for below scenario:
 
                   <!-- If <warFile> is not specified, ${project.build.directory}/${project.build.finalName}.war will be used by default -->
                   <warFile>custom/absolute/path/deploy.war</warFile>
+
+                  <!-- If <path> is not specified, the war file will be deployed to ROOT -->
+                  <path>/${project.build.finalName}</path>
                   
                   <!-- Application Settings of your Web App -->
                   <appSettings>
