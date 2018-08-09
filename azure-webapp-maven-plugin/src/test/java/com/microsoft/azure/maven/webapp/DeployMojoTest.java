@@ -143,7 +143,7 @@ public class DeployMojoTest {
 
         assertEquals(1, mojo.getAppSettings().size());
 
-        assertEquals(DeploymentType.AUTO, mojo.getDeploymentType());
+        assertEquals("AUTO", mojo.getDeploymentType());
 
         assertEquals(1, mojo.getResources().size());
 
@@ -153,7 +153,7 @@ public class DeployMojoTest {
     @Test(expected = MojoExecutionException.class)
     public void getDeploymentTypeThrowException() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
-        mojo.getDeploymentType();
+        DeploymentType.fromString(mojo.getDeploymentType());
     }
 
     @Test

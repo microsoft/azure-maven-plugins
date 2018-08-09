@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.artifacthandler;
 
+import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
@@ -23,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -52,15 +55,18 @@ public class ZIPArtifactHandlerImplTest {
         final File file = mock(File.class);
 
         doReturn(file).when(handlerSpy).getZipFile();
+        doNothing().when(handlerSpy).prepareResources();
         doNothing().when(app).zipDeploy(file);
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
+        doReturn("").when(mojo).getDeploymentType();
 
         handlerSpy.publish(target);
 
-        verify(handlerSpy, times(1)).prepareResources();
+        verify(handlerSpy, times(1)).isResourcesPreparationRequired(target);
         verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
         verify(handlerSpy, times(1)).getZipFile();
         verify(handlerSpy, times(1)).publish(target);
+        verify(handlerSpy, times(1)).prepareResources();
         verifyNoMoreInteractions(handlerSpy);
     }
 
@@ -72,6 +78,8 @@ public class ZIPArtifactHandlerImplTest {
         final File file = mock(File.class);
 
         doReturn(file).when(handlerSpy).getZipFile();
+        doNothing().when(handlerSpy).prepareResources();
+        doReturn("").when(mojo).getDeploymentType();
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
 
         try {
@@ -79,21 +87,6 @@ public class ZIPArtifactHandlerImplTest {
         } catch (final MojoExecutionException e) {
             assertEquals("The zip deploy failed after 3 times of retry.", e.getMessage());
         }
-    }
-
-    @Test
-    public void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
-        doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
-        handlerSpy.assureStagingDirectoryNotEmpty();
-        verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
-    }
-
-    @Test(expected = MojoExecutionException.class)
-    public void assureStagingDirectoryNotEmptyThrowException() throws MojoExecutionException {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
-        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
-        handlerSpy.assureStagingDirectoryNotEmpty();
     }
 
     @Test
@@ -111,5 +104,19 @@ public class ZIPArtifactHandlerImplTest {
         doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
 
         handlerSpy.getZipFile();
+    }
+
+    @Test
+    public void isResourcesPreparationRequired() {
+        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
+
+        DeployTarget target = new DeployTarget(mock(FunctionApp.class), DeployTargetType.FUNCTION);
+        assertFalse(handlerSpy.isResourcesPreparationRequired(target));
+
+        target = new DeployTarget(mock(WebApp.class), DeployTargetType.WEBAPP);
+        assertTrue(handlerSpy.isResourcesPreparationRequired(target));
+
+        doReturn("jar").when(mojo).getDeploymentType();
+        assertFalse(handlerSpy.isResourcesPreparationRequired(target));
     }
 }

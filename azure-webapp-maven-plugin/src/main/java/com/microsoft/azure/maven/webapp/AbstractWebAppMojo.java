@@ -16,9 +16,7 @@ import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -37,6 +35,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String LINUX_RUNTIME_KEY = "linuxRuntime";
     public static final String DOCKER_IMAGE_TYPE_KEY = "dockerImageType";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
+    private static final String DEFAULT_DEPLOYMENT_TYPE = "AUTO";
 
     //region Properties
 
@@ -126,23 +125,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      */
     @Parameter
     protected ContainerSetting containerSettings;
-
-    /**
-     * Deployment type to deploy Web App. The plugin contains five types now:
-     *
-     * <ul>
-     *      <li>FTP - {@code <resources>} specifies configurations for this kind of deployment.</li>
-     *      <li>WAR - {@code <warFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
-     *      <li>JAR - {@code <jarFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
-     *      <li>AUTO - inspects {@code <packaging>} of the Maven project and uses WAR, JAR, or NONE </li>
-     *      <li>NONE - does nothing</li>
-     *      <li>* defaults to AUTO if nothing is specified</li>
-     * <ul/>
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.deploymentType", defaultValue = "AUTO")
-    protected String deploymentType;
 
     /**
      * Flag to control whether stop Web App during deployment.
@@ -257,8 +239,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return containerSettings;
     }
 
-    public DeploymentType getDeploymentType() throws MojoExecutionException {
-        return DeploymentType.fromString(deploymentType);
+    @Override
+    public String getDeploymentType() {
+        return StringUtils.isEmpty(deploymentType) ? DEFAULT_DEPLOYMENT_TYPE : deploymentType;
     }
 
     public boolean isStopAppDuringDeployment() {
@@ -330,12 +313,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         map.put(JAVA_WEB_CONTAINER_KEY, getJavaWebContainer().toString());
         map.put(LINUX_RUNTIME_KEY, StringUtils.isEmpty(linuxRuntime) ? "" : linuxRuntime);
         map.put(DOCKER_IMAGE_TYPE_KEY, WebAppUtils.getDockerImageType(getContainerSettings()).toString());
+        map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType());
 
-        try {
-            map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
-        } catch (MojoExecutionException e) {
-            map.put(DEPLOYMENT_TYPE_KEY, DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
-        }
         return map;
     }
 

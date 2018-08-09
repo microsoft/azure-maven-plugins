@@ -32,6 +32,32 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     @Parameter(property = "appName", required = true)
     protected String appName;
 
+     /**
+     * Deployment type to deploy Web App or Function App.
+     *
+     * Supported values for Web App:
+     * <ul>
+     *      <li>FTP - {@code <resources>} specifies configurations for this kind of deployment.</li>
+     *      <li>ZIP - {@code <resources>} specifies configurations for this kind of deployment.</li>
+     *      <li>WAR - {@code <warFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
+     *      <li>JAR - {@code <jarFile>} and {@code <path>} specifies configurations for this kind of deployment.</li>
+     *      <li>AUTO - inspects {@code <packaging>} of the Maven project and uses WAR, JAR </li>
+     *      <li>NONE - does nothing</li>
+     *      <li>* defaults to AUTO if nothing is specified</li>
+     * <ul/>
+     * 
+     * Supported values for Function App:
+     * <ul>
+     *      <li>MSDEPLOY</li>
+     *      <li>FTP</li>
+     *      <li>ZIP</li>
+     *      <li>* defaults to ZIP if nothing is specified</li>
+     * </ul>
+     * @since 0.1.0
+     */
+    @Parameter(property = "deploymentType")
+    protected String deploymentType;
+
     /**
      * Resource group of App Service Plan. It will be created if it doesn't exist.
      */
@@ -88,6 +114,10 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
 
     public Map getAppSettings() {
         return appSettings;
+    }
+
+    public String getDeploymentType() {
+        return deploymentType;
     }
 
     public List<Resource> getResources() {

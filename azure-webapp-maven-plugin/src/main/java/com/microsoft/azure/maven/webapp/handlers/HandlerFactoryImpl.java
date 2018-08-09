@@ -11,6 +11,7 @@ import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -67,7 +68,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
     @Override
     public ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
-        return mojo.getDeploymentType().getArtifactHandlerFromMojo(mojo);
+        return DeploymentType.fromString(mojo.getDeploymentType()).getArtifactHandlerFromMojo(mojo);
     }
 
     @Override

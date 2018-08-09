@@ -248,7 +248,8 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test(expected = MojoExecutionException.class)
     public void getArtifactHandlerThrowException() throws MojoExecutionException {
-        mojo.getArtifactHandler();
+        doReturn("unknown").when(mojoSpy).getDeploymentType();
+        mojoSpy.getArtifactHandler();
     }
 
     private DeployMojo getMojoFromPom() throws Exception {

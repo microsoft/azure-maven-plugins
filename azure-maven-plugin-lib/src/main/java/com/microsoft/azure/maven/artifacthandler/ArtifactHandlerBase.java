@@ -27,17 +27,18 @@ public abstract class ArtifactHandlerBase<T extends AbstractAppServiceMojo> impl
         final File stagingDirectory = new File(mojo.getDeploymentStagingDirectoryPath());
         final File[] files = stagingDirectory.listFiles();
         if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
-            throw new MojoExecutionException(String.format("Staging directory: '%s' is empty.",
-                    stagingDirectory.getAbsolutePath()));
+            throw new MojoExecutionException(
+                    String.format("Staging directory: '%s' is empty.", stagingDirectory.getAbsolutePath()));
         }
     }
 
-    protected void prepareResources() throws IOException {
+    protected void prepareResources() throws IOException, MojoExecutionException {
         final List<Resource> resources = this.mojo.getResources();
-
-        if (resources != null && !resources.isEmpty()) {
-            Utils.copyResources(mojo.getProject(), mojo.getSession(),
-                    mojo.getMavenResourcesFiltering(), resources, mojo.getDeploymentStagingDirectoryPath());
+        if (resources == null || resources.isEmpty()) {
+            throw new MojoExecutionException("Please configure the <resources> in pom.xml.");
         }
+
+        Utils.copyResources(mojo.getProject(), mojo.getSession(), mojo.getMavenResourcesFiltering(), resources,
+                mojo.getDeploymentStagingDirectoryPath());
     }
 }

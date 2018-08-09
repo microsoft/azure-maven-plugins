@@ -25,7 +25,7 @@ import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -44,27 +44,11 @@ public class DeployMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
     public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
 
-    //region Properties
-
-    /**
-     * Deployment type to deploy Web App. Supported values:
-     * <ul>
-     * <li>msdeploy</li>
-     * <li>ftp</li>
-     * <li>zip</li>
-     * </ul>
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.deploymentType", defaultValue = DeploymentType.ConstantValues.ZIP_VALUE)
-    protected String deploymentType;
-
-    //endregion
-
     //region Getter
 
+    @Override
     public String getDeploymentType() {
-        return deploymentType;
+        return StringUtils.isEmpty(deploymentType) ? DeploymentType.ConstantValues.ZIP_VALUE : deploymentType;
     }
 
     //endregion
