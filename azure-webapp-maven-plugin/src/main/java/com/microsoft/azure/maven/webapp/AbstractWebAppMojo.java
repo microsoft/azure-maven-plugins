@@ -12,6 +12,7 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
+import com.microsoft.azure.maven.appservice.DeploymentTypeValues;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
@@ -35,7 +36,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String LINUX_RUNTIME_KEY = "linuxRuntime";
     public static final String DOCKER_IMAGE_TYPE_KEY = "dockerImageType";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
-    private static final String DEFAULT_DEPLOYMENT_TYPE = "AUTO";
 
     //region Properties
 
@@ -241,7 +241,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     @Override
     public String getDeploymentType() {
-        return StringUtils.isEmpty(deploymentType) ? DEFAULT_DEPLOYMENT_TYPE : deploymentType;
+        return StringUtils.isEmpty(deploymentType) ? DeploymentTypeValues.AUTO : deploymentType;
     }
 
     public boolean isStopAppDuringDeployment() {

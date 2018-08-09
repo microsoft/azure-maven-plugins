@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
+import com.microsoft.azure.maven.appservice.DeploymentTypeValues;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
@@ -57,17 +58,17 @@ public enum DeploymentType {
         }
 
         switch (input.toUpperCase(Locale.ENGLISH)) {
-            case "FTP":
+            case DeploymentTypeValues.FTP:
                 return FTP;
-            case "ZIP":
+            case DeploymentTypeValues.ZIP:
                 return ZIP;
-            case "WAR":
+            case DeploymentTypeValues.WAR:
                 return WAR;
-            case "JAR":
+            case DeploymentTypeValues.JAR:
                 return JAR;
-            case "NONE":
+            case DeploymentTypeValues.NONE:
                 return NONE;
-            case "AUTO":
+            case DeploymentTypeValues.AUTO:
                 return AUTO;
             default:
                 throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);

@@ -44,7 +44,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      *      <li>AUTO - inspects {@code <packaging>} of the Maven project and uses WAR, JAR </li>
      *      <li>NONE - does nothing</li>
      *      <li>* defaults to AUTO if nothing is specified</li>
-     * <ul/>
+     * </ul>
      * 
      * Supported values for Function App:
      * <ul>
