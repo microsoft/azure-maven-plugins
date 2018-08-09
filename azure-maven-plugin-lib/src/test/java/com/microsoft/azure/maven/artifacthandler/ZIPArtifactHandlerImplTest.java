@@ -82,21 +82,6 @@ public class ZIPArtifactHandlerImplTest {
     }
 
     @Test
-    public void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
-        doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
-        handlerSpy.assureStagingDirectoryNotEmpty();
-        verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
-    }
-
-    @Test(expected = MojoExecutionException.class)
-    public void assureStagingDirectoryNotEmptyThrowException() throws MojoExecutionException {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
-        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
-        handlerSpy.assureStagingDirectoryNotEmpty();
-    }
-
-    @Test
     public void getZipFile() {
         final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
         final File zipTestDirectory = new File("src/test/resources/ziptest");
