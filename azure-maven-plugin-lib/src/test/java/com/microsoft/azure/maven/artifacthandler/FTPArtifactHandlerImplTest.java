@@ -14,11 +14,7 @@ import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,8 +23,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -51,40 +45,6 @@ public class FTPArtifactHandlerImplTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         handler = new FTPArtifactHandlerImpl(mojo);
-    }
-
-    @Test
-    public void prepareResources() throws IOException {
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
-        final List<Resource> resourceList = new ArrayList<>();
-        doReturn(mock(MavenProject.class)).when(mojo).getProject();
-        doReturn(mock(MavenSession.class)).when(mojo).getSession();
-        doReturn(mock(MavenResourcesFiltering.class)).when(mojo).getMavenResourcesFiltering();
-        resourceList.add(new Resource());
-        doReturn(resourceList).when(mojo).getResources();
-        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
-
-        handlerSpy.prepareResources();
-
-        verify(handlerSpy, times(1)).prepareResources();
-    }
-
-    @Test(expected = MojoExecutionException.class)
-    public void assureStagingDirectoryNotEmptyThrowException() throws MojoExecutionException {
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
-        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
-
-        handlerSpy.assureStagingDirectoryNotEmpty();
-    }
-
-    @Test
-    public void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
-        doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
-
-        handlerSpy.assureStagingDirectoryNotEmpty();
-
-        verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
     }
 
     @Test
