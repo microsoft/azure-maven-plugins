@@ -40,8 +40,13 @@ public class ArtifactHandlerBaseTest {
         }
     };
 
+    @Test(expected = MojoExecutionException.class)
+    public void prepareResourcesThrowException() throws IOException, MojoExecutionException {
+        baseClass.prepareResources();
+    }
+
     @Test
-    public void prepareResources() throws IOException {
+    public void prepareResources() throws IOException, MojoExecutionException {
         final ArtifactHandlerBase baseClassSpy = spy(baseClass);
         final List<Resource> resourceList = new ArrayList<>();
         doReturn(mock(MavenProject.class)).when(mojo).getProject();
