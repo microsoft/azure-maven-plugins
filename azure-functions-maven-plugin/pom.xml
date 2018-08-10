@@ -247,7 +247,7 @@
                     <include>**/*.xml</include>
                     <include>templates.json</include>
                     <include>bindings.json</include>
-                    <include>Resources.json</include>
+                    <include>resources.json</include>
                 </includes>
             </resource>
         </resources>
