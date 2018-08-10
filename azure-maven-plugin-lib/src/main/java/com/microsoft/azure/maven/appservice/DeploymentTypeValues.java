@@ -7,11 +7,11 @@
 package com.microsoft.azure.maven.appservice; 
 
 public class DeploymentTypeValues {
-    public static final String WAR = "war";
-    public static final String JAR = "jar";
-    public static final String ZIP = "zip";
-    public static final String FTP = "ftp";
-    public static final String AUTO = "auto";
-    public static final String NONE = "none";
-    public static final String MS_DEPLOY = "msdeploy";
+    public static final String WAR = "WAR";
+    public static final String JAR = "JAR";
+    public static final String ZIP = "ZIP";
+    public static final String FTP = "FTP";
+    public static final String AUTO = "AUTO";
+    public static final String NONE = "NONE";
+    public static final String MS_DEPLOY = "MSDEPLOY";
 }

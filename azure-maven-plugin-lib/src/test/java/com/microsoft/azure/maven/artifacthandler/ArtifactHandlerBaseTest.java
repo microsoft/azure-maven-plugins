@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArtifactHandlerBaseTest {
-    private final AbstractAppServiceMojo mojo = spy(AbstractAppServiceMojo.class);
+    private final AbstractAppServiceMojo mojo = mock(AbstractAppServiceMojo.class);
 
     private final ArtifactHandlerBase baseClass = new ArtifactHandlerBase<AbstractAppServiceMojo>(mojo) {
         @Override
@@ -40,13 +40,8 @@ public class ArtifactHandlerBaseTest {
         }
     };
 
-    @Test(expected = MojoExecutionException.class)
-    public void prepareResourcesThrowException() throws IOException, MojoExecutionException {
-        baseClass.prepareResources();
-    }
-
     @Test
-    public void prepareResources() throws IOException, MojoExecutionException {
+    public void prepareResources() throws IOException {
         final ArtifactHandlerBase baseClassSpy = spy(baseClass);
         final List<Resource> resourceList = new ArrayList<>();
         doReturn(mock(MavenProject.class)).when(mojo).getProject();

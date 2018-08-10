@@ -32,7 +32,7 @@ public enum DeploymentType {
             throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
 
-        switch (input.toLowerCase(Locale.ENGLISH)) {
+        switch (input.toUpperCase(Locale.ENGLISH)) {
             case DeploymentTypeValues.FTP:
                 return FTP;
             case DeploymentTypeValues.MS_DEPLOY:

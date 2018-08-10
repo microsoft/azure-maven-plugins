@@ -6,11 +6,9 @@
 
 package com.microsoft.azure.maven.artifacthandler;
 
-import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
 
 import javax.annotation.Nonnull;
@@ -25,16 +23,9 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> extends Ar
         super(mojo);
     }
 
-    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
-        return !(target.getApp() instanceof FunctionApp ||
-            StringUtils.equalsIgnoreCase(mojo.getDeploymentType(), "jar"));
-    }
-
     @Override
     public void publish(DeployTarget target) throws MojoExecutionException, IOException {
-        if (isResourcesPreparationRequired(target)) {
-            prepareResources();
-        }
+        prepareResources();
         assureStagingDirectoryNotEmpty();
 
         final File zipFile = getZipFile();

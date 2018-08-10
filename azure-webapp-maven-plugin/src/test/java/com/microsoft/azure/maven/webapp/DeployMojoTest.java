@@ -143,7 +143,7 @@ public class DeployMojoTest {
 
         assertEquals(1, mojo.getAppSettings().size());
 
-        assertEquals("auto", mojo.getDeploymentType());
+        assertEquals("AUTO", mojo.getDeploymentType());
 
         assertEquals(1, mojo.getResources().size());
 
