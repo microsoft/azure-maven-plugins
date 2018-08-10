@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
-import com.microsoft.azure.maven.appservice.DeploymentTypeValues;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
@@ -34,14 +33,8 @@ public enum DeploymentType {
 
     private Handler handler;
 
-    public static final String UNKNOWN_DEPLOYMENT_TYPE = String.format(
-            "The value of <deploymentType> is unknown, supported values are: %s, %s, %s, %s and %s.",
-            DeploymentTypeValues.JAR,
-            DeploymentTypeValues.WAR,
-            DeploymentTypeValues.ZIP,
-            DeploymentTypeValues.FTP,
-            DeploymentTypeValues.AUTO
-    );
+    public static final String UNKNOWN_DEPLOYMENT_TYPE =
+            "The value of <deploymentType> is unknown, supported values are: jar, war, zip, ftp, auto and none.";
 
     DeploymentType(Handler handler) {
         this.handler = handler;
@@ -65,17 +58,17 @@ public enum DeploymentType {
         }
 
         switch (input.toUpperCase(Locale.ENGLISH)) {
-            case DeploymentTypeValues.FTP:
+            case "FTP":
                 return FTP;
-            case DeploymentTypeValues.ZIP:
+            case "ZIP":
                 return ZIP;
-            case DeploymentTypeValues.WAR:
+            case "WAR":
                 return WAR;
-            case DeploymentTypeValues.JAR:
+            case "JAR":
                 return JAR;
-            case DeploymentTypeValues.NONE:
+            case "NONE":
                 return NONE;
-            case DeploymentTypeValues.AUTO:
+            case "AUTO":
                 return AUTO;
             default:
                 throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);

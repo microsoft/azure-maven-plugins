@@ -157,6 +157,12 @@ public class DeployMojoTest {
     }
 
     @Test
+    public void getDeploymentTypeDefaultToAuto() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+        assertEquals("AUTO", mojo.getDeploymentType());
+    }
+
+    @Test
     public void getConfigurationForWindows() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-windows.xml");
 

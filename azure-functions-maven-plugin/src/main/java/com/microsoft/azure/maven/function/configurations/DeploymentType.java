@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.function.configurations;
 
-import com.microsoft.azure.maven.appservice.DeploymentTypeValues;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -17,11 +16,8 @@ public enum DeploymentType {
     ZIP,
     FTP;
 
-    public static final String UNKNOWN_DEPLOYMENT_TYPE = String.format(
-            "The value of <deploymentType> is unknown, supported values are: %s, %s and %s.",
-            DeploymentTypeValues.ZIP,
-            DeploymentTypeValues.FTP,
-            DeploymentTypeValues.MS_DEPLOY);
+    public static final String UNKNOWN_DEPLOYMENT_TYPE =
+        "The value of <deploymentType> is unknown, supported values are: ftp, zip and msdeploy.";
 
     public static DeploymentType fromString(final String input) throws MojoExecutionException {
         if (StringUtils.isEmpty(input)) {
@@ -29,11 +25,11 @@ public enum DeploymentType {
         }
 
         switch (input.toUpperCase(Locale.ENGLISH)) {
-            case DeploymentTypeValues.FTP:
+            case "FTP":
                 return FTP;
-            case DeploymentTypeValues.MS_DEPLOY:
+            case "MSDEPLOY":
                 return MS_DEPLOY;
-            case DeploymentTypeValues.ZIP:
+            case "ZIP":
                 return ZIP;
             default:
                 throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);

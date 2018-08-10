@@ -15,7 +15,6 @@ import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Wi
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
-import com.microsoft.azure.maven.appservice.DeploymentTypeValues;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
@@ -49,7 +48,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     @Override
     public String getDeploymentType() {
-        return StringUtils.isEmpty(deploymentType) ? DeploymentTypeValues.ZIP : deploymentType;
+        return StringUtils.isEmpty(deploymentType) ? DeploymentType.ZIP.toString() : deploymentType;
     }
 
     //endregion

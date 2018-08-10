@@ -12,11 +12,11 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.appservice.DeploymentTypeValues;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
@@ -241,7 +241,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     @Override
     public String getDeploymentType() {
-        return StringUtils.isEmpty(deploymentType) ? DeploymentTypeValues.AUTO : deploymentType;
+        return StringUtils.isEmpty(deploymentType) ? DeploymentType.AUTO.toString() : deploymentType;
     }
 
     public boolean isStopAppDuringDeployment() {
