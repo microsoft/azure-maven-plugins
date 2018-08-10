@@ -30,7 +30,7 @@ public class ListMojo extends AbstractFunctionMojo {
 
     protected static final String TEMPLATES_FILE = "/templates.json";
     protected static final String BINDINGS_FILE = "/bindings.json";
-    protected static final String RESOURCES_FILE = "/Resources.json";
+    protected static final String RESOURCES_FILE = "/resources.json";
 
     @Override
     protected void doExecute() throws Exception {
