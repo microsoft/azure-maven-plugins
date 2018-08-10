@@ -1,6 +1,6 @@
 {
   "$schema": "<TBD>",
-  "contentVersion": "1.0.1",
+  "contentVersion": "1.0.0",
   "en": {
     "variables_storageConnStringLabel": "Storage account connection",
     "variables_appSettingsHelp": "The name of the app setting containing your storage account connection string.",

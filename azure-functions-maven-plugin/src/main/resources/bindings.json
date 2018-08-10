@@ -1,6 +1,6 @@
 {
   "$schema": "<TBD>",
-  "contentVersion": "1.0.1",
+  "contentVersion": "1.0.0",
   "variables": {
     "storageConnStringLabel": "$variables_storageConnStringLabel",
     "appSettingsHelp": "$variables_appSettingsHelp",
