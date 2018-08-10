@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.function;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.maven.function.template.FunctionTemplate;
+import com.microsoft.azure.maven.function.template.FunctionTemplates;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -167,8 +168,8 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected List<FunctionTemplate> parseTemplateJson(final String templateJson) throws Exception {
-        final FunctionTemplate[] templates = new ObjectMapper().readValue(templateJson, FunctionTemplate[].class);
-        return Arrays.asList(templates);
+        final FunctionTemplates templates = new ObjectMapper().readValue(templateJson, FunctionTemplates.class);
+        return templates.getTemplates();
     }
 
     //endregion

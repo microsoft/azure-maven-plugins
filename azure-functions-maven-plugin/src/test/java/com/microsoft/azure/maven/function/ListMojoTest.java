@@ -27,11 +27,16 @@ public class ListMojoTest extends MojoTestBase {
 
         doReturn(log).when(mojoSpy).getLog();
         doNothing().when(log).info(anyString());
+        doNothing().when(mojoSpy).printToSystemOut(anyString());
 
         mojoSpy.doExecute();
 
-        verify(log).info(ListMojo.PRINTING_START);
-        verify(log).info(ListMojo.PRINT_END);
+        verify(log).info(ListMojo.TEMPLATES_START);
+        verify(log).info(ListMojo.TEMPLATES_END);
+        verify(log).info(ListMojo.BINDINGS_START);
+        verify(log).info(ListMojo.BINDINGS_END);
+        verify(log).info(ListMojo.RESOURCES_START);
+        verify(log).info(ListMojo.RESOURCES_END);
     }
 
     private ListMojo getMojoFromPom() throws Exception {
