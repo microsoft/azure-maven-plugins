@@ -13,19 +13,15 @@ import org.codehaus.plexus.util.StringUtils;
 import java.util.Locale;
 
 public enum DeploymentType {
-    MS_DEPLOY(DeploymentTypeValues.MS_DEPLOY),
-    ZIP(DeploymentTypeValues.ZIP),
-    FTP(DeploymentTypeValues.FTP);
-
-    private final String value;
+    MS_DEPLOY,
+    ZIP,
+    FTP;
 
     public static final String UNKNOWN_DEPLOYMENT_TYPE = String.format(
-            "Unknown deployment type, supported values are: %s, %s and %s.", DeploymentTypeValues.ZIP,
-            DeploymentTypeValues.FTP, DeploymentTypeValues.MS_DEPLOY);
-
-    DeploymentType(final String value) {
-        this.value = value;
-    }
+            "The value of <deploymentType> is unknown, supported values are: %s, %s and %s.",
+            DeploymentTypeValues.ZIP,
+            DeploymentTypeValues.FTP,
+            DeploymentTypeValues.MS_DEPLOY);
 
     public static DeploymentType fromString(final String input) throws MojoExecutionException {
         if (StringUtils.isEmpty(input)) {
@@ -42,10 +38,5 @@ public enum DeploymentType {
             default:
                 throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
-    }
-
-    @Override
-    public String toString() {
-        return this.value;
     }
 }

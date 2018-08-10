@@ -34,7 +34,14 @@ public enum DeploymentType {
 
     private Handler handler;
 
-    public static final String UNKNOWN_DEPLOYMENT_TYPE = "Unknown deployment type.";
+    public static final String UNKNOWN_DEPLOYMENT_TYPE = String.format(
+            "The value of <deploymentType> is unknown, supported values are: %s, %s, %s, %s and %s.",
+            DeploymentTypeValues.JAR,
+            DeploymentTypeValues.WAR,
+            DeploymentTypeValues.ZIP,
+            DeploymentTypeValues.FTP,
+            DeploymentTypeValues.AUTO
+    );
 
     DeploymentType(Handler handler) {
         this.handler = handler;
