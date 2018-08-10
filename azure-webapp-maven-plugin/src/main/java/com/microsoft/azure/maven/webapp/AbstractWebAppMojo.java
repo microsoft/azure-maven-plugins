@@ -16,8 +16,8 @@ import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentType;
 import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -239,11 +239,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return containerSettings;
     }
 
-    @Override
-    public String getDeploymentType() {
-        return StringUtils.isEmpty(deploymentType) ? DeploymentType.AUTO.toString() : deploymentType;
-    }
-
     public boolean isStopAppDuringDeployment() {
         return stopAppDuringDeployment;
     }
@@ -313,8 +308,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         map.put(JAVA_WEB_CONTAINER_KEY, getJavaWebContainer().toString());
         map.put(LINUX_RUNTIME_KEY, StringUtils.isEmpty(linuxRuntime) ? "" : linuxRuntime);
         map.put(DOCKER_IMAGE_TYPE_KEY, WebAppUtils.getDockerImageType(getContainerSettings()).toString());
-        map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType());
 
+        try {
+            map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
+        } catch (MojoExecutionException e) {
+            map.put(DEPLOYMENT_TYPE_KEY, "Unknown");
+        }
         return map;
     }
 

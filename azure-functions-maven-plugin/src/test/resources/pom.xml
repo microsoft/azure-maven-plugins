@@ -16,6 +16,8 @@
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
                     <region>westeurope</region>
+                    <!-- test unknown deployment type throws exception -->
+                    <deploymentType>unknown</deploymentType>
                     <appSettings>
                         <property>
                             <name>key</name>

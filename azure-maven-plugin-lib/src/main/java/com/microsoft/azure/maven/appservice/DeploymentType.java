@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.function.configurations;
+package com.microsoft.azure.maven.appservice;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
@@ -12,25 +12,37 @@ import org.codehaus.plexus.util.StringUtils;
 import java.util.Locale;
 
 public enum DeploymentType {
-    MS_DEPLOY,
+    FTP,
     ZIP,
-    FTP;
+    WAR,
+    JAR,
+    AUTO,
+    NONE,
+    EMPTY,
+    MSDEPLOY;
 
-    public static final String UNKNOWN_DEPLOYMENT_TYPE =
-        "The value of <deploymentType> is unknown, supported values are: ftp, zip and msdeploy.";
+    public static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown.";
 
     public static DeploymentType fromString(final String input) throws MojoExecutionException {
         if (StringUtils.isEmpty(input)) {
-            throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
+            return EMPTY;
         }
 
         switch (input.toUpperCase(Locale.ENGLISH)) {
             case "FTP":
                 return FTP;
             case "MSDEPLOY":
-                return MS_DEPLOY;
+                return MSDEPLOY;
             case "ZIP":
                 return ZIP;
+            case "WAR":
+                return WAR;
+            case "JAR":
+                return JAR;
+            case "AUTO":
+                return AUTO;
+            case "NONE":
+                return NONE;
             default:
                 throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }

@@ -20,6 +20,7 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
@@ -221,7 +222,7 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getMSDeployArtifactHandler() throws MojoExecutionException {
-        doReturn("msdeploy").when(mojoSpy).getDeploymentType();
+        doReturn(DeploymentType.MSDEPLOY).when(mojoSpy).getDeploymentType();
         final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
         assertNotNull(handler);
@@ -230,7 +231,7 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getFTPArtifactHandler() throws MojoExecutionException {
-        doReturn("ftp").when(mojoSpy).getDeploymentType();
+        doReturn(DeploymentType.FTP).when(mojoSpy).getDeploymentType();
         final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
         assertNotNull(handler);
@@ -239,7 +240,7 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getZIPArtifactHandler() throws MojoExecutionException {
-        doReturn("zip").when(mojoSpy).getDeploymentType();
+        doReturn(DeploymentType.ZIP).when(mojoSpy).getDeploymentType();
         final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
         assertNotNull(handler);
@@ -247,9 +248,9 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test(expected = MojoExecutionException.class)
-    public void getArtifactHandlerThrowException() throws MojoExecutionException {
-        doReturn("unknown").when(mojoSpy).getDeploymentType();
-        mojoSpy.getArtifactHandler();
+    public void getArtifactHandlerThrowException() throws Exception {
+        final DeployMojo mojo = getMojoFromPom();
+        mojo.getArtifactHandler();
     }
 
     private DeployMojo getMojoFromPom() throws Exception {

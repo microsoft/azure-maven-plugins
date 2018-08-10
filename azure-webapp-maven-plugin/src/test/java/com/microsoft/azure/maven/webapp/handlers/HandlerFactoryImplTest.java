@@ -7,9 +7,12 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.maven.appservice.DeploymentType;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -20,6 +23,7 @@ import java.net.URL;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 public class HandlerFactoryImplTest {
     @Mock
@@ -98,6 +102,30 @@ public class HandlerFactoryImplTest {
         final SettingsHandler handler = factory.getSettingsHandler(mojo);
         assertNotNull(handler);
         assertTrue(handler instanceof SettingsHandlerImpl);
+    }
+
+    @Test
+    public void getDefaultArtifactHandler() throws Exception {
+        final MavenProject project = mock(MavenProject.class);
+        doReturn(project).when(mojo).getProject();
+        doReturn(DeploymentType.EMPTY).when(mojo).getDeploymentType();
+        doReturn("jar").when(project).getPackaging();
+
+        final HandlerFactory factory = new HandlerFactoryImpl();
+        final ArtifactHandler handler = factory.getArtifactHandler(mojo);
+        assertTrue(handler instanceof JarArtifactHandlerImpl);
+    }
+
+    @Test
+    public void getAutoArtifactHandler() throws Exception {
+        final MavenProject project = mock(MavenProject.class);
+        doReturn(project).when(mojo).getProject();
+        doReturn(DeploymentType.AUTO).when(mojo).getDeploymentType();
+        doReturn("war").when(project).getPackaging();
+
+        final HandlerFactory factory = new HandlerFactoryImpl();
+        final ArtifactHandler handler = factory.getArtifactHandler(mojo);
+        assertTrue(handler instanceof WarArtifactHandlerImpl);
     }
 
     @Test
