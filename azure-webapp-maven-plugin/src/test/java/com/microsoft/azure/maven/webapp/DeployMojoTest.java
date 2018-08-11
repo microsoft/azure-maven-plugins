@@ -151,7 +151,7 @@ public class DeployMojoTest {
     }
 
     @Test(expected = MojoExecutionException.class)
-    public void getArtifactHandlerThrowException() throws Exception {
+    public void getDeploymentTypeThrowException() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
         mojo.getDeploymentType();
     }

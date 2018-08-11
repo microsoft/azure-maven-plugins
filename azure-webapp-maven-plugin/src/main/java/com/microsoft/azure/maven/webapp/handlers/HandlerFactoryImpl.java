@@ -16,6 +16,8 @@ import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.codehaus.plexus.util.StringUtils;
+
 import java.util.Locale;
 
 public class HandlerFactoryImpl extends HandlerFactory {
@@ -82,22 +84,30 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 return new JarArtifactHandlerImpl(mojo);
             case WAR:
                 return new WarArtifactHandlerImpl(mojo);
-            case EMPTY:
-            case AUTO:
-                String packaging = mojo.getProject().getPackaging();
-                packaging = packaging != null ? packaging.toLowerCase(Locale.ENGLISH).trim() : "";
-                switch (packaging) {
-                    case "war":
-                        return new WarArtifactHandlerImpl(mojo);
-                    case "jar":
-                        return new JarArtifactHandlerImpl(mojo);
-                    default:
-                        throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
-                }
             case NONE:
                 return new NONEArtifactHandlerImpl(mojo);
+            case EMPTY:
+            case AUTO:
+                return getArtifactHandlerFromPackaging(mojo);
             default:
                 throw new MojoExecutionException(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
+        }
+    }
+
+    protected ArtifactHandler getArtifactHandlerFromPackaging(final AbstractWebAppMojo mojo)
+        throws MojoExecutionException {
+        String packaging = mojo.getProject().getPackaging();
+        if (StringUtils.isEmpty(packaging)) {
+            throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
+        }
+        packaging = packaging.toLowerCase(Locale.ENGLISH).trim();
+        switch (packaging) {
+            case "war":
+                return new WarArtifactHandlerImpl(mojo);
+            case "jar":
+                return new JarArtifactHandlerImpl(mojo);
+            default:
+                throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
     }
 
