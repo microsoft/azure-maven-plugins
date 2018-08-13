@@ -29,6 +29,9 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> extends Ar
         assureStagingDirectoryNotEmpty();
 
         final File zipFile = getZipFile();
+
+        // Add retry logic here to avoid Kudu's socket timeout issue.
+        // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
         int retryCount = 0;
         while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
             retryCount += 1;
