@@ -43,6 +43,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s";
     public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
     public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
+    public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
     //region Properties
 
@@ -179,4 +180,15 @@ public class DeployMojo extends AbstractFunctionMojo {
                 throw new MojoExecutionException(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
         }
     }
+
+    //region Telemetry Configuration Interface
+
+    @Override
+    public Map<String, String> getTelemetryProperties() {
+        final Map<String, String> map = super.getTelemetryProperties();
+        map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType());
+        return map;
+    }
+
+    //endregion
 }
