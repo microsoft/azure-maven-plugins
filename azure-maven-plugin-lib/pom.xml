@@ -29,7 +29,7 @@
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <codehaus.plexus-utils>3.0.20</codehaus.plexus-utils>
         <azure.version>1.14.0</azure.version>
-        <azure.ai.version>2.1.1</azure.ai.version>
+        <azure.ai.version>1.0.9</azure.ai.version>
         <common-net.version>3.6</common-net.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.4.0</mockito.version>
