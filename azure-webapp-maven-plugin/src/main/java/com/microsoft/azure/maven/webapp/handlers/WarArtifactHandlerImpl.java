@@ -49,6 +49,9 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
         assureWarFileExisted(war);
 
         final Runnable warDeployExecutor = getRealWarDeployExecutor(target, war, getContextPath());
+        
+        // Add retry logic here to avoid Kudu's socket timeout issue.
+        // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
         int retryCount = 0;
         mojo.getLog().info("Deploying the war file...");
 
