@@ -40,7 +40,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         "Successfully deployed the function app at https://%s.azurewebsites.net.";
     public static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
         "Creating a new function app...";
-    public static final String FUNCTION_APP_CREATED = "Successfully created a function app.";
+    public static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s";
     public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
     public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
 
@@ -123,7 +123,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         configureAppSettings(withCreate::withAppSettings, getAppSettings());
         withCreate.create();
 
-        info(FUNCTION_APP_CREATED + getAppName());
+        info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
 
     protected void updateFunctionApp(final FunctionApp app) {
