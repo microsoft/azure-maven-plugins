@@ -37,7 +37,7 @@ import java.util.function.Consumer;
 public class DeployMojo extends AbstractFunctionMojo {
     public static final String DEPLOY_START = "Trying to deploy the function app...";
     public static final String DEPLOY_FINISH =
-        "Successfully deployed the function app at https://%s.azurewebsites.net.";
+        "Successfully deployed the function app at https://%s.azurewebsites.net";
     public static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
         "Creating a new function app...";
     public static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s";
