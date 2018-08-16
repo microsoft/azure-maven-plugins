@@ -161,7 +161,12 @@ public class DeployMojo extends AbstractFunctionMojo {
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
-        map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType());
+
+        try {
+            map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
+        } catch (MojoExecutionException e) {
+            map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
+        }
         return map;
     }
 
