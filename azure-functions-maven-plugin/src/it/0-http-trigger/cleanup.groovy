@@ -7,7 +7,7 @@
 import com.microsoft.azure.maven.function.invoker.CommonUtils
 
 // Verify Azure Functions
-def url = "https://maven-functions-it-${timestamp}-0.azurewebsites.net/api/HttpTriggerJava?json={\"body\":\"Azure\"}".toURL()
+def url = "https://maven-functions-it-${timestamp}-0.azurewebsites.net/api/HttpTrigger-Java?json={\"body\":\"Azure\"}".toURL()
 
 CommonUtils.runVerification(new Runnable() {
     @Override
