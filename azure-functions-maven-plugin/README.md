@@ -101,7 +101,7 @@ Property | Required | Description
 `<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, the plugin will use the value defined in `<resourceGroup>`.
 `<appServicePlanName>` | false | Specifies the name of the existing App Service Plan when you do not want to create a new one.
 `<appSettings>` | false | Specifies the application settings for your Azure Functions, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
-`<deploymentType>` | false | Specifies the deployment approach you want to use.<br>Supported values are `msdeploy` and `ftp`. The default value is **`msdeploy`**.
+`<deploymentType>` | false | Specifies the deployment approach you want to use.<br>The default value is **`zip`**.
 >*: This setting will be used to create a new Azure Functions if specified Azure Functions does not exist; if target Azure Functions already exists, this setting will be ignored.
 
 ### Supported Regions
@@ -194,8 +194,8 @@ Directly deploy to target Azure Functions by running `mvn azure-functions:deploy
 
 Supported deployment methods are listed as below. The default value is **ZIP**.
 - ZIP
-- MSDeploy
-- FTP
+- ~~~MSDeploy~~~ (deprecated)
+- ~~~FTP~~~ (deprecated)
 
 ## Common Questions
 **Q: Can I upload other static content, e.g. HTML files, as part of the function deployment?**
