@@ -9,13 +9,6 @@ environment:
   dotnetcore_version: 2.1.302
   nodejs_version: "8"
 
-  CLIENT_ID:
-    secure: rSMXqU3uFoLjHUvut92UhV/DxNcC5csNr/BSw0N2UryRVhSge2tVYvz5PAHXSJla
-  TENANT_ID:
-    secure: s5TV0C1mfbi57ez2M9rVXGWHjY3AsoK6nASX8oUWeUg9Z8HW6dXxa3bhc+Oc9SRF
-  KEY:
-    secure: 0/sG+24ZzSK1djeM0EFg+8RmbzOkssudRWGnjDoGplwd/97i6Eu0Tf48zbiqgoZG
-
 install:
   - cmd: npm i -g azure-functions-core-tools@core --unsafe-perm true
   - cmd: SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%
