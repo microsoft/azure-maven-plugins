@@ -93,7 +93,8 @@ public class ZIPArtifactHandlerImplTest {
         try {
             handlerSpy.publish(target);
         } catch (final MojoExecutionException e) {
-            assertEquals("Please configure <resources> in pom.xml.", e.getMessage());
+            assertEquals("The <resources> is empty. Please make sure it is configured in pom.xml.",
+                e.getMessage());
         }
     }
 
