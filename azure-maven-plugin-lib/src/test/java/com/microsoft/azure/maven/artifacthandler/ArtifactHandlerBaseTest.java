@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArtifactHandlerBaseTest {
-    private final AbstractAppServiceMojo mojo = spy(AbstractAppServiceMojo.class);
+    private final AbstractAppServiceMojo mojo = mock(AbstractAppServiceMojo.class);
 
     private final ArtifactHandlerBase baseClass = new ArtifactHandlerBase<AbstractAppServiceMojo>(mojo) {
         @Override
