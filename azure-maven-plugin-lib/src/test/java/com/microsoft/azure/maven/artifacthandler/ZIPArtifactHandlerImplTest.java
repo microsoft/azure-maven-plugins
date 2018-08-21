@@ -54,10 +54,12 @@ public class ZIPArtifactHandlerImplTest {
         doReturn(file).when(handlerSpy).getZipFile();
         doNothing().when(app).zipDeploy(file);
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
+        doReturn(false).when(handlerSpy).isResourcesPreparationRequired(target);
 
         handlerSpy.publish(target);
 
-        verify(handlerSpy, times(1)).prepareResources();
+        verify(handlerSpy, times(0)).prepareResources();
+        verify(handlerSpy, times(1)).isResourcesPreparationRequired(target);
         verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
         verify(handlerSpy, times(1)).getZipFile();
         verify(handlerSpy, times(1)).publish(target);
@@ -72,12 +74,27 @@ public class ZIPArtifactHandlerImplTest {
         final File file = mock(File.class);
 
         doReturn(file).when(handlerSpy).getZipFile();
+        doReturn(false).when(handlerSpy).isResourcesPreparationRequired(target);
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
 
         try {
             handlerSpy.publish(target);
         } catch (final MojoExecutionException e) {
             assertEquals("The zip deploy failed after 3 times of retry.", e.getMessage());
+        }
+    }
+
+    @Test
+    public void publishThrowResourceNotConfiguredException() throws IOException {
+        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
+        final WebApp app = mock(WebApp.class);
+        final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
+
+        try {
+            handlerSpy.publish(target);
+        } catch (final MojoExecutionException e) {
+            assertEquals("<resources> is empty. Please make sure it is configured in pom.xml.",
+                e.getMessage());
         }
     }
 

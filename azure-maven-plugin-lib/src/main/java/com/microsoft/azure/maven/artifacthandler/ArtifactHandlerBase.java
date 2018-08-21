@@ -32,12 +32,13 @@ public abstract class ArtifactHandlerBase<T extends AbstractAppServiceMojo> impl
         }
     }
 
-    protected void prepareResources() throws IOException {
+    protected void prepareResources() throws IOException, MojoExecutionException {
         final List<Resource> resources = this.mojo.getResources();
-
-        if (resources != null && !resources.isEmpty()) {
-            Utils.copyResources(mojo.getProject(), mojo.getSession(),
-                    mojo.getMavenResourcesFiltering(), resources, mojo.getDeploymentStagingDirectoryPath());
+        if (resources == null || resources.isEmpty()) {
+            throw new MojoExecutionException("<resources> is empty. Please make sure it is configured in pom.xml.");
         }
+
+        Utils.copyResources(mojo.getProject(), mojo.getSession(),
+            mojo.getMavenResourcesFiltering(), resources, mojo.getDeploymentStagingDirectoryPath());
     }
 }

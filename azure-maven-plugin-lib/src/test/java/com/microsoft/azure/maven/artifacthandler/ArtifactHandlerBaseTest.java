@@ -41,7 +41,7 @@ public class ArtifactHandlerBaseTest {
     };
 
     @Test
-    public void prepareResources() throws IOException {
+    public void prepareResources() throws IOException, MojoExecutionException {
         final ArtifactHandlerBase baseClassSpy = spy(baseClass);
         final List<Resource> resourceList = new ArrayList<>();
         doReturn(mock(MavenProject.class)).when(mojo).getProject();
@@ -55,6 +55,12 @@ public class ArtifactHandlerBaseTest {
 
         verify(baseClassSpy, times(1)).prepareResources();
         verifyNoMoreInteractions(baseClassSpy);
+    }
+
+    @Test(expected = MojoExecutionException.class)
+    public void prepareResourcesThrowException() throws IOException, MojoExecutionException {
+        final ArtifactHandlerBase baseClassSpy = spy(baseClass);
+        baseClassSpy.prepareResources();
     }
 
     @Test(expected = MojoExecutionException.class)
