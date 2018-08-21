@@ -35,7 +35,7 @@ public abstract class ArtifactHandlerBase<T extends AbstractAppServiceMojo> impl
     protected void prepareResources() throws IOException, MojoExecutionException {
         final List<Resource> resources = this.mojo.getResources();
         if (resources == null || resources.isEmpty()) {
-            throw new MojoExecutionException("The <resources> is empty. Please make sure it is configured in pom.xml.");
+            throw new MojoExecutionException("<resources> is empty. Please make sure it is configured in pom.xml.");
         }
 
         Utils.copyResources(mojo.getProject(), mojo.getSession(),
