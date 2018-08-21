@@ -23,6 +23,8 @@
                     <pricingTier>s2</pricingTier>
                     <javaVersion>1.8</javaVersion>
                     <javaWebContainer>tomcat 8.5</javaWebContainer>
+                    <!-- test unknown deployment type throw exception -->
+                    <deploymentType>unknown</deploymentType>
                     <appSettings>
                         <property>
                             <name>PORT</name>

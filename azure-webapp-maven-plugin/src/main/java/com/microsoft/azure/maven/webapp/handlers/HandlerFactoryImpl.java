@@ -7,12 +7,18 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.codehaus.plexus.util.StringUtils;
+
+import java.util.Locale;
 
 public class HandlerFactoryImpl extends HandlerFactory {
     public static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>" +
@@ -20,6 +26,8 @@ public class HandlerFactoryImpl extends HandlerFactory {
     public static final String NO_RUNTIME_HANDLER = "Not able to process the runtime stack configuration; " +
         "please check <javaVersion>, <linuxRuntime> or <containerSettings> tag in pom.xml";
     public static final String IMAGE_NAME_MISSING = "<imageName> not found within <containerSettings> tag.";
+    public static final String UNKNOWN_DEPLOYMENT_TYPE =
+        "The value of <deploymentType> is unknown, supported values are: jar, war, zip, ftp, auto and none.";
 
     @Override
     public RuntimeHandler getRuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
@@ -67,7 +75,40 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
     @Override
     public ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
-        return mojo.getDeploymentType().getArtifactHandlerFromMojo(mojo);
+        switch (mojo.getDeploymentType()) {
+            case FTP:
+                return new FTPArtifactHandlerImpl(mojo);
+            case ZIP:
+                return new ZIPArtifactHandlerImpl(mojo);
+            case JAR:
+                return new JarArtifactHandlerImpl(mojo);
+            case WAR:
+                return new WarArtifactHandlerImpl(mojo);
+            case NONE:
+                return new NONEArtifactHandlerImpl(mojo);
+            case EMPTY:
+            case AUTO:
+                return getArtifactHandlerFromPackaging(mojo);
+            default:
+                throw new MojoExecutionException(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
+        }
+    }
+
+    protected ArtifactHandler getArtifactHandlerFromPackaging(final AbstractWebAppMojo mojo)
+        throws MojoExecutionException {
+        String packaging = mojo.getProject().getPackaging();
+        if (StringUtils.isEmpty(packaging)) {
+            throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
+        }
+        packaging = packaging.toLowerCase(Locale.ENGLISH).trim();
+        switch (packaging) {
+            case "war":
+                return new WarArtifactHandlerImpl(mojo);
+            case "jar":
+                return new JarArtifactHandlerImpl(mojo);
+            default:
+                throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
+        }
     }
 
     @Override

@@ -19,13 +19,11 @@ import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.function.configurations.DeploymentType;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -44,31 +42,6 @@ public class DeployMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
     public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
-
-    //region Properties
-
-    /**
-     * Deployment type to deploy Web App. Supported values:
-     * <ul>
-     * <li>msdeploy</li>
-     * <li>ftp</li>
-     * <li>zip</li>
-     * </ul>
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "functions.deploymentType", defaultValue = DeploymentType.ConstantValues.ZIP_VALUE)
-    protected String deploymentType;
-
-    //endregion
-
-    //region Getter
-
-    public String getDeploymentType() {
-        return deploymentType;
-    }
-
-    //endregion
 
     //region Entry Point
 
@@ -169,15 +142,17 @@ public class DeployMojo extends AbstractFunctionMojo {
     //endregion
 
     protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
-        switch (DeploymentType.fromString(getDeploymentType())) {
-            case MS_DEPLOY:
+        switch (this.getDeploymentType()) {
+            case MSDEPLOY:
                 return new MSDeployArtifactHandlerImpl(this);
             case FTP:
                 return new FTPArtifactHandlerImpl(this);
+            case EMPTY:
             case ZIP:
                 return new ZIPArtifactHandlerImpl(this);
             default:
-                throw new MojoExecutionException(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
+                throw new MojoExecutionException(
+                    "The value of <deploymentType> is unknown, supported values are: ftp, zip and msdeploy.");
         }
     }
 
@@ -186,7 +161,12 @@ public class DeployMojo extends AbstractFunctionMojo {
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
-        map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType());
+
+        try {
+            map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
+        } catch (MojoExecutionException e) {
+            map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
+        }
         return map;
     }
 
