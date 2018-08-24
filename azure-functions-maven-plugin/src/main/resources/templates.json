@@ -7,7 +7,7 @@
       "metadata": {
         "name": "HttpTrigger",
         "description": "$HttpTrigger_description",
-        "defaultFunctionName": "run",
+        "defaultFunctionName": "httpTriggerJava",
         "language": "Java",
         "userPrompt": [
           "authLevel"
@@ -62,7 +62,7 @@
         ]
       },
       "files": {
-        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Azure Blob trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new or updated blob is detected at the specified path. The blob contents are provided as input to this function.\n     */\n    @FunctionName(\"$functionName$\")\n    @StorageAccount(\"$connection$\")\n    public void blobHandler(\n        @BlobTrigger(name = \"content\", path = \"$path$/{name}\", dataType = \"binary\") byte[] content,\n        @BindingName(\"name\") String name,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Blob trigger function processed a blob. Name: \" + name + \"\\n  Size: \" + content.length + \" Bytes\");\n    }\n}\n"
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Azure Blob trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new or updated blob is detected at the specified path. The blob contents are provided as input to this function.\n     */\n    @FunctionName(\"$functionName$\")\n    @StorageAccount(\"$connection$\")\n    public void run(\n        @BlobTrigger(name = \"content\", path = \"$path$/{name}\", dataType = \"binary\") byte[] content,\n        @BindingName(\"name\") String name,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Blob trigger function processed a blob. Name: \" + name + \"\\n  Size: \" + content.length + \" Bytes\");\n    }\n}\n"
       }
     },
     {
@@ -90,7 +90,7 @@
         ]
       },
       "files": {
-        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Azure Storage Queue trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new message is received at the specified path. The message contents are provided as input to this function.\n     */\n    @FunctionName(\"$functionName$\")\n    public void queueHandler(\n        @QueueTrigger(name = \"message\", queueName = \"$queueName$\", connection = \"$connection$\") String message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Queue trigger function processed a message: \" + message);\n    }\n}\n"
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Azure Storage Queue trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new message is received at the specified path. The message contents are provided as input to this function.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n        @QueueTrigger(name = \"message\", queueName = \"$queueName$\", connection = \"$connection$\") String message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Queue trigger function processed a message: \" + message);\n    }\n}\n"
       }
     },
     {
@@ -116,7 +116,7 @@
         ]
       },
       "files": {
-        "function.java": "package $packageName$;\n\nimport java.time.*;\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Timer trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked periodically according to the specified schedule.\n     */\n    @FunctionName(\"$functionName$\")\n    public void timerHandler(\n        @TimerTrigger(name = \"timerInfo\", schedule = \"$schedule$\") String timerInfo,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Timer trigger function executed at: \" + LocalDateTime.now());\n    }\n}\n"
+        "function.java": "package $packageName$;\n\nimport java.time.*;\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Timer trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked periodically according to the specified schedule.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n        @TimerTrigger(name = \"timerInfo\", schedule = \"$schedule$\") String timerInfo,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Timer trigger function executed at: \" + LocalDateTime.now());\n    }\n}\n"
       }
     },
     {
@@ -139,7 +139,7 @@
         ]
       },
       "files": {
-        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Grid trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Grid.\n     */\n    @FunctionName(\"$functionName$\")\n    public void eventGridHandler(@EventGridTrigger(name = \"eventGridEvent\") String message, final ExecutionContext context) {\n        context.getLogger().info(\"Java Event Grid trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Grid trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Grid.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(@EventGridTrigger(name = \"eventGridEvent\") String message, final ExecutionContext context) {\n        context.getLogger().info(\"Java Event Grid trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
       }
     },
     {
@@ -169,7 +169,7 @@
         ]
       },
       "files": {
-        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Hub trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Hub.\n     */\n    @FunctionName(\"$functionName$\")\n    public void eventHubHandler(\n        @EventHubTrigger(name = \"message\", eventHubName = \"$eventHubName$\", connection = \"$connection$\", consumerGroup = \"$consumerGroup$\") String message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Event Hub trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Hub trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Hub.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n        @EventHubTrigger(name = \"message\", eventHubName = \"$eventHubName$\", connection = \"$connection$\", consumerGroup = \"$consumerGroup$\") String message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Event Hub trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
       }
     },
     {
@@ -198,7 +198,7 @@
         ]
       },
       "files": {
-        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Cosmos DB trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when there are inserts or updates in the specified database and collection.\n     */\n    @FunctionName(\"$functionName$\")\n    public void cosmosDBHandler(\n        @CosmosDBTrigger(\n            name = \"items\",\n            databaseName = \"$databaseName$\",\n            collectionName = \"$collectionName$\",\n            leaseCollectionName=\"$leaseCollectionName$\",\n            connectionStringSetting = \"$connectionStringSetting$\",\n            createLeaseCollectionIfNotExists = $createLeaseCollectionIfNotExists$\n        )\n        Object[] items,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Cosmos DB trigger function executed.\");\n        context.getLogger().info(\"Documents count: \" + items.length);\n    }\n}\n"
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Cosmos DB trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when there are inserts or updates in the specified database and collection.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n        @CosmosDBTrigger(\n            name = \"items\",\n            databaseName = \"$databaseName$\",\n            collectionName = \"$collectionName$\",\n            leaseCollectionName=\"$leaseCollectionName$\",\n            connectionStringSetting = \"$connectionStringSetting$\",\n            createLeaseCollectionIfNotExists = $createLeaseCollectionIfNotExists$\n        )\n        Object[] items,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Cosmos DB trigger function executed.\");\n        context.getLogger().info(\"Documents count: \" + items.length);\n    }\n}\n"
       }
     },
     {
@@ -226,7 +226,7 @@
         ]
       },
       "files": {
-        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Service Bus Trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new message is received at the Service Bus Queue.\n     */\n    @FunctionName(\"$functionName$\")\n    public void serviceBusHandler(\n            @ServiceBusQueueTrigger(name = \"message\", queueName = \"$queueName$\", connection = \"$connection$\") String message,\n            final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Service Bus Queue trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Service Bus Trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new message is received at the Service Bus Queue.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n            @ServiceBusQueueTrigger(name = \"message\", queueName = \"$queueName$\", connection = \"$connection$\") String message,\n            final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Service Bus Queue trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
       }
     },
     {
@@ -256,7 +256,7 @@
         ]
       },
       "files": {
-        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Service Topic Trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new message is received at the Service Bus Topic.\n     */\n    @FunctionName(\"$functionName$\")\n    public void serviceBusHandler(\n        @ServiceBusTopicTrigger(\n            name = \"message\",\n            topicName = \"$topicName$\",\n            subscriptionName = \"$subscriptionName$\",\n            connection = \"$connection$\"\n        )\n        String message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Service Bus Topic trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}"
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Service Topic Trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new message is received at the Service Bus Topic.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n        @ServiceBusTopicTrigger(\n            name = \"message\",\n            topicName = \"$topicName$\",\n            subscriptionName = \"$subscriptionName$\",\n            connection = \"$connection$\"\n        )\n        String message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Service Bus Topic trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}"
       }
     }
   ]
