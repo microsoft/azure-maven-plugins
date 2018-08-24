@@ -8,6 +8,8 @@
     "timerTrigger_schedule_label": "Schedule",
     "timerTrigger_schedule_help": "Enter a cron expression of the format '{second} {minute} {hour} {day} {month} {day of week}' to specify the schedule.",
     "timerTrigger_schedule_errorText": "Invalid Cron Expression. Please consult the <a target='_blank' href='https://azure.microsoft.com/en-us/documentation/articles/functions-bindings-timer/'>documentation</a> to learn more.",
+    "timerTrigger_runOnStartup_label": "Run on startup",
+    "timerTrigger_runOnStartup_help": "If true, the function is invoked when the runtime starts. For example, the runtime starts when the function app wakes up after going idle due to inactivity. when the function app restarts due to function changes, and when the function app scales out. So runOnStartup should rarely if ever be set to true, especially in production.",
     "QueueTrigger_description": "A function that will be run whenever a message is added to a specified Azure Storage queue",
     "queueTrigger_displayName": "Azure Queue Storage",
     "queueTrigger_queueName_label": "Queue name",

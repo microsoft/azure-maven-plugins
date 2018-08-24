@@ -15,15 +15,24 @@ public class TimerBinding extends BaseBinding {
     public static final String TIMER_TRIGGER = "timerTrigger";
 
     private String schedule;
+    
+    private boolean runOnStartup;
 
     public TimerBinding(final TimerTrigger timerTrigger) {
         super(timerTrigger.name(), TIMER_TRIGGER, Direction.IN, timerTrigger.dataType());
 
         schedule = timerTrigger.schedule();
+        
+        runOnStartup = timerTrigger.runOnStartup();
     }
 
     @JsonGetter
     public String getSchedule() {
         return schedule;
     }
+    
+    @JsonGetter
+    public boolean isRunOnStartup() {
+        return runOnStartup;
+    }    
 }

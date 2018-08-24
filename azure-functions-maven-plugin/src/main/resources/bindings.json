@@ -26,6 +26,13 @@
               "errorText": "$timerTrigger_schedule_errorText"
             }
           ]
+        }, {
+          "name": "runOnStartup",
+          "value": "boolean",
+          "defaultValue": true,
+          "required": false,
+          "label": "$timerTrigger_runOnStartup_label",
+          "help": "$timerTrigger_runOnStartup_help"
         }
       ]
     },

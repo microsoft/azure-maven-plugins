@@ -107,7 +107,8 @@ public class AnnotationHandlerImplTest {
         @NotificationHubOutput(name = "$return", hubName = "hub", connection = "conn")
         @SendGridOutput(name = "$return", apiKey = "key", to = "to", from = "from", subject = "sub", text = "text")
         @TwilioSmsOutput(name = "$return", accountSid = "sid", authToken = "auth", to = "to", from = "from", body = "b")
-        public String timerTriggerMethod(@TimerTrigger(name = "timer", schedule = "") String timer,
+        public String timerTriggerMethod(@TimerTrigger(name = "timer", schedule = "", runOnStartup = false) String
+                                                     timer,
                                          @CosmosDBOutput(name = "in1",
                                                  databaseName = "db",
                                                  collectionName = "col",
