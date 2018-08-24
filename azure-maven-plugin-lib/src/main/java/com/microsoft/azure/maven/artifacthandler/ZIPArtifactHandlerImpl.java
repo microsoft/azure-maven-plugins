@@ -26,9 +26,15 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> extends Ar
         super(mojo);
     }
 
+    /**
+     * JAR deploy implements from ZIP deploy and prepares jar file to staging folder itself.
+     * Add another check to make sure that when the deployment type is ZIP,
+     * preparing the resources to staging folder is necessary.
+     */
     protected boolean isResourcesPreparationRequired(final DeployTarget target) throws MojoExecutionException {
-        return (target.getApp() instanceof WebApp || target.getApp() instanceof DeploymentSlot) &&
-            DeploymentType.JAR != mojo.getDeploymentType();
+        return (target.getApp() instanceof WebApp ||
+            target.getApp() instanceof DeploymentSlot) &&
+            DeploymentType.ZIP == mojo.getDeploymentType();
     }
 
     @Override
