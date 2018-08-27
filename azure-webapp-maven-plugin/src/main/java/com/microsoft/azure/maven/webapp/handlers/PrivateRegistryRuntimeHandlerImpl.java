@@ -35,8 +35,10 @@ public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
             throw new MojoExecutionException(SERVER_ID_NOT_FOUND + containerSetting.getServerId());
         }
 
-        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo, OperatingSystem.LINUX);
-        return WebAppUtils.defineLinuxApp(mojo, plan)
+        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo.getAppServicePlanName(),
+            mojo.getResourceGroup(), mojo.getAzureClient(), mojo.getAppServicePlanResourceGroup(),
+            mojo.getRegion(), mojo.getPricingTier(), mojo.getLog(), OperatingSystem.LINUX);
+        return WebAppUtils.defineLinuxApp(mojo.getResourceGroup(), mojo.getAppName(), mojo.getAzureClient(), plan)
                 .withPrivateRegistryImage(containerSetting.getImageName(), containerSetting.getRegistryUrl())
                 .withCredentials(server.getUsername(), server.getPassword());
     }
