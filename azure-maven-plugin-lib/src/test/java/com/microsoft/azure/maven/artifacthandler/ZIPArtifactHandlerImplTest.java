@@ -9,7 +9,6 @@ package com.microsoft.azure.maven.artifacthandler;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
-import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
@@ -86,11 +85,11 @@ public class ZIPArtifactHandlerImplTest {
     }
 
     @Test
-    public void publishThrowResourceNotConfiguredException() throws IOException, MojoExecutionException {
+    public void publishThrowResourceNotConfiguredException() throws IOException {
         final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
-        doReturn(DeploymentType.ZIP).when(mojo).getDeploymentType();
+
         try {
             handlerSpy.publish(target);
         } catch (final MojoExecutionException e) {

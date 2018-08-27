@@ -6,10 +6,8 @@
 
 package com.microsoft.azure.maven.artifacthandler;
 
-import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.zeroturnaround.zip.ZipUtil;
@@ -27,14 +25,11 @@ public class ZIPArtifactHandlerImpl<T extends AbstractAppServiceMojo> extends Ar
     }
 
     /**
-     * JAR deploy implements from ZIP deploy and prepares jar file to staging folder itself.
-     * Add another check to make sure that when the deployment type is ZIP,
-     * preparing the resources to staging folder is necessary.
+     * Web App and Deployment Slot need the handler to prepare resources to staging folder.
+     * Function App does not.
      */
-    protected boolean isResourcesPreparationRequired(final DeployTarget target) throws MojoExecutionException {
-        return (target.getApp() instanceof WebApp ||
-            target.getApp() instanceof DeploymentSlot) &&
-            DeploymentType.ZIP == mojo.getDeploymentType();
+    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
+        return !(target.getApp() instanceof FunctionApp);
     }
 
     @Override
