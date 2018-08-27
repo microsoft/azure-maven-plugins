@@ -6,34 +6,29 @@
 
 package com.microsoft.azure.maven.utils;
 
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
-import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.UUID;
 
 public class AppServiceUtils {
-    public static AppServicePlan getAppServicePlan(final AbstractAppServiceMojo mojo)
-            throws Exception {
-        final String servicePlanName = mojo.getAppServicePlanName();
+    public static AppServicePlan getAppServicePlan(final String servicePlanName, final Azure azureClient,
+                                                   final String resourceGroup, final String servicePlanResourceGroup) {
         if (StringUtils.isNotEmpty(servicePlanName)) {
-            final String servicePlanResGrp = getAppServicePlanResourceGroup(mojo);
-            return mojo.getAzureClient().appServices().appServicePlans()
+            final String servicePlanResGrp = getAppServicePlanResourceGroup(resourceGroup, servicePlanResourceGroup);
+            return azureClient.appServices().appServicePlans()
                     .getByResourceGroup(servicePlanResGrp, servicePlanName);
         }
         return null;
     }
 
-    public static String getAppServicePlanResourceGroup(final AbstractAppServiceMojo mojo) {
-        final String defaultResourceGroup = mojo.getResourceGroup();
-        
-        return StringUtils.isEmpty(mojo.getAppServicePlanResourceGroup()) ?
-            defaultResourceGroup : mojo.getAppServicePlanResourceGroup();
+    public static String getAppServicePlanResourceGroup(final String resourceGroup, final String appServicePlanResGrp) {
+        return StringUtils.isEmpty(appServicePlanResGrp) ? resourceGroup : appServicePlanResGrp;
     }
 
-    public static String getAppServicePlanName(final AbstractAppServiceMojo mojo) {
-        return StringUtils.isEmpty(mojo.getAppServicePlanName()) ?
-                generateRandomServicePlanName() : mojo.getAppServicePlanName();
+    public static String getAppServicePlanName(final String servicePlanName) {
+        return StringUtils.isEmpty(servicePlanName) ? generateRandomServicePlanName() : servicePlanName;
     }
 
     private static String generateRandomServicePlanName() {

@@ -25,9 +25,11 @@ public class LinuxRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
-        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo, OperatingSystem.LINUX);
+        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo.getAppServicePlanName(),
+            mojo.getResourceGroup(), mojo.getAzureClient(), mojo.getAppServicePlanResourceGroup(),
+            mojo.getRegion(), mojo.getPricingTier(), mojo.getLog(), OperatingSystem.LINUX);
 
-        return WebAppUtils.defineLinuxApp(mojo, plan)
+        return WebAppUtils.defineLinuxApp(mojo.getResourceGroup(), mojo.getAppName(), mojo.getAzureClient(), plan)
                 .withBuiltInImage(getLinuxRunTimeStack(mojo.getLinuxRuntime()));
     }
 
