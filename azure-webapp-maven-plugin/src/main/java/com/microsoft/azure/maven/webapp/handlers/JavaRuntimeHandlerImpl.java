@@ -23,11 +23,13 @@ public class JavaRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public WithCreate defineAppWithRuntime() throws Exception {
-        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo, OperatingSystem.WINDOWS);
-        final WithCreate withCreate = WebAppUtils.defineWindowsApp(mojo, plan);
+        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo.getAppServicePlanName(),
+            mojo.getResourceGroup(), mojo.getAzureClient(), mojo.getAppServicePlanResourceGroup(),
+            mojo.getRegion(), mojo.getPricingTier(), mojo.getLog(), OperatingSystem.WINDOWS);
+        final WithCreate withCreate = WebAppUtils.defineWindowsApp(mojo.getResourceGroup(), mojo.getAppName(),
+            mojo.getAzureClient(), plan);
 
-        withCreate.withJavaVersion(mojo.getJavaVersion())
-                .withWebContainer(mojo.getJavaWebContainer());
+        withCreate.withJavaVersion(mojo.getJavaVersion()).withWebContainer(mojo.getJavaWebContainer());
         return withCreate;
     }
 

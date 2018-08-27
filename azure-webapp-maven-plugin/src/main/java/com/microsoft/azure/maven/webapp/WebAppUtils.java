@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.ExistingLinuxPlanWithGroup;
@@ -19,6 +20,7 @@ import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Locale;
@@ -59,17 +61,17 @@ public class WebAppUtils {
         }
     }
 
-    public static WithDockerContainerImage defineLinuxApp(final AbstractWebAppMojo mojo, final AppServicePlan plan)
-            throws Exception {
+    public static WithDockerContainerImage defineLinuxApp(final String resourceGroup,
+                                                          final String appName,
+                                                          final Azure azureClient,
+                                                          final AppServicePlan plan) throws Exception {
         assureLinuxPlan(plan);
 
-        final String resourceGroup = mojo.getResourceGroup();
-        final ExistingLinuxPlanWithGroup existingLinuxPlanWithGroup = mojo.getAzureClient().webApps()
-                .define(mojo.getAppName())
-                .withExistingLinuxPlan(plan);
-        return mojo.getAzureClient().resourceGroups().contain(resourceGroup) ?
-                existingLinuxPlanWithGroup.withExistingResourceGroup(resourceGroup) :
-                existingLinuxPlanWithGroup.withNewResourceGroup(resourceGroup);
+        final ExistingLinuxPlanWithGroup existingLinuxPlanWithGroup = azureClient.webApps()
+            .define(appName).withExistingLinuxPlan(plan);
+        return azureClient.resourceGroups().contain(resourceGroup) ?
+            existingLinuxPlanWithGroup.withExistingResourceGroup(resourceGroup) :
+            existingLinuxPlanWithGroup.withNewResourceGroup(resourceGroup);
     }
 
     private static void assureLinuxPlan(final AppServicePlan plan) throws MojoExecutionException {
@@ -79,17 +81,16 @@ public class WebAppUtils {
         }
     }
 
-    public static WithCreate defineWindowsApp(final AbstractWebAppMojo mojo, final AppServicePlan plan)
-            throws Exception {
+    public static WithCreate defineWindowsApp(final String resourceGroup,
+                                              final String appName,
+                                              final Azure azureClient, final AppServicePlan plan) throws Exception {
         assureWindowsPlan(plan);
 
-        final String resourceGroup = mojo.getResourceGroup();
-        final ExistingWindowsPlanWithGroup existingWindowsPlanWithGroup = mojo.getAzureClient().webApps()
-                .define(mojo.getAppName())
-                .withExistingWindowsPlan(plan);
-        return mojo.getAzureClient().resourceGroups().contain(resourceGroup) ?
-                existingWindowsPlanWithGroup.withExistingResourceGroup(resourceGroup) :
-                existingWindowsPlanWithGroup.withNewResourceGroup(resourceGroup);
+        final ExistingWindowsPlanWithGroup existingWindowsPlanWithGroup = azureClient.webApps()
+            .define(appName).withExistingWindowsPlan(plan);
+        return azureClient.resourceGroups().contain(resourceGroup) ?
+            existingWindowsPlanWithGroup.withExistingResourceGroup(resourceGroup) :
+            existingWindowsPlanWithGroup.withNewResourceGroup(resourceGroup);
     }
 
     private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
@@ -99,31 +100,36 @@ public class WebAppUtils {
         }
     }
 
-    public static AppServicePlan createOrGetAppServicePlan(final AbstractWebAppMojo mojo, OperatingSystem os)
-            throws Exception {
-        AppServicePlan plan = AppServiceUtils.getAppServicePlan(mojo);
+    public static AppServicePlan createOrGetAppServicePlan(String servicePlanName,
+                                                           final String resourceGroup,
+                                                           final Azure azure,
+                                                           final String servicePlanResourceGroup,
+                                                           final String region,
+                                                           final PricingTier pricingTier,
+                                                           final Log log,
+                                                           final OperatingSystem os) {
+        AppServicePlan plan = AppServiceUtils.getAppServicePlan(servicePlanName, azure,
+            resourceGroup, servicePlanResourceGroup);
 
-        final Azure azure = mojo.getAzureClient();
         if (plan == null) {
-            final String servicePlanName = AppServiceUtils.getAppServicePlanName(mojo);
-            final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(mojo);
-            mojo.getLog().info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
+            servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);
+            final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(
+                resourceGroup, servicePlanResourceGroup);
+            log.info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
 
             final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
-                    .define(servicePlanName)
-                    .withRegion(mojo.getRegion());
+                    .define(servicePlanName).withRegion(region);
 
             final AppServicePlan.DefinitionStages.WithPricingTier withPricingTier
                     = azure.resourceGroups().contain(servicePlanResGrp) ?
                     withGroup.withExistingResourceGroup(servicePlanResGrp) :
                     withGroup.withNewResourceGroup(servicePlanResGrp);
 
-            plan = withPricingTier.withPricingTier(mojo.getPricingTier())
-                    .withOperatingSystem(os).create();
+            plan = withPricingTier.withPricingTier(pricingTier).withOperatingSystem(os).create();
 
-            mojo.getLog().info(SERVICE_PLAN_CREATED);
+            log.info(SERVICE_PLAN_CREATED);
         } else {
-            mojo.getLog().info(String.format(SERVICE_PLAN_EXIST, plan.name(), plan.resourceGroupName()));
+            log.info(String.format(SERVICE_PLAN_EXIST, plan.name(), plan.resourceGroupName()));
         }
 
         return plan;
