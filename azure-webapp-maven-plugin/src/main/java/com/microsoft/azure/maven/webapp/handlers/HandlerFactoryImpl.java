@@ -34,16 +34,15 @@ public class HandlerFactoryImpl extends HandlerFactory {
     public RuntimeHandler getRuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
         switch (SchemaVersion.fromString(mojo.getSchemaVersion())) {
             case V1:
-                return getRuntimeHandlerFromV1Schema(mojo);
+                return getV1RuntimeHandler(mojo);
             case V2:
-                return getRuntimeHandlerFromV2Schema(mojo);
+                return getV2RuntimeHandler(mojo);
             default:
                 throw new MojoExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
         }
     }
 
-    protected RuntimeHandler getRuntimeHandlerFromV1Schema(final AbstractWebAppMojo mojo)
-        throws MojoExecutionException {
+    protected RuntimeHandler getV1RuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
         final JavaVersion javaVersion = mojo.getJavaVersion();
         final String linuxRuntime = mojo.getLinuxRuntime();
         final ContainerSetting containerSetting = mojo.getContainerSettings();
@@ -81,8 +80,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
         throw new MojoExecutionException(NO_RUNTIME_HANDLER);
     }
 
-    protected RuntimeHandler getRuntimeHandlerFromV2Schema(final AbstractWebAppMojo mojo)
-        throws MojoExecutionException {
+    protected RuntimeHandler getV2RuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
         // todo
         throw new MojoExecutionException("Unimplemented for schema version: " + mojo.getSchemaVersion());
     }
@@ -96,16 +94,15 @@ public class HandlerFactoryImpl extends HandlerFactory {
     public ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
         switch (SchemaVersion.fromString(mojo.getSchemaVersion())) {
             case V1:
-                return getArtifactHandlerFromV1Schema(mojo);
+                return getV1ArtifactHandler(mojo);
             case V2:
-                return getArtifactHandlerFromV2Schema(mojo);
+                return getV2ArtifactHandler(mojo);
             default:
                 throw new MojoExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
         }
     }
 
-    protected ArtifactHandler getArtifactHandlerFromV1Schema(final AbstractWebAppMojo mojo)
-        throws MojoExecutionException {
+    protected ArtifactHandler getV1ArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
         switch (mojo.getDeploymentType()) {
             case FTP:
                 return new FTPArtifactHandlerImpl(mojo);
@@ -125,8 +122,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
     }
 
-    protected ArtifactHandler getArtifactHandlerFromV2Schema (final AbstractWebAppMojo mojo)
-        throws MojoExecutionException {
+    protected ArtifactHandler getV2ArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
         // todo
         throw new MojoExecutionException("Unimplemented for schema version: " + mojo.getSchemaVersion());
     }
