@@ -45,6 +45,15 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl<Abstrac
         super(mojo);
     }
 
+    /**
+     * Jar deploy prepares deployment file itself.
+     * So preparing resources to staging folder is not necessary.
+     */
+    @Override
+    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
+        return false;
+    }
+
     @Override
     public void publish(DeployTarget deployTarget) throws IOException, MojoExecutionException {
         final File jar = getJarFile();
