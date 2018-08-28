@@ -11,6 +11,13 @@ import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.maven.webapp.handlers.v1.JarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.NullRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.PrivateDockerHubRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.PrivateRegistryRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
@@ -52,7 +59,7 @@ public class HandlerFactoryImplTest {
         doReturn(null).when(mojo).getContainerSettings();
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof JavaRuntimeHandlerImpl);
+        assertTrue(handler instanceof WindowsRuntimeHandlerImpl);
 
         // set up ContainerSettings
         final ContainerSetting containerSetting = new ContainerSetting();

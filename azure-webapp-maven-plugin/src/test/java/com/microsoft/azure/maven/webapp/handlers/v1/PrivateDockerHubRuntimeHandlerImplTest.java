@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.v1;
 
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
@@ -28,16 +28,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PrivateRegistryRuntimeHandlerImplTest {
+public class PrivateDockerHubRuntimeHandlerImplTest {
     @Mock
     private AbstractWebAppMojo mojo;
 
-    private PrivateRegistryRuntimeHandlerImpl handler = null;
+    private PrivateDockerHubRuntimeHandlerImpl handler = null;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        handler = new PrivateRegistryRuntimeHandlerImpl(mojo);
+        handler = new PrivateDockerHubRuntimeHandlerImpl(mojo);
     }
 
     @Test
@@ -46,13 +46,13 @@ public class PrivateRegistryRuntimeHandlerImplTest {
 
     @Test
     public void updateAppRuntime() throws Exception {
+        final WebApp app = mock(WebApp.class);
         final SiteInner siteInner = mock(SiteInner.class);
         doReturn("app,linux").when(siteInner).kind();
-        final WithCredentials withCredentials = mock(WithCredentials.class);
-        final Update update = mock(Update.class);
-        doReturn(withCredentials).when(update).withPrivateRegistryImage(null, null);
-        final WebApp app = mock(WebApp.class);
         doReturn(siteInner).when(app).inner();
+        final Update update = mock(Update.class);
+        final WithCredentials withCredentials = mock(WithCredentials.class);
+        doReturn(withCredentials).when(update).withPrivateDockerHubImage(null);
         doReturn(update).when(app).update();
 
         final ContainerSetting containerSetting = new ContainerSetting();
@@ -66,7 +66,7 @@ public class PrivateRegistryRuntimeHandlerImplTest {
 
         handler.updateAppRuntime(app);
 
-        verify(update, times(1)).withPrivateRegistryImage(null, null);
+        verify(update, times(1)).withPrivateDockerHubImage(null);
         verify(server, times(1)).getUsername();
         verify(server, times(1)).getPassword();
     }

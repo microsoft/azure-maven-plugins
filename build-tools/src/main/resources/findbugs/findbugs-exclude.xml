@@ -11,15 +11,15 @@
     <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
     <Match>
         <Or>
-            <Class name = "com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl$1" />
-            <Class name = "com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl$2" />
+            <Class name = "com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl$1" />
+            <Class name = "com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl$2" />
         </Or>
         <Bug pattern = "SIC_INNER_SHOULD_BE_STATIC_ANON" />
     </Match>
     <Match>
         <Or>
-            <Class name = "com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl$1" />
-            <Class name = "com.microsoft.azure.maven.webapp.handlers.WarArtifactHandlerImpl$2" />
+            <Class name = "com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl$1" />
+            <Class name = "com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl$2" />
         </Or>
         <Bug pattern = "BC_UNCONFIRMED_CAST" />
     </Match>

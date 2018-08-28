@@ -16,6 +16,15 @@ import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
+import com.microsoft.azure.maven.webapp.handlers.v1.JarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.LinuxRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.NONEArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.NullRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.PrivateDockerHubRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.PrivateRegistryRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -58,7 +67,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
 
         if (javaVersion != null) {
-            return new JavaRuntimeHandlerImpl(mojo);
+            return new WindowsRuntimeHandlerImpl(mojo);
         }
 
         if (linuxRuntime != null) {
