@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.v1;
 
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
@@ -27,16 +27,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
-public class JavaRuntimeHandlerImplTest {
+public class WindowsRuntimeHandlerImplTest {
     @Mock
     private AbstractWebAppMojo mojo;
 
-    private JavaRuntimeHandlerImpl handler = null;
+    private WindowsRuntimeHandlerImpl handler = null;
 
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        handler = new JavaRuntimeHandlerImpl(mojo);
+        handler = new WindowsRuntimeHandlerImpl(mojo);
     }
 
     @Test

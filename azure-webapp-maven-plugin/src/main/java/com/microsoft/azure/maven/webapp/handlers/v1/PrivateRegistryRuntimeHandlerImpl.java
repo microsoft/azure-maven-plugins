@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.v1;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
@@ -15,6 +15,7 @@ import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.settings.Server;
 
