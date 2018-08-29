@@ -183,6 +183,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Parameter(alias = "deploymentSlot")
     protected DeploymentSlotSetting deploymentSlotSetting;
 
+    /**
+     * Schema version, which will be used to indicate the version of settings schema to use
+     */
+    @Parameter(property = "schemaVersion", defaultValue = "v1")
+    protected String schemaVersion;
+
     //endregion
 
     //region Getter
@@ -283,6 +289,10 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     public boolean isDeployToDeploymentSlot() {
         return getDeploymentSlotSetting() != null;
+    }
+
+    public String getSchemaVersion() {
+        return schemaVersion;
     }
 
     //endregion
