@@ -31,7 +31,6 @@ public class WebAppUtils {
     public static final String NOT_SUPPORTED_IMAGE = "The image: '%s' is not supported.";
     public static final String IMAGE_NOT_GIVEN = "Image name is not specified.";
     public static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
-
     public static final String CREATE_SERVICE_PLAN = "Creating App Service Plan '%s'...";
     public static final String SERVICE_PLAN_EXIST = "Found existing App Service Plan '%s' in Resource Group '%s'.";
     public static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
@@ -39,7 +38,7 @@ public class WebAppUtils {
     public static final String TOMCAT_9_0_JRE8 = "tomcat 9.0-jre8";
     public static final String JRE8 = "jre8";
     private static final String CONFIGURATION_NOT_APPLICABLE =
-        "Target web app is not a %s Web App. Please correct you configuration in pom.xml.";
+        "Target web app is %s Web App, which is not applicable for the configuration. Pleas correct it pom.xml.";
 
     private static boolean isLinuxWebApp(final WebApp app) {
         return app.inner().kind().contains("linux");
@@ -47,13 +46,13 @@ public class WebAppUtils {
 
     public static void assureLinuxWebApp(final WebApp app) throws MojoExecutionException {
         if (!isLinuxWebApp(app)) {
-            throw new MojoExecutionException(String.format(CONFIGURATION_NOT_APPLICABLE, "Linux"));
+            throw new MojoExecutionException(String.format(CONFIGURATION_NOT_APPLICABLE, "Windows"));
         }
     }
 
     public static void assureWindowsWebApp(final WebApp app) throws MojoExecutionException {
         if (isLinuxWebApp(app)) {
-            throw new MojoExecutionException(String.format(CONFIGURATION_NOT_APPLICABLE, "Windows"));
+            throw new MojoExecutionException(String.format(CONFIGURATION_NOT_APPLICABLE, "Linux"));
         }
     }
 

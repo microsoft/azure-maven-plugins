@@ -332,12 +332,16 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
         final ContainerSetting containerSetting = getContainerSettings();
+        if (containerSetting != null) {
+            final String imageType = WebAppUtils.getDockerImageType(containerSetting.getImageName(),
+                containerSetting.getServerId(), containerSetting.getRegistryUrl()).toString();
+            map.put(DOCKER_IMAGE_TYPE_KEY, imageType);
+        } else {
+            map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
+        }
         map.put(JAVA_VERSION_KEY, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
         map.put(JAVA_WEB_CONTAINER_KEY, getJavaWebContainer().toString());
         map.put(LINUX_RUNTIME_KEY, StringUtils.isEmpty(linuxRuntime) ? "" : linuxRuntime);
-        map.put(DOCKER_IMAGE_TYPE_KEY, containerSetting == null ? DockerImageType.NONE.toString() :
-            WebAppUtils.getDockerImageType(containerSetting.getImageName(),
-                containerSetting.getServerId(), containerSetting.getRegistryUrl()).toString());
 
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
