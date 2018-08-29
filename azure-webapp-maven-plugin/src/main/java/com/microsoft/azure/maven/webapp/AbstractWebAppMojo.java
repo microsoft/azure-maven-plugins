@@ -16,6 +16,8 @@ import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -184,10 +186,18 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected DeploymentSlotSetting deploymentSlotSetting;
 
     /**
-     * Schema version, which will be used to indicate the version of settings schema to use
+     * Schema version, which will be used to indicate the version of settings schema to use.
+     * @since 2.0.0
      */
     @Parameter(property = "schemaVersion", defaultValue = "v1")
     protected String schemaVersion;
+
+    /**
+     * Runtime setting
+     * @since 2.0.0
+     */
+    @Parameter(property = "runtime")
+    protected RuntimeSetting runtime;
 
     //endregion
 
@@ -295,6 +305,14 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return schemaVersion;
     }
 
+    public RuntimeSetting getRuntime() {
+        return runtime;
+    }
+
+    public void setRuntime(final RuntimeSetting runtime) {
+        this.runtime = runtime;
+    }
+
     //endregion
 
     //region Setter
@@ -313,10 +331,13 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
+        final ContainerSetting containerSetting = getContainerSettings();
         map.put(JAVA_VERSION_KEY, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
         map.put(JAVA_WEB_CONTAINER_KEY, getJavaWebContainer().toString());
         map.put(LINUX_RUNTIME_KEY, StringUtils.isEmpty(linuxRuntime) ? "" : linuxRuntime);
-        map.put(DOCKER_IMAGE_TYPE_KEY, WebAppUtils.getDockerImageType(getContainerSettings()).toString());
+        map.put(DOCKER_IMAGE_TYPE_KEY, containerSetting == null ? DockerImageType.NONE.toString() :
+            WebAppUtils.getDockerImageType(containerSetting.getImageName(),
+                containerSetting.getServerId(), containerSetting.getRegistryUrl()).toString());
 
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());

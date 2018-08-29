@@ -15,6 +15,8 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.v1.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.LinuxRuntimeHandlerImpl;
@@ -25,6 +27,11 @@ import com.microsoft.azure.maven.webapp.handlers.v1.PrivateRegistryRuntimeHandle
 import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v2.LinuxRuntimeHandlerImplV2;
+import com.microsoft.azure.maven.webapp.handlers.v2.PrivateDockerHubRuntimeHandlerImplV2;
+import com.microsoft.azure.maven.webapp.handlers.v2.PrivateRegistryRuntimeHandlerImplV2;
+import com.microsoft.azure.maven.webapp.handlers.v2.PublicDockerHubRuntimeHandlerImplV2;
+import com.microsoft.azure.maven.webapp.handlers.v2.WindowsRuntimeHandlerImplV2;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -68,13 +75,40 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
         if (javaVersion != null) {
             return new WindowsRuntimeHandlerImpl(mojo);
-        }
-
-        if (linuxRuntime != null) {
+        } else if (linuxRuntime != null) {
             return new LinuxRuntimeHandlerImpl(mojo);
+        } else {
+            return getV1RuntimeHandlerFromImage(containerSetting.getImageName(), containerSetting.getServerId(),
+                containerSetting.getRegistryUrl(), mojo);
+        }
+    }
+
+    protected RuntimeHandler getV2RuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+
+        final RuntimeSetting runtime = mojo.getRuntime();
+        if (runtime == null) {
+            throw new MojoExecutionException("No <runtime> is specified, please configure it in pom.xml.");
         }
 
-        final DockerImageType imageType = WebAppUtils.getDockerImageType(containerSetting);
+        switch (OperatingSystemEnum.fromString(runtime.getOs())) {
+            case Windows:
+                return new WindowsRuntimeHandlerImplV2();
+            case Linux:
+                return new LinuxRuntimeHandlerImplV2();
+            case Docker:
+                return getV2RuntimeHandlerFromImage(
+                    runtime.getImage(), runtime.getServerId(), runtime.getRegistryUrl());
+            default:
+                throw new MojoExecutionException(
+                    "The value of <os> is unknown, supported values are: windows, linux and docker.");
+        }
+    }
+
+    protected RuntimeHandler getV1RuntimeHandlerFromImage(final String imageName, final String serverId,
+                                                          final String registryUrl, final AbstractWebAppMojo mojo)
+        throws MojoExecutionException {
+
+        final DockerImageType imageType = WebAppUtils.getDockerImageType(imageName, serverId, registryUrl);
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
                 return new PublicDockerHubRuntimeHandlerImpl(mojo);
@@ -84,14 +118,27 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 return new PrivateRegistryRuntimeHandlerImpl(mojo);
             case NONE:
                 throw new MojoExecutionException(IMAGE_NAME_MISSING);
+            default:
+                throw new MojoExecutionException(NO_RUNTIME_HANDLER);
         }
-
-        throw new MojoExecutionException(NO_RUNTIME_HANDLER);
     }
 
-    protected RuntimeHandler getV2RuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
-        // todo
-        throw new MojoExecutionException("Unimplemented for schema version: " + mojo.getSchemaVersion());
+    protected RuntimeHandler getV2RuntimeHandlerFromImage(final String image, final String serverId,
+                                                          final String registryUrl) throws MojoExecutionException {
+        final DockerImageType imageType = WebAppUtils.getDockerImageType(image, serverId, registryUrl);
+        switch (imageType) {
+            case PUBLIC_DOCKER_HUB:
+                return new PublicDockerHubRuntimeHandlerImplV2();
+            case PRIVATE_DOCKER_HUB:
+                return new PrivateDockerHubRuntimeHandlerImplV2();
+            case PRIVATE_REGISTRY:
+                return new PrivateRegistryRuntimeHandlerImplV2();
+            case NONE:
+                throw new MojoExecutionException(
+                    "The configuration <image> is not specified within <runtime>, please configure it in pom.xml");
+            default:
+                throw new MojoExecutionException("Configuration <runtime> is not correct. Please fix it in pom.xml.");
+        }
     }
 
     @Override
@@ -131,7 +178,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
     }
 
-    protected ArtifactHandler getV2ArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+    protected ArtifactHandler getV2ArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
         // todo
         throw new MojoExecutionException("Unimplemented for schema version: " + mojo.getSchemaVersion());
     }
