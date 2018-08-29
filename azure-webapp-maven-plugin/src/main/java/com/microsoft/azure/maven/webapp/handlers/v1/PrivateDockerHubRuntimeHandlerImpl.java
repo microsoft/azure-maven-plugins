@@ -17,7 +17,7 @@ import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import org.apache.maven.settings.Server;
 
-import static com.microsoft.azure.maven.webapp.WebAppUtils.assureServerExists;
+import static com.microsoft.azure.maven.Utils.assureServerExist;
 
 public class PrivateDockerHubRuntimeHandlerImpl implements RuntimeHandler {
 
@@ -31,7 +31,7 @@ public class PrivateDockerHubRuntimeHandlerImpl implements RuntimeHandler {
     public WithCreate defineAppWithRuntime() throws Exception {
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final Server server = Utils.getServer(mojo.getSettings(), containerSetting.getServerId());
-        assureServerExists(server, containerSetting.getServerId());
+        assureServerExist(server, containerSetting.getServerId());
 
         final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo.getAppServicePlanName(),
             mojo.getResourceGroup(), mojo.getAzureClient(), mojo.getAppServicePlanResourceGroup(),
@@ -48,7 +48,7 @@ public class PrivateDockerHubRuntimeHandlerImpl implements RuntimeHandler {
 
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final Server server = Utils.getServer(mojo.getSettings(), containerSetting.getServerId());
-        assureServerExists(server, containerSetting.getServerId());
+        assureServerExist(server, containerSetting.getServerId());
 
         return app.update()
                 .withPrivateDockerHubImage(containerSetting.getImageName())

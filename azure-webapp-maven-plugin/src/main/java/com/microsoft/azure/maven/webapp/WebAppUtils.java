@@ -20,7 +20,6 @@ import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.settings.Server;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Locale;
@@ -53,12 +52,6 @@ public class WebAppUtils {
     public static void assureWindowsWebApp(final WebApp app) throws MojoExecutionException {
         if (isLinuxWebApp(app)) {
             throw new MojoExecutionException(String.format(CONFIGURATION_NOT_APPLICABLE, "Linux"));
-        }
-    }
-
-    public static void assureServerExists(final Server server, final String serverId) throws MojoExecutionException {
-        if (server == null) {
-            throw new MojoExecutionException(String.format("serverId: %s is not found in settings.xml.", serverId));
         }
     }
 

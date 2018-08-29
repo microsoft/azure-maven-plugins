@@ -8,6 +8,7 @@ package com.microsoft.azure.maven;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -39,6 +40,18 @@ public final class Utils {
             return null;
         }
         return settings.getServer(serverId);
+    }
+
+    /**
+     * Assure the server exists.
+     * @param server
+     * @param serverId
+     * @throws MojoExecutionException
+     */
+    public static void assureServerExist(final Server server, final String serverId) throws MojoExecutionException {
+        if (server == null) {
+            throw new MojoExecutionException(String.format("Server not found in settings.xml. ServerId=%s", serverId));
+        }
     }
 
     /**

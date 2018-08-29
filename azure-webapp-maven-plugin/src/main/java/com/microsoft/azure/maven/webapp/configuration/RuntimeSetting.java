@@ -37,8 +37,8 @@ public class RuntimeSetting {
         return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
     }
 
-    public RuntimeStack getLinuxJavaVersion() throws MojoExecutionException {
-        if (StringUtils.isNotEmpty(javaVersion) && StringUtils.equalsIgnoreCase(javaVersion, JRE_8)) {
+    public RuntimeStack getLinuxRuntime() throws MojoExecutionException {
+        if (StringUtils.equalsIgnoreCase(javaVersion, JRE_8)) {
             if (StringUtils.isEmpty(webContainer)) {
                 return RuntimeStack.JAVA_8_JRE8;
             }

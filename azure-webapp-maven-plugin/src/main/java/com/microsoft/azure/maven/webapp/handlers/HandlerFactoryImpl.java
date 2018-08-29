@@ -78,13 +78,12 @@ public class HandlerFactoryImpl extends HandlerFactory {
         } else if (linuxRuntime != null) {
             return new LinuxRuntimeHandlerImpl(mojo);
         } else {
-            return getV1RuntimeHandlerFromImage(containerSetting.getImageName(), containerSetting.getServerId(),
+            return getV1DockerRuntimeHandler(containerSetting.getImageName(), containerSetting.getServerId(),
                 containerSetting.getRegistryUrl(), mojo);
         }
     }
 
     protected RuntimeHandler getV2RuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
-
         final RuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null) {
             throw new MojoExecutionException("No <runtime> is specified, please configure it in pom.xml.");
@@ -96,7 +95,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
             case Linux:
                 return new LinuxRuntimeHandlerImplV2();
             case Docker:
-                return getV2RuntimeHandlerFromImage(
+                return getV2DockerRuntimeHandler(
                     runtime.getImage(), runtime.getServerId(), runtime.getRegistryUrl());
             default:
                 throw new MojoExecutionException(
@@ -104,8 +103,8 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
     }
 
-    protected RuntimeHandler getV1RuntimeHandlerFromImage(final String imageName, final String serverId,
-                                                          final String registryUrl, final AbstractWebAppMojo mojo)
+    protected RuntimeHandler getV1DockerRuntimeHandler(final String imageName, final String serverId,
+                                                       final String registryUrl, final AbstractWebAppMojo mojo)
         throws MojoExecutionException {
 
         final DockerImageType imageType = WebAppUtils.getDockerImageType(imageName, serverId, registryUrl);
@@ -123,8 +122,8 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
     }
 
-    protected RuntimeHandler getV2RuntimeHandlerFromImage(final String image, final String serverId,
-                                                          final String registryUrl) throws MojoExecutionException {
+    protected RuntimeHandler getV2DockerRuntimeHandler(final String image, final String serverId,
+                                                       final String registryUrl) throws MojoExecutionException {
         final DockerImageType imageType = WebAppUtils.getDockerImageType(image, serverId, registryUrl);
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
