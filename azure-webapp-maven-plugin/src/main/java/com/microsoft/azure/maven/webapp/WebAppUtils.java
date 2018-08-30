@@ -37,7 +37,7 @@ public class WebAppUtils {
     public static final String TOMCAT_9_0_JRE8 = "tomcat 9.0-jre8";
     public static final String JRE8 = "jre8";
     private static final String CONFIGURATION_NOT_APPLICABLE =
-        "Target web app is %s Web App, which is not applicable for the configuration. Pleas correct it pom.xml.";
+        "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
 
     private static boolean isLinuxWebApp(final WebApp app) {
         return app.inner().kind().contains("linux");

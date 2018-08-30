@@ -43,7 +43,9 @@ public final class Utils {
     }
 
     /**
-     * Assure the server exists.
+     * Assure the server with specified id does exist in settings.xml.
+     * It could be the server used for azure authentication.
+     * Or, the server used for docker hub authentication of runtime configuration.
      * @param server
      * @param serverId
      * @throws MojoExecutionException
