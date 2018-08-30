@@ -16,12 +16,11 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.settings.Server;
 
-public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
-    public static final String SERVER_ID_NOT_FOUND = "Server Id not found in settings.xml. ServerId=";
+import static com.microsoft.azure.maven.Utils.assureServerExist;
 
+public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
     private AbstractWebAppMojo mojo;
 
     public PrivateRegistryRuntimeHandlerImpl(final AbstractWebAppMojo mojo) {
@@ -32,9 +31,7 @@ public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
     public WithCreate defineAppWithRuntime() throws Exception {
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final Server server = Utils.getServer(mojo.getSettings(), containerSetting.getServerId());
-        if (server == null) {
-            throw new MojoExecutionException(SERVER_ID_NOT_FOUND + containerSetting.getServerId());
-        }
+        assureServerExist(server, containerSetting.getServerId());
 
         final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo.getAppServicePlanName(),
             mojo.getResourceGroup(), mojo.getAzureClient(), mojo.getAppServicePlanResourceGroup(),
@@ -51,9 +48,8 @@ public class PrivateRegistryRuntimeHandlerImpl implements RuntimeHandler {
 
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final Server server = Utils.getServer(mojo.getSettings(), containerSetting.getServerId());
-        if (server == null) {
-            throw new MojoExecutionException(SERVER_ID_NOT_FOUND + containerSetting.getServerId());
-        }
+        assureServerExist(server, containerSetting.getServerId());
+
         return app.update()
                 .withPrivateRegistryImage(containerSetting.getImageName(), containerSetting.getRegistryUrl())
                 .withCredentials(server.getUsername(), server.getPassword());
