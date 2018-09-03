@@ -222,7 +222,6 @@ public class AnnotationHandlerImplTest {
         assertTrue(configMap.containsKey(functionName));
         final FunctionConfiguration functionConfig = configMap.get(functionName);
         assertEquals(getFullyQualifiedMethodName(methodName), functionConfig.getEntryPoint());
-        assertFalse(functionConfig.isDisabled());
         assertEquals(bindingNum, functionConfig.getBindings().size());
     }
 }

@@ -33,8 +33,6 @@ public class FunctionConfiguration {
 
     private List<BaseBinding> bindings = new ArrayList<>();
 
-    private boolean disabled = false;
-
     @JsonGetter("scriptFile")
     public String getScriptFile() {
         return scriptFile;
@@ -48,15 +46,6 @@ public class FunctionConfiguration {
     @JsonGetter("bindings")
     public List<BaseBinding> getBindings() {
         return bindings;
-    }
-
-    @JsonGetter("disabled")
-    public boolean isDisabled() {
-        return disabled;
-    }
-
-    public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
     }
 
     public void setScriptFile(String scriptFile) {
