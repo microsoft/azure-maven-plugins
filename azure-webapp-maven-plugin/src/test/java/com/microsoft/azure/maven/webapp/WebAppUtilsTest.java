@@ -20,15 +20,12 @@ import com.microsoft.azure.management.appservice.WebApps;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.management.resources.ResourceGroups;
-import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.net.URL;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -89,21 +86,20 @@ public class WebAppUtilsTest {
     }
 
     @Test
-    public void getDockerImageType() throws Exception {
-        final ContainerSetting containerSetting = new ContainerSetting();
-        assertEquals(DockerImageType.NONE, WebAppUtils.getDockerImageType(containerSetting));
+    public void getDockerImageType() {
+        assertEquals(DockerImageType.NONE, WebAppUtils.getDockerImageType("", "", ""));
 
-        containerSetting.setImageName("imageName");
-        assertEquals(DockerImageType.PUBLIC_DOCKER_HUB, WebAppUtils.getDockerImageType(containerSetting));
+        assertEquals(DockerImageType.PUBLIC_DOCKER_HUB, WebAppUtils.getDockerImageType("imageName",
+            "", ""));
 
-        containerSetting.setServerId("serverId");
-        assertEquals(DockerImageType.PRIVATE_DOCKER_HUB, WebAppUtils.getDockerImageType(containerSetting));
+        assertEquals(DockerImageType.PRIVATE_DOCKER_HUB, WebAppUtils.getDockerImageType("imageName",
+            "serverId", ""));
 
-        containerSetting.setRegistryUrl(new URL("https://microsoft.azurecr.io"));
-        assertEquals(DockerImageType.PRIVATE_REGISTRY, WebAppUtils.getDockerImageType(containerSetting));
+        assertEquals(DockerImageType.PRIVATE_REGISTRY, WebAppUtils.getDockerImageType("imageName",
+            "serverId", "https://microsoft.azurecr.io"));
 
-        containerSetting.setServerId("");
-        assertEquals(DockerImageType.UNKNOWN, WebAppUtils.getDockerImageType(containerSetting));
+        assertEquals(DockerImageType.UNKNOWN, WebAppUtils.getDockerImageType("imageName", "",
+            "https://microsoft.azurecr.io"));
     }
 
     @Test
@@ -128,23 +124,17 @@ public class WebAppUtilsTest {
         final AbstractWebAppMojo mojo = mock(AbstractWebAppMojo.class);
         final AppServicePlan plan = mock(AppServicePlan.class);
         doReturn(OperatingSystem.WINDOWS).when(plan).operatingSystem();
-        WebAppUtils.defineLinuxApp(mojo, plan);
+        WebAppUtils.defineLinuxApp(mojo.getResourceGroup(), mojo.getAppName(), mojo.getAzureClient(), plan);
     }
 
     @Test
     public void defineLinuxApp() throws Exception {
-        final AbstractWebAppMojo mojoMock = mock(AbstractWebAppMojo.class);
         final String resourceGroup = "resource-group";
         final String appName = "app-name";
-        doReturn(resourceGroup).when(mojoMock).getResourceGroup();
-        doReturn(appName).when(mojoMock).getAppName();
-
         final AppServicePlan planMock = mock(AppServicePlan.class);
         doReturn(OperatingSystem.LINUX).when(planMock).operatingSystem();
 
         final Azure azureMock = mock(Azure.class);
-        doReturn(azureMock).when(mojoMock).getAzureClient();
-
         final WebApps webAppsMock = mock(WebApps.class);
         doReturn(webAppsMock).when(azureMock).webApps();
 
@@ -158,7 +148,7 @@ public class WebAppUtilsTest {
         doReturn(resourceGroupsMock).when(azureMock).resourceGroups();
         doReturn(true).when(resourceGroupsMock).contain(anyString());
 
-        WebAppUtils.defineLinuxApp(mojoMock, planMock);
+        WebAppUtils.defineLinuxApp(resourceGroup, appName, azureMock, planMock);
 
         verify(groupMock, times(1)).withExistingResourceGroup(resourceGroup);
         verify(groupMock, never()).withNewResourceGroup(resourceGroup);
@@ -166,7 +156,7 @@ public class WebAppUtilsTest {
         reset(groupMock);
         doReturn(false).when(resourceGroupsMock).contain(anyString());
 
-        WebAppUtils.defineLinuxApp(mojoMock, planMock);
+        WebAppUtils.defineLinuxApp(resourceGroup, appName, azureMock, planMock);
 
         verify(groupMock, never()).withExistingResourceGroup(resourceGroup);
         verify(groupMock, times(1)).withNewResourceGroup(resourceGroup);
@@ -177,23 +167,18 @@ public class WebAppUtilsTest {
         final AbstractWebAppMojo mojo = mock(AbstractWebAppMojo.class);
         final AppServicePlan plan = mock(AppServicePlan.class);
         doReturn(OperatingSystem.LINUX).when(plan).operatingSystem();
-        WebAppUtils.defineWindowsApp(mojo, plan);
+        WebAppUtils.defineWindowsApp(mojo.getResourceGroup(), mojo.getAppName(), mojo.getAzureClient(), plan);
     }
 
     @Test
     public void defineWindowsApp() throws Exception {
-        final AbstractWebAppMojo mojoMock = mock(AbstractWebAppMojo.class);
         final String resourceGroup = "resource-group";
         final String appName = "app-name";
-        doReturn(resourceGroup).when(mojoMock).getResourceGroup();
-        doReturn(appName).when(mojoMock).getAppName();
 
         final AppServicePlan planMock = mock(AppServicePlan.class);
         doReturn(OperatingSystem.WINDOWS).when(planMock).operatingSystem();
 
         final Azure azureMock = mock(Azure.class);
-        doReturn(azureMock).when(mojoMock).getAzureClient();
-
         final WebApps webAppsMock = mock(WebApps.class);
         doReturn(webAppsMock).when(azureMock).webApps();
 
@@ -207,7 +192,7 @@ public class WebAppUtilsTest {
         doReturn(resourceGroupsMock).when(azureMock).resourceGroups();
         doReturn(true).when(resourceGroupsMock).contain(anyString());
 
-        WebAppUtils.defineWindowsApp(mojoMock, planMock);
+        WebAppUtils.defineWindowsApp(resourceGroup, appName, azureMock, planMock);
 
         verify(groupMock, times(1)).withExistingResourceGroup(resourceGroup);
         verify(groupMock, never()).withNewResourceGroup(resourceGroup);
@@ -215,33 +200,24 @@ public class WebAppUtilsTest {
         reset(groupMock);
         doReturn(false).when(resourceGroupsMock).contain(anyString());
 
-        WebAppUtils.defineWindowsApp(mojoMock, planMock);
+        WebAppUtils.defineWindowsApp(resourceGroup, appName, azureMock, planMock);
 
         verify(groupMock, never()).withExistingResourceGroup(resourceGroup);
         verify(groupMock, times(1)).withNewResourceGroup(resourceGroup);
     }
 
     @Test
-    public void createOrGetAppServicePlan() throws Exception {
+    public void createOrGetAppServicePlan() {
         final String resourceGroup = "resource-group";
         final String servicePlanResourceGroup = "service-plan-resource-name";
         final String servicePlanName = "service-plan-name";
         final String region = "region";
         final String empty = "";
 
-        final AbstractWebAppMojo mojoMock = mock(AbstractWebAppMojo.class);
-        doReturn(resourceGroup).when(mojoMock).getResourceGroup();
-        doReturn(servicePlanResourceGroup).when(mojoMock).getAppServicePlanResourceGroup();
-        doReturn(PricingTier.BASIC_B1).when(mojoMock).getPricingTier();
-        doReturn(region).when(mojoMock).getRegion();
-
         final Log logMock = mock(Log.class);
-        doReturn(logMock).when(mojoMock).getLog();
         doNothing().when(logMock).info(anyString());
 
         final Azure azureMock = mock(Azure.class);
-        doReturn(azureMock).when(mojoMock).getAzureClient();
-
         final AppServiceManager appServiceManagerMock = mock(AppServiceManager.class);
         doReturn(appServiceManagerMock).when(azureMock).appServices();
 
@@ -274,9 +250,9 @@ public class WebAppUtilsTest {
         doReturn(createMock).when(osMock).withOperatingSystem(any(OperatingSystem.class));
 
         // create App Service Plan in existing resource group with user defined plan name
-        doReturn(servicePlanName).when(mojoMock).getAppServicePlanName();
         doReturn(true).when(resourceGroupsMock).contain(anyString());
-        WebAppUtils.createOrGetAppServicePlan(mojoMock, OperatingSystem.LINUX);
+        WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azureMock,
+            servicePlanResourceGroup, region, PricingTier.BASIC_B1, logMock, OperatingSystem.LINUX);
         verify(withGroupMock, times(1)).withExistingResourceGroup(anyString());
         verify(withGroupMock, never()).withNewResourceGroup(anyString());
         verify(createMock, times(1)).create();
@@ -285,20 +261,22 @@ public class WebAppUtilsTest {
         reset(withGroupMock);
         doReturn(false).when(resourceGroupsMock).contain(anyString());
         doReturn(priceMock).when(withGroupMock).withNewResourceGroup(anyString());
-        WebAppUtils.createOrGetAppServicePlan(mojoMock, OperatingSystem.LINUX);
+        WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azureMock,
+            servicePlanResourceGroup, region, PricingTier.BASIC_B1, logMock, OperatingSystem.LINUX);
         verify(withGroupMock, never()).withExistingResourceGroup(anyString());
         verify(withGroupMock, times(1)).withNewResourceGroup(anyString());
 
         // found existing App Service Plan with user defined plan name
         reset(createMock);
         doReturn(planMock).when(plansMock).getByResourceGroup(anyString(), anyString());
-        WebAppUtils.createOrGetAppServicePlan(mojoMock, OperatingSystem.LINUX);
+        WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azureMock,
+            servicePlanResourceGroup, region, PricingTier.BASIC_B1, logMock, OperatingSystem.LINUX);
         verify(createMock, times(0)).create();
 
         // create App Service Plan due to no plan name is given
         reset(createMock);
-        doReturn(empty).when(mojoMock).getAppServicePlanName();
-        WebAppUtils.createOrGetAppServicePlan(mojoMock, OperatingSystem.LINUX);
+        WebAppUtils.createOrGetAppServicePlan(empty, resourceGroup, azureMock,
+            servicePlanResourceGroup, region, PricingTier.BASIC_B1, logMock, OperatingSystem.LINUX);
         verify(createMock, times(1)).create();
     }
 }

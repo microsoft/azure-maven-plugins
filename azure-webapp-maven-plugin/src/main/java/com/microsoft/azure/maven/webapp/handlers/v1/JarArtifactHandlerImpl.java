@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.v1;
 
 import com.google.common.io.Files;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
@@ -43,6 +43,15 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl<Abstrac
 
     public JarArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
         super(mojo);
+    }
+
+    /**
+     * Jar deploy prepares deployment file itself.
+     * So preparing resources to staging folder is not necessary.
+     */
+    @Override
+    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
+        return false;
     }
 
     @Override

@@ -80,7 +80,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void createFunctionApp() throws Exception {
         info(FUNCTION_APP_CREATE_START);
 
-        final AppServicePlan plan = AppServiceUtils.getAppServicePlan(this);
+        final AppServicePlan plan = AppServiceUtils.getAppServicePlan(this.getAppServicePlanName(),
+            this.getAzureClient(), this.getResourceGroup(), this.getAppServicePlanResourceGroup());
         final Blank functionApp = getAzureClient().appServices().functionApps().define(appName);
         final String resGrp = getResourceGroup();
         final WithCreate withCreate;

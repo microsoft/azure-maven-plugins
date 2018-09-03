@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.v1;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
@@ -13,21 +13,24 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCre
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
+import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 
-public class JavaRuntimeHandlerImpl implements RuntimeHandler {
+public class WindowsRuntimeHandlerImpl implements RuntimeHandler {
     private AbstractWebAppMojo mojo;
 
-    public JavaRuntimeHandlerImpl(final AbstractWebAppMojo mojo) {
+    public WindowsRuntimeHandlerImpl(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
     }
 
     @Override
     public WithCreate defineAppWithRuntime() throws Exception {
-        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo, OperatingSystem.WINDOWS);
-        final WithCreate withCreate = WebAppUtils.defineWindowsApp(mojo, plan);
+        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(mojo.getAppServicePlanName(),
+            mojo.getResourceGroup(), mojo.getAzureClient(), mojo.getAppServicePlanResourceGroup(),
+            mojo.getRegion(), mojo.getPricingTier(), mojo.getLog(), OperatingSystem.WINDOWS);
+        final WithCreate withCreate = WebAppUtils.defineWindowsApp(mojo.getResourceGroup(), mojo.getAppName(),
+            mojo.getAzureClient(), plan);
 
-        withCreate.withJavaVersion(mojo.getJavaVersion())
-                .withWebContainer(mojo.getJavaWebContainer());
+        withCreate.withJavaVersion(mojo.getJavaVersion()).withWebContainer(mojo.getJavaWebContainer());
         return withCreate;
     }
 

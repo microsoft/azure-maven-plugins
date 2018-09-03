@@ -4,16 +4,13 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.v1;
 
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.management.appservice.WebApp.UpdateStages.WithCredentials;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import org.apache.maven.settings.Server;
-import org.apache.maven.settings.Settings;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,53 +18,45 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PrivateDockerHubRuntimeHandlerImplTest {
+public class PublicDockerHubRuntimeHandlerImplTest {
     @Mock
     private AbstractWebAppMojo mojo;
 
-    private PrivateDockerHubRuntimeHandlerImpl handler = null;
+    private PublicDockerHubRuntimeHandlerImpl handler = null;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        handler = new PrivateDockerHubRuntimeHandlerImpl(mojo);
+        handler = new PublicDockerHubRuntimeHandlerImpl(mojo);
     }
 
     @Test
-    public void defineAppWithRuntime() throws Exception {
+    public void defineAppWithRunTime() throws Exception {
     }
 
     @Test
     public void updateAppRuntime() throws Exception {
-        final WebApp app = mock(WebApp.class);
         final SiteInner siteInner = mock(SiteInner.class);
         doReturn("app,linux").when(siteInner).kind();
-        doReturn(siteInner).when(app).inner();
         final Update update = mock(Update.class);
-        final WithCredentials withCredentials = mock(WithCredentials.class);
-        doReturn(withCredentials).when(update).withPrivateDockerHubImage(null);
+        final WebApp app = mock(WebApp.class);
+        doReturn(siteInner).when(app).inner();
         doReturn(update).when(app).update();
-
         final ContainerSetting containerSetting = new ContainerSetting();
-        containerSetting.setServerId("serverId");
+        containerSetting.setImageName("nginx");
         doReturn(containerSetting).when(mojo).getContainerSettings();
-
-        final Server server = mock(Server.class);
-        final Settings settings = mock(Settings.class);
-        doReturn(server).when(settings).getServer(anyString());
-        doReturn(settings).when(mojo).getSettings();
 
         handler.updateAppRuntime(app);
 
-        verify(update, times(1)).withPrivateDockerHubImage(null);
-        verify(server, times(1)).getUsername();
-        verify(server, times(1)).getPassword();
+        verify(update, times(1)).withPublicDockerHubImage(any(String.class));
+        verifyNoMoreInteractions(update);
     }
 }

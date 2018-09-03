@@ -13,6 +13,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.rest.LogLevel;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -22,6 +23,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Locale;
+
+import static com.microsoft.azure.maven.Utils.assureServerExist;
 
 /**
  * Helper class to authenticate with Azure
@@ -41,7 +44,6 @@ public class AzureAuthHelper {
     public static final String USE_CERTIFICATE_TO_AUTH = "Use certificate to get Azure authentication token.";
 
     public static final String SERVER_ID_NOT_CONFIG = "ServerId is not configured for Azure authentication.";
-    public static final String SERVER_ID_NOT_FOUND = "Server not found in settings.xml. ServerId=";
     public static final String CLIENT_ID_NOT_CONFIG = "Client Id of your service principal is not configured.";
     public static final String TENANT_ID_NOT_CONFIG = "Tenant Id of your service principal is not configured.";
     public static final String KEY_NOT_CONFIG = "Key of your service principal is not configured.";
@@ -145,8 +147,10 @@ public class AzureAuthHelper {
         }
 
         final Server server = Utils.getServer(settings, serverId);
-        if (server == null) {
-            getLog().error(SERVER_ID_NOT_FOUND + serverId);
+        try {
+            assureServerExist(server, serverId);
+        } catch (MojoExecutionException ex) {
+            getLog().error(ex.getMessage());
             return null;
         }
 
