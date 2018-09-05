@@ -109,10 +109,9 @@ Property | Required | Description
 `<appServicePlanName>` | false | Specifies the name of the existing App Service Plan when you do not want to create a new one.
 `<appSettings>` | false | Specifies the application settings for your Azure Functions, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
 `<deploymentType>` | false | Specifies the deployment approach you want to use.<br>The default value is **`zip`**.
->*: This setting will be used to create a new Azure Functions if specified Azure Functions does not exist; if target Azure Functions already exists, this setting will be ignored.
 `<httpProxyHost>` | false | Specifies an optional HTTP proxy to connect to Azure through.
 `<httpProxyPort>` | false | Specifies an optional HTTP proxy port to connect to Azure through <br>The default value is **80**.
-
+>*: This setting will be used to create a new Azure Functions if specified Azure Functions does not exist; if target Azure Functions already exists, this setting will be ignored.
 ### Supported Regions
 All valid regions are listed as below. Read more at [Azure Region Availability](https://azure.microsoft.com/en-us/regions/services/).
 - `westus`
