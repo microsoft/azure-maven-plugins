@@ -128,6 +128,18 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Parameter(property = "failsOnError", defaultValue = "true")
     protected boolean failsOnError;
 
+    /**
+     * Use a HTTP proxy host for the Azure Auth Client
+     */
+    @Parameter(property = "httpProxyHost", readonly = false, required = false)
+    protected String httpProxyHost = "";
+
+    /**
+     * Use a HTTP proxy port for the Azure Auth Client
+     */
+    @Parameter(property = "httpProxyPort", readonly = false, required = false)
+    protected int httpProxyPort = 80;
+
     private AzureAuthHelper azureAuthHelper = new AzureAuthHelper(this);
 
     private Azure azure;
@@ -200,8 +212,19 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 : String.format("%s/%s", getPluginName(), getPluginVersion());
     }
 
+    public String getHttpProxyHost() {
+        return httpProxyHost;
+    }  
+    
+    public int getHttpProxyPort() {
+        return httpProxyPort;
+    } 
+
     public Azure getAzureClient() throws AzureAuthFailureException {
         if (azure == null) {
+            // Do something here to check proxy property 
+            // @todo 
+
             azure = azureAuthHelper.getAzureClient();
             if (azure == null) {
                 getTelemetryProxy().trackEvent(INIT_FAILURE);
