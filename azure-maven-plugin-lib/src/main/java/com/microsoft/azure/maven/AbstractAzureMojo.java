@@ -222,9 +222,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     public Azure getAzureClient() throws AzureAuthFailureException {
         if (azure == null) {
-            // Do something here to check proxy property 
-            // @todo 
-
             azure = azureAuthHelper.getAzureClient();
             if (azure == null) {
                 getTelemetryProxy().trackEvent(INIT_FAILURE);
