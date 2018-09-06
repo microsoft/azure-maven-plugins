@@ -131,8 +131,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     /**
      * Use a HTTP proxy host for the Azure Auth Client
      */
-    @Parameter(property = "httpProxyHost", readonly = false, required = false)
-    protected String httpProxyHost = "";
+    @Parameter(property = "httpProxyHost", defaultValue = "", readonly = false, required = false)
+    protected String httpProxyHost;
 
     /**
      * Use a HTTP proxy port for the Azure Auth Client

@@ -2,14 +2,12 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-functions-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-functions-maven-plugin%22)
 
 #### Table of Content
-- [Maven Plugin for Azure Functions](#maven-plugin-for-azure-functions)
-      - [Table of Content](#table-of-content)
   - [Prerequisites](#prerequisites)
   - [Goals](#goals)
-      - [`azure-functions:package`](#azure-functionspackage)
-      - [`azure-functions:add`](#azure-functionsadd)
-      - [`azure-functions:run`](#azure-functionsrun)
-      - [`azure-functions:deploy`](#azure-functionsdeploy)
+      - [azure-functions:package](#azure-functionspackage)
+      - [azure-functions:add](#azure-functionsadd)
+      - [azure-functions:run](#azure-functionsrun)
+      - [azure-functions:deploy](#azure-functionsdeploy)
   - [Usage](#usage)
   - [Common Configuration](#common-configuration)
   - [Configurations](#configurations)

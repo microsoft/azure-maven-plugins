@@ -20,12 +20,11 @@ import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Locale;
-
-import java.net.Proxy;
-import java.net.InetSocketAddress;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
 
@@ -102,11 +101,11 @@ public class AzureAuthHelper {
     protected Azure.Configurable azureConfigure() {
         final String httpProxyHost = config.getHttpProxyHost();
         final int httpProxyPort = config.getHttpProxyPort();
-        Azure.Configurable configurable = Azure.configure()
+        final Azure.Configurable configurable = Azure.configure()
                 .withLogLevel(getLogLevel())
                 .withUserAgent(config.getUserAgent());
 
-        return !StringUtils.isEmpty(httpProxyHost) ?
+        return StringUtils.isNotEmpty(httpProxyHost) ?
             configurable.withProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(httpProxyHost, httpProxyPort))) :
             configurable;                      
     }
