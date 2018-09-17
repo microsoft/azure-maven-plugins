@@ -17,4 +17,5 @@ install:
 
 build_script:
   # - mvnw.cmd clean install -B -V
-  - IF DEFINED APPVEYOR_PULL_REQUEST_NUMBER (mvnw.cmd clean install) ELSE (mvnw.cmd clean install -P it)
+  # - IF DEFINED APPVEYOR_PULL_REQUEST_NUMBER (mvnw.cmd clean install) ELSE (mvnw.cmd clean install -P it)
+  - IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (mvnw.cmd clean install -P it) ELSE (mvnw.cmd clean install)
