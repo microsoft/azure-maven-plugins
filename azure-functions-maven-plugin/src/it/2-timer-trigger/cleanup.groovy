@@ -18,7 +18,7 @@ queueClient.createQueueWithName("out")
 CommonUtils.runVerification(new Runnable() {
     @Override
     void run() {
-        sleep(10000)
+        sleep(10*1000 /* ms */)
         String msg = queueClient.peekNextMessageFrom("out")
         assert msg == "successfully triggered"
     }
