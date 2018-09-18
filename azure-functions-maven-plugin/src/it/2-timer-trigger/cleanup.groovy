@@ -20,7 +20,7 @@ CommonUtils.runVerification(new Runnable() {
     void run() {
         sleep(10000)
         String msg = queueClient.peekNextMessageFrom("out")
-        assert msg == "CITEST"
+        assert msg == "successfully triggered"
     }
 })
 
