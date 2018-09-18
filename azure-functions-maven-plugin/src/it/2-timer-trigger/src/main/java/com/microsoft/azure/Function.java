@@ -14,7 +14,7 @@ public class Function {
     @FunctionName("TimerTriggerJava")
     @QueueOutput(name = "$return", queueName = "out", connection = "AzureWebJobsDashboard")
     public String run(
-            @TimerTrigger(name = "timerInfo", schedule = "*/1 * * * * *") String timerInfo,
+            @TimerTrigger(name = "timerInfo", schedule = "*/5 * * * * *") String timerInfo,
             final ExecutionContext context
     ) {
         context.getLogger().info("Java Timer trigger function executed at: " + LocalDateTime.now());
