@@ -17,3 +17,4 @@ install:
 
 build_script:
   - cmd:  IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (mvn clean install && mvn -f azure-webapp-maven-plugin/pom.xml clean verify -P it)
+  
