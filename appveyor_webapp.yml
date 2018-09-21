@@ -10,8 +10,8 @@ environment:
   nodejs_version: "8"
 
 install:
+  - cmd: SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%
   - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (npm i -g azure-functions-core-tools@core --unsafe-perm true)
-  - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%)
   - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (python -m pip install azure-cli)
   - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat")
 
