@@ -1,0 +1,31 @@
+branches:
+  only:
+    - master
+    - develop
+
+environment:
+  JAVA_HOME: "C:\\Program Files\\Java\\jdk1.8.0"
+  PYTHON: "C:\\Python35"
+  dotnetcore_version: 2.1.302
+  nodejs_version: "8"
+
+install:
+  - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (npm i -g azure-functions-core-tools@core --unsafe-perm true)
+  - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%)
+  - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (python -m pip install azure-cli)
+  - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat")
+
+build_script:
+  - ps: |
+        if ($env:APPVEYOR_SCHEDULED_BUILD -eq "true")
+        {
+          $ErrorActionPreference = "Stop";
+          cd .\build-tools\
+          mvn clean install
+          cd ..
+          cd .\azure-maven-plugin-lib\
+          mvn clean install
+          cd ..
+          cd .\azure-webapp-maven-plugin\
+          mvn clean verify -P it
+        }
