@@ -18,5 +18,9 @@ public interface AuthConfiguration {
 
     String getUserAgent();
 
+    String getHttpProxyHost();
+
+    int getHttpProxyPort();
+
     AuthenticationSetting getAuthenticationSetting();
 }
