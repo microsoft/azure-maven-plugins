@@ -1,9 +1,4 @@
 # Maven Plugins for Azure Services
-[![Travis CI](https://travis-ci.org/Microsoft/azure-maven-plugins.svg?branch=master)](https://travis-ci.org/Microsoft/azure-maven-plugins/) 
-[![codecov](https://codecov.io/gh/microsoft/azure-maven-plugins/branch/master/graph/badge.svg)](https://codecov.io/gh/microsoft/azure-maven-plugins)
-[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/Microsoft/azure-maven-plugins/blob/master/LICENSE)
-
-### Plugins
 This repository contains all Maven plugins for Microsoft Azure services. A complete list of all plugins is shown as below.
 
 Maven Plugin | Maven Central Version | Build Status
