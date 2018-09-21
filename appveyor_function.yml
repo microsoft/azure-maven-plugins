@@ -16,16 +16,13 @@ install:
   - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat")
 
 build_script:
-  - ps: |
-        if ($env:APPVEYOR_SCHEDULED_BUILD -eq "true")
-        {
-          $ErrorActionPreference = "Stop";
-          cd .\build-tools\
-          mvn clean install
-          cd ..
-          cd .\azure-maven-plugin-lib\
-          mvn clean install
-          cd ..
-          cd .\azure-functions-maven-plugin\
-          mvn clean verify -P it
-        }
+  - cmd:  IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (
+            cd build-tools
+            mvn clean install
+            cd ..
+            cd azure-maven-plugin-lib
+            mvn clean install
+            cd ..
+            cd azure-functions-maven-plugin
+            mvn clean verify -P it
+          )
