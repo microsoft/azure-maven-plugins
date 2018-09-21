@@ -11,10 +11,10 @@ environment:
 
 install:
   - cmd: SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%
-  - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (npm i -g azure-functions-core-tools@core --unsafe-perm true)
-  - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (python -m pip install azure-cli)
-  - cmd: IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat")
+  - cmd: npm i -g azure-functions-core-tools@core --unsafe-perm true
+  - cmd: python -m pip install azure-cli
+  - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
 
 build_script:
-  - cmd:  IF /i "%APPVEYOR_SCHEDULED_BUILD%" == "true" (mvn clean install && mvn -f azure-functions-maven-plugin/pom.xml clean verify -P it)
+  - cmd:  mvn clean install && mvn -f azure-functions-maven-plugin/pom.xml clean verify -P it
   
