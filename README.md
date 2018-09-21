@@ -1,6 +1,7 @@
 # Maven Plugins for Azure Services
 [![Travis CI](https://travis-ci.org/Microsoft/azure-maven-plugins.svg?branch=master)](https://travis-ci.org/Microsoft/azure-maven-plugins/) 
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/qfpxt9gct33dfmns/branch/master?svg=true)](https://ci.appveyor.com/project/xscript/azure-maven-plugins)
+[![AppVeyor Function Plugin](https://ci.appveyor.com/api/projects/status/5jti4qwh0j4ekh72/branch/develop?svg=true)](https://ci.appveyor.com/project/xscript/azure-maven-plugins-vvy0i)
+[![AppVeyor Webapp Plugin](https://ci.appveyor.com/api/projects/status/0vr4svfgl9u3rcaw/branch/develop?svg=true)](https://ci.appveyor.com/project/xscript/azure-maven-plugins-xt3xm)
 [![codecov](https://codecov.io/gh/microsoft/azure-maven-plugins/branch/master/graph/badge.svg)](https://codecov.io/gh/microsoft/azure-maven-plugins)
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/Microsoft/azure-maven-plugins/blob/master/LICENSE)
 
