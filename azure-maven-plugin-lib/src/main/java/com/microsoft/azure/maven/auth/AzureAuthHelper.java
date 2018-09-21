@@ -20,6 +20,8 @@ import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Locale;
@@ -97,9 +99,15 @@ public class AzureAuthHelper {
     }
 
     protected Azure.Configurable azureConfigure() {
-        return Azure.configure()
+        final String httpProxyHost = config.getHttpProxyHost();
+        final int httpProxyPort = config.getHttpProxyPort();
+        final Azure.Configurable configurable = Azure.configure()
                 .withLogLevel(getLogLevel())
                 .withUserAgent(config.getUserAgent());
+
+        return StringUtils.isNotEmpty(httpProxyHost) ?
+            configurable.withProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(httpProxyHost, httpProxyPort))) :
+            configurable;                      
     }
 
     protected AzureEnvironment getAzureEnvironment(String environment) {
