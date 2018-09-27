@@ -140,6 +140,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Parameter(property = "httpProxyPort", defaultValue = "80")
     protected int httpProxyPort;
 
+    /**
+     *  Port for local debug
+     */
+    @Parameter(property = "localDebugPort", defaultValue = "5005")
+    protected int localDebugPort;
+
     private AzureAuthHelper azureAuthHelper = new AzureAuthHelper(this);
 
     private Azure azure;
@@ -247,6 +253,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             telemetryProxy.trackEvent(TELEMETRY_NOT_ALLOWED);
             telemetryProxy.disable();
         }
+    }
+
+    public int getLocalDebugPort() {
+        return localDebugPort;
+    }
+
+    public void setLocalDebugPort(int localDebugPort) {
+        this.localDebugPort = localDebugPort;
     }
 
     //endregion

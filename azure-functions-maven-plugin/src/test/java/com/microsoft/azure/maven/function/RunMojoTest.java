@@ -120,7 +120,8 @@ public class RunMojoTest extends MojoTestBase {
         assertEquals(FUNC_HOST_START_CMD, mojoSpy.getStartFunctionHostCommand());
 
         System.setProperty("enableDebug", "true");
-        assertEquals(FUNC_HOST_START_WITH_DEBUG_CMD, mojoSpy.getStartFunctionHostCommand());
+        assertEquals(String.format(FUNC_HOST_START_WITH_DEBUG_CMD, mojo.getLocalDebugPort()),
+                mojoSpy.getStartFunctionHostCommand());
     }
 
     private RunMojo getMojoFromPom() throws Exception {
