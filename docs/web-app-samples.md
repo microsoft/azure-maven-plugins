@@ -33,7 +33,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.3.0</version>
+               <version>1.5.0</version>
                <configuration>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -91,7 +91,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.3.0</version>
+               <version>1.5.0</version>
                <configuration>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -145,7 +145,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.3.0</version>
+               <version>1.5.0</version>
                <configuration>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -203,7 +203,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.3.0</version>
+               <version>1.5.0</version>
                <configuration>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -226,13 +226,6 @@ The following configuration is applicable for below scenario:
                   <!-- If <jarFile> is not specified, ${project.build.directory}/${project.build.finalName}.jar will be used by default  -->
                   <jarFile>custom/absolute/path/deploy.jar</jarFile>
                   
-                  <!-- Application Settings of your Web App -->
-                  <appSettings>
-                      <property>
-                          <name>JAVA_OPTS</name>
-                          <value>-Djava.security.egd=file:/dev/./urandom</value>
-                      </property>
-                  </appSettings>
                </configuration>
             </plugin>
             ...
@@ -257,7 +250,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.3.0</version>
+               <version>1.5.0</version>
                <configuration>
                   <!-- Reference ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -311,7 +304,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.3.0</version>
+               <version>1.5.0</version>
                <configuration>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -366,7 +359,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.3.0</version>
+               <version>1.5.0</version>
                <configuration>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
@@ -427,7 +420,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.3.0</version>
+               <version>1.5.0</version>
                <configuration>
                   
                   <!-- Web App information -->
@@ -466,7 +459,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
-                <version>1.3.0</version>
+                <version>1.5.0</version>
                 <configuration>
                     <authentication>
                         <serverId>azure-auth</serverId>
