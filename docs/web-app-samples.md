@@ -190,7 +190,6 @@ The following configuration is applicable for below scenario:
 - Web App on Linux
 - Use Java 8
 - Use JAR to deploy an executable jar file to `/site/wwwroot/` directory in your Web App server
-- Add Application Settings to your Web App
 
    ```xml
    <project>
