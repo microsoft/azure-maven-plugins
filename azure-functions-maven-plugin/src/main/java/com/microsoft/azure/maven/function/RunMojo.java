@@ -30,7 +30,7 @@ public class RunMojo extends AbstractFunctionMojo {
     
     public static final String FUNC_HOST_START_CMD = "func host start";
     public static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start --language-worker -- " +
-            "\"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=%d\"";
+            "\"-agentlib:jdwp=transport=%s,server=%s,suspend=%s,address=%s\"";
     public static final String FUNC_CMD = "func";
 
     //region Entry Point
@@ -93,8 +93,11 @@ public class RunMojo extends AbstractFunctionMojo {
     }
 
     protected String getStartFunctionHostWithDebugCommand() {
-        final int localDebugPort = this.getLocalDebugPort();
-        return String.format(FUNC_HOST_START_WITH_DEBUG_CMD, localDebugPort);
+        final String address = this.getLocalDebugAddress();
+        final String server = this.getLocalDebugServer();
+        final String suspend = this.getLocalDebugSuspend();
+        final String transport = this.getLocalDebugTransport();
+        return String.format(FUNC_HOST_START_WITH_DEBUG_CMD, transport, server, suspend, address);
     }
 
     //endregion
