@@ -12,6 +12,7 @@ import com.microsoft.azure.maven.function.utils.CommandUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 
@@ -32,6 +33,26 @@ public class RunMojo extends AbstractFunctionMojo {
     public static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start --language-worker -- " +
             "\"-agentlib:jdwp=%s\"";
     public static final String FUNC_CMD = "func";
+
+    /**
+     * Config String for local debug
+     *
+     * @since 1.0.0-beta-7
+     */
+    @Parameter(property = "localDebugConfig", defaultValue = "transport=dt_socket,server=y,suspend=n,address=5005")
+    protected String localDebugConfig;
+
+    //region Getter
+
+    public String getLocalDebugConfig() {
+        return localDebugConfig;
+    }
+
+    public void setLocalDebugConfig(String localDebugConfig) {
+        this.localDebugConfig = localDebugConfig;
+    }
+
+    //endregion
 
     //region Entry Point
 
