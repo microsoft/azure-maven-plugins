@@ -141,29 +141,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     protected int httpProxyPort;
 
     /**
-     * Transport address for local debug
+     * Config String for local debug
      */
-    @Parameter(property = "localDebugAddress", defaultValue = "5005")
-    protected String localDebugAddress;
-
-    /**
-     * Whether listen for a debugger or attach a debugger at the specified address
-     */
-    @Parameter(property = "localDebugServer", defaultValue = "y")
-    protected String localDebugServer;
-
-    /**
-     * Whether to suspend the vm before main class loads
-     */
-    @Parameter(property = "localDebugSuspend", defaultValue = "n")
-    protected String localDebugSuspend;
-
-
-    /**
-     * Name of the transport to use in connecting to debugger application.
-     */
-    @Parameter(property = "localDebugTransport", defaultValue = "dt_socket")
-    protected String localDebugTransport;
+    @Parameter(property = "localDebugConfig", defaultValue = "transport=dt_socket,server=y,suspend=n,address=5005")
+    protected String localDebugConfig;
 
     private AzureAuthHelper azureAuthHelper = new AzureAuthHelper(this);
 
@@ -274,36 +255,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    public String getLocalDebugAddress() {
-        return localDebugAddress;
+    public String getLocalDebugConfig() {
+        return localDebugConfig;
     }
 
-    public void setLocalDebugAddress(String localDebugAddress) {
-        this.localDebugAddress = localDebugAddress;
-    }
-
-    public String getLocalDebugServer() {
-        return localDebugServer;
-    }
-
-    public void setLocalDebugServer(String localDebugServer) {
-        this.localDebugServer = localDebugServer;
-    }
-
-    public String getLocalDebugSuspend() {
-        return localDebugSuspend;
-    }
-
-    public void setLocalDebugSuspend(String localDebugSuspend) {
-        this.localDebugSuspend = localDebugSuspend;
-    }
-
-    public String getLocalDebugTransport() {
-        return localDebugTransport;
-    }
-
-    public void setLocalDebugTransport(String localDebugTransport) {
-        this.localDebugTransport = localDebugTransport;
+    public void setLocalDebugConfig(String localDebugConfig) {
+        this.localDebugConfig = localDebugConfig;
     }
 
     //endregion
