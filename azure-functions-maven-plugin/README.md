@@ -109,6 +109,7 @@ Property | Required | Description
 `<deploymentType>` | false | Specifies the deployment approach you want to use.<br>The default value is **`zip`**.
 `<httpProxyHost>` | false | Specifies an optional HTTP proxy to connect to Azure through.
 `<httpProxyPort>` | false | Specifies an optional HTTP proxy port to connect to Azure through <br>The default value is **80**.
+`<localDebugConfig>` | false | The config string of debug options, you may visit [here](https://docs.oracle.com/javase/7/docs/technotes/guides/jpda/conninv.html) for more information. The default value is `transport=dt_socket,server=y,suspend=n,address=5005`;
 >*: This setting will be used to create a new Azure Functions if specified Azure Functions does not exist; if target Azure Functions already exists, this setting will be ignored.
 ### Supported Regions
 All valid regions are listed as below. Read more at [Azure Region Availability](https://azure.microsoft.com/en-us/regions/services/).
@@ -185,7 +186,7 @@ With the help of goal `azure-functions:run`, you can run your Azure Functions in
 mvn azure-functions:run
 ```
 
-If you want to start the function host in debug mode, please add `-DenableDebug` as the argument, the function host will open a debug port at 5005.
+If you want to start the function host in debug mode, please add `-DenableDebug` as the argument. The function host use TCP-Socket Transport and listen on 5005 port by default, you may change the config string in configuration properties.
 ```cmd
 mvn azure-functions:run -DenableDebug
 ```
