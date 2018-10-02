@@ -32,7 +32,7 @@
         <azure.function.version>1.0.0-beta-5</azure.function.version>
         <reflections.version>0.9.11</reflections.version>
         <junit.version>4.12</junit.version>
-        <mockito.version>2.4.0</mockito.version>
+        <mockito.version>2.22.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
         <semver.version>0.9.0</semver.version>
     </properties>
