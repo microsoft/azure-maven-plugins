@@ -70,15 +70,12 @@ public class RunMojoTest extends MojoTestBase {
     @Test
     public void checkRuntimeExistence() throws Exception {
         final RunMojo mojo = getMojoFromPom();
-        final RunMojo mojoSpy = spy(mojo);
         final CommandHandler commandHandlerMock = mock(CommandHandlerImpl.class);
-        doNothing().when(commandHandlerMock).runCommandWithReturnCodeCheck(anyString(), anyBoolean(),
-            anyString(), ArgumentMatchers.anyList(), anyString());
-        mojoSpy.checkRuntimeExistence(commandHandlerMock);
+        mojo.checkRuntimeExistence(commandHandlerMock);
 
         verify(commandHandlerMock, times(1))
             .runCommandWithReturnCodeCheck(
-                mojoSpy.getCheckRuntimeCommand(),
+                mojo.getCheckRuntimeCommand(),
                 false,
                 null,
                 CommandUtils.getDefaultValidReturnCodes(),

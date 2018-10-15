@@ -107,7 +107,7 @@ public class WarArtifactHandlerImplTest {
         doReturn(log).when(mojo).getLog();
         doNothing().when(log).info(anyString());
         doReturn(app).when(mojo).getWebApp();
-        doThrow(Exception.class).when(app).warDeploy(file, "");
+        doThrow(RuntimeException.class).when(app).warDeploy(file, "");
 
         handlerSpy.publish(new WebAppDeployTarget(app));
     }

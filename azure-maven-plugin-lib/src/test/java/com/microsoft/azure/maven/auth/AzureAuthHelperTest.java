@@ -229,11 +229,6 @@ public class AzureAuthHelperTest {
         final AzureAuthHelper helperSpy = spy(helper);
         when(settings.getServer(any(String.class))).thenReturn(server);
 
-        /**
-         * ApplicationTokenCredentials is null
-         */
-        doReturn(null).when(helperSpy).getAppTokenCredentialsFromServer(server);
-
         auth = helper.getAuthObjFromServerId(settings, "serverId");
 
         assertNull(auth);
@@ -365,14 +360,6 @@ public class AzureAuthHelperTest {
         /**
          * certificate exists
          */
-        when(configuration.getChild(CLIENT_ID)).thenReturn(clientIdNode);
-        when(clientIdNode.getValue()).thenReturn(CLIENT_ID);
-        when(configuration.getChild(TENANT_ID)).thenReturn(tenantIdNode);
-        when(tenantIdNode.getValue()).thenReturn(TENANT_ID);
-        when(configuration.getChild(KEY)).thenReturn(null);
-        when(configuration.getChild(CERTIFICATE)).thenReturn(certificateNode);
-        when(certificateNode.getValue()).thenReturn("/certificate.txt");
-//        assertTrue(helper.getAppTokenCredentialsFromServer(server) instanceof ApplicationTokenCredentials);
         clearInvocations(configuration);
     }
 }
