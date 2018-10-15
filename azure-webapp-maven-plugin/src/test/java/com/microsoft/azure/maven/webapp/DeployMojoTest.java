@@ -204,12 +204,9 @@ public class DeployMojoTest {
     @Test
     public void getNUllDeploymentSlot() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        final DeployMojo mojoSpy = spy(mojo);
         final WebApp app = mock(WebApp.class);
 
-        doReturn(app).when(mojoSpy).getWebApp();
-
-        assertNull(mojoSpy.getDeploymentSlot(app, ""));
+        assertNull(mojo.getDeploymentSlot(app, ""));
     }
 
     @Test
@@ -218,7 +215,6 @@ public class DeployMojoTest {
         final DeployMojo mojoSpy = spy(mojo);
         final WebApp app = mock(WebApp.class);
 
-        doReturn(app).when(mojoSpy).getWebApp();
         doReturn(mock(DeploymentSlot.class)).when(mojoSpy).getDeploymentSlot(app, "");
 
         mojoSpy.getDeploymentSlot(app, "");
