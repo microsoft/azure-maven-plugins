@@ -45,7 +45,7 @@ public class EventHubBinding extends BaseBinding {
 
     @JsonGetter
     public String getCardinality() {
-        return cardinality.toString().toLowerCase(Locale.getDefault());
+        return cardinality.toString().toLowerCase(Locale.ENGLISH);
     }
 
     @JsonGetter("eventHubName")

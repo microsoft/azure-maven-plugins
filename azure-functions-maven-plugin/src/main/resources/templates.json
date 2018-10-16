@@ -163,7 +163,6 @@
             "name": "myEventHubMessage",
             "direction": "in",
             "eventHubName": "samples-workitems",
-            "cardinality": "many",
             "connection": "",
             "consumerGroup": "$Default"
           }
