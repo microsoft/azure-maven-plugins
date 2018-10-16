@@ -163,13 +163,14 @@
             "name": "myEventHubMessage",
             "direction": "in",
             "eventHubName": "samples-workitems",
+            "cardinality": "many",
             "connection": "",
             "consumerGroup": "$Default"
           }
         ]
       },
       "files": {
-        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Event Hub trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Hub.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n        @EventHubTrigger(name = \"message\", eventHubName = \"$eventHubName$\", connection = \"$connection$\", consumerGroup = \"$consumerGroup$\") String message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Event Hub trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}\n"
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\nimport java.util.*;\n\n/**\n * Azure Functions with Event Hub trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when an event is received from Event Hub.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n        @EventHubTrigger(name = \"message\", eventHubName = \"$eventHubName$\", connection = \"$connection$\", consumerGroup = \"$consumerGroup$\", cardinality = Cardinality.MANY) List<String> message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Event Hub trigger function executed.\");\n        context.getLogger().info(\"Length:\" + message.size());\n        message.forEach(singleMessage -> context.getLogger().info(singleMessage));\n    }\n}\n"
       }
     },
     {
