@@ -1,0 +1,26 @@
+branches:
+  only:
+    - develop
+
+environment:
+  JAVA_HOME: "C:\\Program Files\\Java\\jdk1.8.0"
+  PYTHON: "C:\\Python35"
+  dotnetcore_version: 2.1.302
+  nodejs_version: "8"
+
+install:
+  - cmd: SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%
+  - cmd: npm i -g azure-functions-core-tools@core --unsafe-perm true
+  - cmd: python -m pip install azure-cli
+  - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
+
+build_script:
+  - ps: >
+      $pid = .\e2etest\setup.ps1  
+      
+test_script:
+  - ps: >
+      .\e2etest\verify.ps1 
+
+on_finish:
+  - ps: .\e2etest\cleanup.ps1 $pid
