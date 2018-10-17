@@ -193,7 +193,6 @@ public class AbstractAzureMojoTest {
         assertEquals("Unknown", mojo.getAuthType());
 
         doReturn("serverId").when(authenticationSetting).getServerId();
-        doReturn(null).when(authenticationSetting).getFile();
         assertEquals("ServerId", mojo.getAuthType());
 
         doReturn(null).when(authenticationSetting).getServerId();

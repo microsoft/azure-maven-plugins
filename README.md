@@ -1,16 +1,10 @@
 # Maven Plugins for Azure Services
-[![Travis CI](https://travis-ci.org/Microsoft/azure-maven-plugins.svg?branch=master)](https://travis-ci.org/Microsoft/azure-maven-plugins/) 
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/qfpxt9gct33dfmns/branch/master?svg=true)](https://ci.appveyor.com/project/xscript/azure-maven-plugins)
-[![codecov](https://codecov.io/gh/microsoft/azure-maven-plugins/branch/master/graph/badge.svg)](https://codecov.io/gh/microsoft/azure-maven-plugins)
-[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/Microsoft/azure-maven-plugins/blob/master/LICENSE)
-
-### Plugins
 This repository contains all Maven plugins for Microsoft Azure services. A complete list of all plugins is shown as below.
 
-Maven Plugin | Maven Central Version
----|---
-[Maven Plugin for Azure Web Apps](./azure-webapp-maven-plugin/README.md) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22)
-[Maven Plugin for Azure Functions](./azure-functions-maven-plugin/README.md) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-functions-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-functions-maven-plugin%22)
+Maven Plugin | Maven Central Version | Build Status
+---|---|---
+[Maven Plugin for Azure Web Apps](./azure-webapp-maven-plugin/README.md) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22) | [![AppVeyor Webapp Plugin](https://ci.appveyor.com/api/projects/status/0vr4svfgl9u3rcaw/branch/develop?svg=true)](https://ci.appveyor.com/project/xscript/azure-maven-plugins-xt3xm)
+[Maven Plugin for Azure Functions](./azure-functions-maven-plugin/README.md) | [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-functions-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-functions-maven-plugin%22) | [![AppVeyor Function Plugin](https://ci.appveyor.com/api/projects/status/5jti4qwh0j4ekh72/branch/develop?svg=true)](https://ci.appveyor.com/project/xscript/azure-maven-plugins-vvy0i)
 
 ### Reporting Issues and Feedback
 If you encounter any bugs with the maven plugins, please file an issue in the [Issues](https://github.com/microsoft/azure-maven-plugins/issues) section of our GitHub repo.

@@ -22,8 +22,6 @@ public class HttpBinding extends BaseBinding {
 
     private String route = "";
 
-    private String webHookType = "";
-
     private String authLevel = "";
 
     private String[] methods = {};
@@ -35,7 +33,6 @@ public class HttpBinding extends BaseBinding {
         authLevel = httpTrigger.authLevel().toString().toLowerCase(Locale.ENGLISH);
         methods = Arrays.copyOf(Arrays.stream(httpTrigger.methods()).map(HttpMethod::toString).toArray(),
                 httpTrigger.methods().length, String[].class);
-        webHookType = httpTrigger.webHookType().toString();
     }
 
     public HttpBinding(final HttpOutput httpOutput) {
@@ -49,11 +46,6 @@ public class HttpBinding extends BaseBinding {
     @JsonGetter
     public String getRoute() {
         return route;
-    }
-
-    @JsonGetter
-    public String getWebHookType() {
-        return webHookType;
     }
 
     @JsonGetter
