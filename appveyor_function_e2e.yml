@@ -4,14 +4,11 @@ branches:
     
 environment:
   JAVA_HOME: "C:\\Program Files\\Java\\jdk1.8.0"
-  PYTHON: "C:\\Python35"
   dotnetcore_version: 2.1.302
   nodejs_version: "8"
 
 install:
   - cmd: SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%
-  - cmd: npm i -g azure-functions-core-tools@core --unsafe-perm true
-  - cmd: python -m pip install azure-cli
   - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
 
 build_script:
@@ -26,13 +23,14 @@ build_script:
       $wc = New-Object System.Net.WebClient
       $wc.DownloadFile($url, $output)
       Expand-Archive "$base\Azure.Functions.Cli.zip" -DestinationPath "$base\Azure.Functions.Cli"
+      $Env:Path = $Env:Path+";$base\Azure.Functions.Cli"
 
       # Clone and install function maven plguin and archetype
       mvn clean install
       Remove-Item -Recurse -Force "azure-maven-archetypes" -ErrorAction Ignore
       git clone https://github.com/Microsoft/azure-maven-archetypes.git -b develop
-      mvn -f  ".\azure-maven-archetypes\azure-functions-archetype\pom.xml" clean install
-      $archetypePom =  Get-Content ".\azure-maven-archetypes\azure-functions-archetype\pom.xml" -Raw
+      mvn -f ".\azure-maven-archetypes\azure-functions-archetype\pom.xml" clean install
+      $archetypePom = Get-Content ".\azure-maven-archetypes\azure-functions-archetype\pom.xml" -Raw
       $archetypePom -match "<version>(.*)</version>"
       $atchetypeVersion = $matches[1]
 
@@ -45,11 +43,10 @@ build_script:
       cd ..
 
       # Run function host
-      $Env:AzureWebJobsScriptRoot = "$base\e2etestproject\e2etestproject\target\azure-functions\azure-functions-java-endtoendtests"
       $Env:FUNCTIONS_WORKER_RUNTIME = "java"
       $Env:AZURE_FUNCTIONS_ENVIRONMENT = "development"
-      $Env:Path = $Env:Path+";$base\Azure.Functions.Cli"
-      $proc = start-process -filepath "$base\Azure.Functions.Cli\func.exe" -WorkingDirectory "$base\e2etestproject\e2etestproject\target\azure-functions\e2etest-java-functions" -ArgumentList "host start" -PassThru
+      $Env:AzureWebJobsScriptRoot = "$base\e2etestproject\e2etestproject\target\azure-functions\e2etest-java-functions"
+      $proc = start-process -filepath "$base\Azure.Functions.Cli\func.exe" -WorkingDirectory "$Env:AzureWebJobsScriptRoot" -ArgumentList "host start" -PassThru
       Start-Sleep -s 30
       
 test_script:
@@ -61,4 +58,3 @@ test_script:
 on_finish:
   - ps: | 
       Stop-Process -Id $proc.Id -Erroraction Ignore
-      
