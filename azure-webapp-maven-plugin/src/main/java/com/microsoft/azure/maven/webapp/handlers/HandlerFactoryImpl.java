@@ -94,37 +94,32 @@ public class HandlerFactoryImpl extends HandlerFactory {
             throw new MojoExecutionException("No <runtime> is specified, please configure it in pom.xml.");
         }
 
+        final BaseRuntimeHandler.Builder builder;
+
         switch (OperatingSystemEnum.fromString(runtime.getOs())) {
             case Windows:
-                return new WindowsRuntimeHandlerImplV2.Builder()
-                    .runtime(mojo.getRuntime())
-                    .appName(mojo.getAppName())
-                    .resourceGroup(mojo.getResourceGroup())
-                    .region(mojo.getRegion())
-                    .pricingTier(mojo.getPricingTier())
-                    .servicePlanName(mojo.getAppServicePlanName())
-                    .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-                    .azure(mojo.getAzureClient())
-                    .log(mojo.getLog())
-                    .build();
+                builder = new WindowsRuntimeHandlerImplV2.Builder();
+                break;
             case Linux:
-                return new LinuxRuntimeHandlerImplV2.Builder()
-                    .runtime(mojo.getRuntime())
-                    .appName(mojo.getAppName())
-                    .resourceGroup(mojo.getResourceGroup())
-                    .region(mojo.getRegion())
-                    .pricingTier(mojo.getPricingTier())
-                    .servicePlanName(mojo.getAppServicePlanName())
-                    .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-                    .azure(mojo.getAzureClient())
-                    .log(mojo.getLog())
-                    .build();
+                builder = new LinuxRuntimeHandlerImplV2.Builder();
+                break;
             case Docker:
-                return getV2DockerRuntimeHandler(mojo);
+                builder = getV2DockerRuntimeHandlerBuilder(mojo);
+                break;
             default:
                 throw new MojoExecutionException(
                     "The value of <os> is unknown, supported values are: windows, linux and docker.");
         }
+        return builder.runtime(mojo.getRuntime())
+            .appName(mojo.getAppName())
+            .resourceGroup(mojo.getResourceGroup())
+            .region(mojo.getRegion())
+            .pricingTier(mojo.getPricingTier())
+            .servicePlanName(mojo.getAppServicePlanName())
+            .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
+            .azure(mojo.getAzureClient())
+            .log(mojo.getLog())
+            .build();
     }
 
     protected RuntimeHandler getV1DockerRuntimeHandler(final String imageName, final String serverId,
@@ -146,51 +141,20 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
     }
 
-    protected RuntimeHandler getV2DockerRuntimeHandler(final AbstractWebAppMojo mojo)
-        throws MojoExecutionException, AzureAuthFailureException {
+    protected BaseRuntimeHandler.Builder getV2DockerRuntimeHandlerBuilder(final AbstractWebAppMojo mojo)
+        throws MojoExecutionException {
 
         final RuntimeSetting runtime = mojo.getRuntime();
         final DockerImageType imageType = WebAppUtils.getDockerImageType(runtime.getImage(), runtime.getServerId(),
             runtime.getRegistryUrl());
+
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
-                return new PublicDockerHubRuntimeHandlerImplV2.Builder()
-                    .runtime(mojo.getRuntime())
-                    .appName(mojo.getAppName())
-                    .resourceGroup(mojo.getResourceGroup())
-                    .region(mojo.getRegion())
-                    .pricingTier(mojo.getPricingTier())
-                    .servicePlanName(mojo.getAppServicePlanName())
-                    .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-                    .azure(mojo.getAzureClient())
-                    .log(mojo.getLog())
-                    .build();
+                return new PublicDockerHubRuntimeHandlerImplV2.Builder();
             case PRIVATE_DOCKER_HUB:
-                return new PrivateDockerHubRuntimeHandlerImplV2.Builder()
-                    .runtime(mojo.getRuntime())
-                    .appName(mojo.getAppName())
-                    .resourceGroup(mojo.getResourceGroup())
-                    .region(mojo.getRegion())
-                    .pricingTier(mojo.getPricingTier())
-                    .servicePlanName(mojo.getAppServicePlanName())
-                    .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-                    .settings(mojo.getSettings())
-                    .azure(mojo.getAzureClient())
-                    .log(mojo.getLog())
-                    .build();
+                return new PrivateDockerHubRuntimeHandlerImplV2.Builder();
             case PRIVATE_REGISTRY:
-                return new PrivateRegistryRuntimeHandlerImplV2.Builder()
-                    .runtime(mojo.getRuntime())
-                    .appName(mojo.getAppName())
-                    .resourceGroup(mojo.getResourceGroup())
-                    .region(mojo.getRegion())
-                    .pricingTier(mojo.getPricingTier())
-                    .servicePlanName(mojo.getAppServicePlanName())
-                    .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-                    .settings(mojo.getSettings())
-                    .azure(mojo.getAzureClient())
-                    .log(mojo.getLog())
-                    .build();
+                return new PrivateRegistryRuntimeHandlerImplV2.Builder();
             case NONE:
                 throw new MojoExecutionException(
                     "The configuration <image> is not specified within <runtime>, please configure it in pom.xml.");
