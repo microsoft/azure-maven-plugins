@@ -112,7 +112,6 @@ public class JarArtifactHandlerImplTest {
 
         doReturn("test.jar").when(fileMock).getName();
         doReturn(false).when(fileMock).exists();
-        doReturn(false).when(fileMock).isFile();
         handlerSpy.assureJarFileExisted(fileMock);
     }
 

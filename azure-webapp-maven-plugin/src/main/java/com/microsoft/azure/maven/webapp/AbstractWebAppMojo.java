@@ -189,9 +189,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * Schema version, which will be used to indicate the version of settings schema to use.
      * @since 2.0.0
      */
-    // disable the entry for schemaVersion for the feature is not completely ready
-    // @Parameter(property = "schemaVersion", defaultValue = "v1")
-    protected String schemaVersion = "v1";
+    @Parameter(property = "schemaVersion", defaultValue = "v1")
+    protected String schemaVersion;
 
     /**
      * Runtime setting

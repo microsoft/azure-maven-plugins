@@ -6,19 +6,54 @@
 
 package com.microsoft.azure.maven.webapp.handlers.v2;
 
+import com.microsoft.azure.management.appservice.AppServicePlan;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
+import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.webapp.WebAppUtils;
+import com.microsoft.azure.maven.webapp.handlers.BaseRuntimeHandler;
+import org.apache.maven.settings.Server;
 
-public class PrivateDockerHubRuntimeHandlerImplV2 implements RuntimeHandler {
+import static com.microsoft.azure.maven.Utils.assureServerExist;
+
+public class PrivateDockerHubRuntimeHandlerImplV2 extends BaseRuntimeHandler {
+    public static class Builder extends BaseRuntimeHandler.Builder<Builder>{
+        @Override
+        protected PrivateDockerHubRuntimeHandlerImplV2.Builder self() {
+            return this;
+        }
+
+        @Override
+        public PrivateDockerHubRuntimeHandlerImplV2 build() {
+            return new PrivateDockerHubRuntimeHandlerImplV2(this);
+        }
+    }
+
+    private PrivateDockerHubRuntimeHandlerImplV2(final Builder builder) {
+        super(builder);
+    }
+
     @Override
     public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
-        // todo
-        throw new Exception("Unimplemented");
+        final Server server = Utils.getServer(settings, runtime.getServerId());
+        assureServerExist(server, runtime.getServerId());
+
+        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
+            servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.LINUX);
+        return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
+            .withPrivateDockerHubImage(runtime.getImage())
+            .withCredentials(server.getUsername(), server.getPassword());
     }
 
     @Override
     public WebApp.Update updateAppRuntime(final WebApp app) throws Exception {
-        // todo
-        throw new Exception("Unimplemented");
+        WebAppUtils.assureLinuxWebApp(app);
+        WebAppUtils.clearTags(app);
+
+        final Server server = Utils.getServer(settings, runtime.getServerId());
+        assureServerExist(server, runtime.getServerId());
+        return app.update()
+            .withPrivateDockerHubImage(runtime.getImage())
+            .withCredentials(server.getUsername(), server.getPassword());
     }
 }
