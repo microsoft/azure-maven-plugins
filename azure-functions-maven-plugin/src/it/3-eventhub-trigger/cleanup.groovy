@@ -39,5 +39,5 @@ String msg = queueClient.peekNextMessageFrom("out")
 assert msg == "CITrigger"
 
 // Clean up resources created in test
-//CommonUtils.deleteAzureResourceGroup("maven-functions-it-rg-3", false)
+CommonUtils.deleteAzureResourceGroup("maven-functions-it-rg-3", false)
 return true
