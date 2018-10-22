@@ -53,12 +53,22 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.skip", defaultValue = "false")
     protected boolean skip;
 
+    /**
+     * App Service region, which will only be used to create App Service at the first time.
+     */
+    @Parameter(property = "functions.region", defaultValue = "westeurope")
+    protected String region;
+
     //endregion
 
     //region Getter
 
     public PricingTier getPricingTier() {
         return pricingTier == null ? null : pricingTier.toPricingTier();
+    }    
+
+    public String getRegion() {
+        return region;
     }
 
     @Override
