@@ -202,7 +202,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * Runtime setting
      * @since 2.0.0
      */
-    @Parameter(property = "runtime")
+    @Parameter(property = "runtime", required = true)
     protected RuntimeSetting runtime;
 
     //endregion
