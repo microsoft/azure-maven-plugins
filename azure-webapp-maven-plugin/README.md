@@ -338,7 +338,7 @@ Property | Required | Description | Version
 ---|---|---|---
 `<resourceGroup>` | true | Specifies the Azure Resource Group for your Web App. | 0.1.0+
 `<appName>` | true | Specifies the name of your Web App. | 0.1.0+
-`<region>`* | false | Specifies the region where your Web App will be hosted; the default value is **westus**. All valid regions at [Supported Regions](#supported-regions) section. | 0.1.0+
+`<region>`* | false | Specifies the region where your Web App will be hosted; the default value is **westeurope**. All valid regions at [Supported Regions](#supported-regions) section. | 0.1.0+
 `<pricingTier>`* | false | Specifies the pricing tier for your Web App; the default value is **S1**. All valid tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section. | 0.1.0+
 `<deploymentSlot>` | false | Specifies the deployment slot to deploy your web app. | 1.3.0+
 `<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, plugin will use the value defined in `<resourceGroup>`. | 1.0.0+
