@@ -39,7 +39,7 @@ public class ArtifactHandlerV2 implements ArtifactHandler {
         final Deployment deployment =  mojo.getDeployment();
         final List<Resource> resources = deployment.getResources();
         if (resources == null || resources.size() < 1) {
-            mojo.getLog().warn("The <deployment> element is not well configured in pom.xml, skip deployment.");
+            mojo.getLog().warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
             return;
         }
 
