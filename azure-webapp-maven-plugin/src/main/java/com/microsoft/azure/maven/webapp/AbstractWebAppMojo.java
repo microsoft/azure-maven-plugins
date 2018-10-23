@@ -179,6 +179,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected String path;
 
     /**
+     * App Service region, which will only be used to create App Service at the first time.
+     */
+    @Parameter(property = "webapp.region", defaultValue = "westeurope")
+    protected String region;
+
+    /**
      * Deployment Slot. It will be created if it does not exist.
      * It requires the web app exists already.
      */
