@@ -28,6 +28,7 @@ import com.microsoft.azure.maven.webapp.handlers.v1.PrivateRegistryRuntimeHandle
 import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v2.ArtifactHandlerV2;
 import com.microsoft.azure.maven.webapp.handlers.v2.LinuxRuntimeHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.v2.PrivateDockerHubRuntimeHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.v2.PrivateRegistryRuntimeHandlerImplV2;
@@ -200,9 +201,8 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
     }
 
-    protected ArtifactHandler getV2ArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
-        // todo
-        throw new MojoExecutionException("Unimplemented for schema version: " + mojo.getSchemaVersion());
+    protected ArtifactHandler getV2ArtifactHandler(AbstractWebAppMojo mojo) {
+        return new ArtifactHandlerV2(mojo);
     }
 
     protected ArtifactHandler getArtifactHandlerFromPackaging(final AbstractWebAppMojo mojo)

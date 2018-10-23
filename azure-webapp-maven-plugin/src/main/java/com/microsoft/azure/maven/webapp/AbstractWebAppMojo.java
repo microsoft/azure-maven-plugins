@@ -15,6 +15,7 @@ import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
@@ -205,6 +206,13 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Parameter(property = "runtime")
     protected RuntimeSetting runtime;
 
+    /**
+     * Deployment setting
+     * @since 2.0.0
+     */
+    @Parameter(property = "deployment")
+    protected Deployment deployment;
+
     //endregion
 
     //region Getter
@@ -313,6 +321,10 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     public RuntimeSetting getRuntime() {
         return runtime;
+    }
+
+    public Deployment getDeployment() {
+        return deployment;
     }
 
     public void setRuntime(final RuntimeSetting runtime) {
