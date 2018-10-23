@@ -155,9 +155,15 @@ public class HandlerFactoryImpl extends HandlerFactory {
             case PUBLIC_DOCKER_HUB:
                 return new PublicDockerHubRuntimeHandlerImplV2.Builder();
             case PRIVATE_DOCKER_HUB:
-                return new PrivateDockerHubRuntimeHandlerImplV2.Builder();
+                final PrivateDockerHubRuntimeHandlerImplV2.Builder privateDockerHubRuntimeHandlerImplV2Builder =
+                    new PrivateDockerHubRuntimeHandlerImplV2.Builder();
+                privateDockerHubRuntimeHandlerImplV2Builder.settings(mojo.getSettings());
+                return privateDockerHubRuntimeHandlerImplV2Builder;
             case PRIVATE_REGISTRY:
-                return new PrivateRegistryRuntimeHandlerImplV2.Builder();
+                final PrivateRegistryRuntimeHandlerImplV2.Builder privateRegistryRuntimeHandlerImplV2Builder =
+                    new PrivateRegistryRuntimeHandlerImplV2.Builder();
+                privateRegistryRuntimeHandlerImplV2Builder.settings(mojo.getSettings());
+                return privateRegistryRuntimeHandlerImplV2Builder;
             case NONE:
                 throw new MojoExecutionException(
                     "The configuration <image> is not specified within <runtime>, please configure it in pom.xml.");
