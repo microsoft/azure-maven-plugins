@@ -10,8 +10,8 @@ import com.google.common.io.Files;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
-import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
+import com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -32,8 +32,6 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
         "retrying immediately (%d/%d)";
     public static final String DEPLOY_FAILURE = "Failed to deploy war file after %d times of retry.";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
-    public static final String DEPLOY_TARGET_TYPE_UNKNOWN =
-        "The type of deploy target is unknown, supported types are WebApp and DeploymentSlot.";
 
     private AbstractWebAppMojo mojo;
 
@@ -48,7 +46,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
 
         assureWarFileExisted(war);
 
-        final Runnable warDeployExecutor = getRealWarDeployExecutor(target, war, getContextPath());
+        final Runnable warDeployExecutor = ArtifactHandlerUtils.getRealWarDeployExecutor(target, war, getContextPath());
         
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
@@ -90,35 +88,5 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
         if (!war.exists() || !war.isFile()) {
             throw new MojoExecutionException(String.format(FIND_WAR_FILE_FAIL, war.getAbsolutePath()));
         }
-    }
-
-    /**
-     * Interfaces WebApp && DeploymentSlot define their own warDeploy API separately.
-     * Ideally, it should be defined in their base interface WebAppBase.
-     * {@link com.microsoft.azure.management.appservice.WebAppBase}
-     * Comparing to abstracting an adapter for WebApp && DeploymentSlot, we choose a lighter solution:
-     * work around to get the real implementation of warDeploy.
-     */
-    protected Runnable getRealWarDeployExecutor(final DeployTarget target, final File war, final String path)
-        throws MojoExecutionException {
-        if (target instanceof WebAppDeployTarget) {
-            return new Runnable() {
-                @Override
-                public void run() {
-                    ((WebAppDeployTarget) target).warDeploy(war, path);
-                }
-            };
-        }
-
-        if (target instanceof DeploymentSlotDeployTarget) {
-            return new Runnable() {
-                @Override
-                public void run() {
-                    ((DeploymentSlotDeployTarget) target).warDeploy(war, path);
-                }
-            };
-        }
-
-        throw new MojoExecutionException(DEPLOY_TARGET_TYPE_UNKNOWN);
     }
 }
