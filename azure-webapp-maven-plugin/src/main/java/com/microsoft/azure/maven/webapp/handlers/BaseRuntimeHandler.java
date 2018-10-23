@@ -76,7 +76,7 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
             return self();
         }
 
-        public T settings(final Settings value) {
+        public T mavenSettings(final Settings value) {
             this.settings = value;
             return self();
         }
