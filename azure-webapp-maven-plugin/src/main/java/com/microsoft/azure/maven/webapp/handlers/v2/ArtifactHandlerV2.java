@@ -23,6 +23,7 @@ import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.get
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getContextPathFromFileName;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getRealWarDeployExecutor;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.isDeployingOnlyWarArtifacts;
+import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.isMixingWarArtifactWithOtherArtifacts;
 
 public class ArtifactHandlerV2 implements ArtifactHandler {
     private AbstractWebAppMojo mojo;
@@ -61,9 +62,14 @@ public class ArtifactHandlerV2 implements ArtifactHandler {
                     stagingDirectory.getAbsolutePath()));
         }
 
-        if (isDeployingOnlyWarArtifacts(resources)) {
+        if (isDeployingOnlyWarArtifacts(allArtifacts)) {
             publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
         } else {
+            if (isMixingWarArtifactWithOtherArtifacts(allArtifacts)) {
+                mojo.getLog().warn(
+                    "Deploying war artifact together with other kinds of artifacts is not suggested," +
+                        " it will cause the content be overwritten or path incorrect issues.");
+            }
             publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
         }
     }

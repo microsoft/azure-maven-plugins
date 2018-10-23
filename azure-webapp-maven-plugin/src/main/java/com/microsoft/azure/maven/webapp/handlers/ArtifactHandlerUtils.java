@@ -10,12 +10,13 @@ import com.google.common.io.Files;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ArtifactHandlerUtils {
     /**
@@ -74,20 +75,32 @@ public class ArtifactHandlerUtils {
         }
     }
 
-    public static boolean isDeployingOnlyWarArtifacts(final List<Resource> resources) {
-        File tempDirectory;
-        File[] tempFiles;
-        for (final Resource resource : resources) {
-            tempDirectory = new File(resource.getTargetPath());
-            tempFiles = tempDirectory.listFiles();
-            if (tempFiles != null && tempFiles.length != 0) {
-                for (final File file : tempFiles) {
-                    if (!"war".equalsIgnoreCase(Files.getFileExtension(file.getName()))) {
-                        return false;
-                    }
-                }
+    public static boolean isDeployingOnlyWarArtifacts(final List<File> allArtifacts) {
+        for (final File artifacts : allArtifacts) {
+            if (!"war".equalsIgnoreCase(Files.getFileExtension(artifacts.getName()))) {
+                return false;
             }
         }
         return true;
+    }
+
+    public static boolean isMixingWarArtifactWithOtherArtifacts(final List<File> allArtifacts) {
+        final List<String> fileExtensions = new ArrayList<String>();
+        boolean isWarArtifactExists = false;
+        final String warExtension = "war";
+        for (final File artifacts : allArtifacts) {
+            final String fileExtension = Files.getFileExtension(artifacts.getName()).toLowerCase(Locale.ENGLISH);
+            if (!isWarArtifactExists && warExtension.equals(fileExtension)) {
+                isWarArtifactExists = true;
+            }
+            if (!fileExtensions.contains(fileExtension)) {
+                fileExtensions.add(fileExtension);
+            }
+        }
+        if (!isWarArtifactExists) {
+            return false;
+        }
+        fileExtensions.remove(warExtension);
+        return fileExtensions.size() != 0;
     }
 }
