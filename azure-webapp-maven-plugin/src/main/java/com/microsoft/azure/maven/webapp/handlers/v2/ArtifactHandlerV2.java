@@ -84,8 +84,7 @@ public class ArtifactHandlerV2 implements ArtifactHandler {
                 target.zipDeploy(zipFile);
             }
         };
-        final String retryMessage = "Exception occurred when deploying the zip package.";
-        final boolean deploySuccess = performActionWithRetry(runnable, MAX_RETRY_TIMES, mojo.getLog(), retryMessage);
+        final boolean deploySuccess = performActionWithRetry(runnable, MAX_RETRY_TIMES, mojo.getLog());
         if (!deploySuccess) {
             throw new MojoExecutionException(
                 String.format("The zip deploy failed after %d times of retry.", MAX_RETRY_TIMES + 1));
@@ -111,8 +110,7 @@ public class ArtifactHandlerV2 implements ArtifactHandler {
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
-        final String retryMessage = "Exception occurred when deploying war file to server";
-        final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES, mojo.getLog(), retryMessage);
+        final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES, mojo.getLog());
         if (!deploySuccess) {
             throw new MojoExecutionException(
                 String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES + 1));

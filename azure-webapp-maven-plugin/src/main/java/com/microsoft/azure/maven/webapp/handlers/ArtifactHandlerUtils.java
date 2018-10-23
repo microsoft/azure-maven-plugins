@@ -49,8 +49,7 @@ public class ArtifactHandlerUtils {
             "The type of deploy target is unknown, supported types are WebApp and DeploymentSlot.");
     }
 
-    public static boolean performActionWithRetry(final Runnable runnable, final int maxRetryTimes,
-                                                 final Log log, final String retryMessage) {
+    public static boolean performActionWithRetry(final Runnable runnable, final int maxRetryTimes, final Log log) {
         int retryCount = 0;
         while (retryCount < maxRetryTimes) {
             retryCount += 1;
@@ -58,8 +57,8 @@ public class ArtifactHandlerUtils {
                 runnable.run();
                 return true;
             } catch (Exception e) {
-                log.info(String.format("%s: %s, retrying immediately(%d/%d)...",
-                    retryMessage, e.getMessage(), retryCount, maxRetryTimes));
+                log.info(String.format("Exception occurred during deploying: %s, retry immediately(%d/%d)...",
+                    e.getMessage(), retryCount, maxRetryTimes));
             }
         }
         return false;
