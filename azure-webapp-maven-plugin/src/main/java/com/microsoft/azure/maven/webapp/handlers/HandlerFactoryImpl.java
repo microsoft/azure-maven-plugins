@@ -121,7 +121,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
     private void assureV2RequiredPropertyConfigured(final AbstractWebAppMojo mojo) throws MojoExecutionException {
         if (StringUtils.isEmpty(mojo.getRegion())) {
-            throw new MojoExecutionException("No <runtime> is specified, please configure it in pom.xml.");
+            throw new MojoExecutionException("No <region> is specified, please configure it in pom.xml.");
         }
     }
 
