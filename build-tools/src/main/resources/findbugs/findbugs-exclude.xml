@@ -23,4 +23,8 @@
         </Or>
         <Bug pattern = "BC_UNCONFIRMED_CAST" />
     </Match>
+    <Match>
+        <Class name = "com.microsoft.azure.maven.webapp.handlers.v2.ArtifactHandlerV2$1" />
+        <Bug pattern = "SIC_INNER_SHOULD_BE_STATIC_ANON" />
+    </Match>
 </FindBugsFilter>

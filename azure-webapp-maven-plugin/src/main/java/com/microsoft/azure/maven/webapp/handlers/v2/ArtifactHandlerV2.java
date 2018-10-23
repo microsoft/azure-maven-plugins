@@ -11,49 +11,44 @@ import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
+
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.zeroturnaround.zip.ZipUtil;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
+import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.areAllWarFiles;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getArtifactsRecursively;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getContextPathFromFileName;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getRealWarDeployExecutor;
-import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.isDeployingOnlyWarArtifacts;
-import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.isMixingWarArtifactWithOtherArtifacts;
+import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.hasWarFiles;
+import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.performActionWithRetry;
 
 public class ArtifactHandlerV2 implements ArtifactHandler {
     private AbstractWebAppMojo mojo;
-    private static final int DEFAULT_MAX_RETRY_TIMES = 3;
+    private static final int MAX_RETRY_TIMES = 3;
 
     public ArtifactHandlerV2(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
     }
 
-    public void assureDeploymentResourcesNotEmpty() throws MojoExecutionException {
-        final Deployment deployment = mojo.getDeployment();
-        final List<Resource> resources = deployment.getResources();
-        if (resources == null || resources.size() < 1) {
-            throw new MojoExecutionException("The element <resources> inside deployment has to be set to do deploy.");
-        }
-    }
-
     @Override
     public void publish(final DeployTarget target) throws MojoExecutionException, IOException {
-        assureDeploymentResourcesNotEmpty();
-
-        final Deployment deployment = mojo.getDeployment();
+        final Deployment deployment =  mojo.getDeployment();
         final List<Resource> resources = deployment.getResources();
+        if (resources == null || resources.size() < 1) {
+            mojo.getLog().warn("The <deployment> element is not well configured in pom.xml, skip deployment.");
+            return;
+        }
+
         final String stagingDirectoryPath = mojo.getDeploymentStagingDirectoryPath();
         Utils.copyResources(mojo.getProject(), mojo.getSession(), mojo.getMavenResourcesFiltering(),
             resources, stagingDirectoryPath);
 
-        final List<File> allArtifacts = new ArrayList<File>();
         final File stagingDirectory = new File(stagingDirectoryPath);
-        getArtifactsRecursively(stagingDirectory, allArtifacts);
+        final List<File> allArtifacts = getArtifactsRecursively(stagingDirectory);
 
         if (allArtifacts.size() == 0) {
             throw new MojoExecutionException(
@@ -62,10 +57,10 @@ public class ArtifactHandlerV2 implements ArtifactHandler {
                     stagingDirectory.getAbsolutePath()));
         }
 
-        if (isDeployingOnlyWarArtifacts(allArtifacts)) {
+        if (areAllWarFiles(allArtifacts)) {
             publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
         } else {
-            if (isMixingWarArtifactWithOtherArtifacts(allArtifacts)) {
+            if (hasWarFiles(allArtifacts)) {
                 mojo.getLog().warn(
                     "Deploying war artifact together with other kinds of artifacts is not suggested," +
                         " it will cause the content be overwritten or path incorrect issues.");
@@ -83,20 +78,18 @@ public class ArtifactHandlerV2 implements ArtifactHandler {
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
-        int retryCount = 0;
-        while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
-            retryCount += 1;
-            try {
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
                 target.zipDeploy(zipFile);
-                return;
-            } catch (Exception e) {
-                mojo.getLog().debug(
-                    String.format("Exception occurred when deploying the zip package: %s, " +
-                        "retrying immediately (%d/%d)", e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
             }
+        };
+        final String retryMessage = "Exception occurred when deploying the zip package.";
+        final boolean deploySuccess = performActionWithRetry(runnable, MAX_RETRY_TIMES, mojo.getLog(), retryMessage);
+        if (!deploySuccess) {
+            throw new MojoExecutionException(
+                String.format("The zip deploy failed after %d times of retry.", MAX_RETRY_TIMES + 1));
         }
-
-        throw new MojoExecutionException(String.format("The zip deploy failed after %d times of retry.", retryCount));
     }
 
     protected void publishArtifactsViaWarDeploy(final DeployTarget target, final String stagingDirectoryPath,
@@ -118,18 +111,11 @@ public class ArtifactHandlerV2 implements ArtifactHandler {
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
-        int retryCount = 0;
-        while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
-            retryCount++;
-            try {
-                executor.run();
-                return;
-            } catch (Exception e) {
-                mojo.getLog().debug(String.format("Exception occurred when deploying war file to server: %s, " +
-                    "retrying immediately (%d/%d)", e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
-            }
+        final String retryMessage = "Exception occurred when deploying war file to server";
+        final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES, mojo.getLog(), retryMessage);
+        if (!deploySuccess) {
+            throw new MojoExecutionException(
+                String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES + 1));
         }
-        throw new MojoExecutionException(
-            String.format("Failed to deploy war file after %d times of retry.", retryCount));
     }
 }

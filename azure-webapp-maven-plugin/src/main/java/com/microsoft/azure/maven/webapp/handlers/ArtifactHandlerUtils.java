@@ -11,12 +11,12 @@ import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class ArtifactHandlerUtils {
     /**
@@ -49,6 +49,22 @@ public class ArtifactHandlerUtils {
             "The type of deploy target is unknown, supported types are WebApp and DeploymentSlot.");
     }
 
+    public static boolean performActionWithRetry(final Runnable runnable, final int maxRetryTimes,
+                                                 final Log log, final String retryMessage) {
+        int retryCount = 0;
+        while (retryCount < maxRetryTimes) {
+            retryCount += 1;
+            try {
+                runnable.run();
+                return true;
+            } catch (Exception e) {
+                log.info(String.format("%s: %s, retrying immediately(%d/%d)...",
+                    retryMessage, e.getMessage(), retryCount, maxRetryTimes));
+            }
+        }
+        return false;
+    }
+
     public static String getContextPathFromFileName(final String stagingDirectoryPath,
                                                     final String filePath) throws MojoExecutionException {
         if (StringUtils.isEmpty(stagingDirectoryPath)) {
@@ -61,21 +77,22 @@ public class ArtifactHandlerUtils {
         return Paths.get(stagingDirectoryPath).relativize(Paths.get(filePath).getParent()).toString();
     }
 
-    public static void getArtifactsRecursively(final File directory, final List<File> allFiles) {
-        final File[] files = directory.listFiles();
-        if (files == null || files.length == 0) {
-            return;
-        }
-        for (final File file : files) {
-            if (file.isDirectory()) {
-                getArtifactsRecursively(file, allFiles);
-            } else {
-                allFiles.add(file);
+    public static List<File> getArtifactsRecursively(final File directory) {
+        final List<File> files = new ArrayList<File>();
+        if (directory.isDirectory()) {
+            final File[] subDirectories = directory.listFiles();
+            if (subDirectories != null) {
+                for (final File f : subDirectories) {
+                    files.addAll(getArtifactsRecursively(f));
+                }
             }
+        } else {
+            files.add(directory);
         }
+        return files;
     }
 
-    public static boolean isDeployingOnlyWarArtifacts(final List<File> allArtifacts) {
+    public static boolean areAllWarFiles(final List<File> allArtifacts) {
         for (final File artifacts : allArtifacts) {
             if (!"war".equalsIgnoreCase(Files.getFileExtension(artifacts.getName()))) {
                 return false;
@@ -84,23 +101,12 @@ public class ArtifactHandlerUtils {
         return true;
     }
 
-    public static boolean isMixingWarArtifactWithOtherArtifacts(final List<File> allArtifacts) {
-        final List<String> fileExtensions = new ArrayList<String>();
-        boolean isWarArtifactExists = false;
-        final String warExtension = "war";
+    public static boolean hasWarFiles(final List<File> allArtifacts) {
         for (final File artifacts : allArtifacts) {
-            final String fileExtension = Files.getFileExtension(artifacts.getName()).toLowerCase(Locale.ENGLISH);
-            if (!isWarArtifactExists && warExtension.equals(fileExtension)) {
-                isWarArtifactExists = true;
-            }
-            if (!fileExtensions.contains(fileExtension)) {
-                fileExtensions.add(fileExtension);
+            if ("war".equalsIgnoreCase(Files.getFileExtension(artifacts.getName()))) {
+                return true;
             }
         }
-        if (!isWarArtifactExists) {
-            return false;
-        }
-        fileExtensions.remove(warExtension);
-        return fileExtensions.size() != 0;
+        return false;
     }
 }
