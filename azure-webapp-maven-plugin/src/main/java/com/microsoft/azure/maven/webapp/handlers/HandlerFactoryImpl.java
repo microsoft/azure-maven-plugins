@@ -89,14 +89,11 @@ public class HandlerFactoryImpl extends HandlerFactory {
     protected RuntimeHandler getV2RuntimeHandler(final AbstractWebAppMojo mojo)
         throws MojoExecutionException, AzureAuthFailureException {
 
-        final RuntimeSetting runtime = mojo.getRuntime();
-        if (runtime == null) {
-            throw new MojoExecutionException("No <runtime> is specified, please configure it in pom.xml.");
-        }
+        assureV2RequiredPropertyConfigured(mojo);
 
         final BaseRuntimeHandler.Builder builder;
 
-        switch (OperatingSystemEnum.fromString(runtime.getOs())) {
+        switch (OperatingSystemEnum.fromString(mojo.getRuntime().getOs())) {
             case Windows:
                 builder = new WindowsRuntimeHandlerImplV2.Builder();
                 break;
@@ -120,6 +117,12 @@ public class HandlerFactoryImpl extends HandlerFactory {
             .azure(mojo.getAzureClient())
             .log(mojo.getLog())
             .build();
+    }
+
+    private void assureV2RequiredPropertyConfigured(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+        if (StringUtils.isEmpty(mojo.getRegion())) {
+            throw new MojoExecutionException("No <region> is specified, please configure it in pom.xml.");
+        }
     }
 
     protected RuntimeHandler getV1DockerRuntimeHandler(final String imageName, final String serverId,
@@ -201,6 +204,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
     }
 
     protected ArtifactHandler getV2ArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+        assureV2RequiredPropertyConfigured(mojo);
         // todo
         throw new MojoExecutionException("Unimplemented for schema version: " + mojo.getSchemaVersion());
     }
