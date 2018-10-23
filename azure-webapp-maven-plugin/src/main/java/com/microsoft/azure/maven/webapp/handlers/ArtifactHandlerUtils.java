@@ -57,7 +57,7 @@ public class ArtifactHandlerUtils {
                 runnable.run();
                 return true;
             } catch (Exception e) {
-                log.info(String.format("Exception occurred during deploying: %s, retry immediately(%d/%d)...",
+                log.info(String.format("Exception occurred during deployment: %s, retry immediately(%d/%d)...",
                     e.getMessage(), retryCount, maxRetryTimes));
             }
         }
