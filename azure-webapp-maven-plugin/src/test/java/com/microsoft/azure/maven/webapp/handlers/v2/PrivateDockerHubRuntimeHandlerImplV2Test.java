@@ -50,7 +50,7 @@ public class PrivateDockerHubRuntimeHandlerImplV2Test {
             .servicePlanName(mojo.getAppServicePlanName())
             .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
             .azure(mojo.getAzureClient())
-            .settings(mojo.getSettings())
+            .mavenSettings(mojo.getSettings())
             .log(mojo.getLog())
             .build();
     }

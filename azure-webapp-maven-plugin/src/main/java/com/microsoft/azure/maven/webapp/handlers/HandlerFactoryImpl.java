@@ -157,12 +157,12 @@ public class HandlerFactoryImpl extends HandlerFactory {
             case PRIVATE_DOCKER_HUB:
                 final PrivateDockerHubRuntimeHandlerImplV2.Builder privateDockerHubRuntimeHandlerImplV2Builder =
                     new PrivateDockerHubRuntimeHandlerImplV2.Builder();
-                privateDockerHubRuntimeHandlerImplV2Builder.settings(mojo.getSettings());
+                privateDockerHubRuntimeHandlerImplV2Builder.mavenSettings(mojo.getSettings());
                 return privateDockerHubRuntimeHandlerImplV2Builder;
             case PRIVATE_REGISTRY:
                 final PrivateRegistryRuntimeHandlerImplV2.Builder privateRegistryRuntimeHandlerImplV2Builder =
                     new PrivateRegistryRuntimeHandlerImplV2.Builder();
-                privateRegistryRuntimeHandlerImplV2Builder.settings(mojo.getSettings());
+                privateRegistryRuntimeHandlerImplV2Builder.mavenSettings(mojo.getSettings());
                 return privateRegistryRuntimeHandlerImplV2Builder;
             case NONE:
                 throw new MojoExecutionException(
