@@ -145,7 +145,7 @@ public class ArtifactHandlerImplV2Test {
         final String stagingDirectory = Paths.get(Paths.get("").toAbsolutePath().toString(),
             "maven-plugin-temp").toString();
         final List<File> artifacts = new ArrayList<>();
-        final File artifact = new File(Paths.get(stagingDirectory, "dummypath\\dummy.war").toString());
+        final File artifact = new File(Paths.get(stagingDirectory, "dummypath", "dummy.war").toString());
         artifacts.add(artifact);
         doNothing().when(handlerSpy).publishWarArtifact(target, artifact, "dummypath");
 
