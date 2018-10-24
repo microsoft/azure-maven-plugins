@@ -23,6 +23,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -139,10 +140,12 @@ public class ArtifactHandlerImplV2Test {
 
     @Test
     public void publishArtifactsViaWarDeploy() throws MojoExecutionException {
-        final DeployTarget target = mock(DeployTarget.class);
-        final String stagingDirectory = "D:\\temp\\dummy";
+        final WebApp app = mock(WebApp.class);
+        final DeployTarget target = new WebAppDeployTarget(app);
+        final String stagingDirectory = Paths.get(Paths.get("").toAbsolutePath().toString(),
+            "maven-plugin-temp").toString();
         final List<File> artifacts = new ArrayList<>();
-        final File artifact = new File("D:\\temp\\dummy\\dummypath\\dummy.war");
+        final File artifact = new File(Paths.get(stagingDirectory, "dummypath\\dummy.war").toString());
         artifacts.add(artifact);
         doNothing().when(handlerSpy).publishWarArtifact(target, artifact, "dummypath");
 
