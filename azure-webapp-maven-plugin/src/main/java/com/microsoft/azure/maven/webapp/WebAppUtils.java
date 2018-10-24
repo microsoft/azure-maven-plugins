@@ -172,13 +172,13 @@ public class WebAppUtils {
             return false;
         }
 
-        return !StringUtils.isEmpty(runtime.getOs()) || runtime.getJavaVersion() != null ||
-            runtime.getWebContainer() != null || !StringUtils.isEmpty(runtime.getImage()) ||
-            !StringUtils.isEmpty(runtime.getServerId()) || !StringUtils.isEmpty(runtime.getRegistryUrl());
+        return StringUtils.isNotEmpty(runtime.getOs()) || runtime.getJavaVersion() != null ||
+            runtime.getWebContainer() != null || StringUtils.isNotEmpty(runtime.getImage()) ||
+            StringUtils.isNotEmpty(runtime.getServerId()) || StringUtils.isNotEmpty(runtime.getRegistryUrl());
     }
 
     /**
-     * Work Around:
+     * Workaround:
      * When a web app is created from Azure Portal, there are hidden tags associated with the app.
      * It will be messed up when calling "update" API.
      * An issue is logged at https://github.com/Azure/azure-sdk-for-java/issues/1755 .
