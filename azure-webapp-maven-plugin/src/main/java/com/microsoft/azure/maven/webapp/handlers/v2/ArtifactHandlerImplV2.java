@@ -26,17 +26,17 @@ import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.get
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.hasWarFiles;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.performActionWithRetry;
 
-public class ArtifactHandlerV2 implements ArtifactHandler {
+public class ArtifactHandlerImplV2 implements ArtifactHandler {
     private AbstractWebAppMojo mojo;
     private static final int MAX_RETRY_TIMES = 3;
 
-    public ArtifactHandlerV2(final AbstractWebAppMojo mojo) {
+    public ArtifactHandlerImplV2(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
     }
 
     @Override
     public void publish(final DeployTarget target) throws MojoExecutionException, IOException {
-        final Deployment deployment =  mojo.getDeployment();
+        final Deployment deployment = mojo.getDeployment();
         final List<Resource> resources = deployment.getResources();
         if (resources == null || resources.size() < 1) {
             mojo.getLog().warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
@@ -44,17 +44,13 @@ public class ArtifactHandlerV2 implements ArtifactHandler {
         }
 
         final String stagingDirectoryPath = mojo.getDeploymentStagingDirectoryPath();
-        Utils.copyResources(mojo.getProject(), mojo.getSession(), mojo.getMavenResourcesFiltering(),
-            resources, stagingDirectoryPath);
-
-        final File stagingDirectory = new File(stagingDirectoryPath);
-        final List<File> allArtifacts = getArtifactsRecursively(stagingDirectory);
+        copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
+        final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
 
         if (allArtifacts.size() == 0) {
+            final String absolutePath = new File(stagingDirectoryPath).getAbsolutePath();
             throw new MojoExecutionException(
-                String.format(
-                    "There is no artifact to deploy in staging directory: '%s'",
-                    stagingDirectory.getAbsolutePath()));
+                String.format("There is no artifact to deploy in staging directory: '%s'", absolutePath));
         }
 
         if (areAllWarFiles(allArtifacts)) {
@@ -67,6 +63,17 @@ public class ArtifactHandlerV2 implements ArtifactHandler {
             }
             publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
         }
+    }
+
+    protected List<File> getAllArtifacts(final String stagingDirectoryPath) {
+        final File stagingDirectory = new File(stagingDirectoryPath);
+        return getArtifactsRecursively(stagingDirectory);
+    }
+
+    protected void copyArtifactsToStagingDirectory(final List<Resource> resources,
+                                                   final String stagingDirectoryPath) throws IOException {
+        Utils.copyResources(mojo.getProject(), mojo.getSession(), mojo.getMavenResourcesFiltering(),
+            resources, stagingDirectoryPath);
     }
 
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,
