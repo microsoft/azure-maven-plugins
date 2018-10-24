@@ -11,6 +11,7 @@ import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
@@ -27,6 +28,7 @@ import com.microsoft.azure.maven.webapp.handlers.v1.PrivateRegistryRuntimeHandle
 import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.v2.ArtifactHandlerV2;
 import com.microsoft.azure.maven.webapp.handlers.v2.LinuxRuntimeHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.v2.PrivateDockerHubRuntimeHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.v2.PrivateRegistryRuntimeHandlerImplV2;
@@ -47,7 +49,9 @@ public class HandlerFactoryImpl extends HandlerFactory {
         "The value of <deploymentType> is unknown, supported values are: jar, war, zip, ftp, auto and none.";
 
     @Override
-    public RuntimeHandler getRuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+    public RuntimeHandler getRuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException,
+        AzureAuthFailureException {
+
         switch (SchemaVersion.fromString(mojo.getSchemaVersion())) {
             case V1:
                 return getV1RuntimeHandler(mojo);
@@ -83,23 +87,42 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
     }
 
-    protected RuntimeHandler getV2RuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
-        final RuntimeSetting runtime = mojo.getRuntime();
-        if (runtime == null) {
-            throw new MojoExecutionException("No <runtime> is specified, please configure it in pom.xml.");
-        }
+    protected RuntimeHandler getV2RuntimeHandler(final AbstractWebAppMojo mojo)
+        throws MojoExecutionException, AzureAuthFailureException {
 
-        switch (OperatingSystemEnum.fromString(runtime.getOs())) {
+        assureV2RequiredPropertyConfigured(mojo);
+
+        final BaseRuntimeHandler.Builder builder;
+
+        switch (OperatingSystemEnum.fromString(mojo.getRuntime().getOs())) {
             case Windows:
-                return new WindowsRuntimeHandlerImplV2();
+                builder = new WindowsRuntimeHandlerImplV2.Builder();
+                break;
             case Linux:
-                return new LinuxRuntimeHandlerImplV2();
+                builder = new LinuxRuntimeHandlerImplV2.Builder();
+                break;
             case Docker:
-                return getV2DockerRuntimeHandler(
-                    runtime.getImage(), runtime.getServerId(), runtime.getRegistryUrl());
+                builder = getV2DockerRuntimeHandlerBuilder(mojo);
+                break;
             default:
                 throw new MojoExecutionException(
                     "The value of <os> is unknown, supported values are: windows, linux and docker.");
+        }
+        return builder.runtime(mojo.getRuntime())
+            .appName(mojo.getAppName())
+            .resourceGroup(mojo.getResourceGroup())
+            .region(mojo.getRegion())
+            .pricingTier(mojo.getPricingTier())
+            .servicePlanName(mojo.getAppServicePlanName())
+            .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
+            .azure(mojo.getAzureClient())
+            .log(mojo.getLog())
+            .build();
+    }
+
+    private void assureV2RequiredPropertyConfigured(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+        if (StringUtils.isEmpty(mojo.getRegion())) {
+            throw new MojoExecutionException("No <region> is specified, please configure it in pom.xml.");
         }
     }
 
@@ -122,19 +145,29 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
     }
 
-    protected RuntimeHandler getV2DockerRuntimeHandler(final String image, final String serverId,
-                                                       final String registryUrl) throws MojoExecutionException {
-        final DockerImageType imageType = WebAppUtils.getDockerImageType(image, serverId, registryUrl);
+    protected BaseRuntimeHandler.Builder getV2DockerRuntimeHandlerBuilder(final AbstractWebAppMojo mojo)
+        throws MojoExecutionException {
+
+        final RuntimeSetting runtime = mojo.getRuntime();
+        final DockerImageType imageType = WebAppUtils.getDockerImageType(runtime.getImage(), runtime.getServerId(),
+            runtime.getRegistryUrl());
+
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
-                return new PublicDockerHubRuntimeHandlerImplV2();
+                return new PublicDockerHubRuntimeHandlerImplV2.Builder();
             case PRIVATE_DOCKER_HUB:
-                return new PrivateDockerHubRuntimeHandlerImplV2();
+                final PrivateDockerHubRuntimeHandlerImplV2.Builder privateDockerHubRuntimeHandlerImplV2Builder =
+                    new PrivateDockerHubRuntimeHandlerImplV2.Builder();
+                privateDockerHubRuntimeHandlerImplV2Builder.mavenSettings(mojo.getSettings());
+                return privateDockerHubRuntimeHandlerImplV2Builder;
             case PRIVATE_REGISTRY:
-                return new PrivateRegistryRuntimeHandlerImplV2();
+                final PrivateRegistryRuntimeHandlerImplV2.Builder privateRegistryRuntimeHandlerImplV2Builder =
+                    new PrivateRegistryRuntimeHandlerImplV2.Builder();
+                privateRegistryRuntimeHandlerImplV2Builder.mavenSettings(mojo.getSettings());
+                return privateRegistryRuntimeHandlerImplV2Builder;
             case NONE:
                 throw new MojoExecutionException(
-                    "The configuration <image> is not specified within <runtime>, please configure it in pom.xml");
+                    "The configuration <image> is not specified within <runtime>, please configure it in pom.xml.");
             default:
                 throw new MojoExecutionException("Configuration <runtime> is not correct. Please fix it in pom.xml.");
         }
@@ -178,8 +211,8 @@ public class HandlerFactoryImpl extends HandlerFactory {
     }
 
     protected ArtifactHandler getV2ArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
-        // todo
-        throw new MojoExecutionException("Unimplemented for schema version: " + mojo.getSchemaVersion());
+        assureV2RequiredPropertyConfigured(mojo);
+        return new ArtifactHandlerV2(mojo);
     }
 
     protected ArtifactHandler getArtifactHandlerFromPackaging(final AbstractWebAppMojo mojo)
