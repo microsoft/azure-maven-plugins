@@ -33,7 +33,7 @@ public class RuntimeSetting {
         return this.os;
     }
 
-    public JavaVersion getWindowsJavaVersion() {
+    public JavaVersion getJavaVersion() {
         return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
     }
 

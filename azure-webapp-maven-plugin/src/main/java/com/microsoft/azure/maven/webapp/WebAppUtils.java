@@ -18,6 +18,8 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCre
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
@@ -71,7 +73,7 @@ public class WebAppUtils {
     private static void assureLinuxPlan(final AppServicePlan plan) throws MojoExecutionException {
         if (!plan.operatingSystem().equals(OperatingSystem.LINUX)) {
             throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                    plan.name(), OperatingSystem.LINUX.name()));
+                plan.name(), OperatingSystem.LINUX.name()));
         }
     }
 
@@ -90,7 +92,7 @@ public class WebAppUtils {
     private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
         if (!plan.operatingSystem().equals(OperatingSystem.WINDOWS)) {
             throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                    plan.name(), OperatingSystem.WINDOWS.name()));
+                plan.name(), OperatingSystem.WINDOWS.name()));
         }
     }
 
@@ -112,12 +114,12 @@ public class WebAppUtils {
             log.info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
 
             final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
-                    .define(servicePlanName).withRegion(region);
+                .define(servicePlanName).withRegion(region);
 
             final AppServicePlan.DefinitionStages.WithPricingTier withPricingTier
-                    = azure.resourceGroups().contain(servicePlanResGrp) ?
-                    withGroup.withExistingResourceGroup(servicePlanResGrp) :
-                    withGroup.withNewResourceGroup(servicePlanResGrp);
+                = azure.resourceGroups().contain(servicePlanResGrp) ?
+                withGroup.withExistingResourceGroup(servicePlanResGrp) :
+                withGroup.withNewResourceGroup(servicePlanResGrp);
 
             plan = withPricingTier.withPricingTier(pricingTier).withOperatingSystem(os).create();
 
@@ -159,6 +161,20 @@ public class WebAppUtils {
             }
         }
         throw new MojoExecutionException(IMAGE_NOT_GIVEN);
+    }
+
+    public static boolean isUpdateWebAppNecessary(final String schemaVersion, final RuntimeSetting runtime)
+        throws MojoExecutionException {
+        if (SchemaVersion.V2 != SchemaVersion.fromString(schemaVersion)) {
+            return true;
+        }
+        if (runtime == null) {
+            return false;
+        }
+
+        return !StringUtils.isEmpty(runtime.getOs()) || runtime.getJavaVersion() != null ||
+            runtime.getWebContainer() != null || !StringUtils.isEmpty(runtime.getImage()) ||
+            !StringUtils.isEmpty(runtime.getServerId()) || !StringUtils.isEmpty(runtime.getRegistryUrl());
     }
 
     /**

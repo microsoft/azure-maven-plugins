@@ -65,7 +65,7 @@ public class WindowsRuntimeHandlerImplV2Test {
         final RuntimeSetting runtime = mock(RuntimeSetting.class);
         doReturn(runtime).when(mojo).getRuntime();
         doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(runtime).getWebContainer();
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(runtime).getWindowsJavaVersion();
+        doReturn(JavaVersion.JAVA_8_NEWEST).when(runtime).getJavaVersion();
 
         final WebAppBase.UpdateStages.WithWebContainer withWebContainer =
             mock(WebAppBase.UpdateStages.WithWebContainer.class);

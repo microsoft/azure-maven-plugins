@@ -93,8 +93,13 @@ public class HandlerFactoryImpl extends HandlerFactory {
         assureV2RequiredPropertyConfigured(mojo);
 
         final BaseRuntimeHandler.Builder builder;
+        final RuntimeSetting runtime = mojo.getRuntime();
+        if (StringUtils.isEmpty(runtime.getOs()) || null == runtime.getJavaVersion()) {
+            // todo, add the guidance here
+            throw new MojoExecutionException("Incorrect <runtime> settings in pom.xml, please correct it.");
+        }
 
-        switch (OperatingSystemEnum.fromString(mojo.getRuntime().getOs())) {
+        switch (OperatingSystemEnum.fromString(runtime.getOs())) {
             case Windows:
                 builder = new WindowsRuntimeHandlerImplV2.Builder();
                 break;
@@ -108,7 +113,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 throw new MojoExecutionException(
                     "The value of <os> is unknown, supported values are: windows, linux and docker.");
         }
-        return builder.runtime(mojo.getRuntime())
+        return builder.runtime(runtime)
             .appName(mojo.getAppName())
             .resourceGroup(mojo.getResourceGroup())
             .region(mojo.getRegion())
