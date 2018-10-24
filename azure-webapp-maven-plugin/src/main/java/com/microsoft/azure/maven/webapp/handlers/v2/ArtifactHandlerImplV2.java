@@ -26,11 +26,11 @@ import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.get
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.hasWarFiles;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.performActionWithRetry;
 
-public class ArtifactHandlerV2 implements ArtifactHandler {
+public class ArtifactHandlerImplV2 implements ArtifactHandler {
     private AbstractWebAppMojo mojo;
     private static final int MAX_RETRY_TIMES = 3;
 
-    public ArtifactHandlerV2(final AbstractWebAppMojo mojo) {
+    public ArtifactHandlerImplV2(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
     }
 
@@ -73,7 +73,7 @@ public class ArtifactHandlerV2 implements ArtifactHandler {
     protected void copyArtifactsToStagingDirectory(final List<Resource> resources,
                                                    final String stagingDirectoryPath) throws IOException {
         Utils.copyResources(mojo.getProject(), mojo.getSession(), mojo.getMavenResourcesFiltering(),
-        resources, stagingDirectoryPath);
+            resources, stagingDirectoryPath);
     }
 
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,

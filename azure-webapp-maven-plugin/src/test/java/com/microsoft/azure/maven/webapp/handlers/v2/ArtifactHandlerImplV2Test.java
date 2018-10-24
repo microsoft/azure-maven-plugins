@@ -38,18 +38,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ArtifactHandlerV2Test {
+public class ArtifactHandlerImplV2Test {
     @Mock
     private AbstractWebAppMojo mojo;
 
-    private ArtifactHandlerV2 handler;
+    private ArtifactHandlerImplV2 handler;
 
-    private ArtifactHandlerV2 handlerSpy;
+    private ArtifactHandlerImplV2 handlerSpy;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        handler = new ArtifactHandlerV2(mojo);
+        handler = new ArtifactHandlerImplV2(mojo);
         handlerSpy = spy(handler);
     }
 
@@ -141,7 +141,7 @@ public class ArtifactHandlerV2Test {
     public void publishArtifactsViaWarDeploy() throws MojoExecutionException {
         final DeployTarget target = mock(DeployTarget.class);
         final String stagingDirectory = "D:\\temp\\dummy";
-        final List<File> artifacts =new ArrayList<>();
+        final List<File> artifacts = new ArrayList<>();
         final File artifact = new File("D:\\temp\\dummy\\dummypath\\dummy.war");
         artifacts.add(artifact);
         doNothing().when(handlerSpy).publishWarArtifact(target, artifact, "dummypath");
