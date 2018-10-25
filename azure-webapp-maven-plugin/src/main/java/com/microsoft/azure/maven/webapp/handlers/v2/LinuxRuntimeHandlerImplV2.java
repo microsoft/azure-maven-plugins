@@ -35,13 +35,13 @@ public class LinuxRuntimeHandlerImplV2 extends BaseRuntimeHandler {
         final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
             servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.LINUX);
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
-            .withBuiltInImage(runtime.getLinuxRuntime());
+            .withBuiltInImage(runtime);
     }
 
     @Override
     public Update updateAppRuntime(WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
-        return app.update().withBuiltInImage(runtime.getLinuxRuntime());
+        return app.update().withBuiltInImage(runtime);
     }
 }

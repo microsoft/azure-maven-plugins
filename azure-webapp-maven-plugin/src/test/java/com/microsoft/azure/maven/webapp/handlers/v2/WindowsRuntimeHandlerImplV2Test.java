@@ -43,8 +43,8 @@ public class WindowsRuntimeHandlerImplV2Test {
     }
 
     public void initHandler() throws AzureAuthFailureException {
-        handler = builder.runtime(mojo.getRuntime())
-            .appName(mojo.getAppName())
+        final RuntimeSetting runtime = mojo.getRuntime();
+        handler = builder.appName(mojo.getAppName())
             .resourceGroup(mojo.getResourceGroup())
             .region(mojo.getRegion())
             .pricingTier(mojo.getPricingTier())
@@ -52,6 +52,8 @@ public class WindowsRuntimeHandlerImplV2Test {
             .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
             .azure(mojo.getAzureClient())
             .log(mojo.getLog())
+            .javaVersion(runtime.getJavaVersion())
+            .webContainer(runtime.getWebContainer())
             .build();
     }
 
