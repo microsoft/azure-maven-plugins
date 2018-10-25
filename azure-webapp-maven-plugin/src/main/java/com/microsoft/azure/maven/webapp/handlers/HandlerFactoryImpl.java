@@ -111,7 +111,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 break;
             default:
                 throw new MojoExecutionException(
-                    "The value of <os> is unknown, supported values are: windows, linux and docker.");
+                    "The value of <os> is unknown, the supported values are: windows, linux and docker.");
         }
         return builder.runtime(runtime)
             .appName(mojo.getAppName())

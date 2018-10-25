@@ -168,13 +168,7 @@ public class WebAppUtils {
         if (SchemaVersion.V2 != SchemaVersion.fromString(schemaVersion)) {
             return true;
         }
-        if (runtime == null) {
-            return false;
-        }
-
-        return StringUtils.isNotEmpty(runtime.getOs()) || runtime.getJavaVersion() != null ||
-            runtime.getWebContainer() != null || StringUtils.isNotEmpty(runtime.getImage()) ||
-            StringUtils.isNotEmpty(runtime.getServerId()) || StringUtils.isNotEmpty(runtime.getRegistryUrl());
+        return runtime != null && !runtime.isEmpty();
     }
 
     /**

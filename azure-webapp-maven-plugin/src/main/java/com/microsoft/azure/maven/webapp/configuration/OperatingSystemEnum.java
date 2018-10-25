@@ -16,12 +16,12 @@ public enum OperatingSystemEnum {
     Linux,
     Docker;
 
-    public static OperatingSystemEnum fromString(final String input) throws MojoExecutionException {
-        final String errorMessage = "Unknown value of <os> configured in pom.xml.";
-        if (StringUtils.isEmpty(input)) {
-            throw new MojoExecutionException(errorMessage);
+    public static OperatingSystemEnum fromString(final String os) throws MojoExecutionException {
+        if (StringUtils.isEmpty(os)) {
+            throw new MojoExecutionException("The configuration <os> in <runtime> is required, " +
+                "please specify it in pom.xml.");
         }
-        switch (input.toLowerCase(Locale.ENGLISH)) {
+        switch (os.toLowerCase(Locale.ENGLISH)) {
             case "windows":
                 return Windows;
             case "linux":
@@ -29,7 +29,8 @@ public enum OperatingSystemEnum {
             case "docker":
                 return Docker;
             default:
-                throw new MojoExecutionException(errorMessage);
+                throw new MojoExecutionException("The value of <os> is unknown, supported values are: windows, " +
+                    "linux and docker.");
         }
     }
 }
