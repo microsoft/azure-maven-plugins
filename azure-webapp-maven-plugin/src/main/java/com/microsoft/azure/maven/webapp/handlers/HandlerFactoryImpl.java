@@ -94,10 +94,6 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
         final BaseRuntimeHandler.Builder builder;
         final RuntimeSetting runtime = mojo.getRuntime();
-        if (StringUtils.isEmpty(runtime.getOs()) || null == runtime.getJavaVersion()) {
-            // todo, add the guidance here
-            throw new MojoExecutionException("Incorrect <runtime> settings in pom.xml, please correct it.");
-        }
 
         switch (OperatingSystemEnum.fromString(runtime.getOs())) {
             case Windows:
