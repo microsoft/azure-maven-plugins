@@ -94,27 +94,26 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
         final BaseRuntimeHandler.Builder builder;
         final RuntimeSetting runtime = mojo.getRuntime();
-        if (StringUtils.isEmpty(runtime.getOs()) || null == runtime.getJavaVersion()) {
-            // todo, add the guidance here
-            throw new MojoExecutionException("Incorrect <runtime> settings in pom.xml, please correct it.");
-        }
+        // todo validate configuration
 
         switch (OperatingSystemEnum.fromString(runtime.getOs())) {
             case Windows:
                 builder = new WindowsRuntimeHandlerImplV2.Builder();
+                builder.javaVersion(runtime.getJavaVersion()).webContainer(runtime.getWebContainer());
                 break;
             case Linux:
                 builder = new LinuxRuntimeHandlerImplV2.Builder();
+                builder.runtime(runtime.getLinuxRuntime());
                 break;
             case Docker:
                 builder = getV2DockerRuntimeHandlerBuilder(mojo);
+                builder.image(runtime.getImage()).serverId(runtime.getServerId()).registryUrl(runtime.getRegistryUrl());
                 break;
             default:
                 throw new MojoExecutionException(
                     "The value of <os> is unknown, the supported values are: windows, linux and docker.");
         }
-        return builder.runtime(runtime)
-            .appName(mojo.getAppName())
+        return builder.appName(mojo.getAppName())
             .resourceGroup(mojo.getResourceGroup())
             .region(mojo.getRegion())
             .pricingTier(mojo.getPricingTier())
