@@ -36,7 +36,7 @@ public class WindowsRuntimeHandlerImplV2 extends BaseRuntimeHandler {
         final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
             servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.WINDOWS);
         final WithCreate withCreate = WebAppUtils.defineWindowsApp(resourceGroup, appName, azure, plan);
-        withCreate.withJavaVersion(runtime.getWindowsJavaVersion()).withWebContainer(runtime.getWebContainer());
+        withCreate.withJavaVersion(runtime.getJavaVersion()).withWebContainer(runtime.getWebContainer());
         return withCreate;
     }
 
@@ -45,7 +45,7 @@ public class WindowsRuntimeHandlerImplV2 extends BaseRuntimeHandler {
         WebAppUtils.assureWindowsWebApp(app);
         WebAppUtils.clearTags(app);
         final Update update = app.update();
-        update.withJavaVersion(runtime.getWindowsJavaVersion()).withWebContainer(runtime.getWebContainer());
+        update.withJavaVersion(runtime.getJavaVersion()).withWebContainer(runtime.getWebContainer());
         return update;
     }
 

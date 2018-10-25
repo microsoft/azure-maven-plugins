@@ -17,8 +17,9 @@ import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-
 import java.util.concurrent.TimeUnit;
+
+import static com.microsoft.azure.maven.webapp.WebAppUtils.isUpdateWebAppNecessary;
 
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
@@ -71,6 +72,10 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     protected void updateWebApp(final WebApp app) throws Exception {
+        if (!isUpdateWebAppNecessary(this.getSchemaVersion(), this.getRuntime())) {
+            return;
+        }
+
         info(UPDATE_WEBAPP);
 
         final Update update = getFactory().getRuntimeHandler(this).updateAppRuntime(app);
