@@ -8,16 +8,23 @@ package com.microsoft.azure.maven.function.handlers;
 
 import com.github.zafarkhaja.semver.Version;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
+import com.microsoft.azure.maven.function.bindings.HttpBinding;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
+
+import java.util.Arrays;
+import java.util.Set;
 
 public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
     public static final String FUNC_EXTENSIONS_INSTALL_TEMPLATE = "func extensions install -c \"%s\"";
     public static final String INSTALL_FUNCTION_EXTENSIONS_FAIL = "Failed to install the Function extensions";
+    public static final String NO_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
+            "exist, please install Azure Function Core Tools and try again. See: https://aka.ms/azfunc-install";
     public static final String OUTDATED_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
-            "support extension auto-install, skip it in the package phase.";
+            "exist or it is too old to support extension auto-install, skip it in the package phase. To install or" +
+            " upgrade it, see: https://aka.ms/azfunc-install";
     public static final String NEED_UPDATE_FUNCTION_CORE_TOOLS = "Local version of Azure Functions Core Tools (%s) " +
-            "does not match the latest (%s). Please update it for the best experience. " + 
+            "does not match the latest (%s). Please update it for the best experience. " +
             "See: https://aka.ms/azfunc-install";
     public static final String GET_LATEST_VERSION_CMD = "npm view azure-functions-core-tools dist-tags.core";
     public static final String GET_LATEST_VERSION_FAIL = "Failed to check update for Azure Functions Core Tools";
@@ -25,6 +32,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     public static final String GET_LOCAL_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
     public static final Version LEAST_SUPPORTED_VERSION = Version.valueOf("2.0.1-beta.26");
 
+    private static final Class[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = {HttpBinding.class};
     private AbstractFunctionMojo mojo;
     private CommandHandler commandHandler;
 
@@ -34,20 +42,25 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     }
 
     @Override
-    public void installExtension() {
-        try {
-            final String localVersion = getLocalFunctionCoreToolsVersion();
+    public void installExtension(Set<Class> bindingTypes) throws Exception {
+        final String localVersion = getLocalFunctionCoreToolsVersion();
 
-            if (isLocalVersionSupportAutoInstall(localVersion)) {
-                installFunctionExtension();
+        if (isLocalVersionSupportAutoInstall(localVersion)) {
+            checkVersion(localVersion);
+            installFunctionExtension();
+        } else {
+            if (checkExtensionNecessity(bindingTypes)) {
+                this.mojo.error(NO_LOCAL_FUNCTION_CORE_TOOLS);
+                throw new Exception(NO_LOCAL_FUNCTION_CORE_TOOLS);
             } else {
                 this.mojo.warning(OUTDATED_LOCAL_FUNCTION_CORE_TOOLS);
             }
-
-            checkVersion(localVersion);
-        } catch (Exception e) {
-            this.mojo.warning(e.getMessage());
         }
+    }
+
+    protected boolean checkExtensionNecessity(Set<Class> bindingTypes) {
+        return bindingTypes.stream().anyMatch(binding ->
+                !Arrays.asList(FUNCTION_WITHOUT_FUNCTION_EXTENSION).contains(binding));
     }
 
     protected void installFunctionExtension() throws Exception {

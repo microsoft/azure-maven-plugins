@@ -12,6 +12,8 @@ import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 
+import java.util.HashSet;
+
 import static com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl.FUNC_EXTENSIONS_INSTALL_TEMPLATE;
 import static com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl.INSTALL_FUNCTION_EXTENSIONS_FAIL;
 import static org.junit.Assert.assertEquals;
@@ -45,7 +47,7 @@ public class FunctionCoreToolsHandlerImplTest {
         doNothing().when(functionCoreToolsHandlerSpy).installFunctionExtension();
         doNothing().when(functionCoreToolsHandlerSpy).checkVersion(any());
 
-        functionCoreToolsHandlerSpy.installExtension();
+        functionCoreToolsHandlerSpy.installExtension(new HashSet<>());
         verify(mojo, never()).warning(anyString());
     }
 

@@ -31,6 +31,7 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,7 +87,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
         final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
 
-        installExtension(functionCoreToolsHandler);
+        installExtension(functionCoreToolsHandler, configMap);
 
         info(BUILD_SUCCESS);
     }
@@ -136,7 +137,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         } catch (DependencyResolutionRequiredException e) {
             debug("Failed to resolve dependencies for compile scope, exception: " + e.getMessage());
         }
-        for (final String element: compileClasspathElements) {
+        for (final String element : compileClasspathElements) {
             final File f = new File(element);
             try {
                 urlList.add(f.toURI().toURL());
@@ -273,12 +274,19 @@ public class PackageMojo extends AbstractFunctionMojo {
         return new FunctionCoreToolsHandlerImpl(this, commandHandler);
     }
 
-    protected void installExtension(final FunctionCoreToolsHandler handler) throws Exception {
+    protected void installExtension(final FunctionCoreToolsHandler handler,
+                                    Map<String, FunctionConfiguration> configMap) throws Exception {
         info("");
         info(INSTALL_EXTENSIONS);
-        handler.installExtension();
+        handler.installExtension(getFunctionBindingClasses(configMap));
         info(INSTALL_EXTENSIONS_FINISH);
     }
 
+    protected Set<Class> getFunctionBindingClasses(Map<String, FunctionConfiguration> configMap) {
+        final Set<Class> result = new HashSet<>();
+        configMap.values().forEach(configuration -> configuration.getBindings().
+                forEach(binding -> result.add(binding.getClass())));
+        return result;
+    }
     // end region
 }

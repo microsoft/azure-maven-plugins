@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import java.util.Set;
+
 public interface FunctionCoreToolsHandler {
-    void installExtension() throws Exception;
+    void installExtension(Set<Class> bindingTypes) throws Exception;
 }
