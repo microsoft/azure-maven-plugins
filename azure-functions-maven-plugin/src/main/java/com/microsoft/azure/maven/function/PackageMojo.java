@@ -59,6 +59,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String COPY_JARS = "Step 6 of 7: Copying JARs to staging directory";
     public static final String COPY_SUCCESS = "Copied successfully.";
     public static final String INSTALL_EXTENSIONS = "Step 7 of 7: Installing function extensions if needed";
+    public static final String SKIP_INSTALL_EXTENSIONS = "Skip install Function extension for HTTP Trigger Functions";
     public static final String INSTALL_EXTENSIONS_FINISH = "Function extension installation done.";
     public static final String BUILD_SUCCESS = "Successfully built Azure Functions.";
 
@@ -87,9 +88,9 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         copyJarsToStageDirectory();
 
-        final Set<Class> bindingClasses = this.getFunctionBindingClasses(configMap);
         final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
         final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
+        final Set<Class> bindingClasses = this.getFunctionBindingClasses(configMap);
 
         installExtension(functionCoreToolsHandler, bindingClasses);
 
@@ -280,10 +281,13 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void installExtension(final FunctionCoreToolsHandler handler,
                                     Set<Class> bindingClasses) throws Exception {
-        if (checkExtensionNecessity(bindingClasses)) {
+        if (isInstallingExtensionNeeded(bindingClasses)) {
             info(INSTALL_EXTENSIONS);
             handler.installExtension();
             info(INSTALL_EXTENSIONS_FINISH);
+        } else {
+            info(SKIP_INSTALL_EXTENSIONS);
+            return;
         }
     }
 
@@ -294,7 +298,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         return result;
     }
 
-    protected boolean checkExtensionNecessity(Set<Class> bindingTypes) {
+    protected boolean isInstallingExtensionNeeded(Set<Class> bindingTypes) {
         return bindingTypes.stream().anyMatch(binding ->
                 !Arrays.asList(FUNCTION_WITHOUT_FUNCTION_EXTENSION).contains(binding));
     }

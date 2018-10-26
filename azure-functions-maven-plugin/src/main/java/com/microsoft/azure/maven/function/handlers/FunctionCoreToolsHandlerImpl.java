@@ -14,9 +14,11 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
     public static final String FUNC_EXTENSIONS_INSTALL_TEMPLATE = "func extensions install -c \"%s\"";
     public static final String INSTALL_FUNCTION_EXTENSIONS_FAIL = "Failed to install the Function extensions";
+    public static final String NO_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
+            "exist, skip package phase. To install it, see: https://aka.ms/azfunc-install";
     public static final String OUTDATED_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
-            "exist or it is too old to support extension auto-install, skip it in the package phase. To install or" +
-            " upgrade it, see: https://aka.ms/azfunc-install";
+            "support extension auto-install, skip package phase. To upgrade it, " +
+            "see: https://aka.ms/azfunc-install";
     public static final String NEED_UPDATE_FUNCTION_CORE_TOOLS = "Local version of Azure Functions Core Tools (%s) " +
             "does not match the latest (%s). Please update it for the best experience. " +
             "See: https://aka.ms/azfunc-install";
@@ -36,11 +38,8 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
     @Override
     public void installExtension() throws Exception {
-        if (checkLocalCoreToolsVersion()) {
-            installFunctionExtension();
-        } else {
-            throw new Exception(OUTDATED_LOCAL_FUNCTION_CORE_TOOLS);
-        }
+        assureRequirementAddressed();
+        installFunctionExtension();
     }
 
     protected void installFunctionExtension() throws Exception {
@@ -53,23 +52,25 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         );
     }
 
-    protected boolean checkLocalCoreToolsVersion() {
+    protected void assureRequirementAddressed() throws Exception {
         final String localVersion = getLocalFunctionCoreToolsVersion();
         final String latestCoreVersion = getLatestFunctionCoreToolsVersion();
-        // Verify if local function core tools support auto install
-        if (localVersion == null || LEAST_SUPPORTED_VERSION.greaterThan(Version.valueOf(localVersion))) {
-            return false;
+        // Ensure azure function core tools has been installed
+        if (localVersion == null) {
+            throw new Exception(NO_LOCAL_FUNCTION_CORE_TOOLS);
+        }
+        // Ensure local azure function core tools support extension auto-install
+        if (LEAST_SUPPORTED_VERSION.greaterThan(Version.valueOf(localVersion))) {
+            throw new Exception(OUTDATED_LOCAL_FUNCTION_CORE_TOOLS);
+        }
+        // Verify whether local function core tools is the latest version
+        if (latestCoreVersion == null) {
+            this.mojo.warning(GET_LATEST_VERSION_FAIL);
         } else {
-            // Verify whether local function core tools is the latest version
-            if (latestCoreVersion == null) {
-                this.mojo.warning(GET_LATEST_VERSION_FAIL);
-            } else {
-                if (Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
-                    this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
-                }
+            if (Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
+                this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
             }
         }
-        return true;
     }
 
     protected String getLatestFunctionCoreToolsVersion() {
