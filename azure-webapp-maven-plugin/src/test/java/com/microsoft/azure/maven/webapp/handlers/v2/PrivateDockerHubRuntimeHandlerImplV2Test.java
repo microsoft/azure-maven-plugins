@@ -11,6 +11,7 @@ import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.junit.Before;
@@ -41,9 +42,9 @@ public class PrivateDockerHubRuntimeHandlerImplV2Test {
         MockitoAnnotations.initMocks(this);
     }
 
-    private void initHandler() throws AzureAuthFailureException {
-        handler = builder.runtime(mojo.getRuntime())
-            .appName(mojo.getAppName())
+    private void initHandler() throws AzureAuthFailureException, MojoExecutionException {
+        final RuntimeSetting runtime = mojo.getRuntime();
+        handler = builder.appName(mojo.getAppName())
             .resourceGroup(mojo.getResourceGroup())
             .region(mojo.getRegion())
             .pricingTier(mojo.getPricingTier())
@@ -52,6 +53,9 @@ public class PrivateDockerHubRuntimeHandlerImplV2Test {
             .azure(mojo.getAzureClient())
             .mavenSettings(mojo.getSettings())
             .log(mojo.getLog())
+            .image(runtime.getImage())
+            .serverId(runtime.getServerId())
+            .registryUrl(runtime.getRegistryUrl())
             .build();
     }
 

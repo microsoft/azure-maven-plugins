@@ -34,13 +34,13 @@ public class PublicDockerHubRuntimeHandlerImplV2 extends BaseRuntimeHandler {
         final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
             servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.LINUX);
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
-            .withPublicDockerHubImage(runtime.getImage());
+            .withPublicDockerHubImage(image);
     }
 
     @Override
     public WebApp.Update updateAppRuntime(final WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
-        return app.update().withPublicDockerHubImage(runtime.getImage());
+        return app.update().withPublicDockerHubImage(image);
     }
 }

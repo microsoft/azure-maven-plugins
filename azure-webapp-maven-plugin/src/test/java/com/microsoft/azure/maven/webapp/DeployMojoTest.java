@@ -304,6 +304,18 @@ public class DeployMojoTest {
     }
 
     @Test
+    public void updateWebAppSkippedForV2() throws Exception {
+        final DeployMojo mojo = getMojoFromPom("/pom-linux-v2.xml");
+        final DeployMojo mojoSpy = spy(mojo);
+        final WebApp app = mock(WebApp.class);
+        mojoSpy.updateWebApp(app);
+        verify(mojoSpy, times(1)).getRuntime();
+        verify(mojoSpy, times(1)).getSchemaVersion();
+        verify(mojoSpy, times(1)).updateWebApp(app);
+        verifyNoMoreInteractions(mojoSpy);
+    }
+
+    @Test
     public void deployArtifactsWithResources() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         final DeployMojo mojoSpy = spy(mojo);
