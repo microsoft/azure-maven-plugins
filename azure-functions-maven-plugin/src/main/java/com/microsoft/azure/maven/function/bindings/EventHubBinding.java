@@ -25,7 +25,7 @@ public class EventHubBinding extends BaseBinding {
 
     private String connection = "";
 
-    private Cardinality cardinality = Cardinality.MANY;
+    private String cardinality = Cardinality.MANY.name();
 
     public EventHubBinding(final EventHubTrigger eventHubTrigger) {
         super(eventHubTrigger.name(), EVENT_HUB_TRIGGER, Direction.IN, eventHubTrigger.dataType());
@@ -33,7 +33,7 @@ public class EventHubBinding extends BaseBinding {
         eventHubName = eventHubTrigger.eventHubName();
         consumerGroup = eventHubTrigger.consumerGroup();
         connection = eventHubTrigger.connection();
-        cardinality = eventHubTrigger.cardinality();
+        cardinality = eventHubTrigger.cardinality().name();
     }
 
     public EventHubBinding(final EventHubOutput eventHubOutput) {
@@ -41,11 +41,12 @@ public class EventHubBinding extends BaseBinding {
 
         eventHubName = eventHubOutput.eventHubName();
         connection = eventHubOutput.connection();
+        cardinality = ""; // Cardinality is for input/trigger only.
     }
 
     @JsonGetter
     public String getCardinality() {
-        return cardinality.toString().toLowerCase(Locale.ENGLISH);
+        return cardinality.toLowerCase(Locale.ENGLISH);
     }
 
     @JsonGetter("eventHubName")
