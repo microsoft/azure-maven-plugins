@@ -28,6 +28,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 import java.util.Locale;
 
+import static com.microsoft.azure.maven.webapp.WebAppUtils.getLinuxRunTimeStack;
+
 public class HandlerFactoryImpl extends HandlerFactory {
     public static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>" +
         "and <containerSettings> should not be set at the same time.";
@@ -70,9 +72,11 @@ public class HandlerFactoryImpl extends HandlerFactory {
         final BaseRuntimeHandler.Builder builder;
 
         if (javaVersion != null) {
-            builder = new WindowsRuntimeHandlerImplV2.Builder();
+            builder = new WindowsRuntimeHandlerImpl.Builder();
+            builder.javaVersion(mojo.getJavaVersion()).webContainer(mojo.getJavaWebContainer());
         } else if (linuxRuntime != null) {
-            builder = new LinuxRuntimeHandlerImplV2.Builder();
+            builder = new LinuxRuntimeHandlerImpl.Builder();
+            builder.runtime(getLinuxRunTimeStack(mojo.getLinuxRuntime()));
         } else {
             builder = getV1DockerRuntimeHandlerBuilder(mojo);
         }
@@ -99,11 +103,11 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
         switch (OperatingSystemEnum.fromString(runtime.getOs())) {
             case Windows:
-                builder = new WindowsRuntimeHandlerImplV2.Builder();
+                builder = new WindowsRuntimeHandlerImpl.Builder();
                 builder.javaVersion(runtime.getJavaVersion()).webContainer(runtime.getWebContainer());
                 break;
             case Linux:
-                builder = new LinuxRuntimeHandlerImplV2.Builder();
+                builder = new LinuxRuntimeHandlerImpl.Builder();
                 builder.runtime(runtime.getLinuxRuntime());
                 break;
             case Docker:
@@ -140,14 +144,14 @@ public class HandlerFactoryImpl extends HandlerFactory {
         final BaseRuntimeHandler.Builder builder;
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
-                builder = new PublicDockerHubRuntimeHandlerImplV2.Builder();
+                builder = new PublicDockerHubRuntimeHandlerImpl.Builder();
                 break;
             case PRIVATE_DOCKER_HUB:
-                builder = new PrivateDockerHubRuntimeHandlerImplV2.Builder();
+                builder = new PrivateDockerHubRuntimeHandlerImpl.Builder();
                 builder.mavenSettings(mojo.getSettings());
                 break;
             case PRIVATE_REGISTRY:
-                builder = new PrivateRegistryRuntimeHandlerImplV2.Builder();
+                builder = new PrivateRegistryRuntimeHandlerImpl.Builder();
                 builder.mavenSettings(mojo.getSettings());
                 break;
             case NONE:
@@ -170,14 +174,14 @@ public class HandlerFactoryImpl extends HandlerFactory {
         final BaseRuntimeHandler.Builder builder;
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
-                builder = new PublicDockerHubRuntimeHandlerImplV2.Builder();
+                builder = new PublicDockerHubRuntimeHandlerImpl.Builder();
                 break;
             case PRIVATE_DOCKER_HUB:
-                builder = new PrivateDockerHubRuntimeHandlerImplV2.Builder();
+                builder = new PrivateDockerHubRuntimeHandlerImpl.Builder();
                 builder.mavenSettings(mojo.getSettings());
                 break;
             case PRIVATE_REGISTRY:
-                builder = new PrivateRegistryRuntimeHandlerImplV2.Builder();
+                builder = new PrivateRegistryRuntimeHandlerImpl.Builder();
                 builder.mavenSettings(mojo.getSettings());
                 break;
             case NONE:

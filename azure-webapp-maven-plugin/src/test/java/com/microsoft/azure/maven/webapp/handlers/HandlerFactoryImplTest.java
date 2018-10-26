@@ -58,7 +58,7 @@ public class HandlerFactoryImplTest {
         doReturn(null).when(mojo).getContainerSettings();
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof WindowsRuntimeHandlerImplV2);
+        assertTrue(handler instanceof WindowsRuntimeHandlerImpl);
 
         // set up ContainerSettings
         final ContainerSetting containerSetting = new ContainerSetting();
@@ -81,7 +81,7 @@ public class HandlerFactoryImplTest {
         doReturn(containerSetting).when(mojo).getContainerSettings();
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImplV2);
+        assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImpl);
 
         // <javaVersion> == null && Private Docker Container Image
         doReturn(null).when(mojo).getJavaVersion();
@@ -89,7 +89,7 @@ public class HandlerFactoryImplTest {
         containerSetting.setServerId("serverId");
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImplV2);
+        assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImpl);
 
         // <javaVersion> == null && Private Registry Image
         doReturn(null).when(mojo).getJavaVersion();
@@ -98,7 +98,7 @@ public class HandlerFactoryImplTest {
         containerSetting.setRegistryUrl(new URL("https://microsoft.azurecr.io"));
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImplV2);
+        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImpl);
     }
 
     @Test
@@ -176,32 +176,32 @@ public class HandlerFactoryImplTest {
         doReturn("linux").when(runtime).getOs();
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof LinuxRuntimeHandlerImplV2);
+        assertTrue(handler instanceof LinuxRuntimeHandlerImpl);
 
         doReturn("windows").when(runtime).getOs();
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof WindowsRuntimeHandlerImplV2);
+        assertTrue(handler instanceof WindowsRuntimeHandlerImpl);
 
         doReturn("docker").when(runtime).getOs();
         doReturn("imageName").when(runtime).getImage();
         doReturn("serverId").when(runtime).getServerId();
         doReturn("registry").when(runtime).getRegistryUrl();
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImplV2);
+        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImpl);
 
         doReturn("docker").when(runtime).getOs();
         doReturn("imageName").when(runtime).getImage();
         doReturn("serverId").when(runtime).getServerId();
         doReturn("").when(runtime).getRegistryUrl();
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImplV2);
+        assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImpl);
 
         doReturn("docker").when(runtime).getOs();
         doReturn("imageName").when(runtime).getImage();
         doReturn("").when(runtime).getServerId();
         doReturn("").when(runtime).getRegistryUrl();
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImplV2);
+        assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImpl);
     }
 
     @Test(expected = MojoExecutionException.class)

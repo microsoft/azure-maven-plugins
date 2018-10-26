@@ -9,22 +9,23 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 
-public class PublicDockerHubRuntimeHandlerImplV2 extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<PublicDockerHubRuntimeHandlerImplV2.Builder>{
+public class LinuxRuntimeHandlerImpl extends BaseRuntimeHandler {
+    public static class Builder extends BaseRuntimeHandler.Builder<Builder>{
         @Override
-        protected PublicDockerHubRuntimeHandlerImplV2.Builder self() {
+        protected Builder self() {
             return this;
         }
 
         @Override
-        public PublicDockerHubRuntimeHandlerImplV2 build() {
-            return new PublicDockerHubRuntimeHandlerImplV2(this);
+        public LinuxRuntimeHandlerImpl build() {
+            return new LinuxRuntimeHandlerImpl(this);
         }
     }
 
-    private PublicDockerHubRuntimeHandlerImplV2(final PublicDockerHubRuntimeHandlerImplV2.Builder builder) {
+    private LinuxRuntimeHandlerImpl(final Builder builder) {
         super(builder);
     }
 
@@ -33,13 +34,13 @@ public class PublicDockerHubRuntimeHandlerImplV2 extends BaseRuntimeHandler {
         final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
             servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.LINUX);
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
-            .withPublicDockerHubImage(image);
+            .withBuiltInImage(runtime);
     }
 
     @Override
-    public WebApp.Update updateAppRuntime(final WebApp app) throws Exception {
+    public Update updateAppRuntime(WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
-        return app.update().withPublicDockerHubImage(image);
+        return app.update().withBuiltInImage(runtime);
     }
 }

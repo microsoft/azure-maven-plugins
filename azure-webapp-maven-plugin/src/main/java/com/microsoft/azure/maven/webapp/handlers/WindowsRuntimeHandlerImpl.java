@@ -13,20 +13,20 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCre
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
 
-public class WindowsRuntimeHandlerImplV2 extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<WindowsRuntimeHandlerImplV2.Builder>{
+public class WindowsRuntimeHandlerImpl extends BaseRuntimeHandler {
+    public static class Builder extends BaseRuntimeHandler.Builder<WindowsRuntimeHandlerImpl.Builder>{
         @Override
-        protected WindowsRuntimeHandlerImplV2.Builder self() {
+        protected WindowsRuntimeHandlerImpl.Builder self() {
             return this;
         }
 
         @Override
-        public WindowsRuntimeHandlerImplV2 build() {
-            return new WindowsRuntimeHandlerImplV2(this);
+        public WindowsRuntimeHandlerImpl build() {
+            return new WindowsRuntimeHandlerImpl(this);
         }
     }
 
-    private WindowsRuntimeHandlerImplV2(final WindowsRuntimeHandlerImplV2.Builder builder) {
+    private WindowsRuntimeHandlerImpl(final WindowsRuntimeHandlerImpl.Builder builder) {
         super(builder);
     }
 
