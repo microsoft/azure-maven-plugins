@@ -1,43 +1,86 @@
-/**
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for
- * license information.
- */
+package com.microsoft.azure
 
-import com.microsoft.azure.maven.function.invoker.storage.StorageQueueClient
+import com.google.gson.Gson
+import com.microsoft.azure.maven.function.invoker.storage.EventProcessor
 import com.microsoft.azure.maven.function.invoker.CommonUtils
+import com.microsoft.azure.eventhubs.ConnectionStringBuilder
+import com.microsoft.azure.eventhubs.EventData
+import com.microsoft.azure.eventhubs.EventHubClient
+import com.microsoft.azure.eventprocessorhost.EventProcessorHost
 import groovy.json.JsonSlurper
+
+import java.nio.charset.Charset
+import java.util.concurrent.Executors
+
+String consumerGroupName = "\$Default"
+String functionName = "maven-functions-it-${timestamp}-3"
+String storageName = "ncihub${timestamp}"
+String nameSpace = "CIEventHubNamespace-${timestamp}"
+String resourceGroup = "maven-functions-it-rg-3"
 
 // Create Eventhub and set the connection string for function
 CommonUtils.executeCommand(
-        "az eventhubs namespace create --name CIEventHubNamespace-${timestamp} --resource-group maven-functions-it-rg-3 -l eastus2")
+        "az eventhubs namespace create --name ${nameSpace} --resource-group ${resourceGroup} -l eastus2")
+
 CommonUtils.executeCommand(
-        "az eventhubs eventhub create --name CIEventHub --resource-group maven-functions-it-rg-3 --namespace-name CIEventHubNamespace-${timestamp}")
-String eventHubKeys = CommonUtils.executeCommand(
-        "az eventhubs namespace authorization-rule keys list --resource-group maven-functions-it-rg-3 --namespace-name CIEventHubNamespace-${timestamp} --name RootManageSharedAccessKey")
+        "az eventhubs eventhub create --name trigger --resource-group ${resourceGroup} --namespace-name ${nameSpace}")
+
+CommonUtils.executeCommand(
+        "az eventhubs eventhub create --name output --resource-group ${resourceGroup} --namespace-name ${nameSpace}")
+
+CommonUtils.executeCommand("az storage account create --name ${storageName} --resource-group ${resourceGroup} --location eastus2 --sku Standard_LRS --kind StorageV2")
+
+String storageKeyJsonString = CommonUtils.executeCommand("az storage account keys list --resource-group ${resourceGroup} --account-name ${storageName}")
 
 def jsonSlurper = new JsonSlurper()
+
+def storageKeyJsonObject = jsonSlurper.parseText(storageKeyJsonString)
+String storageKey = storageKeyJsonObject[0].value
+
+String eventHubKeys = CommonUtils.executeCommand(
+        "az eventhubs namespace authorization-rule keys list --resource-group ${resourceGroup} --namespace-name ${nameSpace} --name RootManageSharedAccessKey")
+
 def eventHubKeysJsonObject = jsonSlurper.parseText(eventHubKeys)
 String connectionKey = eventHubKeysJsonObject.primaryConnectionString
 
-CommonUtils.executeCommand(String.format(
-        "az webapp config appsettings set --name maven-functions-it-${timestamp}-3 --resource-group maven-functions-it-rg-3 --settings CIEventHubConnection=%s",
-        connectionKey))
+CommonUtils.executeCommand("az webapp config appsettings set --name ${functionName} --resource-group ${resourceGroup} --settings CIEventHubConnection=${connectionKey}")
 
-// Create verify queue
-String azQueryValue = CommonUtils.executeCommand(
-        "az functionapp config appsettings list -n \"maven-functions-it-${timestamp}-3\" -g \"maven-functions-it-rg-3\" --query \"[?name=='AzureWebJobsStorage'].value\"")
-String storageConnectionString = azQueryValue.split("\"")[1]
+// Register EventHubProcessor
+String sasKeyName = "RootManageSharedAccessKey"
+String sasKey = connectionKey.split(";")[2].replace("SharedAccessKey=", "")
+String storageConnectionString = "DefaultEndpointsProtocol=https;AccountName=${storageName};AccountKey=${storageKey}"
+ConnectionStringBuilder eventHubConnectionString = new ConnectionStringBuilder()
+        .setNamespaceName(nameSpace)
+        .setEventHubName("output")
+        .setSasKeyName(sasKeyName)
+        .setSasKey(sasKey)
+EventProcessorHost host = new EventProcessorHost(
+        EventProcessorHost.createHostName("EventProcessorHost"),
+        "output",
+        consumerGroupName,
+        eventHubConnectionString.toString(),
+        storageConnectionString,
+        storageName)
+System.out.println("Registering host named " + host.getHostName())
+host.registerEventProcessor(EventProcessor.class).get()
 
-StorageQueueClient queueClient = new StorageQueueClient()
-queueClient.init(storageConnectionString)
-queueClient.createQueueWithName("out")
+// Send trigger message
+final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
+        .setNamespaceName(nameSpace)
+        .setEventHubName("trigger")
+        .setSasKeyName(sasKeyName)
+        .setSasKey(sasKey)
+final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), Executors.newCachedThreadPool())
+String payload = "CIInput"
+Gson gson = new Gson()
+byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset())
+EventData sendEvent = EventData.create(payloadBytes)
+ehClient.sendSync(sendEvent)
+ehClient.closeSync()
 
-// Verify through Http request
-"https://maven-functions-it-${timestamp}-3.azurewebsites.net/api/HttpTrigger-Java".toURL().getText() // Send http request
-String msg = queueClient.peekNextMessageFrom("out")
-assert msg == "CITrigger"
+// Verify
+Thread.sleep(60 * 1000)
+assert EventProcessor.getMessages().get(0).equals("CITest")
 
-// Clean up resources created in test
 CommonUtils.deleteAzureResourceGroup("maven-functions-it-rg-3", false)
 return true

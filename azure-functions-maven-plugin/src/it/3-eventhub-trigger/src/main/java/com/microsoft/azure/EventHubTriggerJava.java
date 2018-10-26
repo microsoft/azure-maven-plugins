@@ -11,11 +11,13 @@ public class EventHubTriggerJava {
      * This function will be invoked when an event is received from Event Hub.
      */
     @FunctionName("EventHubTriggerJava")
-    @QueueOutput(name = "$return", queueName = "out", connection = "AzureWebJobsDashboard")
-    public String run(
-        @EventHubTrigger(name = "message", eventHubName = "CIEventHub", connection = "CIEventHubConnection", consumerGroup = "$Default") String message,
-        final ExecutionContext context
+    public void run(
+            @EventHubTrigger(name = "message", eventHubName = "trigger", connection = "CIEventHubConnection", consumerGroup = "$Default") String message,
+            @EventHubOutput(name = "result", eventHubName = "output", connection = "CIEventHubConnection" ) OutputBinding<String> result,
+            final ExecutionContext context
     ) {
-        return message;
+        if(message.contains("CIInput")){
+            result.setValue("CITest");
+        }
     }
 }
