@@ -17,7 +17,6 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reflections.util.ClasspathHelper;
 
-import java.io.File;
 import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
@@ -43,10 +42,7 @@ public class PackageMojoTest extends MojoTestBase {
                 .getTargetClassUrl();
         doReturn("target/azure-functions").when(mojoSpy).getDeploymentStagingDirectoryPath();
         doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
-        // Create a project which baseDir is defined, or it will throw null point exception
-        final MavenProject mockProject = new MavenProject();
-        mockProject.setFile(new File(PackageMojoTest.class.getResource("/templates.json").toURI()));
-        doReturn(mockProject).when(mojoSpy).getProject();
+        doReturn(mock(MavenProject.class)).when(mojoSpy).getProject();
         doReturn(mock(MavenSession.class)).when(mojoSpy).getSession();
         doReturn(mock(MavenResourcesFiltering.class)).when(mojoSpy).getMavenResourcesFiltering();
 

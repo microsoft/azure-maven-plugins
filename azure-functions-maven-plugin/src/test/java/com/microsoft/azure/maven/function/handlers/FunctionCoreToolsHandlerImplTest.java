@@ -12,8 +12,6 @@ import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 
-import java.util.HashSet;
-
 import static com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl.FUNC_EXTENSIONS_INSTALL_TEMPLATE;
 import static com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl.INSTALL_FUNCTION_EXTENSIONS_FAIL;
 import static org.junit.Assert.assertEquals;
@@ -43,11 +41,10 @@ public class FunctionCoreToolsHandlerImplTest {
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
 
         doReturn("3.0.0").when(functionCoreToolsHandlerSpy).getLocalFunctionCoreToolsVersion();
-        doReturn(true).when(functionCoreToolsHandlerSpy).isLocalVersionSupportAutoInstall(anyString());
+        doReturn(true).when(functionCoreToolsHandlerSpy).checkLocalCoreToolsVersion();
         doNothing().when(functionCoreToolsHandlerSpy).installFunctionExtension();
-        doNothing().when(functionCoreToolsHandlerSpy).checkVersion(any());
 
-        functionCoreToolsHandlerSpy.installExtension(new HashSet<>());
+        functionCoreToolsHandlerSpy.installExtension();
         verify(mojo, never()).warning(anyString());
     }
 
@@ -101,34 +98,33 @@ public class FunctionCoreToolsHandlerImplTest {
     }
 
     @Test
-    public void isLocalVersionSupportAutoInstall() throws Exception {
+    public void isLocalVersionSupportAutoInstall() {
         final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
                 new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
-        assertTrue(functionCoreToolsHandler.isLocalVersionSupportAutoInstall("2.0.1-beta.26"));
+        final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
+
+        doReturn("2.0.1-beta.26").when(functionCoreToolsHandlerSpy).getLocalFunctionCoreToolsVersion();
+        doReturn("3.0.0").when(functionCoreToolsHandlerSpy).getLatestFunctionCoreToolsVersion();
+        assertTrue(functionCoreToolsHandlerSpy.checkLocalCoreToolsVersion());
     }
 
     @Test
-    public void assureLocalVersionSupportAutoInstallWhenPassingNull() throws Exception {
+    public void isLocalVersionSupportAutoInstallWhenLocalVersionTooLow() {
         final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
                 new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
-        assertFalse(functionCoreToolsHandler.isLocalVersionSupportAutoInstall(null));
+        final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
+
+        doReturn("2.0.0").when(functionCoreToolsHandlerSpy).getLocalFunctionCoreToolsVersion();
+        doReturn("3.0.0").when(functionCoreToolsHandlerSpy).getLatestFunctionCoreToolsVersion();
+        assertFalse(functionCoreToolsHandlerSpy.checkLocalCoreToolsVersion());
     }
 
     @Test
-    public void isLocalVersionSupportAutoInstallWhenLocalVersionTooLow() throws Exception {
-        final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
-        final CommandHandler commandHandler = mock(CommandHandler.class);
-        final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
-                new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
-        assertFalse(functionCoreToolsHandler.isLocalVersionSupportAutoInstall("2.0.0"));
-    }
-
-    @Test
-    public void checkVersion() throws Exception {
+    public void checkVersion() {
         final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
@@ -136,23 +132,16 @@ public class FunctionCoreToolsHandlerImplTest {
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
 
         // Equal to newest version
-        doReturn("3.0.0").when(commandHandler).runCommandAndGetOutput(anyString(),
-                anyBoolean(), any());
-        functionCoreToolsHandlerSpy.checkVersion("3.0.0");
+        doReturn("3.0.0").when(functionCoreToolsHandlerSpy).getLocalFunctionCoreToolsVersion();
+        doReturn("3.0.0").when(functionCoreToolsHandlerSpy).getLatestFunctionCoreToolsVersion();
+        assertTrue(functionCoreToolsHandlerSpy.checkLocalCoreToolsVersion());
         verify(mojo, never()).warning(anyString());
 
-        // Less than least supported version
+        // Less than newest version
         reset(mojo);
-        doReturn("2.0.1-beta.26").when(commandHandler).runCommandAndGetOutput(anyString(),
-                anyBoolean(), any());
-        functionCoreToolsHandlerSpy.checkVersion("2.0.1-beta.24");
-        verify(mojo, times(1)).warning(anyString());
-
-        // Less than newest version but higher than least supported version
-        reset(mojo);
-        doReturn("2.0.1-beta.27").when(commandHandler).runCommandAndGetOutput(anyString(),
-                anyBoolean(), any());
-        functionCoreToolsHandlerSpy.checkVersion("2.0.1-beta.26");
+        doReturn("2.0.1-beta.27").when(functionCoreToolsHandlerSpy).getLocalFunctionCoreToolsVersion();
+        doReturn("3.0.0").when(functionCoreToolsHandlerSpy).getLatestFunctionCoreToolsVersion();
+        assertTrue(functionCoreToolsHandlerSpy.checkLocalCoreToolsVersion());
         verify(mojo, times(1)).warning(anyString());
     }
 }

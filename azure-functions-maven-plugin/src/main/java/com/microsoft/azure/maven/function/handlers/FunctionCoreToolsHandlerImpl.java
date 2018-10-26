@@ -8,18 +8,12 @@ package com.microsoft.azure.maven.function.handlers;
 
 import com.github.zafarkhaja.semver.Version;
 import com.microsoft.azure.maven.function.AbstractFunctionMojo;
-import com.microsoft.azure.maven.function.bindings.HttpBinding;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
-
-import java.util.Arrays;
-import java.util.Set;
 
 public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
     public static final String FUNC_EXTENSIONS_INSTALL_TEMPLATE = "func extensions install -c \"%s\"";
     public static final String INSTALL_FUNCTION_EXTENSIONS_FAIL = "Failed to install the Function extensions";
-    public static final String NO_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
-            "exist, please install Azure Function Core Tools and try again. See: https://aka.ms/azfunc-install";
     public static final String OUTDATED_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
             "exist or it is too old to support extension auto-install, skip it in the package phase. To install or" +
             " upgrade it, see: https://aka.ms/azfunc-install";
@@ -32,7 +26,6 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     public static final String GET_LOCAL_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
     public static final Version LEAST_SUPPORTED_VERSION = Version.valueOf("2.0.1-beta.26");
 
-    private static final Class[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = {HttpBinding.class};
     private AbstractFunctionMojo mojo;
     private CommandHandler commandHandler;
 
@@ -42,25 +35,12 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     }
 
     @Override
-    public void installExtension(Set<Class> bindingTypes) throws Exception {
-        final String localVersion = getLocalFunctionCoreToolsVersion();
-
-        if (isLocalVersionSupportAutoInstall(localVersion)) {
-            checkVersion(localVersion);
+    public void installExtension() throws Exception {
+        if (checkLocalCoreToolsVersion()) {
             installFunctionExtension();
         } else {
-            if (checkExtensionNecessity(bindingTypes)) {
-                this.mojo.error(NO_LOCAL_FUNCTION_CORE_TOOLS);
-                throw new Exception(NO_LOCAL_FUNCTION_CORE_TOOLS);
-            } else {
-                this.mojo.warning(OUTDATED_LOCAL_FUNCTION_CORE_TOOLS);
-            }
+            throw new Exception(OUTDATED_LOCAL_FUNCTION_CORE_TOOLS);
         }
-    }
-
-    protected boolean checkExtensionNecessity(Set<Class> bindingTypes) {
-        return bindingTypes.stream().anyMatch(binding ->
-                !Arrays.asList(FUNCTION_WITHOUT_FUNCTION_EXTENSION).contains(binding));
     }
 
     protected void installFunctionExtension() throws Exception {
@@ -73,38 +53,47 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         );
     }
 
-    protected boolean isLocalVersionSupportAutoInstall(final String localVersion) {
+    protected boolean checkLocalCoreToolsVersion() {
+        final String localVersion = getLocalFunctionCoreToolsVersion();
+        final String latestCoreVersion = getLatestFunctionCoreToolsVersion();
+        // Verify if local function core tools support auto install
         if (localVersion == null || LEAST_SUPPORTED_VERSION.greaterThan(Version.valueOf(localVersion))) {
             return false;
+        } else {
+            // Verify whether local function core tools is the latest version
+            if (latestCoreVersion == null) {
+                this.mojo.warning(GET_LATEST_VERSION_FAIL);
+            } else {
+                if (Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
+                    this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
+                }
+            }
         }
         return true;
     }
 
-    protected void checkVersion(final String localVersion) throws Exception {
-        final String latestCoreVersion = commandHandler.runCommandAndGetOutput(
-                GET_LATEST_VERSION_CMD,
-                false, /* showStdout */
-                null /* workingDirectory */
-        );
-
+    protected String getLatestFunctionCoreToolsVersion() {
         try {
-            if (localVersion == null || Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
-                this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
-            }
+            final String latestCoreVersion = commandHandler.runCommandAndGetOutput(
+                    GET_LATEST_VERSION_CMD,
+                    false, /* showStdout */
+                    null /* workingDirectory */
+            );
+            Version.valueOf(latestCoreVersion);
+            return latestCoreVersion;
         } catch (Exception e) {
-            throw new Exception(GET_LATEST_VERSION_FAIL);
+            this.mojo.getLog().warn(GET_LATEST_VERSION_FAIL);
+            return null;
         }
-
     }
 
-    protected String getLocalFunctionCoreToolsVersion() throws Exception {
-        final String localVersion = commandHandler.runCommandAndGetOutput(
-                GET_LOCAL_VERSION_CMD,
-                false, /* showStdout */
-                null /* workingDirectory */
-        );
-
+    protected String getLocalFunctionCoreToolsVersion() {
         try {
+            final String localVersion = commandHandler.runCommandAndGetOutput(
+                    GET_LOCAL_VERSION_CMD,
+                    false, /* showStdout */
+                    null /* workingDirectory */
+            );
             Version.valueOf(localVersion);
             return localVersion;
         } catch (Exception e) {
