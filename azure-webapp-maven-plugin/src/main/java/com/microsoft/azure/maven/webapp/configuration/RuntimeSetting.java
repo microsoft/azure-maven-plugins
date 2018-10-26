@@ -33,7 +33,7 @@ public class RuntimeSetting {
         return this.os;
     }
 
-    public JavaVersion getWindowsJavaVersion() {
+    public JavaVersion getJavaVersion() {
         return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
     }
 
@@ -71,5 +71,11 @@ public class RuntimeSetting {
 
     public String getRegistryUrl() {
         return this.registryUrl;
+    }
+
+    public boolean isEmpty() {
+        return StringUtils.isEmpty(this.os) && StringUtils.isEmpty(this.javaVersion) &&
+            StringUtils.isEmpty(this.webContainer) && StringUtils.isEmpty(image) &&
+            StringUtils.isEmpty(this.serverId) && StringUtils.isEmpty(this.registryUrl);
     }
 }

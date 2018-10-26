@@ -181,6 +181,7 @@ public class HandlerFactoryImplTest {
         doReturn(SchemaVersion.V2.toString()).when(mojo).getSchemaVersion();
         final RuntimeSetting runtime = mock(RuntimeSetting.class);
         doReturn(runtime).when(mojo).getRuntime();
+        doReturn(JavaVersion.fromString("jre8")).when(runtime).getJavaVersion();
         doReturn("linux").when(runtime).getOs();
 
         handler = factory.getRuntimeHandler(mojo);
