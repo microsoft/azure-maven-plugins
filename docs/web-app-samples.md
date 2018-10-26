@@ -44,7 +44,7 @@ The following configuration is applicable for below scenario:
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westus</region>
+                  <region>westeurope</region>
                   <pricingTier>S1</pricingTier>
 
                   <!-- Java Runtime Stack for Web App on Windows-->
@@ -102,7 +102,7 @@ The following configuration is applicable for below scenario:
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westus</region>
+                  <region>westeurope</region>
                   <pricingTier>S1</pricingTier>
 
                   <!-- Java Runtime Stack for Web App on Windows-->
@@ -156,7 +156,7 @@ The following configuration is applicable for below scenario:
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westus</region>
+                  <region>westeurope</region>
                   <pricingTier>S1</pricingTier>
                   
                   <!-- Java Runtime Stack for Web App on Linux-->
@@ -213,7 +213,7 @@ The following configuration is applicable for below scenario:
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westus</region>
+                  <region>westeurope</region>
                   <pricingTier>S1</pricingTier>
                   
                   <!-- Java Runtime Stack for Web App on Linux -->
@@ -260,7 +260,7 @@ The following configuration is applicable for below scenario:
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westus</region>
+                  <region>westeurope</region>
                   <pricingTier>S1</pricingTier>
                   
                   <!-- Runtime Stack specified by Docker container image -->
@@ -314,7 +314,7 @@ The following configuration is applicable for below scenario:
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westus</region>
+                  <region>westeurope</region>
                   <pricingTier>S1</pricingTier>
                   
                   <!-- Runtime Stack specified by Docker container image -->
@@ -369,7 +369,7 @@ The following configuration is applicable for below scenario:
                   <resourceGroup>your-resource-group</resourceGroup>
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westus</region>
+                  <region>westeurope</region>
                   <pricingTier>S1</pricingTier>
                   
                   <!-- Runtime Stack specified by Docker container image -->

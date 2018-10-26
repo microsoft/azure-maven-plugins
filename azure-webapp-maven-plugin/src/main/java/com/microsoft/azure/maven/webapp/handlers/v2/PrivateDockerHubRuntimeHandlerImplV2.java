@@ -35,13 +35,13 @@ public class PrivateDockerHubRuntimeHandlerImplV2 extends BaseRuntimeHandler {
 
     @Override
     public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
-        final Server server = Utils.getServer(settings, runtime.getServerId());
-        assureServerExist(server, runtime.getServerId());
+        final Server server = Utils.getServer(settings, serverId);
+        assureServerExist(server, serverId);
 
         final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
             servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.LINUX);
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
-            .withPrivateDockerHubImage(runtime.getImage())
+            .withPrivateDockerHubImage(image)
             .withCredentials(server.getUsername(), server.getPassword());
     }
 
@@ -50,10 +50,10 @@ public class PrivateDockerHubRuntimeHandlerImplV2 extends BaseRuntimeHandler {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
 
-        final Server server = Utils.getServer(settings, runtime.getServerId());
-        assureServerExist(server, runtime.getServerId());
+        final Server server = Utils.getServer(settings, serverId);
+        assureServerExist(server, serverId);
         return app.update()
-            .withPrivateDockerHubImage(runtime.getImage())
+            .withPrivateDockerHubImage(image)
             .withCredentials(server.getUsername(), server.getPassword());
     }
 }
