@@ -16,11 +16,7 @@ import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.v1.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.NullRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PrivateDockerHubRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PrivateRegistryRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
@@ -62,7 +58,7 @@ public class HandlerFactoryImplTest {
         doReturn(null).when(mojo).getContainerSettings();
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof WindowsRuntimeHandlerImpl);
+        assertTrue(handler instanceof WindowsRuntimeHandlerImplV2);
 
         // set up ContainerSettings
         final ContainerSetting containerSetting = new ContainerSetting();
@@ -85,7 +81,7 @@ public class HandlerFactoryImplTest {
         doReturn(containerSetting).when(mojo).getContainerSettings();
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImpl);
+        assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImplV2);
 
         // <javaVersion> == null && Private Docker Container Image
         doReturn(null).when(mojo).getJavaVersion();
@@ -93,7 +89,7 @@ public class HandlerFactoryImplTest {
         containerSetting.setServerId("serverId");
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImpl);
+        assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImplV2);
 
         // <javaVersion> == null && Private Registry Image
         doReturn(null).when(mojo).getJavaVersion();
@@ -102,7 +98,7 @@ public class HandlerFactoryImplTest {
         containerSetting.setRegistryUrl(new URL("https://microsoft.azurecr.io"));
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImpl);
+        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImplV2);
     }
 
     @Test
