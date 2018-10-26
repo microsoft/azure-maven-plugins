@@ -14,6 +14,7 @@ import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.handlers.WindowsRuntimeHandlerImplV2;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

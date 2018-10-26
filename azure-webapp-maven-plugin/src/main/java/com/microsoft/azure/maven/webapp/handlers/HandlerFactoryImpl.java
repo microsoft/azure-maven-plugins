@@ -29,11 +29,6 @@ import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandle
 import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v2.ArtifactHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.LinuxRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PrivateDockerHubRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PrivateRegistryRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PublicDockerHubRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.WindowsRuntimeHandlerImplV2;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
