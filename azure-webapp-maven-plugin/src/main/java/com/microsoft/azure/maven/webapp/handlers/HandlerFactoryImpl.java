@@ -28,7 +28,7 @@ import com.microsoft.azure.maven.webapp.handlers.v1.PrivateRegistryRuntimeHandle
 import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v2.ArtifactHandlerV2;
+import com.microsoft.azure.maven.webapp.handlers.v2.ArtifactHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.v2.LinuxRuntimeHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.v2.PrivateDockerHubRuntimeHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.v2.PrivateRegistryRuntimeHandlerImplV2;
@@ -93,23 +93,27 @@ public class HandlerFactoryImpl extends HandlerFactory {
         assureV2RequiredPropertyConfigured(mojo);
 
         final BaseRuntimeHandler.Builder builder;
+        final RuntimeSetting runtime = mojo.getRuntime();
+        // todo validate configuration
 
-        switch (OperatingSystemEnum.fromString(mojo.getRuntime().getOs())) {
+        switch (OperatingSystemEnum.fromString(runtime.getOs())) {
             case Windows:
                 builder = new WindowsRuntimeHandlerImplV2.Builder();
+                builder.javaVersion(runtime.getJavaVersion()).webContainer(runtime.getWebContainer());
                 break;
             case Linux:
                 builder = new LinuxRuntimeHandlerImplV2.Builder();
+                builder.runtime(runtime.getLinuxRuntime());
                 break;
             case Docker:
                 builder = getV2DockerRuntimeHandlerBuilder(mojo);
+                builder.image(runtime.getImage()).serverId(runtime.getServerId()).registryUrl(runtime.getRegistryUrl());
                 break;
             default:
                 throw new MojoExecutionException(
-                    "The value of <os> is unknown, supported values are: windows, linux and docker.");
+                    "The value of <os> is unknown, the supported values are: windows, linux and docker.");
         }
-        return builder.runtime(mojo.getRuntime())
-            .appName(mojo.getAppName())
+        return builder.appName(mojo.getAppName())
             .resourceGroup(mojo.getResourceGroup())
             .region(mojo.getRegion())
             .pricingTier(mojo.getPricingTier())
@@ -212,7 +216,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
     protected ArtifactHandler getV2ArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
         assureV2RequiredPropertyConfigured(mojo);
-        return new ArtifactHandlerV2(mojo);
+        return new ArtifactHandlerImplV2(mojo);
     }
 
     protected ArtifactHandler getArtifactHandlerFromPackaging(final AbstractWebAppMojo mojo)

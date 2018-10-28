@@ -12,6 +12,7 @@ import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,8 +40,9 @@ public class LinuxRuntimeHandlerImplV2Test {
         MockitoAnnotations.initMocks(this);
     }
 
-    public void initHandler() throws AzureAuthFailureException {
-        handler = builder.runtime(mojo.getRuntime())
+    public void initHandler() throws AzureAuthFailureException, MojoExecutionException {
+        final RuntimeSetting runtime = mojo.getRuntime();
+        handler = builder.runtime(runtime.getLinuxRuntime())
             .appName(mojo.getAppName())
             .resourceGroup(mojo.getResourceGroup())
             .region(mojo.getRegion())
