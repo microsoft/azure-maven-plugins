@@ -9,11 +9,9 @@ package com.microsoft.azure.maven.webapp.handlers.v1;
 import com.google.common.io.Files;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,7 +24,9 @@ import java.nio.file.Paths;
  *
  * @since 1.3.0
  */
-public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl<AbstractWebAppMojo> {
+public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
+    private String linuxRuntime;
+    private String jarFile;
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";
@@ -41,8 +41,35 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl<Abstrac
     public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
     public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
 
-    public JarArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
-        super(mojo);
+    public static class Builder extends ZIPArtifactHandlerImpl.Builder {
+        private String jarFile;
+        private String linuxRuntime;
+
+        @Override
+        protected JarArtifactHandlerImpl.Builder self() {
+            return this;
+        }
+
+        @Override
+        public JarArtifactHandlerImpl build() {
+            return new JarArtifactHandlerImpl(this);
+        }
+
+        public Builder linuxRuntime(final String value) {
+            this.linuxRuntime = value;
+            return self();
+        }
+
+        public Builder jarFile (final String value) {
+            this.jarFile = value;
+            return self();
+        }
+    }
+
+    protected JarArtifactHandlerImpl(final Builder builder) {
+        super(builder);
+        this.linuxRuntime = builder.linuxRuntime;
+        this.jarFile = builder.jarFile;
     }
 
     /**
@@ -65,10 +92,10 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl<Abstrac
     }
 
     protected void prepareDeploymentFiles(File jar) throws IOException {
-        final File parent = new File(mojo.getDeploymentStagingDirectoryPath());
+        final File parent = new File(stagingDirectoryPath);
         parent.mkdirs();
 
-        if (StringUtils.isNotEmpty(mojo.getLinuxRuntime())) {
+        if (StringUtils.isNotEmpty(linuxRuntime)) {
             Files.copy(jar, new File(parent, DEFAULT_LINUX_JAR_NAME));
         } else {
             Files.copy(jar, new File(parent, jar.getName()));
@@ -77,35 +104,32 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl<Abstrac
     }
 
     protected void generateWebConfigFile(String jarFileName) throws IOException {
-        mojo.getLog().info(GENERATING_WEB_CONFIG);
+        log.info(GENERATING_WEB_CONFIG);
         final String templateContent;
         try (final InputStream is = getClass().getResourceAsStream("web.config.template")) {
             templateContent = IOUtils.toString(is, "UTF-8");
         } catch (IOException e) {
-            mojo.getLog().error(READ_WEB_CONFIG_TEMPLATE_FAIL);
+            log.error(READ_WEB_CONFIG_TEMPLATE_FAIL);
             throw e;
         }
 
         final String webConfigFile = templateContent
-                .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
+            .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
 
-        final File webConfig = new File(mojo.getDeploymentStagingDirectoryPath(), "web.config");
+        final File webConfig = new File(stagingDirectoryPath, "web.config");
         webConfig.createNewFile();
 
         try (final FileOutputStream fos = new FileOutputStream(webConfig)) {
             IOUtils.write(webConfigFile, fos, "UTF-8");
         } catch (Exception e) {
-            mojo.getLog().error(GENERATE_WEB_CONFIG_FAIL);
+            log.error(GENERATE_WEB_CONFIG_FAIL);
             throw e;
         }
     }
 
     protected File getJarFile() {
-        final String jarFilePath = StringUtils.isNotEmpty(mojo.getJarFile()) ? mojo.getJarFile() :
-                Paths.get(
-                        mojo.getBuildDirectoryAbsolutePath(),
-                        mojo.getProject().getBuild().getFinalName() + ".jar"
-                ).toString();
+        final String jarFilePath = StringUtils.isNotEmpty(jarFile) ? jarFile :
+            Paths.get(buildDirectoryAbsolutePath, project.getBuild().getFinalName() + ".jar").toString();
         return new File(jarFilePath);
     }
 

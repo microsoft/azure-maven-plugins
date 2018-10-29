@@ -37,18 +37,24 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class WarArtifactHandlerImplTest {
-
     @Mock
     private AbstractWebAppMojo mojo;
 
-    private WarArtifactHandlerImpl handler = null;
+    private WarArtifactHandlerImpl handler;
 
-    private WarArtifactHandlerImpl handlerSpy = null;
+    private WarArtifactHandlerImpl handlerSpy;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        handler = new WarArtifactHandlerImpl(mojo);
+    }
+
+    public void buildHandler() {
+        handler = new WarArtifactHandlerImpl.Builder()
+            .log(mojo.getLog())
+            .warFile(mojo.getWarFile())
+            .contextPath(mojo.getPath())
+            .build();
         handlerSpy = spy(handler);
     }
 
@@ -56,9 +62,6 @@ public class WarArtifactHandlerImplTest {
     public void publish() throws Exception {
         final File file = new File("");
         final String path = "";
-        doReturn(file).when(handlerSpy).getWarFile();
-        doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
-        doReturn(path).when(handlerSpy).getContextPath();
 
         final Log logMock = mock(Log.class);
         final WebApp appMock = mock(WebApp.class);
@@ -67,18 +70,16 @@ public class WarArtifactHandlerImplTest {
         doReturn(appMock).when(mojo).getWebApp();
         doNothing().when(appMock).warDeploy(any(File.class), anyString());
 
+        buildHandler();
+        doReturn(file).when(handlerSpy).getWarFile();
+        doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
+        doReturn(path).when(handlerSpy).getContextPath();
         handlerSpy.publish(new WebAppDeployTarget(appMock));
         verify(appMock, times(1)).warDeploy(file, path);
     }
 
     @Test
     public void publishToDeploymentSlot() throws Exception {
-        final File file = new File("");
-        final String path = "";
-        doReturn(file).when(handlerSpy).getWarFile();
-        doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
-        doReturn(path).when(handlerSpy).getContextPath();
-
         final Log logMock = mock(Log.class);
         final WebApp appMock = mock(WebApp.class);
         final DeploymentSlotSetting slotSettingMock = mock(DeploymentSlotSetting.class);
@@ -90,6 +91,13 @@ public class WarArtifactHandlerImplTest {
         doReturn("").when(slotSettingMock).getName();
         doReturn(slotMock).when(mojo).getDeploymentSlot(appMock, "");
         doNothing().when(slotMock).warDeploy(any(File.class), anyString());
+
+        buildHandler();
+        final File file = new File("");
+        final String path = "";
+        doReturn(file).when(handlerSpy).getWarFile();
+        doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
+        doReturn(path).when(handlerSpy).getContextPath();
         handlerSpy.publish(new DeploymentSlotDeployTarget(slotMock));
 
         verify(slotMock, times(1)).warDeploy(file, path);
@@ -98,10 +106,6 @@ public class WarArtifactHandlerImplTest {
     @Test(expected = MojoExecutionException.class)
     public void publishFailed() throws Exception {
         final File file = new File("");
-        doReturn(file).when(handlerSpy).getWarFile();
-        doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
-        doReturn("").when(handlerSpy).getContextPath();
-
         final Log log = mock(Log.class);
         final WebApp app = mock(WebApp.class);
         doReturn(log).when(mojo).getLog();
@@ -109,19 +113,24 @@ public class WarArtifactHandlerImplTest {
         doReturn(app).when(mojo).getWebApp();
         doThrow(RuntimeException.class).when(app).warDeploy(file, "");
 
+        buildHandler();
+        doReturn(file).when(handlerSpy).getWarFile();
+        doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
+        doReturn("").when(handlerSpy).getContextPath();
         handlerSpy.publish(new WebAppDeployTarget(app));
     }
 
     @Test
     public void publishThrowException() throws MojoExecutionException {
         final File file = new File("");
+        final WebApp app = mock(WebApp.class);
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        buildHandler();
         final String path = "";
         doReturn(file).when(handlerSpy).getWarFile();
         doNothing().when(handlerSpy).assureWarFileExisted(any(File.class));
         doReturn(path).when(handlerSpy).getContextPath();
-        final WebApp app = mock(WebApp.class);
-        final Log log = mock(Log.class);
-        doReturn(log).when(mojo).getLog();
 
         try {
             handlerSpy.publish(new WebAppDeployTarget(app));
@@ -133,21 +142,27 @@ public class WarArtifactHandlerImplTest {
     @Test
     public void getContextPath() {
         doReturn("/").when(mojo).getPath();
+        buildHandler();
         assertEquals(handlerSpy.getContextPath(), "");
 
         doReturn("  /  ").when(mojo).getPath();
+        buildHandler();
         assertEquals(handlerSpy.getContextPath(), "");
 
         doReturn("/test").when(mojo).getPath();
+        buildHandler();
         assertEquals(handlerSpy.getContextPath(), "test");
 
         doReturn("test").when(mojo).getPath();
+        buildHandler();
         assertEquals(handlerSpy.getContextPath(), "test");
 
         doReturn("/test/test").when(mojo).getPath();
+        buildHandler();
         assertEquals(handlerSpy.getContextPath(), "test/test");
 
         doReturn("test/test").when(mojo).getPath();
+        buildHandler();
         assertEquals(handlerSpy.getContextPath(), "test/test");
     }
 
@@ -162,11 +177,14 @@ public class WarArtifactHandlerImplTest {
         doReturn(buildMock).when(projectMock).getBuild();
         doReturn("finalName").when(buildMock).getFinalName();
 
+        doReturn("buildDirectory/finalName.war").when(mojo).getWarFile();
+        buildHandler();
         final File customWarFile = handlerSpy.getWarFile();
         assertNotNull(customWarFile);
         assertEquals(customWarFile.getPath(), Paths.get("buildDirectory/finalName.war").toString());
 
         doReturn("warFile.war").when(mojo).getWarFile();
+        buildHandler();
         final File defaultWar = handlerSpy.getWarFile();
         assertNotNull(defaultWar);
         assertEquals(defaultWar.getPath(), Paths.get("warFile.war").toString());
@@ -174,6 +192,7 @@ public class WarArtifactHandlerImplTest {
 
     @Test(expected = MojoExecutionException.class)
     public void assureWarFileExistedWhenFileExtWrong() throws MojoExecutionException {
+        buildHandler();
         handlerSpy.assureWarFileExisted(new File("test.jar"));
     }
 
@@ -183,6 +202,7 @@ public class WarArtifactHandlerImplTest {
 
         doReturn("test.war").when(fileMock).getName();
         doReturn(false).when(fileMock).exists();
+        buildHandler();
         handlerSpy.assureWarFileExisted(fileMock);
     }
 
@@ -193,6 +213,7 @@ public class WarArtifactHandlerImplTest {
         doReturn("test.war").when(fileMock).getName();
         doReturn(false).when(fileMock).exists();
         doReturn(false).when(fileMock).isFile();
+        buildHandler();
         handlerSpy.assureWarFileExisted(fileMock);
     }
 
@@ -203,6 +224,7 @@ public class WarArtifactHandlerImplTest {
         doReturn(true).when(file).exists();
         doReturn(true).when(file).isFile();
 
+        buildHandler();
         handlerSpy.assureWarFileExisted(file);
 
         verify(file).getName();

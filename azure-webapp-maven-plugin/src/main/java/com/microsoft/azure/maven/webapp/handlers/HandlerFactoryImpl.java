@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
@@ -211,31 +212,56 @@ public class HandlerFactoryImpl extends HandlerFactory {
     }
 
     protected ArtifactHandler getV1ArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+        final ArtifactHandlerBase.Builder builder;
+
         switch (mojo.getDeploymentType()) {
             case FTP:
-                return new FTPArtifactHandlerImpl(mojo);
+                builder = new FTPArtifactHandlerImpl.Builder();
+                break;
             case ZIP:
-                return new ZIPArtifactHandlerImpl(mojo);
+                builder = new ZIPArtifactHandlerImpl.Builder();
+                break;
             case JAR:
-                return new JarArtifactHandlerImpl(mojo);
+                builder = new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile())
+                    .linuxRuntime(mojo.getLinuxRuntime());
+                break;
             case WAR:
-                return new WarArtifactHandlerImpl(mojo);
+                builder = new WarArtifactHandlerImpl.Builder().warFile(mojo.getWarFile())
+                    .contextPath(mojo.getPath());
+                break;
             case NONE:
-                return new NONEArtifactHandlerImpl(mojo);
+                builder = new NONEArtifactHandlerImpl.Builder();
+                break;
             case EMPTY:
             case AUTO:
-                return getArtifactHandlerFromPackaging(mojo);
+                builder = getArtifactHandlerBuilderFromPackaging(mojo);
+                break;
             default:
                 throw new MojoExecutionException(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
         }
+        return builder.project(mojo.getProject())
+            .session(mojo.getSession())
+            .filtering(mojo.getMavenResourcesFiltering())
+            .resources(mojo.getResources())
+            .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
+            .buildDirectoryAbsolutePath(mojo.getBuildDirectoryAbsolutePath())
+            .log(mojo.getLog())
+            .build();
     }
 
     protected ArtifactHandler getV2ArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
         assureV2RequiredPropertyConfigured(mojo);
-        return new ArtifactHandlerImplV2(mojo);
+        return new ArtifactHandlerImplV2.Builder()
+            .project(mojo.getProject())
+            .session(mojo.getSession())
+            .filtering(mojo.getMavenResourcesFiltering())
+            .resources(mojo.getDeployment().getResources())
+            .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
+            .log(mojo.getLog())
+            .build();
     }
 
-    protected ArtifactHandler getArtifactHandlerFromPackaging(final AbstractWebAppMojo mojo)
+    protected ArtifactHandlerBase.Builder getArtifactHandlerBuilderFromPackaging(final AbstractWebAppMojo mojo)
         throws MojoExecutionException {
         String packaging = mojo.getProject().getPackaging();
         if (StringUtils.isEmpty(packaging)) {
@@ -244,9 +270,11 @@ public class HandlerFactoryImpl extends HandlerFactory {
         packaging = packaging.toLowerCase(Locale.ENGLISH).trim();
         switch (packaging) {
             case "war":
-                return new WarArtifactHandlerImpl(mojo);
+                return new WarArtifactHandlerImpl.Builder().warFile(mojo.getWarFile())
+                    .contextPath(mojo.getPath());
             case "jar":
-                return new JarArtifactHandlerImpl(mojo);
+                return new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile())
+                    .linuxRuntime(mojo.getLinuxRuntime());
             default:
                 throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
