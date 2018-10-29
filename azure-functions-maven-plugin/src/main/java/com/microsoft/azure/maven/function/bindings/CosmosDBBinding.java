@@ -15,7 +15,9 @@ import com.microsoft.azure.functions.annotation.CosmosDBTrigger;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class CosmosDBBinding extends BaseBinding {
     public static final String COSMOS_DB_TRIGGER = "cosmosDBTrigger";
-    public static final String COSMOS_DB = "cosmosdb";
+    public static final String COSMOS_DB = "cosmosDB";
+
+    private int collectionThroughput = -1;
 
     private String databaseName = "";
 
@@ -29,18 +31,21 @@ public class CosmosDBBinding extends BaseBinding {
 
     private String connectionStringSetting = "";
 
-    private boolean createIfNotExists = false;
+    private String partitionKey = "";
 
-    private boolean createLeaseCollectionIfNotExists = false;
+    private String createIfNotExists = "false";
+
+    private String createLeaseCollectionIfNotExists = "true";
 
     public CosmosDBBinding(final CosmosDBInput dbInput) {
         super(dbInput.name(), COSMOS_DB, Direction.IN, dbInput.dataType());
 
         databaseName = dbInput.databaseName();
         collectionName = dbInput.collectionName();
-        id = dbInput.id();
-        sqlQuery = dbInput.sqlQuery();
         connectionStringSetting = dbInput.connectionStringSetting();
+        id = dbInput.id();
+        partitionKey = dbInput.partitionKey();
+        sqlQuery = dbInput.sqlQuery();
     }
 
     public CosmosDBBinding(final CosmosDBOutput dbOutput) {
@@ -48,18 +53,20 @@ public class CosmosDBBinding extends BaseBinding {
 
         databaseName = dbOutput.databaseName();
         collectionName = dbOutput.collectionName();
+        createIfNotExists = dbOutput.createIfNotExists() ? "true" : "false";
         connectionStringSetting = dbOutput.connectionStringSetting();
-        createIfNotExists = dbOutput.createIfNotExists();
+        partitionKey = dbOutput.partitionKey();
+        collectionThroughput = dbOutput.collectionThroughput();
     }
 
     public CosmosDBBinding(final CosmosDBTrigger dbTrigger) {
         super(dbTrigger.name(), COSMOS_DB_TRIGGER, Direction.IN, dbTrigger.dataType());
 
+        connectionStringSetting = dbTrigger.connectionStringSetting();
         databaseName = dbTrigger.databaseName();
         collectionName = dbTrigger.collectionName();
         leaseCollectionName = dbTrigger.leaseCollectionName();
-        connectionStringSetting = dbTrigger.connectionStringSetting();
-        createLeaseCollectionIfNotExists = dbTrigger.createLeaseCollectionIfNotExists();
+        createLeaseCollectionIfNotExists = dbTrigger.createLeaseCollectionIfNotExists() ? "true" : "false";
     }
 
     @JsonGetter
@@ -88,17 +95,27 @@ public class CosmosDBBinding extends BaseBinding {
     }
 
     @JsonGetter
-    public boolean isCreateIfNotExists() {
+    public String isCreateIfNotExists() {
         return createIfNotExists;
     }
 
     @JsonGetter
-    public boolean isCreateLeaseCollectionIfNotExists() {
+    public String isCreateLeaseCollectionIfNotExists() {
         return createLeaseCollectionIfNotExists;
     }
 
     @JsonGetter
     public String getLeaseCollectionName() {
         return leaseCollectionName;
+    }
+
+    @JsonGetter
+    public int getCollectionThroughput() {
+        return collectionThroughput;
+    }
+
+    @JsonGetter
+    public String getPartitionKey() {
+        return partitionKey;
     }
 }

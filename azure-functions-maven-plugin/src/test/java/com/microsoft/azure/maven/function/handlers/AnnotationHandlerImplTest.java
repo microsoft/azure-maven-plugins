@@ -93,7 +93,8 @@ public class AnnotationHandlerImplTest {
                                                 databaseName = "db",
                                                 collectionName = "cl",
                                                 connectionStringSetting = "conn",
-                                                leaseCollectionName = "lease") String in) {
+                                                leaseCollectionName = "lease",
+                                                createLeaseCollectionIfNotExists = false) String in) {
         }
 
         @FunctionName(EVENTGRID_TRIGGER_FUNCTION)
