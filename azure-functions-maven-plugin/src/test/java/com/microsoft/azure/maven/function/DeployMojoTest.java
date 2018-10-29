@@ -32,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
@@ -222,6 +221,8 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getMSDeployArtifactHandler() throws MojoExecutionException {
+        doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
+        doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.MSDEPLOY).when(mojoSpy).getDeploymentType();
         final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
@@ -231,6 +232,8 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getFTPArtifactHandler() throws MojoExecutionException {
+        doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
+        doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.FTP).when(mojoSpy).getDeploymentType();
         final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
@@ -240,6 +243,8 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getZIPArtifactHandler() throws MojoExecutionException {
+        doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
+        doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.ZIP).when(mojoSpy).getDeploymentType();
         final ArtifactHandler handler = mojoSpy.getArtifactHandler();
 
