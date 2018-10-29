@@ -281,14 +281,13 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void installExtension(final FunctionCoreToolsHandler handler,
                                     Set<Class> bindingClasses) throws Exception {
-        if (isInstallingExtensionNeeded(bindingClasses)) {
-            info(INSTALL_EXTENSIONS);
-            handler.installExtension();
-            info(INSTALL_EXTENSIONS_FINISH);
-        } else {
+        if (!isInstallingExtensionNeeded(bindingClasses)) {
             info(SKIP_INSTALL_EXTENSIONS);
             return;
         }
+        info(INSTALL_EXTENSIONS);
+        handler.installExtension();
+        info(INSTALL_EXTENSIONS_FINISH);
     }
 
     protected Set<Class> getFunctionBindingClasses(Map<String, FunctionConfiguration> configMap) {

@@ -66,10 +66,8 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         // Verify whether local function core tools is the latest version
         if (latestCoreVersion == null) {
             this.mojo.warning(GET_LATEST_VERSION_FAIL);
-        } else {
-            if (Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
-                this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
-            }
+        } else if (Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
+            this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
         }
     }
 
