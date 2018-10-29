@@ -20,24 +20,15 @@ import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.v1.JarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.LinuxRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.NONEArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.NullRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PrivateDockerHubRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PrivateRegistryRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v2.ArtifactHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.LinuxRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PrivateDockerHubRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PrivateRegistryRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PublicDockerHubRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.WindowsRuntimeHandlerImplV2;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
-
 import java.util.Locale;
+
+import static com.microsoft.azure.maven.webapp.WebAppUtils.getLinuxRunTimeStack;
 
 public class HandlerFactoryImpl extends HandlerFactory {
     public static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>" +
@@ -62,7 +53,9 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
     }
 
-    protected RuntimeHandler getV1RuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+    protected RuntimeHandler getV1RuntimeHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException,
+        AzureAuthFailureException {
+
         final JavaVersion javaVersion = mojo.getJavaVersion();
         final String linuxRuntime = mojo.getLinuxRuntime();
         final ContainerSetting containerSetting = mojo.getContainerSettings();
@@ -76,15 +69,27 @@ public class HandlerFactoryImpl extends HandlerFactory {
         if (isDuplicatedRuntimeDefined(javaVersion, linuxRuntime, containerSetting)) {
             throw new MojoExecutionException(RUNTIME_CONFIG_CONFLICT);
         }
+        final BaseRuntimeHandler.Builder builder;
 
         if (javaVersion != null) {
-            return new WindowsRuntimeHandlerImpl(mojo);
+            builder = new WindowsRuntimeHandlerImpl.Builder();
+            builder.javaVersion(mojo.getJavaVersion()).webContainer(mojo.getJavaWebContainer());
         } else if (linuxRuntime != null) {
-            return new LinuxRuntimeHandlerImpl(mojo);
+            builder = new LinuxRuntimeHandlerImpl.Builder();
+            builder.runtime(getLinuxRunTimeStack(mojo.getLinuxRuntime()));
         } else {
-            return getV1DockerRuntimeHandler(containerSetting.getImageName(), containerSetting.getServerId(),
-                containerSetting.getRegistryUrl(), mojo);
+            builder = getV1DockerRuntimeHandlerBuilder(mojo);
         }
+
+        return builder.appName(mojo.getAppName())
+            .resourceGroup(mojo.getResourceGroup())
+            .region(mojo.getRegion())
+            .pricingTier(mojo.getPricingTier())
+            .servicePlanName(mojo.getAppServicePlanName())
+            .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
+            .azure(mojo.getAzureClient())
+            .log(mojo.getLog())
+            .build();
     }
 
     protected RuntimeHandler getV2RuntimeHandler(final AbstractWebAppMojo mojo)
@@ -98,16 +103,15 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
         switch (OperatingSystemEnum.fromString(runtime.getOs())) {
             case Windows:
-                builder = new WindowsRuntimeHandlerImplV2.Builder();
+                builder = new WindowsRuntimeHandlerImpl.Builder();
                 builder.javaVersion(runtime.getJavaVersion()).webContainer(runtime.getWebContainer());
                 break;
             case Linux:
-                builder = new LinuxRuntimeHandlerImplV2.Builder();
+                builder = new LinuxRuntimeHandlerImpl.Builder();
                 builder.runtime(runtime.getLinuxRuntime());
                 break;
             case Docker:
                 builder = getV2DockerRuntimeHandlerBuilder(mojo);
-                builder.image(runtime.getImage()).serverId(runtime.getServerId()).registryUrl(runtime.getRegistryUrl());
                 break;
             default:
                 throw new MojoExecutionException(
@@ -130,23 +134,34 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
     }
 
-    protected RuntimeHandler getV1DockerRuntimeHandler(final String imageName, final String serverId,
-                                                       final String registryUrl, final AbstractWebAppMojo mojo)
+    protected BaseRuntimeHandler.Builder getV1DockerRuntimeHandlerBuilder(final AbstractWebAppMojo mojo)
         throws MojoExecutionException {
 
-        final DockerImageType imageType = WebAppUtils.getDockerImageType(imageName, serverId, registryUrl);
+        final ContainerSetting containerSetting = mojo.getContainerSettings();
+        final DockerImageType imageType = WebAppUtils.getDockerImageType(containerSetting.getImageName(),
+            containerSetting.getServerId(), containerSetting.getRegistryUrl());
+
+        final BaseRuntimeHandler.Builder builder;
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
-                return new PublicDockerHubRuntimeHandlerImpl(mojo);
+                builder = new PublicDockerHubRuntimeHandlerImpl.Builder();
+                break;
             case PRIVATE_DOCKER_HUB:
-                return new PrivateDockerHubRuntimeHandlerImpl(mojo);
+                builder = new PrivateDockerHubRuntimeHandlerImpl.Builder();
+                builder.mavenSettings(mojo.getSettings());
+                break;
             case PRIVATE_REGISTRY:
-                return new PrivateRegistryRuntimeHandlerImpl(mojo);
+                builder = new PrivateRegistryRuntimeHandlerImpl.Builder();
+                builder.mavenSettings(mojo.getSettings());
+                break;
             case NONE:
                 throw new MojoExecutionException(IMAGE_NAME_MISSING);
             default:
                 throw new MojoExecutionException(NO_RUNTIME_HANDLER);
         }
+        return builder.image(containerSetting.getImageName())
+            .serverId(containerSetting.getServerId())
+            .registryUrl(containerSetting.getRegistryUrl());
     }
 
     protected BaseRuntimeHandler.Builder getV2DockerRuntimeHandlerBuilder(final AbstractWebAppMojo mojo)
@@ -156,25 +171,26 @@ public class HandlerFactoryImpl extends HandlerFactory {
         final DockerImageType imageType = WebAppUtils.getDockerImageType(runtime.getImage(), runtime.getServerId(),
             runtime.getRegistryUrl());
 
+        final BaseRuntimeHandler.Builder builder;
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
-                return new PublicDockerHubRuntimeHandlerImplV2.Builder();
+                builder = new PublicDockerHubRuntimeHandlerImpl.Builder();
+                break;
             case PRIVATE_DOCKER_HUB:
-                final PrivateDockerHubRuntimeHandlerImplV2.Builder privateDockerHubRuntimeHandlerImplV2Builder =
-                    new PrivateDockerHubRuntimeHandlerImplV2.Builder();
-                privateDockerHubRuntimeHandlerImplV2Builder.mavenSettings(mojo.getSettings());
-                return privateDockerHubRuntimeHandlerImplV2Builder;
+                builder = new PrivateDockerHubRuntimeHandlerImpl.Builder();
+                builder.mavenSettings(mojo.getSettings());
+                break;
             case PRIVATE_REGISTRY:
-                final PrivateRegistryRuntimeHandlerImplV2.Builder privateRegistryRuntimeHandlerImplV2Builder =
-                    new PrivateRegistryRuntimeHandlerImplV2.Builder();
-                privateRegistryRuntimeHandlerImplV2Builder.mavenSettings(mojo.getSettings());
-                return privateRegistryRuntimeHandlerImplV2Builder;
+                builder = new PrivateRegistryRuntimeHandlerImpl.Builder();
+                builder.mavenSettings(mojo.getSettings());
+                break;
             case NONE:
                 throw new MojoExecutionException(
                     "The configuration <image> is not specified within <runtime>, please configure it in pom.xml.");
             default:
                 throw new MojoExecutionException("Configuration <runtime> is not correct. Please fix it in pom.xml.");
         }
+        return builder.image(runtime.getImage()).serverId(runtime.getServerId()).registryUrl(runtime.getRegistryUrl());
     }
 
     @Override

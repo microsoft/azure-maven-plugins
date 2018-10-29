@@ -4,32 +4,31 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers.v2;
+package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
-import com.microsoft.azure.maven.webapp.handlers.BaseRuntimeHandler;
 import org.apache.maven.settings.Server;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
 
-public class PrivateDockerHubRuntimeHandlerImplV2 extends BaseRuntimeHandler {
+public class PrivateDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
     public static class Builder extends BaseRuntimeHandler.Builder<Builder>{
         @Override
-        protected PrivateDockerHubRuntimeHandlerImplV2.Builder self() {
+        protected PrivateDockerHubRuntimeHandlerImpl.Builder self() {
             return this;
         }
 
         @Override
-        public PrivateDockerHubRuntimeHandlerImplV2 build() {
-            return new PrivateDockerHubRuntimeHandlerImplV2(this);
+        public PrivateDockerHubRuntimeHandlerImpl build() {
+            return new PrivateDockerHubRuntimeHandlerImpl(this);
         }
     }
 
-    private PrivateDockerHubRuntimeHandlerImplV2(final Builder builder) {
+    private PrivateDockerHubRuntimeHandlerImpl(final Builder builder) {
         super(builder);
     }
 
