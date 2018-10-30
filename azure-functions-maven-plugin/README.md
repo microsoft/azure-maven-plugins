@@ -106,7 +106,7 @@ Property | Required | Description
 `<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, the plugin will use the value defined in `<resourceGroup>`.
 `<appServicePlanName>` | false | Specifies the name of the existing App Service Plan when you do not want to create a new one.
 `<appSettings>` | false | Specifies the application settings for your Azure Functions, which are defined in name-value pairs like following example:<br>`<property>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<name>xxxx</name>`<br>&nbsp;&nbsp;&nbsp;&nbsp;`<value>xxxx</value>`<br>`</property>`
-`<deploymentType>` | false | Specifies the deployment approach you want to use.<br>The default value is **`zip`**.
+`<deploymentType>` | false | Specifies the deployment approach you want to use.<br>The default value is **`zip`**. When `<deploymentType>` is **zip** and **WEBSITE_RUN_FROM_PACKAGE** in appSettings values **1**, the function will be deployed and run from package, you may visit [here](https://docs.microsoft.com/en-us/azure/azure-functions/run-functions-from-deployment-package) for more information.
 `<httpProxyHost>` | false | Specifies an optional HTTP proxy to connect to Azure through.
 `<httpProxyPort>` | false | Specifies an optional HTTP proxy port to connect to Azure through <br>The default value is **80**.
 `<localDebugConfig>` | false | The config string of debug options, you may visit [here](https://docs.oracle.com/javase/7/docs/technotes/guides/jpda/conninv.html) for more information. The default value is `transport=dt_socket,server=y,suspend=n,address=5005`;

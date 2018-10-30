@@ -16,16 +16,7 @@ import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.v1.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.NullRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PrivateDockerHubRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PrivateRegistryRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v2.LinuxRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PrivateDockerHubRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PrivateRegistryRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PublicDockerHubRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.WindowsRuntimeHandlerImplV2;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
@@ -185,32 +176,32 @@ public class HandlerFactoryImplTest {
         doReturn("linux").when(runtime).getOs();
 
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof LinuxRuntimeHandlerImplV2);
+        assertTrue(handler instanceof LinuxRuntimeHandlerImpl);
 
         doReturn("windows").when(runtime).getOs();
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof WindowsRuntimeHandlerImplV2);
+        assertTrue(handler instanceof WindowsRuntimeHandlerImpl);
 
         doReturn("docker").when(runtime).getOs();
         doReturn("imageName").when(runtime).getImage();
         doReturn("serverId").when(runtime).getServerId();
         doReturn("registry").when(runtime).getRegistryUrl();
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImplV2);
+        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImpl);
 
         doReturn("docker").when(runtime).getOs();
         doReturn("imageName").when(runtime).getImage();
         doReturn("serverId").when(runtime).getServerId();
         doReturn("").when(runtime).getRegistryUrl();
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImplV2);
+        assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImpl);
 
         doReturn("docker").when(runtime).getOs();
         doReturn("imageName").when(runtime).getImage();
         doReturn("").when(runtime).getServerId();
         doReturn("").when(runtime).getRegistryUrl();
         handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImplV2);
+        assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImpl);
     }
 
     @Test(expected = MojoExecutionException.class)

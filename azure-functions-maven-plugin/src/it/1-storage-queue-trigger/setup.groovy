@@ -8,6 +8,6 @@ import com.microsoft.azure.maven.function.invoker.CommonUtils
 
 CommonUtils.azureLogin()
 
-CommonUtils.deleteAzureResourceGroup("maven-functions-it-rg-1", true)
+CommonUtils.deleteAzureResourceGroup("maven-functions-it-${timestamp}-rg-1", true)
 
 return true
