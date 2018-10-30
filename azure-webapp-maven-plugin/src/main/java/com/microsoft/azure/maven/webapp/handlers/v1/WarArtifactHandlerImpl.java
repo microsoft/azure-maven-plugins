@@ -7,14 +7,11 @@
 package com.microsoft.azure.maven.webapp.handlers.v1;
 
 import com.google.common.io.Files;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
-
 import java.io.File;
 import java.nio.file.Paths;
 
@@ -24,7 +21,9 @@ import java.nio.file.Paths;
  * WarArtifactHandler is a special case because it does not need staging folder.
  * Thus, the methods shared in ArtifactHandlerBase is not needed here.
  */
-public class WarArtifactHandlerImpl implements ArtifactHandler {
+public class WarArtifactHandlerImpl extends ArtifactHandlerBase {
+    protected final String warFile;
+    protected final String contextPath;
 
     public static final String FILE_IS_NOT_WAR = "The deployment file is not a war typed file.";
     public static final String FIND_WAR_FILE_FAIL = "Failed to find the war file: '%s'";
@@ -33,10 +32,35 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
     public static final String DEPLOY_FAILURE = "Failed to deploy war file after %d times of retry.";
     public static final int DEFAULT_MAX_RETRY_TIMES = 3;
 
-    private AbstractWebAppMojo mojo;
+    public static class Builder extends ArtifactHandlerBase.Builder<WarArtifactHandlerImpl.Builder> {
+        private String warFile;
+        private String contextPath;
 
-    public WarArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
-        this.mojo = mojo;
+        @Override
+        protected WarArtifactHandlerImpl.Builder self() {
+            return this;
+        }
+
+        @Override
+        public WarArtifactHandlerImpl build() {
+            return new WarArtifactHandlerImpl(this);
+        }
+
+        public Builder warFile(final String value) {
+            this.warFile = value;
+            return self();
+        }
+
+        public Builder contextPath(final String value) {
+            this.contextPath = value;
+            return self();
+        }
+    }
+
+    protected WarArtifactHandlerImpl(final WarArtifactHandlerImpl.Builder builder) {
+        super(builder);
+        this.contextPath = builder.contextPath;
+        this.warFile = builder.warFile;
     }
 
     @Override
@@ -51,7 +75,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
         int retryCount = 0;
-        mojo.getLog().info("Deploying the war file...");
+        log.info("Deploying the war file...");
 
         while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
             retryCount++;
@@ -59,7 +83,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
                 warDeployExecutor.run();
                 return;
             } catch (Exception e) {
-                mojo.getLog().debug(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
+                log.debug(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
             }
         }
 
@@ -67,7 +91,7 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
     }
 
     protected String getContextPath() {
-        String path = mojo.getPath().trim();
+        String path = contextPath.trim();
         if (path.charAt(0) == '/') {
             path = path.substring(1);
         }
@@ -75,9 +99,8 @@ public class WarArtifactHandlerImpl implements ArtifactHandler {
     }
 
     protected File getWarFile() {
-        return StringUtils.isNotEmpty(mojo.getWarFile()) ? new File(mojo.getWarFile()) :
-                    new File(Paths.get(mojo.getBuildDirectoryAbsolutePath(),
-                            mojo.getProject().getBuild().getFinalName() + ".war").toString());
+        return StringUtils.isNotEmpty(warFile) ? new File(warFile) :
+            new File(Paths.get(buildDirectoryAbsolutePath, project.getBuild().getFinalName() + ".war").toString());
     }
 
     protected void assureWarFileExisted(final File war) throws MojoExecutionException {

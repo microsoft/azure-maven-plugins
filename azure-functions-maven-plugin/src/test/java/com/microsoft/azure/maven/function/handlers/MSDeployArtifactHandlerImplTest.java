@@ -55,17 +55,27 @@ public class MSDeployArtifactHandlerImplTest {
     @Mock
     Log log;
 
+    private MSDeployArtifactHandlerImpl handler;
+
+    private MSDeployArtifactHandlerImpl handlerSpy;
+
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
+    }
+
+    public void buildHandler() {
         when(mojo.getAppName()).thenReturn("appName");
         when(mojo.getLog()).thenReturn(log);
+        handler = new MSDeployArtifactHandlerImpl.Builder()
+            .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
+            .log(mojo.getLog())
+            .build();
+        handlerSpy = spy(handler);
     }
 
     @Test
     public void publish() throws Exception {
-        final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
-        final MSDeployArtifactHandlerImpl handlerSpy = spy(handler);
         final DeployTarget deployTarget = mock(DeployTarget.class);
         final Map mapSettings = mock(Map.class);
         final File file = mock(File.class);
@@ -75,6 +85,7 @@ public class MSDeployArtifactHandlerImplTest {
         doReturn("azure-functions-maven-plugin").when(mojo).getPluginName();
         doReturn(mapSettings).when(deployTarget).getAppSettings();
         doReturn(storageSetting).when(mapSettings).get(anyString());
+        buildHandler();
         doReturn(null).when(handlerSpy).getCloudStorageAccount(deployTarget);
         doReturn("").when(handlerSpy).uploadPackageToAzureStorage(file, null, "");
         doReturn("").when(handlerSpy).getBlobName();
@@ -95,10 +106,9 @@ public class MSDeployArtifactHandlerImplTest {
 
     @Test
     public void createZipPackage() throws Exception {
-        final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
-        final MSDeployArtifactHandlerImpl handlerSpy = spy(handler);
         when(mojo.getDeploymentStagingDirectoryPath()).thenReturn("target/classes");
 
+        buildHandler();
         final File zipPackage = handlerSpy.createZipPackage();
 
         assertTrue(zipPackage.exists());
@@ -108,7 +118,6 @@ public class MSDeployArtifactHandlerImplTest {
     public void getCloudStorageAccount() throws Exception {
         final String storageConnection =
                 "DefaultEndpointsProtocol=https;AccountName=123456;AccountKey=12345678;EndpointSuffix=core.windows.net";
-        final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
         final Map mapSettings = mock(Map.class);
         final DeployTarget deployTarget = mock(DeployTarget.class);
         final AppSetting storageSetting = mock(AppSetting.class);
@@ -116,14 +125,13 @@ public class MSDeployArtifactHandlerImplTest {
         doReturn(mapSettings).when(deployTarget).getAppSettings();
         doReturn(storageSetting).when(mapSettings).get(anyString());
         doReturn(storageConnection).when(storageSetting).value();
-
+        buildHandler();
         final CloudStorageAccount storageAccount = handler.getCloudStorageAccount(deployTarget);
         assertNotNull(storageAccount);
     }
 
     @Test
     public void getCloudStorageAccountWithException() throws Exception {
-        final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
         final FunctionApp app = mock(FunctionApp.class);
         final DeployTarget deployTarget = mock(DeployTarget.class);
         final Map appSettings = mock(Map.class);
@@ -131,6 +139,7 @@ public class MSDeployArtifactHandlerImplTest {
         doReturn(null).when(appSettings).get(anyString());
 
         String exceptionMessage = null;
+        buildHandler();
         try {
             handler.getCloudStorageAccount(deployTarget);
         } catch (Exception e) {
@@ -142,7 +151,6 @@ public class MSDeployArtifactHandlerImplTest {
 
     @Test
     public void uploadPackageToAzureStorage() throws Exception {
-        final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
         final CloudStorageAccount storageAccount = mock(CloudStorageAccount.class);
         final CloudBlobClient blobClient = mock(CloudBlobClient.class);
         doReturn(blobClient).when(storageAccount).createCloudBlobClient();
@@ -156,6 +164,7 @@ public class MSDeployArtifactHandlerImplTest {
         doReturn(new URI("http://blob")).when(blob).getUri();
         final File file = new File("pom.xml");
 
+        buildHandler();
         final String packageUri = handler.uploadPackageToAzureStorage(file, storageAccount, "blob");
 
         assertSame("http://blob", packageUri);
@@ -163,8 +172,6 @@ public class MSDeployArtifactHandlerImplTest {
 
     @Test
     public void deployWithPackageUri() throws Exception {
-        final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
-        final MSDeployArtifactHandlerImpl handlerSpy = spy(handler);
         final FunctionApp app = mock(FunctionApp.class);
         final DeployTarget deployTarget = mock(DeployTarget.class);
         final WithPackageUri withPackageUri = mock(WithPackageUri.class);
@@ -174,6 +181,7 @@ public class MSDeployArtifactHandlerImplTest {
         doReturn(withExecute).when(withExecute).withExistingDeploymentsDeleted(false);
         final Runnable runnable = mock(Runnable.class);
         doNothing().when(deployTarget).msDeploy("uri", false);
+        buildHandler();
         handlerSpy.deployWithPackageUri(deployTarget, "uri", runnable);
 
         verify(handlerSpy, times(1)).deployWithPackageUri(deployTarget, "uri", runnable);
@@ -183,7 +191,6 @@ public class MSDeployArtifactHandlerImplTest {
 
     @Test
     public void deletePackageFromAzureStorage() throws Exception {
-        final MSDeployArtifactHandlerImpl handler = new MSDeployArtifactHandlerImpl(mojo);
         final CloudStorageAccount storageAccount = mock(CloudStorageAccount.class);
         final CloudBlobClient blobClient = mock(CloudBlobClient.class);
         doReturn(blobClient).when(storageAccount).createCloudBlobClient();
@@ -193,7 +200,7 @@ public class MSDeployArtifactHandlerImplTest {
         final CloudBlockBlob blob = mock(CloudBlockBlob.class);
         doReturn(blob).when(blobContainer).getBlockBlobReference(anyString());
         doReturn(true).when(blob).deleteIfExists();
-
+        buildHandler();
         handler.deletePackageFromAzureStorage(storageAccount, "blob");
     }
 }

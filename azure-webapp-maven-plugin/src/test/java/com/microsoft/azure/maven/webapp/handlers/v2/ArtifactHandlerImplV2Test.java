@@ -50,7 +50,14 @@ public class ArtifactHandlerImplV2Test {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        handler = new ArtifactHandlerImplV2(mojo);
+    }
+
+    public void buildHandler() {
+        handler = new ArtifactHandlerImplV2.Builder()
+            .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
+            .log(mojo.getLog())
+            .resources(mojo.getDeployment().getResources())
+            .build();
         handlerSpy = spy(handler);
     }
 
@@ -64,6 +71,8 @@ public class ArtifactHandlerImplV2Test {
 
         final String stagingDirectoryPath = "dummy";
         doReturn(stagingDirectoryPath).when(mojo).getDeploymentStagingDirectoryPath();
+
+        buildHandler();
         doNothing().when(handlerSpy).copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
 
         final List<File> allArtifacts = new ArrayList<File>();
@@ -73,6 +82,7 @@ public class ArtifactHandlerImplV2Test {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         doNothing().when(handlerSpy).publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
+
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
@@ -94,6 +104,7 @@ public class ArtifactHandlerImplV2Test {
 
         final String stagingDirectoryPath = "dummy";
         doReturn(stagingDirectoryPath).when(mojo).getDeploymentStagingDirectoryPath();
+        buildHandler();
         doNothing().when(handlerSpy).copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
 
         final List<File> allArtifacts = new ArrayList<File>();
@@ -121,9 +132,8 @@ public class ArtifactHandlerImplV2Test {
         final Log log = mock(Log.class);
         doReturn(log).when(mojo).getLog();
         final DeployTarget target = mock(DeployTarget.class);
-
+        buildHandler();
         handlerSpy.publish(target);
-
         verify(mojo, times(1)).getLog();
         verify(handlerSpy, times(1)).publish(target);
         verifyNoMoreInteractions(handlerSpy);
@@ -134,7 +144,9 @@ public class ArtifactHandlerImplV2Test {
         final DeployTarget target = mock(DeployTarget.class);
         final String stagingDirectoryPath = "";
         final List<File> warArtifacts = null;
-
+        final Deployment deployment = mock(Deployment.class);
+        doReturn(deployment).when(mojo).getDeployment();
+        buildHandler();
         handlerSpy.publishArtifactsViaWarDeploy(target, stagingDirectoryPath, warArtifacts);
     }
 
@@ -147,8 +159,10 @@ public class ArtifactHandlerImplV2Test {
         final List<File> artifacts = new ArrayList<>();
         final File artifact = new File(Paths.get(stagingDirectory, "dummypath", "dummy.war").toString());
         artifacts.add(artifact);
+        final Deployment deployment = mock(Deployment.class);
+        doReturn(deployment).when(mojo).getDeployment();
+        buildHandler();
         doNothing().when(handlerSpy).publishWarArtifact(target, artifact, "dummypath");
-
         handlerSpy.publishArtifactsViaWarDeploy(target, stagingDirectory, artifacts);
         verify(handlerSpy, times(1)).
             publishArtifactsViaWarDeploy(target, stagingDirectory, artifacts);
@@ -167,10 +181,13 @@ public class ArtifactHandlerImplV2Test {
         final Log log = mock(Log.class);
         doReturn(log).when(mojo).getLog();
         doNothing().when(log).info(anyString());
+        final Deployment deployment = mock(Deployment.class);
+        doReturn(deployment).when(mojo).getDeployment();
 
+        buildHandler();
         handlerSpy.publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
 
-        verify(mojo, times(2)).getLog();
+        verify(mojo, times(1)).getLog();
         verify(handlerSpy, times(1)).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
         verifyNoMoreInteractions(handlerSpy);
     }
@@ -185,7 +202,10 @@ public class ArtifactHandlerImplV2Test {
         final Log log = mock(Log.class);
         doReturn(log).when(mojo).getLog();
         doNothing().when(log).info(anyString());
+        final Deployment deployment = mock(Deployment.class);
+        doReturn(deployment).when(mojo).getDeployment();
 
+        buildHandler();
         handlerSpy.publishWarArtifact(target, warArtifact, contextPath);
 
         verify(handlerSpy, times(1)).publishWarArtifact(target, warArtifact, contextPath);
@@ -203,6 +223,9 @@ public class ArtifactHandlerImplV2Test {
         final Log log = mock(Log.class);
         doReturn(log).when(mojo).getLog();
         doNothing().when(log).info(anyString());
+        final Deployment deployment = mock(Deployment.class);
+        doReturn(deployment).when(mojo).getDeployment();
+        buildHandler();
         handlerSpy.publishWarArtifact(target, warArtifact, contextPath);
     }
 }

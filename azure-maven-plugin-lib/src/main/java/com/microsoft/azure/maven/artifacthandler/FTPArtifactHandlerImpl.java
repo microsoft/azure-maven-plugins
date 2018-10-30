@@ -10,20 +10,29 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
-
-import javax.annotation.Nonnull;
 import java.io.IOException;
 
 public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
     private static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
     private static final int DEFAULT_MAX_RETRY_TIMES = 3;
 
-    public FTPArtifactHandlerImpl(@Nonnull final AbstractAppServiceMojo mojo) {
-        super(mojo);
+    public static class Builder extends ArtifactHandlerBase.Builder<Builder> {
+        @Override
+        protected Builder self() {
+            return this;
+        }
+
+        @Override
+        public FTPArtifactHandlerImpl build() {
+            return new FTPArtifactHandlerImpl(this);
+        }
+    }
+
+    private FTPArtifactHandlerImpl(final Builder builder) {
+        super(builder);
     }
 
     protected boolean isResourcesPreparationRequired(final DeployTarget target) {
@@ -53,12 +62,12 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
         uploader.uploadDirectoryWithRetries(serverUrl,
             profile.ftpUsername(),
             profile.ftpPassword(),
-            mojo.getDeploymentStagingDirectoryPath(),
+            stagingDirectoryPath,
             DEFAULT_WEBAPP_ROOT,
             DEFAULT_MAX_RETRY_TIMES);
     }
 
     protected FTPUploader getUploader() {
-        return new FTPUploader(mojo.getLog());
+        return new FTPUploader(log);
     }
 }

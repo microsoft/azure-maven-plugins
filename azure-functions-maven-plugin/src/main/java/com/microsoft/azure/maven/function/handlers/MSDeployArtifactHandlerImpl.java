@@ -9,7 +9,6 @@ package com.microsoft.azure.maven.function.handlers;
 import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import org.codehaus.plexus.util.StringUtils;
@@ -21,7 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
-public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase<AbstractFunctionMojo> {
+public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
     public static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-deployment-packages";
     public static final String ZIP_EXT = ".zip";
     public static final String CREATE_ZIP_START = "Step 1 of 4: Creating ZIP file...";
@@ -41,8 +40,30 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase<AbstractFun
     public static final String DELETE_PACKAGE_DONE = "Successfully deleted deployment package ";
     public static final String DELETE_PACKAGE_FAIL = "Failed to delete deployment package ";
 
-    public MSDeployArtifactHandlerImpl(@Nonnull final AbstractFunctionMojo mojo) {
-        super(mojo);
+    protected final String functionAppName;
+
+    public static class Builder extends ArtifactHandlerBase.Builder<Builder> {
+        private String functionAppName;
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
+
+        @Override
+        public MSDeployArtifactHandlerImpl build() {
+            return new MSDeployArtifactHandlerImpl(this);
+        }
+
+        public Builder functionAppName(final String value) {
+            this.functionAppName = value;
+            return self();
+        }
+    }
+
+    private MSDeployArtifactHandlerImpl(@Nonnull final Builder builder) {
+        super(builder);
+        this.functionAppName = builder.functionAppName;
     }
 
     @Override
@@ -59,20 +80,20 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase<AbstractFun
     }
 
     protected void logInfo(final String message) {
-        if (mojo != null) {
-            mojo.getLog().info(message);
+        if (log != null) {
+            log.info(message);
         }
     }
 
     protected void logDebug(final String message) {
-        if (mojo != null) {
-            mojo.getLog().debug(message);
+        if (log != null) {
+            log.debug(message);
         }
     }
 
     protected void logError(final String message) {
-        if (mojo != null) {
-            mojo.getLog().error(message);
+        if (log != null) {
+            log.error(message);
         }
     }
 
@@ -80,9 +101,8 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase<AbstractFun
         logInfo("");
         logInfo(CREATE_ZIP_START);
 
-        final String stageDirectoryPath = mojo.getDeploymentStagingDirectoryPath();
-        final File stageDirectory = new File(stageDirectoryPath);
-        final File zipPackage = new File(stageDirectoryPath.concat(ZIP_EXT));
+        final File stageDirectory = new File(stagingDirectoryPath);
+        final File zipPackage = new File(stagingDirectoryPath.concat(ZIP_EXT));
 
         if (!stageDirectory.exists()) {
             logError(STAGE_DIR_NOT_FOUND);
@@ -94,7 +114,7 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase<AbstractFun
         logDebug(REMOVE_LOCAL_SETTINGS);
         ZipUtil.removeEntry(zipPackage, LOCAL_SETTINGS_FILE);
 
-        logInfo(CREATE_ZIP_DONE + stageDirectoryPath.concat(ZIP_EXT));
+        logInfo(CREATE_ZIP_DONE + stagingDirectoryPath.concat(ZIP_EXT));
         return zipPackage;
     }
 
@@ -116,7 +136,7 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase<AbstractFun
     }
 
     protected String getBlobName() {
-        return mojo.getAppName()
+        return functionAppName
                 .concat(new SimpleDateFormat(".yyyyMMddHHmmssSSS").format(new Date()))
                 .concat(ZIP_EXT);
     }
