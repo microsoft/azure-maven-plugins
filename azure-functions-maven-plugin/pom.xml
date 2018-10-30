@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -29,13 +29,27 @@
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.maven-plugin-lib.version>1.2.2-SNAPSHOT</azure.maven-plugin-lib.version>
-        <azure.function.version>1.0.0-beta-5</azure.function.version>
+        <azure.function.version>1.0.0-beta-7-SNAPSHOT</azure.function.version>
         <reflections.version>0.9.11</reflections.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
         <semver.version>0.9.0</semver.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>maven.snapshots</id>
+            <name>Maven Central Snapshot Repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <licenses>
         <license>
@@ -283,7 +297,7 @@
                         <format>html</format>
                         <format>xml</format>
                     </formats>
-                    <check />
+                    <check/>
                     <instrumentation>
                         <excludes>
                             <exclude>**/HelpMojo.class</exclude>

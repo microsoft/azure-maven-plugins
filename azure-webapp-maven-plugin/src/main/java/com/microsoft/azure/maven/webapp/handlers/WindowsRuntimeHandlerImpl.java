@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers.v2;
+package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
@@ -12,22 +12,21 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
-import com.microsoft.azure.maven.webapp.handlers.BaseRuntimeHandler;
 
-public class WindowsRuntimeHandlerImplV2 extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<WindowsRuntimeHandlerImplV2.Builder>{
+public class WindowsRuntimeHandlerImpl extends BaseRuntimeHandler {
+    public static class Builder extends BaseRuntimeHandler.Builder<WindowsRuntimeHandlerImpl.Builder>{
         @Override
-        protected WindowsRuntimeHandlerImplV2.Builder self() {
+        protected WindowsRuntimeHandlerImpl.Builder self() {
             return this;
         }
 
         @Override
-        public WindowsRuntimeHandlerImplV2 build() {
-            return new WindowsRuntimeHandlerImplV2(this);
+        public WindowsRuntimeHandlerImpl build() {
+            return new WindowsRuntimeHandlerImpl(this);
         }
     }
 
-    private WindowsRuntimeHandlerImplV2(final WindowsRuntimeHandlerImplV2.Builder builder) {
+    private WindowsRuntimeHandlerImpl(final WindowsRuntimeHandlerImpl.Builder builder) {
         super(builder);
     }
 
