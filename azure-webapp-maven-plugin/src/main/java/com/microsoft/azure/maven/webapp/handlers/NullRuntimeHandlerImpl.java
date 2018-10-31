@@ -4,13 +4,12 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers.v1;
+package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
-import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class NullRuntimeHandlerImpl implements RuntimeHandler {
