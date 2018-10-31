@@ -6,6 +6,9 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.microsoft.azure.functions.annotation.BlobInput;
 import com.microsoft.azure.functions.annotation.BlobOutput;
 import com.microsoft.azure.functions.annotation.BlobTrigger;
@@ -31,6 +34,7 @@ import com.microsoft.azure.functions.annotation.TableInput;
 import com.microsoft.azure.functions.annotation.TableOutput;
 import com.microsoft.azure.functions.annotation.TimerTrigger;
 import com.microsoft.azure.functions.annotation.TwilioSmsOutput;
+import com.microsoft.azure.maven.function.bindings.BaseBinding;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
@@ -70,6 +74,13 @@ public class AnnotationHandlerImplTest {
     public static final String SERVICE_BUS_TOPIC_TRIGGER_FUNCTION = "serviceBusTopicTriggerFunction";
     public static final String SERVICE_BUS_TOPIC_TRIGGER_METHOD = "serviceBusTopicTriggerMethod";
 
+    public static final String[] COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES = new String[]{"name", "dataType",
+        "databaseName", "collectionName", "leaseConnectionStringSetting", "leaseCollectionName",
+        "leaseDatabaseName", "createLeaseCollectionIfNotExists", "leasesCollectionThroughput",
+        "leaseCollectionPrefix", "checkpointInterval", "checkpointDocumentCount", "feedPollDelay",
+        "connectionStringSetting", "leaseRenewInterval", "leaseAcquireInterval", "leaseExpirationInterval",
+        "maxItemsPerInvocation", "startFromBeginning", "preferredLocations"};
+
     public class FunctionEntryPoints {
         @FunctionName(HTTP_TRIGGER_FUNCTION)
         public String httpTriggerMethod(@HttpTrigger(name = "req") String req) {
@@ -90,11 +101,24 @@ public class AnnotationHandlerImplTest {
 
         @FunctionName(COSMOSDB_TRIGGER_FUNCTION)
         public void cosmosDBTriggerMethod(@CosmosDBTrigger(name = "cosmos",
-                                                databaseName = "db",
-                                                collectionName = "cl",
-                                                connectionStringSetting = "conn",
-                                                leaseCollectionName = "lease",
-                                                createLeaseCollectionIfNotExists = false) String in) {
+                databaseName = "db",
+                collectionName = "cl",
+                connectionStringSetting = "conn",
+                leaseCollectionName = "lease",
+                leaseConnectionStringSetting = "leaseconnectionstringsetting",
+                leaseDatabaseName = "leasedatabasename",
+                createLeaseCollectionIfNotExists = true,
+                leasesCollectionThroughput = 1,
+                leaseCollectionPrefix = "prefix",
+                checkpointInterval = 1,
+                checkpointDocumentCount = 1,
+                feedPollDelay = 1,
+                leaseRenewInterval = 1,
+                leaseAcquireInterval = 1,
+                maxItemsPerInvocation = 1,
+                startFromBeginning = true,
+                preferredLocations = "location"
+        ) String in) {
         }
 
         @FunctionName(EVENTGRID_TRIGGER_FUNCTION)
@@ -198,6 +222,9 @@ public class AnnotationHandlerImplTest {
         verifyFunctionConfiguration(configMap, COSMOSDB_TRIGGER_FUNCTION, COSMOSDB_TRIGGER_METHOD, 1);
 
         verifyFunctionConfiguration(configMap, EVENTGRID_TRIGGER_FUNCTION, EVENTGRID_TRIGGER_METHOD, 1);
+
+        verifyFunctionBinding(configMap.get(COSMOSDB_TRIGGER_FUNCTION).getBindings().get(0),
+                COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES);
     }
 
     private AnnotationHandlerImpl getAnnotationHandler() {
@@ -221,5 +248,12 @@ public class AnnotationHandlerImplTest {
         final FunctionConfiguration functionConfig = configMap.get(functionName);
         assertEquals(getFullyQualifiedMethodName(methodName), functionConfig.getEntryPoint());
         assertEquals(bindingNum, functionConfig.getBindings().size());
+    }
+
+    private void verifyFunctionBinding(final BaseBinding binding, final String[] requiredAttributes)
+            throws JsonProcessingException {
+        final ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
+        final String functionJson = writer.writeValueAsString(binding);
+        Arrays.stream(requiredAttributes).forEach(attribute -> assertTrue(functionJson.contains(attribute)));
     }
 }

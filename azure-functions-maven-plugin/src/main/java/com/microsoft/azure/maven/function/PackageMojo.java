@@ -136,7 +136,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         } catch (DependencyResolutionRequiredException e) {
             debug("Failed to resolve dependencies for compile scope, exception: " + e.getMessage());
         }
-        for (final String element: compileClasspathElements) {
+        for (final String element : compileClasspathElements) {
             final File f = new File(element);
             try {
                 urlList.add(f.toURI().toURL());
