@@ -151,7 +151,7 @@ public class HandlerFactoryImplTest {
 
         final HandlerFactoryImpl factory = new HandlerFactoryImpl();
 
-        assertTrue(factory.getArtifactHandlerFromPackaging(mojo) instanceof JarArtifactHandlerImpl);
+        assertTrue(factory.getArtifactHandlerBuilderFromPackaging(mojo).build() instanceof JarArtifactHandlerImpl);
     }
 
     @Test(expected = MojoExecutionException.class)
@@ -160,7 +160,7 @@ public class HandlerFactoryImplTest {
         doReturn(project).when(mojo).getProject();
         doReturn("unknown").when(project).getPackaging();
         final HandlerFactoryImpl factory = new HandlerFactoryImpl();
-        factory.getArtifactHandlerFromPackaging(mojo);
+        factory.getArtifactHandlerBuilderFromPackaging(mojo);
     }
 
     @Test

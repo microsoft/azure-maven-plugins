@@ -6,19 +6,29 @@
 
 package com.microsoft.azure.maven.webapp.handlers.v1;
 
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 
-public class NONEArtifactHandlerImpl implements ArtifactHandler {
-    private AbstractWebAppMojo mojo;
+public class NONEArtifactHandlerImpl extends ArtifactHandlerBase {
 
-    public NONEArtifactHandlerImpl(final AbstractWebAppMojo mojo) {
-        this.mojo = mojo;
+    public static class Builder extends ArtifactHandlerBase.Builder<NONEArtifactHandlerImpl.Builder> {
+        @Override
+        protected NONEArtifactHandlerImpl.Builder self() {
+            return this;
+        }
+
+        @Override
+        public NONEArtifactHandlerImpl build() {
+            return new NONEArtifactHandlerImpl(this);
+        }
+    }
+
+    protected NONEArtifactHandlerImpl(Builder builder) {
+        super(builder);
     }
 
     @Override
     public void publish(DeployTarget deployTarget) {
-        this.mojo.getLog().info("The value of <deploymentType> is NONE, skip deployment.");
+        log.info("The value of <deploymentType> is NONE, skip deployment.");
     }
 }

@@ -7,11 +7,8 @@
 package com.microsoft.azure.maven.webapp.handlers.v2;
 
 import com.microsoft.azure.maven.Utils;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.Deployment;
-
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.zeroturnaround.zip.ZipUtil;
@@ -26,24 +23,32 @@ import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.get
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.hasWarFiles;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.performActionWithRetry;
 
-public class ArtifactHandlerImplV2 implements ArtifactHandler {
-    private AbstractWebAppMojo mojo;
+public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
 
-    public ArtifactHandlerImplV2(final AbstractWebAppMojo mojo) {
-        this.mojo = mojo;
+    public static class Builder extends ArtifactHandlerBase.Builder<ArtifactHandlerImplV2.Builder> {
+        @Override
+        protected ArtifactHandlerImplV2.Builder self() {
+            return this;
+        }
+
+        @Override
+        public ArtifactHandlerImplV2 build() {
+            return new ArtifactHandlerImplV2(this);
+        }
+    }
+
+    protected ArtifactHandlerImplV2(final ArtifactHandlerImplV2.Builder builder) {
+        super(builder);
     }
 
     @Override
     public void publish(final DeployTarget target) throws MojoExecutionException, IOException {
-        final Deployment deployment = mojo.getDeployment();
-        final List<Resource> resources = deployment.getResources();
         if (resources == null || resources.size() < 1) {
-            mojo.getLog().warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
+            log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
             return;
         }
 
-        final String stagingDirectoryPath = mojo.getDeploymentStagingDirectoryPath();
         copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
         final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
 
@@ -57,7 +62,7 @@ public class ArtifactHandlerImplV2 implements ArtifactHandler {
             publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
         } else {
             if (hasWarFiles(allArtifacts)) {
-                mojo.getLog().warn(
+                log.warn(
                     "Deploying war artifact together with other kinds of artifacts is not suggested," +
                         " it will cause the content be overwritten or path incorrect issues.");
             }
@@ -72,8 +77,7 @@ public class ArtifactHandlerImplV2 implements ArtifactHandler {
 
     protected void copyArtifactsToStagingDirectory(final List<Resource> resources,
                                                    final String stagingDirectoryPath) throws IOException {
-        Utils.copyResources(mojo.getProject(), mojo.getSession(), mojo.getMavenResourcesFiltering(),
-            resources, stagingDirectoryPath);
+        Utils.copyResources(project, session, filtering, resources, stagingDirectoryPath);
     }
 
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,
@@ -81,7 +85,7 @@ public class ArtifactHandlerImplV2 implements ArtifactHandler {
         final File stagingDirectory = new File(stagingDirectoryPath);
         final File zipFile = new File(stagingDirectoryPath + ".zip");
         ZipUtil.pack(stagingDirectory, zipFile);
-        mojo.getLog().info(String.format("Deploying the zip package %s...", zipFile.getName()));
+        log.info(String.format("Deploying the zip package %s...", zipFile.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
@@ -91,7 +95,7 @@ public class ArtifactHandlerImplV2 implements ArtifactHandler {
                 target.zipDeploy(zipFile);
             }
         };
-        final boolean deploySuccess = performActionWithRetry(runnable, MAX_RETRY_TIMES, mojo.getLog());
+        final boolean deploySuccess = performActionWithRetry(runnable, MAX_RETRY_TIMES, log);
         if (!deploySuccess) {
             throw new MojoExecutionException(
                 String.format("The zip deploy failed after %d times of retry.", MAX_RETRY_TIMES + 1));
@@ -113,11 +117,11 @@ public class ArtifactHandlerImplV2 implements ArtifactHandler {
     public void publishWarArtifact(final DeployTarget target, final File warArtifact,
                                    final String contextPath) throws MojoExecutionException {
         final Runnable executor = getRealWarDeployExecutor(target, warArtifact, contextPath);
-        mojo.getLog().info(String.format("Deploying the war file %s...", warArtifact.getName()));
+        log.info(String.format("Deploying the war file %s...", warArtifact.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
-        final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES, mojo.getLog());
+        final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES, log);
         if (!deploySuccess) {
             throw new MojoExecutionException(
                 String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES + 1));

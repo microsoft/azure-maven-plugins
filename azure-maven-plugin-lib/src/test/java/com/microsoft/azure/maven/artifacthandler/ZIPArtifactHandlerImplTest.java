@@ -36,17 +36,24 @@ public class ZIPArtifactHandlerImplTest {
     @Mock
     private AbstractAppServiceMojo mojo;
 
+    private ZIPArtifactHandlerImpl.Builder builder = new ZIPArtifactHandlerImpl.Builder();
+
     private ZIPArtifactHandlerImpl handler;
+    private ZIPArtifactHandlerImpl handlerSpy;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        handler = new ZIPArtifactHandlerImpl(mojo);
+    }
+
+    private void buildHandler() {
+        handler = builder.stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath()).build();
+        handlerSpy = spy(handler);
     }
 
     @Test
     public void publish() throws MojoExecutionException, IOException {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
+        buildHandler();
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         final File file = mock(File.class);
@@ -68,7 +75,7 @@ public class ZIPArtifactHandlerImplTest {
 
     @Test
     public void publishThrowException() throws MojoExecutionException, IOException {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
+        buildHandler();
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         final File file = mock(File.class);
@@ -86,7 +93,7 @@ public class ZIPArtifactHandlerImplTest {
 
     @Test
     public void publishThrowResourceNotConfiguredException() throws IOException {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
+        buildHandler();
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
 
@@ -100,18 +107,16 @@ public class ZIPArtifactHandlerImplTest {
 
     @Test
     public void getZipFile() {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
         final File zipTestDirectory = new File("src/test/resources/ziptest");
         doReturn(zipTestDirectory.getAbsolutePath()).when(mojo).getDeploymentStagingDirectoryPath();
-
+        buildHandler();
         assertEquals(zipTestDirectory.getAbsolutePath() + ".zip", handlerSpy.getZipFile().getAbsolutePath());
     }
 
     @Test(expected = ZipException.class)
     public void getZipFileThrowException() {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
         doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
-
+        buildHandler();
         handlerSpy.getZipFile();
     }
 }
