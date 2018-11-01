@@ -11,12 +11,19 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
+import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
+import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
+import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
+import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.codehaus.plexus.util.StringUtils;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.azure.maven.webapp.WebAppUtils.isUpdateWebAppNecessary;
@@ -45,40 +52,57 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     @Override
     protected void doExecute() throws Exception {
-        createOrUpdateWebApp();
+        final ConfigurationParser parser = getParserBySchemaVersion();
+        final WebAppConfiguration webAppConfig = parser.getWebAppConfiguration();
+        createOrUpdateWebApp(webAppConfig);
         deployArtifacts();
     }
 
-    protected void createOrUpdateWebApp() throws Exception {
+    protected ConfigurationParser getParserBySchemaVersion() throws MojoExecutionException {
+        final String schemaVersion = StringUtils.isEmpty(getSchemaVersion()) ? "v1" : getSchemaVersion();
+
+        switch (schemaVersion.toLowerCase(Locale.ENGLISH)) {
+            case "v1":
+                return new V1ConfigurationParser(this);
+            case "v2":
+                return new V2ConfigurationParser(this);
+            default:
+                throw new MojoExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
+        }
+    }
+
+    protected void createOrUpdateWebApp(final WebAppConfiguration config) throws Exception {
         final WebApp app = getWebApp();
         if (app == null && this.isDeployToDeploymentSlot()) {
             throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
         }
+        // todo: use parser to getAzureClient from mojo
+        final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(config, getAzureClient(), getLog());
         if (app == null) {
-            createWebApp();
+            createWebApp(runtimeHandler);
         } else {
-            updateWebApp(app);
+            updateWebApp(runtimeHandler, app);
         }
     }
 
-    protected void createWebApp() throws Exception {
+    protected void createWebApp(final RuntimeHandler runtimeHandler) throws Exception {
         info(WEBAPP_NOT_EXIST);
 
-        final WithCreate withCreate = getFactory().getRuntimeHandler(this).defineAppWithRuntime();
+        final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
         getFactory().getSettingsHandler(this).processSettings(withCreate);
         withCreate.create();
 
         info(WEBAPP_CREATED);
     }
 
-    protected void updateWebApp(final WebApp app) throws Exception {
+    protected void updateWebApp(final RuntimeHandler runtimeHandler, final WebApp app) throws Exception {
         if (!isUpdateWebAppNecessary(this.getSchemaVersion(), this.getRuntime())) {
             return;
         }
 
         info(UPDATE_WEBAPP);
 
-        final Update update = getFactory().getRuntimeHandler(this).updateAppRuntime(app);
+        final Update update = runtimeHandler.updateAppRuntime(app);
         getFactory().getSettingsHandler(this).processSettings(update);
         update.apply();
 
