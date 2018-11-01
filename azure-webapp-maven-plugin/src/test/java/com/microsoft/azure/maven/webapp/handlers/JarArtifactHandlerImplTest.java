@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers.v1;
+package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
