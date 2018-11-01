@@ -19,7 +19,7 @@ import java.io.File;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
-    private static final String JDK_VERSION_ERROR = "Local JDK Version %s does not meet the requirement of the " +
+    private static final String JDK_VERSION_ERROR = "Local JDK version %s does not meet the requirement of the " +
             "Maven plugin for Azure Functions. The supported version is JDK 8";
 
     //region Properties
