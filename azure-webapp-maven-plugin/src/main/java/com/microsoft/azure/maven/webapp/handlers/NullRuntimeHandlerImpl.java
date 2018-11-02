@@ -9,12 +9,12 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.maven.webapp.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class NullRuntimeHandlerImpl implements RuntimeHandler {
-    public static final String NO_RUNTIME_CONFIG = "No runtime stack is specified in pom.xml; " +
-            "use <javaVersion>, <linuxRuntime> or <containerSettings> to configure runtime stack.";
+    public static final String NO_RUNTIME_CONFIG = "No runtime stack is specified in pom.xml. " +
+        "For V1 schema version, please use <javaVersion>, <linuxRuntime> or <containerSettings>, " +
+        "For V2 schema version, please use <runtime>.";
 
     @Override
     public WithCreate defineAppWithRuntime() throws Exception {
@@ -22,9 +22,7 @@ public class NullRuntimeHandlerImpl implements RuntimeHandler {
     }
 
     @Override
-    public Update updateAppRuntime(final WebApp app) throws Exception {
-        WebAppUtils.clearTags(app);
-
-        return app.update();
+    public Update updateAppRuntime(final WebApp app) {
+        return null;
     }
 }

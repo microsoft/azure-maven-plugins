@@ -26,8 +26,6 @@ import org.codehaus.plexus.util.StringUtils;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.azure.maven.webapp.WebAppUtils.isUpdateWebAppNecessary;
-
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
  */
@@ -37,7 +35,10 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
     public static final String WEBAPP_CREATED = "Successfully created Web App.";
+    public static final String CREATE_DEPLOYMENT_SLOT = "Target Deployment Slot doesn't exist. Creating a new one...";
+    public static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created the Deployment Slot.";
     public static final String UPDATE_WEBAPP = "Updating target Web App...";
+    public static final String UPDATE_WEBAPP_SKIP = "No runtime configured. Skip the update.";
     public static final String UPDATE_WEBAPP_DONE = "Successfully updated Web App.";
     public static final String STOP_APP = "Stopping Web App before deploying artifacts...";
     public static final String START_APP = "Starting Web App after deploying artifacts...";
@@ -72,13 +73,15 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     protected void createOrUpdateWebApp(final WebAppConfiguration config) throws Exception {
+        // todo: use parser to get web app from mojo configs
         final WebApp app = getWebApp();
         if (app == null && this.isDeployToDeploymentSlot()) {
             throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
         }
-        // todo: use parser to getAzureClient from mojo
+        // todo: use parser to getAzureClient from mojo configs
         final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(config, getAzureClient(), getLog());
         if (app == null) {
+            // todo: refactor the create and update logic
             createWebApp(runtimeHandler);
         } else {
             updateWebApp(runtimeHandler, app);
@@ -96,20 +99,22 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     protected void updateWebApp(final RuntimeHandler runtimeHandler, final WebApp app) throws Exception {
-        if (!isUpdateWebAppNecessary(this.getSchemaVersion(), this.getRuntime())) {
-            return;
+        final Update update = runtimeHandler.updateAppRuntime(app);
+        if (update == null) {
+            info(UPDATE_WEBAPP_SKIP);
+        } else {
+            info(UPDATE_WEBAPP);
+            getFactory().getSettingsHandler(this).processSettings(update);
+            update.apply();
+            info(UPDATE_WEBAPP_DONE);
         }
 
-        info(UPDATE_WEBAPP);
-
-        final Update update = runtimeHandler.updateAppRuntime(app);
-        getFactory().getSettingsHandler(this).processSettings(update);
-        update.apply();
-
-        info(UPDATE_WEBAPP_DONE);
-
         if (isDeployToDeploymentSlot()) {
+            info(CREATE_DEPLOYMENT_SLOT);
+
             getFactory().getDeploymentSlotHandler(this).createDeploymentSlotIfNotExist();
+
+            info(CREATE_DEPLOYMENT_SLOT_DONE);
         }
     }
 
