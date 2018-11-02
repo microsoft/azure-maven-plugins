@@ -19,7 +19,7 @@
                         <serverId>azure-auth</serverId>
                     </authentication>
                     <resourceGroup>maven-webapp-it-rg-10</resourceGroup>
-                    <appName>maven-it-app-${maven.build.timestamp}</appName>
+                    <appName>maven-it-app-10-${maven.build.timestamp}</appName>
                     <region>westus</region>
                     <javaVersion>1.8</javaVersion>
                     <javaWebContainer>tomcat 8.5</javaWebContainer>
