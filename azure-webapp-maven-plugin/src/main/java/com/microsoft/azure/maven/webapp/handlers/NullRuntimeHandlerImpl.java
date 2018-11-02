@@ -12,7 +12,7 @@ import com.microsoft.azure.management.appservice.WebApp.Update;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class NullRuntimeHandlerImpl implements RuntimeHandler {
-    public static final String NO_RUNTIME_CONFIG = "No runtime stack is specified in pom.xml. " +
+    public static final String NO_RUNTIME_CONFIG = "No runtime related configuration is specified in pom.xml. " +
         "For V1 schema version, please use <javaVersion>, <linuxRuntime> or <containerSettings>, " +
         "For V2 schema version, please use <runtime>.";
 

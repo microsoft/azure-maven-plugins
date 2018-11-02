@@ -7,17 +7,14 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -42,13 +39,8 @@ public class NullRuntimeHandlerImplTest {
     }
 
     @Test
-    public void updateAppRuntime() throws Exception {
+    public void updateAppRuntime() {
         final WebApp app = mock(WebApp.class);
-        final Update update = mock(Update.class);
-        doReturn(update).when(app).update();
-        final SiteInner siteInner = mock(SiteInner.class);
-        doReturn(siteInner).when(app).inner();
-
-        assertSame(update, handler.updateAppRuntime(app));
+        assertNull(handler.updateAppRuntime(app));
     }
 }

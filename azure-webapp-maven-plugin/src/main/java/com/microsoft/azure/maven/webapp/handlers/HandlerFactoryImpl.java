@@ -49,7 +49,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
         return builder.appName(config.getAppName())
             .resourceGroup(config.getResourceGroup())
-            .region(config.getRegion())
+            .region(config.getRegion().name())
             .pricingTier(config.getPricingTier())
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))

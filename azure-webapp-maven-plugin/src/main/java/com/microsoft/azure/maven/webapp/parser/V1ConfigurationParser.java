@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.webapp.parser;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
@@ -33,15 +34,16 @@ public class V1ConfigurationParser extends ConfigurationParser {
     @Override
     public OperatingSystemEnum getOs() throws MojoExecutionException {
         final String linuxRuntime = mojo.getLinuxRuntime();
+        final JavaVersion javaVersion = mojo.getJavaVersion();
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final boolean isContainerSettingEmpty = containerSetting == null || containerSetting.isEmpty();
 
         // Duplicated runtime are specified
-        if (mojo.getJavaVersion() != null ? linuxRuntime != null || !isContainerSettingEmpty :
+        if (javaVersion != null ? linuxRuntime != null || !isContainerSettingEmpty :
             linuxRuntime != null && !isContainerSettingEmpty) {
             throw new MojoExecutionException(RUNTIME_CONFIG_CONFLICT);
         }
-        if (null != mojo.getJavaVersion()) {
+        if (null != javaVersion) {
             return OperatingSystemEnum.Windows;
         }
         if (null != linuxRuntime) {
@@ -54,8 +56,14 @@ public class V1ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected String getRegion() {
-        return mojo.getRegion();
+    protected Region getRegion() throws MojoExecutionException {
+        if (StringUtils.isEmpty(mojo.getRegion())) {
+            return Region.EUROPE_WEST;
+        }
+        if (Arrays.asList(Region.values()).contains(mojo.getRegion())) {
+            throw new MojoExecutionException("The value of <region> is not correct, please correct it in pom.xml.");
+        }
+        return Region.fromName(mojo.getRegion());
     }
 
     @Override
@@ -68,7 +76,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
             case JRE8:
                 return RuntimeStack.JAVA_8_JRE8;
             default:
-                throw new MojoExecutionException("Unknown value of <linuxRuntime>. " +
+                throw new MojoExecutionException("The configuration of <linuxRuntime> in pom.xml is not correct. " +
                     "The supported values are " + SUPPORTED_LINUX_RUNTIMES.toString());
         }
     }
@@ -77,7 +85,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
     public String getImage() throws MojoExecutionException {
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         if (containerSetting == null) {
-            return null;
+            throw new MojoExecutionException("Please config the <containerSettings> in pom.xml.");
         }
         if (StringUtils.isEmpty(containerSetting.getImageName())) {
             throw new MojoExecutionException("Please config the <imageName> of <containerSettings> in pom.xml.");
@@ -104,12 +112,18 @@ public class V1ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    public WebContainer getWebContainer() {
+    public WebContainer getWebContainer() throws MojoExecutionException {
+        if (mojo.getJavaWebContainer() == null) {
+            throw new MojoExecutionException("The configuration of <javaWebContainer> in pom.xml is not correct.");
+        }
         return mojo.getJavaWebContainer();
     }
 
     @Override
-    public JavaVersion getJavaVersion() {
+    public JavaVersion getJavaVersion() throws MojoExecutionException {
+        if (mojo.getJavaVersion() == null) {
+            throw new MojoExecutionException("The configuration of <javaVersion> in pom.xml is not correct.");
+        }
         return mojo.getJavaVersion();
     }
 

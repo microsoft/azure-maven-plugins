@@ -9,7 +9,9 @@ package com.microsoft.azure.maven.webapp.parser;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import org.apache.maven.model.Resource;
@@ -43,17 +45,20 @@ public class V2ConfigurationParser extends ConfigurationParser {
             case "docker":
                 return OperatingSystemEnum.Docker;
             default:
-                throw new MojoExecutionException("The value of <os> is unknown, supported values are: windows, " +
+                throw new MojoExecutionException("The value of <os> is not correct, supported values are: windows, " +
                     "linux and docker.");
         }
     }
 
     @Override
-    protected String getRegion() throws MojoExecutionException {
-        if (StringUtils.isEmpty(getRegion())) {
+    protected Region getRegion() throws MojoExecutionException {
+        if (StringUtils.isEmpty(mojo.getRegion())) {
             throw new MojoExecutionException("Please config the <region> in pom.xml.");
         }
-        return mojo.getRegion();
+        if (Arrays.asList(Region.values()).contains(mojo.getRegion())) {
+            throw new MojoExecutionException("The value of <region> is not supported, please correct it in pom.xml.");
+        }
+        return Region.fromName(mojo.getRegion());
     }
 
     @Override
@@ -74,8 +79,8 @@ public class V2ConfigurationParser extends ConfigurationParser {
         if (WebContainer.TOMCAT_9_0_NEWEST == runtime.getWebContainer()) {
             return RuntimeStack.TOMCAT_9_0_JRE8;
         }
-        throw new MojoExecutionException("Unknown value of <webContainer>. Supported values are " +
-            SUPPORTED_LINUX_WEB_CONTAINERS.toString());
+        throw new MojoExecutionException("The configuration <webContainer> in pom.xml is not correct. " +
+            "The supported values for Linux are " + SUPPORTED_LINUX_WEB_CONTAINERS.toString());
     }
 
     @Override
@@ -109,28 +114,34 @@ public class V2ConfigurationParser extends ConfigurationParser {
 
     @Override
     protected WebContainer getWebContainer() throws MojoExecutionException {
-        if (getOs() == OperatingSystemEnum.Windows) {
-            if (mojo.getRuntime().getWebContainer() == null) {
-                throw new MojoExecutionException("Pleas config the <webContainer> of <runtime> in pom.xml.");
-            }
-            return mojo.getRuntime().getWebContainer();
+        final RuntimeSetting runtime = mojo.getRuntime();
+        if (runtime == null) {
+            throw new MojoExecutionException("Pleas config the <runtime> in pom.xml.");
         }
-        return null;
+        if ("windows".equalsIgnoreCase(runtime.getOs()) && runtime.getWebContainer() == null) {
+            throw new MojoExecutionException("The configuration <webContainer> in pom.xml is not correct.");
+        }
+        return runtime.getWebContainer();
     }
 
     @Override
     protected JavaVersion getJavaVersion() throws MojoExecutionException {
         final RuntimeSetting runtime = mojo.getRuntime();
-        if (runtime != null && runtime.getJavaVersion() == null) {
-            throw new MojoExecutionException("Unknown value of <javaVersion>. The supported values is jre8.");
+        if (runtime == null) {
+            throw new MojoExecutionException("Pleas config the <runtime> in pom.xml.");
         }
-        return null;
+        if (runtime.getJavaVersion() == null) {
+            throw new MojoExecutionException("The configuration <javaVersion> in pom.xml is not correct. " +
+                "The supported values is jre8.");
+        }
+        return mojo.getJavaVersion();
     }
 
     @Override
-    protected List<Resource> getResources() {
-        if (mojo.getDeployment() == null) {
-            return  null;
+    protected List<Resource> getResources() throws MojoExecutionException {
+        final Deployment deployment = mojo.getDeployment();
+        if (deployment == null || deployment.getResources() == null || deployment.getResources().isEmpty()) {
+            throw new MojoExecutionException("The configuration <deployment> in pom.xml is not correct.");
         }
         return mojo.getDeployment().getResources();
     }

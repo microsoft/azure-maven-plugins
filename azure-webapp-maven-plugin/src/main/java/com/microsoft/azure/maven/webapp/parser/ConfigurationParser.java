@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.webapp.parser;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
@@ -25,22 +26,32 @@ public abstract class ConfigurationParser {
     }
 
     protected String getAppName() throws MojoExecutionException {
-        if (StringUtils.isEmpty(mojo.getAppName())) {
+        final String appName = mojo.getAppName();
+        if (StringUtils.isEmpty(appName)) {
             throw new MojoExecutionException("Please config the <appName> in pom.xml.");
+        }
+        if (appName.startsWith("-") || !appName.matches("[a-zA-Z0-9\\-]{2,60}")) {
+            throw new MojoExecutionException("The <appName> only allow alphanumeric characters, " +
+                "hyphens and cannot start or end in a hyphen.");
         }
         return mojo.getAppName();
     }
 
     protected String getResourceGroup() throws MojoExecutionException {
-        if (StringUtils.isEmpty(mojo.getResourceGroup())) {
+        final String resourceGroupName = mojo.getResourceGroup();
+        if (StringUtils.isEmpty(resourceGroupName)) {
             throw new MojoExecutionException("Please config the <resourceGroup> in pom.xml.");
+        }
+        if (resourceGroupName.endsWith(".") || !resourceGroupName.matches("[a-zA-Z0-9\\.\\_\\-\\(\\)]{1,90}")) {
+            throw new MojoExecutionException("The <resourceGroup> only allow alphanumeric characters, periods, " +
+                "underscores, hyphens and parenthesis and cannot end in a period.");
         }
         return mojo.getResourceGroup();
     }
 
     protected abstract OperatingSystemEnum getOs() throws MojoExecutionException;
 
-    protected abstract String getRegion() throws MojoExecutionException;
+    protected abstract Region getRegion() throws MojoExecutionException;
 
     protected abstract RuntimeStack getRuntimeStack() throws MojoExecutionException;
 
@@ -54,18 +65,25 @@ public abstract class ConfigurationParser {
 
     protected abstract WebContainer getWebContainer() throws MojoExecutionException;
 
-    protected abstract List<Resource> getResources();
+    protected abstract List<Resource> getResources() throws MojoExecutionException;
 
     public WebAppConfiguration getWebAppConfiguration() throws MojoExecutionException {
         WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
-        if (OperatingSystemEnum.Windows == getOs()) {
-            builder = builder.javaVersion(getJavaVersion()).webContainer(getWebContainer());
-        }
-        if (OperatingSystemEnum.Linux == getOs()) {
-            builder = builder.runtimeStack(getRuntimeStack());
-        }
-        if (OperatingSystemEnum.Docker == getOs()) {
-            builder = builder.image(getImage()).serverId(getServerId()).registryUrl(getRegistryUrl());
+        final OperatingSystemEnum os = getOs();
+        if (os != null) {
+            switch (getOs()) {
+                case Windows:
+                    builder = builder.javaVersion(getJavaVersion()).webContainer(getWebContainer());
+                    break;
+                case Linux:
+                    builder = builder.runtimeStack(getRuntimeStack());
+                    break;
+                case Docker:
+                    builder = builder.image(getImage()).serverId(getServerId()).registryUrl(getRegistryUrl());
+                    break;
+                default:
+                    throw new MojoExecutionException("Invalid operating system from the configuration.");
+            }
         }
 
         return builder.appName(getAppName())

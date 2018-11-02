@@ -10,6 +10,7 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
@@ -22,7 +23,7 @@ public class WebAppConfiguration {
     // artifact deploy related configurations
     protected String appName;
     protected String resourceGroup;
-    protected String region;
+    protected Region region;
     protected PricingTier pricingTier;
     protected String servicePlanName;
     protected String servicePlanResourceGroup;
@@ -76,7 +77,7 @@ public class WebAppConfiguration {
         return resourceGroup;
     }
 
-    public String getRegion() {
+    public Region getRegion() {
         return region;
     }
 
@@ -153,7 +154,7 @@ public class WebAppConfiguration {
     public static class Builder {
         private String appName;
         private String resourceGroup;
-        private String region;
+        private Region region;
         private PricingTier pricingTier;
         private String servicePlanName;
         private String servicePlanResourceGroup;
@@ -190,7 +191,7 @@ public class WebAppConfiguration {
             return self();
         }
 
-        public Builder region(final String value) {
+        public Builder region(final Region value) {
             this.region = value;
             return self();
         }
