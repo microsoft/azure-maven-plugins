@@ -70,8 +70,11 @@ public abstract class ConfigurationParser {
     public WebAppConfiguration getWebAppConfiguration() throws MojoExecutionException {
         WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
         final OperatingSystemEnum os = getOs();
-        if (os != null) {
-            switch (getOs()) {
+        if (os == null) {
+            mojo.getLog().debug("No runtime related config is specified. " +
+                "It will cause error if creating a new web app.");
+        } else {
+            switch (os) {
                 case Windows:
                     builder = builder.javaVersion(getJavaVersion()).webContainer(getWebContainer());
                     break;

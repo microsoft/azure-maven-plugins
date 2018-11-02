@@ -38,6 +38,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final boolean isContainerSettingEmpty = containerSetting == null || containerSetting.isEmpty();
 
+        // todo: refactor the logic of checking if there are duplicate configs
         // Duplicated runtime are specified
         if (javaVersion != null ? linuxRuntime != null || !isContainerSettingEmpty :
             linuxRuntime != null && !isContainerSettingEmpty) {
