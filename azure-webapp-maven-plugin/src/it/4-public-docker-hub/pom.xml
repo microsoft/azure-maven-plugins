@@ -19,7 +19,7 @@
                         <serverId>azure-auth</serverId>
                     </authentication>
                     <resourceGroup>maven-webapp-it-rg-4</resourceGroup>
-                    <appName>maven-it-app-${maven.build.timestamp}</appName>
+                    <appName>maven-it-app-4-${maven.build.timestamp}</appName>
                     <region>westus</region>
                     <containerSettings>
                         <imageName>nginx</imageName>
