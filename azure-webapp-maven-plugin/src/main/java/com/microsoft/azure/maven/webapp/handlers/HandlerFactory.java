@@ -6,10 +6,13 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 
 public abstract class HandlerFactory {
     private static HandlerFactory instance = new HandlerFactoryImpl();
@@ -18,7 +21,8 @@ public abstract class HandlerFactory {
         return instance;
     }
 
-    public abstract RuntimeHandler getRuntimeHandler(final AbstractWebAppMojo mojo)
+    public abstract RuntimeHandler getRuntimeHandler(final WebAppConfiguration config,
+                                                     final Azure azureClient, final Log log)
         throws MojoExecutionException, AzureAuthFailureException;
 
     public abstract SettingsHandler getSettingsHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException;
