@@ -16,6 +16,7 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.Existin
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.ExistingWindowsPlanWithGroup;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -97,7 +98,7 @@ public class WebAppUtils {
                                                            final String resourceGroup,
                                                            final Azure azure,
                                                            final String servicePlanResourceGroup,
-                                                           final String region,
+                                                           final Region region,
                                                            final PricingTier pricingTier,
                                                            final Log log,
                                                            final OperatingSystem os) {

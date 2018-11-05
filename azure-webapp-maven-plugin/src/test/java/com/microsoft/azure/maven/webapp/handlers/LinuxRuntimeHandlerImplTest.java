@@ -6,14 +6,13 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.microsoft.azure.maven.webapp.WebAppUtils.getLinuxRunTimeStack;
 import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -32,7 +30,13 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class LinuxRuntimeHandlerImplTest {
     @Mock
-    private AbstractWebAppMojo mojo;
+    private WebAppConfiguration config;
+
+    @Mock
+    private Azure azureClient;
+
+    @Mock
+    private Log log;
 
     private final LinuxRuntimeHandlerImpl.Builder builder = new LinuxRuntimeHandlerImpl.Builder();
 
@@ -43,30 +47,29 @@ public class LinuxRuntimeHandlerImplTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    private void initHandlerV2() throws AzureAuthFailureException, MojoExecutionException {
-        final RuntimeSetting runtime = mojo.getRuntime();
-        handler = builder.runtime(runtime.getLinuxRuntime())
-            .appName(mojo.getAppName())
-            .resourceGroup(mojo.getResourceGroup())
-            .region(mojo.getRegion())
-            .pricingTier(mojo.getPricingTier())
-            .servicePlanName(mojo.getAppServicePlanName())
-            .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-            .azure(mojo.getAzureClient())
-            .log(mojo.getLog())
+    private void initHandlerV2() {
+        handler = builder.runtime(config.getRuntimeStack())
+            .appName(config.getAppName())
+            .resourceGroup(config.getResourceGroup())
+            .region(config.getRegion())
+            .pricingTier(config.getPricingTier())
+            .servicePlanName(config.getServicePlanName())
+            .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
+            .azure(azureClient)
+            .log(log)
             .build();
     }
 
-    private void initHandlerV1() throws AzureAuthFailureException, MojoExecutionException {
-        handler = builder.runtime(getLinuxRunTimeStack(mojo.getLinuxRuntime()))
-            .appName(mojo.getAppName())
-            .resourceGroup(mojo.getResourceGroup())
-            .region(mojo.getRegion())
-            .pricingTier(mojo.getPricingTier())
-            .servicePlanName(mojo.getAppServicePlanName())
-            .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-            .azure(mojo.getAzureClient())
-            .log(mojo.getLog())
+    private void initHandlerV1() {
+        handler = builder.runtime(config.getRuntimeStack())
+            .appName(config.getAppName())
+            .resourceGroup(config.getResourceGroup())
+            .region(config.getRegion())
+            .pricingTier(config.getPricingTier())
+            .servicePlanName(config.getServicePlanName())
+            .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
+            .azure(azureClient)
+            .log(log)
             .build();
     }
 
@@ -76,14 +79,10 @@ public class LinuxRuntimeHandlerImplTest {
         final SiteInner siteInner = mock(SiteInner.class);
         doReturn(siteInner).when(app).inner();
         doReturn("app,linux").when(siteInner).kind();
-
         final WebApp.Update update = mock(WebApp.Update.class);
         doReturn(update).when(app).update();
         doReturn(update).when(update).withBuiltInImage(RuntimeStack.TOMCAT_8_5_JRE8);
-
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
-        doReturn(runtime).when(mojo).getRuntime();
-        doReturn(RuntimeStack.TOMCAT_8_5_JRE8).when(runtime).getLinuxRuntime();
+        doReturn(RuntimeStack.TOMCAT_8_5_JRE8).when(config).getRuntimeStack();
 
         initHandlerV2();
 
@@ -100,7 +99,7 @@ public class LinuxRuntimeHandlerImplTest {
         final Update update = mock(Update.class);
         doReturn(update).when(app).update();
         doReturn(update).when(update).withBuiltInImage(any(RuntimeStack.class));
-        doReturn(RuntimeStack.TOMCAT_8_5_JRE8.toString()).when(mojo).getLinuxRuntime();
+        doReturn(RuntimeStack.TOMCAT_8_5_JRE8).when(config).getRuntimeStack();
 
         initHandlerV1();
         assertSame(update, handler.updateAppRuntime(app));
