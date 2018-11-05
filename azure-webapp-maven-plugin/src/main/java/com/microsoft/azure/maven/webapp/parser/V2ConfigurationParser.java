@@ -52,46 +52,35 @@ public class V2ConfigurationParser extends ConfigurationParser {
 
     @Override
     protected Region getRegion() throws MojoExecutionException {
-        if (StringUtils.isEmpty(mojo.getRegion())) {
+        final String region = mojo.getRegion();
+        if (StringUtils.isEmpty(region)) {
             throw new MojoExecutionException("Please config the <region> in pom.xml.");
         }
-        if (Arrays.asList(Region.values()).contains(mojo.getRegion())) {
+        if (Arrays.asList(Region.values()).contains(region)) {
             throw new MojoExecutionException("The value of <region> is not supported, please correct it in pom.xml.");
         }
-        return Region.fromName(mojo.getRegion());
+        return Region.fromName(region);
     }
 
     @Override
     protected RuntimeStack getRuntimeStack() throws MojoExecutionException {
         final RuntimeSetting runtime = mojo.getRuntime();
-        if (runtime == null) {
+        if (runtime == null || runtime.isEmpty()) {
             return null;
         }
-        if (runtime.getJavaVersion() == null) {
-            throw new MojoExecutionException("Unknown value of <javaVersion>. The supported values is jre8.");
-        }
-        if (runtime.getWebContainer() == null) {
-            return RuntimeStack.JAVA_8_JRE8;
-        }
-        if (WebContainer.TOMCAT_8_5_NEWEST == runtime.getWebContainer()) {
-            return RuntimeStack.TOMCAT_8_5_JRE8;
-        }
-        if (WebContainer.TOMCAT_9_0_NEWEST == runtime.getWebContainer()) {
-            return RuntimeStack.TOMCAT_9_0_JRE8;
-        }
-        throw new MojoExecutionException("The configuration <webContainer> in pom.xml is not correct. " +
-            "The supported values for Linux are " + SUPPORTED_LINUX_WEB_CONTAINERS.toString());
+        return runtime.getLinuxRuntime();
     }
 
     @Override
     protected String getImage() throws MojoExecutionException {
-        if (getOs() == OperatingSystemEnum.Docker) {
-            if (StringUtils.isEmpty(mojo.getRuntime().getImage())) {
-                throw new MojoExecutionException("Please config the <image> of <runtime> in pom.xml.");
-            }
-            return mojo.getRuntime().getImage();
+        final RuntimeSetting runtime = mojo.getRuntime();
+        if (runtime == null) {
+            throw new MojoExecutionException("Please configure the <runtime> in pom.xml.");
         }
-        return null;
+        if (StringUtils.isEmpty(runtime.getImage())) {
+            throw new MojoExecutionException("Please config the <image> of <runtime> in pom.xml.");
+        }
+        return runtime.getImage();
     }
 
     @Override
@@ -131,18 +120,14 @@ public class V2ConfigurationParser extends ConfigurationParser {
             throw new MojoExecutionException("Pleas config the <runtime> in pom.xml.");
         }
         if (runtime.getJavaVersion() == null) {
-            throw new MojoExecutionException("The configuration <javaVersion> in pom.xml is not correct. " +
-                "The supported values is jre8.");
+            throw new MojoExecutionException("The configuration <javaVersion> in pom.xml is not correct.");
         }
-        return mojo.getJavaVersion();
+        return runtime.getJavaVersion();
     }
 
     @Override
-    protected List<Resource> getResources() throws MojoExecutionException {
+    protected List<Resource> getResources() {
         final Deployment deployment = mojo.getDeployment();
-        if (deployment == null || deployment.getResources() == null || deployment.getResources().isEmpty()) {
-            throw new MojoExecutionException("The configuration <deployment> in pom.xml is not correct.");
-        }
-        return mojo.getDeployment().getResources();
+        return deployment == null ? null : deployment.getResources();
     }
 }
