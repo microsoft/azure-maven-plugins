@@ -134,15 +134,12 @@ public class V2ConfigurationParser extends ConfigurationParser {
             throw new MojoExecutionException("The configuration <javaVersion> in pom.xml is not correct. " +
                 "The supported values is jre8.");
         }
-        return mojo.getJavaVersion();
+        return runtime.getJavaVersion();
     }
 
     @Override
-    protected List<Resource> getResources() throws MojoExecutionException {
+    protected List<Resource> getResources() {
         final Deployment deployment = mojo.getDeployment();
-        if (deployment == null || deployment.getResources() == null || deployment.getResources().isEmpty()) {
-            throw new MojoExecutionException("The configuration <deployment> in pom.xml is not correct.");
-        }
-        return mojo.getDeployment().getResources();
+        return deployment == null ? null : deployment.getResources();
     }
 }
