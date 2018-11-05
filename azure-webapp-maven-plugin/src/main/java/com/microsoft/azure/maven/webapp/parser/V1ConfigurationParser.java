@@ -16,6 +16,7 @@ import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,23 +38,22 @@ public class V1ConfigurationParser extends ConfigurationParser {
         final JavaVersion javaVersion = mojo.getJavaVersion();
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final boolean isContainerSettingEmpty = containerSetting == null || containerSetting.isEmpty();
+        final List<OperatingSystemEnum> osList = new ArrayList<>();
 
-        // todo: refactor the logic of checking if there are duplicate configs
-        // Duplicated runtime are specified
-        if (javaVersion != null ? linuxRuntime != null || !isContainerSettingEmpty :
-            linuxRuntime != null && !isContainerSettingEmpty) {
-            throw new MojoExecutionException(RUNTIME_CONFIG_CONFLICT);
+        if (javaVersion != null) {
+            osList.add(OperatingSystemEnum.Windows);
         }
-        if (null != javaVersion) {
-            return OperatingSystemEnum.Windows;
-        }
-        if (null != linuxRuntime) {
-            return OperatingSystemEnum.Linux;
+        if (linuxRuntime != null) {
+            osList.add(OperatingSystemEnum.Linux);
         }
         if (!isContainerSettingEmpty) {
-            return OperatingSystemEnum.Docker;
+            osList.add(OperatingSystemEnum.Docker);
         }
-        return null;
+
+        if (osList.size() > 1) {
+            throw new MojoExecutionException(RUNTIME_CONFIG_CONFLICT);
+        }
+        return osList.size() > 0 ? osList.get(0) : null;
     }
 
     @Override
