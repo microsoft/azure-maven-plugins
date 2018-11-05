@@ -11,6 +11,7 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
 
@@ -20,7 +21,7 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
     protected WebContainer webContainer;
     protected String appName;
     protected String resourceGroup;
-    protected String region;
+    protected Region region;
     protected PricingTier pricingTier;
     protected String servicePlanName;
     protected String servicePlanResourceGroup;
@@ -37,7 +38,7 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
         protected WebContainer webContainer;
         private String appName;
         private String resourceGroup;
-        private String region;
+        private Region region;
         private PricingTier pricingTier;
         private String servicePlanName;
         private String servicePlanResourceGroup;
@@ -63,7 +64,7 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
             return self();
         }
 
-        public T region(final String value) {
+        public T region(final Region value) {
             this.region = value;
             return self();
         }

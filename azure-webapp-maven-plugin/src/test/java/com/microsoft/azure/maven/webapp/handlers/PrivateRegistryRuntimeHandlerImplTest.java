@@ -6,14 +6,13 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebApp.UpdateStages.WithCredentials;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.junit.Before;
@@ -32,7 +31,13 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class PrivateRegistryRuntimeHandlerImplTest {
     @Mock
-    private AbstractWebAppMojo mojo;
+    private WebAppConfiguration config;
+
+    @Mock
+    private Azure azureClient;
+
+    @Mock
+    private Log log;
 
     private final PrivateRegistryRuntimeHandlerImpl.Builder builder =
         new PrivateRegistryRuntimeHandlerImpl.Builder();
@@ -44,37 +49,35 @@ public class PrivateRegistryRuntimeHandlerImplTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    private void initHandlerForV2() throws AzureAuthFailureException {
-        final RuntimeSetting runtime = mojo.getRuntime();
-        handler = builder.appName(mojo.getAppName())
-            .resourceGroup(mojo.getResourceGroup())
-            .region(mojo.getRegion())
-            .pricingTier(mojo.getPricingTier())
-            .servicePlanName(mojo.getAppServicePlanName())
-            .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-            .azure(mojo.getAzureClient())
-            .mavenSettings(mojo.getSettings())
-            .log(mojo.getLog())
-            .image(runtime.getImage())
-            .serverId(runtime.getServerId())
-            .registryUrl(runtime.getRegistryUrl())
+    private void initHandlerForV2() {
+        handler = builder.appName(config.getAppName())
+            .resourceGroup(config.getResourceGroup())
+            .region(config.getRegion())
+            .pricingTier(config.getPricingTier())
+            .servicePlanName(config.getServicePlanName())
+            .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
+            .azure(azureClient)
+            .mavenSettings(config.getMavenSettings())
+            .image(config.getImage())
+            .serverId(config.getServerId())
+            .registryUrl(config.getRegistryUrl())
+            .log(log)
             .build();
     }
 
-    private void initHandlerV1() throws AzureAuthFailureException {
-        final ContainerSetting containerSetting = mojo.getContainerSettings();
-        handler = builder.appName(mojo.getAppName())
-            .resourceGroup(mojo.getResourceGroup())
-            .region(mojo.getRegion())
-            .pricingTier(mojo.getPricingTier())
-            .servicePlanName(mojo.getAppServicePlanName())
-            .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-            .azure(mojo.getAzureClient())
-            .mavenSettings(mojo.getSettings())
-            .log(mojo.getLog())
-            .image(containerSetting.getImageName())
-            .serverId(containerSetting.getServerId())
-            .registryUrl(containerSetting.getRegistryUrl())
+    private void initHandlerV1() {
+        handler = builder.appName(config.getAppName())
+            .resourceGroup(config.getResourceGroup())
+            .region(config.getRegion())
+            .pricingTier(config.getPricingTier())
+            .servicePlanName(config.getServicePlanName())
+            .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
+            .azure(azureClient)
+            .mavenSettings(config.getMavenSettings())
+            .image(config.getImage())
+            .serverId(config.getServerId())
+            .registryUrl(config.getRegistryUrl())
+            .log(log)
             .build();
     }
 
@@ -92,13 +95,10 @@ public class PrivateRegistryRuntimeHandlerImplTest {
         final Server server = mock(Server.class);
         final Settings settings = mock(Settings.class);
         doReturn(server).when(settings).getServer(anyString());
-        doReturn(settings).when(mojo).getSettings();
-
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
-        doReturn(runtime).when(mojo).getRuntime();
-        doReturn("").when(runtime).getImage();
-        doReturn("").when(runtime).getRegistryUrl();
-        doReturn("serverId").when(runtime).getServerId();
+        doReturn(settings).when(config).getMavenSettings();
+        doReturn("").when(config).getImage();
+        doReturn("").when(config).getRegistryUrl();
+        doReturn("serverId").when(config).getServerId();
 
         initHandlerForV2();
 
@@ -119,15 +119,12 @@ public class PrivateRegistryRuntimeHandlerImplTest {
         final WebApp app = mock(WebApp.class);
         doReturn(siteInner).when(app).inner();
         doReturn(update).when(app).update();
-
-        final ContainerSetting containerSetting = new ContainerSetting();
-        containerSetting.setServerId("serverId");
-        doReturn(containerSetting).when(mojo).getContainerSettings();
+        doReturn("serverId").when(config).getServerId();
 
         final Server server = mock(Server.class);
         final Settings settings = mock(Settings.class);
         doReturn(server).when(settings).getServer(anyString());
-        doReturn(settings).when(mojo).getSettings();
+        doReturn(settings).when(config).getMavenSettings();
 
         initHandlerV1();
         handler.updateAppRuntime(app);
