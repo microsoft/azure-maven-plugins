@@ -6,13 +6,12 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +29,13 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 @RunWith(MockitoJUnitRunner.class)
 public class PublicDockerHubRuntimeHandlerImplTest {
     @Mock
-    private AbstractWebAppMojo mojo;
+    private WebAppConfiguration config;
+
+    @Mock
+    private Azure azureClient;
+
+    @Mock
+    private Log log;
 
     private PublicDockerHubRuntimeHandlerImpl.Builder builder = new PublicDockerHubRuntimeHandlerImpl.Builder();
 
@@ -41,35 +46,33 @@ public class PublicDockerHubRuntimeHandlerImplTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    private void initHandlerV2() throws AzureAuthFailureException {
-        final RuntimeSetting runtime = mojo.getRuntime();
-        handler = builder.appName(mojo.getAppName())
-            .resourceGroup(mojo.getResourceGroup())
-            .region(mojo.getRegion())
-            .pricingTier(mojo.getPricingTier())
-            .servicePlanName(mojo.getAppServicePlanName())
-            .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-            .azure(mojo.getAzureClient())
-            .log(mojo.getLog())
-            .image(runtime.getImage())
-            .serverId(runtime.getServerId())
-            .registryUrl(runtime.getRegistryUrl())
+    private void initHandlerV2()  {
+        handler = builder.appName(config.getAppName())
+            .resourceGroup(config.getResourceGroup())
+            .region(config.getRegion())
+            .pricingTier(config.getPricingTier())
+            .servicePlanName(config.getServicePlanName())
+            .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
+            .azure(azureClient)
+            .image(config.getImage())
+            .serverId(config.getServerId())
+            .registryUrl(config.getRegistryUrl())
+            .log(log)
             .build();
     }
 
-    private void initHandlerV1() throws AzureAuthFailureException {
-        final ContainerSetting containerSetting = mojo.getContainerSettings();
-        handler = builder.appName(mojo.getAppName())
-            .resourceGroup(mojo.getResourceGroup())
-            .region(mojo.getRegion())
-            .pricingTier(mojo.getPricingTier())
-            .servicePlanName(mojo.getAppServicePlanName())
-            .servicePlanResourceGroup((mojo.getAppServicePlanResourceGroup()))
-            .azure(mojo.getAzureClient())
-            .log(mojo.getLog())
-            .image(containerSetting.getImageName())
-            .serverId(containerSetting.getServerId())
-            .registryUrl(containerSetting.getRegistryUrl())
+    private void initHandlerV1() {
+        handler = builder.appName(config.getAppName())
+            .resourceGroup(config.getResourceGroup())
+            .region(config.getRegion())
+            .pricingTier(config.getPricingTier())
+            .servicePlanName(config.getServicePlanName())
+            .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
+            .azure(azureClient)
+            .image(config.getImage())
+            .serverId(config.getServerId())
+            .registryUrl(config.getRegistryUrl())
+            .log(log)
             .build();
     }
 
@@ -81,10 +84,7 @@ public class PublicDockerHubRuntimeHandlerImplTest {
         final WebApp app = mock(WebApp.class);
         doReturn(siteInner).when(app).inner();
         doReturn(update).when(app).update();
-
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
-        doReturn(runtime).when(mojo).getRuntime();
-        doReturn("nginx").when(runtime).getImage();
+        doReturn("nginx").when(config).getImage();
 
         initHandlerV2();
         handler.updateAppRuntime(app);
@@ -101,9 +101,7 @@ public class PublicDockerHubRuntimeHandlerImplTest {
         final WebApp app = mock(WebApp.class);
         doReturn(siteInner).when(app).inner();
         doReturn(update).when(app).update();
-        final ContainerSetting containerSetting = new ContainerSetting();
-        containerSetting.setImageName("nginx");
-        doReturn(containerSetting).when(mojo).getContainerSettings();
+        doReturn("nginx").when(config).getImage();
 
         initHandlerV1();
         handler.updateAppRuntime(app);
