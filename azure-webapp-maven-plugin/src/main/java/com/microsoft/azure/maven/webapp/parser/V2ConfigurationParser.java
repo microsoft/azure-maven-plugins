@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class V2ConfigurationParser extends ConfigurationParser {
-    protected static final List<String> SUPPORTED_LINUX_WEB_CONTAINERS = Arrays.asList("tomcat 8.5", "tomcat 9.0");
-
     public V2ConfigurationParser(AbstractWebAppMojo mojo) {
         super(mojo);
     }
