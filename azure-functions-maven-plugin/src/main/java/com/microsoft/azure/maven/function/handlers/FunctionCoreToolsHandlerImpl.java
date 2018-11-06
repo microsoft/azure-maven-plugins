@@ -15,7 +15,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     public static final String FUNC_EXTENSIONS_INSTALL_TEMPLATE = "func extensions install -c \"%s\"";
     public static final String INSTALL_FUNCTION_EXTENSIONS_FAIL = "Failed to install the Function extensions";
     public static final String CANNOT_AUTO_INSTALL = "Local Azure Functions Core Tools does not " +
-            "exist or is too old to support auto-install, skip package phase. To install or update it, see: " +
+            "exist or is too old to support function extension installation, skip package phase. To install or update it, see: " +
             "https://aka.ms/azfunc-install";
     public static final String NEED_UPDATE_FUNCTION_CORE_TOOLS = "Local version of Azure Functions Core Tools (%s) " +
             "does not match the latest (%s). Please update it for the best experience. " +
