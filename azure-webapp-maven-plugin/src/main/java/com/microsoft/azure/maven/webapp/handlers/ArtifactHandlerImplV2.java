@@ -97,7 +97,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final Scanner scanner = new Scanner(System.in, "UTF-8");
         while (true) {
             log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
-                "are you sure to proceed? Input y/Y to proceed or n/N to abort:");
+                "are you sure to proceed (y/n)?");
             final String input = scanner.nextLine();
             if ("Y".equalsIgnoreCase(input)) {
                 return true;
