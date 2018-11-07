@@ -117,7 +117,8 @@ public class AnnotationHandlerImplTest {
                 leaseAcquireInterval = 1,
                 maxItemsPerInvocation = 1,
                 startFromBeginning = true,
-                preferredLocations = "location"
+                preferredLocations = "location",
+                leaseExpirationInterval = 1
         ) String in) {
         }
 
@@ -254,6 +255,7 @@ public class AnnotationHandlerImplTest {
             throws JsonProcessingException {
         final ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
         final String functionJson = writer.writeValueAsString(binding);
-        Arrays.stream(requiredAttributes).forEach(attribute -> assertTrue(functionJson.contains(attribute)));
+        Arrays.stream(requiredAttributes).forEach(
+            attribute -> assertTrue(functionJson.contains(String.format("\"%s\"", attribute))));
     }
 }
