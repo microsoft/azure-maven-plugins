@@ -45,8 +45,8 @@ public class CosmosDBBinding extends BaseBinding {
     private String leaseConnectionStringSetting = null;
 
     public CosmosDBBinding(final CosmosDBInput dbInput) {
-        super(dbInput.name(), COSMOS_DB, Direction.IN, dbInput.dataType());
-
+        super(dbInput.name(), COSMOS_DB, Direction.IN,
+                getNotDefaultValueFromAnnotation(dbInput.dataType(), "dataType", dbInput));
         databaseName = getNotDefaultValueFromAnnotation(dbInput.databaseName(), "databaseName", dbInput);
         collectionName = getNotDefaultValueFromAnnotation(dbInput.collectionName(), "collectionName", dbInput);
         connectionStringSetting = getNotDefaultValueFromAnnotation(dbInput.connectionStringSetting(),
@@ -57,7 +57,8 @@ public class CosmosDBBinding extends BaseBinding {
     }
 
     public CosmosDBBinding(final CosmosDBOutput dbOutput) {
-        super(dbOutput.name(), COSMOS_DB, Direction.OUT, dbOutput.dataType());
+        super(dbOutput.name(), COSMOS_DB, Direction.IN,
+                getNotDefaultValueFromAnnotation(dbOutput.dataType(), "dataType", dbOutput));
 
         databaseName = getNotDefaultValueFromAnnotation(dbOutput.databaseName(), "databaseName", dbOutput);
         collectionName = getNotDefaultValueFromAnnotation(dbOutput.collectionName(), "collectionName", dbOutput);
@@ -75,7 +76,8 @@ public class CosmosDBBinding extends BaseBinding {
     }
 
     public CosmosDBBinding(final CosmosDBTrigger dbTrigger) {
-        super(dbTrigger.name(), COSMOS_DB_TRIGGER, Direction.IN, dbTrigger.dataType());
+        super(dbTrigger.name(), COSMOS_DB_TRIGGER, Direction.IN,
+                getNotDefaultValueFromAnnotation(dbTrigger.dataType(), "dataType", dbTrigger));
 
         databaseName = getNotDefaultValueFromAnnotation(dbTrigger.databaseName(), "databaseName", dbTrigger);
         collectionName = getNotDefaultValueFromAnnotation(dbTrigger.collectionName(), "collectionName", dbTrigger);
