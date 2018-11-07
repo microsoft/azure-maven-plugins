@@ -12,6 +12,8 @@ import com.microsoft.azure.functions.annotation.CosmosDBInput;
 import com.microsoft.azure.functions.annotation.CosmosDBOutput;
 import com.microsoft.azure.functions.annotation.CosmosDBTrigger;
 
+import static com.microsoft.azure.maven.function.utils.AnnotationUtils.getNotDefaultValueFromAnnotation;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CosmosDBBinding extends BaseBinding {
     public static final String COSMOS_DB_TRIGGER = "cosmosDBTrigger";
@@ -45,48 +47,70 @@ public class CosmosDBBinding extends BaseBinding {
     public CosmosDBBinding(final CosmosDBInput dbInput) {
         super(dbInput.name(), COSMOS_DB, Direction.IN, dbInput.dataType());
 
-        databaseName = dbInput.databaseName();
-        collectionName = dbInput.collectionName();
-        connectionStringSetting = dbInput.connectionStringSetting();
-        id = dbInput.id();
-        partitionKey = dbInput.partitionKey();
-        sqlQuery = dbInput.sqlQuery();
+        databaseName = getNotDefaultValueFromAnnotation(dbInput.databaseName(), "databaseName", dbInput);
+        collectionName = getNotDefaultValueFromAnnotation(dbInput.collectionName(), "collectionName", dbInput);
+        connectionStringSetting = getNotDefaultValueFromAnnotation(dbInput.connectionStringSetting(),
+                "connectionStringSetting", dbInput);
+        id = getNotDefaultValueFromAnnotation(dbInput.id(), "id", dbInput);
+        partitionKey = getNotDefaultValueFromAnnotation(dbInput.partitionKey(), "partitionKey", dbInput);
+        sqlQuery = getNotDefaultValueFromAnnotation(dbInput.sqlQuery(), "sqlQuery", dbInput);
     }
 
     public CosmosDBBinding(final CosmosDBOutput dbOutput) {
         super(dbOutput.name(), COSMOS_DB, Direction.OUT, dbOutput.dataType());
 
-        databaseName = dbOutput.databaseName();
-        collectionName = dbOutput.collectionName();
-        createIfNotExists = dbOutput.createIfNotExists();
-        connectionStringSetting = dbOutput.connectionStringSetting();
-        partitionKey = dbOutput.partitionKey();
-        collectionThroughput = dbOutput.collectionThroughput();
-        useMultipleWriteLocations = dbOutput.useMultipleWriteLocations();
-        preferredLocations = dbOutput.preferredLocations();
+        databaseName = getNotDefaultValueFromAnnotation(dbOutput.databaseName(), "databaseName", dbOutput);
+        collectionName = getNotDefaultValueFromAnnotation(dbOutput.collectionName(), "collectionName", dbOutput);
+        createIfNotExists = getNotDefaultValueFromAnnotation(dbOutput.createIfNotExists(),
+                "createIfNotExists", dbOutput);
+        connectionStringSetting = getNotDefaultValueFromAnnotation(dbOutput.connectionStringSetting(),
+                "connectionStringSetting", dbOutput);
+        partitionKey = getNotDefaultValueFromAnnotation(dbOutput.partitionKey(), "partitionKey", dbOutput);
+        collectionThroughput = getNotDefaultValueFromAnnotation(dbOutput.collectionThroughput(),
+                "collectionThroughput", dbOutput);
+        useMultipleWriteLocations = getNotDefaultValueFromAnnotation(dbOutput.useMultipleWriteLocations(),
+                "useMultipleWriteLocations", dbOutput);
+        preferredLocations = getNotDefaultValueFromAnnotation(dbOutput.preferredLocations(),
+                "preferredLocations", dbOutput);
     }
 
     public CosmosDBBinding(final CosmosDBTrigger dbTrigger) {
         super(dbTrigger.name(), COSMOS_DB_TRIGGER, Direction.IN, dbTrigger.dataType());
 
-        databaseName = dbTrigger.databaseName();
-        collectionName = dbTrigger.collectionName();
-        leaseConnectionStringSetting = dbTrigger.leaseConnectionStringSetting();
-        leaseCollectionName = dbTrigger.leaseCollectionName();
-        leaseDatabaseName = dbTrigger.leaseDatabaseName();
-        createLeaseCollectionIfNotExists = dbTrigger.createLeaseCollectionIfNotExists();
-        leasesCollectionThroughput = dbTrigger.leasesCollectionThroughput();
-        leaseCollectionPrefix = dbTrigger.leaseCollectionPrefix();
-        checkpointInterval = dbTrigger.checkpointInterval();
-        checkpointDocumentCount = dbTrigger.checkpointDocumentCount();
-        feedPollDelay = dbTrigger.feedPollDelay();
-        connectionStringSetting = dbTrigger.connectionStringSetting();
-        leaseRenewInterval = dbTrigger.leaseRenewInterval();
-        leaseAcquireInterval = dbTrigger.leaseAcquireInterval();
-        leaseExpirationInterval = dbTrigger.leaseExpirationInterval();
-        maxItemsPerInvocation = dbTrigger.maxItemsPerInvocation();
-        startFromBeginning = dbTrigger.startFromBeginning();
-        preferredLocations = dbTrigger.preferredLocations();
+        databaseName = getNotDefaultValueFromAnnotation(dbTrigger.databaseName(), "databaseName", dbTrigger);
+        collectionName = getNotDefaultValueFromAnnotation(dbTrigger.collectionName(), "collectionName", dbTrigger);
+        leaseConnectionStringSetting = getNotDefaultValueFromAnnotation(dbTrigger.leaseConnectionStringSetting(),
+                "leaseConnectionStringSetting", dbTrigger);
+        leaseCollectionName = getNotDefaultValueFromAnnotation(dbTrigger.leaseCollectionName(),
+                "leaseCollectionName", dbTrigger);
+        leaseDatabaseName = getNotDefaultValueFromAnnotation(dbTrigger.leaseDatabaseName(),
+                "leaseDatabaseName", dbTrigger);
+        createLeaseCollectionIfNotExists = getNotDefaultValueFromAnnotation(
+                dbTrigger.createLeaseCollectionIfNotExists(), "createLeaseCollectionIfNotExists", dbTrigger);
+        leasesCollectionThroughput = getNotDefaultValueFromAnnotation(dbTrigger.leasesCollectionThroughput(),
+                "leasesCollectionThroughput", dbTrigger);
+        leaseCollectionPrefix = getNotDefaultValueFromAnnotation(dbTrigger.leaseCollectionPrefix(),
+                "leaseCollectionPrefix", dbTrigger);
+        checkpointInterval = getNotDefaultValueFromAnnotation(dbTrigger.checkpointInterval(),
+                "checkpointInterval", dbTrigger);
+        checkpointDocumentCount = getNotDefaultValueFromAnnotation(dbTrigger.checkpointDocumentCount(),
+                "checkpointDocumentCount", dbTrigger);
+        connectionStringSetting = getNotDefaultValueFromAnnotation(dbTrigger.connectionStringSetting(),
+                "connectionStringSetting", dbTrigger);
+        leaseRenewInterval = getNotDefaultValueFromAnnotation(dbTrigger.leaseRenewInterval(),
+                "leaseRenewInterval", dbTrigger);
+        leaseAcquireInterval = getNotDefaultValueFromAnnotation(dbTrigger.leaseAcquireInterval(),
+                "leaseAcquireInterval", dbTrigger);
+        leaseExpirationInterval = getNotDefaultValueFromAnnotation(dbTrigger.leaseExpirationInterval(),
+                "leaseExpirationInterval", dbTrigger);
+        maxItemsPerInvocation = getNotDefaultValueFromAnnotation(dbTrigger.maxItemsPerInvocation(),
+                "maxItemsPerInvocation", dbTrigger);
+        startFromBeginning = getNotDefaultValueFromAnnotation(dbTrigger.startFromBeginning(),
+                "startFromBeginning", dbTrigger);
+        preferredLocations = getNotDefaultValueFromAnnotation(dbTrigger.preferredLocations(),
+                "preferredLocations", dbTrigger);
+        feedPollDelay = getNotDefaultValueFromAnnotation(dbTrigger.feedPollDelay(),
+                "feedPollDelay", dbTrigger);
     }
 
     @JsonGetter
