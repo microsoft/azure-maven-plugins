@@ -11,7 +11,6 @@ import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
 import java.io.File;
 import java.io.IOException;
@@ -24,10 +23,11 @@ import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.get
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getRealWarDeployExecutor;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.hasWarFiles;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.performActionWithRetry;
-import static java.lang.System.out;
 
 public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
+    private static final String ALWAYS_DEPLOY_PROPERTY = "alwaysDeploy";
+    private static final String ALWAYS_SKIP_DEPLOY_PROPERTY = "alwaysSkipDeploy";
 
     public static class Builder extends ArtifactHandlerBase.Builder<ArtifactHandlerImplV2.Builder> {
         @Override
@@ -75,14 +75,35 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             return;
         }
 
-        final Scanner scanner = new Scanner(System.in, "UTF-8");
-        out.printf("Deploying war along with other kinds of artifacts might make deployed path inaccessible, " +
-            "are you sure to proceed? Press Enter to proceed, or any other character to abort:");
-        if (StringUtils.isEmpty(scanner.nextLine())) {
+        if (isProceedWithMixDeploy()) {
             publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
             log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
         } else {
-            log.info("Deployment is aborted.");
+            log.info(DEPLOY_ABORT);
+        }
+    }
+
+    protected boolean isProceedWithMixDeploy() {
+        if ("true".equalsIgnoreCase(System.getProperty(ALWAYS_DEPLOY_PROPERTY))) {
+            return true;
+        }
+        if ("true".equalsIgnoreCase(System.getProperty(ALWAYS_SKIP_DEPLOY_PROPERTY))) {
+            return false;
+        }
+        log.info(String.format("To get rid of the prompt message, you could set the property %s to true " +
+            "to always proceed with the deploy, or set the property %s to true to always skip the deploy.",
+            ALWAYS_DEPLOY_PROPERTY, ALWAYS_SKIP_DEPLOY_PROPERTY));
+
+        final Scanner scanner = new Scanner(System.in, "UTF-8");
+        while (true) {
+            log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
+                "are you sure to proceed? Input y/Y to proceed or n/N to abort:");
+            final String input = scanner.nextLine();
+            if ("Y".equalsIgnoreCase(input)) {
+                return true;
+            } else if ("N".equalsIgnoreCase(input)) {
+                return false;
+            }
         }
     }
 

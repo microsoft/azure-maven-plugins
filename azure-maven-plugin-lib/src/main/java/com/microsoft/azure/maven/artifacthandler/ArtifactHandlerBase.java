@@ -20,6 +20,7 @@ import java.util.List;
 public abstract class ArtifactHandlerBase implements ArtifactHandler {
     protected static final String DEPLOY_START = "Trying to deploy artifact to %s...";
     protected static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
+    protected static final String DEPLOY_ABORT = "Deployment is aborted.";
     protected MavenProject project;
     protected MavenSession session;
     protected MavenResourcesFiltering filtering;
