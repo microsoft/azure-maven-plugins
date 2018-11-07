@@ -74,7 +74,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             return;
         }
 
-        if (isProceedWithMixDeploy()) {
+        if (isDeployMixedArtifactsConfirmed()) {
             publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
             log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
         } else {
@@ -82,7 +82,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         }
     }
 
-    protected boolean isProceedWithMixDeploy() {
+    protected boolean isDeployMixedArtifactsConfirmed() {
         if ("true".equalsIgnoreCase(System.getProperty(ALWAYS_DEPLOY_PROPERTY))) {
             return true;
         }
