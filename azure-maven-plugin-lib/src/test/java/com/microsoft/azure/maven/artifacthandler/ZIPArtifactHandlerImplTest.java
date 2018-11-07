@@ -11,6 +11,7 @@ import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -47,16 +49,19 @@ public class ZIPArtifactHandlerImplTest {
     }
 
     private void buildHandler() {
-        handler = builder.stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath()).build();
+        handler = builder.stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath()).log(mojo.getLog()).build();
         handlerSpy = spy(handler);
     }
 
     @Test
     public void publish() throws MojoExecutionException, IOException {
-        buildHandler();
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         final File file = mock(File.class);
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).info(anyString());
+        buildHandler();
 
         doReturn(file).when(handlerSpy).getZipFile();
         doNothing().when(app).zipDeploy(file);
@@ -75,6 +80,9 @@ public class ZIPArtifactHandlerImplTest {
 
     @Test
     public void publishThrowException() throws MojoExecutionException, IOException {
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).info(anyString());
         buildHandler();
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);

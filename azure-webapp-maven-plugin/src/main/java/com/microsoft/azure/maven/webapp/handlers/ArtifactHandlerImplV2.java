@@ -11,10 +11,12 @@ import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.codehaus.plexus.util.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Scanner;
 
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.areAllWarFiles;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getArtifactsRecursively;
@@ -22,6 +24,7 @@ import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.get
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getRealWarDeployExecutor;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.hasWarFiles;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.performActionWithRetry;
+import static java.lang.System.out;
 
 public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
@@ -58,15 +61,28 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
                 String.format("There is no artifact to deploy in staging directory: '%s'", absolutePath));
         }
 
+        log.info(String.format(DEPLOY_START, target.getName()));
+
         if (areAllWarFiles(allArtifacts)) {
             publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
-        } else {
-            if (hasWarFiles(allArtifacts)) {
-                log.warn(
-                    "Deploying war artifact together with other kinds of artifacts is not suggested," +
-                        " it will cause the content be overwritten or path incorrect issues.");
-            }
+            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+            return;
+        }
+
+        if (!hasWarFiles(allArtifacts)) {
             publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
+            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+            return;
+        }
+
+        final Scanner scanner = new Scanner(System.in, "UTF-8");
+        out.printf("Deploying war along with other kinds of artifacts might make deployed path inaccessible, " +
+            "are you sure to proceed? Press Enter to proceed, or any other character to abort:");
+        if (StringUtils.isEmpty(scanner.nextLine())) {
+            publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
+            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+        } else {
+            log.info("Deployment is aborted.");
         }
     }
 

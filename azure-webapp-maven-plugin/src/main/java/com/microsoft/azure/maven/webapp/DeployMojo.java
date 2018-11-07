@@ -31,8 +31,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
-    public static final String DEPLOY_START = "Trying to deploy artifact to %s...";
-    public static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
     public static final String WEBAPP_CREATED = "Successfully created Web App.";
     public static final String CREATE_DEPLOYMENT_SLOT = "Target Deployment Slot doesn't exist. Creating a new one...";
@@ -134,12 +132,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             } else {
                 target = new WebAppDeployTarget(app);
             }
-
-            getLog().info(String.format(DEPLOY_START, target.getName()));
-
             getFactory().getArtifactHandler(this).publish(target);
-
-            getLog().info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
         } finally {
             util.afterDeployArtifacts();
         }
