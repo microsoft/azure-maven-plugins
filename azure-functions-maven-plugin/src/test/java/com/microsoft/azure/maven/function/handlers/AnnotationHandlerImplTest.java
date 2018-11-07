@@ -101,6 +101,7 @@ public class AnnotationHandlerImplTest {
 
         @FunctionName(COSMOSDB_TRIGGER_FUNCTION)
         public void cosmosDBTriggerMethod(@CosmosDBTrigger(name = "cosmos",
+                dataType = "string",
                 databaseName = "db",
                 collectionName = "cl",
                 connectionStringSetting = "conn",
