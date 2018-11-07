@@ -27,7 +27,6 @@ import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.per
 public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
     private static final String ALWAYS_DEPLOY_PROPERTY = "alwaysDeploy";
-    private static final String ALWAYS_SKIP_DEPLOY_PROPERTY = "alwaysSkipDeploy";
 
     public static class Builder extends ArtifactHandlerBase.Builder<ArtifactHandlerImplV2.Builder> {
         @Override
@@ -87,21 +86,18 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         if ("true".equalsIgnoreCase(System.getProperty(ALWAYS_DEPLOY_PROPERTY))) {
             return true;
         }
-        if ("true".equalsIgnoreCase(System.getProperty(ALWAYS_SKIP_DEPLOY_PROPERTY))) {
-            return false;
-        }
-        log.info(String.format("To get rid of the prompt message, you could set the property %s to true " +
-            "to always proceed with the deploy, or set the property %s to true to always skip the deploy.",
-            ALWAYS_DEPLOY_PROPERTY, ALWAYS_SKIP_DEPLOY_PROPERTY));
+
+        log.info(String.format("To get rid of the following message, set the property %s to true to always proceed " +
+            "with the deploy.", ALWAYS_DEPLOY_PROPERTY));
 
         final Scanner scanner = new Scanner(System.in, "UTF-8");
         while (true) {
             log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
                 "are you sure to proceed (y/n)?");
             final String input = scanner.nextLine();
-            if ("Y".equalsIgnoreCase(input)) {
+            if ("y".equalsIgnoreCase(input)) {
                 return true;
-            } else if ("N".equalsIgnoreCase(input)) {
+            } else if ("n".equalsIgnoreCase(input)) {
                 return false;
             }
         }
