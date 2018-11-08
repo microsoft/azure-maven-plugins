@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.function.handlers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.microsoft.azure.functions.OutputBinding;
 import com.microsoft.azure.functions.annotation.BlobInput;
 import com.microsoft.azure.functions.annotation.BlobOutput;
 import com.microsoft.azure.functions.annotation.BlobTrigger;
@@ -81,6 +82,9 @@ public class AnnotationHandlerImplTest {
         "connectionStringSetting", "leaseRenewInterval", "leaseAcquireInterval", "leaseExpirationInterval",
         "maxItemsPerInvocation", "startFromBeginning", "preferredLocations"};
 
+    public static final String[] COSMOSDB_OUTPUT_REQUIRED_ATTRIBUTES = new String[]{"name", "type",
+        "direction", "databaseName", "collectionName", "connectionStringSetting"};
+
     public class FunctionEntryPoints {
         @FunctionName(HTTP_TRIGGER_FUNCTION)
         public String httpTriggerMethod(@HttpTrigger(name = "req") String req) {
@@ -120,7 +124,9 @@ public class AnnotationHandlerImplTest {
                 startFromBeginning = true,
                 preferredLocations = "location",
                 leaseExpirationInterval = 1
-        ) String in) {
+        ) String in,
+            @CosmosDBOutput(name = "itemOut", databaseName = "CosmosDBDatabaseName", collectionName = "out",
+                connectionStringSetting = "conn") OutputBinding<String> outPutItem) {
         }
 
         @FunctionName(EVENTGRID_TRIGGER_FUNCTION)
@@ -221,12 +227,17 @@ public class AnnotationHandlerImplTest {
 
         verifyFunctionConfiguration(configMap, SERVICE_BUS_TOPIC_TRIGGER_FUNCTION, SERVICE_BUS_TOPIC_TRIGGER_METHOD, 2);
 
-        verifyFunctionConfiguration(configMap, COSMOSDB_TRIGGER_FUNCTION, COSMOSDB_TRIGGER_METHOD, 1);
+        verifyFunctionConfiguration(configMap, COSMOSDB_TRIGGER_FUNCTION, COSMOSDB_TRIGGER_METHOD, 2);
 
         verifyFunctionConfiguration(configMap, EVENTGRID_TRIGGER_FUNCTION, EVENTGRID_TRIGGER_METHOD, 1);
 
-        verifyFunctionBinding(configMap.get(COSMOSDB_TRIGGER_FUNCTION).getBindings().get(0),
-                COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES);
+        verifyFunctionBinding(configMap.get(COSMOSDB_TRIGGER_FUNCTION).getBindings().stream()
+                        .filter(baseBinding -> baseBinding.getName().equals("cosmos")).findFirst().get(),
+                COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES, true);
+
+        verifyFunctionBinding(configMap.get(COSMOSDB_TRIGGER_FUNCTION).getBindings().stream()
+                        .filter(baseBinding -> baseBinding.getName().equals("itemOut")).findFirst().get(),
+                COSMOSDB_OUTPUT_REQUIRED_ATTRIBUTES, false);
     }
 
     private AnnotationHandlerImpl getAnnotationHandler() {
@@ -252,11 +263,12 @@ public class AnnotationHandlerImplTest {
         assertEquals(bindingNum, functionConfig.getBindings().size());
     }
 
-    private void verifyFunctionBinding(final BaseBinding binding, final String[] requiredAttributes)
-            throws JsonProcessingException {
+    private void verifyFunctionBinding(final BaseBinding binding, final String[] requiredAttributes,
+                                       boolean isInDirection) throws JsonProcessingException {
         final ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
         final String functionJson = writer.writeValueAsString(binding);
         Arrays.stream(requiredAttributes).forEach(
             attribute -> assertTrue(functionJson.contains(String.format("\"%s\"", attribute))));
+        assertTrue(functionJson.contains(isInDirection ? "\"in\"" : "\"out\""));
     }
 }
