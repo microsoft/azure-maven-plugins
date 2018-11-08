@@ -15,6 +15,7 @@ import org.zeroturnaround.zip.ZipUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Scanner;
 
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.areAllWarFiles;
 import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getArtifactsRecursively;
@@ -25,6 +26,7 @@ import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.per
 
 public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
+    private static final String ALWAYS_DEPLOY_PROPERTY = "alwaysDeploy";
 
     public static class Builder extends ArtifactHandlerBase.Builder<ArtifactHandlerImplV2.Builder> {
         @Override
@@ -58,15 +60,46 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
                 String.format("There is no artifact to deploy in staging directory: '%s'", absolutePath));
         }
 
+        log.info(String.format(DEPLOY_START, target.getName()));
+
         if (areAllWarFiles(allArtifacts)) {
             publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
-        } else {
-            if (hasWarFiles(allArtifacts)) {
-                log.warn(
-                    "Deploying war artifact together with other kinds of artifacts is not suggested," +
-                        " it will cause the content be overwritten or path incorrect issues.");
-            }
+            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+            return;
+        }
+
+        if (!hasWarFiles(allArtifacts)) {
             publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
+            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+            return;
+        }
+
+        if (isDeployMixedArtifactsConfirmed()) {
+            publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
+            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+        } else {
+            log.info(DEPLOY_ABORT);
+        }
+    }
+
+    protected boolean isDeployMixedArtifactsConfirmed() {
+        if ("true".equalsIgnoreCase(System.getProperty(ALWAYS_DEPLOY_PROPERTY))) {
+            return true;
+        }
+
+        log.info(String.format("To get rid of the following message, set the property %s to true to always proceed " +
+            "with the deploy.", ALWAYS_DEPLOY_PROPERTY));
+
+        final Scanner scanner = new Scanner(System.in, "UTF-8");
+        while (true) {
+            log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
+                "are you sure to proceed (y/n)?");
+            final String input = scanner.nextLine();
+            if ("y".equalsIgnoreCase(input)) {
+                return true;
+            } else if ("n".equalsIgnoreCase(input)) {
+                return false;
+            }
         }
     }
 
