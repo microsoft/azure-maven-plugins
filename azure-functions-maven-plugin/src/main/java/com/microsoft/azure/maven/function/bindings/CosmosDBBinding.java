@@ -57,7 +57,7 @@ public class CosmosDBBinding extends BaseBinding {
     }
 
     public CosmosDBBinding(final CosmosDBOutput dbOutput) {
-        super(dbOutput.name(), COSMOS_DB, Direction.IN,
+        super(dbOutput.name(), COSMOS_DB, Direction.OUT,
                 getNotDefaultValueFromAnnotation(dbOutput.dataType(), "dataType", dbOutput));
 
         databaseName = getNotDefaultValueFromAnnotation(dbOutput.databaseName(), "databaseName", dbOutput);
