@@ -29,7 +29,7 @@
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.maven-plugin-lib.version>1.2.2-SNAPSHOT</azure.maven-plugin-lib.version>
-        <azure.function.version>1.0.0-beta-7-SNAPSHOT</azure.function.version>
+        <azure.functions.java.library.version>1.2.0</azure.functions.java.library.version>
         <reflections.version>0.9.11</reflections.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
@@ -201,7 +201,7 @@
         <dependency>
             <groupId>com.microsoft.azure.functions</groupId>
             <artifactId>azure-functions-java-library</artifactId>
-            <version>${azure.function.version}</version>
+            <version>${azure.functions.java.library.version}</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>
