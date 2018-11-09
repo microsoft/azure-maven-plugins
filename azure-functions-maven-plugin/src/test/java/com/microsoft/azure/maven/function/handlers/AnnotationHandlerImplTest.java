@@ -21,8 +21,6 @@ import com.microsoft.azure.functions.annotation.EventHubTrigger;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpOutput;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
-import com.microsoft.azure.functions.annotation.MobileTableInput;
-import com.microsoft.azure.functions.annotation.MobileTableOutput;
 import com.microsoft.azure.functions.annotation.QueueOutput;
 import com.microsoft.azure.functions.annotation.QueueTrigger;
 import com.microsoft.azure.functions.annotation.SendGridOutput;
@@ -135,19 +133,14 @@ public class AnnotationHandlerImplTest {
 
         @FunctionName(TIMER_TRIGGER_FUNCTION)
         @CosmosDBOutput(name = "$return", databaseName = "db", collectionName = "col", connectionStringSetting = "conn")
-        @MobileTableOutput(name = "$return", tableName = "table", connection = "conn", apiKey = "key")
         @SendGridOutput(name = "$return", apiKey = "key", to = "to", from = "from", subject = "sub", text = "text")
         @TwilioSmsOutput(name = "$return", accountSid = "sid", authToken = "auth", to = "to", from = "from", body = "b")
         public String timerTriggerMethod(@TimerTrigger(name = "timer", schedule = "") String timer,
                                          @CosmosDBOutput(name = "in1",
                                                  databaseName = "db",
                                                  collectionName = "col",
-                                                 connectionStringSetting = "conn") String in1,
-                                         @MobileTableInput(name = "in2",
-                                                 tableName = "table",
-                                                 id = "id",
-                                                 connection = "conn",
-                                                 apiKey = "key") String in2) {
+                                                 connectionStringSetting = "conn") String in1
+                                         ) {
             return "Hello!";
         }
 
@@ -215,7 +208,7 @@ public class AnnotationHandlerImplTest {
 
         verifyFunctionConfiguration(configMap, QUEUE_TRIGGER_FUNCTION, QUEUE_TRIGGER_METHOD, 2);
 
-        verifyFunctionConfiguration(configMap, TIMER_TRIGGER_FUNCTION, TIMER_TRIGGER_METHOD, 7);
+        verifyFunctionConfiguration(configMap, TIMER_TRIGGER_FUNCTION, TIMER_TRIGGER_METHOD, 5);
 
         verifyFunctionConfiguration(configMap, MULTI_OUTPUT_FUNCTION, MULTI_OUTPUT_METHOD, 3);
 
