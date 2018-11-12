@@ -11,6 +11,7 @@ import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -36,20 +38,30 @@ public class ZIPArtifactHandlerImplTest {
     @Mock
     private AbstractAppServiceMojo mojo;
 
+    private ZIPArtifactHandlerImpl.Builder builder = new ZIPArtifactHandlerImpl.Builder();
+
     private ZIPArtifactHandlerImpl handler;
+    private ZIPArtifactHandlerImpl handlerSpy;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        handler = new ZIPArtifactHandlerImpl(mojo);
+    }
+
+    private void buildHandler() {
+        handler = builder.stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath()).log(mojo.getLog()).build();
+        handlerSpy = spy(handler);
     }
 
     @Test
     public void publish() throws MojoExecutionException, IOException {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         final File file = mock(File.class);
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).info(anyString());
+        buildHandler();
 
         doReturn(file).when(handlerSpy).getZipFile();
         doNothing().when(app).zipDeploy(file);
@@ -68,7 +80,10 @@ public class ZIPArtifactHandlerImplTest {
 
     @Test
     public void publishThrowException() throws MojoExecutionException, IOException {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).info(anyString());
+        buildHandler();
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         final File file = mock(File.class);
@@ -86,7 +101,7 @@ public class ZIPArtifactHandlerImplTest {
 
     @Test
     public void publishThrowResourceNotConfiguredException() throws IOException {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
+        buildHandler();
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
 
@@ -100,18 +115,16 @@ public class ZIPArtifactHandlerImplTest {
 
     @Test
     public void getZipFile() {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
         final File zipTestDirectory = new File("src/test/resources/ziptest");
         doReturn(zipTestDirectory.getAbsolutePath()).when(mojo).getDeploymentStagingDirectoryPath();
-
+        buildHandler();
         assertEquals(zipTestDirectory.getAbsolutePath() + ".zip", handlerSpy.getZipFile().getAbsolutePath());
     }
 
     @Test(expected = ZipException.class)
     public void getZipFileThrowException() {
-        final ZIPArtifactHandlerImpl handlerSpy = spy(handler);
         doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
-
+        buildHandler();
         handlerSpy.getZipFile();
     }
 }

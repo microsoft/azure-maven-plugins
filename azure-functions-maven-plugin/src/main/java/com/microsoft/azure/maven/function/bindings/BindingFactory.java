@@ -17,8 +17,6 @@ import com.microsoft.azure.functions.annotation.EventHubOutput;
 import com.microsoft.azure.functions.annotation.EventHubTrigger;
 import com.microsoft.azure.functions.annotation.HttpOutput;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
-import com.microsoft.azure.functions.annotation.MobileTableInput;
-import com.microsoft.azure.functions.annotation.MobileTableOutput;
 import com.microsoft.azure.functions.annotation.QueueOutput;
 import com.microsoft.azure.functions.annotation.QueueTrigger;
 import com.microsoft.azure.functions.annotation.SendGridOutput;
@@ -51,8 +49,6 @@ public class BindingFactory {
         map.put(EventGridTrigger.class, EventGridBinding.class);
         map.put(HttpTrigger.class, HttpBinding.class);
         map.put(HttpOutput.class, HttpBinding.class);
-        map.put(MobileTableInput.class, MobileTableBinding.class);
-        map.put(MobileTableOutput.class, MobileTableBinding.class);
         map.put(QueueTrigger.class, QueueBinding.class);
         map.put(QueueOutput.class, QueueBinding.class);
         map.put(SendGridOutput.class, SendGridBinding.class);

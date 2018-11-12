@@ -8,8 +8,11 @@ package com.microsoft.azure.maven.function.bindings;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.microsoft.azure.functions.annotation.Cardinality;
 import com.microsoft.azure.functions.annotation.EventHubOutput;
 import com.microsoft.azure.functions.annotation.EventHubTrigger;
+
+import java.util.Locale;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class EventHubBinding extends BaseBinding {
@@ -22,12 +25,15 @@ public class EventHubBinding extends BaseBinding {
 
     private String connection = "";
 
+    private String cardinality = Cardinality.MANY.name();
+
     public EventHubBinding(final EventHubTrigger eventHubTrigger) {
         super(eventHubTrigger.name(), EVENT_HUB_TRIGGER, Direction.IN, eventHubTrigger.dataType());
 
         eventHubName = eventHubTrigger.eventHubName();
         consumerGroup = eventHubTrigger.consumerGroup();
         connection = eventHubTrigger.connection();
+        cardinality = eventHubTrigger.cardinality().name();
     }
 
     public EventHubBinding(final EventHubOutput eventHubOutput) {
@@ -35,6 +41,12 @@ public class EventHubBinding extends BaseBinding {
 
         eventHubName = eventHubOutput.eventHubName();
         connection = eventHubOutput.connection();
+        cardinality = ""; // Cardinality is for input/trigger only.
+    }
+
+    @JsonGetter
+    public String getCardinality() {
+        return cardinality.toLowerCase(Locale.ENGLISH);
     }
 
     @JsonGetter("eventHubName")

@@ -6,25 +6,90 @@
 
 package com.microsoft.azure.maven.artifacthandler;
 
-import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.Utils;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-
-import javax.annotation.Nonnull;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public abstract class ArtifactHandlerBase<T extends AbstractAppServiceMojo> implements ArtifactHandler {
-    protected T mojo;
+public abstract class ArtifactHandlerBase implements ArtifactHandler {
+    protected static final String DEPLOY_START = "Trying to deploy artifact to %s...";
+    protected static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
+    protected static final String DEPLOY_ABORT = "Deployment is aborted.";
+    protected MavenProject project;
+    protected MavenSession session;
+    protected MavenResourcesFiltering filtering;
+    protected List<Resource> resources;
+    protected String stagingDirectoryPath;
+    protected String buildDirectoryAbsolutePath;
+    protected Log log;
 
-    public ArtifactHandlerBase(@Nonnull final T mojo) {
-        this.mojo = mojo;
+    public abstract static class Builder<T extends Builder<T>> {
+        private MavenProject project;
+        private MavenSession session;
+        private MavenResourcesFiltering filtering;
+        private List<Resource> resources;
+        private String stagingDirectoryPath;
+        private String buildDirectoryAbsolutePath;
+        private Log log;
+
+        protected abstract T self();
+
+        public abstract ArtifactHandlerBase build();
+
+        public T project(final MavenProject value) {
+            this.project = value;
+            return self();
+        }
+
+        public T session(final MavenSession value) {
+            this.session = value;
+            return self();
+        }
+
+        public T filtering(final MavenResourcesFiltering value) {
+            this.filtering = value;
+            return self();
+        }
+
+        public T resources(final List<Resource> value) {
+            this.resources = value;
+            return self();
+        }
+
+        public T stagingDirectoryPath(final String value) {
+            this.stagingDirectoryPath = value;
+            return self();
+        }
+
+        public T buildDirectoryAbsolutePath(final String value) {
+            this.buildDirectoryAbsolutePath = value;
+            return self();
+        }
+
+        public T log(final Log value) {
+            this.log = value;
+            return self();
+        }
+    }
+
+    protected ArtifactHandlerBase(Builder<?> builder) {
+        this.project = builder.project;
+        this.session = builder.session;
+        this.filtering = builder.filtering;
+        this.resources = builder.resources;
+        this.stagingDirectoryPath = builder.stagingDirectoryPath;
+        this.buildDirectoryAbsolutePath = builder.buildDirectoryAbsolutePath;
+        this.log = builder.log;
     }
 
     protected void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
-        final File stagingDirectory = new File(mojo.getDeploymentStagingDirectoryPath());
+        final File stagingDirectory = new File(stagingDirectoryPath);
         final File[] files = stagingDirectory.listFiles();
         if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
             throw new MojoExecutionException(String.format("Staging directory: '%s' is empty.",
@@ -33,12 +98,10 @@ public abstract class ArtifactHandlerBase<T extends AbstractAppServiceMojo> impl
     }
 
     protected void prepareResources() throws IOException, MojoExecutionException {
-        final List<Resource> resources = this.mojo.getResources();
         if (resources == null || resources.isEmpty()) {
             throw new MojoExecutionException("<resources> is empty. Please make sure it is configured in pom.xml.");
         }
 
-        Utils.copyResources(mojo.getProject(), mojo.getSession(),
-            mojo.getMavenResourcesFiltering(), resources, mojo.getDeploymentStagingDirectoryPath());
+        Utils.copyResources(project, session, filtering, resources, stagingDirectoryPath);
     }
 }

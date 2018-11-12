@@ -16,7 +16,6 @@ import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,16 +32,38 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class ArtifactHandlerBaseTest {
     private final AbstractAppServiceMojo mojo = mock(AbstractAppServiceMojo.class);
 
-    private final ArtifactHandlerBase baseClass = new ArtifactHandlerBase<AbstractAppServiceMojo>(mojo) {
+    private ArtifactHandlerBase.Builder builder = new ArtifactHandlerBase.Builder() {
         @Override
-        public void publish(DeployTarget deployTarget) {
-            // do nothing
+        protected ArtifactHandlerBase.Builder self() {
+            return this;
+        }
+
+        @Override
+        public ArtifactHandlerBase build() {
+            return new ArtifactHandlerBase(builder) {
+                @Override
+                public void publish(DeployTarget deployTarget) {
+                    // nothing
+                }
+            };
         }
     };
 
+    private ArtifactHandlerBase handler;
+    private ArtifactHandlerBase handlerSpy;
+
+    private void buildHandler() {
+        handler = builder.project(mojo.getProject())
+            .session(mojo.getSession())
+            .filtering(mojo.getMavenResourcesFiltering())
+            .resources(mojo.getResources())
+            .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
+            .build();
+        handlerSpy = spy(handler);
+    }
+
     @Test
     public void prepareResources() throws IOException, MojoExecutionException {
-        final ArtifactHandlerBase baseClassSpy = spy(baseClass);
         final List<Resource> resourceList = new ArrayList<>();
         doReturn(mock(MavenProject.class)).when(mojo).getProject();
         doReturn(mock(MavenSession.class)).when(mojo).getSession();
@@ -51,33 +72,34 @@ public class ArtifactHandlerBaseTest {
         doReturn(resourceList).when(mojo).getResources();
         doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
 
-        baseClassSpy.prepareResources();
+        buildHandler();
+        handlerSpy.prepareResources();
 
-        verify(baseClassSpy, times(1)).prepareResources();
-        verifyNoMoreInteractions(baseClassSpy);
+        verify(handlerSpy, times(1)).prepareResources();
+        verifyNoMoreInteractions(handlerSpy);
     }
 
     @Test(expected = MojoExecutionException.class)
     public void prepareResourcesThrowException() throws IOException, MojoExecutionException {
-        final ArtifactHandlerBase baseClassSpy = spy(baseClass);
-        baseClassSpy.prepareResources();
+        buildHandler();
+        handlerSpy.prepareResources();
     }
 
     @Test(expected = MojoExecutionException.class)
     public void assureStagingDirectoryNotEmptyThrowException() throws MojoExecutionException {
         doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
-
-        baseClass.assureStagingDirectoryNotEmpty();
+        buildHandler();
+        handler.assureStagingDirectoryNotEmpty();
     }
 
     @Test
     public void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
-        final ArtifactHandlerBase baseClassSpy = spy(baseClass);
-        doNothing().when(baseClassSpy).assureStagingDirectoryNotEmpty();
+        buildHandler();
+        doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
 
-        baseClassSpy.assureStagingDirectoryNotEmpty();
+        handlerSpy.assureStagingDirectoryNotEmpty();
 
-        verify(baseClassSpy, times(1)).assureStagingDirectoryNotEmpty();
-        verifyNoMoreInteractions(baseClassSpy);
+        verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
+        verifyNoMoreInteractions(handlerSpy);
     }
 }

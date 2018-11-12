@@ -8,7 +8,7 @@ import com.microsoft.azure.maven.function.invoker.storage.StorageQueueClient
 import com.microsoft.azure.maven.function.invoker.CommonUtils
 
 // Get Connection String for the Function App binding Storage Account
-String azQueryValue = CommonUtils.executeCommand("az functionapp config appsettings list -n \"maven-functions-it-${timestamp}-1\" -g \"maven-functions-it-rg-1\" --query \"[?name=='AzureWebJobsStorage'].value\"")
+String azQueryValue = CommonUtils.executeCommand("az functionapp config appsettings list -n \"maven-functions-it-${timestamp}-1\" -g \"maven-functions-it-${timestamp}-rg-1\" --query \"[?name=='AzureWebJobsStorage'].value\"")
 String storageConnectionString = azQueryValue.split("\"")[1]
 
 StorageQueueClient queueClient = new StorageQueueClient()
@@ -27,6 +27,6 @@ CommonUtils.runVerification(new Runnable() {
 })
 
 // Clean up resources created in test
-CommonUtils.deleteAzureResourceGroup("maven-functions-it-rg-1", false)
+CommonUtils.deleteAzureResourceGroup("maven-functions-it-${timestamp}-rg-1", false)
 
 return true

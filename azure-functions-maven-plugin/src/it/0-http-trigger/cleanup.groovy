@@ -18,6 +18,6 @@ CommonUtils.runVerification(new Runnable() {
 })
 
 // Clean up resources created in test
-CommonUtils.deleteAzureResourceGroup("maven-functions-it-rg-0", false)
+CommonUtils.deleteAzureResourceGroup("maven-functions-it-${timestamp}-rg-0", false)
 
 return true

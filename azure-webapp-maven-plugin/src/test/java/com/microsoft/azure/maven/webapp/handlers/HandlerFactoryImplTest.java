@@ -6,35 +6,26 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.RuntimeStack;
+import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
-import com.microsoft.azure.maven.webapp.handlers.v1.JarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.NullRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PrivateDockerHubRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PrivateRegistryRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.PublicDockerHubRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.WarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v1.WindowsRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.v2.LinuxRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PrivateDockerHubRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PrivateRegistryRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.PublicDockerHubRuntimeHandlerImplV2;
-import com.microsoft.azure.maven.webapp.handlers.v2.WindowsRuntimeHandlerImplV2;
+import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.net.URL;
-
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
@@ -50,64 +41,54 @@ public class HandlerFactoryImplTest {
     }
 
     @Test
-    public void getRuntimeHandler() throws Exception {
+    public void getRuntimeHandler() throws MojoExecutionException {
+        final WebAppConfiguration config = mock(WebAppConfiguration.class);
+        final Azure azureClient = mock(Azure.class);
+        final Log log = mock(Log.class);
         final HandlerFactory factory = new HandlerFactoryImpl();
 
-        RuntimeHandler handler;
+        doReturn("").when(config).getAppName();
+        doReturn("").when(config).getResourceGroup();
+        doReturn(Region.US_EAST).when(config).getRegion();
+        doReturn(PricingTier.STANDARD_S1).when(config).getPricingTier();
+        doReturn("").when(config).getServicePlanName();
+        doReturn("").when(config).getServicePlanResourceGroup();
 
-        // <javaVersion> == null && <containerSettings> == null
-        doReturn(null).when(mojo).getJavaVersion();
-        doReturn(null).when(mojo).getContainerSettings();
-
-        handler = factory.getRuntimeHandler(mojo);
+        doReturn(null).when(config).getOs();
+        RuntimeHandler handler = factory.getRuntimeHandler(config, azureClient, log);
         assertTrue(handler instanceof NullRuntimeHandlerImpl);
 
-        // <javaVersion> != null && <containerSettings> == null
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
-        doReturn(null).when(mojo).getContainerSettings();
-
-        handler = factory.getRuntimeHandler(mojo);
+        doReturn(OperatingSystemEnum.Windows).when(config).getOs();
+        doReturn(JavaVersion.JAVA_8_NEWEST).when(config).getJavaVersion();
+        doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(config).getWebContainer();
+        handler = factory.getRuntimeHandler(config, azureClient, log);
         assertTrue(handler instanceof WindowsRuntimeHandlerImpl);
 
-        // set up ContainerSettings
-        final ContainerSetting containerSetting = new ContainerSetting();
-        containerSetting.setImageName("nginx");
+        doReturn(OperatingSystemEnum.Linux).when(config).getOs();
+        doReturn(RuntimeStack.JAVA_8_JRE8).when(config).getRuntimeStack();
+        handler = factory.getRuntimeHandler(config, azureClient, log);
+        assertTrue(handler instanceof LinuxRuntimeHandlerImpl);
 
-        // <javaVersion> != null && <containerSettings> != null
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
-        doReturn(containerSetting).when(mojo).getContainerSettings();
-        MojoExecutionException exception = null;
-        try {
-            factory.getRuntimeHandler(mojo);
-        } catch (MojoExecutionException e) {
-            exception = e;
-        } finally {
-            assertNotNull(exception);
-        }
-
-        // <javaVersion> == null && Public Docker Container Image
-        doReturn(null).when(mojo).getJavaVersion();
-        doReturn(containerSetting).when(mojo).getContainerSettings();
-
-        handler = factory.getRuntimeHandler(mojo);
+        doReturn(OperatingSystemEnum.Docker).when(config).getOs();
+        doReturn("imageName").when(config).getImage();
+        handler = factory.getRuntimeHandler(config, azureClient, log);
         assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImpl);
 
-        // <javaVersion> == null && Private Docker Container Image
-        doReturn(null).when(mojo).getJavaVersion();
-        doReturn(containerSetting).when(mojo).getContainerSettings();
-        containerSetting.setServerId("serverId");
+        doReturn("serverId").when(config).getServerId();
+        doReturn("registry").when(config).getRegistryUrl();
+        handler = factory.getRuntimeHandler(config, azureClient, log);
+        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImpl);
 
-        handler = factory.getRuntimeHandler(mojo);
+        doReturn("").when(config).getRegistryUrl();
+        handler = factory.getRuntimeHandler(config, azureClient, log);
         assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImpl);
 
-        // <javaVersion> == null && Private Registry Image
-        doReturn(null).when(mojo).getJavaVersion();
-        doReturn(containerSetting).when(mojo).getContainerSettings();
-        containerSetting.setServerId("serverId");
-        containerSetting.setRegistryUrl(new URL("https://microsoft.azurecr.io"));
-
-        handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImpl);
+        doReturn("").when(config).getImage();
+        try {
+            factory.getRuntimeHandler(config, azureClient, log);
+        } catch (MojoExecutionException e) {
+            assertEquals(e.getMessage(), "Invalid docker runtime configured.");
+        }
     }
 
     @Test
@@ -160,7 +141,7 @@ public class HandlerFactoryImplTest {
 
         final HandlerFactoryImpl factory = new HandlerFactoryImpl();
 
-        assertTrue(factory.getArtifactHandlerFromPackaging(mojo) instanceof JarArtifactHandlerImpl);
+        assertTrue(factory.getArtifactHandlerBuilderFromPackaging(mojo).build() instanceof JarArtifactHandlerImpl);
     }
 
     @Test(expected = MojoExecutionException.class)
@@ -169,53 +150,6 @@ public class HandlerFactoryImplTest {
         doReturn(project).when(mojo).getProject();
         doReturn("unknown").when(project).getPackaging();
         final HandlerFactoryImpl factory = new HandlerFactoryImpl();
-        factory.getArtifactHandlerFromPackaging(mojo);
-    }
-
-    @Test
-    public void getV2RuntimeHandler() throws AzureAuthFailureException, MojoExecutionException {
-        final HandlerFactory factory = new HandlerFactoryImpl();
-        RuntimeHandler handler;
-        doReturn("westeurope").when(mojo).getRegion();
-
-        doReturn(SchemaVersion.V2.toString()).when(mojo).getSchemaVersion();
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
-        doReturn(runtime).when(mojo).getRuntime();
-        doReturn(JavaVersion.fromString("jre8")).when(runtime).getJavaVersion();
-        doReturn("linux").when(runtime).getOs();
-
-        handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof LinuxRuntimeHandlerImplV2);
-
-        doReturn("windows").when(runtime).getOs();
-        handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof WindowsRuntimeHandlerImplV2);
-
-        doReturn("docker").when(runtime).getOs();
-        doReturn("imageName").when(runtime).getImage();
-        doReturn("serverId").when(runtime).getServerId();
-        doReturn("registry").when(runtime).getRegistryUrl();
-        handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImplV2);
-
-        doReturn("docker").when(runtime).getOs();
-        doReturn("imageName").when(runtime).getImage();
-        doReturn("serverId").when(runtime).getServerId();
-        doReturn("").when(runtime).getRegistryUrl();
-        handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImplV2);
-
-        doReturn("docker").when(runtime).getOs();
-        doReturn("imageName").when(runtime).getImage();
-        doReturn("").when(runtime).getServerId();
-        doReturn("").when(runtime).getRegistryUrl();
-        handler = factory.getRuntimeHandler(mojo);
-        assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImplV2);
-    }
-
-    @Test(expected = MojoExecutionException.class)
-    public void regionIsRequiredInV2() throws AzureAuthFailureException, MojoExecutionException {
-        doReturn(SchemaVersion.V2.toString()).when(mojo).getSchemaVersion();
-        new HandlerFactoryImpl().getRuntimeHandler(mojo);
+        factory.getArtifactHandlerBuilderFromPackaging(mojo);
     }
 }

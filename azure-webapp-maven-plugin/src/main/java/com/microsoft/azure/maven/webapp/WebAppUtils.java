@@ -16,14 +16,12 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.Existin
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.ExistingWindowsPlanWithGroup;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
-
 import java.util.Locale;
 
 import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
@@ -100,7 +98,7 @@ public class WebAppUtils {
                                                            final String resourceGroup,
                                                            final Azure azure,
                                                            final String servicePlanResourceGroup,
-                                                           final String region,
+                                                           final Region region,
                                                            final PricingTier pricingTier,
                                                            final Log log,
                                                            final OperatingSystem os) {
@@ -161,14 +159,6 @@ public class WebAppUtils {
             }
         }
         throw new MojoExecutionException(IMAGE_NOT_GIVEN);
-    }
-
-    public static boolean isUpdateWebAppNecessary(final String schemaVersion, final RuntimeSetting runtime)
-        throws MojoExecutionException {
-        if (SchemaVersion.V2 != SchemaVersion.fromString(schemaVersion)) {
-            return true;
-        }
-        return runtime != null && !runtime.isEmpty();
     }
 
     /**

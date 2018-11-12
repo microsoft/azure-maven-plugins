@@ -38,6 +38,7 @@ public class RuntimeSetting {
     }
 
     public RuntimeStack getLinuxRuntime() throws MojoExecutionException {
+        // todo: add unit tests
         if (StringUtils.equalsIgnoreCase(javaVersion, JRE_8)) {
             if (StringUtils.isEmpty(webContainer)) {
                 return RuntimeStack.JAVA_8_JRE8;
