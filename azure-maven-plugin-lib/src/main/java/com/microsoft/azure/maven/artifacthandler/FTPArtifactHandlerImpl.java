@@ -46,12 +46,15 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
         }
         
         assureStagingDirectoryNotEmpty();
+        log.info(String.format(DEPLOY_START, target.getName()));
 
         uploadDirectoryToFTP(target);
 
         if (target.getApp() instanceof FunctionApp) {
             ((FunctionApp) target.getApp()).syncTriggers();
         }
+
+        log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
     }
 
     protected void uploadDirectoryToFTP(DeployTarget target) throws MojoExecutionException {
