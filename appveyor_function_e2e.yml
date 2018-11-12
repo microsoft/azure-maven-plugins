@@ -30,7 +30,7 @@ build_script:
       $functionVersion = $functionPom.project.version
       mvn clean install
 
-      # Generate function project through archetype,
+      # Generate function project through archetype
       Remove-Item -Recurse -Force ".\e2etestproject" -ErrorAction Ignore
       mkdir e2etestproject
       cd e2etestproject
@@ -47,7 +47,7 @@ build_script:
       $Env:FUNCTIONS_WORKER_RUNTIME = "java"
       $Env:AZURE_FUNCTIONS_ENVIRONMENT = "development"
       $Env:AzureWebJobsScriptRoot = "$base\e2etestproject\e2etestproject\target\azure-functions\e2etest-java-functions"
-      $proc = start-process -filepath "$base\Azure.Functions.Cli\func.exe" -WorkingDirectory "$Env:AzureWebJobsScriptRoot" -ArgumentList "host start" -PassThru
+      $proc = start-process -filepath "$base\Azure.Functions.Cli\func.exe" -WorkingDirectory "$Env:AzureWebJobsScriptRoot" -ArgumentList "host start" -RedirectStandardOutput "output.txt" -RedirectStandardError "error.txt" -PassThru
       Start-Sleep -s 30
       
 test_script:
@@ -59,3 +59,8 @@ test_script:
 on_finish:
   - ps: | 
       Stop-Process -Id $proc.Id -Erroraction Ignore
+      # Output standard input stream and error stream if fail
+      if (-not $success) { 
+        echo "Output:" (gc ".\output.txt")
+        echo "Error:" (gc ".\error.txt")
+      }
