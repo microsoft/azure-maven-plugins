@@ -35,7 +35,7 @@ build_script:
       Remove-Item -Recurse -Force ".\e2etestproject" -ErrorAction Ignore
       mkdir e2etestproject
       cd e2etestproject
-      mvn archetype:generate -DarchetypeCatalog="local" -DarchetypeGroupId="com.microsoft.azure" -DarchetypeArtifactId="azure-functions-archetype" -DgroupId="com.microsoft" -DartifactId="e2etestproject" -Dversion="1.0-SNAPSHOT" -Dpackage="com.microsoft" -DappRegion="westus" -DresourceGroup="e2etest-java-functions-group" -DappName="e2etest-java-functions" -B
+      mvn archetype:generate -DarchetypeGroupId="com.microsoft.azure" -DarchetypeArtifactId="azure-functions-archetype" -DgroupId="com.microsoft" -DartifactId="e2etestproject" -Dversion="1.0-SNAPSHOT" -Dpackage="com.microsoft" -DappRegion="westus" -DresourceGroup="e2etest-java-functions-group" -DappName="e2etest-java-functions" -B
       # Update e2e project pom to use the latest maven plugin
       $e2ePomFile = gi ".\e2etestproject\pom.xml"
       $e2ePom = [xml](gc $e2ePomFile)
