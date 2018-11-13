@@ -17,7 +17,7 @@ build_script:
       # Download Functions Core Tools
       Remove-Item -Force "$base\Azure.Functions.Cli.zip" -ErrorAction Ignore
       Remove-Item -Recurse -Force "$base\Azure.Functions.Cli" -ErrorAction Ignore
-      Write-Host "Downloading Functions Host...."
+      Write-Output "Downloading Functions Host...."
       $url = "https://functionsclibuilds.blob.core.windows.net/builds/2/latest/Azure.Functions.Cli.win-x64.zip"
       $output = "$base\Azure.Functions.Cli.zip"
       $wc = New-Object System.Net.WebClient
@@ -28,6 +28,7 @@ build_script:
       # Clone and install function maven plguin and archetype
       $functionPom = [xml](gc ".\azure-functions-maven-plugin\pom.xml")
       $functionVersion = $functionPom.project.version
+      Write-Output "Function maven plugin version: $functionVersion"
       mvn clean install
 
       # Generate function project through archetype
@@ -59,8 +60,6 @@ test_script:
 on_finish:
   - ps: | 
       Stop-Process -Id $proc.Id -Erroraction Ignore
-      # Output standard input stream and error stream if fail
-      if (-not $success) { 
-        echo "Output:" (gc ".\output.txt")
-        echo "Error:" (gc ".\error.txt")
-      }
+      # Output standard input stream and error stream
+      Write-Output "Standard input stream :" (gc ".\output.txt")
+      Write-Output "Standard error stream :" (gc ".\error.txt")
