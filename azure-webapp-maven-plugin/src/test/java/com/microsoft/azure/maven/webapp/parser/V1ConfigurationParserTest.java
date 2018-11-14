@@ -102,7 +102,7 @@ public class V1ConfigurationParserTest {
             parser.getRuntimeStack();
         } catch (MojoExecutionException e) {
             assertEquals(e.getMessage(), "The configuration of <linuxRuntime> in pom.xml is not correct. " +
-                "The supported values are [tomcat 8.5-jre8, tomcat 9.0-jre8, jre8]");
+                "The supported values are [tomcat 8.5-jre8, tomcat 9.0-jre8, wildfly 14-jre8, jre8]");
         }
     }
 
