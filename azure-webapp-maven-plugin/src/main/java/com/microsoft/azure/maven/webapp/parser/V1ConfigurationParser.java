@@ -23,8 +23,10 @@ import java.util.List;
 public class V1ConfigurationParser extends ConfigurationParser {
     private static final String TOMCAT_8_5_JRE8 = "tomcat 8.5-jre8";
     private static final String TOMCAT_9_0_JRE8 = "tomcat 9.0-jre8";
+    private static final String WILDFLY_14_JRE8 = "wildfly 14-jre8";
     private static final String JRE8 = "jre8";
-    private static final List<String> SUPPORTED_LINUX_RUNTIMES = Arrays.asList(TOMCAT_8_5_JRE8, TOMCAT_9_0_JRE8, JRE8);
+    private static final List<String> SUPPORTED_LINUX_RUNTIMES =
+        Arrays.asList(TOMCAT_8_5_JRE8, TOMCAT_9_0_JRE8, WILDFLY_14_JRE8, JRE8);
     private static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>" +
         "and <containerSettings> should not be set at the same time.";
 
@@ -77,6 +79,8 @@ public class V1ConfigurationParser extends ConfigurationParser {
                 return RuntimeStack.TOMCAT_8_5_JRE8;
             case TOMCAT_9_0_JRE8:
                 return RuntimeStack.TOMCAT_9_0_JRE8;
+            case WILDFLY_14_JRE8:
+                return RuntimeStack.WILDFLY_14_JRE8;
             case JRE8:
                 return RuntimeStack.JAVA_8_JRE8;
             default:
