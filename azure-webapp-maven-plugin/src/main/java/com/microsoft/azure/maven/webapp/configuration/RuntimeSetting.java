@@ -59,6 +59,9 @@ public class RuntimeSetting {
     }
 
     public WebContainer getWebContainer() {
+        if (StringUtils.isEmpty(webContainer)) {
+            return WebContainer.TOMCAT_8_5_NEWEST;
+        }
         return WebContainer.fromString(webContainer);
     }
 
