@@ -144,6 +144,7 @@ Property | Required | Description | Version
     <configuration>
     ...
       <containerSettings>
+       <!-- only the imageName is required --> 
         <imageName>[hub-user/]repo-name[:tag]</imageName>
         <serverId></serverId>
         <registryUrl></registryUrl>
@@ -181,7 +182,8 @@ Property | Required | Description | Version
     ```
     - WAR Deploy
     
-    `<warFile>` and `<path>` are optional. By default it will find the war file according to the `<finalName>` in the  project build directory, and deploy to ROOT.
+    Both `<warFile>` and `<path>` are optional. By default it will find the war file according to the `<finalName>` in 
+    the  project build directory, and deploy to ROOT.
     ```xml
     <configuration>
     ...
@@ -192,7 +194,7 @@ Property | Required | Description | Version
     ```
     - JAR Deploy
     
-    `<jarFile>` is optional. If not specified, it will deploy the `${project.build.directory}/${project.build.finalName}.jar` to `%HOME%\site\wwwroot\` of your Web App.
+    `<jarFile>` is not required. If not specified, it will deploy the `${project.build.directory}/${project.build.finalName}.jar` to `%HOME%\site\wwwroot\` of your Web App.
     > Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](.
     ./docs/web-config.md).
     ```xml
@@ -204,7 +206,7 @@ Property | Required | Description | Version
     ```
     
     - AUTO Deploy
-    
+
     This is the default deployment type used by the plugin. It will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. If the `<packaging>` is set to `war`, the plugin will use war deployment. If the `<packaging>` is set to `jar`, the plugin will use jar deployment.
     Otherwise, the plugin will skip the deployment, which is the same as `NONE` deployment.
     
@@ -242,7 +244,7 @@ Property | Required | Description | Version
     Supported `<os>` values are *Windows*, *Linux* and *Docker*.
     Only the `jre8` is supported for `<javaVersion>` for Web App on Linux.
     If the `<webContainer>` is not configured and the `<os>` is windows, tomcat 8.5 will be used as default value.
-    If the `<os>` is linux, the web app will use the JavaSE as runtime.
+    But if the `<os>` is linux, the web app will use the JavaSE as runtime.
     
     The runtime settings of v2 configuration could be omitted if users specify an existing web app in the configuration and just want to do the deploy directly.
     ```xml
@@ -304,7 +306,7 @@ Property | Required | Description | Version
 `1.8.0_111` | Java 8, Update 111
 `1.8.0_92` | Azul's Zulu OpenJDK 8, Update 92
 `1.8.0_102` | Azul's Zulu OpenJDK 8, Update 102
-> Note: It is recommended to ignore the minor version number like the following example so that the latest supported JVM will be used in your Web App.
+> Note: It is recommended to ignore the minor version number so that the latest supported JVM will be used in your Web App.
 
 #### `<javaWebContainer>` or `<webContainer>`
 Supported Value | Description
@@ -321,7 +323,7 @@ Supported Value | Description
 `jetty 9.3` | Newest Jetty 9.3
 `jetty 9.3.13.20161014` | Jetty 9.3.13.v20161014
 `wildfly 14` | WildFly 14
-> Note: It is recommended to ignore the minor version number like the following example so that the latest supported web container will be used in your Web App.
+> Note: It is recommended to ignore the minor version number so that the latest supported web container will be used in your Web App.
 
 #### `<resource>`
 Property | Description
@@ -331,8 +333,8 @@ Property | Description
 `includes` | A list of patterns to include, e.g. `**/*.war`.
 `excludes` | A list of patterns to exclude, e.g. `**/*.xml`.
 
-> Note: The <targetPath> is relative to the `/site/wwwroot/` folder of FTP server in your Web App except one case: it
- is relative to the `/site/wwwroot/webapps` when you deploy the war package.
+> Note: The `<targetPath>` is relative to the `/site/wwwroot/` folder except one case: it is relative to the 
+`/site/wwwroot/webapps` when you deploy the war package.
 
 #### `<region>`
 All valid regions are listed as below. Read more at [Azure Region Availability](https://azure.microsoft.com/en-us/regions/services/).
