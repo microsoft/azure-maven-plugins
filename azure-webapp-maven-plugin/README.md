@@ -294,6 +294,10 @@ Property | Required | Description | Version
     ```
 ### Details explanation of some configurations
 #### `<javaVersion>`
+The supported values for Web App on Linux is only **jre8**.
+
+The supported values for Web App on Windows:
+
  Supported Value | Description
 ---|---
 `1.7` | Java 7, Newest minor version
