@@ -105,9 +105,6 @@ public class V2ConfigurationParser extends ConfigurationParser {
         if (runtime == null) {
             throw new MojoExecutionException("Pleas config the <runtime> in pom.xml.");
         }
-        if ("windows".equalsIgnoreCase(runtime.getOs()) && runtime.getWebContainer() == null) {
-            throw new MojoExecutionException("The configuration <webContainer> in pom.xml is not correct.");
-        }
         return runtime.getWebContainer();
     }
 
