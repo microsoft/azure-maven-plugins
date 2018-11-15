@@ -157,7 +157,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES, log);
         if (!deploySuccess) {
             throw new MojoExecutionException(
-                String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES + 1));
+                String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES));
         }
     }
 }
