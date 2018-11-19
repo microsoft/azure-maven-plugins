@@ -50,7 +50,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
     @Override
     protected Region getRegion() throws MojoExecutionException {
         final String region = mojo.getRegion();
-        if (Region.findByLabelOrName(region) == null) {
+        if (!StringUtils.isEmpty(region) && Region.findByLabelOrName(region) == null) {
             throw new MojoExecutionException("The value of <region> is not supported, please correct it in pom.xml.");
         }
         return Region.fromName(region);
