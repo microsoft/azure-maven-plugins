@@ -51,7 +51,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
     @Override
     protected Region getRegion() throws MojoExecutionException {
         final String region = mojo.getRegion();
-        if (Arrays.asList(Region.values()).contains(region)) {
+        if (!Arrays.asList(Region.values()).contains(region)) {
             throw new MojoExecutionException("The value of <region> is not supported, please correct it in pom.xml.");
         }
         return Region.fromName(region);
