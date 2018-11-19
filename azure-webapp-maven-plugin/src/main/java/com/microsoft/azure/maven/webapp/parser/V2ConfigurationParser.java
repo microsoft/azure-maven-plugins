@@ -17,7 +17,6 @@ import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -51,7 +50,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
     @Override
     protected Region getRegion() throws MojoExecutionException {
         final String region = mojo.getRegion();
-        if (!Arrays.asList(Region.values()).contains(region)) {
+        if (Region.findByLabelOrName(region) == null) {
             throw new MojoExecutionException("The value of <region> is not supported, please correct it in pom.xml.");
         }
         return Region.fromName(region);
