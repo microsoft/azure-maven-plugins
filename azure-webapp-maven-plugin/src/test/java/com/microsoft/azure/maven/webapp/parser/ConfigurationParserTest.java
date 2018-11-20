@@ -150,7 +150,7 @@ public class ConfigurationParserTest {
         doReturn(session).when(mojo).getSession();
         doReturn("test-staging-path").when(mojo).getDeploymentStagingDirectoryPath();
         doReturn("test-build-directory-path").when(mojo).getBuildDirectoryAbsolutePath();
-        doReturn(PricingTier.STANDARD_S1).when(mojo).getPricingTier();
+        doReturn(new PricingTier("Premium", "P1V2")).when(mojo).getPricingTier();
 
         doReturn(OperatingSystemEnum.Windows).when(parserSpy).getOs();
         WebAppConfiguration webAppConfiguration = parserSpy.getWebAppConfiguration();
@@ -158,7 +158,7 @@ public class ConfigurationParserTest {
         assertEquals("appName", webAppConfiguration.getAppName());
         assertEquals("resourceGroupName", webAppConfiguration.getResourceGroup());
         assertEquals(Region.EUROPE_WEST, webAppConfiguration.getRegion());
-        assertEquals(PricingTier.STANDARD_S1, webAppConfiguration.getPricingTier());
+        assertEquals(new PricingTier("Premium", "P1V2"), webAppConfiguration.getPricingTier());
         assertEquals(null, webAppConfiguration.getServicePlanName());
         assertEquals(null, webAppConfiguration.getServicePlanResourceGroup());
         assertEquals(OperatingSystemEnum.Windows, webAppConfiguration.getOs());

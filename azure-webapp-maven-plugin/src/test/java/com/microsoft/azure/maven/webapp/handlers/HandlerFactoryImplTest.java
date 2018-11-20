@@ -50,7 +50,7 @@ public class HandlerFactoryImplTest {
         doReturn("").when(config).getAppName();
         doReturn("").when(config).getResourceGroup();
         doReturn(Region.US_EAST).when(config).getRegion();
-        doReturn(PricingTier.STANDARD_S1).when(config).getPricingTier();
+        doReturn(new PricingTier("Premium", "P1V2")).when(config).getPricingTier();
         doReturn("").when(config).getServicePlanName();
         doReturn("").when(config).getServicePlanResourceGroup();
 
