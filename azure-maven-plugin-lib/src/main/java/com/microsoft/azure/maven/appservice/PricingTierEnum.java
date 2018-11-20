@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.appservice;
 
 import com.microsoft.azure.management.appservice.PricingTier;
+import org.apache.maven.plugin.MojoExecutionException;
 
 public enum PricingTierEnum {
     F1("F1"),
@@ -44,7 +45,7 @@ public enum PricingTierEnum {
         this.pricingTier = pricingTier;
     }
 
-    public PricingTier toPricingTier() {
+    public PricingTier toPricingTier() throws MojoExecutionException {
         switch (pricingTier) {
             case "F1":
                 return PricingTier.FREE_F1;
@@ -64,13 +65,14 @@ public enum PricingTierEnum {
                 return PricingTier.STANDARD_S3;
             // workaround to define the pricing tier with constructor since SDK has not updated the latest values
             // https://github.com/Azure/azure-libraries-for-java/issues/660
+            case "P1V2":
+                return new PricingTier("Premium", "P1V2");
             case "P2V2":
                 return new PricingTier("Premium", "P2V2");
             case "P3V2":
                 return new PricingTier("Premium", "P3V2");
-            case "P1V2":
             default:
-                return new PricingTier("Premium", "P1V2");
+                throw new MojoExecutionException("Unknown value of the pricingTier, please correct it in pom.xml.");
         }
     }
 }

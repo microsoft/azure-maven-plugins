@@ -67,7 +67,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     //region Getter
 
-    public PricingTier getPricingTier() {
+    public PricingTier getPricingTier() throws MojoExecutionException {
         return pricingTier == null ? null : pricingTier.toPricingTier();
     }
 

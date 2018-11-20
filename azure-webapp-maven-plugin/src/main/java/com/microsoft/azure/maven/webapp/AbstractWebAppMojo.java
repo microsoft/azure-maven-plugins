@@ -246,7 +246,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return region;
     }
 
-    public PricingTier getPricingTier() {
+    public PricingTier getPricingTier() throws MojoExecutionException {
         return pricingTier == null ? new PricingTier("Premium", "P1V2") : pricingTier.toPricingTier();
     }
 
