@@ -88,7 +88,7 @@ public class WarArtifactHandlerImpl extends ArtifactHandlerBase {
             }
         }
 
-        throw new MojoExecutionException(String.format(DEPLOY_FAILURE, retryCount));
+        throw new MojoExecutionException(String.format(DEPLOY_FAILURE, DEFAULT_MAX_RETRY_TIMES));
     }
 
     protected String getContextPath() {

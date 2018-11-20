@@ -53,8 +53,9 @@ public class RuntimeSetting {
                 case WILDFLY_14:
                     return RuntimeStack.WILDFLY_14_JRE8;
                 default:
-                    throw new MojoExecutionException(String.format(
-                        "Unknown value of <webContainer>. Supported values are %s, %s", TOMCAT_8_5, TOMCAT_9_0));
+                    throw new MojoExecutionException(
+                        String.format("Unknown value of <webContainer>. Supported values are %s, %s and %s.",
+                            TOMCAT_8_5, TOMCAT_9_0, WILDFLY_14));
             }
         }
         throw new MojoExecutionException(String.format(
