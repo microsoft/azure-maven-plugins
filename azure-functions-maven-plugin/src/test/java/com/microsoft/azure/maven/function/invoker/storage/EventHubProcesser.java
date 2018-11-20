@@ -27,9 +27,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 public class EventHubProcesser {
 
@@ -73,38 +73,35 @@ public class EventHubProcesser {
         }
     }
 
-    public EventHub createOrGetEventHubByName(String eventHubName) throws Exception {
+    public EventHub createOrGetEventHubByName(final String eventHubName) throws Exception {
         final Azure azureClient = CommonUtils.getAzureClient();
-        final List<EventHub> resultList = eventHubNamespace.listEventHubs().stream()
-                .filter(eventHub -> eventHub.name().equals(eventHubName)).collect(Collectors.toList());
-        if (resultList.size() == 0) {
-            return azureClient.eventHubs().define(eventHubName).withExistingNamespace(eventHubNamespace)
-                    .withExistingStorageAccountForCapturedData(storageAccount, eventHubName)
-                    .withDataCaptureEnabled().create();
-        } else {
-            return resultList.get(0);
-        }
+        final Optional<EventHub> eventHub = eventHubNamespace.listEventHubs().stream()
+                .filter(eventHubEntry -> eventHubEntry.name().equals(eventHubName)).findFirst();
+        return eventHub.isPresent() ? eventHub.get() : azureClient.eventHubs().define(eventHubName)
+                .withExistingNamespace(eventHubNamespace)
+                .withExistingStorageAccountForCapturedData(storageAccount, eventHubName)
+                .withDataCaptureEnabled().create();
     }
 
-    public void sendMessageToEventHub(String eventhub, String message) throws Exception {
-        final EventHubClient ehClient = getEventHubClientByName(eventhub);
+    public void sendMessageToEventHub(final String eventHubName, final String message) throws Exception {
+        final EventHubClient eventHubClient = getEventHubClientByName(eventHubName);
         final String payload = message;
         final Gson gson = new Gson();
         final byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
         final EventData sendEvent = EventData.create(payloadBytes);
-        ehClient.send(sendEvent).get();
+        eventHubClient.send(sendEvent).get();
     }
 
-    public List<String> getMessageFromEventHub(String eventhub) throws Exception {
+    public List<String> getMessageFromEventHub(final String eventHubName) throws Exception {
         final List<String> result = new ArrayList<>();
-        final EventHubClient ehClient = getEventHubClientByName(eventhub);
+        final EventHubClient ehClient = getEventHubClientByName(eventHubName);
         final List<String> partitionIds = Arrays.asList(ehClient.getRuntimeInformation().get().getPartitionIds());
         partitionIds.parallelStream()
-                .forEach(partitionId -> result.addAll(receiveMessageFromSpecificPartition(ehClient, partitionId)));
+                .forEach(partitionId -> result.addAll(getMessageFromPartition(ehClient, partitionId)));
         return result;
     }
 
-    public List<String> receiveMessageFromSpecificPartition(EventHubClient eventHubClient, String partitionId) {
+    public List<String> getMessageFromPartition(final EventHubClient eventHubClient, final String partitionId) {
         final List<String> result = new ArrayList<>();
         try {
             final PartitionReceiver partitionReceiver = eventHubClient
@@ -129,15 +126,15 @@ public class EventHubProcesser {
         executorService.shutdown();
     }
 
-    private EventHubClient getEventHubClientByName(String eventHubName) throws Exception {
+    private EventHubClient getEventHubClientByName(final String eventHubName) throws Exception {
         if (!eventHubClientMap.containsKey(eventHubName)) {
             final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
                     .setNamespaceName(eventHubNamespace.name())
                     .setEventHubName(eventHubName)
                     .setSasKeyName(SAS_KAY_NAME)
                     .setSasKey(getEventHubKey());
-            final EventHubClient ehClient = EventHubClient.create(connStr.toString(), executorService).get();
-            eventHubClientMap.put(eventHubName, ehClient);
+            final EventHubClient eventHubClient = EventHubClient.create(connStr.toString(), executorService).get();
+            eventHubClientMap.put(eventHubName, eventHubClient);
         }
         return eventHubClientMap.get(eventHubName);
     }
