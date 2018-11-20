@@ -85,19 +85,18 @@ public class EventHubProcesser {
 
     public void sendMessageToEventHub(final String eventHubName, final String message) throws Exception {
         final EventHubClient eventHubClient = getEventHubClientByName(eventHubName);
-        final String payload = message;
         final Gson gson = new Gson();
-        final byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
+        final byte[] payloadBytes = gson.toJson(message).getBytes(Charset.defaultCharset());
         final EventData sendEvent = EventData.create(payloadBytes);
         eventHubClient.send(sendEvent).get();
     }
 
     public List<String> getMessageFromEventHub(final String eventHubName) throws Exception {
         final List<String> result = new ArrayList<>();
-        final EventHubClient ehClient = getEventHubClientByName(eventHubName);
-        final List<String> partitionIds = Arrays.asList(ehClient.getRuntimeInformation().get().getPartitionIds());
+        final EventHubClient eventHubClient = getEventHubClientByName(eventHubName);
+        final List<String> partitionIds = Arrays.asList(eventHubClient.getRuntimeInformation().get().getPartitionIds());
         partitionIds.parallelStream()
-                .forEach(partitionId -> result.addAll(getMessageFromPartition(ehClient, partitionId)));
+                .forEach(partitionId -> result.addAll(getMessageFromPartition(eventHubClient, partitionId)));
         return result;
     }
 
@@ -127,7 +126,9 @@ public class EventHubProcesser {
     }
 
     private EventHubClient getEventHubClientByName(final String eventHubName) throws Exception {
-        if (!eventHubClientMap.containsKey(eventHubName)) {
+        if (eventHubClientMap.containsKey(eventHubName)) {
+            return eventHubClientMap.get(eventHubName);
+        } else {
             final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
                     .setNamespaceName(eventHubNamespace.name())
                     .setEventHubName(eventHubName)
@@ -135,8 +136,8 @@ public class EventHubProcesser {
                     .setSasKey(getEventHubKey());
             final EventHubClient eventHubClient = EventHubClient.create(connStr.toString(), executorService).get();
             eventHubClientMap.put(eventHubName, eventHubClient);
+            return eventHubClient;
         }
-        return eventHubClientMap.get(eventHubName);
     }
 
     private String getEventHubKey() {

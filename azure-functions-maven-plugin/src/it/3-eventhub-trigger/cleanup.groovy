@@ -9,12 +9,12 @@ import com.microsoft.azure.maven.function.invoker.storage.EventHubProcesser
 
 String functionName = "maven-functions-it-${timestamp}-3"
 String storageName = "cihub${timestamp}"
-String nameSpaceName = "FunctionCIEventHubNamespace-${timestamp}"
+String namespaceName = "FunctionCIEventHubNamespace-${timestamp}"
 String resourceGroupName = "maven-functions-it-${timestamp}-rg-3"
 
 EventHubProcesser eventHubProcesser = null
 try {
-    eventHubProcesser = new EventHubProcesser(resourceGroupName, nameSpaceName, storageName);
+    eventHubProcesser = new EventHubProcesser(resourceGroupName, namespaceName, storageName);
     eventHubProcesser.createOrGetEventHubByName("trigger")
     eventHubProcesser.createOrGetEventHubByName("output")
     // Get connnection string of EventHub and set it to trigger function
