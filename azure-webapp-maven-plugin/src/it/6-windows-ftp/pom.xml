@@ -21,6 +21,7 @@
                     <resourceGroup>maven-webapp-it-rg-6</resourceGroup>
                     <appName>maven-it-app-6-${maven.build.timestamp}</appName>
                     <region>westus</region>
+                    <pricingTier>S1</pricingTier>
                     <javaVersion>1.8</javaVersion>
                     <javaWebContainer>tomcat 8.5</javaWebContainer>
                     <deploymentType>ftp</deploymentType>
