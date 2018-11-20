@@ -35,9 +35,9 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      *     <li>S1</li>
      *     <li>S2</li>
      *     <li>S3</li>
-     *     <li>P1</li>
-     *     <li>P2</li>
-     *     <li>P3</li>
+     *     <li>P1V2</li>
+     *     <li>P2V2</li>
+     *     <li>P3V2</li>
      * </ul>
      */
     @Parameter(property = "functions.pricingTier")
