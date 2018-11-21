@@ -147,9 +147,9 @@ Read more at [Azure App Service Plan Pricing](https://azure.microsoft.com/en-us/
 - `S1`
 - `S2`
 - `S3`
-- `P1`
-- `P2`
-- `P3`
+- `P1V2`
+- `P2V2`
+- `P3V2`
 
 ## How-To
 

@@ -48,6 +48,7 @@
                     <resourceGroup>maven-webapp-it-rg-8</resourceGroup>
                     <appName>maven-it-app-8-${maven.build.timestamp}</appName>
                     <region>westus</region>
+                    <pricingTier>S1</pricingTier>
                     <linuxRuntime>jre8</linuxRuntime>
                     <stopAppDuringDeployment>true</stopAppDuringDeployment>
                     <appSettings>

@@ -53,12 +53,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *     <li>S1</li>
      *     <li>S2</li>
      *     <li>S3</li>
-     *     <li>P1</li>
-     *     <li>P2</li>
-     *     <li>P3</li>
+     *     <li>P1V2</li>
+     *     <li>P2V2</li>
+     *     <li>P3V2</li>
      * </ul>
      */
-    @Parameter(property = "webapp.pricingTier", defaultValue = "S1")
+    @Parameter(property = "webapp.pricingTier", defaultValue = "P1V2")
     protected PricingTierEnum pricingTier;
 
     /**
@@ -246,8 +246,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return region;
     }
 
-    public PricingTier getPricingTier() {
-        return pricingTier == null ? PricingTier.STANDARD_S1 : pricingTier.toPricingTier();
+    public PricingTier getPricingTier() throws MojoExecutionException {
+        return pricingTier == null ? new PricingTier("Premium", "P1V2") : pricingTier.toPricingTier();
     }
 
     public JavaVersion getJavaVersion() {

@@ -21,6 +21,7 @@ public class RuntimeSetting {
     private static final String JRE_8 = "jre8";
     private static final String TOMCAT_8_5 = "tomcat 8.5";
     private static final String TOMCAT_9_0 = "tomcat 9.0";
+    private static final String WILDFLY_14 = "wildfly 14";
 
     protected String os;
     protected String javaVersion;
@@ -49,9 +50,12 @@ public class RuntimeSetting {
                     return RuntimeStack.TOMCAT_8_5_JRE8;
                 case TOMCAT_9_0:
                     return RuntimeStack.TOMCAT_9_0_JRE8;
+                case WILDFLY_14:
+                    return RuntimeStack.WILDFLY_14_JRE8;
                 default:
-                    throw new MojoExecutionException(String.format(
-                        "Unknown value of <webContainer>. Supported values are %s, %s", TOMCAT_8_5, TOMCAT_9_0));
+                    throw new MojoExecutionException(
+                        String.format("Unknown value of <webContainer>. Supported values are %s, %s and %s.",
+                            TOMCAT_8_5, TOMCAT_9_0, WILDFLY_14));
             }
         }
         throw new MojoExecutionException(String.format(
@@ -59,6 +63,9 @@ public class RuntimeSetting {
     }
 
     public WebContainer getWebContainer() {
+        if (StringUtils.isEmpty(webContainer)) {
+            return WebContainer.TOMCAT_8_5_NEWEST;
+        }
         return WebContainer.fromString(webContainer);
     }
 

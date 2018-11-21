@@ -76,17 +76,11 @@ public class V2ConfigurationParserTest {
 
     @Test
     public void getRegion() throws MojoExecutionException {
-        try {
-            parser.getRegion();
-        } catch (MojoExecutionException e) {
-            assertEquals(e.getMessage(), "Please config the <region> in pom.xml.");
-        }
-
         doReturn("unknown-region").when(mojo).getRegion();
         try {
             parser.getRegion();
         } catch (MojoExecutionException e) {
-            assertEquals(e.getMessage(), "The value of <region> is not correct, please correct it in pom.xml.");
+            assertEquals(e.getMessage(), "The value of <region> is not supported, please correct it in pom.xml.");
         }
 
         doReturn(Region.US_WEST.name()).when(mojo).getRegion();
