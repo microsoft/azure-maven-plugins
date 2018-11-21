@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.function.handlers;
 
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.StorageAccount;
-import com.microsoft.azure.maven.function.bindings.BaseBinding;
+import com.microsoft.azure.maven.function.bindings.Binding;
 import com.microsoft.azure.maven.function.bindings.BindingEnum;
 import com.microsoft.azure.maven.function.bindings.BindingFactory;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
@@ -80,7 +80,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     @Override
     public FunctionConfiguration generateConfiguration(final Method method) {
         final FunctionConfiguration config = new FunctionConfiguration();
-        final List<BaseBinding> bindings = config.getBindings();
+        final List<Binding> bindings = config.getBindings();
 
         processParameterAnnotations(method, bindings);
 
@@ -92,13 +92,13 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         return config;
     }
 
-    protected void processParameterAnnotations(final Method method, final List<BaseBinding> bindings) {
+    protected void processParameterAnnotations(final Method method, final List<Binding> bindings) {
         for (final Parameter param : method.getParameters()) {
             bindings.addAll(parseAnnotations(param::getAnnotations, this::parseParameterAnnotation));
         }
     }
 
-    protected void processMethodAnnotations(final Method method, final List<BaseBinding> bindings) {
+    protected void processMethodAnnotations(final Method method, final List<Binding> bindings) {
         if (!method.getReturnType().equals(Void.TYPE)) {
             bindings.addAll(parseAnnotations(method::getAnnotations, this::parseMethodAnnotation));
 
@@ -109,12 +109,12 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         }
     }
 
-    protected List<BaseBinding> parseAnnotations(Supplier<Annotation[]> annotationProvider,
-                                                 Function<Annotation, BaseBinding> annotationParser) {
-        final List<BaseBinding> bindings = new ArrayList<>();
+    protected List<Binding> parseAnnotations(Supplier<Annotation[]> annotationProvider,
+                                             Function<Annotation, Binding> annotationParser) {
+        final List<Binding> bindings = new ArrayList<>();
 
         for (final Annotation annotation : annotationProvider.get()) {
-            final BaseBinding binding = annotationParser.apply(annotation);
+            final Binding binding = annotationParser.apply(annotation);
             if (binding != null) {
                 log.debug("Adding binding: " + binding.toString());
                 bindings.add(binding);
@@ -124,19 +124,19 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         return bindings;
     }
 
-    protected BaseBinding parseParameterAnnotation(final Annotation annotation) {
+    protected Binding parseParameterAnnotation(final Annotation annotation) {
         return BindingFactory.getBinding(annotation);
     }
 
-    protected BaseBinding parseMethodAnnotation(final Annotation annotation) {
-        final BaseBinding ret = parseParameterAnnotation(annotation);
+    protected Binding parseMethodAnnotation(final Annotation annotation) {
+        final Binding ret = parseParameterAnnotation(annotation);
         if (ret != null) {
             ret.setName("$return");
         }
         return ret;
     }
 
-    protected void patchStorageBinding(final Method method, final List<BaseBinding> bindings) {
+    protected void patchStorageBinding(final Method method, final List<Binding> bindings) {
         final Optional<Annotation> storageAccount = Arrays.stream(method.getAnnotations())
                 .filter(annotation -> annotation instanceof StorageAccount)
                 .findFirst();

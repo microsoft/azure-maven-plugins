@@ -62,13 +62,13 @@ public class BindingFactory {
         bindingEnumMap.put(TwilioSmsOutput.class, BindingEnum.TWILIOSMS_OUTPUT);
     }
 
-    public static BaseBinding getBinding(final Annotation annotation) {
+    public static Binding getBinding(final Annotation annotation) {
         final BindingEnum bindingEnum = bindingEnumMap.get(annotation.annotationType());
-        return bindingEnum == null ? null : new BaseBinding(bindingEnum, annotation);
+        return bindingEnum == null ? null : new Binding(bindingEnum, annotation);
     }
 
-    public static BaseBinding getHTTPOutBinding(){
-        final BaseBinding result = new BaseBinding(BindingEnum.HTTP_OUTPUT);
+    public static Binding getHTTPOutBinding(){
+        final Binding result = new Binding(BindingEnum.HTTP_OUTPUT);
         result.setName(HTTP_OUTPUT_DEFAULT_NAME);
         return result;
     }

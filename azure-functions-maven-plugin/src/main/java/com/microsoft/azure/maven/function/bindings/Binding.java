@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @JsonSerialize(using = BindingSerializer.class)
-public class BaseBinding {
+public class Binding {
     static class Direction {
         static final String IN = "in";
         static final String OUT = "out";
@@ -28,13 +28,13 @@ public class BaseBinding {
 
     protected Map<String, Object> bindingAttributes = new HashMap<>();
 
-    public BaseBinding(BindingEnum bindingEnum) {
+    public Binding(BindingEnum bindingEnum) {
         this.bindingEnum = bindingEnum;
         this.type = bindingEnum.getType();
         this.direction = bindingEnum.getDirection();
     }
 
-    public BaseBinding(BindingEnum bindingEnum, Annotation annotation) {
+    public Binding(BindingEnum bindingEnum, Annotation annotation) {
         this(bindingEnum);
         final Class<? extends Annotation> annotationType = annotation.annotationType();
         try {
@@ -49,7 +49,7 @@ public class BaseBinding {
         }
     }
 
-    protected BaseBinding(final String name, final String type, final String direction, final String dataType) {
+    protected Binding(final String name, final String type, final String direction, final String dataType) {
         this.type = type;
         this.direction = direction;
     }

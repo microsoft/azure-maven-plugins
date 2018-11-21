@@ -13,18 +13,18 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
 import java.util.Map;
 
-public class BindingSerializer extends StdSerializer<BaseBinding> {
+public class BindingSerializer extends StdSerializer<Binding> {
 
     public BindingSerializer() {
         this(null);
     }
 
-    public BindingSerializer(Class<BaseBinding> item) {
+    public BindingSerializer(Class<Binding> item) {
         super(item);
     }
 
     @Override
-    public void serialize(BaseBinding value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+    public void serialize(Binding value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
         gen.writeStringField("type", value.getType());
         gen.writeStringField("direction", value.getDirection());

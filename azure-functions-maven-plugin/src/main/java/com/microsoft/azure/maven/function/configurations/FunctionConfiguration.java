@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.function.configurations;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.microsoft.azure.maven.function.bindings.BaseBinding;
+import com.microsoft.azure.maven.function.bindings.Binding;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ public class FunctionConfiguration {
 
     private String entryPoint;
 
-    private List<BaseBinding> bindings = new ArrayList<>();
+    private List<Binding> bindings = new ArrayList<>();
 
     @JsonGetter("scriptFile")
     public String getScriptFile() {
@@ -43,7 +43,7 @@ public class FunctionConfiguration {
     }
 
     @JsonGetter("bindings")
-    public List<BaseBinding> getBindings() {
+    public List<Binding> getBindings() {
         return bindings;
     }
 
