@@ -62,10 +62,6 @@ public class DeployMojo extends AbstractWebAppMojo {
             if (this.isDeployToDeploymentSlot()) {
                 throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
             }
-            if (webAppConfig.getRegion() == null) {
-                throw new MojoExecutionException("Please config the <region> in pom.xml, " +
-                    "it is required to create a new Web App.");
-            }
             createWebApp(runtimeHandler);
         } else {
             updateWebApp(runtimeHandler, app);

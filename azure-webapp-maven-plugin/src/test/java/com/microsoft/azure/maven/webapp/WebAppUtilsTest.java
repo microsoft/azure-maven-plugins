@@ -208,7 +208,7 @@ public class WebAppUtilsTest {
     }
 
     @Test
-    public void createOrGetAppServicePlan() {
+    public void createOrGetAppServicePlan() throws MojoExecutionException {
         final String resourceGroup = "resource-group";
         final String servicePlanResourceGroup = "service-plan-resource-name";
         final String servicePlanName = "service-plan-name";
