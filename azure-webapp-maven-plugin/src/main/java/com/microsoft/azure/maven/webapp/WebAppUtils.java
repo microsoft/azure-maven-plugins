@@ -101,11 +101,15 @@ public class WebAppUtils {
                                                            final Region region,
                                                            final PricingTier pricingTier,
                                                            final Log log,
-                                                           final OperatingSystem os) {
+                                                           final OperatingSystem os) throws MojoExecutionException {
         AppServicePlan plan = AppServiceUtils.getAppServicePlan(servicePlanName, azure,
             resourceGroup, servicePlanResourceGroup);
 
         if (plan == null) {
+            if (region == null) {
+                throw new MojoExecutionException("Please config the <region> in pom.xml, " +
+                    "it is required to create a new Azure App Service Plan.");
+            }
             servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);
             final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(
                 resourceGroup, servicePlanResourceGroup);
