@@ -30,54 +30,46 @@ import com.microsoft.azure.functions.annotation.TimerTrigger;
 import com.microsoft.azure.functions.annotation.TwilioSmsOutput;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BindingFactory {
-    private static Map<Class<? extends Annotation>, Class<? extends BaseBinding>> map = new ConcurrentHashMap();
+    private static final String HTTP_OUTPUT_DEFAULT_NAME = "$return";
+    private static Map<Class<? extends Annotation>, BindingEnum> bindingEnumMap = new ConcurrentHashMap<>();
 
     static {
-        map.put(BlobTrigger.class, BlobBinding.class);
-        map.put(BlobInput.class, BlobBinding.class);
-        map.put(BlobOutput.class, BlobBinding.class);
-        map.put(CosmosDBInput.class, CosmosDBBinding.class);
-        map.put(CosmosDBOutput.class, CosmosDBBinding.class);
-        map.put(CosmosDBTrigger.class, CosmosDBBinding.class);
-        map.put(EventHubTrigger.class, EventHubBinding.class);
-        map.put(EventHubOutput.class, EventHubBinding.class);
-        map.put(EventGridTrigger.class, EventGridBinding.class);
-        map.put(HttpTrigger.class, HttpBinding.class);
-        map.put(HttpOutput.class, HttpBinding.class);
-        map.put(QueueTrigger.class, QueueBinding.class);
-        map.put(QueueOutput.class, QueueBinding.class);
-        map.put(SendGridOutput.class, SendGridBinding.class);
-        map.put(ServiceBusQueueTrigger.class, ServiceBusBinding.class);
-        map.put(ServiceBusTopicTrigger.class, ServiceBusBinding.class);
-        map.put(ServiceBusQueueOutput.class, ServiceBusBinding.class);
-        map.put(ServiceBusTopicOutput.class, ServiceBusBinding.class);
-        map.put(TableInput.class, TableBinding.class);
-        map.put(TableOutput.class, TableBinding.class);
-        map.put(TimerTrigger.class, TimerBinding.class);
-        map.put(TwilioSmsOutput.class, TwilioBinding.class);
+        bindingEnumMap.put(BlobTrigger.class, BindingEnum.BLOB_TRIGGER);
+        bindingEnumMap.put(BlobInput.class, BindingEnum.BLOB_INPUT);
+        bindingEnumMap.put(BlobOutput.class, BindingEnum.BLOB_OUTPUT);
+        bindingEnumMap.put(CosmosDBInput.class, BindingEnum.COSMOSDB_INPUT);
+        bindingEnumMap.put(CosmosDBOutput.class, BindingEnum.COSMOSDB_OUTPUT);
+        bindingEnumMap.put(CosmosDBTrigger.class, BindingEnum.COSMOSDB_TRIGGER);
+        bindingEnumMap.put(EventHubTrigger.class, BindingEnum.EVENTHUB_TRIGGER);
+        bindingEnumMap.put(EventHubOutput.class, BindingEnum.EVENTHUB_OUTPUT);
+        bindingEnumMap.put(EventGridTrigger.class, BindingEnum.EVENTGRID_TRIGGER);
+        bindingEnumMap.put(HttpTrigger.class, BindingEnum.HTTP_TRIGGER);
+        bindingEnumMap.put(HttpOutput.class, BindingEnum.HTTP_OUTPUT);
+        bindingEnumMap.put(QueueTrigger.class, BindingEnum.QUEUE_TRIGGER);
+        bindingEnumMap.put(QueueOutput.class, BindingEnum.QUEUE_OUTPUT);
+        bindingEnumMap.put(SendGridOutput.class, BindingEnum.SENDGRID_OUTPUT);
+        bindingEnumMap.put(ServiceBusQueueTrigger.class, BindingEnum.SERVICEBUSQUEUE_TRIGGER);
+        bindingEnumMap.put(ServiceBusTopicTrigger.class, BindingEnum.SERVICEBUSTOPIC_TRIGGER);
+        bindingEnumMap.put(ServiceBusQueueOutput.class, BindingEnum.SERVICEBUSQUEUE_OUTPUT);
+        bindingEnumMap.put(ServiceBusTopicOutput.class, BindingEnum.SERVICEBUSTOPIC_OUTPUT);
+        bindingEnumMap.put(TableInput.class, BindingEnum.TABLE_INPUT);
+        bindingEnumMap.put(TableOutput.class, BindingEnum.TABLE_OUTPUT);
+        bindingEnumMap.put(TimerTrigger.class, BindingEnum.TIMER_TRIGGER);
+        bindingEnumMap.put(TwilioSmsOutput.class, BindingEnum.TWILIOSMS_OUTPUT);
     }
 
     public static BaseBinding getBinding(final Annotation annotation) {
-        final Class<? extends Annotation> annotationType = annotation.annotationType();
-        return map.containsKey(annotationType) ?
-                createNewInstance(map.get(annotationType), annotation) :
-                null;
+        final BindingEnum bindingEnum = bindingEnumMap.get(annotation.annotationType());
+        return bindingEnum == null ? null : new BaseBinding(bindingEnum, annotation);
     }
 
-    private static BaseBinding createNewInstance(final Class<? extends BaseBinding> binding,
-                                                 final Annotation annotation) {
-        try {
-            final Class<? extends Annotation> annotationType = annotation.annotationType();
-            final Constructor constructor = binding.getConstructor(annotationType);
-            return (BaseBinding) constructor.newInstance(annotation);
-        } catch (Exception e) {
-            // Swallow it
-        }
-        return null;
+    public static BaseBinding getHTTPOutBinding(){
+        final BaseBinding result = new BaseBinding(BindingEnum.HTTP_OUTPUT);
+        result.setName(HTTP_OUTPUT_DEFAULT_NAME);
+        return result;
     }
 }

@@ -6,58 +6,94 @@
 
 package com.microsoft.azure.maven.function.bindings;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public abstract class BaseBinding {
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+
+@JsonSerialize(using = BindingSerializer.class)
+public class BaseBinding {
     static class Direction {
         static final String IN = "in";
         static final String OUT = "out";
     }
 
-    protected String type = "";
+    protected BindingEnum bindingEnum = null;
 
-    protected String name = "";
+    protected String type = "";
 
     protected String direction = "";
 
-    protected String dataType = "";
+    protected Map<String, Object> bindingAttributes = new HashMap<>();
 
-    @JsonGetter
+    public BaseBinding(BindingEnum bindingEnum) {
+        this.bindingEnum = bindingEnum;
+        this.type = bindingEnum.getType();
+        this.direction = bindingEnum.getDirection();
+    }
+
+    public BaseBinding(BindingEnum bindingEnum, Annotation annotation) {
+        this(bindingEnum);
+        final Class<? extends Annotation> annotationType = annotation.annotationType();
+        try {
+            for (final Method method : annotationType.getDeclaredMethods()) {
+                final Object value = method.invoke(annotation);
+                if (!value.equals(method.getDefaultValue())) {
+                    bindingAttributes.put(method.getName(), value);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Binding attributes resolve failed");
+        }
+    }
+
+    protected BaseBinding(final String name, final String type, final String direction, final String dataType) {
+        this.type = type;
+        this.direction = direction;
+    }
+
     public String getType() {
         return type;
     }
 
-    @JsonGetter
     public String getName() {
-        return name;
+        return (String) bindingAttributes.get("name");
     }
 
-    @JsonGetter
     public String getDirection() {
         return direction;
     }
 
-    @JsonGetter
     public String getDataType() {
-        return dataType;
+        return (String) bindingAttributes.get("dataType");
+    }
+
+    public BindingEnum getBindingEnum() {
+        return bindingEnum;
+    }
+
+    public Object getAttribute(String attributeName){
+        return bindingAttributes.get(attributeName);
+    }
+
+    public Map<String, Object> getBindingAttributes() {
+        return bindingAttributes;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.bindingAttributes.put("name", name);
     }
 
-    protected BaseBinding(final String name, final String type, final String direction, final String dataType) {
-        this.name = name;
-        this.type = type;
-        this.direction = direction;
-        this.dataType = dataType;
+    public void setAttribute(String attributeName, Object attributeValue) {
+        this.bindingAttributes.put(attributeName, attributeValue);
     }
 
     @Override
     public String toString() {
-        return new StringBuilder().append("[ name: ")
+        return new StringBuilder()
+                .append("[ name: ")
                 .append(getName())
                 .append(", type: ")
                 .append(getType())

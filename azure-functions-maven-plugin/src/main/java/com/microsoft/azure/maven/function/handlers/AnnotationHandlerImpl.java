@@ -7,12 +7,10 @@
 package com.microsoft.azure.maven.function.handlers;
 
 import com.microsoft.azure.functions.annotation.FunctionName;
-import com.microsoft.azure.functions.annotation.HttpTrigger;
 import com.microsoft.azure.functions.annotation.StorageAccount;
 import com.microsoft.azure.maven.function.bindings.BaseBinding;
+import com.microsoft.azure.maven.function.bindings.BindingEnum;
 import com.microsoft.azure.maven.function.bindings.BindingFactory;
-import com.microsoft.azure.maven.function.bindings.HttpBinding;
-import com.microsoft.azure.maven.function.bindings.StorageBaseBinding;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
@@ -104,9 +102,9 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         if (!method.getReturnType().equals(Void.TYPE)) {
             bindings.addAll(parseAnnotations(method::getAnnotations, this::parseMethodAnnotation));
 
-            if (bindings.stream().anyMatch(b -> b.getType().equalsIgnoreCase(HttpTrigger.class.getSimpleName())) &&
+            if (bindings.stream().anyMatch(b -> b.getBindingEnum() == BindingEnum.HTTP_TRIGGER) &&
                     bindings.stream().noneMatch(b -> b.getName().equalsIgnoreCase("$return"))) {
-                bindings.add(new HttpBinding());
+                bindings.add(BindingFactory.getHTTPOutBinding());
             }
         }
     }
@@ -140,21 +138,16 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
 
     protected void patchStorageBinding(final Method method, final List<BaseBinding> bindings) {
         final Optional<Annotation> storageAccount = Arrays.stream(method.getAnnotations())
-                .filter(a -> a instanceof StorageAccount)
+                .filter(annotation -> annotation instanceof StorageAccount)
                 .findFirst();
 
         if (storageAccount.isPresent()) {
             log.debug("StorageAccount annotation found.");
             final String connectionString = ((StorageAccount) storageAccount.get()).value();
-            bindings.stream().forEach(b -> {
-                if (b instanceof StorageBaseBinding) {
-                    final StorageBaseBinding sb = (StorageBaseBinding) b;
-                    // Override storage bindings with empty connection
-                    if (StringUtils.isEmpty(sb.getConnection())) {
-                        sb.setConnection(connectionString);
-                    }
-                }
-            });
+            // Replace empty connection string
+            bindings.stream().filter(binding -> binding.getBindingEnum().isStorage())
+                    .filter(binding -> StringUtils.isEmpty((String) binding.getAttribute("connection")))
+                    .forEach(binding -> binding.setAttribute("connection", connectionString));
         } else {
             log.debug("No StorageAccount annotation found.");
         }
