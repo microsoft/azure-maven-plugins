@@ -38,6 +38,7 @@ public class WebAppUtils {
     public static final String JRE8 = "jre8";
     private static final String CONFIGURATION_NOT_APPLICABLE =
         "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
+    private static final PricingTier DEFAULT_PRICING_TIER = new PricingTier("Premium", "P1V2");
 
     private static boolean isLinuxWebApp(final WebApp app) {
         return app.inner().kind().contains("linux");
@@ -94,43 +95,48 @@ public class WebAppUtils {
         }
     }
 
-    public static AppServicePlan createOrGetAppServicePlan(String servicePlanName,
-                                                           final String resourceGroup,
-                                                           final Azure azure,
-                                                           final String servicePlanResourceGroup,
-                                                           final Region region,
-                                                           final PricingTier pricingTier,
-                                                           final Log log,
-                                                           final OperatingSystem os) throws MojoExecutionException {
-        AppServicePlan plan = AppServiceUtils.getAppServicePlan(servicePlanName, azure,
-            resourceGroup, servicePlanResourceGroup);
-
-        if (plan == null) {
-            if (region == null) {
-                throw new MojoExecutionException("Please config the <region> in pom.xml, " +
-                    "it is required to create a new Azure App Service Plan.");
-            }
-            servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);
-            final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(
-                resourceGroup, servicePlanResourceGroup);
-            log.info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
-
-            final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
-                .define(servicePlanName).withRegion(region);
-
-            final AppServicePlan.DefinitionStages.WithPricingTier withPricingTier
-                = azure.resourceGroups().contain(servicePlanResGrp) ?
-                withGroup.withExistingResourceGroup(servicePlanResGrp) :
-                withGroup.withNewResourceGroup(servicePlanResGrp);
-
-            plan = withPricingTier.withPricingTier(pricingTier).withOperatingSystem(os).create();
-
-            log.info(SERVICE_PLAN_CREATED);
-        } else {
-            log.info(String.format(SERVICE_PLAN_EXIST, plan.name(), plan.resourceGroupName()));
+    public static AppServicePlan createAppServicePlan(String servicePlanName,
+                                                      final String resourceGroup,
+                                                      final Azure azure,
+                                                      final String servicePlanResourceGroup,
+                                                      final Region region,
+                                                      final PricingTier pricingTier,
+                                                      final Log log,
+                                                      final OperatingSystem os) throws MojoExecutionException {
+        if (region == null) {
+            throw new MojoExecutionException("Please config the <region> in pom.xml, " +
+                "it is required to create a new Azure App Service Plan.");
         }
+        servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);
+        final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(
+            resourceGroup, servicePlanResourceGroup);
+        log.info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
 
+        final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
+            .define(servicePlanName).withRegion(region);
+
+        final AppServicePlan.DefinitionStages.WithPricingTier withPricingTier
+            = azure.resourceGroups().contain(servicePlanResGrp) ?
+            withGroup.withExistingResourceGroup(servicePlanResGrp) :
+            withGroup.withNewResourceGroup(servicePlanResGrp);
+        final AppServicePlan plan = withPricingTier
+            .withPricingTier(pricingTier != null ? pricingTier : DEFAULT_PRICING_TIER)
+            .withOperatingSystem(os)
+            .create();
+        log.info(SERVICE_PLAN_CREATED);
         return plan;
+    }
+
+    public static void updateAppServicePlan(final AppServicePlan plan,
+                                            final WebAppConfiguration config, final Log log) {
+        log.info(String.format(SERVICE_PLAN_EXIST, plan.name(), plan.resourceGroupName()));
+
+        final PricingTier pricingTier = config.getPricingTier();
+        if (pricingTier != null && plan.pricingTier() != pricingTier) {
+            log.info(String.format("Updating the pricing tier of the App Service Plan %s ...", plan.name()));
+            plan.update().withPricingTier(pricingTier).apply();
+            log.info("Successfully updated the pricing tier.");
+        }
     }
 
     public static DockerImageType getDockerImageType(final String imageName, final String serverId,

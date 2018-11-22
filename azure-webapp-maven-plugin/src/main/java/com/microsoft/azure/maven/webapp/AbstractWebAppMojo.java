@@ -12,8 +12,8 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
@@ -58,8 +58,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *     <li>P3V2</li>
      * </ul>
      */
-    @Parameter(property = "webapp.pricingTier", defaultValue = "P1V2")
-    protected PricingTierEnum pricingTier;
+    @Parameter(property = "webapp.pricingTier")
+    protected String pricingTier;
 
     /**
      * JVM version of Web App. This only applies to Windows-based Web App.<br/>
@@ -247,7 +247,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     public PricingTier getPricingTier() throws MojoExecutionException {
-        return pricingTier == null ? new PricingTier("Premium", "P1V2") : pricingTier.toPricingTier();
+        return AppServiceUtils.getPricingTierFromString(pricingTier);
     }
 
     public JavaVersion getJavaVersion() {

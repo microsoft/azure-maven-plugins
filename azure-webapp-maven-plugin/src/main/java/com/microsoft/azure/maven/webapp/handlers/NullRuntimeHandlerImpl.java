@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
@@ -17,7 +18,7 @@ public class NullRuntimeHandlerImpl implements RuntimeHandler {
         "For V2 schema version, please use <runtime>.";
 
     @Override
-    public WithCreate defineAppWithRuntime() throws Exception {
+    public WithCreate defineAppWithRuntime(final AppServicePlan plan) throws Exception {
         throw new MojoExecutionException(NO_RUNTIME_CONFIG);
     }
 

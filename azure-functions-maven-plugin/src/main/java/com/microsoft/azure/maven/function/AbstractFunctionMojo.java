@@ -9,8 +9,8 @@ package com.microsoft.azure.maven.function;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -41,7 +41,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * </ul>
      */
     @Parameter(property = "functions.pricingTier")
-    protected PricingTierEnum pricingTier;
+    protected String pricingTier;
 
     @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
     protected String finalName;
@@ -68,7 +68,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     //region Getter
 
     public PricingTier getPricingTier() throws MojoExecutionException {
-        return pricingTier == null ? null : pricingTier.toPricingTier();
+        return AppServiceUtils.getPricingTierFromString(pricingTier);
     }
 
     public String getRegion() {

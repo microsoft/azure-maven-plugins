@@ -30,7 +30,7 @@ public class NullRuntimeHandlerImplTest {
     public void defineAppWithRuntime() throws Exception {
         MojoExecutionException exception = null;
         try {
-            handler.defineAppWithRuntime();
+            handler.defineAppWithRuntime(null);
         } catch (MojoExecutionException e) {
             exception = e;
         } finally {

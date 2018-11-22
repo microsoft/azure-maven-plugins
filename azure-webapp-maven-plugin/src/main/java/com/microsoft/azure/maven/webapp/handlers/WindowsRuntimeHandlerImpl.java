@@ -7,7 +7,6 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
-import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
@@ -31,9 +30,7 @@ public class WindowsRuntimeHandlerImpl extends BaseRuntimeHandler {
     }
 
     @Override
-    public WithCreate defineAppWithRuntime() throws Exception {
-        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
-            servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.WINDOWS);
+    public WithCreate defineAppWithRuntime(final AppServicePlan plan) throws Exception {
         final WithCreate withCreate = WebAppUtils.defineWindowsApp(resourceGroup, appName, azure, plan);
         withCreate.withJavaVersion(javaVersion).withWebContainer(webContainer);
         return withCreate;

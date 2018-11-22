@@ -130,8 +130,6 @@ public class DeployMojoTest {
 
         assertEquals("westeurope", mojo.getRegion());
 
-        assertEquals(new PricingTier("Premium", "P1V2"), mojo.getPricingTier());
-
         assertEquals(null, mojo.getJavaVersion());
 
         assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getJavaWebContainer());

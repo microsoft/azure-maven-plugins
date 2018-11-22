@@ -6,12 +6,13 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 
 public interface RuntimeHandler {
-    WithCreate defineAppWithRuntime() throws Exception;
+    WithCreate defineAppWithRuntime(final AppServicePlan plan) throws Exception;
 
     Update updateAppRuntime(final WebApp app) throws Exception;
 }

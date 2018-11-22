@@ -6,11 +6,16 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
@@ -53,20 +58,41 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void doExecute() throws Exception {
         final ConfigurationParser parser = getParserBySchemaVersion();
         final WebAppConfiguration webAppConfig = parser.getWebAppConfiguration();
+        final AppServicePlan plan = createOrUpdateAppServicePlan(webAppConfig);
+        createOrUpdateWebApp(webAppConfig, plan);
+        deployArtifacts();
+    }
 
-        // todo: use parser to getAzureClient from mojo configs
-        final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(webAppConfig, getAzureClient(), getLog());
+    protected AppServicePlan createOrUpdateAppServicePlan(final WebAppConfiguration config)
+        throws AzureAuthFailureException, MojoExecutionException {
+
+        final Azure azure = getAzureClient();
+        AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlan(config.getServicePlanName(), azure,
+            config.getResourceGroup(), config.getServicePlanResourceGroup());
+        if (appServicePlan == null) {
+            appServicePlan = WebAppUtils.createAppServicePlan(config.getServicePlanName(), config.getResourceGroup(),
+                azure, config.getServicePlanResourceGroup(), config.getRegion(), config.getPricingTier(), getLog(),
+                OperatingSystem.fromString(config.getOs().toString()));
+        } else {
+            WebAppUtils.updateAppServicePlan(appServicePlan, config, getLog());
+        }
+        return appServicePlan;
+    }
+
+    protected void createOrUpdateWebApp(final WebAppConfiguration config, final AppServicePlan plan) throws Exception {
         // todo: use parser to get web app from mojo configs
         final WebApp app = getWebApp();
+        // todo: use parser to getAzureClient from mojo configs
+        final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(config, getAzureClient(), getLog());
         if (app == null) {
             if (this.isDeployToDeploymentSlot()) {
                 throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+            } else {
+                createWebApp(runtimeHandler, plan);
             }
-            createWebApp(runtimeHandler);
         } else {
             updateWebApp(runtimeHandler, app);
         }
-        deployArtifacts();
     }
 
     protected ConfigurationParser getParserBySchemaVersion() throws MojoExecutionException {
@@ -82,10 +108,10 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    protected void createWebApp(final RuntimeHandler runtimeHandler) throws Exception {
+    protected void createWebApp(final RuntimeHandler runtimeHandler, final AppServicePlan plan) throws Exception {
         info(WEBAPP_NOT_EXIST);
 
-        final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
+        final WithCreate withCreate = runtimeHandler.defineAppWithRuntime(plan);
         getFactory().getSettingsHandler(this).processSettings(withCreate);
         withCreate.create();
 

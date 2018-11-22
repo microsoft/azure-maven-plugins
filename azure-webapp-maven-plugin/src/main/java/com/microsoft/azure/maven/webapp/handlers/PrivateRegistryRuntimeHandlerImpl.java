@@ -7,7 +7,6 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
-import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.webapp.WebAppUtils;
@@ -34,12 +33,9 @@ public class PrivateRegistryRuntimeHandlerImpl extends BaseRuntimeHandler {
     }
 
     @Override
-    public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
+    public WebApp.DefinitionStages.WithCreate defineAppWithRuntime(final AppServicePlan plan) throws Exception {
         final Server server = Utils.getServer(settings, serverId);
         assureServerExist(server, serverId);
-
-        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
-            servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.LINUX);
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
             .withPrivateRegistryImage(image, registryUrl)
             .withCredentials(server.getUsername(), server.getPassword());
