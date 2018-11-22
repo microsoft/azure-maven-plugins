@@ -26,7 +26,7 @@ Function UpdateMavenPluginVersion($pomLocation, $version) {
 # Scripts
 $base = pwd
 $functionCLIPath = "$base\Azure.Functions.Cli"
-$functionCLIZipPath = "$base\Azure.Functions.Cli.zip"
+$functionCLIZipPath = $functionCLIPath +".zip"
 
 # Download Functions Core Tools
 RemoveFileIfExist $functionCLIZipPath
@@ -35,14 +35,14 @@ DownloadFileFromUrl $Env:FUNCTIONCLI_URL $functionCLIZipPath
 Expand-Archive $functionCLIZipPath -DestinationPath $functionCLIPath
 $Env:Path = $Env:Path + ";$functionCLIPath"
 
-# Clone and install function maven plguin and archetype
-$functionPom = [xml](gc ".\azure-functions-maven-plugin\pom.xml")
-$functionVersion = $functionPom.project.version
+# maven install function maven plguin
 mvn clean install
 
 # Generate function project through archetype
 $testProjectBaseFolder = ".\testprojects"
-$testProjectPomLocation = ".\e2etestproject\pom.xml" 
+$testProjectPomLocation = ".\e2etestproject\pom.xml"
+$functionPom = [xml](gc ".\azure-functions-maven-plugin\pom.xml")
+$functionVersion = $functionPom.project.version 
 RemoveFolderIfExist $testProjectBaseFolder
 mkdir $testProjectBaseFolder
 cd $testProjectBaseFolder
