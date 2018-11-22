@@ -13,17 +13,17 @@ Function RemoveFolderIfExist($folderName) {
 
 Function DownloadFileFromUrl($url, $destination) {
     $wc = New-Object System.Net.WebClient
-    $wc.DownloadFile($Env:FUNCTIONCLI_URL, $functionCLIZipPath)
+    $wc.DownloadFile($url, $destination)
 }
 
 Function UpdateMavenPluginVersion($pomLocation, $version) {
-    $PomFile = gi $pomLocation
-    $Pom = [xml](gc $PomFile)
-    $Pom.project.properties.'azure.functions.maven.plugin.version' = $functionVersion
-    $Pom.Save($PomFile.Fullname)
+    $pomFile = gi $pomLocation
+    $pom = [xml](gc $pomFile)
+    $pom.project.properties.'azure.functions.maven.plugin.version' = $version
+    $pom.Save($pomFile.Fullname)
 }
 
-#Scripts
+# Scripts
 $base = pwd
 $functionCLIPath = "$base\Azure.Functions.Cli"
 $functionCLIZipPath = "$base\Azure.Functions.Cli.zip"
@@ -35,12 +35,12 @@ DownloadFileFromUrl $Env:FUNCTIONCLI_URL $functionCLIZipPath
 Expand-Archive $functionCLIZipPath -DestinationPath $functionCLIPath
 $Env:Path = $Env:Path + ";$functionCLIPath"
 
-# # Clone and install function maven plguin and archetype
+# Clone and install function maven plguin and archetype
 $functionPom = [xml](gc ".\azure-functions-maven-plugin\pom.xml")
 $functionVersion = $functionPom.project.version
 mvn clean install
 
-#Generate function project through archetype
+# Generate function project through archetype
 $testProjectBaseFolder = ".\testprojects"
 $testProjectPomLocation = ".\e2etestproject\pom.xml" 
 RemoveFolderIfExist $testProjectBaseFolder
