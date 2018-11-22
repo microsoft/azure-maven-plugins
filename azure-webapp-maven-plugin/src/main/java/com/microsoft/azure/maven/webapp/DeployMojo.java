@@ -53,7 +53,19 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void doExecute() throws Exception {
         final ConfigurationParser parser = getParserBySchemaVersion();
         final WebAppConfiguration webAppConfig = parser.getWebAppConfiguration();
-        createOrUpdateWebApp(webAppConfig);
+
+        // todo: use parser to getAzureClient from mojo configs
+        final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(webAppConfig, getAzureClient(), getLog());
+        // todo: use parser to get web app from mojo configs
+        final WebApp app = getWebApp();
+        if (app == null) {
+            if (this.isDeployToDeploymentSlot()) {
+                throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+            }
+            createWebApp(runtimeHandler);
+        } else {
+            updateWebApp(runtimeHandler, app);
+        }
         deployArtifacts();
     }
 
@@ -67,22 +79,6 @@ public class DeployMojo extends AbstractWebAppMojo {
                 return new V2ConfigurationParser(this);
             default:
                 throw new MojoExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
-        }
-    }
-
-    protected void createOrUpdateWebApp(final WebAppConfiguration config) throws Exception {
-        // todo: use parser to get web app from mojo configs
-        final WebApp app = getWebApp();
-        if (app == null && this.isDeployToDeploymentSlot()) {
-            throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
-        }
-        // todo: use parser to getAzureClient from mojo configs
-        final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(config, getAzureClient(), getLog());
-        if (app == null) {
-            // todo: refactor the create and update logic
-            createWebApp(runtimeHandler);
-        } else {
-            updateWebApp(runtimeHandler, app);
         }
     }
 

@@ -21,6 +21,7 @@
                     <resourceGroup>maven-webapp-it-rg-17</resourceGroup>
                     <appName>maven-it-app-17-${maven.build.timestamp}</appName>
                     <region>westus</region>
+                    <pricingTier>S1</pricingTier>
                     <schemaVersion>v2</schemaVersion>
                     <runtime>
                         <os>windows</os>

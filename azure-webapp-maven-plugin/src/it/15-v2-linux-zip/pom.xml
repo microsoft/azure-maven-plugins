@@ -47,6 +47,7 @@
                     <resourceGroup>maven-webapp-it-rg-15</resourceGroup>
                     <appName>maven-it-app-15-${maven.build.timestamp}</appName>
                     <region>westus</region>
+                    <pricingTier>S1</pricingTier>
                     <schemaVersion>v2</schemaVersion>
                     <runtime>
                         <os>linux</os>

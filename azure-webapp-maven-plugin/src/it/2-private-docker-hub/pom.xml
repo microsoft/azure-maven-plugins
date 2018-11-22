@@ -21,6 +21,7 @@
                     <resourceGroup>maven-webapp-it-rg-2</resourceGroup>
                     <appName>maven-it-app-2-${maven.build.timestamp}</appName>
                     <region>westus</region>
+                    <pricingTier>S1</pricingTier>
                     <containerSettings>
                         <imageName>microsoft/nginx</imageName>
                         <serverId>docker-hub</serverId>
