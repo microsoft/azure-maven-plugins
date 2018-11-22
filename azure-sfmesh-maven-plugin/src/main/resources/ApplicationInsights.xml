@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <ApplicationInsights xmlns="http://schemas.microsoft.com/ApplicationInsights/2013/Settings" schemaVersion="2014-05-30">
+      <InstrumentationKey>58ef8eab-a250-4b11-aea8-36435e5be1a7</InstrumentationKey>
+      <PerformanceCounters>
+       <UseBuiltIn>False</UseBuiltIn>
+      </PerformanceCounters>
+      <Channel>
+        <EndpointAddress>https://vortex.data.microsoft.com/collect/v1</EndpointAddress>
+      </Channel>
+    </ApplicationInsights>
