@@ -18,12 +18,18 @@ Need to update the above link after publishing
       - [azure-sfmesh:deploytocluster](#azure-sfmeshdeploytocluster) 
   - [Usage](#usage)
   - [Common Configuration](#common-configuration)
-  - [Configurations](#configurations)
   - [How-To](#how-to)
-    - [Initialize Maven project for Mesh](#init-azure-sfmesh)
-    - [Add a new resource to the project](#add-new-resource-to-current-project)
-    - [Run the application locally](#run-application-locally)
-    - [Deploy to Azure Mesh](#deploy-to-azure-mesh)
+    - [Initialize Maven project for Azure Service Fabric Mesh](#initialize-maven-project-for-azure-service-fabric-mesh)
+    - [Add a new resource to the project](#add-resource-to-your-application)
+    - [Run the application locally](#run-the-application-locally)
+    - [Deploy to application Azure Service Fabric Mesh](#deploy-applications-to-azure-service-fabric-mesh)
+
+## Prerequisites
+
+- Java SDK
+- Maven
+- Azure CLI with mesh extension
+- Service Fabric CLI
 
 ## Goals
 
@@ -81,7 +87,7 @@ The Maven plugin currently doesn't support common configurations of Maven Plugin
 
 ## How-To
 
-### Initialize Maven project with Mesh resource
+### Initialize Maven project for Azure Service Fabric Mesh
 Run below command to create an application resource yaml.
 
 ```cmd
@@ -90,7 +96,9 @@ mvn azure-sfmesh:init -DapplicationName=helloworldserver
 
 - Creates a folder called `servicefabric->appresources` in your root folder that contains an application YAML named `app_helloworldserver`
 
-### Add a new network to your application 
+### Add resource to your application
+
+#### Add a new network to your application
 Run the command below to create a network resource yaml. 
 
 ```cmd
@@ -100,7 +108,7 @@ mvn azure-sfmesh:addnetwork -DapplicationName=helloworldserver -DserviceName=hel
 - Creates a network YAML in folder `servicefabric->appresources` named `network_helloworldservicenetwork`
 - Specifies which service will be a part of this network: `helloworldservice`
 
-### Add a new service to your application 
+#### Add a new service to your application
 Run the command below to create a service yaml. 
 
 ```cmd
@@ -111,7 +119,7 @@ mvn azure-sfmesh:addservice -DapplicationName=helloworldserver -DserviceName=hel
 - The service would listen on port 8080
 - The service would be using ***helloworldserver:latest*** as it's container image.
 
-### Add a new gateway resource to your application 
+#### Add a new gateway resource to your application
 Run the command below to create a gateway resource yaml. 
 
 ```cmd
@@ -122,7 +130,7 @@ mvn azure-sfmesh:addgateway -DapplicationName=helloworldserver -DdestinationNetw
 - References `helloworldservicelistener` as the service listener that is listening to calls from this gateway. Also references the `helloworldservice` as the service, `helloworldservicenetwork` as the network and `helloworldserver` as the application. 
 - Listens for requests on port 80
 
-### Add a new volume to your application 
+#### Add a new volume to your application
 Run the command below to create a volume resource yaml. 
 
 ```cmd
@@ -133,7 +141,7 @@ mvn azure-sfmesh:addvolume -DvolumeAccountKey=key -DvolumeAccountName=name -Dvol
 - Sets properties for required parameters, `volumeAccountKey`, and `volumeShareName` as above
 - For more information on how to reference this created volume, visit the following, [Deploy App using Azure Files Volume](service-fabric-mesh-howto-deploy-app-azurefiles-volume.md)
 
-### Add a new secret resource to your application  
+#### Add a new secret resource to your application
 Run the command below to create a secret resource yaml. 
 
 ```cmd
@@ -143,7 +151,7 @@ mvn azure-sfmesh:addsecret -DsecretName=secret1
 - Creates a secret YAML in folder `servicefabric->appresources` named `secret_secret1`
 - For more information on how to reference this created secret, visit the following, [Manage Secrets](service-fabric-mesh-howto-manage-secrets.md
 
-### Add a new secretvalue resource to your application  
+#### Add a new secretvalue resource to your application
 Run the command below to create a secretvalue resource yaml. 
 
 ```cmd
@@ -152,7 +160,7 @@ mvn azure-sfmesh:addsecretvalue -DsecretValue=someVal -DsecretValueName=secret1/
 
 - Create a secretvalue YAML in folder `servicefabric->appresources` named `secretvalue_secret1_v1`
 
-### Run the application locally 
+### Run the application locally
 
 With the help of goal `azure-sfmesh:deploytocluster`, you can run the application locally using the command below:
 
@@ -165,7 +173,7 @@ By default this goal deploys resources to local cluster. If you are deploying to
 - Creates JSONs from yamls which are applicable for Service Fabric clusters
 - Deploys then to the Cluster endpoint
 
-### Deploy applications to Azure Mesh 
+### Deploy application to Azure Service Fabric Mesh
 
 With the help of goal `azure-sfmesh:deploy`, you can deploy to Service Fabric Mesh Environment by running the command below:
 
