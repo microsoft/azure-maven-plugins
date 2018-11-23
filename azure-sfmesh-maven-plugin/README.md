@@ -15,7 +15,7 @@ Need to update the above link after publishing
       - [azure-sfmesh:add-secretvalue](#azure-sfmeshaddsecretvalue)
       - [azure-sfmesh:add-volume](#azure-sfmeshaddvolume)
       - [azure-sfmesh:deploy](#azure-sfmeshdeploy)
-      - [azure-sfmesh:deploytocluster](#azure-sfmesh:deploytocluster) 
+      - [azure-sfmesh:deploytocluster](#azure-sfmeshdeploytocluster) 
   - [Usage](#usage)
   - [Common Configuration](#common-configuration)
   - [Configurations](#configurations)
@@ -28,7 +28,7 @@ Need to update the above link after publishing
 ## Goals
 
 #### `azure-sfmesh:init`
-- Generates a `servicefabric` folder that contains an `appresources` folder which has the `application.yaml` file. 
+- Creates a `servicefabric` folder that contains an `appresources` folder which has the `application.yaml` file. 
 
 #### `azure-sfmesh:addservice`
 - Creates a folder inside `servicefabric` folder with the service name and creates the service's YAML file. 
@@ -50,7 +50,7 @@ Need to update the above link after publishing
 - Deploys all the resources to the Azure Service Fabric Mesh environment 
 
 #### `azure-sfmesh:deploytocluster`
-- Creates a folder (`local`) which contains the deployment JSONs generated from yamls which are applicable for Service Fabric clusters
+- Creates a folder (`meshDeploy`) which contains the deployment JSONs generated from yamls which are applicable for Service Fabric clusters
 - Deploys all the resources to the Service Fabric cluster
  
 
