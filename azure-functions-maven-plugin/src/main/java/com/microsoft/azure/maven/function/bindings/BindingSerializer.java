@@ -24,14 +24,14 @@ public class BindingSerializer extends StdSerializer<Binding> {
     }
 
     @Override
-    public void serialize(Binding value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-        gen.writeStartObject();
-        gen.writeStringField("type", value.getType());
-        gen.writeStringField("direction", value.getDirection());
+    public void serialize(Binding value, JsonGenerator generator, SerializerProvider provider) throws IOException {
+        generator.writeStartObject();
+        generator.writeStringField("type", value.getType());
+        generator.writeStringField("direction", value.getDirection());
         final Map<String, Object> attributes = value.getBindingAttributes();
         for (final Map.Entry<String, Object> entry : attributes.entrySet()) {
-            gen.writeObjectField(entry.getKey(), entry.getValue());
+            generator.writeObjectField(entry.getKey(), entry.getValue());
         }
-        gen.writeEndObject();
+        generator.writeEndObject();
     }
 }

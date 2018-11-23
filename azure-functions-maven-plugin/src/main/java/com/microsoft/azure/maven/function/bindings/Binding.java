@@ -15,16 +15,12 @@ import java.util.Map;
 
 @JsonSerialize(using = BindingSerializer.class)
 public class Binding {
-    static class Direction {
-        static final String IN = "in";
-        static final String OUT = "out";
-    }
 
     protected BindingEnum bindingEnum = null;
 
     protected String type = "";
 
-    protected String direction = "";
+    protected BindingEnum.Direction direction = null;
 
     protected Map<String, Object> bindingAttributes = new HashMap<>();
 
@@ -45,13 +41,8 @@ public class Binding {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Binding attributes resolve failed", e);
+            throw new RuntimeException("Resolving binding attributes failed", e);
         }
-    }
-
-    protected Binding(final String name, final String type, final String direction, final String dataType) {
-        this.type = type;
-        this.direction = direction;
     }
 
     public String getType() {
@@ -63,11 +54,7 @@ public class Binding {
     }
 
     public String getDirection() {
-        return direction;
-    }
-
-    public String getDataType() {
-        return (String) bindingAttributes.get("dataType");
+        return direction.toString();
     }
 
     public BindingEnum getBindingEnum() {

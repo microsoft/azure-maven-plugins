@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.function.bindings;
 
+import java.util.Locale;
+
 public enum BindingEnum {
     // Enums here are correspond to annotations in com.microsoft.azure.functions.annotation
     BlobTrigger("blobTrigger", Direction.IN, true),
@@ -31,21 +33,25 @@ public enum BindingEnum {
     TimerTrigger("timerTrigger", Direction.IN),
     TwilioSmsOutput("twilioSms", Direction.OUT);
 
-    static class Direction {
-        static final String IN = "in";
-        static final String OUT = "out";
+    enum Direction {
+        IN, OUT;
+
+        @Override
+        public String toString() {
+            return this.name().toLowerCase(Locale.ENGLISH);
+        }
     }
 
     private String type;
-    private String direction;
+    private Direction direction;
     private boolean isStorage;
 
-    BindingEnum(String type, String direction) {
+    BindingEnum(String type, Direction direction) {
         this.type = type;
         this.direction = direction;
     }
 
-    BindingEnum(String type, String direction, boolean isStorage) {
+    BindingEnum(String type, Direction direction, boolean isStorage) {
         this.type = type;
         this.direction = direction;
         this.isStorage = isStorage;
@@ -55,7 +61,7 @@ public enum BindingEnum {
         return type;
     }
 
-    public String getDirection() {
+    public Direction getDirection() {
         return direction;
     }
 
