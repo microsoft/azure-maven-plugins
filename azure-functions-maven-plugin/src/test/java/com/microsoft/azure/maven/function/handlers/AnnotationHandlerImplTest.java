@@ -33,7 +33,7 @@ import com.microsoft.azure.functions.annotation.TableInput;
 import com.microsoft.azure.functions.annotation.TableOutput;
 import com.microsoft.azure.functions.annotation.TimerTrigger;
 import com.microsoft.azure.functions.annotation.TwilioSmsOutput;
-import com.microsoft.azure.maven.function.bindings.BaseBinding;
+import com.microsoft.azure.maven.function.bindings.Binding;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
@@ -256,7 +256,7 @@ public class AnnotationHandlerImplTest {
         assertEquals(bindingNum, functionConfig.getBindings().size());
     }
 
-    private void verifyFunctionBinding(final BaseBinding binding, final String[] requiredAttributes,
+    private void verifyFunctionBinding(final Binding binding, final String[] requiredAttributes,
                                        boolean isInDirection) throws JsonProcessingException {
         final ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
         final String functionJson = writer.writeValueAsString(binding);
