@@ -7,28 +7,29 @@
 package com.microsoft.azure.maven.function.bindings;
 
 public enum BindingEnum {
-    BLOB_TRIGGER("blobTrigger", Direction.IN, true),
-    BLOB_INPUT("blob", Direction.IN, true),
-    BLOB_OUTPUT("blob", Direction.OUT, true),
-    COSMOSDB_INPUT("cosmosDB", Direction.IN),
-    COSMOSDB_OUTPUT("cosmosDB", Direction.OUT),
-    COSMOSDB_TRIGGER("cosmosDBTrigger", Direction.IN),
-    EVENTHUB_TRIGGER("eventHubTrigger", Direction.IN),
-    EVENTHUB_OUTPUT("eventHub", Direction.OUT),
-    EVENTGRID_TRIGGER("eventGridTrigger", Direction.IN),
-    HTTP_TRIGGER("httpTrigger", Direction.IN),
-    HTTP_OUTPUT("http", Direction.OUT),
-    QUEUE_TRIGGER("queueTrigger", Direction.IN, true),
-    QUEUE_OUTPUT("queue", Direction.OUT, true),
-    SENDGRID_OUTPUT("sendGrid", Direction.OUT),
-    SERVICEBUSQUEUE_TRIGGER("serviceBusTrigger", Direction.IN),
-    SERVICEBUSQUEUE_OUTPUT("serviceBus", Direction.OUT),
-    SERVICEBUSTOPIC_TRIGGER("serviceBusTrigger", Direction.IN),
-    SERVICEBUSTOPIC_OUTPUT("serviceBus", Direction.OUT),
-    TABLE_INPUT("table", Direction.IN, true),
-    TABLE_OUTPUT("table", Direction.OUT, true),
-    TIMER_TRIGGER("timerTrigger", Direction.IN),
-    TWILIOSMS_OUTPUT("twilioSms", Direction.OUT);
+    // Enums here are correspond to annotations in com.microsoft.azure.functions.annotation
+    BlobTrigger("blobTrigger", Direction.IN, true),
+    BlobInput("blob", Direction.IN, true),
+    BlobOutput("blob", Direction.OUT, true),
+    CosmosDBInput("cosmosDB", Direction.IN),
+    CosmosDBOutput("cosmosDB", Direction.OUT),
+    CosmosDBTrigger("cosmosDBTrigger", Direction.IN),
+    EventHubTrigger("eventHubTrigger", Direction.IN),
+    EventHubOutput("eventHub", Direction.OUT),
+    EventGridTrigger("eventGridTrigger", Direction.IN),
+    HttpTrigger("httpTrigger", Direction.IN),
+    HttpOutput("http", Direction.OUT),
+    QueueTrigger("queueTrigger", Direction.IN, true),
+    QueueOutput("queue", Direction.OUT, true),
+    SendGridOutput("sendGrid", Direction.OUT),
+    ServiceBusQueueTrigger("serviceBusTrigger", Direction.IN),
+    ServiceBusQueueOutput("serviceBus", Direction.OUT),
+    ServiceBusTopicTrigger("serviceBusTrigger", Direction.IN),
+    ServiceBusTopicOutput("serviceBus", Direction.OUT),
+    TableInput("table", Direction.IN, true),
+    TableOutput("table", Direction.OUT, true),
+    TimerTrigger("timerTrigger", Direction.IN),
+    TwilioSmsOutput("twilioSms", Direction.OUT);
 
     static class Direction {
         static final String IN = "in";

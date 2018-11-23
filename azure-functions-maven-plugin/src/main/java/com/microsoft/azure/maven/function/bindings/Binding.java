@@ -45,7 +45,7 @@ public class Binding {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Binding attributes resolve failed");
+            throw new RuntimeException("Binding attributes resolve failed", e);
         }
     }
 
@@ -74,7 +74,7 @@ public class Binding {
         return bindingEnum;
     }
 
-    public Object getAttribute(String attributeName){
+    public Object getAttribute(String attributeName) {
         return bindingAttributes.get(attributeName);
     }
 

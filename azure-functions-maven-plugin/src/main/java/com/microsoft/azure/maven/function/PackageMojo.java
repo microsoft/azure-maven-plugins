@@ -67,7 +67,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String HOST_JSON = "host.json";
 
     private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION =
-        {BindingEnum.HTTP_OUTPUT, BindingEnum.HTTP_TRIGGER};
+        {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
     //region Entry Point
 
     @Override

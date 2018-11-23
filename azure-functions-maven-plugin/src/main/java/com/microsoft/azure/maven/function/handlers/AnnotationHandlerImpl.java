@@ -102,7 +102,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         if (!method.getReturnType().equals(Void.TYPE)) {
             bindings.addAll(parseAnnotations(method::getAnnotations, this::parseMethodAnnotation));
 
-            if (bindings.stream().anyMatch(b -> b.getBindingEnum() == BindingEnum.HTTP_TRIGGER) &&
+            if (bindings.stream().anyMatch(b -> b.getBindingEnum() == BindingEnum.HttpTrigger) &&
                     bindings.stream().noneMatch(b -> b.getName().equalsIgnoreCase("$return"))) {
                 bindings.add(BindingFactory.getHTTPOutBinding());
             }
