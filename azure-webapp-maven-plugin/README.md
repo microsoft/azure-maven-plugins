@@ -3,8 +3,8 @@
 
 The Maven Plugin for Azure App Service provides seamless integration into Maven projects, 
 and makes it easier for developers to deploy to different kinds of Azure Web Apps:
-  - [Web App on Windows](https://docs.microsoft.com/en-us/azure/app-service/app-service-web-overview)
   - [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro)
+  - [Web App on Windows](https://docs.microsoft.com/en-us/azure/app-service/app-service-web-overview)
   - [Web App for Containers](https://docs.microsoft.com/en-us/azure/app-service/containers/tutorial-custom-docker-image)
   
 #### Table of Content
@@ -104,7 +104,7 @@ Property | Required | Description | Version
 ---|---|---|---
 `<resourceGroup>` | true | Azure Resource Group for your Web App. | 0.1.0+
 `<appName>` | true | The name of your Web App. | 0.1.0+
-`<pricingTier>`* | false | The pricing tier for your Web App. The default value is **S1**.| 0.1.0+
+`<pricingTier>`* | false | The pricing tier for your Web App. The default value is **P1V2**.| 0.1.0+
 `<deploymentSlot>` | false | The deployment slot to deploy your application. | 1.3.0+
 `<appServicePlanResourceGroup>` | false | The resource group of the existing App Service Plan. If not specified, the value defined in `<resourceGroup>` will be used by default. | 1.0.0+
 `<appServicePlanName>` | false | The name of the existing App Service Plan. | 1.0.0+
