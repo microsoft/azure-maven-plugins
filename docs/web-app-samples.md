@@ -1,12 +1,6 @@
 # Sample usages of Maven Plugin for Azure Web Apps
 
 #### Table of Content
-* Web App on Windows
-  * V1 configuration
-    * [Deploy War File to Tomcat](#windows-tomcat-war-deployment)
-    * [Deploy Executable Far File](#windows-jar-deployment)
-  * V2 configuration
-    * [Deploy War File to Tomcat](#windows-tomcat-war-deployment-v2)
 * Web App on Linux
   * V1 configuration
     * [Tomcat with JRE 8](#web-app-on-linux-tomcat)
@@ -14,6 +8,12 @@
   * V2 configuration
       * [Tomcat with JRE 8](#web-app-on-linux-tomcat-v2)
       * [JRE 8](#web-app-on-linux-jre8-v2)
+* Web App on Windows
+  * V1 configuration
+    * [Deploy War File to Tomcat](#windows-tomcat-war-deployment)
+    * [Deploy Executable Far File](#windows-jar-deployment)
+  * V2 configuration
+    * [Deploy War File to Tomcat](#windows-tomcat-war-deployment-v2)
 * Web App for Containers
   * V1 configuration
     * [Public Docker Hub](#web-app-for-containers-public-docker)
@@ -24,179 +24,8 @@
 * [Deploy to Existing App Service Plan](#existing-app-service-plan)
 * [Deploy to Web App Deployment Slot](#web-application-to-deployment-slot)
 
-<a name="windows-tomcat-war-deployment"></a>
-## Web App (on Windows) with Java 8, Tomcat and WAR deployment
-The following configuration is applicable for below scenario:
-- Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
-- Web App on Windows
-- Use Java 8 and Tomcat 8.5
-- Use WAR to deploy **WAR** file to context path: `/${project.build.finalName}` in your Web App server
-- Add Application Settings to your Web App
-
-   ```xml
-   <project>
-      ...
-      <packaging>war</packaging>
-      ...
-      <build>
-         <plugins>
-            <plugin>
-               <groupId>com.microsoft.azure</groupId>
-               <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.0</version>
-               <configuration>
-                  <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
-                  <authentication>
-                    <serverId>azure-auth</serverId>
-                  </authentication>
-                  
-                  <!-- Web App information -->
-                  <resourceGroup>your-resource-group</resourceGroup>
-                  <appName>your-app-name</appName>
-                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westeurope</region>
-                  <pricingTier>S1</pricingTier>
-
-                  <!-- Java Runtime Stack for Web App on Windows-->
-                  <javaVersion>1.8</javaVersion>
-                  <javaWebContainer>tomcat 8.5</javaWebContainer>
-
-                  <!-- If <warFile> is not specified, ${project.build.directory}/${project.build.finalName}.war will be used by default -->
-                  <warFile>custom/absolute/path/deploy.war</warFile>
-
-                  <!-- If <path> is not specified, the war file will be deployed to ROOT -->
-                  <path>/${project.build.finalName}</path>
-                  
-                  <!-- Application Settings of your Web App -->
-                  <appSettings>
-                     <property>
-                        <name>your-setting-key</name>
-                        <value>your-setting-value</value>
-                     </property>
-                  </appSettings>
-               </configuration>
-            </plugin>
-            ...
-         </plugins>
-      </build>
-   </project>
-   ```
-   
-<a name="windows-jar-deployment"></a>
-## Web App (on Windows) with Java 8 and JAR deployment
-The following configuration is applicable for below scenario:
-- Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
-- Web App on Windows
-- Use Java 8
-- Use JAR to deploy **JAR** file to `/site/wwwroot/` directory in your Web App server
-- Add Application Settings to your Web App
-
-   ```xml
-   <project>
-      ...
-      <packaging>jar</packaging>
-      ...
-      <build>
-         <plugins>
-            <plugin>
-               <groupId>com.microsoft.azure</groupId>
-               <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.0</version>
-               <configuration>
-                  <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
-                  <authentication>
-                    <serverId>azure-auth</serverId>
-                  </authentication>
-                  
-                  <!-- Web App information -->
-                  <resourceGroup>your-resource-group</resourceGroup>
-                  <appName>your-app-name</appName>
-                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westeurope</region>
-                  <pricingTier>S1</pricingTier>
-
-                  <!-- Java Runtime Stack for Web App on Windows-->
-                  <javaVersion>1.8</javaVersion>
-
-                  <!-- If <jarFile> is not specified, ${project.build.directory}/${project.build.finalName}.jar will be used by default -->
-                  <jarFile>custom/absolute/path/deploy.jar</jarFile>
-                  
-                  <!-- Application Settings of your Web App -->
-                  <appSettings>
-                     <property>
-                        <name>your-setting-key</name>
-                        <value>your-setting-value</value>
-                     </property>
-                  </appSettings>
-               </configuration>
-            </plugin>
-            ...
-         </plugins>
-      </build>
-   </project>
-   ```
-
-<a name="windows-tomcat-war-deployment-v2"></a>
-## Web App (on Windows) with Java 8, Tomcat
-The following configuration is applicable for below scenario:
-- Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
-- Web App on Windows
-- Use Java 8 and Tomcat 8.5
-- Deploy the **WAR** file to context path: `/${project.build.finalName}` in your Web App server
-- Add Application Settings to your Web App
-
-   ```xml
-   <project>
-      ...
-      <packaging>war</packaging>
-      ...
-      <build>
-         <plugins>
-            <plugin>
-               <groupId>com.microsoft.azure</groupId>
-               <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.0</version>
-               <configuration>
-                  <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
-                  <authentication>
-                    <serverId>azure-auth</serverId>
-                  </authentication>
-                  
-                  <!-- Web App information -->
-                  <resourceGroup>your-resource-group</resourceGroup>
-                  <appName>your-app-name</appName>
-                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westeurope</region>
-                  <pricingTier>S1</pricingTier>
-
-                  <!-- Java Runtime Stack for Web App on Windows-->
-                  <runtime>
-                    <os>Windows</os>
-                    <javaVersion>1.8</javaVersion>
-                    <webContainer>tomcat 8.5</webContainer>
-                  </runtime>
-                  <!-- Deployment settings -->
-                  <deployment>
-                    <resources>
-                      <resource>
-                        <directory>${project.basedir}/target</directory>
-                        <targetPath>${project.build.finalName}</targetPath>
-                        <includes>
-                          <include>*.war</include>
-                        </includes>
-                      </resource>
-                    </resources>
-                  </deployment>
-               </configuration>
-            </plugin>
-            ...
-         </plugins>
-      </build>
-   </project>
-   ```
-
 <a name="web-app-on-linux-tomcat"></a>
-## Web App (on Linux) with Java 8, Tomcat and WAR deployment
+## Web App on Linux with Java 8, Tomcat and WAR deployment
 The following configuration is applicable for below scenario:
 - Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Linux
@@ -226,7 +55,7 @@ The following configuration is applicable for below scenario:
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westeurope</region>
-                  <pricingTier>S1</pricingTier>
+                  <pricingTier>P1V2</pricingTier>
                   
                   <!-- Java Runtime Stack for Web App on Linux-->
                   <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
@@ -251,66 +80,9 @@ The following configuration is applicable for below scenario:
       </build>
    </project>
    ```
-<a name="web-app-on-linux-tomcat-v2"></a>
-## Web App (on Linux) with Java 8, Tomcat
-The following configuration is applicable for below scenario:
-- Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
-- Web App on Linux
-- Use Java 8 and Tomcat 8.5
-- Deploy a **WAR** file to context path: `/${project.build.finalName}` in your Web App server
-- Add Application Settings to your Web App
 
-   ```xml
-   <project>
-      ...
-      <packaging>war</packaging>
-      ...
-      <build>
-         <plugins>
-            <plugin>
-               <groupId>com.microsoft.azure</groupId>
-               <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.0</version>
-               <configuration>
-                  <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
-                  <authentication>
-                    <serverId>azure-auth</serverId>
-                  </authentication>
-                  
-                  <!-- Web App information -->
-                  <resourceGroup>your-resource-group</resourceGroup>
-                  <appName>your-app-name</appName>
-                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
-                  <region>westeurope</region>
-                  <pricingTier>S1</pricingTier>
-                  <!-- Java Runtime Stack for Web App on Windows-->
-                  <runtime>
-                    <os>Linux</os>
-                      <javaVersion>jre8</javaVersion>
-                      <webContainer>tomcat 8.5</webContainer>
-                    </runtime>
-                    
-                  <!-- Deployment settings -->
-                  <deployment>
-                    <resources>
-                      <resource>
-                        <directory>${project.basedir}/target</directory>
-                        <targetPath>${project.build.finalName}</targetPath>
-                        <includes>
-                          <include>*.war</include>
-                        </includes>
-                      </resource>
-                    </resources>
-                  </deployment>
-               </configuration>
-            </plugin>
-            ...
-         </plugins>
-      </build>
-   </project>
-   ```
 <a name="web-app-on-linux-jre8"></a>
-## Web App (on Linux) with Java 8 and JAR deployment
+## Web App on Linux with Java 8 and JAR deployment
 The following configuration is applicable for below scenario:
 - Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Linux
@@ -340,7 +112,7 @@ The following configuration is applicable for below scenario:
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westeurope</region>
-                  <pricingTier>S1</pricingTier>
+                  <pricingTier>P1V2</pricingTier>
                   
                   <!-- Java Runtime Stack for Web App on Linux -->
                   <linuxRuntime>jre8</linuxRuntime>
@@ -357,9 +129,70 @@ The following configuration is applicable for below scenario:
          </plugins>
       </build>
    </project>
-   ```   
+   ```      
+
+<a name="web-app-on-linux-tomcat-v2"></a>
+## Web App on Linux with Java 8, Tomcat and WAR deployment (V2 Schema Version)
+The following configuration is applicable for below scenario:
+- Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
+- Web App on Linux
+- Use Java 8 and Tomcat 8.5
+- Deploy a **WAR** file to context path: `/${project.build.finalName}` in your Web App server
+- Add Application Settings to your Web App
+
+   ```xml
+   <project>
+      ...
+      <packaging>war</packaging>
+      ...
+      <build>
+         <plugins>
+            <plugin>
+               <groupId>com.microsoft.azure</groupId>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>1.5.0</version>
+               <configuration>
+                  <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
+                  <authentication>
+                    <serverId>azure-auth</serverId>
+                  </authentication>
+                  
+                  <!-- Web App information -->
+                  <resourceGroup>your-resource-group</resourceGroup>
+                  <appName>your-app-name</appName>
+                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
+                  <region>westeurope</region>
+                  <pricingTier>P1V2</pricingTier>
+                  <schemaVersion>v2</schemaVersion>
+                  <!-- Java Runtime Stack for Web App on Windows-->
+                  <runtime>
+                    <os>Linux</os>
+                      <javaVersion>jre8</javaVersion>
+                      <webContainer>tomcat 8.5</webContainer>
+                    </runtime>
+                    
+                  <!-- Deployment settings -->
+                  <deployment>
+                    <resources>
+                      <resource>
+                        <directory>${project.basedir}/target</directory>
+                        <targetPath>${project.build.finalName}</targetPath>
+                        <includes>
+                          <include>*.war</include>
+                        </includes>
+                      </resource>
+                    </resources>
+                  </deployment>
+               </configuration>
+            </plugin>
+            ...
+         </plugins>
+      </build>
+   </project>
+   ```
+
 <a name="web-app-on-linux-jre8-v2"></a>
-## Web App (on Linux) with Java 8 and JAR deployment
+## Web App on Linux with Java 8 and JAR deployment (V2 Schema Version)
 The following configuration is applicable for below scenario:
 - Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
 - Web App on Linux
@@ -389,7 +222,8 @@ The following configuration is applicable for below scenario:
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westeurope</region>
-                  <pricingTier>S1</pricingTier>
+                  <pricingTier>P1V2</pricingTier>
+                  <schemaVersion>v2</schemaVersion>
                   
                   <!-- Java Runtime Stack for Web App on Windows-->
                   <runtime>
@@ -418,6 +252,179 @@ The following configuration is applicable for below scenario:
       </build>
    </project>
    ```   
+
+<a name="windows-tomcat-war-deployment"></a>
+## Web App on Windows with Java 8, Tomcat and WAR deployment
+The following configuration is applicable for below scenario:
+- Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
+- Web App on Windows
+- Use Java 8 and Tomcat 8.5
+- Use WAR to deploy **WAR** file to context path: `/${project.build.finalName}` in your Web App server
+- Add Application Settings to your Web App
+
+   ```xml
+   <project>
+      ...
+      <packaging>war</packaging>
+      ...
+      <build>
+         <plugins>
+            <plugin>
+               <groupId>com.microsoft.azure</groupId>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>1.5.0</version>
+               <configuration>
+                  <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
+                  <authentication>
+                    <serverId>azure-auth</serverId>
+                  </authentication>
+                  
+                  <!-- Web App information -->
+                  <resourceGroup>your-resource-group</resourceGroup>
+                  <appName>your-app-name</appName>
+                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
+                  <region>westeurope</region>
+                  <pricingTier>P1V2</pricingTier>
+
+                  <!-- Java Runtime Stack for Web App on Windows-->
+                  <javaVersion>1.8</javaVersion>
+                  <javaWebContainer>tomcat 8.5</javaWebContainer>
+
+                  <!-- If <warFile> is not specified, ${project.build.directory}/${project.build.finalName}.war will be used by default -->
+                  <warFile>custom/absolute/path/deploy.war</warFile>
+
+                  <!-- If <path> is not specified, the war file will be deployed to ROOT -->
+                  <path>/${project.build.finalName}</path>
+                  
+                  <!-- Application Settings of your Web App -->
+                  <appSettings>
+                     <property>
+                        <name>your-setting-key</name>
+                        <value>your-setting-value</value>
+                     </property>
+                  </appSettings>
+               </configuration>
+            </plugin>
+            ...
+         </plugins>
+      </build>
+   </project>
+   ```
+   
+<a name="windows-jar-deployment"></a>
+## Web App on Windows with Java 8 and JAR deployment
+The following configuration is applicable for below scenario:
+- Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
+- Web App on Windows
+- Use Java 8
+- Use JAR to deploy **JAR** file to `/site/wwwroot/` directory in your Web App server
+- Add Application Settings to your Web App
+
+   ```xml
+   <project>
+      ...
+      <packaging>jar</packaging>
+      ...
+      <build>
+         <plugins>
+            <plugin>
+               <groupId>com.microsoft.azure</groupId>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>1.5.0</version>
+               <configuration>
+                  <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
+                  <authentication>
+                    <serverId>azure-auth</serverId>
+                  </authentication>
+                  
+                  <!-- Web App information -->
+                  <resourceGroup>your-resource-group</resourceGroup>
+                  <appName>your-app-name</appName>
+                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
+                  <region>westeurope</region>
+                  <pricingTier>P1V2</pricingTier>
+
+                  <!-- Java Runtime Stack for Web App on Windows-->
+                  <javaVersion>1.8</javaVersion>
+
+                  <!-- If <jarFile> is not specified, ${project.build.directory}/${project.build.finalName}.jar will be used by default -->
+                  <jarFile>custom/absolute/path/deploy.jar</jarFile>
+                  
+                  <!-- Application Settings of your Web App -->
+                  <appSettings>
+                     <property>
+                        <name>your-setting-key</name>
+                        <value>your-setting-value</value>
+                     </property>
+                  </appSettings>
+               </configuration>
+            </plugin>
+            ...
+         </plugins>
+      </build>
+   </project>
+   ```
+
+<a name="windows-tomcat-war-deployment-v2"></a>
+## Web App on Windows with Java 8, Tomcat and WAR deployment (V2 Schema Version)
+The following configuration is applicable for below scenario:
+- Reference `<serverId>` in Maven's `settings.xml` to authenticate with Azure
+- Web App on Windows
+- Use Java 8 and Tomcat 8.5
+- Deploy the **WAR** file to context path: `/${project.build.finalName}` in your Web App server
+- Add Application Settings to your Web App
+
+   ```xml
+   <project>
+      ...
+      <packaging>war</packaging>
+      ...
+      <build>
+         <plugins>
+            <plugin>
+               <groupId>com.microsoft.azure</groupId>
+               <artifactId>azure-webapp-maven-plugin</artifactId>
+               <version>1.5.0</version>
+               <configuration>
+                  <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
+                  <authentication>
+                    <serverId>azure-auth</serverId>
+                  </authentication>
+                  
+                  <!-- Web App information -->
+                  <resourceGroup>your-resource-group</resourceGroup>
+                  <appName>your-app-name</appName>
+                  <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
+                  <region>westeurope</region>
+                  <pricingTier>P1V2</pricingTier>
+                  <schemaVersion>v2</schemaVersion>
+
+                  <!-- Java Runtime Stack for Web App on Windows-->
+                  <runtime>
+                    <os>Windows</os>
+                    <javaVersion>1.8</javaVersion>
+                    <webContainer>tomcat 8.5</webContainer>
+                  </runtime>
+                  <!-- Deployment settings -->
+                  <deployment>
+                    <resources>
+                      <resource>
+                        <directory>${project.basedir}/target</directory>
+                        <targetPath>${project.build.finalName}</targetPath>
+                        <includes>
+                          <include>*.war</include>
+                        </includes>
+                      </resource>
+                    </resources>
+                  </deployment>
+               </configuration>
+            </plugin>
+            ...
+         </plugins>
+      </build>
+   </project>
+   ```
+
 <a name="web-app-for-containers-public-docker"></a>
 ## Web App for Containers with public DockerHub container image
 The following configuration is applicable for below scenario:
@@ -446,7 +453,7 @@ The following configuration is applicable for below scenario:
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westeurope</region>
-                  <pricingTier>S1</pricingTier>
+                  <pricingTier>P1V2</pricingTier>
                   
                   <!-- Runtime Stack specified by Docker container image -->
                   <containerSettings>
@@ -500,7 +507,7 @@ The following configuration is applicable for below scenario:
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westeurope</region>
-                  <pricingTier>S1</pricingTier>
+                  <pricingTier>P1V2</pricingTier>
                   
                   <!-- Runtime Stack specified by Docker container image -->
                   <runtime>
@@ -543,7 +550,7 @@ The following configuration is applicable for below scenario:
                   <appName>your-app-name</appName>
                   <!-- <region> and <pricingTier> are optional. They will be used when creating new App Service Plan -->
                   <region>westeurope</region>
-                  <pricingTier>S1</pricingTier>
+                  <pricingTier>P1V2</pricingTier>
                   
                   <!-- Runtime Stack specified by Docker container image -->
                   <containerSettings>
@@ -638,7 +645,7 @@ The following configuration is applicable for below scenario:
 
                     <!-- Deployment Slot Setting -->
                     <deploymentSlotSetting>
-                        <slotName>pure-slot-name</slotName>
+                        <name>pure-slot-name</name>
                         <configurationSource>parent</configurationSource>
                     </deploymentSlotSetting>
                     
