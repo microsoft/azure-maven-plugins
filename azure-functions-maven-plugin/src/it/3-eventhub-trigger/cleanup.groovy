@@ -33,6 +33,6 @@ try {
     if (eventHubProcesser != null) {
         eventHubProcesser.close()
     }
-    CommonUtils.deleteAzureResourceGroup("maven-functions-it-${timestamp}-rg-3", false)
 }
+CommonUtils.deleteAzureResourceGroup("maven-functions-it-${timestamp}-rg-3", false)
 return true
