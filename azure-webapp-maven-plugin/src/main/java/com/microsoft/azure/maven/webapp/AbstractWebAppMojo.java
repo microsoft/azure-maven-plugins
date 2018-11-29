@@ -44,7 +44,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String DOCKER_IMAGE_TYPE_KEY = "dockerImageType";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
     public static final String OS_KEY = "os";
-    public static final String INVALID_CONFIG_KEY = "InvalidConfiguration";
+    public static final String INVALID_CONFIG_KEY = "invalidConfiguration";
+    public static final String SCHEMA_VERSION_KEY = "schemaVersion";
 
     //region Properties
 
@@ -392,6 +393,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         } else {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
         }
+        map.put(SCHEMA_VERSION_KEY, schemaVersion);
         map.put(OS_KEY, webAppConfiguration.getOs().toString());
         map.put(JAVA_VERSION_KEY, webAppConfiguration.getJavaVersion() == null ? "" :
                 webAppConfiguration.getJavaVersion().toString());
