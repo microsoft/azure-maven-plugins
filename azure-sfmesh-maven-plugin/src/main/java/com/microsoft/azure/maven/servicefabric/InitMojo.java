@@ -57,6 +57,7 @@ public class InitMojo extends AbstractMojo
         try {
             InputStream resource = this.getClass().getClassLoader().getResourceAsStream(Constants.APPLICATION_RESOURCE_NAME);
             String appContent = IOUtil.toString(resource, "UTF-8"); 
+            appContent = Utils.replaceString(logger, appContent, "SCHEMA_VERSION", schemaVersion, Constants.APPLICATION_RESOURCE_NAME);
             appContent = Utils.replaceString(logger, appContent, "APP_NAME", applicationName, Constants.APPLICATION_RESOURCE_NAME);
             appContent = Utils.replaceString(logger, appContent, "APP_DESCRIPTION", applicationDescription, Constants.APPLICATION_RESOURCE_NAME);
             String appYamlPath = Utils.getPath(appResourcesDirectory, "app_" + applicationName + ".yaml");
