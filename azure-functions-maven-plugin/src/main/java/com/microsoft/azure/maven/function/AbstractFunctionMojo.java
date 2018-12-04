@@ -11,14 +11,18 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
 import java.io.File;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
-    //region Properties
 
+    private static final String JDK_VERSION_ERROR = "Local JDK version %s does not meet the requirement of the " +
+            "Maven plugin for Azure Functions. The supported version is JDK 8";
+
+    //region Properties
     /**
      * App Service pricing tier, which will only be used to create Functions App at the first time.<br/>
      * Below is the list of supported pricing tier:
@@ -31,9 +35,9 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      *     <li>S1</li>
      *     <li>S2</li>
      *     <li>S3</li>
-     *     <li>P1</li>
-     *     <li>P2</li>
-     *     <li>P3</li>
+     *     <li>P1V2</li>
+     *     <li>P2V2</li>
+     *     <li>P3V2</li>
      * </ul>
      */
     @Parameter(property = "functions.pricingTier")
@@ -53,12 +57,22 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.skip", defaultValue = "false")
     protected boolean skip;
 
+    /**
+     * App Service region, which will only be used to create App Service at the first time.
+     */
+    @Parameter(property = "functions.region", defaultValue = "westeurope")
+    protected String region;
+
     //endregion
 
     //region Getter
 
-    public PricingTier getPricingTier() {
+    public PricingTier getPricingTier() throws MojoExecutionException {
         return pricingTier == null ? null : pricingTier.toPricingTier();
+    }
+
+    public String getRegion() {
+        return region;
     }
 
     @Override
@@ -81,6 +95,19 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
             // Swallow exception for non-existing Azure Functions
         }
         return null;
+    }
+
+    @Override
+    public void execute() throws MojoExecutionException {
+        checkJavaVersion();
+        super.execute();
+    }
+
+    public void checkJavaVersion() throws MojoExecutionException {
+        final String javaVersion = System.getProperty("java.version");
+        if (!javaVersion.startsWith("1.8")){
+            throw new MojoExecutionException(String.format(JDK_VERSION_ERROR, javaVersion));
+        }
     }
 
     //endregion

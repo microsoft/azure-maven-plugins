@@ -4,7 +4,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugins-pom</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Maven Plugins for Azure</name>
     <description>Maven plugins for Microsoft Azure services</description>
@@ -25,6 +25,16 @@
         <tag>HEAD</tag>
     </scm>
 
+    <distributionManagement>
+      <snapshotRepository>
+        <id>ossrh</id>
+        <name>Sonatype Snapshots</name>
+        <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        <uniqueVersion>true</uniqueVersion>
+        <layout>default</layout>
+      </snapshotRepository>
+    </distributionManagement>
+
     <developers>
         <developer>
             <id>xscript</id>
@@ -34,6 +44,7 @@
     </developers>
 
     <build>
+    <pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -43,7 +54,7 @@
                     <dependency>
                         <groupId>com.microsoft.azure</groupId>
                         <artifactId>maven-plugins-build-tools</artifactId>
-                        <version>1.0</version>
+                        <version>1.0-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -65,35 +76,7 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.5</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.microsoft.azure</groupId>
-                        <artifactId>maven-plugins-build-tools</artifactId>
-                        <version>1.0</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <effort>Max</effort>
-                    <threshold>Low</threshold>
-                    <xmlOutput>true</xmlOutput>
-                    <findbugsXmlOutputDirectory>${project.build.directory}/findbugs
-                    </findbugsXmlOutputDirectory>
-                    <excludeFilterFile>findbugs/findbugs-exclude.xml</excludeFilterFile>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
+        </pluginManagement>
     </build>
 </project>

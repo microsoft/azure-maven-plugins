@@ -15,17 +15,18 @@ import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.io.IOException;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -39,17 +40,29 @@ public class FTPArtifactHandlerImplTest {
     @Mock
     private AbstractAppServiceMojo mojo;
 
+    private FTPArtifactHandlerImpl.Builder builder = new FTPArtifactHandlerImpl.Builder();
+
     private FTPArtifactHandlerImpl handler = null;
 
+    private FTPArtifactHandlerImpl handlerSpy;
+
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
-        handler = new FTPArtifactHandlerImpl(mojo);
+    }
+
+    private void buildHandler() {
+        handler = builder.stagingDirectoryPath((mojo.getDeploymentStagingDirectoryPath())).log(mojo.getLog()).build();
+        handlerSpy = spy(handler);
     }
 
     @Test
     public void publishWebApp() throws IOException, MojoExecutionException {
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).info(anyString());
+        buildHandler();
+
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
 
@@ -69,7 +82,11 @@ public class FTPArtifactHandlerImplTest {
 
     @Test
     public void publishWebAppDeploymentSlot() throws IOException, MojoExecutionException {
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).info(anyString());
+        buildHandler();
+
         final DeploymentSlot slot = mock(DeploymentSlot.class);
         final DeployTarget target = new DeployTarget(slot, DeployTargetType.SLOT);
 
@@ -89,7 +106,11 @@ public class FTPArtifactHandlerImplTest {
 
     @Test
     public void publishFunctionApp() throws IOException, MojoExecutionException {
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).info(anyString());
+        buildHandler();
+
         final FunctionApp app = mock(FunctionApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.FUNCTION);
 
@@ -108,7 +129,7 @@ public class FTPArtifactHandlerImplTest {
 
     @Test
     public void isResourcesPreparationRequired() {
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
+        buildHandler();
 
         DeployTarget target = new DeployTarget(mock(WebApp.class), DeployTargetType.WEBAPP);
         assertTrue(handlerSpy.isResourcesPreparationRequired(target));
@@ -125,14 +146,14 @@ public class FTPArtifactHandlerImplTest {
         final String ftpUrl = "ftp.azurewebsites.net/site/wwwroot";
         final PublishingProfile profile = mock(PublishingProfile.class);
         final WebApp app = mock(WebApp.class);
-        final FTPArtifactHandlerImpl handlerSpy = spy(handler);
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.WEBAPP);
         final FTPUploader uploader = mock(FTPUploader.class);
-        doReturn(uploader).when(handlerSpy).getUploader();
         doReturn(ftpUrl).when(profile).ftpUrl();
         doReturn(profile).when(app).getPublishingProfile();
         doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
 
+        buildHandler();
+        doReturn(uploader).when(handlerSpy).getUploader();
         handlerSpy.uploadDirectoryToFTP(deployTarget);
 
         verify(app, times(1)).getPublishingProfile();

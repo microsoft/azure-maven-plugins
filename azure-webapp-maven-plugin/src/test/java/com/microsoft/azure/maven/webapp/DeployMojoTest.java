@@ -6,12 +6,11 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
-import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
@@ -26,6 +25,7 @@ import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Before;
@@ -35,7 +35,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -47,13 +46,12 @@ import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DOCKER_IMAGE_T
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_VERSION_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_WEB_CONTAINER_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.LINUX_RUNTIME_KEY;
+import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.OS_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.refEq;
@@ -101,7 +99,7 @@ public class DeployMojoTest {
         f.setAccessible(true);
         f.set(null, new HandlerFactory() {
             @Override
-            public RuntimeHandler getRuntimeHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+            public RuntimeHandler getRuntimeHandler(WebAppConfiguration config, Azure azureClient, Log log) {
                 return runtimeHandler;
             }
 
@@ -133,7 +131,7 @@ public class DeployMojoTest {
 
         assertEquals("westeurope", mojo.getRegion());
 
-        assertEquals(PricingTier.STANDARD_S1, mojo.getPricingTier());
+        assertEquals(new PricingTier("Premium", "P1V2"), mojo.getPricingTier());
 
         assertEquals(null, mojo.getJavaVersion());
 
@@ -171,15 +169,17 @@ public class DeployMojoTest {
     public void getTelemetryProperties() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         ReflectionUtils.setVariableValueInObject(mojo, "plugin", plugin);
+        doReturn("azure-webapp-maven-plugin").when(plugin).getArtifactId();
 
         final Map map = mojo.getTelemetryProperties();
 
-        assertEquals(11, map.size());
+        assertEquals(13, map.size());
         assertTrue(map.containsKey(JAVA_VERSION_KEY));
         assertTrue(map.containsKey(JAVA_WEB_CONTAINER_KEY));
         assertTrue(map.containsKey(DOCKER_IMAGE_TYPE_KEY));
         assertTrue(map.containsKey(DEPLOYMENT_TYPE_KEY));
         assertTrue(map.containsKey(LINUX_RUNTIME_KEY));
+        assertTrue(map.containsKey(OS_KEY));
     }
 
     @Test
@@ -223,46 +223,6 @@ public class DeployMojoTest {
     }
 
     @Test
-    public void createOrUpdateWebAppWithCreate() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        final DeployMojo mojoSpy = spy(mojo);
-        doReturn(null).when(mojoSpy).getWebApp();
-        doNothing().when(mojoSpy).createWebApp();
-
-        mojoSpy.createOrUpdateWebApp();
-
-        verify(mojoSpy, times(1)).createWebApp();
-        verify(mojoSpy, times(0)).updateWebApp(any(WebApp.class));
-    }
-
-    @Test
-    public void createOrUpdateWebAppWithUpdate() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        final DeployMojo mojoSpy = spy(mojo);
-        final WebApp app = mock(WebApp.class);
-        doReturn(app).when(mojoSpy).getWebApp();
-        doNothing().when(mojoSpy).updateWebApp(any(WebApp.class));
-
-        mojoSpy.createOrUpdateWebApp();
-
-        verify(mojoSpy, times(0)).createWebApp();
-        verify(mojoSpy, times(1)).updateWebApp(any(WebApp.class));
-    }
-
-    @Test
-    public void doExecute() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        final DeployMojo mojoSpy = spy(mojo);
-        doNothing().when(mojoSpy).createOrUpdateWebApp();
-        doNothing().when(mojoSpy).deployArtifacts();
-
-        mojoSpy.doExecute();
-
-        verify(mojoSpy, times(1)).createOrUpdateWebApp();
-        verify(mojoSpy, times(1)).deployArtifacts();
-    }
-
-    @Test
     public void deployArtifactsWithNoResources() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
         final DeployMojo mojoSpy = spy(mojo);
@@ -272,35 +232,6 @@ public class DeployMojoTest {
         doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
 
         mojoSpy.deployArtifacts();
-    }
-
-    @Test
-    public void createWebApp() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        final DeployMojo mojoSpy = spy(mojo);
-        final WithCreate withCreate = mock(WithCreate.class);
-        doReturn(withCreate).when(runtimeHandler).defineAppWithRuntime();
-
-        mojoSpy.createWebApp();
-
-        verify(runtimeHandler, times(1)).defineAppWithRuntime();
-        verify(settingsHandler, times(1)).processSettings(any(WithCreate.class));
-        verify(withCreate, times(1)).create();
-    }
-
-    @Test
-    public void updateWebApp() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        final DeployMojo mojoSpy = spy(mojo);
-        final WebApp app = mock(WebApp.class);
-        final Update update = mock(Update.class);
-        doReturn(update).when(runtimeHandler).updateAppRuntime(app);
-
-        mojoSpy.updateWebApp(app);
-
-        verify(runtimeHandler, times(1)).updateAppRuntime(app);
-        verify(settingsHandler, times(1)).processSettings(any(Update.class));
-        verify(update, times(1)).apply();
     }
 
     @Test

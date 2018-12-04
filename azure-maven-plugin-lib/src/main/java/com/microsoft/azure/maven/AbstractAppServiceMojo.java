@@ -73,12 +73,6 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected String appServicePlanName;
 
     /**
-     * App Service region, which will only be used to create App Service at the first time.
-     */
-    @Parameter(property = "region", defaultValue = "westus")
-    protected String region;
-
-    /**
      * Application settings of App Service, in the form of name-value pairs.
      * <pre>
      * {@code
@@ -108,10 +102,6 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
 
     public String getAppServicePlanName() {
         return appServicePlanName;
-    }
-
-    public String getRegion() {
-        return region;
     }
 
     public Map getAppSettings() {

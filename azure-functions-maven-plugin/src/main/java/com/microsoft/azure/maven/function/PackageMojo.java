@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.function.bindings.BindingEnum;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
@@ -31,6 +32,7 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,12 +59,15 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String COPY_JARS = "Step 6 of 7: Copying JARs to staging directory";
     public static final String COPY_SUCCESS = "Copied successfully.";
     public static final String INSTALL_EXTENSIONS = "Step 7 of 7: Installing function extensions if needed";
+    public static final String SKIP_INSTALL_EXTENSIONS = "Skip install Function extension for HTTP Trigger Functions";
     public static final String INSTALL_EXTENSIONS_FINISH = "Function extension installation done.";
     public static final String BUILD_SUCCESS = "Successfully built Azure Functions.";
 
     public static final String FUNCTION_JSON = "function.json";
     public static final String HOST_JSON = "host.json";
 
+    private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION =
+        {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
     //region Entry Point
 
     @Override
@@ -85,8 +90,9 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
         final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
+        final Set<BindingEnum> bindingClasses = this.getFunctionBindingEnums(configMap);
 
-        installExtension(functionCoreToolsHandler);
+        installExtension(functionCoreToolsHandler, bindingClasses);
 
         info(BUILD_SUCCESS);
     }
@@ -136,7 +142,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         } catch (DependencyResolutionRequiredException e) {
             debug("Failed to resolve dependencies for compile scope, exception: " + e.getMessage());
         }
-        for (final String element: compileClasspathElements) {
+        for (final String element : compileClasspathElements) {
             final File f = new File(element);
             try {
                 urlList.add(f.toURI().toURL());
@@ -273,12 +279,27 @@ public class PackageMojo extends AbstractFunctionMojo {
         return new FunctionCoreToolsHandlerImpl(this, commandHandler);
     }
 
-    protected void installExtension(final FunctionCoreToolsHandler handler) throws Exception {
-        info("");
+    protected void installExtension(final FunctionCoreToolsHandler handler,
+                                    Set<BindingEnum> bindingEnums) throws Exception {
+        if (!isInstallingExtensionNeeded(bindingEnums)) {
+            info(SKIP_INSTALL_EXTENSIONS);
+            return;
+        }
         info(INSTALL_EXTENSIONS);
         handler.installExtension();
         info(INSTALL_EXTENSIONS_FINISH);
     }
 
+    protected Set<BindingEnum> getFunctionBindingEnums(Map<String, FunctionConfiguration> configMap) {
+        final Set<BindingEnum> result = new HashSet<>();
+        configMap.values().forEach(configuration -> configuration.getBindings().
+                forEach(binding -> result.add(binding.getBindingEnum())));
+        return result;
+    }
+
+    protected boolean isInstallingExtensionNeeded(Set<BindingEnum> bindingTypes) {
+        return bindingTypes.stream().anyMatch(binding ->
+                !Arrays.asList(FUNCTION_WITHOUT_FUNCTION_EXTENSION).contains(binding));
+    }
     // end region
 }

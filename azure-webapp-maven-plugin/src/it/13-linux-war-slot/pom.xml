@@ -21,6 +21,7 @@
                     <resourceGroup>maven-webapp-it-rg-13</resourceGroup>
                     <appName>maven-webapp-it-rg-13-webapp-linux</appName>
                     <region>westus</region>
+                    <pricingTier>S1</pricingTier>
                     <deploymentSlot>
                         <name>test</name>
                         <configurationSource>parent</configurationSource>

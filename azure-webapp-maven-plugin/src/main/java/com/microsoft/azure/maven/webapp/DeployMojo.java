@@ -14,6 +14,7 @@ import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
+import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -25,11 +26,12 @@ import java.util.concurrent.TimeUnit;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
-    public static final String DEPLOY_START = "Trying to deploy artifact to %s...";
-    public static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
     public static final String WEBAPP_CREATED = "Successfully created Web App.";
+    public static final String CREATE_DEPLOYMENT_SLOT = "Target Deployment Slot doesn't exist. Creating a new one...";
+    public static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created the Deployment Slot.";
     public static final String UPDATE_WEBAPP = "Updating target Web App...";
+    public static final String UPDATE_WEBAPP_SKIP = "No runtime configured. Skip the update.";
     public static final String UPDATE_WEBAPP_DONE = "Successfully updated Web App.";
     public static final String STOP_APP = "Stopping Web App before deploying artifacts...";
     public static final String START_APP = "Starting Web App after deploying artifacts...";
@@ -44,43 +46,49 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     @Override
     protected void doExecute() throws Exception {
-        createOrUpdateWebApp();
+        // todo: use parser to getAzureClient from mojo configs
+        final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(
+                getWebAppConfiguration(), getAzureClient(), getLog());
+        // todo: use parser to get web app from mojo configs
+        final WebApp app = getWebApp();
+        if (app == null) {
+            if (this.isDeployToDeploymentSlot()) {
+                throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+            }
+            createWebApp(runtimeHandler);
+        } else {
+            updateWebApp(runtimeHandler, app);
+        }
         deployArtifacts();
     }
 
-    protected void createOrUpdateWebApp() throws Exception {
-        final WebApp app = getWebApp();
-        if (app == null && this.isDeployToDeploymentSlot()) {
-            throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
-        }
-        if (app == null) {
-            createWebApp();
-        } else {
-            updateWebApp(app);
-        }
-    }
-
-    protected void createWebApp() throws Exception {
+    protected void createWebApp(final RuntimeHandler runtimeHandler) throws Exception {
         info(WEBAPP_NOT_EXIST);
 
-        final WithCreate withCreate = getFactory().getRuntimeHandler(this).defineAppWithRuntime();
+        final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
         getFactory().getSettingsHandler(this).processSettings(withCreate);
         withCreate.create();
 
         info(WEBAPP_CREATED);
     }
 
-    protected void updateWebApp(final WebApp app) throws Exception {
-        info(UPDATE_WEBAPP);
-
-        final Update update = getFactory().getRuntimeHandler(this).updateAppRuntime(app);
-        getFactory().getSettingsHandler(this).processSettings(update);
-        update.apply();
-
-        info(UPDATE_WEBAPP_DONE);
+    protected void updateWebApp(final RuntimeHandler runtimeHandler, final WebApp app) throws Exception {
+        final Update update = runtimeHandler.updateAppRuntime(app);
+        if (update == null) {
+            info(UPDATE_WEBAPP_SKIP);
+        } else {
+            info(UPDATE_WEBAPP);
+            getFactory().getSettingsHandler(this).processSettings(update);
+            update.apply();
+            info(UPDATE_WEBAPP_DONE);
+        }
 
         if (isDeployToDeploymentSlot()) {
+            info(CREATE_DEPLOYMENT_SLOT);
+
             getFactory().getDeploymentSlotHandler(this).createDeploymentSlotIfNotExist();
+
+            info(CREATE_DEPLOYMENT_SLOT_DONE);
         }
     }
 
@@ -100,12 +108,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             } else {
                 target = new WebAppDeployTarget(app);
             }
-
-            getLog().info(String.format(DEPLOY_START, target.getName()));
-
             getFactory().getArtifactHandler(this).publish(target);
-
-            getLog().info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
         } finally {
             util.afterDeployArtifacts();
         }

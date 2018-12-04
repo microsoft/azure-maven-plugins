@@ -16,6 +16,7 @@ import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
+import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
@@ -143,18 +144,31 @@ public class DeployMojo extends AbstractFunctionMojo {
     //endregion
 
     protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
+        final ArtifactHandlerBase.Builder builder;
+
         switch (this.getDeploymentType()) {
             case MSDEPLOY:
-                return new MSDeployArtifactHandlerImpl(this);
+                builder = new MSDeployArtifactHandlerImpl.Builder().functionAppName(this.getAppName());
+                break;
             case FTP:
-                return new FTPArtifactHandlerImpl(this);
+                builder = new FTPArtifactHandlerImpl.Builder();
+                break;
             case EMPTY:
             case ZIP:
-                return new ZIPArtifactHandlerImpl(this);
+                builder = new ZIPArtifactHandlerImpl.Builder();
+                break;
             default:
                 throw new MojoExecutionException(
                     "The value of <deploymentType> is unknown, supported values are: ftp, zip and msdeploy.");
         }
+        return builder.project(this.getProject())
+            .session(this.getSession())
+            .filtering(this.getMavenResourcesFiltering())
+            .resources(this.getResources())
+            .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
+            .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
+            .log(this.getLog())
+            .build();
     }
 
     //region Telemetry Configuration Interface

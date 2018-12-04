@@ -18,7 +18,7 @@
         <functionAppName>maven-functions-it-${timestamp}-0</functionAppName>
         <functionAppRegion>westus</functionAppRegion>
         <stagingDirectory>${project.build.directory}/azure-functions/${functionAppName}</stagingDirectory>
-        <functionResourceGroup>maven-functions-it-rg-0</functionResourceGroup>
+        <functionResourceGroup>maven-functions-it-${timestamp}-rg-0</functionResourceGroup>
     </properties>
 
     <dependencies>

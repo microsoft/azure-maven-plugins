@@ -45,8 +45,9 @@
                         <serverId>azure-auth</serverId>
                     </authentication>
                     <resourceGroup>maven-webapp-it-rg-14</resourceGroup>
-                    <appName>maven-it-app-${maven.build.timestamp}</appName>
+                    <appName>maven-it-app-14-${maven.build.timestamp}</appName>
                     <region>westus</region>
+                    <pricingTier>S1</pricingTier>
                     <linuxRuntime>jre8</linuxRuntime>
                     <deploymentType>zip</deploymentType>
                     <stopAppDuringDeployment>true</stopAppDuringDeployment>

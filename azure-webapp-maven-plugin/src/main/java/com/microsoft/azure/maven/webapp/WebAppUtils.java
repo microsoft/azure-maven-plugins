@@ -16,12 +16,12 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.Existin
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.ExistingWindowsPlanWithGroup;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
-
 import java.util.Locale;
 
 import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
@@ -71,7 +71,7 @@ public class WebAppUtils {
     private static void assureLinuxPlan(final AppServicePlan plan) throws MojoExecutionException {
         if (!plan.operatingSystem().equals(OperatingSystem.LINUX)) {
             throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                    plan.name(), OperatingSystem.LINUX.name()));
+                plan.name(), OperatingSystem.LINUX.name()));
         }
     }
 
@@ -90,7 +90,7 @@ public class WebAppUtils {
     private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
         if (!plan.operatingSystem().equals(OperatingSystem.WINDOWS)) {
             throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                    plan.name(), OperatingSystem.WINDOWS.name()));
+                plan.name(), OperatingSystem.WINDOWS.name()));
         }
     }
 
@@ -98,26 +98,30 @@ public class WebAppUtils {
                                                            final String resourceGroup,
                                                            final Azure azure,
                                                            final String servicePlanResourceGroup,
-                                                           final String region,
+                                                           final Region region,
                                                            final PricingTier pricingTier,
                                                            final Log log,
-                                                           final OperatingSystem os) {
+                                                           final OperatingSystem os) throws MojoExecutionException {
         AppServicePlan plan = AppServiceUtils.getAppServicePlan(servicePlanName, azure,
             resourceGroup, servicePlanResourceGroup);
 
         if (plan == null) {
+            if (region == null) {
+                throw new MojoExecutionException("Please config the <region> in pom.xml, " +
+                    "it is required to create a new Azure App Service Plan.");
+            }
             servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);
             final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(
                 resourceGroup, servicePlanResourceGroup);
             log.info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
 
             final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
-                    .define(servicePlanName).withRegion(region);
+                .define(servicePlanName).withRegion(region);
 
             final AppServicePlan.DefinitionStages.WithPricingTier withPricingTier
-                    = azure.resourceGroups().contain(servicePlanResGrp) ?
-                    withGroup.withExistingResourceGroup(servicePlanResGrp) :
-                    withGroup.withNewResourceGroup(servicePlanResGrp);
+                = azure.resourceGroups().contain(servicePlanResGrp) ?
+                withGroup.withExistingResourceGroup(servicePlanResGrp) :
+                withGroup.withNewResourceGroup(servicePlanResGrp);
 
             plan = withPricingTier.withPricingTier(pricingTier).withOperatingSystem(os).create();
 
@@ -162,7 +166,7 @@ public class WebAppUtils {
     }
 
     /**
-     * Work Around:
+     * Workaround:
      * When a web app is created from Azure Portal, there are hidden tags associated with the app.
      * It will be messed up when calling "update" API.
      * An issue is logged at https://github.com/Azure/azure-sdk-for-java/issues/1755 .
