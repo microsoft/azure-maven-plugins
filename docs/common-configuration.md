@@ -101,4 +101,4 @@ to create an authentication file.
    
    You are all set. No extra configuration are required.
 
-**Note**: This method doesn't work if you log in as a service principal.
+**Note**: This method doesn't work if you log in as a service principal. See: https://github.com/Azure/azure-libraries-for-java/issues/417
