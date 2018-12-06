@@ -19,8 +19,8 @@ public class DeployToClusterMojo extends AbstractMojo
     /**
      * Comma seperated resource files or the directory in which the resource files are present
     */
-    @Parameter(property = "inputYamlFilePaths", defaultValue = Constants.SERVICE_FABRIC_RESOURCES_PATH)
-    String inputYamlFilePaths;
+    @Parameter(property = "inputYamlFiles", defaultValue = Constants.SERVICE_FABRIC_RESOURCES_PATH)
+    String inputYamlFiles;
 
     /**
      * URL of the cluster in which this application should be deployed.
@@ -42,18 +42,18 @@ public class DeployToClusterMojo extends AbstractMojo
         if(!Utils.checkIfExists(serviceFabricResourcesDirectory)){
             throw new MojoFailureException("Service fabric resources folder does not exist. Please run init goal before running this goal!");
         }
-        if(inputYamlFilePaths.equals(Constants.SERVICE_FABRIC_RESOURCES_PATH)){
-            inputYamlFilePaths = Utils.getServicefabricResourceDirectory(logger, project);
+        if(inputYamlFiles.equals(Constants.SERVICE_FABRIC_RESOURCES_PATH)){
+            inputYamlFiles = Utils.getServicefabricResourceDirectory(logger, project);
         }
         Utils.checksfctlinstallation(logger);
         if(pemFilePath.equalsIgnoreCase(Constants.DEFAULT_PEM_FILE_PATH)){
             Utils.connecttounsecurecluster(logger, clusterEndpoint);
-            Utils.executeCommand(logger, "sfctl mesh deployment create --input-yaml-file-paths " + inputYamlFilePaths);
+            Utils.executeCommand(logger, "sfctl mesh deployment create --input-yaml-files " + inputYamlFiles);
             TelemetryHelper.sendEvent(TelemetryEventType.DEPLOYLOCAL, String.format("Deployed application locally"), logger);
         }
         else{
             Utils.connecttosecurecluster(logger, clusterEndpoint, pemFilePath);
-            Utils.executeCommand(logger, "sfctl mesh deployment create --input-yaml-file-paths " + inputYamlFilePaths);
+            Utils.executeCommand(logger, "sfctl mesh deployment create --input-yaml-files " + inputYamlFiles);
             TelemetryHelper.sendEvent(TelemetryEventType.DEPLOYSFRP, String.format("Deployed application to SFRP"), logger);
         }
     }

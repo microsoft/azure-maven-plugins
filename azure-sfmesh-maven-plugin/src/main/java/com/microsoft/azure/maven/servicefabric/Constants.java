@@ -34,7 +34,7 @@ public class Constants
     public static final String DEFAULT_TCP_NAME = "NO_TCP_NAME";
     public static final String DEFAULT_LOCATION = "westus";
     public static final String DEFAULT_DELETE_RESOURCE_GROUP = "false";
-    public static final String DEFAULT_NETWORK_KIND = "local";
+    public static final String DEFAULT_NETWORK_KIND = "Local";
     public static final String DEFAULT_SECRET_KIND = "inlinedValue";
     public static final String DEFAULT_ENVIRONMENTAL_VARIABLES = "NO_ENVIROMENTAL_VARS";
     public static final String DEFAULT_PEM_FILE_PATH = "NO_PEM_PATH";
