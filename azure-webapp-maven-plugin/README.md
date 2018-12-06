@@ -33,29 +33,37 @@ Maven | 3.0 or above
        <packaging>war</packaging>
        ...
        <build>
-            <plugins>
-                <plugin>
-                    <groupId>com.microsoft.azure</groupId>
-                    <artifactId>azure-webapp-maven-plugin</artifactId>
-                    <!-- check Maven Central for the latest version -->
-                    <version>1.5.1</version>
-                    <configuration>
-                        <schemaVersion>v2</schemaVersion>
-                        <resourceGroup>your-resource-group</resourceGroup>
-                        <appName>your-app-name</appName>
-                        <region>westus</region>
-                        <pricingTier>P1V2</pricingTier>
-                        ...
-                        <runtime>
-                            <os>linux</os>
-                            <javaVersion>jre8</javaVersion>
-                            <webContainer>tomcat 8.5</webContainer>
-                        </runtime>
-                        ...
-                    </configuration>
-                </plugin>
-            </plugins>
-        </build>
+           <plugins>
+               <plugin>
+                   <groupId>com.microsoft.azure</groupId>
+                   <artifactId>azure-webapp-maven-plugin</artifactId>
+                   <!-- check Maven Central for the latest version -->
+                   <version>1.5.1</version>
+                   <configuration>
+                       <schemaVersion>v2</schemaVersion>
+                       <resourceGroup>your-resource-group</resourceGroup>
+                       <appName>your-app-name</appName>
+                       <region>westus</region>
+                       <pricingTier>P1V2</pricingTier>
+                       <runtime>
+                           <os>linux</os>
+                           <javaVersion>jre8</javaVersion>
+                           <webContainer>tomcat 8.5</webContainer>
+                       </runtime>
+                       <deployment>
+                           <resources>
+                               <resource>
+                                   <directory>${project.basedir}/target</directory>
+                                   <includes>
+                                       <include>*.war</include>
+                                   </includes>
+                               </resource>
+                           </resources>
+                       </deployment>                        
+                   </configuration>
+               </plugin>
+           </plugins>
+       </build>
     </project> 
     ```
    
