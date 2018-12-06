@@ -91,6 +91,8 @@ You can use the Azure CLI 2.0 for authentication. More authentication methods ca
     $ az login
     $ az account set --subscription <subscription Id>
     ```
+    **Note**: This method doesn't work if you log in as a service principal. See: https://github.com/Azure/azure-libraries-for-java/issues/417
+    
 ## Configurations
 
 Common configurations of all Maven Plugins for Azure can be found [here](../docs/common-configuration.md).
