@@ -33,32 +33,30 @@ Maven | 3.0 or above
        <packaging>war</packaging>
        ...
        <build>
-          <pluginManagement>
-             <plugins>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-webapp-maven-plugin</artifactId>
-                <!-- check Maven Central for the latest version -->
-                <version>1.3.0</version>
-             </plugins>
-          </pluginManagement>
-          <plugins>
-             <plugin>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-webapp-maven-plugin</artifactId>
-                <configuration>
-
-                    <!-- Web App information -->
-                    <resourceGroup>your-resource-group</resourceGroup>
-                    <appName>your-app-name</appName>
-
-                    <!-- Java Runtime Stack for Web App on Linux-->
-                    <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
-                </configuration>
-             </plugin>
-             ...
-          </plugins>
-       </build>
-    </project>
+            <plugins>
+                <plugin>
+                    <groupId>com.microsoft.azure</groupId>
+                    <artifactId>azure-webapp-maven-plugin</artifactId>
+                    <!-- check Maven Central for the latest version -->
+                    <version>1.5.1</version>
+                    <configuration>
+                        <schemaVersion>v2</schemaVersion>
+                        <resourceGroup>your-resource-group</resourceGroup>
+                        <appName>your-app-name</appName>
+                        <region>westus</region>
+                        <pricingTier>P1V2</pricingTier>
+                        ...
+                        <runtime>
+                            <os>linux</os>
+                            <javaVersion>jre8</javaVersion>
+                            <webContainer>tomcat 8.5</webContainer>
+                        </runtime>
+                        ...
+                    </configuration>
+                </plugin>
+            </plugins>
+        </build>
+    </project> 
     ```
    
 3. Use the following commands to deploy your project to Azure App Service. 
@@ -275,7 +273,7 @@ All valid pricing tiers are listed as below. Read more at [Azure App Service Pla
     ```xml
     <configuration>
     ...
-      <linuxRuntime>tomcat 8.5-jre8</javaVersion>
+      <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
     </configuration>
     ```
     The supported values are *tomcat 8.5-jre8*, *tomcat 9.0-jre8*, *wildfly 14-jre8*, and *jre8*.
