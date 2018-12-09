@@ -11,10 +11,20 @@ environment:
 
 install:
   - cmd: SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%
-  - cmd: npm i -g azure-functions-core-tools@core --unsafe-perm true
-  - cmd: python -m pip install azure-cli
   - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
 
 build_script:
-  - cmd:  mvn clean install && mvn -f azure-functions-maven-plugin/pom.xml clean verify -P it
+  - ps: |
+      $logFile = "ci.log"
+      mvn clean install | Out-File $logFile
+      mvn -f azure-functions-maven-plugin/pom.xml clean verify -P it | Out-File -append $logFile
+
+on_success:
+  - ps: |
+      Get-Content $logFile | Write-Host
+
+on_failure:
+  - ps: |
+      Get-Content $logFile | Write-Host
+      .\errorNotificationSender.ps1 $logFile
   
