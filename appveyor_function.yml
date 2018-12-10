@@ -16,17 +16,12 @@ install:
   - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
 
 build_script:
-  - ps: |
-      $logFile = "ci.log"
-      mvn clean install | Out-File $logFile
-      mvn -f azure-functions-maven-plugin/pom.xml clean verify -P it | Out-File -append $logFile
-
-on_success:
-  - ps: |
-      Get-Content $logFile | Write-Host
+  - cmd: mvn clean install -l mvn_install.log && mvn -f azure-functions-maven-plugin/pom.xml clean verify -P it -l mvn_verify.log
 
 on_failure:
   - ps: |
-      Get-Content $logFile | Write-Host
-      .\errorNotificationSender.ps1 $logFile
-  
+      .\errorNotificationSender.ps1 ("mvn_install.log","mvn_verify.log")
+on_finish:
+  - ps: |
+      Get-Content "mvn_install.log" | Write-Host
+      Get-Content "mvn_verify.log" | Write-Host

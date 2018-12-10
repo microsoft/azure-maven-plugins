@@ -1,5 +1,5 @@
 Param(
-    [string] $logFile
+    [string[]] $logs
 )
 
 $MailSenderType = @' 
@@ -57,8 +57,8 @@ namespace WindowsAPILib
 '@
 Add-Type -TypeDefinition $MailSenderType -Language CSharp;
 
-Function GetEmailContent($logFile) {
-    $logFile = Get-Content $logFile;
+Function GetEmailContent($logs) {
+    $logFile = Get-Content $logs;
     $errorLog = $logFile -match "\[error\]";
     $errorContent = [string]::join("<br/>", $errorLog)
     $jobLink = "https://ci.appveyor.com/project/xscript/azure-maven-plugins-vvy0i/history"
@@ -79,16 +79,17 @@ Function GetEmailContent($logFile) {
 
 $title="Azure Function Maven Plugin CI Issue";
 $mailto=New-Object System.Collections.Generic.List[System.String];
-$mailto.Add("Rome.Li@microsoft.com");
-$mailto.Add("Sheng.Chen@microsoft.com");
 $mailto.Add("andxu@microsoft.com");
+$mailto.Add("Sheng.Chen@microsoft.com");
+$mailto.Add("Rome.Li@microsoft.com");
 $mailcc=New-Object System.Collections.Generic.List[System.String];
 $mailcc.Add("hanli@microsoft.com");
 $sender = 'insvsc@microsoft.com';
 
-$pageBody=GetEmailContent $logFile
+$pageBody=GetEmailContent $logs
 $senderPassword=$env:EMAIL_PASSWORD
 $attachments = New-Object System.Collections.Generic.List[System.String];
-$attachments.Add((Get-Item $logFile).FullName);
-
+foreach($logFile in $logs) {
+    $attachments.Add((Get-Item $logFile).FullName);    
+}
 [WindowsAPILib.OutlookDotComMail]::SendMail($mailto, $mailcc, $title, $sender, $senderPassword, $attachments, $pageBody);
