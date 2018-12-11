@@ -7,8 +7,12 @@
 package com.microsoft.azure.maven.function;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.maven.function.template.BindingTemplate;
+import com.microsoft.azure.maven.function.template.BindingsTemplate;
+import com.microsoft.azure.maven.function.template.FunctionSettingTemplate;
 import com.microsoft.azure.maven.function.template.FunctionTemplate;
 import com.microsoft.azure.maven.function.template.FunctionTemplates;
+import com.microsoft.azure.maven.function.template.TemplateResources;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -55,6 +59,7 @@ public class AddMojo extends AbstractFunctionMojo {
     public static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
     public static final String SAVE_FILE_DONE = "Successfully saved new function at ";
     public static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
+    public static final String DEFAULT_INPUT_ERROR_MESSAGE = "Invalid input, please check and try again.";
     private static final String FUNCTION_NAME_REGEXP = "^[a-zA-Z][a-zA-Z\\d_\\-]*$";
 
     //region Properties
@@ -140,8 +145,9 @@ public class AddMojo extends AbstractFunctionMojo {
         final List<FunctionTemplate> templates = loadAllFunctionTemplates();
 
         final FunctionTemplate template = getFunctionTemplate(templates);
+        final BindingTemplate bindingTemplate = loadBindingTemplate(template.getTriggerType());
 
-        final Map params = prepareRequiredParameters(template);
+        final Map params = prepareRequiredParameters(template, bindingTemplate);
 
         final String newFunctionClass = substituteParametersInTemplate(template, params);
 
@@ -151,6 +157,21 @@ public class AddMojo extends AbstractFunctionMojo {
     //endregion
 
     //region Load all templates
+    protected BindingTemplate loadBindingTemplate(String type) throws Exception {
+        info("");
+        info(LOAD_TEMPLATES);
+
+        try (final InputStream is = AddMojo.class.getResourceAsStream("/bindings.json")) {
+            final String bindingsJsonStr = IOUtil.toString(is);
+            final BindingsTemplate bindingsTemplate = new ObjectMapper()
+                .readValue(bindingsJsonStr, BindingsTemplate.class);
+            info(LOAD_TEMPLATES_DONE);
+            return bindingsTemplate.getBindingTemplateByName(type);
+        } catch (Exception e) {
+            error(LOAD_TEMPLATES_FAIL);
+            throw e;
+        }
+    }
 
     protected List<FunctionTemplate> loadAllFunctionTemplates() throws Exception {
         info("");
@@ -221,8 +242,9 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //region Prepare parameters
 
-    protected Map<String, String> prepareRequiredParameters(final FunctionTemplate template)
-            throws MojoFailureException {
+    protected Map<String, String> prepareRequiredParameters(final FunctionTemplate template,
+                                                            final BindingTemplate bindingTemplate)
+        throws MojoFailureException {
         info("");
         info(PREPARE_PARAMS);
 
@@ -235,7 +257,7 @@ public class AddMojo extends AbstractFunctionMojo {
         params.put("className", getClassName());
         params.put("packageName", getFunctionPackageName());
 
-        prepareTemplateParameters(template, params);
+        prepareTemplateParameters(template, bindingTemplate, params);
 
         displayParameters(params);
 
@@ -277,14 +299,20 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected Map<String, String> prepareTemplateParameters(final FunctionTemplate template,
+                                                            final BindingTemplate bindingTemplate,
                                                             final Map<String, String> params)
-            throws MojoFailureException {
+        throws MojoFailureException {
         for (final String property : template.getMetadata().getUserPrompt()) {
-            info(format("Trigger specific parameter [%s]", property));
-
+            String initValue = System.getProperty(property);
             final List<String> options = getOptionsForUserPrompt(property);
+            final FunctionSettingTemplate settingTemplate = bindingTemplate == null ?
+                null : bindingTemplate.getSettingTemplateByName(property);
+            final String helpMessage = (settingTemplate != null && settingTemplate.getHelp() != null) ?
+                settingTemplate.getHelp() : "";
+
+            info(format("Trigger specific parameter [%s]:%s", property,
+                TemplateResources.getResource(helpMessage)));
             if (settings != null && !settings.isInteractiveMode()) {
-                String initValue = System.getProperty(property);
                 if (options != null && options.size() > 0) {
                     final String foundElement = findElementInOptions(options, initValue);
                     initValue = foundElement == null ? options.get(0) : foundElement;
@@ -298,13 +326,7 @@ public class AddMojo extends AbstractFunctionMojo {
                 );
             } else {
                 if (options == null) {
-                    assureInputFromUser(
-                        format("Enter value for %s: ", property),
-                        System.getProperty(property),
-                        StringUtils::isNotEmpty,
-                        "Input should be a non-empty string.",
-                        str -> params.put(property, str)
-                    );
+                    params.put(property, getStringInputFromUser(property, initValue, settingTemplate));
                 } else {
                     assureInputFromUser(
                         format("Enter value for %s: ", property),
@@ -317,6 +339,40 @@ public class AddMojo extends AbstractFunctionMojo {
         }
 
         return params;
+    }
+
+    protected String getStringInputFromUser(String attributeName, String initValue, FunctionSettingTemplate template) {
+        final String regex = template == null ? null : template.getSettingRegex();
+        final String defaultValue = template == null ? null : template.getDefaultValue();
+        final String prompt = defaultValue == null ?
+            String.format("Enter value for %s: ", attributeName) :
+            String.format("Enter value for %s(Default: %s): ", attributeName, defaultValue);
+        final String errorMessage = (template != null && template.getErrorText() != null) ?
+            TemplateResources.getResource(template.getErrorText()) : DEFAULT_INPUT_ERROR_MESSAGE;
+        final Function<String, Boolean> validator = regex == null ?
+            StringUtils::isNotEmpty :
+            (attribute) -> StringUtils.isNotEmpty(attribute) && attribute.matches(regex);
+
+        if (validator.apply(initValue)) {
+            info(FOUND_VALID_VALUE);
+            return initValue;
+        }
+
+        final Scanner scanner = getScanner();
+        while (true) {
+            out.printf(prompt);
+            out.flush();
+            try {
+                final String input = scanner.nextLine();
+                if (validator.apply(input)) {
+                    return input;
+                } else if (defaultValue != null && !StringUtils.isNotEmpty(input)) {
+                    return defaultValue;
+                }
+            } catch (Exception ignored) {
+            }
+            warning(errorMessage);
+        }
     }
 
     protected void displayParameters(final Map<String, String> params) {
