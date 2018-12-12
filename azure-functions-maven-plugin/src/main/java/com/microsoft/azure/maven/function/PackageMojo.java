@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.microsoft.azure.maven.Utils;
-import com.microsoft.azure.maven.function.bindings.HttpBinding;
+import com.microsoft.azure.maven.function.bindings.BindingEnum;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
@@ -66,8 +66,8 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_JSON = "function.json";
     public static final String HOST_JSON = "host.json";
 
-    private static final Class[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = {HttpBinding.class};
-
+    private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION =
+        {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
     //region Entry Point
 
     @Override
@@ -90,7 +90,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
         final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
-        final Set<Class> bindingClasses = this.getFunctionBindingClasses(configMap);
+        final Set<BindingEnum> bindingClasses = this.getFunctionBindingEnums(configMap);
 
         installExtension(functionCoreToolsHandler, bindingClasses);
 
@@ -280,8 +280,8 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected void installExtension(final FunctionCoreToolsHandler handler,
-                                    Set<Class> bindingClasses) throws Exception {
-        if (!isInstallingExtensionNeeded(bindingClasses)) {
+                                    Set<BindingEnum> bindingEnums) throws Exception {
+        if (!isInstallingExtensionNeeded(bindingEnums)) {
             info(SKIP_INSTALL_EXTENSIONS);
             return;
         }
@@ -290,14 +290,14 @@ public class PackageMojo extends AbstractFunctionMojo {
         info(INSTALL_EXTENSIONS_FINISH);
     }
 
-    protected Set<Class> getFunctionBindingClasses(Map<String, FunctionConfiguration> configMap) {
-        final Set<Class> result = new HashSet<>();
+    protected Set<BindingEnum> getFunctionBindingEnums(Map<String, FunctionConfiguration> configMap) {
+        final Set<BindingEnum> result = new HashSet<>();
         configMap.values().forEach(configuration -> configuration.getBindings().
-                forEach(binding -> result.add(binding.getClass())));
+                forEach(binding -> result.add(binding.getBindingEnum())));
         return result;
     }
 
-    protected boolean isInstallingExtensionNeeded(Set<Class> bindingTypes) {
+    protected boolean isInstallingExtensionNeeded(Set<BindingEnum> bindingTypes) {
         return bindingTypes.stream().anyMatch(binding ->
                 !Arrays.asList(FUNCTION_WITHOUT_FUNCTION_EXTENSION).contains(binding));
     }

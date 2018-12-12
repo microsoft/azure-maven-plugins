@@ -13,7 +13,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugin-lib</artifactId>
-    <version>1.2.4-SNAPSHOT</version>
+    <version>1.2.5-SNAOSHOT</version>
     <packaging>jar</packaging>
     <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
@@ -29,7 +29,7 @@
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <codehaus.plexus-utils>3.0.20</codehaus.plexus-utils>
         <azure.version>1.17.1</azure.version>
-        <azure.ai.version>1.0.9</azure.ai.version>
+        <azure.ai.version>2.2.1</azure.ai.version>
         <common-net.version>3.6</common-net.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
