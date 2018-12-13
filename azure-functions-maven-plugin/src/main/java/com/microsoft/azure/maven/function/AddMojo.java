@@ -22,6 +22,7 @@ import org.codehaus.plexus.util.StringUtils;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
@@ -159,15 +160,16 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //endregion
 
-    //region Load all templates
-    protected BindingTemplate loadBindingTemplate(String type) throws Exception {
+    //region Load templates
+    protected BindingTemplate loadBindingTemplate(String type) {
         try (final InputStream is = AddMojo.class.getResourceAsStream("/bindings.json")) {
             final String bindingsJsonStr = IOUtil.toString(is);
             final BindingsTemplate bindingsTemplate = new ObjectMapper()
                 .readValue(bindingsJsonStr, BindingsTemplate.class);
             return bindingsTemplate.getBindingTemplateByName(type);
-        } catch (Exception e) {
+        } catch (IOException e) {
             warning(LOAD_BINDING_TEMPLATES_FAIL);
+            // Add mojo could work without Binding Template, just return null if binding load fail
             return null;
         }
     }
