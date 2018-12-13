@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 
 import java.util.Arrays;
 
+// This is the json template class correspond to (bindings.json).bindings
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BindingTemplate {

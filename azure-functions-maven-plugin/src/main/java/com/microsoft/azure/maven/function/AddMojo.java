@@ -54,12 +54,15 @@ public class AddMojo extends AbstractFunctionMojo {
     public static final String FIND_TEMPLATE = "Step 2 of 4: Select function template";
     public static final String FIND_TEMPLATE_DONE = "Successfully found function template: ";
     public static final String FIND_TEMPLATE_FAIL = "Function template not found: ";
+    public static final String LOAD_BINDING_TEMPLATES_FAIL = "Failed to load function binding template.";
     public static final String PREPARE_PARAMS = "Step 3 of 4: Prepare required parameters";
     public static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
     public static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
     public static final String SAVE_FILE_DONE = "Successfully saved new function at ";
     public static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
     public static final String DEFAULT_INPUT_ERROR_MESSAGE = "Invalid input, please check and try again.";
+    public static final String PROMPT_STRING_WITH_DEFAULTVALUE = "Enter value for %s(Default: %s): ";
+    public static final String PROMPT_STRING_WITHOUT_DEFAULTVALUE = "Enter value for %s: ";
     private static final String FUNCTION_NAME_REGEXP = "^[a-zA-Z][a-zA-Z\\d_\\-]*$";
 
     //region Properties
@@ -158,18 +161,14 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //region Load all templates
     protected BindingTemplate loadBindingTemplate(String type) throws Exception {
-        info("");
-        info(LOAD_TEMPLATES);
-
         try (final InputStream is = AddMojo.class.getResourceAsStream("/bindings.json")) {
             final String bindingsJsonStr = IOUtil.toString(is);
             final BindingsTemplate bindingsTemplate = new ObjectMapper()
                 .readValue(bindingsJsonStr, BindingsTemplate.class);
-            info(LOAD_TEMPLATES_DONE);
             return bindingsTemplate.getBindingTemplateByName(type);
         } catch (Exception e) {
-            error(LOAD_TEMPLATES_FAIL);
-            throw e;
+            warning(LOAD_BINDING_TEMPLATES_FAIL);
+            return null;
         }
     }
 
@@ -342,16 +341,8 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected String getStringInputFromUser(String attributeName, String initValue, FunctionSettingTemplate template) {
-        final String regex = template == null ? null : template.getSettingRegex();
         final String defaultValue = template == null ? null : template.getDefaultValue();
-        final String prompt = defaultValue == null ?
-            String.format("Enter value for %s: ", attributeName) :
-            String.format("Enter value for %s(Default: %s): ", attributeName, defaultValue);
-        final String errorMessage = (template != null && template.getErrorText() != null) ?
-            TemplateResources.getResource(template.getErrorText()) : DEFAULT_INPUT_ERROR_MESSAGE;
-        final Function<String, Boolean> validator = regex == null ?
-            StringUtils::isNotEmpty :
-            (attribute) -> StringUtils.isNotEmpty(attribute) && attribute.matches(regex);
+        final Function<String, Boolean> validator = getStringInputValidator(template);
 
         if (validator.apply(initValue)) {
             info(FOUND_VALID_VALUE);
@@ -360,18 +351,35 @@ public class AddMojo extends AbstractFunctionMojo {
 
         final Scanner scanner = getScanner();
         while (true) {
-            out.printf(prompt);
+            out.printf(getStringInputPromptString(attributeName, defaultValue));
             out.flush();
-            try {
-                final String input = scanner.nextLine();
-                if (validator.apply(input)) {
-                    return input;
-                } else if (defaultValue != null && !StringUtils.isNotEmpty(input)) {
-                    return defaultValue;
-                }
-            } catch (Exception ignored) {
+            final String input = scanner.nextLine();
+            if (validator.apply(input)) {
+                return input;
+            } else if (StringUtils.isNotEmpty(defaultValue) && StringUtils.isEmpty(input)) {
+                return defaultValue;
             }
-            warning(errorMessage);
+            warning(getStringInputErrorMessage(template));
+        }
+    }
+
+    protected String getStringInputErrorMessage(FunctionSettingTemplate template) {
+        return (template != null && template.getErrorText() != null) ?
+            TemplateResources.getResource(template.getErrorText()) : DEFAULT_INPUT_ERROR_MESSAGE;
+    }
+
+    protected String getStringInputPromptString(String attributeName, String defaultValue) {
+        return StringUtils.isBlank(defaultValue) ?
+            String.format(PROMPT_STRING_WITHOUT_DEFAULTVALUE, attributeName) :
+            String.format(PROMPT_STRING_WITH_DEFAULTVALUE, attributeName, defaultValue);
+    }
+
+    protected Function<String, Boolean> getStringInputValidator(FunctionSettingTemplate template) {
+        final String regex = template == null ? null : template.getSettingRegex();
+        if (regex == null) {
+            return StringUtils::isNotEmpty;
+        } else {
+            return (attribute) -> StringUtils.isNotEmpty(attribute) && attribute.matches(regex);
         }
     }
 

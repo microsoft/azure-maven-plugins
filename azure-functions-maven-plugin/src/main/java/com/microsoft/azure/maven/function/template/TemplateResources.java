@@ -15,12 +15,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+// Correspond to resources.json, translate attribute name to its real value
 public class TemplateResources {
     private static final String VARIABLES_PREFIX = "variables_";
-    private static final Pattern pattern = Pattern.compile("\\[variables\\('(.*)'\\)\\]");
+    private static final Pattern PATTERN = Pattern.compile("\\[variables\\('(.*)'\\)\\]");
     private static Map<String, String> map;
 
-    // Load resources
+    // Load resources from resources.json
     static {
         try (final InputStream is = TemplateResources.class.getResourceAsStream("/resources.json")) {
             final ObjectMapper mapper = new ObjectMapper();
@@ -40,7 +41,7 @@ public class TemplateResources {
     }
 
     public static String getResource(String name) {
-        final Matcher matcher = pattern.matcher(name);
+        final Matcher matcher = PATTERN.matcher(name);
         if (matcher.find()) {
             return getResourceByVariableName(matcher.group(1));
         } else {

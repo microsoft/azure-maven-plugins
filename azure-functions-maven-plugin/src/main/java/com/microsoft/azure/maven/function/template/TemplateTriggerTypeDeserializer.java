@@ -13,6 +13,9 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import java.io.IOException;
 
+/*
+ * Customize deserializer to get the trigger type of TriggerFunction from (templates.json).tempates.function
+ */
 public class TemplateTriggerTypeDeserializer extends StdDeserializer<String> {
 
     protected TemplateTriggerTypeDeserializer() {
@@ -31,6 +34,8 @@ public class TemplateTriggerTypeDeserializer extends StdDeserializer<String> {
             node = jsonParser.getCodec().readTree(jsonParser);
             final JsonNode bindingsNode = node.get("bindings");
             for (int i = 0; i < bindingsNode.size(); i++) {
+                // The direction of binding for triggers is always "in",
+                // and there only allows one trigger for each function.
                 if (bindingsNode.get(i).get("direction").asText().equals("in")) {
                     return bindingsNode.get(i).get("type").asText();
                 }
