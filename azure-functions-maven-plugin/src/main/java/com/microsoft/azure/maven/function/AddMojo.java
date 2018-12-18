@@ -330,7 +330,7 @@ public class AddMojo extends AbstractFunctionMojo {
                     params.put(property, getStringInputFromUser(property, initValue, settingTemplate));
                 } else {
                     assureInputFromUser(
-                        format("Enter value for %s: ", property),
+                        format("value for %s: ", property),
                         System.getProperty(property),
                         options,
                         str -> params.put(property, str)
@@ -463,7 +463,7 @@ public class AddMojo extends AbstractFunctionMojo {
             return;
         }
 
-        out.printf("Choose from below options as %s.%n", prompt);
+        out.printf("Choose from below options as %s %n", prompt);
         for (int i = 0; i < options.size(); i++) {
             out.printf("%d. %s%n", i, options.get(i));
         }
