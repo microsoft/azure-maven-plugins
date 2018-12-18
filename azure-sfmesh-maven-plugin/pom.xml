@@ -21,18 +21,11 @@
   <url>https://github.com/microsoft/azure-maven-plugins</url>
 
   <properties>
-    <azure.maven-plugin-lib.version>1.2.4-SNAPSHOT</azure.maven-plugin-lib.version>
-    <junit.version>4.12</junit.version>
     <jackson.core.version>2.9.7</jackson.core.version>
     <jackson.dataformat.version>2.9.7</jackson.dataformat.version>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
     <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
-    <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
     <maven.version>3.3.3</maven.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <azure.ai.ikey>58ef8eab-a250-4b11-aea8-36435e5be1a7</azure.ai.ikey>
-    <powermock.version>1.7.1</powermock.version>
   </properties>
 
   <licenses>
@@ -71,34 +64,10 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-artifact</artifactId>
-      <version>${maven.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-compat</artifactId>
-      <version>${maven.version}</version>
-      <scope>test</scope>
-    </dependency> 
-    <dependency>
       <groupId>org.apache.maven.plugin-tools</groupId>
       <artifactId>maven-plugin-annotations</artifactId>
       <version>${maven.plugin-tools.version}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.plugin-testing</groupId>
-      <artifactId>maven-plugin-testing-harness</artifactId>
-      <version>${maven.plugin-testing.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -115,28 +84,6 @@
       <artifactId>applicationinsights-web</artifactId>
       <version>[2.0,)</version>
     </dependency>
-    <dependency>
-      <groupId>com.microsoft.azure</groupId>
-      <artifactId>azure-maven-plugin-lib</artifactId>
-      <version>${azure.maven-plugin-lib.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-      <version>1.5.12</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <version>${powermock.version}</version>
-      <scope>test</scope>
-   </dependency>
-   <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
-      <version>${powermock.version}</version>
-      <scope>test</scope>
-   </dependency>
   </dependencies>
 
   <build>
@@ -165,46 +112,14 @@
                 </execution>
             </executions>
         </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <configuration>
+              <configLocation>../build-tools/src/main/resources/checkstyle/checkstyle.xml</configLocation>
+            </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
-
-  <profiles>
-    <profile>
-      <id>run-its</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-invoker-plugin</artifactId>
-            <version>3.0.1</version>
-            <configuration>
-              <debug>true</debug>
-              <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
-              <pomIncludes>
-                <pomInclude>*/pom.xml</pomInclude>
-              </pomIncludes>
-              <postBuildHookScript>verify</postBuildHookScript>
-              <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
-              <settingsFile>src/it/settings.xml</settingsFile>
-              <goals>
-                <goal>clean</goal>
-                <goal>test-compile</goal>
-              </goals>
-            </configuration>
-            <executions>
-              <execution>
-                <id>integration-test</id>
-                <goals>
-                  <goal>install</goal>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>

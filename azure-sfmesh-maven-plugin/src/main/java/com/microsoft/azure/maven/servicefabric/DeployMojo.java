@@ -1,18 +1,25 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for
+ * license information.
+ */
+
 package com.microsoft.azure.maven.servicefabric;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugin.logging.Log;
+
 /**
  * Goal which deploys application to mesh
  */
-@Mojo( name = "deploy", defaultPhase = LifecyclePhase.NONE )
-public class DeployMojo extends AbstractMojo
-{
+@Mojo(name = "deploy", defaultPhase = LifecyclePhase.NONE)
+public class DeployMojo extends AbstractMojo{
+
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     MavenProject project;
 
@@ -36,19 +43,20 @@ public class DeployMojo extends AbstractMojo
 
     public Log logger  = getLog();
 
-	@Override
-	public void execute() throws MojoFailureException {
-        String serviceFabricResourcesDirectory = Utils.getServicefabricResourceDirectory(logger, project);
-        if(!Utils.checkIfExists(serviceFabricResourcesDirectory)){
-            throw new MojoFailureException("Service fabric resources folder does not exist. Please run init goal before running this goal!");
+    @Override
+    public void execute() throws MojoFailureException {
+        final String serviceFabricResourcesDirectory = Utils.getServicefabricResourceDirectory(logger, project);
+        if (!Utils.checkIfExists(serviceFabricResourcesDirectory)){
+            throw new MojoFailureException("Service fabric resources folder does not exist." +
+            " Please run init goal before running this goal!");
         }
-        if(inputYamlFiles.equals(Constants.SERVICE_FABRIC_RESOURCES_PATH)){
+        if (inputYamlFiles.equals(Constants.SERVICE_FABRIC_RESOURCES_PATH)){
             inputYamlFiles = Utils.getServicefabricResourceDirectory(logger, project);
         }
 
         Utils.checkazinstallation(logger);
 
-        if(resourceGroup.equals(Constants.DEFAULT_RESOURCE_GROUP)){
+        if (resourceGroup.equals(Constants.DEFAULT_RESOURCE_GROUP)){
             throw new MojoFailureException("Resource group is not provided. Please provide a resource group name");
         }
 
@@ -57,7 +65,9 @@ public class DeployMojo extends AbstractMojo
         Utils.executeCommand(logger, String.format("az group create --name %s --location %s", resourceGroup, location));
         // Perform deployment
         logger.info("Performing deployment");
-        Utils.executeCommand(logger, String.format("az mesh deployment create --resource-group %s --input-yaml-files %s  --parameters \"{'location': {'value': '%s'}}\"", resourceGroup, inputYamlFiles, location));
+        Utils.executeCommand(logger, String.format("az mesh deployment create --resource-group %s " +
+            "--input-yaml-files %s  --parameters \"{'location': {'value': '%s'}}\"", resourceGroup,
+            inputYamlFiles, location));
         TelemetryHelper.sendEvent(TelemetryEventType.DEPLOYMESH, String.format("Deployed application on mesh"), logger);
     }
 }

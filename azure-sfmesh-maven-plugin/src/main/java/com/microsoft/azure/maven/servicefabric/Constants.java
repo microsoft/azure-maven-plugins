@@ -1,7 +1,13 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for
+ * license information.
+ */
+
 package com.microsoft.azure.maven.servicefabric;
 
-public class Constants
-{
+public class Constants{
+
     public static final String DEFAULT_SCHEMA_VERSION = "1.0.0-preview2";
     public static final String SERVICE_FABRIC_RESOURCES_PATH = "servicefabric";
     public static final String APPLICATION_RESOURCE_NAME = "app.yaml";
