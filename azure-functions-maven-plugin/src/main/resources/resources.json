@@ -7,7 +7,7 @@
     "timerTrigger_displayName": "Timer",
     "timerTrigger_schedule_label": "Schedule",
     "timerTrigger_schedule_help": "Enter a cron expression of the format '{second} {minute} {hour} {day} {month} {day of week}' to specify the schedule.",
-    "timerTrigger_schedule_errorText": "Invalid Cron Expression. Please consult the <a target='_blank' href='https://azure.microsoft.com/en-us/documentation/articles/functions-bindings-timer/'>documentation</a> to learn more.",
+    "timerTrigger_schedule_errorText": "Invalid Cron Expression. Please consult https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer#cron-expressions to learn more.",
     "QueueTrigger_description": "A function that will be run whenever a message is added to a specified Azure Storage queue",
     "queueTrigger_displayName": "Azure Queue Storage",
     "queueTrigger_queueName_label": "Queue name",
