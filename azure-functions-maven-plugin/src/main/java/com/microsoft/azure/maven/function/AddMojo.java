@@ -330,7 +330,7 @@ public class AddMojo extends AbstractFunctionMojo {
                     params.put(property, getStringInputFromUser(property, initValue, settingTemplate));
                 } else {
                     assureInputFromUser(
-                        format("value for %s: ", property),
+                        format("the value for %s: ", property),
                         System.getProperty(property),
                         options,
                         str -> params.put(property, str)
