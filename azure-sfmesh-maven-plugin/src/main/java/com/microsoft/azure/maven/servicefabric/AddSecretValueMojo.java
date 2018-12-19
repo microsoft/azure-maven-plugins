@@ -49,23 +49,23 @@ public class AddSecretValueMojo extends AbstractMojo {
     public Log logger = getLog();
 
     @Override
-	public void execute() throws MojoFailureException {
+    public void execute() throws MojoFailureException {
         final String serviceFabricResourcesDirectory = Utils.getServicefabricResourceDirectory(logger, project);
-		final String appResourcesDirectory = Utils.getAppResourcesDirectory(logger, project);
+        final String appResourcesDirectory = Utils.getAppResourcesDirectory(logger, project);
         if (!Utils.checkIfExists(serviceFabricResourcesDirectory)){
             throw new MojoFailureException("Service fabric resources folder " +
                 "does not exist. Please run init goal before running this goal!");
         } else {
             final String[] secretValueSplit = secretValueName.split("/", 2);
             if (Utils.checkIfExists(Utils.getPath(appResourcesDirectory,
-            "secretvalue_" + secretValueSplit[0] + "_" + secretValueSplit[1] + ".yaml"))){
+                "secretvalue_" + secretValueSplit[0] + "_" + secretValueSplit[1] + ".yaml"))){
                 throw new MojoFailureException("Secret Value Resource" + 
                     " with the specified name already exists");
             }
             final InputStream resource = 
                 this.getClass().getClassLoader().getResourceAsStream(Constants.SECRET_VALUE_RESOURCE_NAME);
             try {
-                final String secretValueContent = IOUtil.toString(resource, "UTF-8");
+                String secretValueContent = IOUtil.toString(resource, "UTF-8");
                 secretValueContent = Utils.replaceString(logger, secretValueContent,
                     "SCHEMA_VERSION", schemaVersion, Constants.SECRET_VALUE_RESOURCE_NAME);
                 secretValueContent = Utils.replaceString(logger, secretValueContent,
@@ -74,13 +74,13 @@ public class AddSecretValueMojo extends AbstractMojo {
                     "SECRET_VALUE", secretValue, Constants.SECRET_VALUE_RESOURCE_NAME);
                 FileUtils.fileWrite(Utils.getPath(appResourcesDirectory,
                     "secretvalue_" + secretValueSplit[0] + "_" + secretValueSplit[1] + ".yaml"), secretValueContent);
-				logger.debug(String.format("Wrote %s secret value content to output", secretValueName));
+                logger.debug(String.format("Wrote %s secret value content to output", secretValueName));
                 TelemetryHelper.sendEvent(TelemetryEventType.ADDSECRETVALUE,
                     String.format("Added secret value with name: %s", secretValueName), logger);
             } catch (IOException e) {
-				logger.error(e);
-				throw new MojoFailureException("Error while writing output");
-			} 
+                logger.error(e);
+                throw new MojoFailureException("Error while writing output");
+            } 
         }
     }
 }
