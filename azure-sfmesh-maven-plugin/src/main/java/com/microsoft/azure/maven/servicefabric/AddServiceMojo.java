@@ -1,26 +1,32 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for
+ * license information.
+ */
+
 package com.microsoft.azure.maven.servicefabric;
+
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-
 /**
  * Goal which adds a service resource to a project.
  */
-@Mojo( name = "addservice", defaultPhase = LifecyclePhase.NONE )
-public class AddServiceMojo extends AbstractMojo
-{
+@Mojo(name = "addservice", defaultPhase = LifecyclePhase.NONE)
+public class AddServiceMojo extends AbstractMojo{
+
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     MavenProject project;
 
@@ -99,7 +105,7 @@ public class AddServiceMojo extends AbstractMojo
     /**
      * Network resource reference in which the container should be deployed
     */
-    @Parameter(property = "networkRef", alias= "networkName")
+    @Parameter(property = "networkRef", alias = "networkName")
     String networkRef; 
 
     /**
@@ -110,63 +116,79 @@ public class AddServiceMojo extends AbstractMojo
 
     private Log logger  = getLog();
 
-	@Override
-	public void execute() throws MojoFailureException {
+    @Override
+    public void execute() throws MojoFailureException {
         addService();
     }
     
     public void addService() throws MojoFailureException{
-        String serviceFabricResourcesDirectory = Utils.getServicefabricResourceDirectory(logger, project);
-        String appResourcesDirectory = Utils.getAppResourcesDirectory(logger, project);
-        String serviceDirectory = Utils.getPath(serviceFabricResourcesDirectory, serviceName);
-        if(!Utils.checkIfExists(serviceFabricResourcesDirectory)){
-            throw new MojoFailureException("Service fabric resources folder does not exist. Please run init goal before running this goal!");
-        }
-        else{
-            if(!Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "app_" + applicationName + ".yaml"))){
-                throw new MojoFailureException(String.format("Application resource with the name %s does not exist", applicationName));
+        final String serviceFabricResourcesDirectory = Utils.getServicefabricResourceDirectory(logger, project);
+        final String appResourcesDirectory = Utils.getAppResourcesDirectory(logger, project);
+        final String serviceDirectory = Utils.getPath(serviceFabricResourcesDirectory, serviceName);
+        if (!Utils.checkIfExists(serviceFabricResourcesDirectory)){
+            throw new MojoFailureException("Service fabric resources folder does not exist." +
+                "Please run init goal before running this goal!");
+        } else {
+            if (!Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "app_" + applicationName + ".yaml"))){
+                throw new MojoFailureException(String.format("Application resource" +
+                    "with the name %s does not exist", applicationName));
             }
-            if(Utils.checkIfExists(serviceDirectory)){
+            if (Utils.checkIfExists(serviceDirectory)){
                 throw new MojoFailureException("Service Resource with the specified name already exists");
             }
             try {
-                InputStream resource = this.getClass().getClassLoader().getResourceAsStream(Constants.SERVICE_RESOURCE_NAME);
+                final InputStream resource =
+                    this.getClass().getClassLoader().getResourceAsStream(Constants.SERVICE_RESOURCE_NAME);
                 String serviceContent = IOUtil.toString(resource, "UTF-8"); 
-                serviceContent = Utils.replaceString(logger, serviceContent, "SCHEMA_VERSION", schemaVersion, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent, "APP_NAME", applicationName, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent, "SERVICE_NAME", serviceName, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent, "SERVICE_DESCRIPTION", serviceDescription, Constants.SERVICE_RESOURCE_NAME);
-                if(osType.equals(Constants.DEFAULT_OS)){
-                    if(Utils.isLinux()){
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "SCHEMA_VERSION", schemaVersion, Constants.SERVICE_RESOURCE_NAME);
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "APP_NAME", applicationName, Constants.SERVICE_RESOURCE_NAME);
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "SERVICE_NAME", serviceName, Constants.SERVICE_RESOURCE_NAME);
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "SERVICE_DESCRIPTION", serviceDescription, Constants.SERVICE_RESOURCE_NAME);
+                if (osType.equals(Constants.DEFAULT_OS)){
+                    if (Utils.isLinux()){
                         osType = Constants.LINUX_OS;
-                    }
-                    else{
+                    } else {
                         osType = Constants.WINDOWS_OS;
                     }
                 }
-                serviceContent = Utils.replaceString(logger, serviceContent, "OS_TYPE", osType, Constants.SERVICE_RESOURCE_NAME);
-                if(codePackageName.equals(Constants.DEFAULT_CODE_PACKAGE_NAME)){
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "OS_TYPE", osType, Constants.SERVICE_RESOURCE_NAME);
+                if (codePackageName.equals(Constants.DEFAULT_CODE_PACKAGE_NAME)){
                     codePackageName = serviceName + "CodePackage";
                 }
-                serviceContent = Utils.replaceString(logger, serviceContent, "CODE_PACKAGE_NAME", codePackageName, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent, "DOCKER_IMAGE", imageName, Constants.SERVICE_RESOURCE_NAME);
-                if(listenerName.equals(Constants.DEFAULT_LISTENER_NAME)){
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "CODE_PACKAGE_NAME", codePackageName, Constants.SERVICE_RESOURCE_NAME);
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "DOCKER_IMAGE", imageName, Constants.SERVICE_RESOURCE_NAME);
+                if (listenerName.equals(Constants.DEFAULT_LISTENER_NAME)){
                     listenerName = serviceName + "Listener";
                 }
-                serviceContent = Utils.replaceString(logger, serviceContent, "LISTENER_NAME", listenerName, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent, "LISTENER_PORT", listenerPort, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent, "CPU_USAGE", cpuUsage, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent, "MEMORY_USAGE", memoryUsage, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent, "REPLICA_COUNT", replicaCount, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent, "NETWORK_NAME", networkRef, Constants.SERVICE_RESOURCE_NAME);
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "LISTENER_NAME", listenerName, Constants.SERVICE_RESOURCE_NAME);
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "LISTENER_PORT", listenerPort, Constants.SERVICE_RESOURCE_NAME);
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "CPU_USAGE", cpuUsage, Constants.SERVICE_RESOURCE_NAME);
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "MEMORY_USAGE", memoryUsage, Constants.SERVICE_RESOURCE_NAME);
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "REPLICA_COUNT", replicaCount, Constants.SERVICE_RESOURCE_NAME);
+                serviceContent = Utils.replaceString(logger, serviceContent,
+                    "NETWORK_NAME", networkRef, Constants.SERVICE_RESOURCE_NAME);
 
-                if(!enviromentalVariables.equals(Constants.DEFAULT_ENVIRONMENTAL_VARIABLES)){
-                    serviceContent = AddEnvironmentVariables(logger, serviceContent, enviromentalVariables);
+                if (!enviromentalVariables.equals(Constants.DEFAULT_ENVIRONMENTAL_VARIABLES)){
+                    serviceContent = addEnvironmentVariables(logger, serviceContent, enviromentalVariables);
                 }
                 Utils.createDirectory(logger, serviceDirectory);
-                FileUtils.fileWrite(Utils.getPath(serviceDirectory, "service_" + serviceName + ".yaml"), serviceContent);
+                FileUtils.fileWrite(Utils.getPath(serviceDirectory,
+                    "service_" + serviceName + ".yaml"), serviceContent);
                 logger.debug(String.format("Wrote %s service content to output", serviceName));
-                TelemetryHelper.sendEvent(TelemetryEventType.ADDSERVICE, String.format("Added service with name: %s", serviceName), logger);
+                TelemetryHelper.sendEvent(TelemetryEventType.ADDSERVICE,
+                    String.format("Added service with name: %s", serviceName), logger);
             } catch (IOException e) {
                 logger.error(e);
                 throw new MojoFailureException("Error while writing output");
@@ -176,23 +198,28 @@ public class AddServiceMojo extends AbstractMojo
     }
 
     @SuppressWarnings("unchecked")
-    public String AddEnvironmentVariables(Log logger, String content, String environmentVariables) throws MojoFailureException{
-        String[] env = environmentVariables.split(",");
-        ArrayList<LinkedHashMap<String, Object>> envList = new ArrayList<LinkedHashMap<String, Object>>();
-        for(int i=0; i<env.length; i++){
-            String[] kvp = env[i].split(":");
-            LinkedHashMap<String, Object> envMap = new LinkedHashMap<String, Object>();
+    public String addEnvironmentVariables(Log logger, String content,
+        String environmentVariables) throws MojoFailureException{
+        final String[] env = environmentVariables.split(",");
+        final ArrayList<LinkedHashMap<String, Object>> envList = new ArrayList<LinkedHashMap<String, Object>>();
+        for (int i = 0; i < env.length; i++){
+            final String[] kvp = env[i].split(":");
+            final LinkedHashMap<String, Object> envMap = new LinkedHashMap<String, Object>();
             envMap.put(kvp[0], kvp[1]);
             envList.add(envMap);
         }
-        LinkedHashMap<String, Object> map = Utils.stringToYaml(logger, content);
-        LinkedHashMap<String, Object> application = (LinkedHashMap<String, Object>)map.get("application");
-        LinkedHashMap<String, Object> applicationProperties = (LinkedHashMap<String, Object>)application.get("properties");
-        ArrayList<LinkedHashMap<String, Object>> services = (ArrayList<LinkedHashMap<String, Object>>)applicationProperties.get("services");
-        LinkedHashMap<String, Object> service = services.get(0);
-        LinkedHashMap<String, Object> serviceProperties = (LinkedHashMap<String, Object>)service.get("properties");
-        ArrayList<LinkedHashMap<String, Object>> codePackages = (ArrayList<LinkedHashMap<String, Object>>)serviceProperties.get("codePackages");
-        LinkedHashMap<String, Object> codePackage = codePackages.get(0);
+        final LinkedHashMap<String, Object> map = Utils.stringToYaml(logger, content);
+        final LinkedHashMap<String, Object> application = (LinkedHashMap<String, Object>) map.get("application");
+        final LinkedHashMap<String, Object> applicationProperties =
+            (LinkedHashMap<String, Object>) application.get("properties");
+        final ArrayList<LinkedHashMap<String, Object>> services =
+            (ArrayList<LinkedHashMap<String, Object>>) applicationProperties.get("services");
+        final LinkedHashMap<String, Object> service = services.get(0);
+        final LinkedHashMap<String, Object> serviceProperties =
+            (LinkedHashMap<String, Object>) service.get("properties");
+        final ArrayList<LinkedHashMap<String, Object>> codePackages =
+            (ArrayList<LinkedHashMap<String, Object>>) serviceProperties.get("codePackages");
+        final LinkedHashMap<String, Object> codePackage = codePackages.get(0);
 
         // TODO: Understand the reason why we need to remove instead of replace
         codePackage.put("environmentVariables", envList);
