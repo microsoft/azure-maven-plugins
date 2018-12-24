@@ -24,11 +24,12 @@ Function UpdateMavenPluginVersion($pomLocation, $version) {
 }
 
 # Scripts
-$base = pwd
+$base = $Env:APPVEYOR_BUILD_FOLDER
 $functionCLIPath = "$base\Azure.Functions.Cli"
 $functionCLIZipPath = $functionCLIPath +".zip"
 
 # Download Functions Core Tools
+cd $base
 RemoveFileIfExist $functionCLIZipPath
 RemoveFolderIfExist $functionCLIPath
 DownloadFileFromUrl $Env:FUNCTIONCLI_URL $functionCLIZipPath

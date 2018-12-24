@@ -20,7 +20,8 @@ build_script:
 
 on_failure:
   - ps: |
-      .\errorNotificationSender.ps1 ("mvn_install.log","mvn_verify.log")
+      .\ci\ps\errorNotificationSender.ps1 $Env:FUNCTION_URL "mvn_install.log","mvn_verify.log"
+
 on_finish:
   - ps: |
       Get-Content "mvn_install.log" | Write-Host
