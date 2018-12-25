@@ -13,7 +13,7 @@ install:
 
 build_script:
   - ps: |
-      $proc =  .\e2etest.ps1
+      $proc =  .\ci\ps\e2etest.ps1
       
 test_script:
   - ps: |
