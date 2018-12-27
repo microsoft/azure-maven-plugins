@@ -2,7 +2,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22)
 
 The Maven Plugin for Azure App Service provides seamless integration into Maven projects, 
-and makes it easier for developers to deploy to different kinds of Azure Web Apps:
+and makes it easier for developers to deploy Java App to different kinds of Azure Web Apps:
   - [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro)
   - [Web App on Windows](https://docs.microsoft.com/en-us/azure/app-service/app-service-web-overview)
   - [Web App for Containers](https://docs.microsoft.com/en-us/azure/app-service/containers/tutorial-custom-docker-image)
@@ -22,6 +22,8 @@ Tool | Required Version
 JDK | 1.7 or above
 Maven | 3.0 or above
 ## Quick Start 
+
+This quickstart shows how to use the Maven Plugin for Azure Web Apps to deploy a Java web archive (WAR) file to Web App on Linux. 
 
 1. Create a new Azure App Service and choose Linux with built-in tomcat as the environment. 
 
@@ -155,9 +157,7 @@ Property | Required | Description | Version
     Users don't need to care about the deployment type in v2 configuration.
     Just configure the resources to deploy to the Web App.
     
-    It will use the zip deploy for fast and easy deploy.
-    But if the artifact(s) are war package(s), war deploy will be used.
-    Mix deploying war packages and other kinds of artifacts is not suggested and will cause errors.
+    By default, it will use the zip deploy which is fast and easy to complete the deployment. But if the artifact(s) are war package(s), war deploy will be used.Don't suggest mixing war packages and other kinds of artifacts.
     ```xml
     <configuration>
     ...
@@ -225,47 +225,10 @@ Property | Description
 `/site/wwwroot/webapps` when you deploy the war package.
 
 #### `<region>`
-All valid regions are listed as below. Read more at [Azure Region Availability](https://azure.microsoft.com/en-us/regions/services/).
-- `westus`
-- `westus2`
-- `centralus`
-- `eastus`
-- `eastus2`
-- `northcentralus`
-- `southcentralus`
-- `westcentralus`
-- `canadacentral`
-- `canadaeast`
-- `brazilsouth`
-- `northeurope`
-- `westeurope`
-- `uksouth`
-- `ukwest`
-- `eastasia`
-- `southeastasia`
-- `japaneast`
-- `japanwest`
-- `australiaeast`
-- `australiasoutheast`
-- `centralindia`
-- `southindia`
-- `westindia`
-- `koreacentral`
-- `koreasouth`
+You could get all valid regions for App service from [Azure Region Availability](https://azure.microsoft.com/en-us/regions/services/).
 
 #### `<pricingTier>`
-All valid pricing tiers are listed as below. Read more at [Azure App Service Plan Pricing](https://azure.microsoft.com/en-us/pricing/details/app-service/).
-- `F1`
-- `D1`
-- `B1`
-- `B2`
-- `B3`
-- `S1`
-- `S2`
-- `S3`
-- `P1V2`
-- `P2V2`
-- `P3V2`
+You could get pricing tiers from [Azure App Service Plan Pricing](https://azure.microsoft.com/en-us/pricing/details/app-service/). For example, `B1`, `B2`, `B3` for basic service plan and `S1`, `S2`,`S3` for standard service plan. 
 
 ### V1 Configuration (Deprecated)
 1. Region
