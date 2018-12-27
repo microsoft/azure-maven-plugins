@@ -95,6 +95,7 @@ public abstract class ConfigurationParser {
             .pricingTier(mojo.getPricingTier())
             .servicePlanName(mojo.getAppServicePlanName())
             .servicePlanResourceGroup(mojo.getAppServicePlanResourceGroup())
+            .deploymenySlotSetting(mojo.getDeploymentSlotSetting())
             .os(getOs())
             .mavenSettings(mojo.getSettings())
             .resources(getResources())

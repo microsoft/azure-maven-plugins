@@ -25,13 +25,13 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     /**
      * Resource group of App Service. It will be created if it doesn't exist.
      */
-    @Parameter(property = "resourceGroup", required = true)
+    @Parameter(property = "resourceGroup",required = false)
     protected String resourceGroup;
 
     /**
      * App Service name. It will be created if it doesn't exist.
      */
-    @Parameter(property = "appName", required = true)
+    @Parameter(property = "appName",required = false)
     protected String appName;
 
      /**

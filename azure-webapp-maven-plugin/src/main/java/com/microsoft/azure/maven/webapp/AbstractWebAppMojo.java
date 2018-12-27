@@ -23,6 +23,7 @@ import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
+import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
