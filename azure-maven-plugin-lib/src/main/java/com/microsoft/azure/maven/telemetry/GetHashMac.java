@@ -80,9 +80,7 @@ public class GetHashMac {
             if (inputStream != null) {
                 inputStream.close();
             }
-            if (br != null) {
-                br.close();
-            }
+            br.close();
         } catch (IOException ex) {
             return null;
         }

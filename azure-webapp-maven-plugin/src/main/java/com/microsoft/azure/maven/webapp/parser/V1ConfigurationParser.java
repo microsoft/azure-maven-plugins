@@ -16,6 +16,7 @@ import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -63,7 +64,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
         if (StringUtils.isEmpty(mojo.getRegion())) {
             return Region.EUROPE_WEST;
         }
-        if (Arrays.asList(Region.values()).contains(mojo.getRegion())) {
+        if (!Arrays.asList(Region.values()).contains(Region.fromName(mojo.getRegion()))) {
             throw new MojoExecutionException("The value of <region> is not correct, please correct it in pom.xml.");
         }
         return Region.fromName(mojo.getRegion());
