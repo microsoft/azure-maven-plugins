@@ -16,7 +16,8 @@ public class MavenPluginQueryerBatchModeDefaultImpl extends MavenPluginQueryer {
     }
 
     @Override
-    public String assureInputFromUser(String attribute, String defaultValue, List<String> options) throws MojoFailureException {
+    public String assureInputFromUser(String attribute, String defaultValue, List<String> options, String prompt)
+        throws MojoFailureException {
         final String initValue = Utils.getSystemProperty(attribute);
         final String input = StringUtils.isNotEmpty(initValue) ? initValue : defaultValue;
         if (validateInputByOptions(input, options)) {
@@ -27,7 +28,8 @@ public class MavenPluginQueryerBatchModeDefaultImpl extends MavenPluginQueryer {
     }
 
     @Override
-    public String assureInputFromUser(String attribute, String defaultValue, String regex, String errorMessage) throws MojoFailureException {
+    public String assureInputFromUser(String attribute, String defaultValue, String regex, String errorMessage,
+                                      String prompt) throws MojoFailureException {
         final String initValue = Utils.getSystemProperty(attribute);
         final String input = StringUtils.isNotEmpty(initValue) ? initValue : defaultValue;
         if (StringUtils.isNotEmpty(input) && validateInputByRegex(input, regex)) {

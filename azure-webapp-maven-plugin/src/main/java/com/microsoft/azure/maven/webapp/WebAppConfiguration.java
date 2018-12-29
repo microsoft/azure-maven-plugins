@@ -157,6 +157,30 @@ public class WebAppConfiguration {
         return deploymentSlotSetting;
     }
 
+    public Builder getBuilderFromConfiguration(){
+        return new Builder().appName(this.appName)
+            .resourceGroup(this.resourceGroup)
+            .region(this.region)
+            .pricingTier(this.pricingTier)
+            .servicePlanName(this.servicePlanName)
+            .servicePlanResourceGroup(this.servicePlanResourceGroup)
+            .os(this.os)
+            .runtimeStack(this.runtimeStack)
+            .javaVersion(this.javaVersion)
+            .webContainer(this.webContainer)
+            .mavenSettings(this.mavenSettings)
+            .image(this.image)
+            .serverId(this.serverId)
+            .registryUrl(this.registryUrl)
+            .resources(this.resources)
+            .stagingDirectoryPath(this.stagingDirectoryPath)
+            .buildDirectoryAbsolutePath(this.buildDirectoryAbsolutePath)
+            .project(this.project)
+            .session(this.session)
+            .filtering(this.filtering)
+            .deploymentSlotSetting(this.deploymentSlotSetting);
+    }
+
     // endregion
 
     //region builder
@@ -291,7 +315,7 @@ public class WebAppConfiguration {
             return self();
         }
 
-        public Builder deploymenySlotSetting(final DeploymentSlotSetting value){
+        public Builder deploymentSlotSetting(final DeploymentSlotSetting value){
             this.deploymentSlotSetting = value;
             return self();
         }

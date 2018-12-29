@@ -12,14 +12,14 @@ import java.util.Set;
 
 public abstract class MavenPluginQueryer {
     public abstract String assureInputFromUser(String attribute, String defaultValue,
-                                               List<String> options) throws MojoFailureException;
+                                               List<String> options, String prompt) throws MojoFailureException;
 
     public abstract String assureInputFromUser(String attribute, String defaultValue,
-                                               String regex, String errorMessage) throws MojoFailureException;
+                                               String regex, String prompt, String errorMessage) throws MojoFailureException;
 
     public abstract void close();
 
-    public String assureInputFromUser(String attribute, Enum defaultValue) throws MojoFailureException {
+    public String assureInputFromUser(String attribute, Enum defaultValue,String prompt) throws MojoFailureException {
         final String defaultValueForAttribute = defaultValue.name();
         final Set<String> optionSet = new HashSet<>();
         for (final Enum option : defaultValue.getClass().getEnumConstants()) {
@@ -27,7 +27,7 @@ public abstract class MavenPluginQueryer {
         }
         final ArrayList<String> options = new ArrayList<>(optionSet);
         Collections.sort(options);
-        return assureInputFromUser(attribute, defaultValueForAttribute, options);
+        return assureInputFromUser(attribute, defaultValueForAttribute, options, prompt);
     }
 
     protected boolean validateInputByOptions(String input, List<String> options) {

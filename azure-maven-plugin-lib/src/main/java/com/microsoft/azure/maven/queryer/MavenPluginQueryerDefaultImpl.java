@@ -23,6 +23,7 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
         "of %s(Default %s)";
     public static final String PROMPT_STRING_FOR_OPTION_WITHOUT_DEFAULTVALUE = "Choose from below options as the " +
         "value of %s";
+    public static final String DEFAULT_INPUT_ERROR_MESSAGE = "Invalid input, please check and try again.";
 
     private BufferedReader reader;
     private PrintWriter writer;
@@ -39,13 +40,14 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
     }
 
     @Override
-    public String assureInputFromUser(String attribute, String defaultValue, List<String> options) throws MojoFailureException {
+    public String assureInputFromUser(String attribute, String defaultValue, List<String> options, String prompt)
+        throws MojoFailureException {
         final String initValue = getInitValue(attribute);
         if (initValue != null && validateInputByOptions(initValue, options)) {
             return initValue;
         }
-        // prompt valid values
-        writer.println(getPromptStringWithOptions(attribute, defaultValue));
+        prompt = StringUtils.isEmpty(prompt) ? getPromptStringWithOptions(attribute, defaultValue) : prompt;
+        writer.println(prompt);
         for (int i = 0; i < options.size(); i++) {
             writer.println(String.format("%d. %s", i, options.get(i)));
         }
@@ -77,7 +79,8 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
     }
 
     @Override
-    public String assureInputFromUser(String attribute, String defaultValue, String regex, String errorMessage) throws MojoFailureException {
+    public String assureInputFromUser(String attribute, String defaultValue, String regex,
+                                      String prompt, String errorMessage) throws MojoFailureException {
         final String initValue = getInitValue(attribute);
         if (initValue != null && validateInputByRegex(initValue, regex)) {
             log.info(FOUND_VALID_VALUE);
@@ -85,7 +88,8 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
         }
 
         while (true) {
-            writer.print(getPromptString(attribute, defaultValue));
+            prompt = StringUtils.isEmpty(prompt) ? getPromptString(attribute, defaultValue) : prompt;
+            writer.print(prompt);
             writer.flush();
             String input = null;
             try {
@@ -95,11 +99,18 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
                 } else if (validateInputByRegex(input, regex)) {
                     return input;
                 }
-                log.warn(errorMessage);
+                errorMessage = StringUtils.isEmpty(errorMessage) ? DEFAULT_INPUT_ERROR_MESSAGE : errorMessage;
+                writer.println(errorMessage);
             } catch (IOException e) {
                 throw new MojoFailureException("Can't get input from user.", e);
             }
         }
+    }
+
+    private String getPromptString(String attributeName, String defaultValue) {
+        return StringUtils.isBlank(defaultValue) ?
+            String.format(PROMPT_STRING_WITHOUT_DEFAULTVALUE, attributeName) :
+            String.format(PROMPT_STRING_WITH_DEFAULTVALUE, attributeName, defaultValue);
     }
 
     @Override
@@ -111,12 +122,5 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
             log.warn(CLOSE_FAILURE_WARNING);
         }
     }
-
-    private String getPromptString(String attributeName, String defaultValue) {
-        return StringUtils.isBlank(defaultValue) ?
-            String.format(PROMPT_STRING_WITHOUT_DEFAULTVALUE, attributeName) :
-            String.format(PROMPT_STRING_WITH_DEFAULTVALUE, attributeName, defaultValue);
-    }
-
 
 }

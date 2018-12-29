@@ -40,11 +40,11 @@ public abstract class XMLSerializer {
             }
 
             if (resource.getIncludes() != null && resource.getIncludes().size() > 0) {
-                resourceNode.add(XMLUtils.createListElement(this, "includes", "include", resource.getIncludes()));
+                resourceNode.add(XMLUtils.createListElement("includes", "include", resource.getIncludes()));
             }
 
             if (resource.getExcludes() != null && resource.getExcludes().size() > 0) {
-                resourceNode.add(XMLUtils.createListElement(this, "excludes", "exclude", resource.getExcludes()));
+                resourceNode.add(XMLUtils.createListElement("excludes", "exclude", resource.getExcludes()));
             }
             resourceRootNode.add(resourceNode);
         }

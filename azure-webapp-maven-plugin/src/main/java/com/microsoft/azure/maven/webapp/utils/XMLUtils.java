@@ -6,10 +6,11 @@
 
 package com.microsoft.azure.maven.webapp.utils;
 
-import com.microsoft.azure.maven.webapp.serializer.XMLSerializer;
 import org.dom4j.Attribute;
 import org.dom4j.Element;
+import org.dom4j.Namespace;
 import org.dom4j.dom.DOMElement;
+import org.dom4j.tree.AbstractElement;
 
 import java.util.List;
 
@@ -32,6 +33,15 @@ public class XMLUtils {
         return previous;
     }
 
+    public static void setNamespace(Element element, Namespace nameSpace) {
+        if (element instanceof AbstractElement) {
+            ((AbstractElement) element).setNamespace(nameSpace);
+        }
+        for (final Element child : element.elements()) {
+            setNamespace(child, nameSpace);
+        }
+    }
+
     public static String getChildValue(String attribute, Element element) {
         final Element child = element.element(attribute);
         return child == null ? null : child.getText();
@@ -46,7 +56,7 @@ public class XMLUtils {
         return result;
     }
 
-    public static DOMElement createListElement(XMLSerializer xmlSerializer, String name, String subName,
+    public static DOMElement createListElement(String name, String subName,
                                                List<String> values) {
         final DOMElement resultNode = new DOMElement(name);
         for (final String value : values) {
