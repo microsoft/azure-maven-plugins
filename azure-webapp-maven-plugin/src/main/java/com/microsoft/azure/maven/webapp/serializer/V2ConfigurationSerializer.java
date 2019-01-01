@@ -13,7 +13,7 @@ import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.dom4j.dom.DOMElement;
 
-public class V2ConfigurationSerializer extends XMLSerializer {
+public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
     @Override
     public DOMElement convertToXML(WebAppConfiguration webAppConfiguration) throws MojoFailureException {
@@ -44,7 +44,7 @@ public class V2ConfigurationSerializer extends XMLSerializer {
             case Docker:
                 return createDockerRunTimeNode(webAppConfiguration);
             default:
-                throw new MojoFailureException("");
+                throw new MojoFailureException("The value of <os> is unknown.");
         }
     }
 

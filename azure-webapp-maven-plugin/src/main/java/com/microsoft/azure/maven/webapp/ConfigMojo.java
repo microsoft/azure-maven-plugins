@@ -63,7 +63,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
         final String defaultName = getProject().getArtifactId() + "-" + System.currentTimeMillis();
         final String resourceGroup = defaultName + "-rg";
-        final String defaultSchemaVersion = "v2";
+        final String defaultSchemaVersion = "V2";
         final Region defaultRegion = Region.US_WEST2;
         final PricingTierEnum pricingTierEnum = PricingTierEnum.P1V2;
         return builder.appName(defaultName)
@@ -71,6 +71,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             .region(defaultRegion)
             .pricingTier(pricingTierEnum.toPricingTier())
             .resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources())
+            .schemaVersion(defaultSchemaVersion)
             .build();
     }
 

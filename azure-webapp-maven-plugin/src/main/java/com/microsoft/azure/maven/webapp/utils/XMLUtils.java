@@ -15,6 +15,25 @@ import org.dom4j.tree.AbstractElement;
 import java.util.List;
 
 public class XMLUtils {
+
+    public static Element combineXMLNodeTwo(Element previous, Element newNode) {
+        // combine attributes
+        previous.setText(newNode.getText());
+        for (final Attribute attribute : newNode.attributes()) {
+            previous.addAttribute(attribute.getName(), attribute.getValue());
+        }
+        // combine node
+        for (final Element child : newNode.elements()) {
+            final Element previousChild = previous.element(child.getName());
+            if (previousChild == null) {
+                previous.add((Element) child.clone());
+            } else {
+                combineXMLNode(previousChild, child);
+            }
+        }
+        return previous;
+    }
+
     public static Element combineXMLNode(Element previous, Element newNode) {
         // combine attributes
         previous.setText(newNode.getText());

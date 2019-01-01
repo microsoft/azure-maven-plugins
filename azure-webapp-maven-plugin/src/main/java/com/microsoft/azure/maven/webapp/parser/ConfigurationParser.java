@@ -61,6 +61,8 @@ public abstract class ConfigurationParser {
 
     protected abstract String getRegistryUrl();
 
+    protected abstract String getSchemaVersion();
+
     protected abstract JavaVersion getJavaVersion() throws MojoExecutionException;
 
     protected abstract WebContainer getWebContainer() throws MojoExecutionException;
@@ -104,6 +106,7 @@ public abstract class ConfigurationParser {
             .project(mojo.getProject())
             .session(mojo.getSession())
             .filtering(mojo.getMavenResourcesFiltering())
+            .schemaVersion(getSchemaVersion())
             .build();
     }
 }

@@ -7,9 +7,13 @@
 package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
+import com.microsoft.azure.maven.webapp.serializer.ConfigurationSerializer;
+import com.microsoft.azure.maven.webapp.serializer.V1ConfigurationSerializer;
 import com.microsoft.azure.maven.webapp.serializer.V2ConfigurationSerializer;
-import com.microsoft.azure.maven.webapp.serializer.XMLSerializer;
+
 import org.apache.maven.plugin.MojoFailureException;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -41,18 +45,34 @@ public class WebAppPomHandler {
     }
 
     public void savePluginConfiguration(WebAppConfiguration configurations) throws IOException,
-        MojoFailureException {
+            MojoFailureException {
         // Serialize config to xml node
-        final XMLSerializer serializer = new V2ConfigurationSerializer();
+        ConfigurationSerializer serializer = null;
+        switch (configurations.getSchemaVersion().toLowerCase()) {
+            case "v1":
+                serializer = new V1ConfigurationSerializer();
+                break;
+            case "v2":
+                serializer = new V2ConfigurationSerializer();
+                break;
+            default:
+                throw new MojoFailureException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
+        }
+
         final DOMElement newConfigurationNode = serializer.convertToXML(configurations);
         Element pluginElement = getMavenPluginElement();
         if (pluginElement == null) {
+            // create webapp node in pom
             final Element buildNode = XMLUtils.getOrCreateSubElement("build", document.getRootElement());
             final Element pluginsRootNode = XMLUtils.getOrCreateSubElement("plugins", buildNode);
             pluginElement = createNewMavenPluginNode();
             pluginsRootNode.add(pluginElement);
         }
         XMLUtils.combineXMLNode(pluginElement.element("configuration"), newConfigurationNode);
+        // remove deployment slot if user didn't set it
+        if (configurations.getDeploymentSlotSetting() == null) {
+            pluginElement.remove(pluginElement.element("deploymentSlot"));
+        }
         XMLUtils.setNamespace(pluginElement, document.getRootElement().getNamespace());
         saveModel();
     }
@@ -63,6 +83,8 @@ public class WebAppPomHandler {
         writer.close();
     }
 
+
+    // get webapp maven plugin node from pom
     private Element getMavenPluginElement() {
         try {
             final Element pluginsRoot = document.getRootElement().element("build").element("plugins");

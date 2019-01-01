@@ -38,6 +38,7 @@ public class WebAppConfiguration {
     protected String image;
     protected String serverId;
     protected String registryUrl;
+    protected String schemaVersion;
 
     // web app runtime related configurations
     protected List<Resource> resources;
@@ -63,6 +64,7 @@ public class WebAppConfiguration {
         this.serverId = builder.serverId;
         this.registryUrl = builder.registryUrl;
         this.deploymentSlotSetting = builder.deploymentSlotSetting;
+        this.schemaVersion = builder.schemaVersion;
 
         this.resources = builder.resources;
         this.stagingDirectoryPath = builder.stagingDirectoryPath;
@@ -157,6 +159,10 @@ public class WebAppConfiguration {
         return deploymentSlotSetting;
     }
 
+    public String getSchemaVersion() {
+        return schemaVersion;
+    }
+
     public Builder getBuilderFromConfiguration(){
         return new Builder().appName(this.appName)
             .resourceGroup(this.resourceGroup)
@@ -178,6 +184,7 @@ public class WebAppConfiguration {
             .project(this.project)
             .session(this.session)
             .filtering(this.filtering)
+            .schemaVersion(this.schemaVersion)
             .deploymentSlotSetting(this.deploymentSlotSetting);
     }
 
@@ -206,6 +213,7 @@ public class WebAppConfiguration {
         private MavenSession session;
         private MavenResourcesFiltering filtering;
         private DeploymentSlotSetting deploymentSlotSetting;
+        private String schemaVersion;
 
         protected Builder self() {
             return this;
@@ -320,6 +328,11 @@ public class WebAppConfiguration {
             return self();
         }
 
+        public Builder schemaVersion(final String schemaVersion){
+            this.schemaVersion = schemaVersion;
+            return self();
+        }
+
         public String getAppName() {
             return appName;
         }
@@ -402,6 +415,10 @@ public class WebAppConfiguration {
 
         public DeploymentSlotSetting getDeploymentSlotSetting() {
             return deploymentSlotSetting;
+        }
+
+        public String getSchemaVersion() {
+            return schemaVersion;
         }
     }
     //endregion

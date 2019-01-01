@@ -16,7 +16,7 @@ import org.dom4j.dom.DOMElement;
 
 import java.util.List;
 
-public abstract class XMLSerializer {
+public abstract class ConfigurationSerializer {
     public abstract DOMElement convertToXML(WebAppConfiguration webAppConfiguration) throws MojoFailureException;
 
     protected DOMElement createResourcesNode(List<Resource> resources) {
