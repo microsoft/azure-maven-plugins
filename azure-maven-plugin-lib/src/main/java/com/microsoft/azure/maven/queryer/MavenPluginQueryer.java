@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for
+ * license information.
+ */
+
 package com.microsoft.azure.maven.queryer;
 
 import org.apache.maven.plugin.MojoFailureException;
@@ -15,11 +21,12 @@ public abstract class MavenPluginQueryer {
                                                List<String> options, String prompt) throws MojoFailureException;
 
     public abstract String assureInputFromUser(String attribute, String defaultValue,
-                                               String regex, String prompt, String errorMessage) throws MojoFailureException;
+                                               String regex, String prompt, String errorMessage)
+        throws MojoFailureException;
 
     public abstract void close();
 
-    public String assureInputFromUser(String attribute, Enum defaultValue,String prompt) throws MojoFailureException {
+    public String assureInputFromUser(String attribute, Enum defaultValue, String prompt) throws MojoFailureException {
         final String defaultValueForAttribute = defaultValue.name();
         final Set<String> optionSet = new HashSet<>();
         for (final Enum option : defaultValue.getClass().getEnumConstants()) {

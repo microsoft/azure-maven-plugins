@@ -1,6 +1,11 @@
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for
+ * license information.
+ */
+
 package com.microsoft.azure.maven.queryer;
 
-import com.microsoft.azure.maven.Utils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
@@ -18,7 +23,7 @@ public class MavenPluginQueryerBatchModeDefaultImpl extends MavenPluginQueryer {
     @Override
     public String assureInputFromUser(String attribute, String defaultValue, List<String> options, String prompt)
         throws MojoFailureException {
-        final String initValue = Utils.getSystemProperty(attribute);
+        final String initValue = System.getProperty(attribute);
         final String input = StringUtils.isNotEmpty(initValue) ? initValue : defaultValue;
         if (validateInputByOptions(input, options)) {
             log.info(String.format("Use %s for %s", input, attribute));
@@ -30,7 +35,7 @@ public class MavenPluginQueryerBatchModeDefaultImpl extends MavenPluginQueryer {
     @Override
     public String assureInputFromUser(String attribute, String defaultValue, String regex, String errorMessage,
                                       String prompt) throws MojoFailureException {
-        final String initValue = Utils.getSystemProperty(attribute);
+        final String initValue = System.getProperty(attribute);
         final String input = StringUtils.isNotEmpty(initValue) ? initValue : defaultValue;
         if (StringUtils.isNotEmpty(input) && validateInputByRegex(input, regex)) {
             log.info(String.format("Use %s for %s", input, attribute));

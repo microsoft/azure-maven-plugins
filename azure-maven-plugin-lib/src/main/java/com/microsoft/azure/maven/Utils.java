@@ -29,9 +29,6 @@ import java.util.List;
  */
 public final class Utils {
 
-    public static String getSystemProperty(String property){
-        return System.getProperty(property);
-    }
     /**
      * Get server credential from Maven settings by server Id.
      *
@@ -107,13 +104,13 @@ public final class Utils {
         }
 
         final MavenResourcesExecution mavenResourcesExecution = new MavenResourcesExecution(
-                resources,
-                new File(targetDirectory),
-                project,
-                "UTF-8",
-                null,
-                Collections.EMPTY_LIST,
-                session
+            resources,
+            new File(targetDirectory),
+            project,
+            "UTF-8",
+            null,
+            Collections.EMPTY_LIST,
+            session
         );
 
         // Configure executor

@@ -7,12 +7,9 @@
 package com.microsoft.azure.maven.appservice;
 
 import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.RuntimeStack;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.maven.plugin.MojoExecutionException;
-
-import java.util.Locale;
 
 public enum PricingTierEnum {
     F1("F1"),
@@ -61,20 +58,19 @@ public enum PricingTierEnum {
         pricingTierBidiMap.put("P3V2", new PricingTier("Premium", "P3V2"));
     }
 
-
     PricingTierEnum(final String pricingTier) {
         this.pricingTier = pricingTier;
     }
 
     public PricingTier toPricingTier() throws MojoExecutionException {
-        if(pricingTierBidiMap.containsKey(pricingTier)){
+        if (pricingTierBidiMap.containsKey(pricingTier)) {
             return pricingTierBidiMap.get(pricingTier);
-        }else{
+        } else {
             throw new MojoExecutionException("Unknown value of the pricingTier, please correct it in pom.xml.");
         }
     }
 
-    public static String getPricingTierStringByPricingTierObject(PricingTier pricingTier){
+    public static String getPricingTierStringByPricingTierObject(PricingTier pricingTier) {
         return pricingTierBidiMap.getKey(pricingTier);
     }
 }
