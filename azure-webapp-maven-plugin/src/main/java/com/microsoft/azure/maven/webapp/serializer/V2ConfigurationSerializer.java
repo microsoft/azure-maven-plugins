@@ -11,28 +11,34 @@ import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import org.apache.maven.plugin.MojoFailureException;
+import org.dom4j.Element;
 import org.dom4j.dom.DOMElement;
 
 public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
     @Override
-    public DOMElement convertToXML(WebAppConfiguration webAppConfiguration) throws MojoFailureException {
-        final DOMElement pluginConfigurationRoot = new DOMElement("configuration");
+    public void saveToXML(WebAppConfiguration webAppConfiguration, Element configurationElement)
+        throws MojoFailureException {
+        createOrUpdateAttribute("schemaVersion", "V2", configurationElement);
+        createOrUpdateAttribute("resourceGroup", webAppConfiguration.getResourceGroup(), configurationElement);
+        createOrUpdateAttribute("appName", webAppConfiguration.getAppName(), configurationElement);
+        createOrUpdateAttribute("region", webAppConfiguration.getRegion().name(), configurationElement);
+        createOrUpdateAttribute("pricingTier",
+            PricingTierEnum.getPricingTierStringByPricingTierObject(webAppConfiguration.getPricingTier()),
+            configurationElement);
 
-        pluginConfigurationRoot.add(XMLUtils.createSimpleElement("schemaVersion", "V2"));
-        pluginConfigurationRoot.add(XMLUtils.createSimpleElement("resourceGroup",
-            webAppConfiguration.getResourceGroup()));
-        pluginConfigurationRoot.add(XMLUtils.createSimpleElement("appName", webAppConfiguration.getAppName()));
-        pluginConfigurationRoot.add(XMLUtils.createSimpleElement("region",
-            webAppConfiguration.getRegion().name()));
-        pluginConfigurationRoot.add(XMLUtils.createSimpleElement("pricingTier",
-            PricingTierEnum.getPricingTierStringByPricingTierObject(webAppConfiguration.getPricingTier())));
-        pluginConfigurationRoot.add(createRunTimeNode(webAppConfiguration));
-        pluginConfigurationRoot.add(createDeploymentNode(webAppConfiguration));
+        XMLUtils.removeNode(configurationElement, "runtime");
+        configurationElement.add(createRunTimeNode(webAppConfiguration));
+
+        XMLUtils.removeNode(configurationElement, "deploymentSlot");
         if (webAppConfiguration.getDeploymentSlotSetting() != null) {
-            pluginConfigurationRoot.add(createDeploymentSlotNode(webAppConfiguration.getDeploymentSlotSetting()));
+            configurationElement.add(createDeploymentSlotNode(webAppConfiguration.getDeploymentSlotSetting()));
         }
-        return pluginConfigurationRoot;
+
+        // only add deployment if user didn't set it
+        if (configurationElement.element("deployment") == null) {
+            configurationElement.add(createDeploymentNode(webAppConfiguration));
+        }
     }
 
     private DOMElement createRunTimeNode(WebAppConfiguration webAppConfiguration) throws MojoFailureException {
@@ -69,9 +75,14 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
     private static DOMElement createDockerRunTimeNode(WebAppConfiguration webAppConfiguration) {
         final DOMElement runtimeRoot = new DOMElement("runtime");
+        runtimeRoot.add(XMLUtils.createSimpleElement("os", "docker"));
         runtimeRoot.add(XMLUtils.createSimpleElement("image", webAppConfiguration.getImage()));
-        runtimeRoot.add(XMLUtils.createSimpleElement("serverId", webAppConfiguration.getServerId()));
-        runtimeRoot.add(XMLUtils.createSimpleElement("registryUrl", webAppConfiguration.getRegistryUrl()));
+        if (webAppConfiguration.getServerId() != null) {
+            runtimeRoot.add(XMLUtils.createSimpleElement("serverId", webAppConfiguration.getServerId()));
+        }
+        if (webAppConfiguration.getRegistryUrl() != null) {
+            runtimeRoot.add(XMLUtils.createSimpleElement("registryUrl", webAppConfiguration.getRegistryUrl()));
+        }
         return runtimeRoot;
     }
 

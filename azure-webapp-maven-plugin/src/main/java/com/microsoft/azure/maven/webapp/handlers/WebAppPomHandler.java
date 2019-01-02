@@ -4,16 +4,15 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.utils;
+package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.serializer.ConfigurationSerializer;
 import com.microsoft.azure.maven.webapp.serializer.V1ConfigurationSerializer;
 import com.microsoft.azure.maven.webapp.serializer.V2ConfigurationSerializer;
-
+import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import org.apache.maven.plugin.MojoFailureException;
-
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -41,11 +40,11 @@ public class WebAppPomHandler {
 
     public boolean hasConfiguration() {
         final Element mavenPlugin = getMavenPluginElement();
-        return mavenPlugin != null && mavenPlugin.elements("configuration") != null;
+        return mavenPlugin != null && mavenPlugin.element("configuration") != null;
     }
 
     public void savePluginConfiguration(WebAppConfiguration configurations) throws IOException,
-            MojoFailureException {
+        MojoFailureException {
         // Serialize config to xml node
         ConfigurationSerializer serializer = null;
         switch (configurations.getSchemaVersion().toLowerCase()) {
@@ -59,7 +58,6 @@ public class WebAppPomHandler {
                 throw new MojoFailureException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
         }
 
-        final DOMElement newConfigurationNode = serializer.convertToXML(configurations);
         Element pluginElement = getMavenPluginElement();
         if (pluginElement == null) {
             // create webapp node in pom
@@ -68,11 +66,8 @@ public class WebAppPomHandler {
             pluginElement = createNewMavenPluginNode();
             pluginsRootNode.add(pluginElement);
         }
-        XMLUtils.combineXMLNode(pluginElement.element("configuration"), newConfigurationNode);
-        // remove deployment slot if user didn't set it
-        if (configurations.getDeploymentSlotSetting() == null) {
-            pluginElement.remove(pluginElement.element("deploymentSlot"));
-        }
+        final Element configuration = XMLUtils.getOrCreateSubElement("configuration", pluginElement);
+        serializer.saveToXML(configurations, configuration);
         XMLUtils.setNamespace(pluginElement, document.getRootElement().getNamespace());
         saveModel();
     }
@@ -82,7 +77,6 @@ public class WebAppPomHandler {
         writer.write(document);
         writer.close();
     }
-
 
     // get webapp maven plugin node from pom
     private Element getMavenPluginElement() {
@@ -105,7 +99,6 @@ public class WebAppPomHandler {
         final Element result = new DOMElement("plugin");
         result.add(XMLUtils.createSimpleElement("groupId", PLUGIN_GROUPID));
         result.add(XMLUtils.createSimpleElement("artifactId", PLUGIN_ARTIFACTID));
-        result.add(new DOMElement("configuration"));
         return result;
     }
 }

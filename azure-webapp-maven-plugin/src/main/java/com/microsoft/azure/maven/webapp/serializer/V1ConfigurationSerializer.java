@@ -10,9 +10,8 @@ import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
-
 import org.apache.maven.plugin.MojoFailureException;
-import org.dom4j.dom.DOMElement;
+import org.dom4j.Element;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,31 +28,28 @@ public class V1ConfigurationSerializer extends ConfigurationSerializer {
     }
 
     @Override
-    public DOMElement convertToXML(WebAppConfiguration webAppConfiguration) throws MojoFailureException {
-        final DOMElement pluginConfigurationRoot = new DOMElement("configuration");
+    public void saveToXML(WebAppConfiguration webAppConfiguration, Element configurationElement)
+        throws MojoFailureException {
+        createOrUpdateAttribute("schemaVersion", "V1", configurationElement);
+        createOrUpdateAttribute("resourceGroup", webAppConfiguration.getResourceGroup(), configurationElement);
+        createOrUpdateAttribute("appName", webAppConfiguration.getAppName(), configurationElement);
+        createOrUpdateAttribute("region", webAppConfiguration.getRegion().name(), configurationElement);
+        createOrUpdateAttribute("pricingTier",
+            PricingTierEnum.getPricingTierStringByPricingTierObject(webAppConfiguration.getPricingTier()),
+            configurationElement);
 
-        pluginConfigurationRoot.add(XMLUtils.createSimpleElement("schemaVersion", "V1"));
-        pluginConfigurationRoot.add(XMLUtils.createSimpleElement("resourceGroup",
-                webAppConfiguration.getResourceGroup()));
-        pluginConfigurationRoot.add(XMLUtils.createSimpleElement("appName", webAppConfiguration.getAppName()));
+        coinfigRuntime(webAppConfiguration, configurationElement);
 
-        if (webAppConfiguration.getRegion() != null) {
-            pluginConfigurationRoot.add(XMLUtils.createSimpleElement("region",
-                    webAppConfiguration.getRegion().name()));
-        }
-        if (webAppConfiguration.getPricingTier() != null) {
-            pluginConfigurationRoot.add(XMLUtils.createSimpleElement("pricingTier",
-                    PricingTierEnum.getPricingTierStringByPricingTierObject(webAppConfiguration.getPricingTier())));
-        }
+        XMLUtils.removeNode(configurationElement, "deploymentSlot");
         if (webAppConfiguration.getDeploymentSlotSetting() != null) {
-            pluginConfigurationRoot.add(createDeploymentSlotNode(webAppConfiguration.getDeploymentSlotSetting()));
+            configurationElement.add(createDeploymentSlotNode(webAppConfiguration.getDeploymentSlotSetting()));
         }
-        coinfigRuntime(webAppConfiguration, pluginConfigurationRoot);
-        return pluginConfigurationRoot;
     }
 
-    private void coinfigRuntime(WebAppConfiguration webAppConfiguration, DOMElement domElement)
-            throws MojoFailureException {
+    private void coinfigRuntime(WebAppConfiguration webAppConfiguration, Element domElement)
+        throws MojoFailureException {
+        // remove old runtime configs
+        removeRuntimeConfigs(domElement);
         switch (webAppConfiguration.getOs()) {
             case Linux:
                 configLinuxRunTime(webAppConfiguration, domElement);
@@ -69,25 +65,35 @@ public class V1ConfigurationSerializer extends ConfigurationSerializer {
         }
     }
 
-    private void configWindowsRunTime(WebAppConfiguration webAppConfiguration, DOMElement domElement) {
+    private void removeRuntimeConfigs(Element domElement) {
+        XMLUtils.removeNode(domElement, "javaVersion");
+        XMLUtils.removeNode(domElement, "webContainer");
+        XMLUtils.removeNode(domElement, "linuxRuntime");
+        XMLUtils.removeNode(domElement, "image");
+        XMLUtils.removeNode(domElement, "serverId");
+        XMLUtils.removeNode(domElement, "registryUrl");
+    }
+
+    private void configWindowsRunTime(WebAppConfiguration webAppConfiguration, Element domElement) {
         domElement.add(XMLUtils.createSimpleElement("javaVersion",
-                webAppConfiguration.getJavaVersion().toString()));
+            webAppConfiguration.getJavaVersion().toString()));
         domElement.add(XMLUtils.createSimpleElement("webContainer",
-                webAppConfiguration.getWebContainer().toString()));
+            webAppConfiguration.getWebContainer().toString()));
     }
 
-    private void configLinuxRunTime(WebAppConfiguration webAppConfiguration, DOMElement domElement)
-            throws MojoFailureException {
+    private void configLinuxRunTime(WebAppConfiguration webAppConfiguration, Element domElement)
+        throws MojoFailureException {
         domElement.add(XMLUtils.createSimpleElement("linuxRuntime",
-                linuxRuntimeStackMap.get(webAppConfiguration.getRuntimeStack())));
+            linuxRuntimeStackMap.get(webAppConfiguration.getRuntimeStack())));
     }
 
-    private void configDockerRunTime(WebAppConfiguration webAppConfiguration, DOMElement domElement) {
+    private void configDockerRunTime(WebAppConfiguration webAppConfiguration, Element domElement) {
         domElement.add(XMLUtils.createSimpleElement("image",
-                webAppConfiguration.getImage()));
+            webAppConfiguration.getImage()));
         domElement.add(XMLUtils.createSimpleElement("serverId",
-                webAppConfiguration.getServerId()));
+            webAppConfiguration.getServerId()));
         domElement.add(XMLUtils.createSimpleElement("registryUrl",
-                webAppConfiguration.getRegistryUrl()));
+            webAppConfiguration.getRegistryUrl()));
     }
+
 }

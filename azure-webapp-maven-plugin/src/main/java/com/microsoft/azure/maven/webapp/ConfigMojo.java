@@ -16,7 +16,7 @@ import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-import com.microsoft.azure.maven.webapp.utils.WebAppPomHandler;
+import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -30,6 +30,11 @@ import java.util.List;
 public class ConfigMojo extends AbstractWebAppMojo {
 
     public static final String NOT_EMPTY_REGEX = "[\\s\\S]+";
+    public static final String BOOLEAN_REGEX = "[YyNn]";
+
+    public static final String CONFIGURATION_FOUND = "Configuration found";
+    public static final String CONFIGURATION_NOT_FOUND = "Configuration not found, init new configuration.";
+    public static final String SAVING_TO_POM = "Saving configuration to pom.";
 
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
@@ -42,14 +47,16 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         WebAppConfiguration configuration;
         if (pomHandler.hasConfiguration()) {
+            info(CONFIGURATION_FOUND);
             configuration = config(getWebAppConfiguration());
         } else {
+            info(CONFIGURATION_NOT_FOUND);
             configuration = initConfig();
         }
         while (!confirmConfiguration(configuration)) {
             configuration = config(configuration);
         }
-
+        info(SAVING_TO_POM);
         pomHandler.savePluginConfiguration(configuration);
         queryer.close();
     }
@@ -99,7 +106,14 @@ public class ConfigMojo extends AbstractWebAppMojo {
             default:
                 throw new MojoExecutionException("The value of <os> is unknown.");
         }
-        final String result = queryer.assureInputFromUser("confirm", "Y", null, "Confirm?(Y/N)", null);
+        System.out.println("Deploy to slot : " + (configuration.getDeploymentSlotSetting() != null));
+        if (configuration.getDeploymentSlotSetting() != null) {
+            final DeploymentSlotSetting slotSetting = configuration.getDeploymentSlotSetting();
+            System.out.println("Slot name : " + slotSetting.getName());
+            System.out.println("ConfigurationSource : " + slotSetting.getConfigurationSource());
+        }
+
+        final String result = queryer.assureInputFromUser("confirm", "Y", BOOLEAN_REGEX, "Confirm?(Y/N): ", null);
         return result.equalsIgnoreCase("Y");
     }
 
@@ -152,10 +166,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
 
         final DeploymentSlotSetting deploymentSlotSetting = configuration.getDeploymentSlotSetting();
-        final String defaultIsSlotDeploy = deploymentSlotSetting == null ? "false" : "true";
-        final String isSlotDeploy = queryer.assureInputFromUser("isSlotDeploy", defaultIsSlotDeploy,
-            Arrays.asList("true", "false"), null);
-        if (isSlotDeploy.equals("false")) {
+        final String defaultIsSlotDeploy = deploymentSlotSetting == null ? "N" : "Y";
+        final String isSlotDeploy = queryer.assureInputFromUser("isSlotDeploy", defaultIsSlotDeploy, BOOLEAN_REGEX,
+            "Deploy to slot?(Y/N): ", null);
+        if (isSlotDeploy.toLowerCase().equals("n")) {
             return builder.deploymentSlotSetting(null).build();
         }
 
@@ -167,7 +181,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultConfigurationSource = deploymentSlotSetting == null ? null :
             deploymentSlotSetting.getConfigurationSource();
         final String configurationSource = queryer.assureInputFromUser("configurationSource",
-            defaultConfigurationSource, null, null);
+            defaultConfigurationSource, null, null, null);
 
         final DeploymentSlotSetting result = new DeploymentSlotSetting();
         result.setName(slotName);
@@ -179,8 +193,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
         throws MojoFailureException, MojoExecutionException {
         WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
 
-        final String os = queryer.assureInputFromUser("os", OperatingSystemEnum.Linux, null);
+        final OperatingSystemEnum defaultOs = configuration.getOs() == null ? OperatingSystemEnum.Linux :
+            configuration.getOs();
+        final String os = queryer.assureInputFromUser("os", defaultOs, null);
         builder.os(OperatingSystemEnum.fromString(os));
+
         switch (os.toLowerCase()) {
             case "linux":
                 builder = getRuntimeConfigurationOfLinux(builder, configuration);
