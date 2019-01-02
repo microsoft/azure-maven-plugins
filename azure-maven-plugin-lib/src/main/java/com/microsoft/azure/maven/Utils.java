@@ -28,6 +28,10 @@ import java.util.List;
  * Utility class
  */
 public final class Utils {
+
+    public static String getSystemProperty(String property){
+        return System.getProperty(property);
+    }
     /**
      * Get server credential from Maven settings by server Id.
      *
