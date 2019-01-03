@@ -6,26 +6,13 @@
 
 package com.microsoft.azure.maven.webapp.serializer;
 
-import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.dom4j.Element;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class V1ConfigurationSerializer extends ConfigurationSerializer {
-
-    private static final Map<RuntimeStack, String> linuxRuntimeStackMap = new HashMap<>();
-
-    static {
-        linuxRuntimeStackMap.put(RuntimeStack.TOMCAT_8_5_JRE8, "tomcat 8.5-jre8");
-        linuxRuntimeStackMap.put(RuntimeStack.TOMCAT_9_0_JRE8, "tomcat 9.0-jre8");
-        linuxRuntimeStackMap.put(RuntimeStack.WILDFLY_14_JRE8, "wildfly 14-jre8");
-        linuxRuntimeStackMap.put(RuntimeStack.JAVA_8_JRE8, "jre8");
-    }
 
     @Override
     public void saveToXML(WebAppConfiguration webAppConfiguration, Element configurationElement)
