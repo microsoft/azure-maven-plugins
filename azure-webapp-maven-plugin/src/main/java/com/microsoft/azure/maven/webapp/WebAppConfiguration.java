@@ -289,7 +289,6 @@ public class WebAppConfiguration {
             this.filtering = value;
             return self();
         }
-
     }
     //endregion
 }

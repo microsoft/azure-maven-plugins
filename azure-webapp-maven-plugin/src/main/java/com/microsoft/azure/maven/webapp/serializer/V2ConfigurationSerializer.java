@@ -35,7 +35,7 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
             configurationElement.add(createDeploymentSlotNode(webAppConfiguration.getDeploymentSlotSetting()));
         }
 
-        // only add deployment if user didn't set it
+        // only add deployment when init
         if (configurationElement.element("deployment") == null) {
             configurationElement.add(createDeploymentNode(webAppConfiguration));
         }
@@ -59,7 +59,7 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
         runtimeRoot.add(XMLUtils.createSimpleElement("os", "linux"));
         runtimeRoot.add(XMLUtils.createSimpleElement("javaVersion", "jre8"));
         runtimeRoot.add(XMLUtils.createSimpleElement("webContainer",
-            RuntimeSetting.getLinuxJavaVersionByRuntimeStack(webAppConfiguration.getRuntimeStack())));
+            RuntimeSetting.getLinuxWebContainerByRuntimeStack(webAppConfiguration.getRuntimeStack())));
         return runtimeRoot;
     }
 

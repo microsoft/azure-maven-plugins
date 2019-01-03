@@ -51,9 +51,9 @@ public class RuntimeSetting {
     public RuntimeStack getLinuxRuntime() throws MojoExecutionException {
         // todo: add unit tests
         if (StringUtils.equalsIgnoreCase(javaVersion, JRE_8)) {
-            final String fixWebContainer = StringUtils.isEmpty(webContainer) ? JRE_8 : webContainer;
-            if (runtimeStackMap.containsKey(fixWebContainer)) {
-                return runtimeStackMap.get(fixWebContainer);
+            final String fixRuntime = StringUtils.isEmpty(webContainer) ? JRE_8 : webContainer;
+            if (runtimeStackMap.containsKey(fixRuntime)) {
+                return runtimeStackMap.get(fixRuntime);
             } else {
                 throw new MojoExecutionException(
                     String.format("Unknown value of <webContainer>. Supported values are %s.",
@@ -71,7 +71,7 @@ public class RuntimeSetting {
         return WebContainer.fromString(webContainer);
     }
 
-    public static String getLinuxJavaVersionByRuntimeStack(RuntimeStack runtimeStack) {
+    public static String getLinuxWebContainerByRuntimeStack(RuntimeStack runtimeStack) {
         return runtimeStackMap.getKey(runtimeStack);
     }
 
