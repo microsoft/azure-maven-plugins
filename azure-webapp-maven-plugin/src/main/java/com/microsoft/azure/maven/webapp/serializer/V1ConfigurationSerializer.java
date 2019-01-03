@@ -83,7 +83,7 @@ public class V1ConfigurationSerializer extends ConfigurationSerializer {
 
     private void configLinuxRunTime(WebAppConfiguration webAppConfiguration, Element domElement) {
         domElement.add(XMLUtils.createSimpleElement("linuxRuntime",
-            linuxRuntimeStackMap.get(webAppConfiguration.getRuntimeStack())));
+            webAppConfiguration.getRuntimeStack().toString()));
     }
 
     private void configDockerRunTime(WebAppConfiguration webAppConfiguration, Element domElement) {
