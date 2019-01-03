@@ -74,20 +74,8 @@ public class RuntimeSetting {
         return WebContainer.fromString(webContainer);
     }
 
-    public static List<String> getValidLinuxRuntime() {
-        return new ArrayList<>(runtimeStackMap.keySet());
-    }
-
-    public static String getDefaultLinuxRuntimeStack(){
-        return JRE_8;
-    }
-
     public static String getLinuxJavaVersionByRuntimeStack(RuntimeStack runtimeStack) {
         return runtimeStackMap.getKey(runtimeStack);
-    }
-
-    public static RuntimeStack getLinuxRuntimeStackByJavaVersion(String javaVersion){
-        return runtimeStackMap.get(javaVersion);
     }
 
     public String getImage() {
