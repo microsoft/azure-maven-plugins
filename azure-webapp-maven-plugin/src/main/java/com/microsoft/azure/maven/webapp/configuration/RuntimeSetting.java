@@ -14,9 +14,6 @@ import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Runtime Setting
  */
