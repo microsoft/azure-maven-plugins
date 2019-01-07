@@ -128,72 +128,42 @@ public class AddServiceMojo extends AbstractMojo{
         if (!Utils.checkIfExists(serviceFabricResourcesDirectory)){
             throw new MojoFailureException("Service fabric resources folder does not exist." +
                 "Please run init goal before running this goal!");
-        } else {
-            if (!Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "app_" + applicationName + ".yaml"))){
-                throw new MojoFailureException(String.format("Application resource" +
-                    "with the name %s does not exist", applicationName));
+        }
+        if (!Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "app_" + applicationName + ".yaml"))){
+            throw new MojoFailureException(String.format("Application resource" +
+                "with the name %s does not exist", applicationName));
+        }
+        if (Utils.checkIfExists(serviceDirectory)){
+            throw new MojoFailureException("Service Resource with the specified name already exists");
+        }
+        String serviceContent = new YamlContent.Builder()
+                .addElement("SCHEMA_VERSION", schemaVersion)
+                .addElement("APP_NAME", applicationName)
+                .addElement("SERVICE_NAME", serviceName)
+                .addElement("SERVICE_DESCRIPTION", serviceDescription)
+                .addElement("OS_TYPE", getOS())
+                .addElement("CODE_PACKAGE_NAME", getCodePackageName())
+                .addElement("DOCKER_IMAGE", imageName)
+                .addElement("LISTENER_NAME", getListenerName())
+                .addElement("LISTENER_PORT", listenerPort)
+                .addElement("CPU_USAGE", cpuUsage)
+                .addElement("MEMORY_USAGE", memoryUsage)
+                .addElement("REPLICA_COUNT", replicaCount)
+                .addElement("NETWORK_NAME", networkRef)
+                .build(logger, Constants.SERVICE_RESOURCE_NAME);
+        try{
+            if (!enviromentalVariables.equals(Constants.DEFAULT_ENVIRONMENTAL_VARIABLES)){
+                serviceContent = addEnvironmentVariables(logger, serviceContent, enviromentalVariables);
             }
-            if (Utils.checkIfExists(serviceDirectory)){
-                throw new MojoFailureException("Service Resource with the specified name already exists");
-            }
-            try {
-                final InputStream resource =
-                    this.getClass().getClassLoader().getResourceAsStream(Constants.SERVICE_RESOURCE_NAME);
-                String serviceContent = IOUtil.toString(resource, "UTF-8"); 
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "SCHEMA_VERSION", schemaVersion, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "APP_NAME", applicationName, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "SERVICE_NAME", serviceName, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "SERVICE_DESCRIPTION", serviceDescription, Constants.SERVICE_RESOURCE_NAME);
-                if (osType.equals(Constants.DEFAULT_OS)){
-                    if (Utils.isLinux()){
-                        osType = Constants.LINUX_OS;
-                    } else {
-                        osType = Constants.WINDOWS_OS;
-                    }
-                }
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "OS_TYPE", osType, Constants.SERVICE_RESOURCE_NAME);
-                if (codePackageName.equals(Constants.DEFAULT_CODE_PACKAGE_NAME)){
-                    codePackageName = serviceName + "CodePackage";
-                }
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "CODE_PACKAGE_NAME", codePackageName, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "DOCKER_IMAGE", imageName, Constants.SERVICE_RESOURCE_NAME);
-                if (listenerName.equals(Constants.DEFAULT_LISTENER_NAME)){
-                    listenerName = serviceName + "Listener";
-                }
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "LISTENER_NAME", listenerName, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "LISTENER_PORT", listenerPort, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "CPU_USAGE", cpuUsage, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "MEMORY_USAGE", memoryUsage, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "REPLICA_COUNT", replicaCount, Constants.SERVICE_RESOURCE_NAME);
-                serviceContent = Utils.replaceString(logger, serviceContent,
-                    "NETWORK_NAME", networkRef, Constants.SERVICE_RESOURCE_NAME);
-
-                if (!enviromentalVariables.equals(Constants.DEFAULT_ENVIRONMENTAL_VARIABLES)){
-                    serviceContent = addEnvironmentVariables(logger, serviceContent, enviromentalVariables);
-                }
-                Utils.createDirectory(logger, serviceDirectory);
-                FileUtils.fileWrite(Utils.getPath(serviceDirectory,
-                    "service_" + serviceName + ".yaml"), serviceContent);
-                logger.debug(String.format("Wrote %s service content to output", serviceName));
-                TelemetryHelper.sendEvent(TelemetryEventType.ADDSERVICE,
-                    String.format("Added service with name: %s", serviceName), logger);
-            } catch (IOException e) {
-                logger.error(e);
-                throw new MojoFailureException("Error while writing output");
-            }
-    
+            Utils.createDirectory(logger, serviceDirectory);
+            FileUtils.fileWrite(Utils.getPath(serviceDirectory,
+                "service_" + serviceName + ".yaml"), serviceContent);
+            logger.debug(String.format("Wrote %s service content to output", serviceName));
+            TelemetryHelper.sendEvent(TelemetryEventType.ADDSERVICE,
+                String.format("Added service with name: %s", serviceName), logger);
+        } catch (IOException e) {
+            logger.error(e);
+            throw new MojoFailureException("Error while writing output");
         }
     }
 
@@ -233,5 +203,30 @@ public class AddServiceMojo extends AbstractMojo{
         application.replace("application", applicationProperties);
         map.replace("application", application);
         return Utils.yamlToString(map);
+    }
+
+    String getOS(){
+        if (osType.equals(Constants.DEFAULT_OS)){
+            if (Utils.isLinux()){
+                osType = Constants.LINUX_OS;
+            } else {
+                osType = Constants.WINDOWS_OS;
+            }
+        }
+        return osType;
+    }
+
+    String getCodePackageName(){
+        if (codePackageName.equals(Constants.DEFAULT_CODE_PACKAGE_NAME)){
+            codePackageName = serviceName + "CodePackage";
+        }
+        return codePackageName;
+    }
+
+    String getListenerName(){
+        if (listenerName.equals(Constants.DEFAULT_LISTENER_NAME)){
+            listenerName = serviceName + "Listener";
+        }
+        return listenerName;
     }
 }

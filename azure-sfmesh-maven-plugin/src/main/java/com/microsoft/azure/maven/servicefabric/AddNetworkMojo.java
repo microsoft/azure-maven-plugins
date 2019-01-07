@@ -67,33 +67,27 @@ public class AddNetworkMojo extends AbstractMojo{
         if (!Utils.checkIfExists(serviceFabricResourcesDirectory)){
             throw new MojoFailureException("Service fabric resources folder does" +
                 "not exist. Please run init goal before running this goal!");
-        } else {
-            if (Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "network_" + networkName + ".yaml"))){
-                throw new MojoFailureException("Network Resource with the specified name already exists");
-            }
-            final InputStream resource = 
-                this.getClass().getClassLoader().getResourceAsStream(Constants.NETWORK_RESOURCE_NAME);
-            try {
-                String networkContent = IOUtil.toString(resource, "UTF-8");
-                networkContent = Utils.replaceString(logger, networkContent, "SCHEMA_VERSION",
-                    schemaVersion, Constants.NETWORK_RESOURCE_NAME);
-                networkContent = Utils.replaceString(logger, networkContent, "NETWORK_NAME",
-                    networkName, Constants.NETWORK_RESOURCE_NAME);
-                networkContent = Utils.replaceString(logger, networkContent, "NETWORK_DESCRIPTION",
-                    networkDescription, Constants.NETWORK_RESOURCE_NAME);
-                networkContent = Utils.replaceString(logger, networkContent, "ADDRESS_PREFIX",
-                    networkAddressPrefix, Constants.NETWORK_RESOURCE_NAME);
-                networkContent = Utils.replaceString(logger, networkContent, "NETWORK_KIND",
-                    networkKind, Constants.NETWORK_RESOURCE_NAME);
-                FileUtils.fileWrite(Utils.getPath(appResourcesDirectory,
-                    "network_" + networkName + ".yaml"), networkContent);
-                logger.debug(String.format("Wrote %s network content to output", networkName));
-                TelemetryHelper.sendEvent(TelemetryEventType.ADDNETWORK,
-                    String.format("Added network with name: %s", networkName), logger);
-            } catch (IOException e) {
-                logger.error(e);
-                throw new MojoFailureException("Error while writing output");
-            } 
+        }
+        if (Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "network_" + networkName + ".yaml"))){
+            throw new MojoFailureException("Network Resource with the specified name already exists");
+        }
+
+        String networkContent = new YamlContent.Builder()
+                .addElement("SCHEMA_VERSION", schemaVersion)
+                .addElement("NETWORK_NAME", networkName)
+                .addElement("NETWORK_DESCRIPTION", networkDescription)
+                .addElement("ADDRESS_PREFIX", networkAddressPrefix)
+                .addElement("NETWORK_KIND", networkKind)
+                .build(logger, Constants.NETWORK_RESOURCE_NAME);
+        try {
+            FileUtils.fileWrite(Utils.getPath(appResourcesDirectory,
+                "network_" + networkName + ".yaml"), networkContent);
+            logger.debug(String.format("Wrote %s network content to output", networkName));
+            TelemetryHelper.sendEvent(TelemetryEventType.ADDNETWORK,
+                String.format("Added network with name: %s", networkName), logger);
+        } catch (IOException e) {
+            logger.error(e);
+            throw new MojoFailureException("Error while writing output");
         }
     }
 }

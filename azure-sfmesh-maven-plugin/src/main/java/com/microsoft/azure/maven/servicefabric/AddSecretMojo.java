@@ -67,33 +67,27 @@ public class AddSecretMojo extends AbstractMojo {
         if (!Utils.checkIfExists(serviceFabricResourcesDirectory)){
             throw new MojoFailureException("Service fabric resources folder " + 
                 "does not exist. Please run init goal before running this goal!");
-        } else {
-            if (Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "secret_" + secretName + ".yaml"))){
-                throw new MojoFailureException("Secret Resource with the specified name already exists");
-            }
-            final InputStream resource = 
-                this.getClass().getClassLoader().getResourceAsStream(Constants.SECRET_RESOURCE_NAME);
-            try {
-                String secretContent = IOUtil.toString(resource, "UTF-8");
-                secretContent = Utils.replaceString(logger, secretContent,
-                    "SCHEMA_VERSION", schemaVersion, Constants.SECRET_RESOURCE_NAME);
-                secretContent = Utils.replaceString(logger, secretContent,
-                    "SECRET_NAME", secretName, Constants.SECRET_RESOURCE_NAME);
-                secretContent = Utils.replaceString(logger, secretContent,
-                    "SECRET_DESCRIPTION", secretDescription, Constants.SECRET_RESOURCE_NAME);
-                secretContent = Utils.replaceString(logger, secretContent,
-                    "SECRET_CONTENT_TYPE", secretContentType, Constants.SECRET_RESOURCE_NAME);
-                secretContent = Utils.replaceString(logger, secretContent,
-                    "SECRET_KIND", secretKind, Constants.SECRET_RESOURCE_NAME);
-                FileUtils.fileWrite(Utils.getPath(appResourcesDirectory,
-                    "secret_" + secretName + ".yaml"), secretContent);
-                logger.debug(String.format("Wrote %s secret content to output", secretName));
-                TelemetryHelper.sendEvent(TelemetryEventType.ADDSECRET,
-                    String.format("Added secret with name: %s", secretName), logger);
-            } catch (IOException e) {
-                logger.error(e);
-                throw new MojoFailureException("Error while writing output");
-            } 
+        }
+        if (Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "secret_" + secretName + ".yaml"))){
+            throw new MojoFailureException("Secret Resource with the specified name already exists");
+        }
+
+        String secretContent = new YamlContent.Builder()
+                .addElement("SCHEMA_VERSION", schemaVersion)
+                .addElement("SECRET_NAME", secretName)
+                .addElement("SECRET_DESCRIPTION", secretDescription)
+                .addElement("SECRET_CONTENT_TYPE", secretContentType)
+                .addElement("SECRET_KIND", secretKind)
+                .build(logger, Constants.SECRET_RESOURCE_NAME);
+        try {
+            FileUtils.fileWrite(Utils.getPath(appResourcesDirectory,
+                "secret_" + secretName + ".yaml"), secretContent);
+            logger.debug(String.format("Wrote %s secret content to output", secretName));
+            TelemetryHelper.sendEvent(TelemetryEventType.ADDSECRET,
+                String.format("Added secret with name: %s", secretName), logger);
+        } catch (IOException e) {
+            logger.error(e);
+            throw new MojoFailureException("Error while writing output");
         }
     }
 }

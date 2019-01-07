@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.servicefabric;
 
+import com.microsoft.azure.maven.servicefabric.YamlContent;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -61,16 +62,13 @@ public class InitMojo extends AbstractMojo{
         if (!Utils.checkIfExists(appResourcesDirectory)){
             Utils.createDirectory(logger, appResourcesDirectory);
         }
+
+        String appContent = new YamlContent.Builder()
+                .addElement("SCHEMA_VERSION", schemaVersion)
+                .addElement("APP_NAME", applicationName)
+                .addElement("APP_DESCRIPTION", applicationDescription)
+                .build(logger, Constants.APPLICATION_RESOURCE_NAME);
         try {
-            final InputStream resource = 
-                this.getClass().getClassLoader().getResourceAsStream(Constants.APPLICATION_RESOURCE_NAME);
-            String appContent = IOUtil.toString(resource, "UTF-8"); 
-            appContent = Utils.replaceString(logger, appContent, "SCHEMA_VERSION",
-                schemaVersion, Constants.APPLICATION_RESOURCE_NAME);
-            appContent = Utils.replaceString(logger, appContent, "APP_NAME",
-                applicationName, Constants.APPLICATION_RESOURCE_NAME);
-            appContent = Utils.replaceString(logger, appContent, "APP_DESCRIPTION",
-                applicationDescription, Constants.APPLICATION_RESOURCE_NAME);
             final String appYamlPath = Utils.getPath(appResourcesDirectory, "app_" + applicationName + ".yaml");
             if (Utils.checkIfExists(appYamlPath)){
                 throw new MojoFailureException(String.format("App resource with the " +

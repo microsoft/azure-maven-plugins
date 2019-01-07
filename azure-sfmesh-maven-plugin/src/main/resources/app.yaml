@@ -3,4 +3,4 @@ application:
   schemaVersion: SCHEMA_VERSION
   name: APP_NAME
   properties:
-    description: APP_DESCRIPTION 
+    description: APP_DESCRIPTION

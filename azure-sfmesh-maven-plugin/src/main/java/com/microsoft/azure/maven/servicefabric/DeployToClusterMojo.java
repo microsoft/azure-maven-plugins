@@ -53,14 +53,14 @@ public class DeployToClusterMojo extends AbstractMojo{
         if (inputYamlFiles.equals(Constants.SERVICE_FABRIC_RESOURCES_PATH)){
             inputYamlFiles = Utils.getServicefabricResourceDirectory(logger, project);
         }
-        Utils.checksfctlinstallation(logger);
+        Utils.checkSfctlInstallation(logger);
         if (pemFilePath.equalsIgnoreCase(Constants.DEFAULT_PEM_FILE_PATH)){
-            Utils.connecttounsecurecluster(logger, clusterEndpoint);
+            Utils.connectToUnSecureCluster(logger, clusterEndpoint);
             Utils.executeCommand(logger, "sfctl mesh deployment create --input-yaml-files " + inputYamlFiles);
             TelemetryHelper.sendEvent(TelemetryEventType.DEPLOYLOCAL, String.format("Deployed " +
                 "application locally"), logger);
         } else {
-            Utils.connecttosecurecluster(logger, clusterEndpoint, pemFilePath);
+            Utils.connectToSecureCluster(logger, clusterEndpoint, pemFilePath);
             Utils.executeCommand(logger, "sfctl mesh deployment create --input-yaml-files " + inputYamlFiles);
             TelemetryHelper.sendEvent(TelemetryEventType.DEPLOYSFRP, String.format("Deployed " +
                 "application to SFRP"), logger);

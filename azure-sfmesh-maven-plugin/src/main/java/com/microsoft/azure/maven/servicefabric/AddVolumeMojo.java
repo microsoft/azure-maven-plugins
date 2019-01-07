@@ -79,37 +79,30 @@ public class AddVolumeMojo extends AbstractMojo{
         if (!Utils.checkIfExists(serviceFabricResourcesDirectory)){
             throw new MojoFailureException("Service fabric resources folder does not exist." +
                 " Please run init goal before running this goal!");
-        } else {
-            if (Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "volume_" + volumeName + ".yaml"))){
-                throw new MojoFailureException("Volume Resource with the specified name already exists");
-            }
-            final InputStream resource =
-                this.getClass().getClassLoader().getResourceAsStream(Constants.VOLUME_RESOURCE_NAME);
-            try {
-                String volumeContent = IOUtil.toString(resource, "UTF-8");
-                volumeContent = Utils.replaceString(logger, volumeContent,
-                    "SCHEMA_VERSION", schemaVersion, Constants.VOLUME_RESOURCE_NAME);
-                volumeContent = Utils.replaceString(logger, volumeContent,
-                    "VOLUME_NAME", volumeName, Constants.VOLUME_RESOURCE_NAME);
-                volumeContent = Utils.replaceString(logger, volumeContent,
-                    "VOLUME_DESCRIPTION", volumeDescription, Constants.VOLUME_RESOURCE_NAME);
-                volumeContent = Utils.replaceString(logger, volumeContent,
-                    "VOLUME_PROVIDER", volumeProvider, Constants.VOLUME_RESOURCE_NAME);
-                volumeContent = Utils.replaceString(logger, volumeContent,
-                    "VOLUME_ACCOUNT_NAME", volumeAccountName, Constants.VOLUME_RESOURCE_NAME);
-                volumeContent = Utils.replaceString(logger, volumeContent,
-                    "VOLUME_ACCOUNT_KEY", volumeAccountKey, Constants.VOLUME_RESOURCE_NAME);
-                volumeContent = Utils.replaceString(logger, volumeContent,
-                    "VOLUME_SHARE_NAME", volumeShareName, Constants.VOLUME_RESOURCE_NAME);
-                FileUtils.fileWrite(Utils.getPath(appResourcesDirectory,
-                    "volume_" + volumeName + ".yaml"), volumeContent);
-                logger.debug(String.format("Wrote %s volume content to output", volumeName));
-                TelemetryHelper.sendEvent(TelemetryEventType.ADDVOLUME,
-                    String.format("Added volume with name: %s", volumeName), logger);
-            } catch (IOException e) {
-                logger.error(e);
-                throw new MojoFailureException("Error while writing output");
-            } 
+        }
+        if (Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "volume_" + volumeName + ".yaml"))){
+            throw new MojoFailureException("Volume Resource with the specified name already exists");
+        }
+
+        String volumeContent = new YamlContent.Builder()
+                .addElement("SCHEMA_VERSION", schemaVersion)
+                .addElement("VOLUME_NAME", volumeName)
+                .addElement("VOLUME_DESCRIPTION", volumeDescription)
+                .addElement("VOLUME_PROVIDER", volumeProvider)
+                .addElement("VOLUME_ACCOUNT_NAME", volumeAccountName)
+                .addElement("VOLUME_ACCOUNT_KEY", volumeAccountKey)
+                .addElement("VOLUME_SHARE_NAME", volumeShareName)
+                .build(logger, Constants.VOLUME_RESOURCE_NAME);
+
+        try {
+            FileUtils.fileWrite(Utils.getPath(appResourcesDirectory,
+                "volume_" + volumeName + ".yaml"), volumeContent);
+            logger.debug(String.format("Wrote %s volume content to output", volumeName));
+            TelemetryHelper.sendEvent(TelemetryEventType.ADDVOLUME,
+                String.format("Added volume with name: %s", volumeName), logger);
+        } catch (IOException e) {
+            logger.error(e);
+            throw new MojoFailureException("Error while writing output");
         }
     }
 }

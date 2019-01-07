@@ -45,9 +45,8 @@ public class Utils{
     public static boolean checkIfExists(String path){
         if (Files.exists(Paths.get(path))){
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public static void deleteFileOrDirectory(String path, Log logger) throws MojoFailureException {
@@ -118,39 +117,7 @@ public class Utils{
         }
     }
 
-    public static String executeCommand(Log logger, String[] command) throws MojoFailureException{
-        try {
-            logger.info(String.format("Executing command %s", Arrays.toString(command)));
-            final Process p;
-            p = Runtime.getRuntime().exec(command);
-            p.waitFor();
-            final int exitCode = p.exitValue();
-            final String stderr = IOUtil.toString(p.getErrorStream(), "UTF-8");
-            final String stdout = IOUtil.toString(p.getInputStream(), "UTF-8");
-            logger.debug(String.format("STDOUT: %s", stdout));
-            if (stderr != null && stderr.length() > 0){
-                if (exitCode != 0){
-                    logger.error(String.format("Process exited with exit code %d", exitCode));
-                    logger.error(String.format("STDERR: %s", stderr));
-                    throw new MojoFailureException(String.format("Error" +
-                        "while running the %s command", Arrays.toString(command)));
-                } else {
-                    logger.info(String.format("STDERR: %s", stderr));
-                }
-            }
-            return stdout;
-        } catch (IOException e){
-            logger.error(e);
-            throw new MojoFailureException(String.format("Error while " +
-                "running the %s command", Arrays.toString(command)));
-        } catch (InterruptedException e) {
-            logger.error(e);
-            throw new MojoFailureException(String.format("Interrupted while " +
-                "running command %s", Arrays.toString(command)));
-        }
-    }
-
-    public static void checksfctlinstallation(Log logger) throws MojoFailureException{
+    public static void checkSfctlInstallation(Log logger) throws MojoFailureException{
         if (Utils.isWindows()){
             Utils.executeCommand(logger, "sfctl --help  > NUL 2>&1");
         } else {
@@ -158,7 +125,7 @@ public class Utils{
         }
     }
 
-    public static void checkazinstallation(Log logger) throws MojoFailureException{
+    public static void checkAzInstallation(Log logger) throws MojoFailureException{
         if (Utils.isWindows()){
             Utils.executeCommand(logger, "az mesh --help > NUL 2>&1");
         } else {
@@ -166,12 +133,12 @@ public class Utils{
         }
     }
 
-    public static void connecttounsecurecluster(Log logger,
+    public static void connectToUnSecureCluster(Log logger,
         String endpoint) throws MojoFailureException{
         Utils.executeCommand(logger, "sfctl cluster select --endpoint " + endpoint);
     }
 
-    public static void connecttosecurecluster(Log logger, String endpoint,
+    public static void connectToSecureCluster(Log logger, String endpoint,
         String pempath) throws MojoFailureException{
         Utils.executeCommand(logger, "sfctl cluster select --endpoint " +
             endpoint + "--pem " + pempath);

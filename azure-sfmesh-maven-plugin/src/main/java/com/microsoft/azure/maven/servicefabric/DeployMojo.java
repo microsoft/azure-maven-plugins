@@ -54,7 +54,7 @@ public class DeployMojo extends AbstractMojo{
             inputYamlFiles = Utils.getServicefabricResourceDirectory(logger, project);
         }
 
-        Utils.checkazinstallation(logger);
+        Utils.checkAzInstallation(logger);
 
         if (resourceGroup.equals(Constants.DEFAULT_RESOURCE_GROUP)){
             throw new MojoFailureException("Resource group is not provided. Please provide a resource group name");

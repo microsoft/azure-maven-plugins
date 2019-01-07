@@ -100,47 +100,38 @@ public class AddGatewayMojo extends AbstractMojo {
         if (!Utils.checkIfExists(serviceFabricResourcesDirectory)){
             throw new MojoFailureException("Service fabric resources folder does not exist" +
                 " Please run init goal before running this goal!");
-        } else {
-            if (Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "gateway_" + gatewayName + ".yaml"))){
-                throw new MojoFailureException("Gateway Resource with the specified name already exists");
-            }
-            final InputStream resource =
-                this.getClass().getClassLoader().getResourceAsStream(Constants.GATEWAY_RESOURCE_NAME);
-
-            try {
-                String gatewayContent = IOUtil.toString(resource, "UTF-8");
-                gatewayContent = Utils.replaceString(logger, gatewayContent,
-                    "SCHEMA_VERSION", schemaVersion, Constants.GATEWAY_RESOURCE_NAME);
-                gatewayContent = Utils.replaceString(logger, gatewayContent,
-                    "GATEWAY_NAME", gatewayName, Constants.GATEWAY_RESOURCE_NAME);
-                gatewayContent = Utils.replaceString(logger, gatewayContent,
-                    "GATEWAY_DESCRIPTION", gatewayDescription, Constants.GATEWAY_RESOURCE_NAME);
-                gatewayContent = Utils.replaceString(logger, gatewayContent,
-                    "SOURCE_NETWORK", sourceNetwork, Constants.GATEWAY_RESOURCE_NAME);
-                gatewayContent = Utils.replaceString(logger, gatewayContent,
-                    "DESTINATION_NETWORK", destinationNetwork, Constants.GATEWAY_RESOURCE_NAME);
-                if (tcpName.equals(Constants.DEFAULT_TCP_NAME)){
-                    tcpName = listenerName + "Config";
-                }
-                gatewayContent = Utils.replaceString(logger, gatewayContent,
-                    "TCP_NAME", tcpName, Constants.GATEWAY_RESOURCE_NAME);
-                gatewayContent = Utils.replaceString(logger, gatewayContent,
-                    "PORT", tcpPort, Constants.GATEWAY_RESOURCE_NAME);
-                gatewayContent = Utils.replaceString(logger, gatewayContent,
-                    "APPLICATION_NAME", applicationName, Constants.GATEWAY_RESOURCE_NAME);
-                gatewayContent = Utils.replaceString(logger, gatewayContent,
-                    "SERVICE_NAME", serviceName, Constants.GATEWAY_RESOURCE_NAME);
-                gatewayContent = Utils.replaceString(logger, gatewayContent,
-                    "LISTENER_NAME", listenerName, Constants.GATEWAY_RESOURCE_NAME);
-                FileUtils.fileWrite(Utils.getPath(appResourcesDirectory,
-                    "gateway_" + gatewayName + ".yaml"), gatewayContent);
-                logger.debug(String.format("Wrote %s gateway content to output", gatewayName));
-                TelemetryHelper.sendEvent(TelemetryEventType.ADDGATEWAY,
-                    String.format("Added gateway with name: %s", gatewayName), logger);
-            } catch (IOException e) {
-                logger.error(e);
-                throw new MojoFailureException("Error while writing output");
-            } 
         }
+        if (Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "gateway_" + gatewayName + ".yaml"))){
+            throw new MojoFailureException("Gateway Resource with the specified name already exists");
+        }
+
+        String gatewayContent = new YamlContent.Builder()
+                .addElement("SCHEMA_VERSION", schemaVersion)
+                .addElement("GATEWAY_NAME", gatewayName)
+                .addElement("GATEWAY_DESCRIPTION", gatewayDescription)
+                .addElement("SOURCE_NETWORK", sourceNetwork)
+                .addElement("DESTINATION_NETWORK", destinationNetwork)
+                .addElement("TCP_NAME", getTcpName())
+                .addElement("PORT", tcpPort)
+                .addElement("APPLICATION_NAME", applicationName)
+                .addElement("SERVICE_NAME", serviceName)
+                .addElement("LISTENER_NAME", listenerName)
+                .build(logger, Constants.GATEWAY_RESOURCE_NAME);
+        try {
+            FileUtils.fileWrite(Utils.getPath(appResourcesDirectory,
+                "gateway_" + gatewayName + ".yaml"), gatewayContent);
+            logger.debug(String.format("Wrote %s gateway content to output", gatewayName));
+            TelemetryHelper.sendEvent(TelemetryEventType.ADDGATEWAY,
+                String.format("Added gateway with name: %s", gatewayName), logger);
+        } catch (IOException e) {
+            logger.error(e);
+            throw new MojoFailureException("Error while writing output");
+        }
+    }
+    String getTcpName(){
+        if (tcpName.equals(Constants.DEFAULT_TCP_NAME)){
+            tcpName = listenerName + "Config";
+        }
+        return tcpName;
     }
 }
