@@ -14,10 +14,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Goal which adds a network resource to a project.
@@ -72,7 +70,7 @@ public class AddNetworkMojo extends AbstractMojo{
             throw new MojoFailureException("Network Resource with the specified name already exists");
         }
 
-        String networkContent = new YamlContent.Builder()
+        final String networkContent = new YamlContent.Builder()
                 .addElement("SCHEMA_VERSION", schemaVersion)
                 .addElement("NETWORK_NAME", networkName)
                 .addElement("NETWORK_DESCRIPTION", networkDescription)

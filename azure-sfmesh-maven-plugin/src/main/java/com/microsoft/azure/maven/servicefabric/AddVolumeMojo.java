@@ -14,10 +14,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Goal which adds a volume resource to a project.
@@ -84,7 +82,7 @@ public class AddVolumeMojo extends AbstractMojo{
             throw new MojoFailureException("Volume Resource with the specified name already exists");
         }
 
-        String volumeContent = new YamlContent.Builder()
+        final String volumeContent = new YamlContent.Builder()
                 .addElement("SCHEMA_VERSION", schemaVersion)
                 .addElement("VOLUME_NAME", volumeName)
                 .addElement("VOLUME_DESCRIPTION", volumeDescription)

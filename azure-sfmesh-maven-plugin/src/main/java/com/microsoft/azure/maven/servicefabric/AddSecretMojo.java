@@ -14,10 +14,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Goal which adds a secret resource to a project.
@@ -72,7 +70,7 @@ public class AddSecretMojo extends AbstractMojo {
             throw new MojoFailureException("Secret Resource with the specified name already exists");
         }
 
-        String secretContent = new YamlContent.Builder()
+        final String secretContent = new YamlContent.Builder()
                 .addElement("SCHEMA_VERSION", schemaVersion)
                 .addElement("SECRET_NAME", secretName)
                 .addElement("SECRET_DESCRIPTION", secretDescription)

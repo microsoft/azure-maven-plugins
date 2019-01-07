@@ -14,8 +14,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 
 public class YamlContent {
     public static class Builder{
@@ -27,33 +25,33 @@ public class YamlContent {
         }
 
         public String build(Log logger, String resourceName) throws MojoFailureException {
-            String replacedYamlContent="";
-            try{
-                final InputStream inputStream =
-                this.getClass().getClassLoader().getResourceAsStream(resourceName);
+            String replacedYamlContent = "";
+            try {
+                final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(resourceName);
                 final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                while(reader.ready()){
-                    String line = reader.readLine().replace("\n", "");
-                    String wordToReplace = line.substring(line.lastIndexOf(" ") + 1);
-                    if(properties.containsKey(wordToReplace)){
-                        logger.debug(String.format("Replacing %s with %s", wordToReplace, properties.get(wordToReplace)));
-                        replacedYamlContent+= line.replace(wordToReplace, properties.get(wordToReplace));
+                while (reader.ready()){
+                    final String line = reader.readLine().replace("\n", "");
+                    final String wordToReplace = line.substring(line.lastIndexOf(" ") + 1);
+                    if (properties.containsKey(wordToReplace)){
+                        logger.debug(String.format("Replacing %s with %s", wordToReplace,
+                            properties.get(wordToReplace)));
+                        replacedYamlContent += line.replace(wordToReplace, properties.get(wordToReplace));
+                    } else {
+                        replacedYamlContent += line;
                     }
-                    else{
-                        replacedYamlContent+= line;
-                    }
-                    replacedYamlContent+="\n";
+                    replacedYamlContent += "\n";
                 }
                 reader.close();
                 inputStream.close();
-            }
-            catch(IOException e){
+            } catch (IOException e){
                 logger.error(e);
-                throw new MojoFailureException(String.format("Error while building %s resource", resourceName));
+                throw new MojoFailureException(String.format("Error while building " +
+                    "%s resource", resourceName));
             }
             return replacedYamlContent;
         }
     }
+
     private YamlContent(){
     }
 }

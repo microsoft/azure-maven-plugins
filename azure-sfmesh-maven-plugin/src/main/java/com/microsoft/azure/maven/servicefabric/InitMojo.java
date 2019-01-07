@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.servicefabric;
 
-import com.microsoft.azure.maven.servicefabric.YamlContent;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -15,10 +14,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Goal which creates initial application resource of a project.
@@ -63,7 +60,7 @@ public class InitMojo extends AbstractMojo{
             Utils.createDirectory(logger, appResourcesDirectory);
         }
 
-        String appContent = new YamlContent.Builder()
+        final String appContent = new YamlContent.Builder()
                 .addElement("SCHEMA_VERSION", schemaVersion)
                 .addElement("APP_NAME", applicationName)
                 .addElement("APP_DESCRIPTION", applicationDescription)

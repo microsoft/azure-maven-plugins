@@ -14,10 +14,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
@@ -151,7 +149,7 @@ public class AddServiceMojo extends AbstractMojo{
                 .addElement("REPLICA_COUNT", replicaCount)
                 .addElement("NETWORK_NAME", networkRef)
                 .build(logger, Constants.SERVICE_RESOURCE_NAME);
-        try{
+        try {
             if (!enviromentalVariables.equals(Constants.DEFAULT_ENVIRONMENTAL_VARIABLES)){
                 serviceContent = addEnvironmentVariables(logger, serviceContent, enviromentalVariables);
             }

@@ -14,10 +14,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Goal which adds a gateway resource to a project.
@@ -105,7 +103,7 @@ public class AddGatewayMojo extends AbstractMojo {
             throw new MojoFailureException("Gateway Resource with the specified name already exists");
         }
 
-        String gatewayContent = new YamlContent.Builder()
+        final String gatewayContent = new YamlContent.Builder()
                 .addElement("SCHEMA_VERSION", schemaVersion)
                 .addElement("GATEWAY_NAME", gatewayName)
                 .addElement("GATEWAY_DESCRIPTION", gatewayDescription)
@@ -128,6 +126,7 @@ public class AddGatewayMojo extends AbstractMojo {
             throw new MojoFailureException("Error while writing output");
         }
     }
+
     String getTcpName(){
         if (tcpName.equals(Constants.DEFAULT_TCP_NAME)){
             tcpName = listenerName + "Config";
