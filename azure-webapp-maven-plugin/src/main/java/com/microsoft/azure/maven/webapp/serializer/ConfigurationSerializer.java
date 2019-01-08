@@ -11,7 +11,6 @@ import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.util.StringUtils;
 import org.dom4j.Element;
 import org.dom4j.dom.DOMElement;
 
@@ -26,29 +25,14 @@ public abstract class ConfigurationSerializer {
         final DOMElement resourceRootNode = new DOMElement("resources");
         for (final Resource resource : resources) {
             final DOMElement resourceNode = new DOMElement("resource");
-            if (StringUtils.isNotEmpty(resource.getFiltering())) {
-                resourceNode.add(XMLUtils.createSimpleElement("filtering", resource.getFiltering()));
-            }
 
-            if (StringUtils.isNotEmpty(resource.getMergeId())) {
-                resourceNode.add(XMLUtils.createSimpleElement("mergeId", resource.getMergeId()));
-            }
+            XMLUtils.addNotEmptyElement(resourceNode, "filtering", resource.getFiltering());
+            XMLUtils.addNotEmptyElement(resourceNode, "mergeId", resource.getMergeId());
+            XMLUtils.addNotEmptyElement(resourceNode, "targetPath", resource.getTargetPath());
+            XMLUtils.addNotEmptyElement(resourceNode, "directory", resource.getDirectory());
+            XMLUtils.addNotEmptyListElement(resourceNode, "includes", "include", resource.getIncludes());
+            XMLUtils.addNotEmptyListElement(resourceNode, "excludes", "exclude", resource.getExcludes());
 
-            if (StringUtils.isNotEmpty(resource.getFiltering())) {
-                resourceNode.add(XMLUtils.createSimpleElement("targetPath", resource.getTargetPath()));
-            }
-
-            if (StringUtils.isNotEmpty(resource.getDirectory())) {
-                resourceNode.add(XMLUtils.createSimpleElement("directory", resource.getDirectory()));
-            }
-
-            if (resource.getIncludes() != null && resource.getIncludes().size() > 0) {
-                resourceNode.add(XMLUtils.createListElement("includes", "include", resource.getIncludes()));
-            }
-
-            if (resource.getExcludes() != null && resource.getExcludes().size() > 0) {
-                resourceNode.add(XMLUtils.createListElement("excludes", "exclude", resource.getExcludes()));
-            }
             resourceRootNode.add(resourceNode);
         }
         return resourceRootNode;

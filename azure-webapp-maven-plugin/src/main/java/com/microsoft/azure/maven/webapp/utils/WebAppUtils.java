@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp;
+package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
@@ -107,7 +107,7 @@ public class WebAppUtils {
 
         if (plan == null) {
             if (region == null) {
-                throw new MojoExecutionException("Please config the <region> in pom.xml, " +
+                throw new MojoExecutionException("Please updateConfiguration the <region> in pom.xml, " +
                     "it is required to create a new Azure App Service Plan.");
             }
             servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);

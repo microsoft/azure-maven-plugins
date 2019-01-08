@@ -77,12 +77,8 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
         final DOMElement runtimeRoot = new DOMElement("runtime");
         runtimeRoot.add(XMLUtils.createSimpleElement("os", "docker"));
         runtimeRoot.add(XMLUtils.createSimpleElement("image", webAppConfiguration.getImage()));
-        if (webAppConfiguration.getServerId() != null) {
-            runtimeRoot.add(XMLUtils.createSimpleElement("serverId", webAppConfiguration.getServerId()));
-        }
-        if (webAppConfiguration.getRegistryUrl() != null) {
-            runtimeRoot.add(XMLUtils.createSimpleElement("registryUrl", webAppConfiguration.getRegistryUrl()));
-        }
+        XMLUtils.addNotEmptyElement(runtimeRoot, "serverId", webAppConfiguration.getServerId());
+        XMLUtils.addNotEmptyElement(runtimeRoot, "registryUrl", webAppConfiguration.getRegistryUrl());
         return runtimeRoot;
     }
 

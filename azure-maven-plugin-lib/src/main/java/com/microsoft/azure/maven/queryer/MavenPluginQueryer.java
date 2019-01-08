@@ -10,7 +10,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -33,7 +32,6 @@ public abstract class MavenPluginQueryer {
             optionSet.add(option.name().toLowerCase(Locale.ENGLISH));
         }
         final ArrayList<String> options = new ArrayList<>(optionSet);
-        Collections.sort(options);
         return assureInputFromUser(attribute, defaultValueForAttribute, options, prompt);
     }
 
