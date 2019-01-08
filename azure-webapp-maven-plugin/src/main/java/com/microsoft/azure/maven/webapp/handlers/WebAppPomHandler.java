@@ -38,11 +38,6 @@ public class WebAppPomHandler {
         this.document = reader.read(this.file);
     }
 
-    public boolean hasConfiguration() {
-        final Element mavenPlugin = getMavenPluginElement();
-        return mavenPlugin != null && mavenPlugin.element("configuration") != null;
-    }
-
     public Element getConfiguration() {
         final Element mavenPlugin = getMavenPluginElement();
         return mavenPlugin == null ? null : mavenPlugin.element("configuration");
@@ -52,7 +47,7 @@ public class WebAppPomHandler {
         final Element pluginElement = getMavenPluginElement();
         final Element configurationNode = XMLUtils.getOrCreateSubElement("configuration", pluginElement);
         removeV1ConfigurationNodes(configurationNode);
-        savePluginConfiguration(configurations);
+        updatePluginConfiguration(configurations, new WebAppConfiguration.Builder().build());
     }
 
     private void removeV1ConfigurationNodes(Element configuration) {
@@ -67,7 +62,12 @@ public class WebAppPomHandler {
         XMLUtils.removeNode(configuration, "path");
     }
 
-    public void savePluginConfiguration(WebAppConfiguration configurations) throws IOException,
+    public void savePluginConfiguration(WebAppConfiguration newConfigs) throws IOException, MojoFailureException {
+        updatePluginConfiguration(newConfigs, new WebAppConfiguration.Builder().build());
+    }
+
+    public void updatePluginConfiguration(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs)
+        throws IOException,
         MojoFailureException {
         final ConfigurationSerializer serializer = new V2ConfigurationSerializer();
 
@@ -79,7 +79,7 @@ public class WebAppPomHandler {
             pluginElement = createNewMavenPluginNode(pluginsRootNode);
         }
         final Element configuration = XMLUtils.getOrCreateSubElement("configuration", pluginElement);
-        serializer.saveToXML(configurations, configuration);
+        serializer.saveToXML(newConfigs, oldConfigs, configuration);
         XMLUtils.setNamespace(pluginElement, pluginElement.getNamespace());
         saveModel();
     }

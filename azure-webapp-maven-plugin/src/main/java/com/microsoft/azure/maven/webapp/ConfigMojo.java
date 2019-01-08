@@ -57,6 +57,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             if (pomHandler.getConfiguration() == null) {
                 info(CONFIGURATION_NOT_FOUND);
                 configuration = initConfig();
+                pomHandler.savePluginConfiguration(configuration);
             } else {
                 configuration = getWebAppConfiguration();
             }
@@ -83,11 +84,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     protected void config(WebAppConfiguration configuration) throws MojoFailureException, MojoExecutionException,
         IOException {
+        final WebAppConfiguration oldConfiguration = configuration;
         do {
             configuration = updateConfiguration(configuration);
         } while (!confirmConfiguration(configuration));
         info(SAVING_TO_POM);
-        pomHandler.savePluginConfiguration(configuration);
+        pomHandler.updatePluginConfiguration(configuration, oldConfiguration);
     }
 
     protected boolean confirmConfiguration(WebAppConfiguration configuration) throws MojoExecutionException,

@@ -7,7 +7,6 @@
 package com.microsoft.azure.maven.webapp.serializer;
 
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoFailureException;
@@ -18,7 +17,7 @@ import java.util.List;
 
 public abstract class ConfigurationSerializer {
 
-    public abstract void saveToXML(WebAppConfiguration webAppConfiguration, Element document)
+    public abstract void saveToXML(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs, Element document)
         throws MojoFailureException;
 
     protected DOMElement createResourcesNode(List<Resource> resources) {
@@ -38,17 +37,10 @@ public abstract class ConfigurationSerializer {
         return resourceRootNode;
     }
 
-    protected DOMElement createDeploymentSlotNode(DeploymentSlotSetting deploymentSlotSetting) {
-        final DOMElement deploymentSlotRoot = new DOMElement("deploymentSlot");
-        deploymentSlotRoot.add(XMLUtils.createSimpleElement("name", deploymentSlotSetting.getName()));
-        if (deploymentSlotSetting.getConfigurationSource() != null) {
-            deploymentSlotRoot.add(XMLUtils.createSimpleElement("configurationSource",
-                deploymentSlotSetting.getConfigurationSource()));
+    protected void createOrUpdateAttribute(String attribute, String value, String oldValue, Element element) {
+        if (value.equalsIgnoreCase(oldValue)) {
+            return;
         }
-        return deploymentSlotRoot;
-    }
-
-    protected void createOrUpdateAttribute(String attribute, String value, Element element) {
         if (element.element(attribute) == null) {
             element.add(XMLUtils.createSimpleElement(attribute, value));
         } else {

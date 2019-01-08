@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.serializer;
 
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import org.apache.maven.plugin.MojoFailureException;
@@ -17,69 +18,103 @@ import org.dom4j.dom.DOMElement;
 public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
     @Override
-    public void saveToXML(WebAppConfiguration webAppConfiguration, Element configurationElement)
+    public void saveToXML(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
+                          Element configurationElement)
         throws MojoFailureException {
-        createOrUpdateAttribute("schemaVersion", "V2", configurationElement);
-        createOrUpdateAttribute("resourceGroup", webAppConfiguration.getResourceGroup(), configurationElement);
-        createOrUpdateAttribute("appName", webAppConfiguration.getAppName(), configurationElement);
-        createOrUpdateAttribute("region", webAppConfiguration.getRegion().name(), configurationElement);
+        createOrUpdateAttribute("schemaVersion", "V2", oldConfigs.getSchemaVersion(), configurationElement);
+        createOrUpdateAttribute("resourceGroup", newConfigs.getResourceGroup(),
+            oldConfigs.getResourceGroup(), configurationElement);
+        createOrUpdateAttribute("appName", newConfigs.getAppName(), oldConfigs.getAppName(), configurationElement);
+
+        final String oldRegion = oldConfigs.getRegion() == null ? null : oldConfigs.getRegion().name();
+        createOrUpdateAttribute("region", newConfigs.getRegion().name(), oldRegion, configurationElement);
         createOrUpdateAttribute("pricingTier",
-            PricingTierEnum.getPricingTierStringByPricingTierObject(webAppConfiguration.getPricingTier()),
+            PricingTierEnum.getPricingTierStringByPricingTierObject(newConfigs.getPricingTier()),
+            PricingTierEnum.getPricingTierStringByPricingTierObject(oldConfigs.getPricingTier()),
             configurationElement);
 
-        XMLUtils.removeNode(configurationElement, "runtime");
-        configurationElement.add(createRunTimeNode(webAppConfiguration));
+        updateRunTimeNode(newConfigs, oldConfigs, configurationElement);
 
-        XMLUtils.removeNode(configurationElement, "deploymentSlot");
-        if (webAppConfiguration.getDeploymentSlotSetting() != null) {
-            configurationElement.add(createDeploymentSlotNode(webAppConfiguration.getDeploymentSlotSetting()));
+        // remove or update deploymentSlot node
+        if (newConfigs.getDeploymentSlotSetting() == null) {
+            XMLUtils.removeNode(configurationElement, "deploymentSlot");
+        } else {
+            final Element deploymentSlot = XMLUtils.getOrCreateSubElement("deploymentSlot", configurationElement);
+            final DeploymentSlotSetting oldDeploymentSlotSetting = oldConfigs.getDeploymentSlotSetting() == null ?
+                new DeploymentSlotSetting() : oldConfigs.getDeploymentSlotSetting();
+            updateDeploymentSlotNode(newConfigs.getDeploymentSlotSetting(), oldDeploymentSlotSetting, deploymentSlot);
         }
 
-        // only add deployment when init
+        // only add deployment when init or convert
         if (configurationElement.element("deployment") == null) {
-            configurationElement.add(createDeploymentNode(webAppConfiguration));
+            configurationElement.add(createDeploymentNode(newConfigs));
         }
     }
 
-    private DOMElement createRunTimeNode(WebAppConfiguration webAppConfiguration) throws MojoFailureException {
-        switch (webAppConfiguration.getOs()) {
+    private void updateRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
+                                   Element configurationElement) throws MojoFailureException {
+        Element runtime = configurationElement.element("runtime");
+        if (!(runtime != null && newConfigs.getOs().equals(oldConfigs.getOs()))) {
+            XMLUtils.removeNode(configurationElement, "runtime");
+            runtime = new DOMElement("runtime");
+            configurationElement.add(runtime);
+        }
+        switch (newConfigs.getOs()) {
             case Linux:
-                return createLinuxRunTimeNode(webAppConfiguration);
+                updateLinuxRunTimeNode(newConfigs, oldConfigs, runtime);
+                break;
             case Windows:
-                return createWindowsRunTimeNode(webAppConfiguration);
+                updateWindowsRunTimeNode(newConfigs, oldConfigs, runtime);
+                break;
             case Docker:
-                return createDockerRunTimeNode(webAppConfiguration);
+                updateDockerRunTimeNode(newConfigs, oldConfigs, runtime);
+                break;
             default:
                 throw new MojoFailureException("The value of <os> is unknown.");
         }
     }
 
-    private static DOMElement createLinuxRunTimeNode(WebAppConfiguration webAppConfiguration) {
-        final DOMElement runtimeRoot = new DOMElement("runtime");
-        runtimeRoot.add(XMLUtils.createSimpleElement("os", "linux"));
-        runtimeRoot.add(XMLUtils.createSimpleElement("javaVersion", "jre8"));
-        runtimeRoot.add(XMLUtils.createSimpleElement("webContainer",
-            RuntimeSetting.getLinuxWebContainerByRuntimeStack(webAppConfiguration.getRuntimeStack())));
-        return runtimeRoot;
+    private void updateLinuxRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
+                                        Element configurationElement) {
+        final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
+        createOrUpdateAttribute("os", "linux", oldOS, configurationElement);
+        final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
+            oldConfigs.getJavaVersion().toString();
+        createOrUpdateAttribute("javaVersion", "jre8", oldJavaVersion, configurationElement);
+        createOrUpdateAttribute("webContainer",
+            RuntimeSetting.getLinuxWebContainerByRuntimeStack(newConfigs.getRuntimeStack())
+            , RuntimeSetting.getLinuxWebContainerByRuntimeStack(oldConfigs.getRuntimeStack()), configurationElement);
     }
 
-    private static DOMElement createWindowsRunTimeNode(WebAppConfiguration webAppConfiguration) {
-        final DOMElement runtimeRoot = new DOMElement("runtime");
-        runtimeRoot.add(XMLUtils.createSimpleElement("os", "windows"));
-        runtimeRoot.add(XMLUtils.createSimpleElement("javaVersion",
-            webAppConfiguration.getJavaVersion().toString()));
-        runtimeRoot.add(XMLUtils.createSimpleElement("webContainer",
-            webAppConfiguration.getWebContainer().toString()));
-        return runtimeRoot;
+    private void updateWindowsRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
+                                          Element configurationElement) {
+
+        final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
+        createOrUpdateAttribute("os", "linux", oldOS, configurationElement);
+        final String oldJavaVersion = oldConfigs.getOs() == null ? null : oldConfigs.getJavaVersion().toString();
+        createOrUpdateAttribute("javaVersion", newConfigs.getJavaVersion().toString(),
+            oldJavaVersion, configurationElement);
+        final String oldWebContainer = oldConfigs.getWebContainer() == null ? null :
+            oldConfigs.getWebContainer().toString();
+        createOrUpdateAttribute("webContainer", newConfigs.getWebContainer().toString(), oldWebContainer,
+            configurationElement);
     }
 
-    private static DOMElement createDockerRunTimeNode(WebAppConfiguration webAppConfiguration) {
-        final DOMElement runtimeRoot = new DOMElement("runtime");
-        runtimeRoot.add(XMLUtils.createSimpleElement("os", "docker"));
-        runtimeRoot.add(XMLUtils.createSimpleElement("image", webAppConfiguration.getImage()));
-        XMLUtils.addNotEmptyElement(runtimeRoot, "serverId", webAppConfiguration.getServerId());
-        XMLUtils.addNotEmptyElement(runtimeRoot, "registryUrl", webAppConfiguration.getRegistryUrl());
-        return runtimeRoot;
+    private void updateDockerRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
+                                         Element configurationElement) {
+        createOrUpdateAttribute("os", "docker", oldConfigs.getOs().toString(), configurationElement);
+        createOrUpdateAttribute("image", newConfigs.getImage(), oldConfigs.getImage(), configurationElement);
+        createOrUpdateAttribute("serverId", newConfigs.getServerId(), oldConfigs.getServerId(), configurationElement);
+        createOrUpdateAttribute("registryUrl", newConfigs.getRegistryUrl(), oldConfigs.getRegistryUrl(),
+            configurationElement);
+    }
+
+    protected void updateDeploymentSlotNode(DeploymentSlotSetting newConfigs, DeploymentSlotSetting oldConfigs,
+                                            Element deploymentSlotRoot) {
+        createOrUpdateAttribute("name", newConfigs.getName(), oldConfigs.getName(), deploymentSlotRoot);
+        createOrUpdateAttribute("configurationSource", newConfigs.getConfigurationSource(),
+            oldConfigs.getConfigurationSource(),
+            deploymentSlotRoot);
     }
 
     private DOMElement createDeploymentNode(WebAppConfiguration webAppConfiguration) {
