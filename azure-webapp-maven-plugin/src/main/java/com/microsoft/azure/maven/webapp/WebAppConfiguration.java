@@ -11,17 +11,20 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
+
 import java.util.List;
 
 public class WebAppConfiguration {
     // artifact deploy related configurations
     protected String appName;
+    protected DeploymentSlotSetting deploymentSlotSetting;
     protected String resourceGroup;
     protected Region region;
     protected PricingTier pricingTier;
@@ -59,6 +62,7 @@ public class WebAppConfiguration {
         this.image = builder.image;
         this.serverId = builder.serverId;
         this.registryUrl = builder.registryUrl;
+        this.deploymentSlotSetting = builder.deploymentSlotSetting;
 
         this.resources = builder.resources;
         this.stagingDirectoryPath = builder.stagingDirectoryPath;
@@ -148,6 +152,10 @@ public class WebAppConfiguration {
     public MavenResourcesFiltering getFiltering() {
         return filtering;
     }
+
+    public DeploymentSlotSetting getDeploymentSlotSetting() {
+        return deploymentSlotSetting;
+    }
     // endregion
 
     //region builder
@@ -172,6 +180,7 @@ public class WebAppConfiguration {
         private MavenProject project;
         private MavenSession session;
         private MavenResourcesFiltering filtering;
+        private DeploymentSlotSetting deploymentSlotSetting;
 
         protected Builder self() {
             return this;
