@@ -18,11 +18,13 @@ import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
+import com.microsoft.azure.maven.webapp.utils.XMLUtils;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.codehaus.plexus.util.StringUtils;
+import org.dom4j.Element;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@Mojo(name = "config", defaultPhase = LifecyclePhase.VALIDATE)
+@Mojo(name = "config")
 public class ConfigMojo extends AbstractWebAppMojo {
 
     public static final String NOT_EMPTY_REGEX = "[\\s\\S]+";
@@ -51,9 +53,14 @@ public class ConfigMojo extends AbstractWebAppMojo {
         pomHandler = new WebAppPomHandler("pom.xml");
 
         try {
-            final WebAppConfiguration configuration = getWebAppConfigurationFromPom();
-            if (configuration != null &&
-                SchemaVersion.fromString(configuration.getSchemaVersion()) == SchemaVersion.V1) {
+            final WebAppConfiguration configuration;
+            if (pomHandler.getConfiguration() == null) {
+                info(CONFIGURATION_NOT_FOUND);
+                configuration = initConfig();
+            } else {
+                configuration = getWebAppConfiguration();
+            }
+            if (SchemaVersion.fromString(configuration.getSchemaVersion()) == SchemaVersion.V1) {
                 convertToV2Schema(configuration);
             } else {
                 config(configuration);
@@ -64,34 +71,20 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     protected void convertToV2Schema(WebAppConfiguration configuration) throws IOException, MojoFailureException {
-        final String result = queryer.assureInputFromUser("convertToV2", "Y", BOOLEAN_REGEX, "Convert to V2 Schema?" +
-            "(Y/N) : ", null);
-        if (result.toLowerCase().equals("y")) {
+        final String result = queryer.assureInputFromUser("convertToV2", "Y", BOOLEAN_REGEX, "Convert to V2 Schema" +
+            " (Y/N)? : ", null);
+        if (result.equalsIgnoreCase("y")) {
             info(CONVERT_TO_V2SCHEMA);
-            pomHandler.convertToV2Configuration(configuration);
+            pomHandler.convertToV2Schema(configuration);
         } else {
             info(EXITING);
-        }
-    }
-
-    protected WebAppConfiguration getWebAppConfigurationFromPom() {
-        try {
-            return getWebAppConfiguration();
-        } catch (Exception e) {
-            // in case there is no configuration node in pom.xml
-            return null;
         }
     }
 
     protected void config(WebAppConfiguration configuration) throws MojoFailureException, MojoExecutionException,
         IOException {
         do {
-            if (!pomHandler.hasConfiguration() && configuration == null) {
-                info(CONFIGURATION_NOT_FOUND);
-                configuration = initConfig();
-            } else {
-                configuration = updateConfiguration(configuration);
-            }
+            configuration = updateConfiguration(configuration);
         } while (!confirmConfiguration(configuration));
         info(SAVING_TO_POM);
         pomHandler.savePluginConfiguration(configuration);
@@ -128,7 +121,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             System.out.println("ConfigurationSource : " + slotSetting.getConfigurationSource());
         }
 
-        final String result = queryer.assureInputFromUser("confirm", "Y", BOOLEAN_REGEX, "Confirm?(Y/N): ", null);
+        final String result = queryer.assureInputFromUser("confirm", "Y", BOOLEAN_REGEX, "Confirm (Y/N)? : ", null);
         return result.equalsIgnoreCase("Y");
     }
 
@@ -316,4 +309,41 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return StringUtils.isNotEmpty(defaultValue) ? defaultValue : fallBack;
     }
 
+    // read resources setting with dom4j or pom properties will be replaced by its real value
+    @Override
+    public List<Resource> getResources() {
+        final Element resources = XMLUtils.getChild(getConfigurationDomElement(), "resources");
+        return getResourceListFromPom(resources);
+    }
+
+    // read resources setting with dom4j or pom properties will be replaced by its real value
+    @Override
+    public Deployment getDeployment() {
+        final Element resources = XMLUtils.getChild(getConfigurationDomElement(), "deployment", "resources");
+        final Deployment result = new Deployment();
+        result.setResources(getResourceListFromPom(resources));
+        return result;
+    }
+
+    private Element getConfigurationDomElement() {
+        return pomHandler.getConfiguration();
+    }
+
+    private List<Resource> getResourceListFromPom(Element resources) {
+        if (resources == null) {
+            return null;
+        }
+        final List<Resource> result = new ArrayList<>();
+        for (final Element resourceElement : resources.elements()) {
+            final Resource resource = new Resource();
+            resource.setDirectory(XMLUtils.getChildValue("directory", resourceElement));
+            resource.setMergeId(XMLUtils.getChildValue("mergeId", resourceElement));
+            resource.setTargetPath(XMLUtils.getChildValue("targetPath", resourceElement));
+            resource.setFiltering(XMLUtils.getChildValue("filtering", resourceElement));
+            resource.setIncludes(XMLUtils.getListValue(resourceElement.element("includes")));
+            resource.setExcludes(XMLUtils.getListValue(resourceElement.element("excludes")));
+            result.add(resource);
+        }
+        return result;
+    }
 }

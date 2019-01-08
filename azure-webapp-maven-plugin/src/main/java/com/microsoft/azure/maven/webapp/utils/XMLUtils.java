@@ -12,6 +12,7 @@ import org.dom4j.Namespace;
 import org.dom4j.dom.DOMElement;
 import org.dom4j.tree.AbstractElement;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class XMLUtils {
@@ -23,6 +24,29 @@ public class XMLUtils {
         for (final Element child : element.elements()) {
             setNamespace(child, nameSpace);
         }
+    }
+
+    public static Element getChild(Element parent, String... paths) {
+        Element result = parent;
+        for (final String childName : paths) {
+            if (parent != null) {
+                result = result.element(childName);
+            } else {
+                return null;
+            }
+        }
+        return result;
+    }
+
+    public static List<String> getListValue(Element domNode) {
+        if (domNode == null) {
+            return null;
+        }
+        final List<String> result = new ArrayList<>();
+        for (final Element child : domNode.elements()) {
+            result.add(child.getText());
+        }
+        return result;
     }
 
     public static String getChildValue(String attribute, Element element) {
@@ -38,15 +62,6 @@ public class XMLUtils {
             element.add(result);
         }
         return result;
-    }
-
-    public static DOMElement createListElement(String name, String subName,
-                                               List<String> values) {
-        final DOMElement resultNode = new DOMElement(name);
-        for (final String value : values) {
-            resultNode.add(createSimpleElement(subName, value));
-        }
-        return resultNode;
     }
 
     public static DOMElement createSimpleElement(String name, String value) {
@@ -69,9 +84,13 @@ public class XMLUtils {
     }
 
     public static void addNotEmptyListElement(Element element, String attribute, String subAttribute,
-                                              List<String> value) {
-        if (value != null && value.size() > 0) {
-            element.add(createListElement(attribute, subAttribute, value));
+                                              List<String> values) {
+        if (values != null && values.size() > 0) {
+            final DOMElement resultNode = new DOMElement(attribute);
+            for (final String value : values) {
+                resultNode.add(createSimpleElement(subAttribute, value));
+            }
+            element.add(resultNode);
         }
     }
 }

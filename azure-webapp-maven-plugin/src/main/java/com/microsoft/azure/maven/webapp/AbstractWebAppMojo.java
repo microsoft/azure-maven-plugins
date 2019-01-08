@@ -29,6 +29,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -284,7 +285,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     @Override
     public List<Resource> getResources() {
-        return resources;
+        return resources == null ? Collections.EMPTY_LIST : resources;
     }
 
     public String getWarFile() {

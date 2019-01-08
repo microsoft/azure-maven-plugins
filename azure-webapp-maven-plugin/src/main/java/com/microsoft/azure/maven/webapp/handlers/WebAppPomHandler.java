@@ -43,7 +43,12 @@ public class WebAppPomHandler {
         return mavenPlugin != null && mavenPlugin.element("configuration") != null;
     }
 
-    public void convertToV2Configuration(WebAppConfiguration configurations) throws IOException, MojoFailureException {
+    public Element getConfiguration() {
+        final Element mavenPlugin = getMavenPluginElement();
+        return mavenPlugin == null ? null : mavenPlugin.element("configuration");
+    }
+
+    public void convertToV2Schema(WebAppConfiguration configurations) throws IOException, MojoFailureException {
         final Element pluginElement = getMavenPluginElement();
         final Element configurationNode = XMLUtils.getOrCreateSubElement("configuration", pluginElement);
         removeV1ConfigurationNodes(configurationNode);
@@ -59,6 +64,7 @@ public class WebAppPomHandler {
         XMLUtils.removeNode(configuration, "warFile");
         XMLUtils.removeNode(configuration, "jarFile");
         XMLUtils.removeNode(configuration, "resources");
+        XMLUtils.removeNode(configuration, "path");
     }
 
     public void savePluginConfiguration(WebAppConfiguration configurations) throws IOException,
@@ -70,12 +76,11 @@ public class WebAppPomHandler {
             // create webapp node in pom
             final Element buildNode = XMLUtils.getOrCreateSubElement("build", document.getRootElement());
             final Element pluginsRootNode = XMLUtils.getOrCreateSubElement("plugins", buildNode);
-            pluginElement = createNewMavenPluginNode();
-            pluginsRootNode.add(pluginElement);
+            pluginElement = createNewMavenPluginNode(pluginsRootNode);
         }
         final Element configuration = XMLUtils.getOrCreateSubElement("configuration", pluginElement);
         serializer.saveToXML(configurations, configuration);
-        XMLUtils.setNamespace(pluginElement, document.getRootElement().getNamespace());
+        XMLUtils.setNamespace(pluginElement, pluginElement.getNamespace());
         saveModel();
     }
 
@@ -103,10 +108,12 @@ public class WebAppPomHandler {
         return null;
     }
 
-    private static Element createNewMavenPluginNode() {
+    private static Element createNewMavenPluginNode(Element pluginsRootNode) {
         final Element result = new DOMElement("plugin");
+        ((DOMElement) result).setNamespace(pluginsRootNode.getNamespace());
         result.add(XMLUtils.createSimpleElement("groupId", PLUGIN_GROUPID));
         result.add(XMLUtils.createSimpleElement("artifactId", PLUGIN_ARTIFACTID));
+        pluginsRootNode.add(result);
         return result;
     }
 }
