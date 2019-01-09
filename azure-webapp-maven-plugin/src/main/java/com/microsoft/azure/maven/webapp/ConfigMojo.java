@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Mojo(name = "config")
 public class ConfigMojo extends AbstractWebAppMojo {
@@ -53,15 +55,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
         pomHandler = new WebAppPomHandler("pom.xml");
 
         try {
-            final WebAppConfiguration configuration;
-            if (pomHandler.getConfiguration() == null) {
-                info(CONFIGURATION_NOT_FOUND);
-                configuration = initConfig();
-                pomHandler.savePluginConfiguration(configuration);
-            } else {
-                configuration = getWebAppConfiguration();
-            }
-            if (SchemaVersion.fromString(configuration.getSchemaVersion()) == SchemaVersion.V1) {
+            final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
+                getWebAppConfiguration();
+            if (configuration != null && configuration.getSchemaVersion().equals(SchemaVersion.V1.toString())) {
                 convertToV2Schema(configuration);
             } else {
                 config(configuration);
@@ -86,7 +82,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
         IOException {
         final WebAppConfiguration oldConfiguration = configuration;
         do {
-            configuration = updateConfiguration(configuration);
+            if (configuration == null) {
+                info(CONFIGURATION_NOT_FOUND);
+                configuration = initConfig();
+            } else {
+                configuration = updateConfiguration(configuration);
+            }
         } while (!confirmConfiguration(configuration));
         info(SAVING_TO_POM);
         pomHandler.updatePluginConfiguration(configuration, oldConfiguration);
@@ -182,8 +183,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
             Region.US_EAST2.name();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
             null, null);
-        final String pricingTier = queryer.assureInputFromUser("pricingTier", PricingTierEnum.P1V2
-            , null);
+        final String pricingTier = queryer.assureInputFromUser("pricingTier", PricingTierEnum.P1V2.toString(),
+            getValidPricingTier(), null);
 
         return builder.appName(appName)
             .resourceGroup(resourceGroup)
@@ -303,6 +304,16 @@ public class ConfigMojo extends AbstractWebAppMojo {
         for (final WebContainer webContainer : WebContainer.values()) {
             result.add(webContainer.toString());
         }
+        Collections.sort(result);
+        return result;
+    }
+
+    private static List<String> getValidPricingTier() {
+        final Set<String> pricingTierSet = new HashSet<>();
+        for (final PricingTierEnum pricingTierEnum : PricingTierEnum.values()) {
+            pricingTierSet.add(pricingTierEnum.toString().toLowerCase());
+        }
+        final List<String> result = new ArrayList<>(pricingTierSet);
         Collections.sort(result);
         return result;
     }

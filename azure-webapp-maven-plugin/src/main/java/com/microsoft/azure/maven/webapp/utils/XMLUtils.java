@@ -29,7 +29,7 @@ public class XMLUtils {
     public static Element getChild(Element parent, String... paths) {
         Element result = parent;
         for (final String childName : paths) {
-            if (parent != null) {
+            if (result != null) {
                 result = result.element(childName);
             } else {
                 return null;
