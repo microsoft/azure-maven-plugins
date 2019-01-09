@@ -57,7 +57,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         try {
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
                 getWebAppConfiguration();
-            if (configuration != null && configuration.getSchemaVersion().equals(SchemaVersion.V1.toString())) {
+            if (isV1Configuration(configuration)) {
                 convertToV2Schema(configuration);
             } else {
                 config(configuration);
@@ -65,6 +65,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
         } finally {
             queryer.close();
         }
+    }
+
+    private boolean isV1Configuration(WebAppConfiguration configuration) {
+        return configuration != null && configuration.getSchemaVersion().equals(SchemaVersion.V1.toString());
     }
 
     protected void convertToV2Schema(WebAppConfiguration configuration) throws IOException, MojoFailureException {
@@ -184,7 +188,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
             null, null);
         final String pricingTier = queryer.assureInputFromUser("pricingTier", PricingTierEnum.P1V2.toString(),
-            getValidPricingTier(), null);
+            getAvailablePricingTierList(), null);
 
         return builder.appName(appName)
             .resourceGroup(resourceGroup)
@@ -263,13 +267,13 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultJavaVersion = configuration.getJavaVersion() == null ?
             JavaVersion.JAVA_ZULU_1_8_0_144.toString() : configuration.getJavaVersion().toString();
         final String javaVersion = queryer.assureInputFromUser("javaVersion",
-            defaultJavaVersion, getValidJavaVersion(), null);
+            defaultJavaVersion, getAvailableJavaVersion(), null);
 
         final String defaultWebContainer = configuration.getWebContainer() == null ?
             WebContainer.TOMCAT_8_5_NEWEST.toString() :
             configuration.getWebContainer().toString();
         final String webContainer = queryer.assureInputFromUser("webContainer",
-            defaultWebContainer, getValidWebContainer(), null);
+            defaultWebContainer, getAvailableWebContainer(), null);
         return builder.javaVersion(JavaVersion.fromString(javaVersion))
             .webContainer(WebContainer.fromString(webContainer));
     }
@@ -288,7 +292,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             .registryUrl(registryUrl);
     }
 
-    private static List<String> getValidJavaVersion() {
+    private static List<String> getAvailableJavaVersion() {
         final List<String> result = new ArrayList<>();
         for (final JavaVersion javaVersion : JavaVersion.values()) {
             if (!javaVersion.toString().equals("null")) {
@@ -299,7 +303,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return result;
     }
 
-    private static List<String> getValidWebContainer() {
+    private static List<String> getAvailableWebContainer() {
         final List<String> result = new ArrayList<>();
         for (final WebContainer webContainer : WebContainer.values()) {
             result.add(webContainer.toString());
@@ -308,7 +312,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return result;
     }
 
-    private static List<String> getValidPricingTier() {
+    private static List<String> getAvailablePricingTierList() {
         final Set<String> pricingTierSet = new HashSet<>();
         for (final PricingTierEnum pricingTierEnum : PricingTierEnum.values()) {
             pricingTierSet.add(pricingTierEnum.toString().toLowerCase());

@@ -17,9 +17,12 @@ import org.dom4j.dom.DOMElement;
 
 public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
+    public V2ConfigurationSerializer(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs) {
+        super(newConfigs, oldConfigs);
+    }
+
     @Override
-    public void saveToXML(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
-                          Element configurationElement)
+    public void saveToXML(Element configurationElement)
         throws MojoFailureException {
         createOrUpdateAttribute("schemaVersion", "V2", oldConfigs.getSchemaVersion(), configurationElement);
         createOrUpdateAttribute("resourceGroup", newConfigs.getResourceGroup(),
