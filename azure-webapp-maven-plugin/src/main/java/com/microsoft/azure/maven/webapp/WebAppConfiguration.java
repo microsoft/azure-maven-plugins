@@ -38,6 +38,7 @@ public class WebAppConfiguration {
     protected String image;
     protected String serverId;
     protected String registryUrl;
+    protected String schemaVersion;
 
     // web app runtime related configurations
     protected List<Resource> resources;
@@ -63,6 +64,7 @@ public class WebAppConfiguration {
         this.serverId = builder.serverId;
         this.registryUrl = builder.registryUrl;
         this.deploymentSlotSetting = builder.deploymentSlotSetting;
+        this.schemaVersion = builder.schemaVersion;
 
         this.resources = builder.resources;
         this.stagingDirectoryPath = builder.stagingDirectoryPath;
@@ -156,6 +158,36 @@ public class WebAppConfiguration {
     public DeploymentSlotSetting getDeploymentSlotSetting() {
         return deploymentSlotSetting;
     }
+
+    public String getSchemaVersion() {
+        return schemaVersion;
+    }
+
+    public Builder getBuilderFromConfiguration(){
+        return new Builder().appName(this.appName)
+            .resourceGroup(this.resourceGroup)
+            .region(this.region)
+            .pricingTier(this.pricingTier)
+            .servicePlanName(this.servicePlanName)
+            .servicePlanResourceGroup(this.servicePlanResourceGroup)
+            .os(this.os)
+            .runtimeStack(this.runtimeStack)
+            .javaVersion(this.javaVersion)
+            .webContainer(this.webContainer)
+            .mavenSettings(this.mavenSettings)
+            .image(this.image)
+            .serverId(this.serverId)
+            .registryUrl(this.registryUrl)
+            .resources(this.resources)
+            .stagingDirectoryPath(this.stagingDirectoryPath)
+            .buildDirectoryAbsolutePath(this.buildDirectoryAbsolutePath)
+            .project(this.project)
+            .session(this.session)
+            .filtering(this.filtering)
+            .schemaVersion(this.schemaVersion)
+            .deploymentSlotSetting(this.deploymentSlotSetting);
+    }
+
     // endregion
 
     //region builder
@@ -181,6 +213,7 @@ public class WebAppConfiguration {
         private MavenSession session;
         private MavenResourcesFiltering filtering;
         private DeploymentSlotSetting deploymentSlotSetting;
+        private String schemaVersion;
 
         protected Builder self() {
             return this;
@@ -287,6 +320,16 @@ public class WebAppConfiguration {
 
         public Builder filtering(final MavenResourcesFiltering value) {
             this.filtering = value;
+            return self();
+        }
+
+        public Builder deploymentSlotSetting(final DeploymentSlotSetting value){
+            this.deploymentSlotSetting = value;
+            return self();
+        }
+
+        public Builder schemaVersion(final String schemaVersion){
+            this.schemaVersion = schemaVersion;
             return self();
         }
     }

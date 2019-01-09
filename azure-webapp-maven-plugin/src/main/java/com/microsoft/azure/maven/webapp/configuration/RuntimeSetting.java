@@ -11,8 +11,11 @@ import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Runtime Setting
@@ -57,7 +60,7 @@ public class RuntimeSetting {
             } else {
                 throw new MojoExecutionException(
                     String.format("Unknown value of <webContainer>. Supported values are %s.",
-                        StringUtils.join(runtimeStackMap.keySet().toArray(), ",")));
+                        StringUtils.join(runtimeStackMap.keySet(), ",")));
             }
         }
         throw new MojoExecutionException(String.format(
@@ -71,8 +74,20 @@ public class RuntimeSetting {
         return WebContainer.fromString(webContainer);
     }
 
+    public static List<String> getValidLinuxRuntime() {
+        return new ArrayList<>(runtimeStackMap.keySet());
+    }
+
+    public static String getDefaultLinuxRuntimeStack(){
+        return JRE_8;
+    }
+
     public static String getLinuxWebContainerByRuntimeStack(RuntimeStack runtimeStack) {
         return runtimeStackMap.getKey(runtimeStack);
+    }
+
+    public static RuntimeStack getLinuxRuntimeStackByJavaVersion(String javaVersion){
+        return runtimeStackMap.get(javaVersion);
     }
 
     public String getImage() {

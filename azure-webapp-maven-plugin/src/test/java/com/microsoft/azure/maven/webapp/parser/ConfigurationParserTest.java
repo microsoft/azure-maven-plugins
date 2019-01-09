@@ -72,6 +72,11 @@ public class ConfigurationParserTest {
             }
 
             @Override
+            protected String getSchemaVersion() {
+                return null;
+            }
+
+            @Override
             protected JavaVersion getJavaVersion() {
                 return JavaVersion.JAVA_8_NEWEST;
             }

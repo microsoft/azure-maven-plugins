@@ -96,6 +96,11 @@ public class V2ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
+    protected String getSchemaVersion() {
+        return "V2";
+    }
+
+    @Override
     protected WebContainer getWebContainer() throws MojoExecutionException {
         final RuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null) {

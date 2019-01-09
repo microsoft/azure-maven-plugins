@@ -7,11 +7,9 @@
 package com.microsoft.azure.maven.webapp.serializer;
 
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.util.StringUtils;
 import org.dom4j.Element;
 import org.dom4j.dom.DOMElement;
 
@@ -19,57 +17,36 @@ import java.util.List;
 
 public abstract class ConfigurationSerializer {
 
-    public abstract void saveToXML(WebAppConfiguration webAppConfiguration, Element document)
+    public abstract void saveToXML(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs, Element document)
         throws MojoFailureException;
 
     protected DOMElement createResourcesNode(List<Resource> resources) {
         final DOMElement resourceRootNode = new DOMElement("resources");
         for (final Resource resource : resources) {
             final DOMElement resourceNode = new DOMElement("resource");
-            if (StringUtils.isNotEmpty(resource.getFiltering())) {
-                resourceNode.add(XMLUtils.createSimpleElement("filtering", resource.getFiltering()));
-            }
 
-            if (StringUtils.isNotEmpty(resource.getMergeId())) {
-                resourceNode.add(XMLUtils.createSimpleElement("mergeId", resource.getMergeId()));
-            }
+            XMLUtils.addNotEmptyElement(resourceNode, "filtering", resource.getFiltering());
+            XMLUtils.addNotEmptyElement(resourceNode, "mergeId", resource.getMergeId());
+            XMLUtils.addNotEmptyElement(resourceNode, "targetPath", resource.getTargetPath());
+            XMLUtils.addNotEmptyElement(resourceNode, "directory", resource.getDirectory());
+            XMLUtils.addNotEmptyListElement(resourceNode, "includes", "include", resource.getIncludes());
+            XMLUtils.addNotEmptyListElement(resourceNode, "excludes", "exclude", resource.getExcludes());
 
-            if (StringUtils.isNotEmpty(resource.getFiltering())) {
-                resourceNode.add(XMLUtils.createSimpleElement("targetPath", resource.getTargetPath()));
-            }
-
-            if (StringUtils.isNotEmpty(resource.getDirectory())) {
-                resourceNode.add(XMLUtils.createSimpleElement("directory", resource.getDirectory()));
-            }
-
-            if (resource.getIncludes() != null && resource.getIncludes().size() > 0) {
-                resourceNode.add(XMLUtils.createListElement("includes", "include", resource.getIncludes()));
-            }
-
-            if (resource.getExcludes() != null && resource.getExcludes().size() > 0) {
-                resourceNode.add(XMLUtils.createListElement("excludes", "exclude", resource.getExcludes()));
-            }
             resourceRootNode.add(resourceNode);
         }
         return resourceRootNode;
     }
 
-    protected DOMElement createDeploymentSlotNode(DeploymentSlotSetting deploymentSlotSetting) {
-        final DOMElement deploymentSlotRoot = new DOMElement("deploymentSlot");
-        deploymentSlotRoot.add(XMLUtils.createSimpleElement("name", deploymentSlotSetting.getName()));
-        if (deploymentSlotSetting.getConfigurationSource() != null) {
-            deploymentSlotRoot.add(XMLUtils.createSimpleElement("configurationSource",
-                deploymentSlotSetting.getConfigurationSource()));
+    protected void createOrUpdateAttribute(String attribute, String value, String oldValue, Element element) {
+        if (value == null) {
+            XMLUtils.removeNode(element, attribute);
+            return;
         }
-        return deploymentSlotRoot;
-    }
-
-    protected void createOrUpdateAttribute(String attribute, String value, Element element) {
-        if (element.element(attribute) == null) {
-            element.add(XMLUtils.createSimpleElement(attribute, value));
+        // if value is not changed, just return , in case overwrite ${} properties
+        if (value.equalsIgnoreCase(oldValue)) {
+            return;
         } else {
-            element.element(attribute).setText(value);
+            XMLUtils.setChildValue(attribute, value, element);
         }
     }
-
 }
