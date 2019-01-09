@@ -71,6 +71,6 @@ public enum PricingTierEnum {
     }
 
     public static String getPricingTierStringByPricingTierObject(PricingTier pricingTier) {
-        return pricingTier == null ? null : pricingTierBidiMap.getKey(pricingTier);
+        return pricingTierBidiMap.getKey(pricingTier);
     }
 }

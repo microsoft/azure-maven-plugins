@@ -83,7 +83,7 @@ public class RuntimeSetting {
     }
 
     public static String getLinuxWebContainerByRuntimeStack(RuntimeStack runtimeStack) {
-        return runtimeStack == null ? null : runtimeStackMap.getKey(runtimeStack);
+        return runtimeStackMap.getKey(runtimeStack);
     }
 
     public static RuntimeStack getLinuxRuntimeStackByJavaVersion(String javaVersion){
