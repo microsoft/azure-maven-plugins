@@ -38,14 +38,15 @@ public abstract class ConfigurationSerializer {
     }
 
     protected void createOrUpdateAttribute(String attribute, String value, String oldValue, Element element) {
-        if (value.equalsIgnoreCase(oldValue)) {
+        if (value == null) {
+            XMLUtils.removeNode(element, attribute);
             return;
         }
-        if (element.element(attribute) == null) {
-            element.add(XMLUtils.createSimpleElement(attribute, value));
+        // if value is not changed, just return , in case overwrite ${} properties
+        if (value.equalsIgnoreCase(oldValue)) {
+            return;
         } else {
-            element.element(attribute).setText(value);
+            XMLUtils.setChildValue(attribute, value, element);
         }
     }
-
 }

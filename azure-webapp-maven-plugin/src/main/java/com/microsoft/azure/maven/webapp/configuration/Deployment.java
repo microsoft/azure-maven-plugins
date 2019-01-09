@@ -9,7 +9,7 @@ package com.microsoft.azure.maven.webapp.configuration;
 import org.apache.maven.model.Resource;
 import org.codehaus.plexus.util.StringUtils;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,9 +36,7 @@ public class Deployment {
         resource.setDirectory(DEFAULT_DIRECTORY);
         resource.addInclude(String.format(DEFAULT_INCLUDE, deployType));
 
-        final List<Resource> resources = new ArrayList<>();
-        resources.add(resource);
-        result.setResources(resources);
+        result.setResources(Arrays.asList(resource));
         return result;
     }
 }

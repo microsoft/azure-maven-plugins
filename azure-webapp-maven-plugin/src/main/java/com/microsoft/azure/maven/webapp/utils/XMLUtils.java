@@ -54,6 +54,15 @@ public class XMLUtils {
         return child == null ? null : child.getText();
     }
 
+    public static void setChildValue(String attribute, String value, Element element) {
+        final Element child = element.element(attribute);
+        if (child == null) {
+            element.add(createSimpleElement(attribute, value));
+        } else {
+            element.element(attribute).setText(value);
+        }
+    }
+
     public static Element getOrCreateSubElement(String name, Element element) {
         Element result = element.element(name);
         if (result == null) {

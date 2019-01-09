@@ -41,7 +41,7 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
         prompt = StringUtils.isEmpty(prompt) ? getPromptString(attribute, defaultValue) : prompt;
         out.println(prompt);
         for (int i = 0; i < options.size(); i++) {
-            if (options.get(i).equalsIgnoreCase(defaultValue)) {
+            if (options.get(i) != null && options.get(i).equalsIgnoreCase(defaultValue)) {
                 out.println(String.format("%d. %s [*]", i + 1, options.get(i)));
             } else {
                 out.println(String.format("%d. %s", i + 1, options.get(i)));
