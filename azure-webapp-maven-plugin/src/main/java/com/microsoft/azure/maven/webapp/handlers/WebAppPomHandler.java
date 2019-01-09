@@ -62,24 +62,18 @@ public class WebAppPomHandler {
         XMLUtils.removeNode(configuration, "path");
     }
 
-    public void savePluginConfiguration(WebAppConfiguration newConfigs) throws IOException, MojoFailureException {
-        updatePluginConfiguration(newConfigs, new WebAppConfiguration.Builder().build());
-    }
-
     public void updatePluginConfiguration(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs)
         throws IOException,
         MojoFailureException {
-        final ConfigurationSerializer serializer = new V2ConfigurationSerializer();
-
         Element pluginElement = getMavenPluginElement();
         if (pluginElement == null) {
-            // create webapp node in pom
             final Element buildNode = XMLUtils.getOrCreateSubElement("build", document.getRootElement());
             final Element pluginsRootNode = XMLUtils.getOrCreateSubElement("plugins", buildNode);
             pluginElement = createNewMavenPluginNode(pluginsRootNode);
         }
         final Element configuration = XMLUtils.getOrCreateSubElement("configuration", pluginElement);
-        serializer.saveToXML(newConfigs, oldConfigs, configuration);
+        final ConfigurationSerializer serializer = new V2ConfigurationSerializer(newConfigs, oldConfigs);
+        serializer.saveToXML(configuration);
         XMLUtils.setNamespace(pluginElement, pluginElement.getNamespace());
         saveModel();
     }

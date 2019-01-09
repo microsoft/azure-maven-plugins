@@ -17,7 +17,16 @@ import java.util.List;
 
 public abstract class ConfigurationSerializer {
 
-    public abstract void saveToXML(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs, Element document)
+    final WebAppConfiguration newConfigs;
+    final WebAppConfiguration oldConfigs;
+
+    public ConfigurationSerializer(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs) {
+        this.newConfigs = newConfigs;
+        // when there is no old configuration, just compare to an empty one
+        this.oldConfigs = oldConfigs == null ? new WebAppConfiguration.Builder().build() : oldConfigs;
+    }
+
+    public abstract void saveToXML(Element document)
         throws MojoFailureException;
 
     protected DOMElement createResourcesNode(List<Resource> resources) {

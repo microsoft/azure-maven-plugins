@@ -17,9 +17,12 @@ import org.dom4j.dom.DOMElement;
 
 public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
+    public V2ConfigurationSerializer(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs) {
+        super(newConfigs, oldConfigs);
+    }
+
     @Override
-    public void saveToXML(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
-                          Element configurationElement)
+    public void saveToXML(Element configurationElement)
         throws MojoFailureException {
         createOrUpdateAttribute("schemaVersion", "V2", oldConfigs.getSchemaVersion(), configurationElement);
         createOrUpdateAttribute("resourceGroup", newConfigs.getResourceGroup(),
@@ -46,7 +49,7 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
         }
 
         // only add deployment when init or convert
-        if (configurationElement.element("deployment") == null) {
+        if (configurationElement.element("deployment") == null && (newConfigs.getResources() != null)) {
             configurationElement.add(createDeploymentNode(newConfigs));
         }
     }
@@ -90,8 +93,9 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
                                           Element configurationElement) {
 
         final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
-        createOrUpdateAttribute("os", "linux", oldOS, configurationElement);
-        final String oldJavaVersion = oldConfigs.getOs() == null ? null : oldConfigs.getJavaVersion().toString();
+        createOrUpdateAttribute("os", "windows", oldOS, configurationElement);
+        final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
+            oldConfigs.getJavaVersion().toString();
         createOrUpdateAttribute("javaVersion", newConfigs.getJavaVersion().toString(),
             oldJavaVersion, configurationElement);
         final String oldWebContainer = oldConfigs.getWebContainer() == null ? null :
@@ -102,7 +106,8 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
     private void updateDockerRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
                                          Element configurationElement) {
-        createOrUpdateAttribute("os", "docker", oldConfigs.getOs().toString(), configurationElement);
+        final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
+        createOrUpdateAttribute("os", "docker", oldOS, configurationElement);
         createOrUpdateAttribute("image", newConfigs.getImage(), oldConfigs.getImage(), configurationElement);
         createOrUpdateAttribute("serverId", newConfigs.getServerId(), oldConfigs.getServerId(), configurationElement);
         createOrUpdateAttribute("registryUrl", newConfigs.getRegistryUrl(), oldConfigs.getRegistryUrl(),

@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Mojo(name = "config")
 public class ConfigMojo extends AbstractWebAppMojo {
@@ -53,15 +55,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
         pomHandler = new WebAppPomHandler("pom.xml");
 
         try {
-            final WebAppConfiguration configuration;
-            if (pomHandler.getConfiguration() == null) {
-                info(CONFIGURATION_NOT_FOUND);
-                configuration = initConfig();
-                pomHandler.savePluginConfiguration(configuration);
-            } else {
-                configuration = getWebAppConfiguration();
-            }
-            if (SchemaVersion.fromString(configuration.getSchemaVersion()) == SchemaVersion.V1) {
+            final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
+                getWebAppConfiguration();
+            if (isV1Configuration(configuration)) {
                 convertToV2Schema(configuration);
             } else {
                 config(configuration);
@@ -69,6 +65,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
         } finally {
             queryer.close();
         }
+    }
+
+    private boolean isV1Configuration(WebAppConfiguration configuration) {
+        return configuration != null && configuration.getSchemaVersion().equals(SchemaVersion.V1.toString());
     }
 
     protected void convertToV2Schema(WebAppConfiguration configuration) throws IOException, MojoFailureException {
@@ -86,7 +86,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
         IOException {
         final WebAppConfiguration oldConfiguration = configuration;
         do {
-            configuration = updateConfiguration(configuration);
+            if (configuration == null) {
+                info(CONFIGURATION_NOT_FOUND);
+                configuration = initConfig();
+            } else {
+                configuration = updateConfiguration(configuration);
+            }
         } while (!confirmConfiguration(configuration));
         info(SAVING_TO_POM);
         pomHandler.updatePluginConfiguration(configuration, oldConfiguration);
@@ -182,8 +187,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
             Region.US_EAST2.name();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
             null, null);
-        final String pricingTier = queryer.assureInputFromUser("pricingTier", PricingTierEnum.P1V2
-            , null);
+        final String pricingTier = queryer.assureInputFromUser("pricingTier", PricingTierEnum.P1V2.toString(),
+            getAvailablePricingTierList(), null);
 
         return builder.appName(appName)
             .resourceGroup(resourceGroup)
@@ -262,13 +267,13 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultJavaVersion = configuration.getJavaVersion() == null ?
             JavaVersion.JAVA_ZULU_1_8_0_144.toString() : configuration.getJavaVersion().toString();
         final String javaVersion = queryer.assureInputFromUser("javaVersion",
-            defaultJavaVersion, getValidJavaVersion(), null);
+            defaultJavaVersion, getAvailableJavaVersion(), null);
 
         final String defaultWebContainer = configuration.getWebContainer() == null ?
             WebContainer.TOMCAT_8_5_NEWEST.toString() :
             configuration.getWebContainer().toString();
         final String webContainer = queryer.assureInputFromUser("webContainer",
-            defaultWebContainer, getValidWebContainer(), null);
+            defaultWebContainer, getAvailableWebContainer(), null);
         return builder.javaVersion(JavaVersion.fromString(javaVersion))
             .webContainer(WebContainer.fromString(webContainer));
     }
@@ -287,7 +292,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             .registryUrl(registryUrl);
     }
 
-    private static List<String> getValidJavaVersion() {
+    private static List<String> getAvailableJavaVersion() {
         final List<String> result = new ArrayList<>();
         for (final JavaVersion javaVersion : JavaVersion.values()) {
             if (!javaVersion.toString().equals("null")) {
@@ -298,11 +303,21 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return result;
     }
 
-    private static List<String> getValidWebContainer() {
+    private static List<String> getAvailableWebContainer() {
         final List<String> result = new ArrayList<>();
         for (final WebContainer webContainer : WebContainer.values()) {
             result.add(webContainer.toString());
         }
+        Collections.sort(result);
+        return result;
+    }
+
+    private static List<String> getAvailablePricingTierList() {
+        final Set<String> pricingTierSet = new HashSet<>();
+        for (final PricingTierEnum pricingTierEnum : PricingTierEnum.values()) {
+            pricingTierSet.add(pricingTierEnum.toString().toLowerCase());
+        }
+        final List<String> result = new ArrayList<>(pricingTierSet);
         Collections.sort(result);
         return result;
     }
