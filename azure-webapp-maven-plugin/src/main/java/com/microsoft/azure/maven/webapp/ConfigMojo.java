@@ -40,10 +40,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
     public static final String NOT_EMPTY_REGEX = "[\\s\\S]+";
     public static final String BOOLEAN_REGEX = "[YyNn]";
 
-    public static final String CONFIGURATION_NOT_FOUND = "Configuration not found, init new configuration.";
     public static final String CONVERT_TO_V2SCHEMA = "Converting configuration to V2 schema";
     public static final String SAVING_TO_POM = "Saving configuration to pom.";
     public static final String EXITING = "Config only support V2 schema, exiting";
+    public static final String UPDATE_CONFIGURATION_NOT_SUPPORT = "Update configuration is not support in this " +
+        "version.";
 
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
@@ -55,12 +56,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
         pomHandler = new WebAppPomHandler("pom.xml");
 
         try {
-            final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
-                getWebAppConfiguration();
-            if (isV1Configuration(configuration)) {
-                convertToV2Schema(configuration);
+            if (pomHandler.getConfiguration() == null) {
+                config(null);
             } else {
-                config(configuration);
+                info(UPDATE_CONFIGURATION_NOT_SUPPORT);
             }
         } finally {
             queryer.close();
@@ -87,7 +86,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final WebAppConfiguration oldConfiguration = configuration;
         do {
             if (configuration == null) {
-                info(CONFIGURATION_NOT_FOUND);
                 configuration = initConfig();
             } else {
                 configuration = updateConfiguration(configuration);
@@ -121,6 +119,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             default:
                 throw new MojoExecutionException("The value of <os> is unknown.");
         }
+
         System.out.println("Deploy to slot : " + (configuration.getDeploymentSlotSetting() != null));
         if (configuration.getDeploymentSlotSetting() != null) {
             final DeploymentSlotSetting slotSetting = configuration.getDeploymentSlotSetting();
@@ -155,7 +154,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     protected WebAppConfiguration updateConfiguration(WebAppConfiguration configuration)
         throws MojoFailureException, MojoExecutionException {
-        final String selection = queryer.assureInputFromUser("selection", "Application", Arrays.asList(configTypes),
+        final String selection = queryer.assureInputFromUser("selection", null, Arrays.asList(configTypes),
             "Please choose which part to config");
         switch (selection) {
             case "Application":
@@ -184,7 +183,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             NOT_EMPTY_REGEX, null, null);
 
         final String defaultRegion = configuration.region != null ? configuration.region.name() :
-            Region.US_EAST2.name();
+            Region.EUROPE_WEST.name();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
             null, null);
         final String pricingTier = queryer.assureInputFromUser("pricingTier", PricingTierEnum.P1V2.toString(),
@@ -194,7 +193,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             .resourceGroup(resourceGroup)
             .region(Region.fromName(region))
             .pricingTier(PricingTierEnum.valueOf(pricingTier).toPricingTier())
-            .resources(getResources()).build();
+            .build();
     }
 
     private WebAppConfiguration getSlotConfiguration(WebAppConfiguration configuration)

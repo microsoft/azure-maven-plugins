@@ -395,7 +395,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
         }
         map.put(SCHEMA_VERSION_KEY, schemaVersion);
-        map.put(OS_KEY, webAppConfiguration.getOs().toString());
+        map.put(OS_KEY, webAppConfiguration.getOs() == null ? "" : webAppConfiguration.getOs().toString());
         map.put(JAVA_VERSION_KEY, webAppConfiguration.getJavaVersion() == null ? "" :
             webAppConfiguration.getJavaVersion().toString());
         map.put(JAVA_WEB_CONTAINER_KEY, webAppConfiguration.getWebContainer() == null ? "" :
