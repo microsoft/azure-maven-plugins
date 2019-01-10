@@ -41,7 +41,11 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
         prompt = StringUtils.isEmpty(prompt) ? getPromptString(attribute, defaultValue) : prompt;
         out.println(prompt);
         for (int i = 0; i < options.size(); i++) {
-            out.println(String.format("%d. %s", i, options.get(i)));
+            if (options.get(i) != null && options.get(i).equalsIgnoreCase(defaultValue)) {
+                out.println(String.format("%d. %s [*]", i + 1, options.get(i)));
+            } else {
+                out.println(String.format("%d. %s", i + 1, options.get(i)));
+            }
         }
         while (true) {
             out.print("Enter index to use: ");
@@ -52,8 +56,8 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
                     return defaultValue;
                 }
                 final int choice = Integer.parseInt(input);
-                if (choice >= 0 && choice < options.size()) {
-                    return options.get(choice);
+                if (choice > 0 && choice <= options.size()) {
+                    return options.get(choice - 1);
                 }
             } catch (NumberFormatException e) {
                 // Swallow this exception

@@ -12,6 +12,7 @@ import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
             return self();
         }
 
-        public Builder jarFile (final String value) {
+        public Builder jarFile(final String value) {
             this.jarFile = value;
             return self();
         }
