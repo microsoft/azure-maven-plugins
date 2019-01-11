@@ -25,7 +25,7 @@ public class YamlContent {
         }
 
         public String build(Log logger, String resourceName) throws MojoFailureException {
-            String replacedYamlContent = "";
+            final StringBuilder replacedYamlContent = new StringBuilder();
             try {
                 final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(resourceName);
                 final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -35,11 +35,11 @@ public class YamlContent {
                     if (properties.containsKey(wordToReplace)){
                         logger.debug(String.format("Replacing %s with %s", wordToReplace,
                             properties.get(wordToReplace)));
-                        replacedYamlContent += line.replace(wordToReplace, properties.get(wordToReplace));
+                        replacedYamlContent.append(line.replace(wordToReplace, properties.get(wordToReplace)));
                     } else {
-                        replacedYamlContent += line;
+                        replacedYamlContent.append(line);
                     }
-                    replacedYamlContent += "\n";
+                    replacedYamlContent.append("\n");
                 }
                 reader.close();
                 inputStream.close();
@@ -48,7 +48,7 @@ public class YamlContent {
                 throw new MojoFailureException(String.format("Error while building " +
                     "%s resource", resourceName));
             }
-            return replacedYamlContent;
+            return replacedYamlContent.toString();
         }
     }
 

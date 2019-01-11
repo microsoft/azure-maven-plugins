@@ -18,13 +18,13 @@ import org.apache.maven.project.MavenProject;
  * Goal which deploys the application to a cluster
  */
 @Mojo(name = "deploytocluster", defaultPhase = LifecyclePhase.NONE)
-public class DeployToClusterMojo extends AbstractMojo{
+public class DeployToClusterMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     MavenProject project;
 
     /**
-     * Comma seperated resource files or the directory in which the resource files are present
+     * Comma separated resource files or the directory in which the resource files are present
     */
     @Parameter(property = "inputYamlFiles", defaultValue = Constants.SERVICE_FABRIC_RESOURCES_PATH)
     String inputYamlFiles;

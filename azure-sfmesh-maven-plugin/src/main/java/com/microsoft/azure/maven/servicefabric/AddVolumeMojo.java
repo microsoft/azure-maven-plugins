@@ -21,7 +21,7 @@ import java.io.IOException;
  * Goal which adds a volume resource to a project.
  */
 @Mojo(name = "addvolume", defaultPhase = LifecyclePhase.NONE)
-public class AddVolumeMojo extends AbstractMojo{
+public class AddVolumeMojo extends AbstractMojo {
 
     /**
      * schema version of the network yaml to be generated

@@ -51,6 +51,10 @@ Need to update the above link after publishing
 #### `azure-sfmesh:addsecretvalue`
 - Generates a `secretvalue` YAML with the provided secret and secret value name in the `appresources` folder 
 
+#### `azure-sfmesh:addvolume`
+- Generates a `volume` YAML with the provided volume name in the
+`appresources` folder.
+
 #### `azure-sfmesh:deploy`
 - Merges the yamls from the `servicefabric` folder and creates an Azure Resource Manager template JSON in the current folder.
 - Deploys all the resources to the Azure Service Fabric Mesh environment 

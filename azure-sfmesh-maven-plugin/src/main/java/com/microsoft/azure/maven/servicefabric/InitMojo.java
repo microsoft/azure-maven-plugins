@@ -21,7 +21,7 @@ import java.io.IOException;
  * Goal which creates initial application resource of a project.
  */
 @Mojo(name = "init", defaultPhase = LifecyclePhase.NONE)
-public class InitMojo extends AbstractMojo{
+public class InitMojo extends AbstractMojo {
 
     /**
      * schema version of the network yaml to be generated

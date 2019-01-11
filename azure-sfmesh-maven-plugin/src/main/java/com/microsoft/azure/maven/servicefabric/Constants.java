@@ -42,7 +42,7 @@ public class Constants{
     public static final String DEFAULT_DELETE_RESOURCE_GROUP = "false";
     public static final String DEFAULT_NETWORK_KIND = "Local";
     public static final String DEFAULT_SECRET_KIND = "inlinedValue";
-    public static final String DEFAULT_ENVIRONMENTAL_VARIABLES = "NO_ENVIROMENTAL_VARS";
+    public static final String DEFAULT_ENVIRONMENTAL_VARIABLES = "NO_ENVIRONMENTAL_VARS";
     public static final String DEFAULT_PEM_FILE_PATH = "NO_PEM_PATH";
     public static final String DEFAULT_SECRET_CONTENT_TYPE = "text/plain";
 }

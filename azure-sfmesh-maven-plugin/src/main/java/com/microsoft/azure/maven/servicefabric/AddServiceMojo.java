@@ -23,7 +23,7 @@ import java.util.LinkedHashMap;
  * Goal which adds a service resource to a project.
  */
 @Mojo(name = "addservice", defaultPhase = LifecyclePhase.NONE)
-public class AddServiceMojo extends AbstractMojo{
+public class AddServiceMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     MavenProject project;
@@ -107,10 +107,10 @@ public class AddServiceMojo extends AbstractMojo{
     String networkRef; 
 
     /**
-     * Enviromental variables suppiled in key1:val1,key2:val2 format
+     * Environmental variables suppiled in key1:val1,key2:val2 format
      */
-    @Parameter(property = "enviromentalVariables", defaultValue = Constants.DEFAULT_ENVIRONMENTAL_VARIABLES)
-    String enviromentalVariables;
+    @Parameter(property = "environmentalVariables", defaultValue = Constants.DEFAULT_ENVIRONMENTAL_VARIABLES)
+    String environmentalVariables;
 
     private Log logger  = getLog();
 
@@ -150,8 +150,8 @@ public class AddServiceMojo extends AbstractMojo{
                 .addElement("NETWORK_NAME", networkRef)
                 .build(logger, Constants.SERVICE_RESOURCE_NAME);
         try {
-            if (!enviromentalVariables.equals(Constants.DEFAULT_ENVIRONMENTAL_VARIABLES)){
-                serviceContent = addEnvironmentVariables(logger, serviceContent, enviromentalVariables);
+            if (!environmentalVariables.equals(Constants.DEFAULT_ENVIRONMENTAL_VARIABLES)){
+                serviceContent = addEnvironmentVariables(logger, serviceContent, environmentalVariables);
             }
             Utils.createDirectory(logger, serviceDirectory);
             FileUtils.fileWrite(Utils.getPath(serviceDirectory,

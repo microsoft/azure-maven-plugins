@@ -11,7 +11,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -25,7 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 
-public class Utils{
+public class Utils {
 
     enum ResourceType {
         application, volume, network;
@@ -46,16 +45,6 @@ public class Utils{
             return true;
         }
         return false;
-    }
-
-    public static void deleteFileOrDirectory(String path, Log logger) throws MojoFailureException {
-        try {
-            FileUtils.deleteDirectory(path);
-        } catch (IOException e) {
-            logger.error("Directory deletion failed");
-            throw new MojoFailureException(String.format("Error while " +
-                "deleting directory %s", path));
-        }
     }
 
     public static String replaceString(Log logger, String content, String originalString,
