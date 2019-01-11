@@ -11,8 +11,10 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
@@ -22,6 +24,12 @@ import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import java.util.List;
 
 public class WebAppConfiguration {
+
+    public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
+    public static final PricingTierEnum DEFAULT_PRICINGTIER = PricingTierEnum.P1V2;
+    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_ZULU_1_8_0_144;
+    public static final WebContainer DEFAULT_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
+
     // artifact deploy related configurations
     protected String appName;
     protected DeploymentSlotSetting deploymentSlotSetting;
@@ -186,6 +194,28 @@ public class WebAppConfiguration {
             .filtering(this.filtering)
             .schemaVersion(this.schemaVersion)
             .deploymentSlotSetting(this.deploymentSlotSetting);
+    }
+
+    public String getRegionOrDefault() {
+        return region != null ? region.toString() : DEFAULT_REGION.toString();
+    }
+
+    public String getPricingTierOrDefault() {
+        return pricingTier != null ? PricingTierEnum.getPricingTierStringByPricingTierObject(pricingTier) :
+            DEFAULT_PRICINGTIER.toString();
+    }
+
+    public String getRuntimeStackOrDefault() {
+        return runtimeStack != null ? RuntimeSetting.getLinuxWebContainerByRuntimeStack(runtimeStack) :
+            RuntimeSetting.getDefaultLinuxRuntimeStack();
+    }
+
+    public String getJavaVersionOrDefault() {
+        return javaVersion != null ? javaVersion.toString() : DEFAULT_JAVA_VERSION.toString();
+    }
+
+    public String getWebContainerOrDefault() {
+        return webContainer != null ? webContainer.toString() : DEFAULT_WEB_CONTAINER.toString();
     }
 
     // endregion
