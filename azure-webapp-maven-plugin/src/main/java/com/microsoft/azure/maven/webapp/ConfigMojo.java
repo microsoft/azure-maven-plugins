@@ -141,7 +141,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultName = getProject().getArtifactId() + "-" + System.currentTimeMillis();
         final String resourceGroup = defaultName + "-rg";
         final String defaultSchemaVersion = "V2";
-        final Region defaultRegion = Region.US_WEST2;
+        final Region defaultRegion = Region.EUROPE_WEST;
         final PricingTierEnum pricingTierEnum = PricingTierEnum.P1V2;
         return builder.appName(defaultName)
             .resourceGroup(resourceGroup)
@@ -186,7 +186,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
             Region.EUROPE_WEST.name();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
             null, null);
-        final String pricingTier = queryer.assureInputFromUser("pricingTier", PricingTierEnum.P1V2.toString(),
+        final String defaultPricingTier = configuration.getPricingTier() != null ?
+            PricingTierEnum.getPricingTierStringByPricingTierObject(configuration.getPricingTier()) :
+            PricingTierEnum.P1V2.toString();
+        final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier,
             getAvailablePricingTierList(), null);
 
         return builder.appName(appName)
