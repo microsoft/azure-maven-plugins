@@ -180,7 +180,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             defaultResourceGroup,
             NOT_EMPTY_REGEX, null, null);
 
-        final String defaultRegion = getDefaultRigon(configuration.getRegion());
+        final String defaultRegion = getDefaultRegion(configuration.getRegion());
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
             null, null);
 
@@ -319,7 +319,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return StringUtils.isNotEmpty(defaultValue) ? defaultValue : fallBack;
     }
 
-    private String getDefaultRigon(Region region) {
+    private String getDefaultRegion(Region region) {
         return region != null ? region.toString() : DEFAULT_REGION.toString();
     }
 
