@@ -28,7 +28,7 @@
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
-        <azure.maven-plugin-lib.version>1.2.6-SNAOSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.2.7-SNAOSHOT</azure.maven-plugin-lib.version>
         <azure.function.version>1.2.0</azure.function.version>
         <reflections.version>0.9.11</reflections.version>
         <junit.version>4.12</junit.version>
