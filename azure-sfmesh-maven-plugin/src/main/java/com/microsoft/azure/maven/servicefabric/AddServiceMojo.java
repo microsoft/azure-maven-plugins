@@ -18,6 +18,7 @@ import org.codehaus.plexus.util.FileUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Goal which adds a service resource to a project.
@@ -169,28 +170,29 @@ public class AddServiceMojo extends AbstractMojo {
     public String addEnvironmentVariables(Log logger, String content,
         String environmentVariables) throws MojoFailureException{
         final String[] env = environmentVariables.split(",");
-        final ArrayList<LinkedHashMap<String, Object>> envList = new ArrayList<LinkedHashMap<String, Object>>();
+        final ArrayList<Map<String, Object>> envVar = new ArrayList<Map<String, Object>>();
         for (int i = 0; i < env.length; i++){
             final String[] kvp = env[i].split(":");
-            final LinkedHashMap<String, Object> envMap = new LinkedHashMap<String, Object>();
-            envMap.put(kvp[0], kvp[1]);
-            envList.add(envMap);
+            final Map<String, Object> kvpMap = new LinkedHashMap<String, Object>();
+            kvpMap.put("name", kvp[0]);
+            kvpMap.put("value", kvp[1]);
+            envVar.add(kvpMap);
         }
-        final LinkedHashMap<String, Object> map = Utils.stringToYaml(logger, content);
-        final LinkedHashMap<String, Object> application = (LinkedHashMap<String, Object>) map.get("application");
-        final LinkedHashMap<String, Object> applicationProperties =
-            (LinkedHashMap<String, Object>) application.get("properties");
-        final ArrayList<LinkedHashMap<String, Object>> services =
-            (ArrayList<LinkedHashMap<String, Object>>) applicationProperties.get("services");
-        final LinkedHashMap<String, Object> service = services.get(0);
-        final LinkedHashMap<String, Object> serviceProperties =
-            (LinkedHashMap<String, Object>) service.get("properties");
-        final ArrayList<LinkedHashMap<String, Object>> codePackages =
-            (ArrayList<LinkedHashMap<String, Object>>) serviceProperties.get("codePackages");
-        final LinkedHashMap<String, Object> codePackage = codePackages.get(0);
+        final Map<String, Object> map = Utils.stringToYaml(logger, content);
+        final Map<String, Object> application = (Map<String, Object>) map.get("application");
+        final Map<String, Object> applicationProperties =
+            (Map<String, Object>) application.get("properties");
+        final ArrayList<Map<String, Object>> services =
+            (ArrayList<Map<String, Object>>) applicationProperties.get("services");
+        final Map<String, Object> service = services.get(0);
+        final Map<String, Object> serviceProperties =
+            (Map<String, Object>) service.get("properties");
+        final ArrayList<Map<String, Object>> codePackages =
+            (ArrayList<Map<String, Object>>) serviceProperties.get("codePackages");
+        final Map<String, Object> codePackage = codePackages.get(0);
 
         // TODO: Understand the reason why we need to remove instead of replace
-        codePackage.put("environmentVariables", envList);
+        codePackage.put("environmentVariables", envVar);
         codePackages.remove(0);
         codePackages.add(codePackage);
         serviceProperties.replace("codePackages", codePackages);

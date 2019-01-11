@@ -22,7 +22,7 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Utils {
 
@@ -147,19 +147,19 @@ public class Utils {
     }
 
     @SuppressWarnings("unchecked")
-    public static LinkedHashMap<String, Object> stringToYaml(Log logger,
+    public static Map<String, Object> stringToYaml(Log logger,
         String content) throws MojoFailureException {
         final ObjectMapper oMapper = new ObjectMapper(new YAMLFactory());
         final InputStream stream = new ByteArrayInputStream(content.getBytes(Charset.forName("UTF-8")));
         try {
-            return oMapper.readValue(stream, LinkedHashMap.class);
+            return oMapper.readValue(stream, Map.class);
         } catch (IOException e) {
             logger.error(e);
             throw new MojoFailureException(String.format("string to yaml conversion failed"));
         }
     }
 
-    public static String yamlToString(LinkedHashMap<String, Object> yaml){
+    public static String yamlToString(Map<String, Object> yaml){
         final StringWriter content = new StringWriter();
         final DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
