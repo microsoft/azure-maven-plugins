@@ -7,8 +7,6 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
@@ -44,11 +42,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
         "webapp.";
     public static final String CONFIGURATION_NO_RUNTIME = "No runtime configuration, skip it.";
     public static final String SAVING_TO_POM = "Saving configuration to pom.";
-
-    public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
-    public static final PricingTierEnum DEFAULT_PRICINGTIER = PricingTierEnum.P1V2;
-    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_ZULU_1_8_0_144;
-    public static final WebContainer DEFAULT_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
 
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
@@ -139,8 +132,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultName = getProject().getArtifactId() + "-" + System.currentTimeMillis();
         final String resourceGroup = defaultName + "-rg";
         final String defaultSchemaVersion = "V2";
-        final Region defaultRegion = DEFAULT_REGION;
-        final PricingTierEnum pricingTierEnum = DEFAULT_PRICINGTIER;
+        final Region defaultRegion = WebAppConfiguration.DEFAULT_REGION;
+        final PricingTierEnum pricingTierEnum = WebAppConfiguration.DEFAULT_PRICINGTIER;
         return builder.appName(defaultName)
             .resourceGroup(resourceGroup)
             .region(defaultRegion)
@@ -180,11 +173,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
             defaultResourceGroup,
             NOT_EMPTY_REGEX, null, null);
 
-        final String defaultRegion = getDefaultRegion(configuration.getRegion());
+        final String defaultRegion = configuration.getRegionOrDefault();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
             null, null);
 
-        final String defaultPricingTier = getDefaultPricingTier(configuration.getPricingTier());
+        final String defaultPricingTier = configuration.getPricingTierOrDefault();
         final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier,
             getAvailablePricingTierList(), null);
 
@@ -251,7 +244,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration.Builder getRuntimeConfigurationOfLinux(WebAppConfiguration.Builder builder,
                                                                        WebAppConfiguration configuration)
         throws MojoFailureException {
-        final String defaultLinuxRuntimeStack = getDefaultRuntimeStack(configuration.getRuntimeStack());
+        final String defaultLinuxRuntimeStack = configuration.getRuntimeStackOrDefault();
         final String runtimeStack = queryer.assureInputFromUser("runtimeStack",
             defaultLinuxRuntimeStack, RuntimeSetting.getValidLinuxRuntime(), null);
         return builder.runtimeStack(RuntimeSetting.getLinuxRuntimeStackByJavaVersion(runtimeStack));
@@ -260,11 +253,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration.Builder getRuntimeConfigurationOfWindows(WebAppConfiguration.Builder builder,
                                                                          WebAppConfiguration configuration)
         throws MojoFailureException {
-        final String defaultJavaVersion = getDefaultJavaVersion(configuration.getJavaVersion());
+        final String defaultJavaVersion = configuration.getJavaVersionOrDefault();
         final String javaVersion = queryer.assureInputFromUser("javaVersion",
             defaultJavaVersion, getAvailableJavaVersion(), null);
 
-        final String defaultWebContainer = getDefaultWebContainer(configuration.getWebContainer());
+        final String defaultWebContainer = configuration.getWebContainerOrDefault();
         final String webContainer = queryer.assureInputFromUser("webContainer",
             defaultWebContainer, getAvailableWebContainer(), null);
         return builder.javaVersion(JavaVersion.fromString(javaVersion))
@@ -317,27 +310,5 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private String getDefaultValue(String defaultValue, String fallBack) {
         return StringUtils.isNotEmpty(defaultValue) ? defaultValue : fallBack;
-    }
-
-    private String getDefaultRegion(Region region) {
-        return region != null ? region.toString() : DEFAULT_REGION.toString();
-    }
-
-    private String getDefaultPricingTier(PricingTier pricingTier) {
-        return pricingTier != null ? PricingTierEnum.getPricingTierStringByPricingTierObject(pricingTier) :
-            DEFAULT_PRICINGTIER.toString();
-    }
-
-    private String getDefaultRuntimeStack(RuntimeStack runtimeStack) {
-        return runtimeStack != null ? RuntimeSetting.getLinuxWebContainerByRuntimeStack(runtimeStack) :
-            RuntimeSetting.getDefaultLinuxRuntimeStack();
-    }
-
-    private String getDefaultJavaVersion(JavaVersion javaVersion) {
-        return javaVersion != null ? javaVersion.toString() : DEFAULT_JAVA_VERSION.toString();
-    }
-
-    private String getDefaultWebContainer(WebContainer webContainer) {
-        return webContainer != null ? webContainer.toString() : DEFAULT_WEB_CONTAINER.toString();
     }
 }
