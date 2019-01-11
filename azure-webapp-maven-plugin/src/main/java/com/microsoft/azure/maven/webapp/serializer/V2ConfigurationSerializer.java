@@ -36,7 +36,9 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
             PricingTierEnum.getPricingTierStringByPricingTierObject(oldConfigs.getPricingTier()),
             configurationElement);
 
-        updateRunTimeNode(newConfigs, oldConfigs, configurationElement);
+        if (newConfigs.getOs() != null) {
+            updateRunTimeNode(newConfigs, oldConfigs, configurationElement);
+        }
 
         // remove or update deploymentSlot node
         if (newConfigs.getDeploymentSlotSetting() == null) {

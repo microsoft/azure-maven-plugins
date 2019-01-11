@@ -18,13 +18,10 @@ import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
-import com.microsoft.azure.maven.webapp.utils.XMLUtils;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.codehaus.plexus.util.StringUtils;
-import org.dom4j.Element;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,10 +37,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
     public static final String NOT_EMPTY_REGEX = "[\\s\\S]+";
     public static final String BOOLEAN_REGEX = "[YyNn]";
 
-    public static final String CONFIGURATION_NOT_FOUND = "Configuration not found, init new configuration.";
-    public static final String CONVERT_TO_V2SCHEMA = "Converting configuration to V2 schema";
+    public static final String CONFIG_ONLY_SUPPORT_V2 = "Config only support V2 schema";
+    public static final String CHANGE_OS_WARNING = "The plugin may not work if you change the os of an existing " +
+        "webapp.";
+    public static final String CONFIGURATION_NO_RUNTIME = "No runtime configuration, skip it.";
     public static final String SAVING_TO_POM = "Saving configuration to pom.";
-    public static final String EXITING = "Config only support V2 schema, exiting";
 
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
@@ -58,7 +56,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
                 getWebAppConfiguration();
             if (isV1Configuration(configuration)) {
-                convertToV2Schema(configuration);
+                warning(CONFIG_ONLY_SUPPORT_V2);
             } else {
                 config(configuration);
             }
@@ -71,23 +69,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return configuration != null && configuration.getSchemaVersion().equals(SchemaVersion.V1.toString());
     }
 
-    protected void convertToV2Schema(WebAppConfiguration configuration) throws IOException, MojoFailureException {
-        final String result = queryer.assureInputFromUser("convertToV2", "Y", BOOLEAN_REGEX, "Convert to V2 Schema" +
-            " (Y/N)? : ", null);
-        if (result.equalsIgnoreCase("y")) {
-            info(CONVERT_TO_V2SCHEMA);
-            pomHandler.convertToV2Schema(configuration);
-        } else {
-            info(EXITING);
-        }
-    }
-
     protected void config(WebAppConfiguration configuration) throws MojoFailureException, MojoExecutionException,
         IOException {
         final WebAppConfiguration oldConfiguration = configuration;
         do {
             if (configuration == null) {
-                info(CONFIGURATION_NOT_FOUND);
                 configuration = initConfig();
             } else {
                 configuration = updateConfiguration(configuration);
@@ -104,22 +90,27 @@ public class ConfigMojo extends AbstractWebAppMojo {
         System.out.println("ResourceGroup : " + configuration.getResourceGroup());
         System.out.println("Region : " + configuration.getRegion());
         System.out.println("PricingTier : " + configuration.getPricingTier());
-        System.out.println("OS : " + configuration.getOs());
-        switch (configuration.getOs()) {
-            case Windows:
-                System.out.println("Java : " + configuration.getJavaVersion());
-                System.out.println("WebContainer : " + configuration.getWebContainer());
-                break;
-            case Linux:
-                System.out.println("RuntimeStack : " + configuration.getRuntimeStack());
-                break;
-            case Docker:
-                System.out.println("Image : " + configuration.getImage());
-                System.out.println("ServerId : " + configuration.getServerId());
-                System.out.println("RegistryUrl : " + configuration.getRegistryUrl());
-                break;
-            default:
-                throw new MojoExecutionException("The value of <os> is unknown.");
+
+        if (configuration.getOs() == null) {
+            System.out.println(CONFIGURATION_NO_RUNTIME);
+        } else {
+            System.out.println("OS : " + configuration.getOs().toString());
+            switch (configuration.getOs()) {
+                case Windows:
+                    System.out.println("Java : " + configuration.getJavaVersion());
+                    System.out.println("WebContainer : " + configuration.getWebContainer());
+                    break;
+                case Linux:
+                    System.out.println("RuntimeStack : " + configuration.getRuntimeStack());
+                    break;
+                case Docker:
+                    System.out.println("Image : " + configuration.getImage());
+                    System.out.println("ServerId : " + configuration.getServerId());
+                    System.out.println("RegistryUrl : " + configuration.getRegistryUrl());
+                    break;
+                default:
+                    throw new MojoExecutionException("The value of <os> is unknown.");
+            }
         }
         System.out.println("Deploy to slot : " + (configuration.getDeploymentSlotSetting() != null));
         if (configuration.getDeploymentSlotSetting() != null) {
@@ -127,7 +118,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
             System.out.println("Slot name : " + slotSetting.getName());
             System.out.println("ConfigurationSource : " + slotSetting.getConfigurationSource());
         }
-
         final String result = queryer.assureInputFromUser("confirm", "Y", BOOLEAN_REGEX, "Confirm (Y/N)? : ", null);
         return result.equalsIgnoreCase("Y");
     }
@@ -142,8 +132,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultName = getProject().getArtifactId() + "-" + System.currentTimeMillis();
         final String resourceGroup = defaultName + "-rg";
         final String defaultSchemaVersion = "V2";
-        final Region defaultRegion = Region.US_WEST2;
-        final PricingTierEnum pricingTierEnum = PricingTierEnum.P1V2;
+        final Region defaultRegion = WebAppConfiguration.DEFAULT_REGION;
+        final PricingTierEnum pricingTierEnum = WebAppConfiguration.DEFAULT_PRICINGTIER;
         return builder.appName(defaultName)
             .resourceGroup(resourceGroup)
             .region(defaultRegion)
@@ -155,7 +145,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     protected WebAppConfiguration updateConfiguration(WebAppConfiguration configuration)
         throws MojoFailureException, MojoExecutionException {
-        final String selection = queryer.assureInputFromUser("selection", "Application", Arrays.asList(configTypes),
+        final String selection = queryer.assureInputFromUser("selection", null, Arrays.asList(configTypes),
             "Please choose which part to config");
         switch (selection) {
             case "Application":
@@ -183,18 +173,19 @@ public class ConfigMojo extends AbstractWebAppMojo {
             defaultResourceGroup,
             NOT_EMPTY_REGEX, null, null);
 
-        final String defaultRegion = configuration.region != null ? configuration.region.name() :
-            Region.US_EAST2.name();
+        final String defaultRegion = configuration.getRegionOrDefault();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
             null, null);
-        final String pricingTier = queryer.assureInputFromUser("pricingTier", PricingTierEnum.P1V2.toString(),
+
+        final String defaultPricingTier = configuration.getPricingTierOrDefault();
+        final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier,
             getAvailablePricingTierList(), null);
 
         return builder.appName(appName)
             .resourceGroup(resourceGroup)
             .region(Region.fromName(region))
             .pricingTier(PricingTierEnum.valueOf(pricingTier).toPricingTier())
-            .resources(getResources()).build();
+            .build();
     }
 
     private WebAppConfiguration getSlotConfiguration(WebAppConfiguration configuration)
@@ -228,7 +219,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration getRuntimeConfiguration(WebAppConfiguration configuration)
         throws MojoFailureException, MojoExecutionException {
         WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
-
+        warning(CHANGE_OS_WARNING);
         final OperatingSystemEnum defaultOs = configuration.getOs() == null ? OperatingSystemEnum.Linux :
             configuration.getOs();
         final String os = queryer.assureInputFromUser("OS", defaultOs, null);
@@ -253,9 +244,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration.Builder getRuntimeConfigurationOfLinux(WebAppConfiguration.Builder builder,
                                                                        WebAppConfiguration configuration)
         throws MojoFailureException {
-        final String defaultLinuxRuntimeStack = getDefaultValue(
-            RuntimeSetting.getLinuxWebContainerByRuntimeStack(configuration.getRuntimeStack()),
-            RuntimeSetting.getDefaultLinuxRuntimeStack());
+        final String defaultLinuxRuntimeStack = configuration.getRuntimeStackOrDefault();
         final String runtimeStack = queryer.assureInputFromUser("runtimeStack",
             defaultLinuxRuntimeStack, RuntimeSetting.getValidLinuxRuntime(), null);
         return builder.runtimeStack(RuntimeSetting.getLinuxRuntimeStackByJavaVersion(runtimeStack));
@@ -264,14 +253,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration.Builder getRuntimeConfigurationOfWindows(WebAppConfiguration.Builder builder,
                                                                          WebAppConfiguration configuration)
         throws MojoFailureException {
-        final String defaultJavaVersion = configuration.getJavaVersion() == null ?
-            JavaVersion.JAVA_ZULU_1_8_0_144.toString() : configuration.getJavaVersion().toString();
+        final String defaultJavaVersion = configuration.getJavaVersionOrDefault();
         final String javaVersion = queryer.assureInputFromUser("javaVersion",
             defaultJavaVersion, getAvailableJavaVersion(), null);
 
-        final String defaultWebContainer = configuration.getWebContainer() == null ?
-            WebContainer.TOMCAT_8_5_NEWEST.toString() :
-            configuration.getWebContainer().toString();
+        final String defaultWebContainer = configuration.getWebContainerOrDefault();
         final String webContainer = queryer.assureInputFromUser("webContainer",
             defaultWebContainer, getAvailableWebContainer(), null);
         return builder.javaVersion(JavaVersion.fromString(javaVersion))
@@ -324,43 +310,5 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private String getDefaultValue(String defaultValue, String fallBack) {
         return StringUtils.isNotEmpty(defaultValue) ? defaultValue : fallBack;
-    }
-
-    // read resources setting with dom4j or pom properties will be replaced by its real value
-    @Override
-    public List<Resource> getResources() {
-        final Element resources = XMLUtils.getChild(getConfigurationDomElement(), "resources");
-        return getResourceListFromPom(resources);
-    }
-
-    // read resources setting with dom4j or pom properties will be replaced by its real value
-    @Override
-    public Deployment getDeployment() {
-        final Element resources = XMLUtils.getChild(getConfigurationDomElement(), "deployment", "resources");
-        final Deployment result = new Deployment();
-        result.setResources(getResourceListFromPom(resources));
-        return result;
-    }
-
-    private Element getConfigurationDomElement() {
-        return pomHandler.getConfiguration();
-    }
-
-    private List<Resource> getResourceListFromPom(Element resources) {
-        if (resources == null) {
-            return null;
-        }
-        final List<Resource> result = new ArrayList<>();
-        for (final Element resourceElement : resources.elements()) {
-            final Resource resource = new Resource();
-            resource.setDirectory(XMLUtils.getChildValue("directory", resourceElement));
-            resource.setMergeId(XMLUtils.getChildValue("mergeId", resourceElement));
-            resource.setTargetPath(XMLUtils.getChildValue("targetPath", resourceElement));
-            resource.setFiltering(XMLUtils.getChildValue("filtering", resourceElement));
-            resource.setIncludes(XMLUtils.getListValue(resourceElement.element("includes")));
-            resource.setExcludes(XMLUtils.getListValue(resourceElement.element("excludes")));
-            result.add(resource);
-        }
-        return result;
     }
 }
