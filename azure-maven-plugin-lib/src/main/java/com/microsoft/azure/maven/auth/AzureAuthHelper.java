@@ -60,8 +60,6 @@ public class AzureAuthHelper {
     public static final String AUTH_FILE_READ_FAIL = "Failed to read authentication file: ";
     public static final String AZURE_CLI_AUTH_FAIL = "Failed to authenticate with Azure CLI 2.0";
 
-
-
     protected AuthConfiguration config;
 
     /**
@@ -221,7 +219,7 @@ public class AzureAuthHelper {
     protected Authenticated getAuthObjFromAzureCli() {
         try {
             final Azure.Configurable azureConfigurable = azureConfigure();
-            Authenticated auth;
+            final Authenticated auth;
             if (isInCloudShell()) {
                 getLog().info(AUTH_WITH_MSI);
                 auth = azureConfigurable.authenticate(new MSICredentials());
