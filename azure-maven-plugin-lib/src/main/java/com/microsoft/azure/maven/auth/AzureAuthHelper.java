@@ -44,7 +44,7 @@ public class AzureAuthHelper {
     public static final String AUTH_WITH_SERVER_ID = "Authenticate with ServerId: ";
     public static final String AUTH_WITH_FILE = "Authenticate with file: ";
     public static final String AUTH_WITH_AZURE_CLI = "Authenticate with Azure CLI 2.0";
-    public static final String AUTH_WITH_MSI = "Detected in the Azure Cloud Shell, using MSI to authenticate.";
+    public static final String AUTH_WITH_MSI = "In the Azure Cloud Shell, use MSI to authenticate.";
     public static final String USE_KEY_TO_AUTH = "Use key to get Azure authentication token: ";
     public static final String USE_CERTIFICATE_TO_AUTH = "Use certificate to get Azure authentication token.";
 
@@ -289,7 +289,7 @@ public class AzureAuthHelper {
         return null;
     }
 
-    private boolean isInCloudShell() {
+    private static boolean isInCloudShell() {
         return System.getenv(CLOUD_SHELL_ENV_KEY) != null;
     }
 }
