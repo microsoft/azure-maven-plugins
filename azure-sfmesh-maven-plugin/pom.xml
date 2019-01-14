@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+      <groupId>com.microsoft.azure</groupId>
+      <artifactId>azure-maven-plugins-pom</artifactId>
+      <version>1.0.1-SNAPSHOT</version>
+      <relativePath>../azure-maven-plugins-pom</relativePath>
+  </parent>
+
+  <groupId>com.microsoft.azure</groupId>
+  <artifactId>azure-sfmesh-maven-plugin</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>maven-plugin</packaging>
+  <name>Maven Plugin for Service Fabric Mesh</name>
+  <description>Maven Plugin for Service Fabric Mesh Applications</description>
+  <url>https://github.com/microsoft/azure-maven-plugins</url>
+
+  <properties>
+    <jackson.core.version>2.9.7</jackson.core.version>
+    <jackson.dataformat.version>2.9.7</jackson.dataformat.version>
+    <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
+    <maven.version>3.3.3</maven.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <licenses>
+      <license>
+          <name>MIT License</name>
+          <url>https://opensource.org/licenses/MIT</url>
+          <distribution>repo</distribution>
+      </license>
+  </licenses>
+
+  <scm>
+      <connection>scm:git:https://github.com/microsoft/azure-maven-plugins</connection>
+      <developerConnection>scm:git:git@github.com:microsoft/azure-maven-plugins</developerConnection>
+      <url>https://github.com/microsoft/azure-maven-plugins</url>
+      <tag>HEAD</tag>
+  </scm>
+
+  <developers>
+      <developer>
+          <id>rapatchi</id>
+          <name>Rahul Patchigolla</name>
+          <email>rapatchi@microsoft.com</email>
+      </developer>
+  </developers>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>${maven.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>${maven.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>${maven.plugin-tools.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${jackson.dataformat.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.core.version}</version>
+    </dependency>
+    <dependency>
+     <groupId>com.microsoft.azure</groupId>
+      <artifactId>applicationinsights-web</artifactId>
+      <version>[2.0,)</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
+      <plugins>
+        <!-- see http://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_maven-plugin_packaging -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-plugin-plugin</artifactId>
+            <version>3.4</version>
+            <configuration>
+                <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+            </configuration>
+            <executions>
+                <execution>
+                    <id>mojo-descriptor</id>
+                    <goals>
+                        <goal>descriptor</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>help-goal</id>
+                    <goals>
+                        <goal>helpmojo</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>
