@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.auth;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureCliCredentials;
+import com.microsoft.azure.credentials.MSICredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.Utils;
@@ -38,10 +39,12 @@ public class AzureAuthHelper {
     public static final String CERTIFICATE = "certificate";
     public static final String CERTIFICATE_PASSWORD = "certificatePassword";
     public static final String ENVIRONMENT = "environment";
+    public static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
 
     public static final String AUTH_WITH_SERVER_ID = "Authenticate with ServerId: ";
     public static final String AUTH_WITH_FILE = "Authenticate with file: ";
     public static final String AUTH_WITH_AZURE_CLI = "Authenticate with Azure CLI 2.0";
+    public static final String AUTH_WITH_MSI = "In the Azure Cloud Shell, use MSI to authenticate.";
     public static final String USE_KEY_TO_AUTH = "Use key to get Azure authentication token: ";
     public static final String USE_CERTIFICATE_TO_AUTH = "Use certificate to get Azure authentication token.";
 
@@ -208,13 +211,21 @@ public class AzureAuthHelper {
     /**
      * Get Authenticated object using authentication file from Azure CLI 2.0
      *
+     * Note: The integrated Azure CLI in Azure Cloud Shell does not have the accessToken.json,
+     * so we need to use MSI to authenticate in the Cloud Shell.
+     *
      * @return Authenticated object if Azure CLI 2.0 is logged in correctly; otherwise return null.
      */
     protected Authenticated getAuthObjFromAzureCli() {
         try {
-            final Authenticated auth = azureConfigure().authenticate(AzureCliCredentials.create());
-            if (auth != null) {
+            final Azure.Configurable azureConfigurable = azureConfigure();
+            final Authenticated auth;
+            if (isInCloudShell()) {
+                getLog().info(AUTH_WITH_MSI);
+                auth = azureConfigurable.authenticate(new MSICredentials());
+            } else {
                 getLog().info(AUTH_WITH_AZURE_CLI);
+                auth = azureConfigurable.authenticate(AzureCliCredentials.create());
             }
             return auth;
         } catch (Exception e) {
@@ -276,5 +287,9 @@ public class AzureAuthHelper {
         }
 
         return null;
+    }
+
+    private static boolean isInCloudShell() {
+        return System.getenv(CLOUD_SHELL_ENV_KEY) != null;
     }
 }
