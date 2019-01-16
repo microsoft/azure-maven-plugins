@@ -29,7 +29,7 @@ public class Binding {
     protected static Map<BindingEnum, List<String>> requiredAttributeMap = new HashMap<>();
 
     static {
-        //initialize required attributes, which will save to function.json even if it equals to its default value
+        //initialize required attributes, which will be saved to function.json even if it equals to its default value
         requiredAttributeMap.put(BindingEnum.EventHubTrigger, Arrays.asList("cardinality"));
     }
 
