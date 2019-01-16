@@ -10,7 +10,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @JsonSerialize(using = BindingSerializer.class)
@@ -24,6 +26,13 @@ public class Binding {
 
     protected Map<String, Object> bindingAttributes = new HashMap<>();
 
+    protected static Map<BindingEnum, List<String>> requiredAttributeMap = new HashMap<>();
+
+    static {
+        //initialize required attributes, which will save to function.json even if it equals to its default value
+        requiredAttributeMap.put(BindingEnum.EventHubTrigger, Arrays.asList("cardinality"));
+    }
+
     public Binding(BindingEnum bindingEnum) {
         this.bindingEnum = bindingEnum;
         this.type = bindingEnum.getType();
@@ -33,10 +42,12 @@ public class Binding {
     public Binding(BindingEnum bindingEnum, Annotation annotation) {
         this(bindingEnum);
         final Class<? extends Annotation> annotationType = annotation.annotationType();
+        final List<String> requiredAttributes = requiredAttributeMap.get(bindingEnum);
         try {
             for (final Method method : annotationType.getDeclaredMethods()) {
                 final Object value = method.invoke(annotation);
-                if (!value.equals(method.getDefaultValue())) {
+                if (!value.equals(method.getDefaultValue()) ||
+                    (requiredAttributes != null && requiredAttributes.contains(method.getName()))) {
                     bindingAttributes.put(method.getName(), value);
                 }
             }
