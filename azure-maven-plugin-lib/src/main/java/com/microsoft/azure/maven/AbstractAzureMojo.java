@@ -406,6 +406,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         @Override
         public void uncaughtException(Thread t, Throwable e) {
             debug("uncaughtException: " + e);
+            // Work around for Application Insights Java SDK:
+            // Related issues: https://github.com/Microsoft/azure-maven-plugins/issues/341
+            // When maven goal executes too quick, AI SDK may not fully initialized and will step into endless loop
+            // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
+            // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
+            // As ShutdownHook(SDKShutdownActivity.ShutdownAction) will call this method and we have no other way to
+            // stop a shutdown hook thread, call Runtime.halt() here and this should be removed once AI issue fixed.
+            Runtime.getRuntime().halt(0);
         }
     }
 
