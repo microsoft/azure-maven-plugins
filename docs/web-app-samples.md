@@ -41,8 +41,9 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.0</version>
+               <version>1.5.2</version>
                <configuration>
+                  <schemaVersion>V2</schemaVersion>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
                     <serverId>azure-auth</serverId>
@@ -60,6 +61,19 @@ The following configuration is applicable for below scenario:
                       <javaVersion>jre8</javaVersion>
                       <webContainer>tomcat 8.5</webContainer>
                     </runtime>
+                  <appSettings>
+                     <property>
+                     <!-- Tell Azure which port you want to use, required for springboot 
+                        jar applications -->
+                        <name>PORT</name>
+                        <value>8081</value>
+                     </property>
+                     <!--JVM OPTIONS -->
+                     <property>
+                        <name>JAVA_OPTS</name>
+                        <value>-Xmx512m -Xms512m</value>
+                     </property>
+                  </appSettings>
                   <!-- Deployment settings -->
                   <deployment>
                     <resources>
@@ -99,8 +113,9 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.0</version>
+               <version>1.5.2</version>
                <configuration>
+                  <schemaVersion>V2</schemaVersion>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
                     <serverId>azure-auth</serverId>
@@ -160,8 +175,9 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.0</version>
+               <version>1.5.2</version>
                <configuration>
+                  <schemaVersion>V2</schemaVersion>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
                   <authentication>
                     <serverId>azure-auth</serverId>
@@ -216,8 +232,9 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.0</version>
+               <version>1.5.2</version>
                <configuration>
+                  <schemaVersion>V2</schemaVersion>
                   <!-- Reference ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
                   <authentication>
                     <file>${azure.auth.filePath}</file>
