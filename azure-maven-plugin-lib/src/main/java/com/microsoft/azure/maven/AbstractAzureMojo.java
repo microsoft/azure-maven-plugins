@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
@@ -292,6 +293,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             // An issue has been filed at https://github.com/Microsoft/ApplicationInsights-Java/issues/416
             // Before this issue is fixed, set default uncaught exception handler for all threads as work around.
             Thread.setDefaultUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler());
+            // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
+            // into endless loop
+            // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
+            // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
+            // So we initialize it in the main thread and call getHttpClient to make sure HTTPClient was created
+            ApacheSenderFactory.INSTANCE.create().getHttpClient();
 
             final Properties prop = new Properties();
             if (isFirstRun(prop)) {
@@ -406,14 +413,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         @Override
         public void uncaughtException(Thread t, Throwable e) {
             debug("uncaughtException: " + e);
-            // Work around for Application Insights Java SDK:
-            // Related issues: https://github.com/Microsoft/azure-maven-plugins/issues/341
-            // When maven goal executes too quick, AI SDK may not fully initialized and will step into endless loop
-            // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
-            // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
-            // As ShutdownHook(SDKShutdownActivity.ShutdownAction) will call this method and we have no other way to
-            // stop a shutdown hook thread, call Runtime.halt() here and this should be removed once AI issue fixed.
-            Runtime.getRuntime().halt(0);
         }
     }
 
