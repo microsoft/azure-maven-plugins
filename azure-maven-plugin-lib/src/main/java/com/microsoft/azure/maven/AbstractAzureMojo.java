@@ -293,12 +293,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             // An issue has been filed at https://github.com/Microsoft/ApplicationInsights-Java/issues/416
             // Before this issue is fixed, set default uncaught exception handler for all threads as work around.
             Thread.setDefaultUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler());
-            // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
-            // into endless loop
-            // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
-            // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
-            // So we initialize it in the main thread and call getHttpClient to make sure HTTPClient was created
-            ApacheSenderFactory.INSTANCE.create().getHttpClient();
 
             final Properties prop = new Properties();
             if (isFirstRun(prop)) {
@@ -318,6 +312,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
         } catch (Exception e) {
             handleException(e);
+        }finally{
+            // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
+            // into endless loop when close, we need to call it in main thread.
+            // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
+            // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
+            ApacheSenderFactory.INSTANCE.create().close();
         }
     }
 
