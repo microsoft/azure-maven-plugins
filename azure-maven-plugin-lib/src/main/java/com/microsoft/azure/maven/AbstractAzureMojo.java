@@ -312,7 +312,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
         } catch (Exception e) {
             handleException(e);
-        }finally{
+        } finally {
             // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
             // into endless loop when close, we need to call it in main thread.
             // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
