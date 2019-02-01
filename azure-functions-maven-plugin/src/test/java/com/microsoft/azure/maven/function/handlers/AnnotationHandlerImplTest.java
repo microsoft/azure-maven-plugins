@@ -16,6 +16,7 @@ import com.microsoft.azure.functions.annotation.BlobTrigger;
 import com.microsoft.azure.functions.annotation.Cardinality;
 import com.microsoft.azure.functions.annotation.CosmosDBOutput;
 import com.microsoft.azure.functions.annotation.CosmosDBTrigger;
+import com.microsoft.azure.functions.annotation.CustomBinding;
 import com.microsoft.azure.functions.annotation.EventGridTrigger;
 import com.microsoft.azure.functions.annotation.EventHubOutput;
 import com.microsoft.azure.functions.annotation.EventHubTrigger;
@@ -40,6 +41,10 @@ import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.reflections.util.ClasspathHelper;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Arrays;
@@ -73,6 +78,8 @@ public class AnnotationHandlerImplTest {
     public static final String SERVICE_BUS_QUEUE_TRIGGER_METHOD = "serviceBusQueueTriggerMethod";
     public static final String SERVICE_BUS_TOPIC_TRIGGER_FUNCTION = "serviceBusTopicTriggerFunction";
     public static final String SERVICE_BUS_TOPIC_TRIGGER_METHOD = "serviceBusTopicTriggerMethod";
+    public static final String CUSTOM_BINDING_FUNCTION = "customBindingFunction";
+    public static final String CUSTOM_BINDING_METHOD = "customBindingMethod";
 
     public static final String[] COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES = new String[]{"name", "dataType",
         "databaseName", "collectionName", "leaseConnectionStringSetting", "leaseCollectionName",
@@ -87,7 +94,24 @@ public class AnnotationHandlerImplTest {
     public static final String[] EVENTHUB_TRIGGER_REQUIRED_ATTRIBUTES = new String[]{"name", "type", "direction",
         "connection", "eventHubName", "cardinality", "consumerGroup"};
 
-    public class FunctionEntryPoints {
+    public static final String[] CUSTOM_BINDING_REQUIRED_ATTRIBUTES = new String[]{"name", "type", "direction",
+        "index", "path"};
+
+    public static class FunctionEntryPoints {
+
+        @FunctionName(CUSTOM_BINDING_FUNCTION)
+        public void customBindingMethod(
+            @TestCustomBinding(index = "testIndex", path = "testPath") String customTriggerInput) {
+        }
+
+        @Target(ElementType.PARAMETER)
+        @Retention(RetentionPolicy.RUNTIME)
+        @CustomBinding(direction = "in", name = "message", type = "customBinding")
+        public @interface TestCustomBinding {
+            String index();
+            String path();
+        }
+
         @FunctionName(HTTP_TRIGGER_FUNCTION)
         public String httpTriggerMethod(@HttpTrigger(name = "req") String req) {
             return "Hello!";
@@ -187,7 +211,7 @@ public class AnnotationHandlerImplTest {
         final AnnotationHandler handler = getAnnotationHandler();
         final Set<Method> functions = handler.findFunctions(Arrays.asList(getClassUrl()));
 
-        assertEquals(10, functions.size());
+        assertEquals(11, functions.size());
         final List<String> methodNames = functions.stream().map(f -> f.getName()).collect(Collectors.toList());
         assertTrue(methodNames.contains(HTTP_TRIGGER_METHOD));
         assertTrue(methodNames.contains(QUEUE_TRIGGER_METHOD));
@@ -199,6 +223,7 @@ public class AnnotationHandlerImplTest {
         assertTrue(methodNames.contains(SERVICE_BUS_TOPIC_TRIGGER_METHOD));
         assertTrue(methodNames.contains(COSMOSDB_TRIGGER_METHOD));
         assertTrue(methodNames.contains(EVENTGRID_TRIGGER_METHOD));
+        assertTrue(methodNames.contains(CUSTOM_BINDING_METHOD));
     }
 
     @Test
@@ -208,7 +233,7 @@ public class AnnotationHandlerImplTest {
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(functions);
         configMap.values().forEach(config -> config.validate());
 
-        assertEquals(10, configMap.size());
+        assertEquals(11, configMap.size());
 
         verifyFunctionConfiguration(configMap, HTTP_TRIGGER_FUNCTION, HTTP_TRIGGER_METHOD, 2);
 
@@ -230,6 +255,8 @@ public class AnnotationHandlerImplTest {
 
         verifyFunctionConfiguration(configMap, EVENTGRID_TRIGGER_FUNCTION, EVENTGRID_TRIGGER_METHOD, 1);
 
+        verifyFunctionConfiguration(configMap, CUSTOM_BINDING_FUNCTION, CUSTOM_BINDING_METHOD, 1);
+
         verifyFunctionBinding(configMap.get(COSMOSDB_TRIGGER_FUNCTION).getBindings().stream()
                         .filter(baseBinding -> baseBinding.getName().equals("cosmos")).findFirst().get(),
                 COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES, true);
@@ -241,6 +268,9 @@ public class AnnotationHandlerImplTest {
         verifyFunctionBinding(configMap.get(EVENTHUB_TRIGGER_FUNCTION).getBindings().stream()
                 .filter(baseBinding -> baseBinding.getName().equals("messages")).findFirst().get(),
             EVENTHUB_TRIGGER_REQUIRED_ATTRIBUTES, true);
+
+        verifyFunctionBinding(configMap.get(CUSTOM_BINDING_FUNCTION).getBindings().get(0),
+            CUSTOM_BINDING_REQUIRED_ATTRIBUTES, true);
     }
 
     private AnnotationHandlerImpl getAnnotationHandler() {
