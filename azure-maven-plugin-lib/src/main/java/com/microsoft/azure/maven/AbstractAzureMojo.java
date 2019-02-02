@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
@@ -311,6 +312,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
         } catch (Exception e) {
             handleException(e);
+        } finally {
+            // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
+            // into endless loop when close, we need to call it in main thread.
+            // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
+            // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
+            ApacheSenderFactory.INSTANCE.create().close();
         }
     }
 

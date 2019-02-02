@@ -12,8 +12,8 @@ import org.codehaus.plexus.util.StringUtils;
 import java.util.Locale;
 
 public enum OperatingSystemEnum {
-    Windows,
     Linux,
+    Windows,
     Docker;
 
     public static OperatingSystemEnum fromString(final String os) throws MojoExecutionException {

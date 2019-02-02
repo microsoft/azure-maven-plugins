@@ -10,7 +10,7 @@ import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.Utils;
-import com.microsoft.azure.maven.webapp.WebAppUtils;
+import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.settings.Server;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;

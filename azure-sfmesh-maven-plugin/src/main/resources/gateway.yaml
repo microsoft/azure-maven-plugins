@@ -1,0 +1,17 @@
+## Gateway Definition ##
+gateway:
+  schemaVersion: SCHEMA_VERSION
+  name: GATEWAY_NAME
+  properties:
+    description: GATEWAY_DESCRIPTION
+    sourceNetwork:
+      name: SOURCE_NETWORK
+    destinationNetwork:
+      name: DESTINATION_NETWORK
+    tcp:
+      - name: TCP_NAME
+        port: PORT
+        destination:
+          applicationName: APPLICATION_NAME
+          serviceName: SERVICE_NAME
+          endpointName: LISTENER_NAME

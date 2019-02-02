@@ -7,13 +7,13 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins-pom</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-webapp-maven-plugin</artifactId>
-    <version>1.5.1-SNAPSHOT</version>
+    <version>1.5.3-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Web Apps</name>
     <description>Maven Plugin for Azure Web Apps</description>
@@ -29,7 +29,7 @@
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.ai.version>1.0.9</azure.ai.version>
-        <azure.maven-plugin-lib.version>1.2.4-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.2.7-SNAPSHOT</azure.maven-plugin-lib.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
@@ -134,6 +134,16 @@
     </profiles>
 
     <dependencies>
+        <dependency>
+            <groupId>org.dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>2.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.2</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>

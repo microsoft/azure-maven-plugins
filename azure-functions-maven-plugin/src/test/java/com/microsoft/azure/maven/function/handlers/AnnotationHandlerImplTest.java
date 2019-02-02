@@ -13,6 +13,7 @@ import com.microsoft.azure.functions.OutputBinding;
 import com.microsoft.azure.functions.annotation.BlobInput;
 import com.microsoft.azure.functions.annotation.BlobOutput;
 import com.microsoft.azure.functions.annotation.BlobTrigger;
+import com.microsoft.azure.functions.annotation.Cardinality;
 import com.microsoft.azure.functions.annotation.CosmosDBOutput;
 import com.microsoft.azure.functions.annotation.CosmosDBTrigger;
 import com.microsoft.azure.functions.annotation.EventGridTrigger;
@@ -33,7 +34,7 @@ import com.microsoft.azure.functions.annotation.TableInput;
 import com.microsoft.azure.functions.annotation.TableOutput;
 import com.microsoft.azure.functions.annotation.TimerTrigger;
 import com.microsoft.azure.functions.annotation.TwilioSmsOutput;
-import com.microsoft.azure.maven.function.bindings.BaseBinding;
+import com.microsoft.azure.maven.function.bindings.Binding;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
@@ -82,6 +83,9 @@ public class AnnotationHandlerImplTest {
 
     public static final String[] COSMOSDB_OUTPUT_REQUIRED_ATTRIBUTES = new String[]{"name", "type",
         "direction", "databaseName", "collectionName", "connectionStringSetting"};
+
+    public static final String[] EVENTHUB_TRIGGER_REQUIRED_ATTRIBUTES = new String[]{"name", "type", "direction",
+        "connection", "eventHubName", "cardinality", "consumerGroup"};
 
     public class FunctionEntryPoints {
         @FunctionName(HTTP_TRIGGER_FUNCTION)
@@ -157,7 +161,9 @@ public class AnnotationHandlerImplTest {
         @FunctionName(EVENTHUB_TRIGGER_FUNCTION)
         @EventHubOutput(name = "$return", eventHubName = "eventHub", connection = "conn")
         public String eventHubTriggerMethod(
-                @EventHubTrigger(name = "in", eventHubName = "eventHub", connection = "conn") String in) {
+            @EventHubTrigger(name = "messages", eventHubName = "test-input-java", connection =
+                "AzureWebJobsEventHubSender", consumerGroup = "consumerGroup", cardinality = Cardinality.MANY)
+                String[] messages) {
             return "Hello!";
         }
 
@@ -231,6 +237,10 @@ public class AnnotationHandlerImplTest {
         verifyFunctionBinding(configMap.get(COSMOSDB_TRIGGER_FUNCTION).getBindings().stream()
                         .filter(baseBinding -> baseBinding.getName().equals("itemOut")).findFirst().get(),
                 COSMOSDB_OUTPUT_REQUIRED_ATTRIBUTES, false);
+
+        verifyFunctionBinding(configMap.get(EVENTHUB_TRIGGER_FUNCTION).getBindings().stream()
+                .filter(baseBinding -> baseBinding.getName().equals("messages")).findFirst().get(),
+            EVENTHUB_TRIGGER_REQUIRED_ATTRIBUTES, true);
     }
 
     private AnnotationHandlerImpl getAnnotationHandler() {
@@ -256,7 +266,7 @@ public class AnnotationHandlerImplTest {
         assertEquals(bindingNum, functionConfig.getBindings().size());
     }
 
-    private void verifyFunctionBinding(final BaseBinding binding, final String[] requiredAttributes,
+    private void verifyFunctionBinding(final Binding binding, final String[] requiredAttributes,
                                        boolean isInDirection) throws JsonProcessingException {
         final ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
         final String functionJson = writer.writeValueAsString(binding);

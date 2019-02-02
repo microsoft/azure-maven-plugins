@@ -3,8 +3,8 @@
 
 The Maven Plugin for Azure App Service provides seamless integration into Maven projects, 
 and makes it easier for developers to deploy to different kinds of Azure Web Apps:
-  - [Web App on Windows](https://docs.microsoft.com/en-us/azure/app-service/app-service-web-overview)
   - [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro)
+  - [Web App on Windows](https://docs.microsoft.com/en-us/azure/app-service/app-service-web-overview)
   - [Web App for Containers](https://docs.microsoft.com/en-us/azure/app-service/containers/tutorial-custom-docker-image)
   
 #### Table of Content
@@ -33,32 +33,38 @@ Maven | 3.0 or above
        <packaging>war</packaging>
        ...
        <build>
-          <pluginManagement>
-             <plugins>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-webapp-maven-plugin</artifactId>
-                <!-- check Maven Central for the latest version -->
-                <version>1.3.0</version>
-             </plugins>
-          </pluginManagement>
-          <plugins>
-             <plugin>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-webapp-maven-plugin</artifactId>
-                <configuration>
-
-                    <!-- Web App information -->
-                    <resourceGroup>your-resource-group</resourceGroup>
-                    <appName>your-app-name</appName>
-
-                    <!-- Java Runtime Stack for Web App on Linux-->
-                    <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
-                </configuration>
-             </plugin>
-             ...
-          </plugins>
+           <plugins>
+               <plugin>
+                   <groupId>com.microsoft.azure</groupId>
+                   <artifactId>azure-webapp-maven-plugin</artifactId>
+                   <!-- check Maven Central for the latest version -->
+                   <version>1.5.1</version>
+                   <configuration>
+                       <schemaVersion>v2</schemaVersion>
+                       <resourceGroup>your-resource-group</resourceGroup>
+                       <appName>your-app-name</appName>
+                       <region>westus</region>
+                       <pricingTier>P1V2</pricingTier>
+                       <runtime>
+                           <os>linux</os>
+                           <javaVersion>jre8</javaVersion>
+                           <webContainer>tomcat 8.5</webContainer>
+                       </runtime>
+                       <deployment>
+                           <resources>
+                               <resource>
+                                   <directory>${project.basedir}/target</directory>
+                                   <includes>
+                                       <include>*.war</include>
+                                   </includes>
+                               </resource>
+                           </resources>
+                       </deployment>                        
+                   </configuration>
+               </plugin>
+           </plugins>
        </build>
-    </project>
+    </project> 
     ```
    
 3. Use the following commands to deploy your project to Azure App Service. 
@@ -97,144 +103,22 @@ You can use the Azure CLI 2.0 for authentication. More authentication methods ca
 
 Common configurations of all Maven Plugins for Azure can be found [here](../docs/common-configuration.md).
 
-The maven plugin supports two kinds of configurations V1 (default) and V2. Specify the configuration 
+The maven plugin supports two kinds of configurations V2 and V1 (deprecated). Specify the configuration 
 `<schemaVersion>V2</schemaVersion>` to use the V2 configuration.
-The configurations of the region, the Web App runtime and the deployment are different in V1 and V2.
+The configurations of the region, the Web App runtime and the deployment are different in V2 and V1.
 The common basic settings of the configuration are listed in the following table.
 
 Property | Required | Description | Version
 ---|---|---|---
 `<resourceGroup>` | true | Azure Resource Group for your Web App. | 0.1.0+
 `<appName>` | true | The name of your Web App. | 0.1.0+
-`<pricingTier>`* | false | The pricing tier for your Web App. The default value is **S1**.| 0.1.0+
+`<pricingTier>`* | false | The pricing tier for your Web App. The default value is **P1V2**.| 0.1.0+
 `<deploymentSlot>` | false | The deployment slot to deploy your application. | 1.3.0+
 `<appServicePlanResourceGroup>` | false | The resource group of the existing App Service Plan. If not specified, the value defined in `<resourceGroup>` will be used by default. | 1.0.0+
 `<appServicePlanName>` | false | The name of the existing App Service Plan. | 1.0.0+
 `<appSettings>` | false | Specifies the application settings for your Web App. | 0.1.0+
 `<stopAppDuringDeployment>` | false | To stop the target Web App or not during deployment. This will prevent deployment failure caused by IIS locking files. | 0.1.4+
 
-### V1 Configuration
-1. Region
-
-    The configuration `<region>` is optional in V1 configuration, and the default value is **westeurope**.
-
-2. Runtime settings
-
-    Details about the supported values of could be found in the following.
-    tomcat 8.5 will be used as default value for `<javaWebContainer>`.
-  
-    **Web App on Windows**
-    ```xml
-    <configuration>
-    ...
-      <javaVersion>1.8</javaVersion>
-      <javaWebContainer>tomcat 8.5</javaWebContainer>
-    </configuration>
-    ```
-    **Web App on Linux**
-    ```xml
-    <configuration>
-    ...
-      <linuxRuntime>tomcat 8.5-jre8</javaVersion>
-    </configuration>
-    ```
-    The supported values are *tomcat 8.5-jre8*, *tomcat 9.0-jre8*, *wildfly 14-jre8*, and *jre8*.
-
-    **Web App for Containers**
-    
-    ```xml
-    <configuration>
-    ...
-      <containerSettings>
-       <!-- only the imageName is required --> 
-        <imageName>[hub-user/]repo-name[:tag]</imageName>
-        <serverId></serverId>
-        <registryUrl></registryUrl>
-      </containerSettings>
-    </configuration>
-    ```
-    `tag` is optional for the `imageName`. 
-    The default value is latest.
-    Public docker hubs and private container 
-    registries are both supported.
- 
-3. Deployment settings
-
-    There are multiple deployment types are supported:
-    
-    - ZIP Deploy
-    
-    ZIP deploy is intended for fast and easy deployments.
-    ```xml
-    <configuration>
-    ...
-      <deploymentType>zip</deploymentType>
-      <resources>
-        <resource>
-          <directory>${project.basedir}/target</directory>
-          <includes>
-          <include>*.jar</include>
-          </includes>
-          <excludes>
-          <exclude>*.xml</exclude>
-          </excludes>
-        </resource>
-      </resources>
-    </configuration>
-    ```
-    - WAR Deploy
-    
-    Both `<warFile>` and `<path>` are optional. By default it will find the war file according to the `<finalName>` in 
-    the  project build directory, and deploy to ROOT.
-    ```xml
-    <configuration>
-    ...
-      <deploymentType>war</deploymentType>
-      <warFile></warFile>
-      <path></path>
-    </configuration>
-    ```
-    - JAR Deploy
-    
-    `<jarFile>` is not required. If not specified, it will deploy the `${project.build.directory}/${project.build.finalName}.jar` to `%HOME%\site\wwwroot\` of your Web App.
-    > Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](.
-    ./docs/web-config.md).
-    ```xml
-    <configuration>
-    ...
-      <deploymentType>jar</deploymentType>
-      <jarFile></jarFile>
-    </configuration>
-    ```
-    
-    - AUTO Deploy
-
-    This is the default deployment type used by the plugin. It will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. If the `<packaging>` is set to `war`, the plugin will use war deployment. If the `<packaging>` is set to `jar`, the plugin will use jar deployment.
-    Otherwise, the plugin will skip the deployment, which is the same as `NONE` deployment.
-    
-    If you want the plugin to inspect the `<packaging>` field. Just don't set `<deploymentType>`. The plugin will use `AUTO` deployment as default.
-    
-    - ~~FTP~~ (deprecated)
-    
-    You can deploy your artifacts/resources to Web App via FTP.
-    ```xml
-    <configuration>
-    ...
-      <deploymentType>ftp</deploymentType>
-      <resources>
-        <resource>
-          <directory>${project.basedir}/target</directory>
-          <includes>
-          <include>*.jar</include>
-          </includes>
-          <excludes>
-          <exclude>*.xml</exclude>
-          </excludes>
-        </resource>
-      </resources>
-    </configuration>
-    ```
-    
 ### V2 Configuration
 
 1. Region
@@ -243,10 +127,10 @@ Property | Required | Description | Version
 
 2. Runtime settings
 
-    Supported `<os>` values are *Windows*, *Linux* and *Docker*.
+    Supported `<os>` values are *Linux*, *Windows* and *Docker*.
     Only the `jre8` is supported for `<javaVersion>` for Web App on Linux.
-    If the `<webContainer>` is not configured and the `<os>` is windows, tomcat 8.5 will be used as default value.
-    But if the `<os>` is linux, the web app will use the JavaSE as runtime.
+    If the `<webContainer>` is not configured and the `<os>` is Windows, tomcat 8.5 will be used as default value.
+    But if the `<os>` is Linux, the web app will use the JavaSE as runtime.
     
     The runtime settings of v2 configuration could be omitted if users specify an existing web app in the configuration and just want to do the deploy directly.
     ```xml
@@ -384,3 +268,127 @@ All valid pricing tiers are listed as below. Read more at [Azure App Service Pla
 - `P1V2`
 - `P2V2`
 - `P3V2`
+
+### V1 Configuration (Deprecated)
+1. Region
+
+    The configuration `<region>` is optional in V1 configuration, and the default value is **westeurope**.
+
+2. Runtime settings
+
+    Details about the supported values of could be found in the following.
+    tomcat 8.5 will be used as default value for `<javaWebContainer>`.
+  
+    **Web App on Linux**
+    ```xml
+    <configuration>
+    ...
+      <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
+    </configuration>
+    ```
+    The supported values are *tomcat 8.5-jre8*, *tomcat 9.0-jre8*, *wildfly 14-jre8*, and *jre8*.
+
+    **Web App on Windows**
+    ```xml
+    <configuration>
+    ...
+      <javaVersion>1.8</javaVersion>
+      <javaWebContainer>tomcat 8.5</javaWebContainer>
+    </configuration>
+    ```
+
+    **Web App for Containers**
+    
+    ```xml
+    <configuration>
+    ...
+      <containerSettings>
+       <!-- only the imageName is required --> 
+        <imageName>[hub-user/]repo-name[:tag]</imageName>
+        <serverId></serverId>
+        <registryUrl></registryUrl>
+      </containerSettings>
+    </configuration>
+    ```
+    `tag` is optional for the `imageName`. 
+    The default value is latest.
+    Public docker hubs and private container 
+    registries are both supported.
+ 
+3. Deployment settings
+
+    There are multiple deployment types are supported:
+    
+    - ZIP Deploy
+    
+    ZIP deploy is intended for fast and easy deployments.
+    ```xml
+    <configuration>
+    ...
+      <deploymentType>zip</deploymentType>
+      <resources>
+        <resource>
+          <directory>${project.basedir}/target</directory>
+          <includes>
+          <include>*.jar</include>
+          </includes>
+          <excludes>
+          <exclude>*.xml</exclude>
+          </excludes>
+        </resource>
+      </resources>
+    </configuration>
+    ```
+    - WAR Deploy
+    
+    Both `<warFile>` and `<path>` are optional. By default it will find the war file according to the `<finalName>` in 
+    the  project build directory, and deploy to ROOT.
+    ```xml
+    <configuration>
+    ...
+      <deploymentType>war</deploymentType>
+      <warFile></warFile>
+      <path></path>
+    </configuration>
+    ```
+    - JAR Deploy
+    
+    `<jarFile>` is not required. If not specified, it will deploy the `${project.build.directory}/${project.build.finalName}.jar` to `%HOME%\site\wwwroot\` of your Web App.
+    > Please note that for Windows Web App, we will generate a `web.config` file, you can find more details [here](../docs/web-config.md).
+    ```xml
+    <configuration>
+    ...
+      <deploymentType>jar</deploymentType>
+      <jarFile></jarFile>
+    </configuration>
+    ```
+    
+    - AUTO Deploy
+
+    This is the default deployment type used by the plugin. It will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. If the `<packaging>` is set to `war`, the plugin will use war deployment. If the `<packaging>` is set to `jar`, the plugin will use jar deployment.
+    Otherwise, the plugin will skip the deployment, which is the same as `NONE` deployment.
+    
+    If you want the plugin to inspect the `<packaging>` field. Just don't set `<deploymentType>`. The plugin will use `AUTO` deployment as default.
+    
+    - ~~FTP~~ (deprecated)
+    
+    You can deploy your artifacts/resources to Web App via FTP.
+    ```xml
+    <configuration>
+    ...
+      <deploymentType>ftp</deploymentType>
+      <resources>
+        <resource>
+          <directory>${project.basedir}/target</directory>
+          <includes>
+          <include>*.jar</include>
+          </includes>
+          <excludes>
+          <exclude>*.xml</exclude>
+          </excludes>
+        </resource>
+      </resources>
+    </configuration>
+    ```
+    
+

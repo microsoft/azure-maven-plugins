@@ -1,0 +1,28 @@
+branches:
+  only:
+    - master
+    - develop
+
+environment:
+  JAVA_HOME: "C:\\Program Files\\Java\\jdk1.8.0"
+  PYTHON: "C:\\Python35"
+  dotnetcore_version: 2.1.302
+  nodejs_version: "8"
+
+install:
+  - cmd: SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%
+  - cmd: npm i -g azure-functions-core-tools@core --unsafe-perm true
+  - cmd: python -m pip install azure-cli
+  - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
+
+build_script:
+  - cmd: mvn clean install -l mvn_install.log && mvn -f azure-functions-maven-plugin/pom.xml clean verify -P it -l mvn_verify.log
+
+on_failure:
+  - ps: |
+      .\ci\ps\errorNotificationSender.ps1 $Env:FUNCTION_URL "mvn_install.log","mvn_verify.log"
+
+on_finish:
+  - ps: |
+      Get-Content "mvn_install.log" | Write-Host
+      Get-Content "mvn_verify.log" | Write-Host

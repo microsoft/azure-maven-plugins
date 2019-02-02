@@ -9,7 +9,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.webapp.WebAppUtils;
+import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 
 public class PublicDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
     public static class Builder extends BaseRuntimeHandler.Builder<PublicDockerHubRuntimeHandlerImpl.Builder>{

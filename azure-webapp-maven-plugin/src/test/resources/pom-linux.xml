@@ -19,6 +19,8 @@
                     <containerSettings>
                         <imageName>nginx</imageName>
                     </containerSettings>
+                    <buildDirectory>dummy</buildDirectory>
+                    <schemaVersion>V1</schemaVersion>
                     <appSettings>
                         <property>
                             <name>PORT</name>

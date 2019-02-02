@@ -7,13 +7,13 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins-pom</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugin-lib</artifactId>
-    <version>1.2.4-SNAPSHOT</version>
+    <version>1.2.7-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
@@ -29,7 +29,7 @@
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <codehaus.plexus-utils>3.0.20</codehaus.plexus-utils>
         <azure.version>1.17.1</azure.version>
-        <azure.ai.version>1.0.9</azure.ai.version>
+        <azure.ai.version>2.2.1</azure.ai.version>
         <common-net.version>3.6</common-net.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
@@ -72,6 +72,11 @@
     </profiles>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.2</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
@@ -188,6 +193,10 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
