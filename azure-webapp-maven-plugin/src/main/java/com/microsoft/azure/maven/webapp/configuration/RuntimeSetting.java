@@ -10,7 +10,7 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import org.apache.commons.collections4.bidimap.DualLinkedHashBidiMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -26,7 +26,7 @@ public class RuntimeSetting {
     private static final String TOMCAT_9_0 = "tomcat 9.0";
     private static final String WILDFLY_14 = "wildfly 14";
 
-    private static final BidiMap<String, RuntimeStack> runtimeStackMap = new DualHashBidiMap<>();
+    private static final BidiMap<String, RuntimeStack> runtimeStackMap = new DualLinkedHashBidiMap<>();
 
     protected String os;
     protected String javaVersion;
@@ -37,9 +37,9 @@ public class RuntimeSetting {
 
     // init map from webContainer to runtime stack
     static {
-        runtimeStackMap.put(JRE_8, RuntimeStack.JAVA_8_JRE8);
         runtimeStackMap.put(TOMCAT_8_5, RuntimeStack.TOMCAT_8_5_JRE8);
         runtimeStackMap.put(TOMCAT_9_0, RuntimeStack.TOMCAT_9_0_JRE8);
+        runtimeStackMap.put(JRE_8, RuntimeStack.JAVA_8_JRE8);
         runtimeStackMap.put(WILDFLY_14, RuntimeStack.WILDFLY_14_JRE8);
     }
 
