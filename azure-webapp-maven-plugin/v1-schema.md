@@ -1,13 +1,13 @@
 ## Webapp configuration V1 Schema(Deprecated)
 
-#### Config
+### Config
 
 Property | Required | Description | Version
 ---|---|---|---
-`<region>`* | false | Specifies the region where your Web App will be hosted; the default value is **westeurope**. All valid regions at [Supported Regions](#region) section. | 0.1.0+
+`<region>` | false | Specifies the region where your Web App will be hosted; the default value is **westeurope**. All valid regions at [Supported Regions](#region) section. | 0.1.0+
 `<resourceGroup>` | true | Azure Resource Group for your Web App. | 0.1.0+
 `<appName>` | true | The name of your Web App. | 0.1.0+
-`<pricingTier>`* | false | The pricing tier for your Web App. The default value is **P1V2**.| 0.1.0+
+`<pricingTier>` | false | The pricing tier for your Web App. The default value is **P1V2**.| 0.1.0+
 `<deploymentSlot>` | false | The deployment slot to deploy your application. | 1.3.0+
 `<appServicePlanResourceGroup>` | false | The resource group of the existing App Service Plan. If not specified, the value defined in `<resourceGroup>` will be used by default. | 1.0.0+
 `<appServicePlanName>` | false | The name of the existing App Service Plan. | 1.0.0+
@@ -15,7 +15,7 @@ Property | Required | Description | Version
 `<stopAppDuringDeployment>` | false | To stop the target Web App or not during deployment. This will prevent deployment failure caused by IIS locking files. | 0.1.4+
   
 
-#### Runtime settings
+### Runtime settings
 
   Details about the supported values could be found [here](README.md). Tomcat 8.5 will be used as default value for `<javaWebContainer>`.
   
@@ -53,7 +53,7 @@ Property | Required | Description | Version
     `tag` is optional for the `imageName`. The default value is latest. Public docker hubs and private container registries are both supported.
 
 
-#### Deployment settings
+### Deployment settings
 
   There are multiple deployment types are supported:
     
@@ -105,7 +105,12 @@ Property | Required | Description | Version
   This is the default deployment type used by the plugin. It will inspect `<packaging>` field in the pom file to decide how to deploy the artifact. If the `<packaging>` is set to `war`, the plugin will use war deployment. If the `<packaging>` is set to `jar`, the plugin will use jar deployment. Otherwise, the plugin will skip the deployment, which is the same as `NONE` deployment.
 
   If you want the plugin to inspect the `<packaging>` field. Just don't set `<deploymentType>`. The plugin will use `AUTO` deployment as default.
-    
+
+
+- NONE
+
+  NONE means do not need deploy, so just skip deployment.
+
 - FTP
  
   You can deploy your artifacts/resources to Web App via FTP.
@@ -126,3 +131,6 @@ Property | Required | Description | Version
     </resources>
   </configuration>
   ```
+
+### Samples
+You could find v1 samples [here](../docs/web-app-samples-v1.md).

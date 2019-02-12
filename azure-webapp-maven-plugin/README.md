@@ -34,7 +34,7 @@ Tool | Required Version
 JDK | 1.7 or above
 Maven | 3.0 or above
 ## Quick Start
-1. Make sure you have already logged in. You can use the Azure CLI 2.0 for authentication. More authentication methods can be found [here](../docs/common-configuration.md).
+1. Make sure you have already authenticated in Azure. You can use the Azure CLI 2.0 for authentication. More authentication methods can be found [here](../docs/common-configuration.md).
 
    - Install the Azure CLI 2.0 by following the instructions in the [Install Azure CLI 2.0](https://docs.microsoft.com/cli/azure/install-azure-cli) article.
    - Run the following commands to log into your Azure subscription：
@@ -50,13 +50,11 @@ Maven | 3.0 or above
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <!-- check Maven Central for the latest version -->
-                <version>1.5.2</version>
+                <version>1.5.3</version>
                 <configuration>
                     <schemaVersion>v2</schemaVersion>
-                    <resourceGroup>'your-resource-group'</resourceGroup>
-                    <appName>'your-app-name'</appName>
-                    <region>westeurope</region>
-                    <pricingTier>P1V2</pricingTier>
+                    <resourceGroup>${RESOURCEGROUP_NAME}</resourceGroup>
+                    <appName>${WEBAPP_NAME}</appName>
                     <runtime>
                         <os>linux</os>
                         <javaVersion>jre8</javaVersion>
@@ -86,56 +84,58 @@ Maven | 3.0 or above
 ## Goals
 
 #### `azure-webapp:config`
--  A command line tool providing a great experience for managing webapp deploy configuration, it will rewrite your pom config based on your input. Detail about the configuation could be found in the following.
--  The command line will divide the config into 3 parts. 
+-  A plugin goal providing a great experience for managing the configuration of [azure-webapp:deploy](#azure-webappdeploy), it will rewrite your pom configuration based on your input. Details about the configuration could be found in the following.
+-  The plugin goal will divide the configuration into 3 parts.
    1. Application
         
-        You can config appName, resource group, region, pricing tier at this part.
+        You can configure appName, resource group, region, pricing tier at this part.
    2. Runtime
         
-        You can config operating system and runtime stack at this part. It should be noted that you can not change the operating system after you deploy it.
+        You can configure operating system and runtime stack at this part. It should be noted that you can not change the operating system after you deploy it.
    3. DeploymentSlot
         
-        You can config deployment slot at this part.
+        You can configure deployment slot at this part.
 
 #### `azure-webapp:deploy`
 - Deploy artifacts or docker container image to an Azure Web App based on your configuration.<br>If the specified Web App does not exist, it will be created.
 - Configuration:
-    Common configurations of all Maven Plugins for Azure can be found [here](../docs/common-configuration.md).
+    Common configurations of all Maven Plugins for Azure can be found [here](../docs/common-configuration.md).    
 
-    This maven plugin supports two kinds of configurations V2 and V1 (deprecated). Specify the configuration
-    `<schemaVersion>V2</schemaVersion>` to use the V2 configuration. Strongly suggest use v2Schema.
-    You can find v1 schema [here](v1-schema.md)
+    > Using v2 schema is recommended. Please click [here](v1-schema.md) if you want to find more details about v1 schema (deprecated).
 
     Property | Required | Description | Version
     ---|---|---|---
-    [region](#region) | true | Specifies the region where your Web App will be hosted; the default value is **westus**. All valid regions at [Supported Regions](#region) section. | 0.1.0+
+    `<schemaVersion>` | false | Specify the version of the configuration schema. Supported values are: `v1`, `v2`. | 1.5.2
+    [`<region>`](#region) | true | Specifies the region where your Web App will be hosted; the default value is **westus**. All valid regions at [Supported Regions](#region) section. | 0.1.0+
     `<resourceGroup>` | true | Azure Resource Group for your Web App. | 0.1.0+
     `<appName>` | true | The name of your Web App. | 0.1.0+
-    [pricingTier](#pricingtier) | false | The pricing tier for your Web App. The default value is **P1V2**.| 0.1.0+
-    `<deploymentSlot>` | false | The deployment slot to deploy your application. | 1.3.0+
+    [`<pricingTier>`](#pricingtier) | false | The pricing tier for your Web App. The default value is **P1V2**.| 0.1.0+
+    `<deploymentSlot>` | false | The deployment slot to deploy your application. You could find detail samples for deployment slot at [here](../docs/web-app-samples.md).| 1.3.0+
     `<appServicePlanResourceGroup>` | false | The resource group of the existing App Service Plan. If not specified, the value defined in `<resourceGroup>` will be used by default. | 1.0.0+
     `<appServicePlanName>` | false | The name of the existing App Service Plan. | 1.0.0+
     `<appSettings>` | false | Specifies the application settings for your Web App. You could find detail samples for appsettings at [here](../docs/web-app-samples.md). | 0.1.0+
     `<stopAppDuringDeployment>` | false | To stop the target Web App or not during deployment. This will prevent deployment failure caused by IIS locking files. | 0.1.4+
+    [`<runtime>`](#runtimesetting) | true | The runtime environment configuration, you could see the detail [here](#runtimesetting). | 0.1.0+
+    [`<deployment>`](#deploymentsetting) | true | The deployment configration, you could see the details [here](#deploymentsetting). | 0.1.0+
 
-- Runtime settings
 
-    Supported `<os>` values are *Linux*, *Windows* and *Docker*.
-    Only the `jre8` is supported for `<javaVersion>` for Web App on Linux.
-    If the `<webContainer>` is not configured and the `<os>` is Windows, tomcat 8.5 will be used as default value.
-    But if the `<os>` is Linux, the web app will use the JavaSE as runtime.
+- <a name=runtimesetting></a> Runtime settings 
 
-    The runtime settings of v2 configuration could be omitted if users specify an existing web app in the configuration and just want to do the deploy directly.
+    Supported `<os>` values are *Linux*, *Windows* and *Docker*.    
+
+    The runtime settings of v2 configuration could be omitted if users specify an existing Web App in the configuration and just want to do the deployment directly.
     ```xml
-    <configuration>
-        ...
+    <configuration>        
         <runtime>
             <os>Linux</os>
             <javaVersion>jre8</javaVersion>
             <webContainer></webContainer>
-        </runtime>
-            <!-- os -->
+        </runtime>        
+    </configuration>
+    ```
+
+    ```xml
+    <configuration>
         <runtime>
             <os>Docker</os>
             <!-- only image is required -->
@@ -145,13 +145,13 @@ Maven | 3.0 or above
         </runtime>
     </configuration>
     ```
-- Deployment settings
+- <a name=deploymentsetting></a> Deployment settings
 
     Users don't need to care about the deployment type in v2 configuration.
     Just configure the resources to deploy to the Web App.
 
-    It will use the zip deploy for fast and easy deploy.
-    But if the artifact(s) are war package(s), war deploy will be used.
+    It will use the [zip deploy](https://github.com/projectkudu/kudu/wiki/Deploying-from-a-zip-file) for fast and easy deploy.
+    But if the artifact(s) are war package(s), [war deploy](https://github.com/projectkudu/kudu/wiki/Deploying-WAR-files-using-wardeploy) will be used.
     Mix deploying war packages and other kinds of artifacts is not suggested and will cause errors.
     ```xml
     <configuration>
@@ -171,9 +171,9 @@ Maven | 3.0 or above
 
 ## Configuration Details
 #### `<javaVersion>`
-The supported values for Web App on Linux is only **jre8**.
+<b>The supported values for Web App on Linux is only `jre8`.</b>
 
-The supported values for Web App on Windows:
+<b>The supported values for Web App on Windows:</b>
 
  Supported Value | Description
 ---|---
@@ -192,7 +192,9 @@ The supported values for Web App on Windows:
 
 #### `<webContainer>`
 
-The supported Value for web App on Linux
+<b>The supported Value for web App on Linux</b>
+
+In Linux environment, if the `<webcontainer>` is not configured, `JavaSE` will be used as default. It means does not use any web container, just run your jar file.
 
 Supported Value | Description
 ---|---
@@ -201,7 +203,9 @@ Supported Value | Description
 `wildfly 14` | WildFly 14 
   
 
-The supported Value for web App on windows
+<b>The supported Value for web App on windows</b>
+
+In Windows environment, default value is tomcat 8.5
 
 Supported Value | Description
 ---|---
