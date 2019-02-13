@@ -116,7 +116,7 @@ Maven | 3.0 or above
     `<appSettings>` | false | Specifies the application settings for your Web App. You could find detail samples for appsettings at [here](../docs/web-app-samples.md). | 0.1.0+
     `<stopAppDuringDeployment>` | false | To stop the target Web App or not during deployment. This will prevent deployment failure caused by IIS locking files. | 0.1.4+
     [`<runtime>`](#runtimesetting) | true | The runtime environment configuration, you could see the detail [here](#runtimesetting). | 0.1.0+
-    [`<deployment>`](#deploymentsetting) | true | The deployment configration, you could see the details [here](#deploymentsetting). | 0.1.0+
+    [`<deployment>`](#deploymentsetting) | true | The deployment configuration, you could see the details [here](#deploymentsetting). | 0.1.0+
 
 
 - <a name=runtimesetting></a> Runtime settings 
@@ -234,7 +234,7 @@ Property | Description
 `/site/wwwroot/webapps` when you deploy the war package.
 
 #### `<region>`
-Some valid regions are listed as below. All valid regions pelease refer to [Azure Region Availability](https://azure.microsoft.com/en-us/global-infrastructure/services/?regions=all&products=app-service).
+Some valid regions are listed as below. All valid regions please refer to [Azure Region Availability](https://azure.microsoft.com/en-us/global-infrastructure/services/?regions=all&products=app-service).
 - `West US`
 - `West US 2`
 - `East Asia`
