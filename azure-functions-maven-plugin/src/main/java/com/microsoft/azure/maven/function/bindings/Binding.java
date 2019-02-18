@@ -65,7 +65,7 @@ public class Binding {
     }
 
     public String getDirection() {
-        return direction.toString();
+        return getDirectionFromAttribute();
     }
 
     public BindingEnum getBindingEnum() {
@@ -99,5 +99,22 @@ public class Binding {
                 .append(getDirection())
                 .append(" ]")
                 .toString();
+    }
+
+    protected String getDirectionFromAttribute() {
+        if (this.direction != null) {
+            return direction.toString();
+        }
+
+        final String directionAttribute = (String) this.bindingAttributes.get("direction");
+        if (directionAttribute == null) {
+            throw new RuntimeException("Direction must be provided.");
+        }
+
+        final BindingEnum.Direction direction = BindingEnum.Direction.fromString(directionAttribute);
+        if (direction != null) {
+            return directionAttribute;
+        }
+        throw new RuntimeException("Invalid direction is provided");
     }
 }

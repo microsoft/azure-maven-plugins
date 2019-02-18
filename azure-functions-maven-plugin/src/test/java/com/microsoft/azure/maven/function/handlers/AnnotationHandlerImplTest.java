@@ -80,6 +80,8 @@ public class AnnotationHandlerImplTest {
     public static final String SERVICE_BUS_TOPIC_TRIGGER_METHOD = "serviceBusTopicTriggerMethod";
     public static final String CUSTOM_BINDING_FUNCTION = "customBindingFunction";
     public static final String CUSTOM_BINDING_METHOD = "customBindingMethod";
+    public static final String EXTENDING_CUSTOM_BINDING_FUNCTION = "extendingCustomBindingFunction";
+    public static final String EXTENDING_CUSTOM_BINDING_METHOD = "extendingcustomBindingMethod";
 
     public static final String[] COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES = new String[]{"name", "dataType",
         "databaseName", "collectionName", "leaseConnectionStringSetting", "leaseCollectionName",
@@ -99,17 +101,22 @@ public class AnnotationHandlerImplTest {
 
     public static class FunctionEntryPoints {
 
-        @FunctionName(CUSTOM_BINDING_FUNCTION)
-        public void customBindingMethod(
-            @TestCustomBinding(index = "testIndex", path = "testPath") String customTriggerInput) {
-        }
-
         @Target(ElementType.PARAMETER)
         @Retention(RetentionPolicy.RUNTIME)
         @CustomBinding(direction = "in", name = "message", type = "customBinding")
         public @interface TestCustomBinding {
             String index();
             String path();
+        }
+
+        @FunctionName(CUSTOM_BINDING_FUNCTION)
+        public void customBindingMethod(
+                @CustomBinding(name = "customBindingName", type = "customBindingType", direction = "in") String input) {
+        }
+
+        @FunctionName(EXTENDING_CUSTOM_BINDING_FUNCTION)
+        public void extendingcustomBindingMethod(
+            @TestCustomBinding(index = "testIndex", path = "testPath") String customTriggerInput) {
         }
 
         @FunctionName(HTTP_TRIGGER_FUNCTION)
@@ -211,7 +218,7 @@ public class AnnotationHandlerImplTest {
         final AnnotationHandler handler = getAnnotationHandler();
         final Set<Method> functions = handler.findFunctions(Arrays.asList(getClassUrl()));
 
-        assertEquals(11, functions.size());
+        assertEquals(12, functions.size());
         final List<String> methodNames = functions.stream().map(f -> f.getName()).collect(Collectors.toList());
         assertTrue(methodNames.contains(HTTP_TRIGGER_METHOD));
         assertTrue(methodNames.contains(QUEUE_TRIGGER_METHOD));
@@ -224,6 +231,7 @@ public class AnnotationHandlerImplTest {
         assertTrue(methodNames.contains(COSMOSDB_TRIGGER_METHOD));
         assertTrue(methodNames.contains(EVENTGRID_TRIGGER_METHOD));
         assertTrue(methodNames.contains(CUSTOM_BINDING_METHOD));
+        assertTrue(methodNames.contains(EXTENDING_CUSTOM_BINDING_METHOD));
     }
 
     @Test
@@ -233,7 +241,7 @@ public class AnnotationHandlerImplTest {
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(functions);
         configMap.values().forEach(config -> config.validate());
 
-        assertEquals(11, configMap.size());
+        assertEquals(12, configMap.size());
 
         verifyFunctionConfiguration(configMap, HTTP_TRIGGER_FUNCTION, HTTP_TRIGGER_METHOD, 2);
 
@@ -257,6 +265,8 @@ public class AnnotationHandlerImplTest {
 
         verifyFunctionConfiguration(configMap, CUSTOM_BINDING_FUNCTION, CUSTOM_BINDING_METHOD, 1);
 
+        verifyFunctionConfiguration(configMap, EXTENDING_CUSTOM_BINDING_FUNCTION, EXTENDING_CUSTOM_BINDING_METHOD, 1);
+
         verifyFunctionBinding(configMap.get(COSMOSDB_TRIGGER_FUNCTION).getBindings().stream()
                         .filter(baseBinding -> baseBinding.getName().equals("cosmos")).findFirst().get(),
                 COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES, true);
@@ -269,7 +279,7 @@ public class AnnotationHandlerImplTest {
                 .filter(baseBinding -> baseBinding.getName().equals("messages")).findFirst().get(),
             EVENTHUB_TRIGGER_REQUIRED_ATTRIBUTES, true);
 
-        verifyFunctionBinding(configMap.get(CUSTOM_BINDING_FUNCTION).getBindings().get(0),
+        verifyFunctionBinding(configMap.get(EXTENDING_CUSTOM_BINDING_FUNCTION).getBindings().get(0),
             CUSTOM_BINDING_REQUIRED_ATTRIBUTES, true);
     }
 

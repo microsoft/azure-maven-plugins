@@ -41,6 +41,15 @@ public enum BindingEnum {
         public String toString() {
             return this.name().toLowerCase(Locale.ENGLISH);
         }
+
+        public static Direction fromString(String direction) {
+            for (final Direction d : Direction.values()) {
+                if (d.toString().equalsIgnoreCase(direction)) {
+                    return d;
+                }
+            }
+            return null;
+        }
     }
 
     private String type;
