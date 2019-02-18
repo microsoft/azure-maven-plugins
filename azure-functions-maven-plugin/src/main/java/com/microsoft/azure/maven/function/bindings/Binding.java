@@ -65,6 +65,10 @@ public class Binding {
     }
 
     public String getDirection() {
+        if (this.direction != null) {
+            return direction.toString();
+        }
+
         return getDirectionFromAttribute();
     }
 
@@ -102,10 +106,6 @@ public class Binding {
     }
 
     protected String getDirectionFromAttribute() {
-        if (this.direction != null) {
-            return direction.toString();
-        }
-
         final String directionAttribute = (String) this.bindingAttributes.get("direction");
         if (directionAttribute == null) {
             throw new RuntimeException("Direction must be provided.");
