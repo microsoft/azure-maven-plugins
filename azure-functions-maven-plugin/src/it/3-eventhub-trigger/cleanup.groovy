@@ -4,8 +4,8 @@
  * license information.
  */
 
-import com.mstest.CommonUtils
-import com.mstest.EventHubProcesser
+import com.microsoft.azure.maven.function.invoker.storage.EventHubProcesser
+import com.microsoft.azure.maven.function.invoker.CommonUtils
 
 String functionName = "eventhubtrigger-verify"
 String storageName = "mavenverifycihub"
@@ -29,5 +29,5 @@ try {
         eventHubProcesser.close()
     }
 }
-CommonUtils.deleteAzureResourceGroup(resourceGroupName, false)
+//CommonUtils.deleteAzureResourceGroup(resourceGroupName, false)
 return true
