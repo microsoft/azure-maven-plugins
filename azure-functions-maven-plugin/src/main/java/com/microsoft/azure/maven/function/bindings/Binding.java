@@ -42,11 +42,11 @@ public class Binding {
     public Binding(BindingEnum bindingEnum, Annotation annotation) {
         this(bindingEnum);
         final Class<? extends Annotation> annotationType = annotation.annotationType();
-
+        final List<String> requiredAttributes = requiredAttributeMap.get(bindingEnum);
         try {
             for (final Method method : annotationType.getDeclaredMethods()) {
                 final Object value = method.invoke(annotation);
-                addProperties(bindingEnum, value, method);
+                addProperties(requiredAttributes, value, method);
             }
         } catch (Exception e) {
             throw new RuntimeException("Resolving binding attributes failed", e);
@@ -102,7 +102,7 @@ public class Binding {
                 .toString();
     }
 
-    protected void addProperties(BindingEnum binding, Object value, Method method) {
+    protected void addProperties(List<String> requiredAttributes, Object value, Method method) {
         final String propertyName = method.getName();
         if (propertyName.equals("direction") && value instanceof String) {
             this.direction = BindingEnum.Direction.fromString((String) value);
@@ -114,7 +114,6 @@ public class Binding {
             return;
         }
 
-        final List<String> requiredAttributes = requiredAttributeMap.get(binding);
         if (!value.equals(method.getDefaultValue()) ||
                 (requiredAttributes != null && requiredAttributes.contains(propertyName))) {
             bindingAttributes.put(propertyName, value);
