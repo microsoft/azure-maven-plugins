@@ -114,8 +114,8 @@ public class Binding {
         }
 
         if (!value.equals(propertyMethod.getDefaultValue()) ||
-                (requiredAttributeMap.get(bindingEnum) != null
-                        && requiredAttributeMap.get(bindingEnum).contains(propertyName))) {
+                (requiredAttributeMap.get(bindingEnum) != null &&
+                        requiredAttributeMap.get(bindingEnum).contains(propertyName))) {
             bindingAttributes.put(propertyName, value);
         }
 
