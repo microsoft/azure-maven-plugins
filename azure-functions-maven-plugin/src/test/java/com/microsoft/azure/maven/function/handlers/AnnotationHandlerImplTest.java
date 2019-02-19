@@ -96,8 +96,10 @@ public class AnnotationHandlerImplTest {
     public static final String[] EVENTHUB_TRIGGER_REQUIRED_ATTRIBUTES = new String[]{"name", "type", "direction",
         "connection", "eventHubName", "cardinality", "consumerGroup"};
 
-    public static final String[] CUSTOM_BINDING_REQUIRED_ATTRIBUTES = new String[]{"name", "type", "direction",
-        "index", "path"};
+    public static final String[] CUSTOM_BINDING_REQUIRED_ATTRIBUTES = new String[]{"name", "type", "direction"};
+
+    public static final String[] EXTENDING_CUSTOM_BINDING_REQUIRED_ATTRIBUTES = new String[]{"name", "type",
+        "direction", "path"};
 
     public static class FunctionEntryPoints {
 
@@ -105,18 +107,20 @@ public class AnnotationHandlerImplTest {
         @Retention(RetentionPolicy.RUNTIME)
         @CustomBinding(direction = "in", name = "message", type = "customBinding")
         public @interface TestCustomBinding {
-            String index();
+            String direction();
             String path();
+            String name();
         }
 
         @FunctionName(CUSTOM_BINDING_FUNCTION)
         public void customBindingMethod(
-                @CustomBinding(name = "customBindingName", type = "customBindingType", direction = "in") String input) {
+                @CustomBinding(name = "input", type = "customBinding", direction = "in") String input) {
         }
 
         @FunctionName(EXTENDING_CUSTOM_BINDING_FUNCTION)
         public void extendingcustomBindingMethod(
-            @TestCustomBinding(index = "testIndex", path = "testPath") String customTriggerInput) {
+            @TestCustomBinding(direction = "out", name = "extendingCustomBinding", path = "testPath")
+                    String customTriggerInput) {
         }
 
         @FunctionName(HTTP_TRIGGER_FUNCTION)
@@ -279,8 +283,17 @@ public class AnnotationHandlerImplTest {
                 .filter(baseBinding -> baseBinding.getName().equals("messages")).findFirst().get(),
             EVENTHUB_TRIGGER_REQUIRED_ATTRIBUTES, true);
 
-        verifyFunctionBinding(configMap.get(EXTENDING_CUSTOM_BINDING_FUNCTION).getBindings().get(0),
-            CUSTOM_BINDING_REQUIRED_ATTRIBUTES, true);
+        final Binding customBinding = configMap.get(CUSTOM_BINDING_FUNCTION).getBindings().get(0);
+        verifyFunctionBinding(customBinding, CUSTOM_BINDING_REQUIRED_ATTRIBUTES, true);
+        assertEquals(customBinding.getName(), "input");
+        assertEquals(customBinding.getDirection(), "in");
+        assertEquals(customBinding.getType(), "customBinding");
+
+        final Binding extendingCustomBinding = configMap.get(EXTENDING_CUSTOM_BINDING_FUNCTION).getBindings().get(0);
+        verifyFunctionBinding(extendingCustomBinding, EXTENDING_CUSTOM_BINDING_REQUIRED_ATTRIBUTES, false);
+        assertEquals(extendingCustomBinding.getName(), "extendingCustomBinding");
+        assertEquals(extendingCustomBinding.getDirection(), "out");
+        assertEquals(extendingCustomBinding.getType(), "customBinding");
     }
 
     private AnnotationHandlerImpl getAnnotationHandler() {

@@ -32,7 +32,8 @@ public enum BindingEnum {
     TableOutput("table", Direction.OUT, true),
     TimerTrigger("timerTrigger", Direction.IN),
     TwilioSmsOutput("twilioSms", Direction.OUT),
-    CustomBinding("customBinding", null);
+    CustomBinding("customBinding", null),
+    UnknownBinding(null, null);
 
     enum Direction {
         IN, OUT;
@@ -48,7 +49,7 @@ public enum BindingEnum {
                     return d;
                 }
             }
-            return null;
+            throw new RuntimeException("Invalid direction is provided");
         }
     }
 

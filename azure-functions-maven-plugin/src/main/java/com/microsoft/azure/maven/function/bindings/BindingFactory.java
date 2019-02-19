@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.function.bindings;
 
+import com.microsoft.azure.functions.annotation.CustomBinding;
+
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Locale;
@@ -22,10 +24,10 @@ public class BindingFactory {
     }
 
     public static Binding getUserDefinedBinding(final Annotation annotation) {
-        final Annotation customBindingAnnotation = annotation.annotationType()
+        final CustomBinding customBindingAnnotation = annotation.annotationType()
             .getDeclaredAnnotation(com.microsoft.azure.functions.annotation.CustomBinding.class);
-        return customBindingAnnotation == null ? null : new CustomBinding(BindingEnum.CustomBinding,
-            (com.microsoft.azure.functions.annotation.CustomBinding) customBindingAnnotation, annotation);
+        return customBindingAnnotation == null ? null : new ExtendedCustomBinding(BindingEnum.UnknownBinding,
+                customBindingAnnotation, annotation);
     }
 
     public static Binding getHTTPOutBinding() {

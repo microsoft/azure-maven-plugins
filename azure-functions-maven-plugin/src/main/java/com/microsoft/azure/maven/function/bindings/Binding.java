@@ -20,7 +20,7 @@ public class Binding {
 
     protected BindingEnum bindingEnum = null;
 
-    protected String type = "";
+    protected String type = null;
 
     protected BindingEnum.Direction direction = null;
 
@@ -42,14 +42,11 @@ public class Binding {
     public Binding(BindingEnum bindingEnum, Annotation annotation) {
         this(bindingEnum);
         final Class<? extends Annotation> annotationType = annotation.annotationType();
-        final List<String> requiredAttributes = requiredAttributeMap.get(bindingEnum);
+
         try {
             for (final Method method : annotationType.getDeclaredMethods()) {
                 final Object value = method.invoke(annotation);
-                if (!value.equals(method.getDefaultValue()) ||
-                    (requiredAttributes != null && requiredAttributes.contains(method.getName()))) {
-                    bindingAttributes.put(method.getName(), value);
-                }
+                addProperties(bindingEnum, value, method);
             }
         } catch (Exception e) {
             throw new RuntimeException("Resolving binding attributes failed", e);
@@ -69,7 +66,7 @@ public class Binding {
             return direction.toString();
         }
 
-        return getDirectionFromAttribute();
+        throw new RuntimeException("Direction must be provided.");
     }
 
     public BindingEnum getBindingEnum() {
@@ -105,16 +102,23 @@ public class Binding {
                 .toString();
     }
 
-    protected String getDirectionFromAttribute() {
-        final String directionAttribute = (String) this.bindingAttributes.get("direction");
-        if (directionAttribute == null) {
-            throw new RuntimeException("Direction must be provided.");
+    protected void addProperties(BindingEnum binding, Object value, Method method) {
+        final String propertyName = method.getName();
+        if (propertyName.equals("direction") && value instanceof String) {
+            this.direction = BindingEnum.Direction.fromString((String) value);
+            return;
         }
 
-        final BindingEnum.Direction direction = BindingEnum.Direction.fromString(directionAttribute);
-        if (direction != null) {
-            return directionAttribute;
+        if (propertyName.equals("type") && value instanceof String) {
+            this.type = (String) value;
+            return;
         }
-        throw new RuntimeException("Invalid direction is provided");
+
+        final List<String> requiredAttributes = requiredAttributeMap.get(binding);
+        if (!value.equals(method.getDefaultValue()) ||
+                (requiredAttributes != null && requiredAttributes.contains(propertyName))) {
+            bindingAttributes.put(propertyName, value);
+        }
+
     }
 }
