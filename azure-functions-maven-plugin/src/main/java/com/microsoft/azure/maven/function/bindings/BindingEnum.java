@@ -33,7 +33,7 @@ public enum BindingEnum {
     TimerTrigger("timerTrigger", Direction.IN),
     TwilioSmsOutput("twilioSms", Direction.OUT),
     CustomBinding("customBinding", null),
-    UnknownBinding(null, null);
+    ExtendedCustomBinding(null, null);
 
     enum Direction {
         IN, OUT;

@@ -26,7 +26,7 @@ public class BindingFactory {
     public static Binding getUserDefinedBinding(final Annotation annotation) {
         final CustomBinding customBindingAnnotation = annotation.annotationType()
             .getDeclaredAnnotation(com.microsoft.azure.functions.annotation.CustomBinding.class);
-        return customBindingAnnotation == null ? null : new ExtendedCustomBinding(BindingEnum.UnknownBinding,
+        return customBindingAnnotation == null ? null : new ExtendedCustomBinding(BindingEnum.ExtendedCustomBinding,
                 customBindingAnnotation, annotation);
     }
 
