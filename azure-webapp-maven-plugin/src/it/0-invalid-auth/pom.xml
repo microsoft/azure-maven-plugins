@@ -21,6 +21,7 @@
                     <resourceGroup>maven-webapp-it-rg-${suffix}</resourceGroup>
                     <appName>maven-it-app-0-${maven.build.timestamp}</appName>
                     <region>westus</region>
+                    <pricingTier>S1</pricingTier>
                     <containerSettings>
                         <imageName>nginx</imageName>
                     </containerSettings>

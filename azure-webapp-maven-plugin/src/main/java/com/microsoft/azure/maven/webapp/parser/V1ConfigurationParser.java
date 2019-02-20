@@ -16,14 +16,18 @@ import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class V1ConfigurationParser extends ConfigurationParser {
-    private static final String TOMCAT_8_5_JRE8 = "tomcat 8.5-jre8";
-    private static final String TOMCAT_9_0_JRE8 = "tomcat 9.0-jre8";
-    private static final String JRE8 = "jre8";
-    private static final List<String> SUPPORTED_LINUX_RUNTIMES = Arrays.asList(TOMCAT_8_5_JRE8, TOMCAT_9_0_JRE8);
+    public static final String TOMCAT_8_5_JRE8 = "tomcat 8.5-jre8";
+    public static final String TOMCAT_9_0_JRE8 = "tomcat 9.0-jre8";
+    public static final String WILDFLY_14_JRE8 = "wildfly 14-jre8";
+    public static final String JRE8 = "jre8";
+    public static final List<String> SUPPORTED_LINUX_RUNTIMES =
+        Arrays.asList(TOMCAT_8_5_JRE8, TOMCAT_9_0_JRE8, WILDFLY_14_JRE8, JRE8);
     private static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>" +
         "and <containerSettings> should not be set at the same time.";
 
@@ -37,23 +41,22 @@ public class V1ConfigurationParser extends ConfigurationParser {
         final JavaVersion javaVersion = mojo.getJavaVersion();
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final boolean isContainerSettingEmpty = containerSetting == null || containerSetting.isEmpty();
+        final List<OperatingSystemEnum> osList = new ArrayList<>();
 
-        // todo: refactor the logic of checking if there are duplicate configs
-        // Duplicated runtime are specified
-        if (javaVersion != null ? linuxRuntime != null || !isContainerSettingEmpty :
-            linuxRuntime != null && !isContainerSettingEmpty) {
-            throw new MojoExecutionException(RUNTIME_CONFIG_CONFLICT);
+        if (javaVersion != null) {
+            osList.add(OperatingSystemEnum.Windows);
         }
-        if (null != javaVersion) {
-            return OperatingSystemEnum.Windows;
-        }
-        if (null != linuxRuntime) {
-            return OperatingSystemEnum.Linux;
+        if (linuxRuntime != null) {
+            osList.add(OperatingSystemEnum.Linux);
         }
         if (!isContainerSettingEmpty) {
-            return OperatingSystemEnum.Docker;
+            osList.add(OperatingSystemEnum.Docker);
         }
-        return null;
+
+        if (osList.size() > 1) {
+            throw new MojoExecutionException(RUNTIME_CONFIG_CONFLICT);
+        }
+        return osList.size() > 0 ? osList.get(0) : null;
     }
 
     @Override
@@ -61,7 +64,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
         if (StringUtils.isEmpty(mojo.getRegion())) {
             return Region.EUROPE_WEST;
         }
-        if (Arrays.asList(Region.values()).contains(mojo.getRegion())) {
+        if (!Arrays.asList(Region.values()).contains(Region.fromName(mojo.getRegion()))) {
             throw new MojoExecutionException("The value of <region> is not correct, please correct it in pom.xml.");
         }
         return Region.fromName(mojo.getRegion());
@@ -69,11 +72,16 @@ public class V1ConfigurationParser extends ConfigurationParser {
 
     @Override
     public RuntimeStack getRuntimeStack() throws MojoExecutionException {
+        if (mojo.getLinuxRuntime() == null) {
+            throw new MojoExecutionException("Please configure the <linuxRuntime> in pom.xml.");
+        }
         switch (mojo.getLinuxRuntime()) {
             case TOMCAT_8_5_JRE8:
                 return RuntimeStack.TOMCAT_8_5_JRE8;
             case TOMCAT_9_0_JRE8:
                 return RuntimeStack.TOMCAT_9_0_JRE8;
+            case WILDFLY_14_JRE8:
+                return RuntimeStack.WILDFLY_14_JRE8;
             case JRE8:
                 return RuntimeStack.JAVA_8_JRE8;
             default:
@@ -113,6 +121,11 @@ public class V1ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
+    protected String getSchemaVersion() {
+        return "V1";
+    }
+
+    @Override
     public WebContainer getWebContainer() throws MojoExecutionException {
         if (mojo.getJavaWebContainer() == null) {
             throw new MojoExecutionException("The configuration of <javaWebContainer> in pom.xml is not correct.");
@@ -130,7 +143,6 @@ public class V1ConfigurationParser extends ConfigurationParser {
 
     @Override
     public List<Resource> getResources() {
-        // todo
-        return null;
+        return mojo.getResources();
     }
 }

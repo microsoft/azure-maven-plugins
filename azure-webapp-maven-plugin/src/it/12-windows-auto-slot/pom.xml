@@ -24,6 +24,7 @@
                         <name>test</name>
                     </deploymentSlot>
                     <region>westus</region>
+                    <pricingTier>S1</pricingTier>
                     <javaVersion>1.8</javaVersion>
                     <javaWebContainer>tomcat 8.5</javaWebContainer>
                 </configuration>

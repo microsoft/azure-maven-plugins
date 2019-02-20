@@ -70,7 +70,8 @@ public class WarArtifactHandlerImpl extends ArtifactHandlerBase {
         assureWarFileExisted(war);
 
         final Runnable warDeployExecutor = ArtifactHandlerUtils.getRealWarDeployExecutor(target, war, getContextPath());
-        
+        log.info(String.format(DEPLOY_START, target.getName()));
+
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
         int retryCount = 0;
@@ -80,13 +81,14 @@ public class WarArtifactHandlerImpl extends ArtifactHandlerBase {
             retryCount++;
             try {
                 warDeployExecutor.run();
+                log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
                 return;
             } catch (Exception e) {
                 log.debug(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
             }
         }
 
-        throw new MojoExecutionException(String.format(DEPLOY_FAILURE, retryCount));
+        throw new MojoExecutionException(String.format(DEPLOY_FAILURE, DEFAULT_MAX_RETRY_TIMES));
     }
 
     protected String getContextPath() {

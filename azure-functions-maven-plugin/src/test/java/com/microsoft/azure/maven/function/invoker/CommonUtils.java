@@ -6,6 +6,10 @@
 
 package com.microsoft.azure.maven.function.invoker;
 
+import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.credentials.ApplicationTokenCredentials;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.rest.LogLevel;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.BufferedReader;
@@ -26,6 +30,8 @@ public class CommonUtils {
 
     private static final int RETRY_TIMES = 5;
     private static final int WAIT_IN_SECOND = 5;
+
+    private static Azure azureClient = null;
 
     private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
 
@@ -84,5 +90,27 @@ public class CommonUtils {
         }
 
         throw new Exception("Integration test fails for 5 times.");
+    }
+
+    /**
+     * @return Azure Management client which could manage azure resources
+     * @throws IOException
+     */
+    public static Azure getAzureClient() throws IOException {
+        if (azureClient == null) {
+            synchronized (CommonUtils.class) {
+                if (azureClient == null) {
+                    final ApplicationTokenCredentials credentials = new ApplicationTokenCredentials(
+                            System.getenv("CLIENT_ID"), System.getenv("TENANT_ID"),
+                            System.getenv("KEY"), AzureEnvironment.AZURE);
+
+                    azureClient = Azure.configure()
+                            .withLogLevel(LogLevel.BODY)
+                            .authenticate(credentials)
+                            .withDefaultSubscription();
+                }
+            }
+        }
+        return azureClient;
     }
 }

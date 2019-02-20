@@ -11,19 +11,14 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
-import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
-import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
-import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.codehaus.plexus.util.StringUtils;
-import java.util.Locale;
+
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,8 +26,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
-    public static final String DEPLOY_START = "Trying to deploy artifact to %s...";
-    public static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
     public static final String WEBAPP_CREATED = "Successfully created Web App.";
     public static final String CREATE_DEPLOYMENT_SLOT = "Target Deployment Slot doesn't exist. Creating a new one...";
@@ -46,46 +39,27 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String START_APP_DONE = "Successfully started Web App.";
     public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "The Web App specified in pom.xml does not exist. " +
         "Please make sure the Web App name is correct.";
-    public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist." +
+    public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist. " +
         "Please check if any error message during creation";
 
     protected DeploymentUtil util = new DeploymentUtil();
 
     @Override
     protected void doExecute() throws Exception {
-        final ConfigurationParser parser = getParserBySchemaVersion();
-        final WebAppConfiguration webAppConfig = parser.getWebAppConfiguration();
-        createOrUpdateWebApp(webAppConfig);
-        deployArtifacts();
-    }
-
-    protected ConfigurationParser getParserBySchemaVersion() throws MojoExecutionException {
-        final String schemaVersion = StringUtils.isEmpty(getSchemaVersion()) ? "v1" : getSchemaVersion();
-
-        switch (schemaVersion.toLowerCase(Locale.ENGLISH)) {
-            case "v1":
-                return new V1ConfigurationParser(this);
-            case "v2":
-                return new V2ConfigurationParser(this);
-            default:
-                throw new MojoExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
-        }
-    }
-
-    protected void createOrUpdateWebApp(final WebAppConfiguration config) throws Exception {
+        // todo: use parser to getAzureClient from mojo configs
+        final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(
+                getWebAppConfiguration(), getAzureClient(), getLog());
         // todo: use parser to get web app from mojo configs
         final WebApp app = getWebApp();
-        if (app == null && this.isDeployToDeploymentSlot()) {
-            throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
-        }
-        // todo: use parser to getAzureClient from mojo configs
-        final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(config, getAzureClient(), getLog());
         if (app == null) {
-            // todo: refactor the create and update logic
+            if (this.isDeployToDeploymentSlot()) {
+                throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+            }
             createWebApp(runtimeHandler);
         } else {
             updateWebApp(runtimeHandler, app);
         }
+        deployArtifacts();
     }
 
     protected void createWebApp(final RuntimeHandler runtimeHandler) throws Exception {
@@ -134,12 +108,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             } else {
                 target = new WebAppDeployTarget(app);
             }
-
-            getLog().info(String.format(DEPLOY_START, target.getName()));
-
             getFactory().getArtifactHandler(this).publish(target);
-
-            getLog().info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
         } finally {
             util.afterDeployArtifacts();
         }

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Map;
 
@@ -19,6 +20,9 @@ public class FunctionTemplate {
     private TemplateMetadata metadata;
 
     private Map<String, String> files;
+
+    @JsonDeserialize(using = TemplateTriggerTypeDeserializer.class)
+    private String function;
 
     @JsonGetter
     public TemplateMetadata getMetadata() {
@@ -38,5 +42,19 @@ public class FunctionTemplate {
     @JsonSetter
     public void setFiles(Map<String, String> files) {
         this.files = files;
+    }
+
+    @JsonGetter
+    public String getFunction() {
+        return function;
+    }
+
+    @JsonSetter
+    public void setFunction(String function) {
+        this.function = function;
+    }
+
+    public String getTriggerType(){
+        return this.function;
     }
 }

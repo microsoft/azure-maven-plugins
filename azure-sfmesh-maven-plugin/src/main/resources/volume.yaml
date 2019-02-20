@@ -1,0 +1,11 @@
+## Volume Definition ##
+volume:
+  schemaVersion: SCHEMA_VERSION
+  name: VOLUME_NAME
+  properties:
+    description: VOLUME_DESCRIPTION
+    provider: VOLUME_PROVIDER
+    azureFileParameters:
+      shareName: VOLUME_SHARE_NAME
+      accountName: VOLUME_ACCOUNT_NAME
+      accountKey: VOLUME_ACCOUNT_KEY

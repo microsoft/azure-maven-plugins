@@ -19,6 +19,11 @@ import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
+import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
+import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
+import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
+import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -26,6 +31,7 @@ import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -38,6 +44,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String LINUX_RUNTIME_KEY = "linuxRuntime";
     public static final String DOCKER_IMAGE_TYPE_KEY = "dockerImageType";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
+    public static final String OS_KEY = "os";
+    public static final String INVALID_CONFIG_KEY = "invalidConfiguration";
+    public static final String SCHEMA_VERSION_KEY = "schemaVersion";
 
     //region Properties
 
@@ -53,12 +62,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *     <li>S1</li>
      *     <li>S2</li>
      *     <li>S3</li>
-     *     <li>P1</li>
-     *     <li>P2</li>
-     *     <li>P3</li>
+     *     <li>P1V2</li>
+     *     <li>P2V2</li>
+     *     <li>P3V2</li>
      * </ul>
      */
-    @Parameter(property = "webapp.pricingTier", defaultValue = "S1")
+    @Parameter(property = "webapp.pricingTier", defaultValue = "P1V2")
     protected PricingTierEnum pricingTier;
 
     /**
@@ -141,8 +150,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 0.1.0
      */
-    @Parameter
-    protected List<Resource> resources = Collections.emptyList();
+    @Parameter(property = "webapp.resources")
+    protected List<Resource> resources;
 
     /**
      * Skip execution.
@@ -213,6 +222,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Parameter(property = "deployment")
     protected Deployment deployment;
 
+    private WebAppConfiguration webAppConfiguration;
+
     //endregion
 
     //region Getter
@@ -246,8 +257,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return region;
     }
 
-    public PricingTier getPricingTier() {
-        return pricingTier == null ? PricingTier.STANDARD_S1 : pricingTier.toPricingTier();
+    public PricingTier getPricingTier() throws MojoExecutionException {
+        return pricingTier == null ? new PricingTier("Premium", "P1V2") : pricingTier.toPricingTier();
     }
 
     public JavaVersion getJavaVersion() {
@@ -274,7 +285,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     @Override
     public List<Resource> getResources() {
-        return resources;
+        return resources == null ? Collections.EMPTY_LIST : resources;
     }
 
     public String getWarFile() {
@@ -333,6 +344,26 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     //endregion
 
+    protected ConfigurationParser getParserBySchemaVersion() throws MojoExecutionException {
+        final String schemaVersion = StringUtils.isEmpty(getSchemaVersion()) ? "v1" : getSchemaVersion();
+
+        switch (schemaVersion.toLowerCase(Locale.ENGLISH)) {
+            case "v1":
+                return new V1ConfigurationParser(this);
+            case "v2":
+                return new V2ConfigurationParser(this);
+            default:
+                throw new MojoExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
+        }
+    }
+
+    protected WebAppConfiguration getWebAppConfiguration() throws MojoExecutionException {
+        if (webAppConfiguration == null) {
+            webAppConfiguration = getParserBySchemaVersion().getWebAppConfiguration();
+        }
+        return webAppConfiguration;
+    }
+
     //region Setter
 
     // Set method to get value from configuration.
@@ -349,17 +380,28 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
-        final ContainerSetting containerSetting = getContainerSettings();
-        if (containerSetting != null) {
-            final String imageType = WebAppUtils.getDockerImageType(containerSetting.getImageName(),
-                containerSetting.getServerId(), containerSetting.getRegistryUrl()).toString();
+        final WebAppConfiguration webAppConfiguration;
+        try {
+            webAppConfiguration = getWebAppConfiguration();
+        } catch (Exception e) {
+            map.put(INVALID_CONFIG_KEY, e.getMessage());
+            return map;
+        }
+        if (webAppConfiguration.getImage() != null) {
+            final String imageType = WebAppUtils.getDockerImageType(webAppConfiguration.getImage(),
+                webAppConfiguration.getServerId(), webAppConfiguration.getRegistryUrl()).toString();
             map.put(DOCKER_IMAGE_TYPE_KEY, imageType);
         } else {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
         }
-        map.put(JAVA_VERSION_KEY, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
-        map.put(JAVA_WEB_CONTAINER_KEY, getJavaWebContainer().toString());
-        map.put(LINUX_RUNTIME_KEY, StringUtils.isEmpty(linuxRuntime) ? "" : linuxRuntime);
+        map.put(SCHEMA_VERSION_KEY, schemaVersion);
+        map.put(OS_KEY, webAppConfiguration.getOs() == null ? "" : webAppConfiguration.getOs().toString());
+        map.put(JAVA_VERSION_KEY, webAppConfiguration.getJavaVersion() == null ? "" :
+            webAppConfiguration.getJavaVersion().toString());
+        map.put(JAVA_WEB_CONTAINER_KEY, webAppConfiguration.getWebContainer() == null ? "" :
+            webAppConfiguration.getJavaVersion().toString());
+        map.put(LINUX_RUNTIME_KEY, webAppConfiguration.getRuntimeStack() == null ? "" :
+            webAppConfiguration.getRuntimeStack().stack() + " " + webAppConfiguration.getRuntimeStack().version());
 
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());

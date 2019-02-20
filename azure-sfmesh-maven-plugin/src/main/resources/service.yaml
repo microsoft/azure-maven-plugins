@@ -1,0 +1,25 @@
+## Service Definition ##
+application:
+  schemaVersion: SCHEMA_VERSION
+  name: APP_NAME
+  properties:  
+    services:
+      - name: SERVICE_NAME
+        properties:
+          description: SERVICE_DESCRIPTION
+          osType: OS_TYPE
+          codePackages:
+           - name: CODE_PACKAGE_NAME
+             image: DOCKER_IMAGE
+             endpoints:
+                - name: LISTENER_NAME
+                  port: LISTENER_PORT
+             resources:
+                requests:
+                  cpu: CPU_USAGE
+                  memoryInGB: MEMORY_USAGE
+          replicaCount: REPLICA_COUNT
+          networkRefs:
+          - name: NETWORK_NAME
+            endpointRefs:
+            - name: LISTENER_NAME

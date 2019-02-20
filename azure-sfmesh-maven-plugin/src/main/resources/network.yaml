@@ -1,0 +1,8 @@
+## Network Definition ##
+network:
+  schemaVersion: SCHEMA_VERSION
+  name: NETWORK_NAME
+  properties:
+    description: NETWORK_DESCRIPTION
+    kind: NETWORK_KIND
+    networkAddressPrefix: ADDRESS_PREFIX

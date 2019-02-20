@@ -20,7 +20,9 @@ import com.microsoft.azure.management.appservice.WebApps;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.management.resources.ResourceGroups;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
@@ -207,11 +209,11 @@ public class WebAppUtilsTest {
     }
 
     @Test
-    public void createOrGetAppServicePlan() {
+    public void createOrGetAppServicePlan() throws MojoExecutionException {
         final String resourceGroup = "resource-group";
         final String servicePlanResourceGroup = "service-plan-resource-name";
         final String servicePlanName = "service-plan-name";
-        final String region = "region";
+        final Region region = Region.EUROPE_WEST;
         final String empty = "";
 
         final Log logMock = mock(Log.class);
@@ -232,7 +234,7 @@ public class WebAppUtilsTest {
 
         final AppServicePlan.DefinitionStages.WithGroup withGroupMock =
                 mock(AppServicePlan.DefinitionStages.WithGroup.class);
-        doReturn(withGroupMock).when(blankMock).withRegion(anyString());
+        doReturn(withGroupMock).when(blankMock).withRegion(region);
 
         final ResourceGroups resourceGroupsMock = mock(ResourceGroups.class);
         doReturn(resourceGroupsMock).when(azureMock).resourceGroups();

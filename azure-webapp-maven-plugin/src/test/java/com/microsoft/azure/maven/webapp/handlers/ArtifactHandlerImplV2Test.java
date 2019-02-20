@@ -71,6 +71,9 @@ public class ArtifactHandlerImplV2Test {
 
         final String stagingDirectoryPath = "dummy";
         doReturn(stagingDirectoryPath).when(mojo).getDeploymentStagingDirectoryPath();
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).info(anyString());
 
         buildHandler();
         doNothing().when(handlerSpy).copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
@@ -104,6 +107,10 @@ public class ArtifactHandlerImplV2Test {
 
         final String stagingDirectoryPath = "dummy";
         doReturn(stagingDirectoryPath).when(mojo).getDeploymentStagingDirectoryPath();
+        final Log log = mock(Log.class);
+        doReturn(log).when(mojo).getLog();
+        doNothing().when(log).info(anyString());
+
         buildHandler();
         doNothing().when(handlerSpy).copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
 

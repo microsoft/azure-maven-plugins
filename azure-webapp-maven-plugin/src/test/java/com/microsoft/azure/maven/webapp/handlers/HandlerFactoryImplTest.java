@@ -6,16 +6,26 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.RuntimeStack;
+import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
@@ -28,6 +38,57 @@ public class HandlerFactoryImplTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
+    }
+
+    @Test
+    public void getRuntimeHandler() throws MojoExecutionException {
+        final WebAppConfiguration config = mock(WebAppConfiguration.class);
+        final Azure azureClient = mock(Azure.class);
+        final Log log = mock(Log.class);
+        final HandlerFactory factory = new HandlerFactoryImpl();
+
+        doReturn("").when(config).getAppName();
+        doReturn("").when(config).getResourceGroup();
+        doReturn(Region.US_EAST).when(config).getRegion();
+        doReturn(new PricingTier("Premium", "P1V2")).when(config).getPricingTier();
+        doReturn("").when(config).getServicePlanName();
+        doReturn("").when(config).getServicePlanResourceGroup();
+
+        doReturn(null).when(config).getOs();
+        RuntimeHandler handler = factory.getRuntimeHandler(config, azureClient, log);
+        assertTrue(handler instanceof NullRuntimeHandlerImpl);
+
+        doReturn(OperatingSystemEnum.Windows).when(config).getOs();
+        doReturn(JavaVersion.JAVA_8_NEWEST).when(config).getJavaVersion();
+        doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(config).getWebContainer();
+        handler = factory.getRuntimeHandler(config, azureClient, log);
+        assertTrue(handler instanceof WindowsRuntimeHandlerImpl);
+
+        doReturn(OperatingSystemEnum.Linux).when(config).getOs();
+        doReturn(RuntimeStack.JAVA_8_JRE8).when(config).getRuntimeStack();
+        handler = factory.getRuntimeHandler(config, azureClient, log);
+        assertTrue(handler instanceof LinuxRuntimeHandlerImpl);
+
+        doReturn(OperatingSystemEnum.Docker).when(config).getOs();
+        doReturn("imageName").when(config).getImage();
+        handler = factory.getRuntimeHandler(config, azureClient, log);
+        assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImpl);
+
+        doReturn("serverId").when(config).getServerId();
+        doReturn("registry").when(config).getRegistryUrl();
+        handler = factory.getRuntimeHandler(config, azureClient, log);
+        assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImpl);
+
+        doReturn("").when(config).getRegistryUrl();
+        handler = factory.getRuntimeHandler(config, azureClient, log);
+        assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImpl);
+
+        doReturn("").when(config).getImage();
+        try {
+            factory.getRuntimeHandler(config, azureClient, log);
+        } catch (MojoExecutionException e) {
+            assertEquals(e.getMessage(), "Invalid docker runtime configured.");
+        }
     }
 
     @Test

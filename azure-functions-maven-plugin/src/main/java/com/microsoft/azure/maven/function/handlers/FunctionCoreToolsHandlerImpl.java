@@ -14,11 +14,9 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
     public static final String FUNC_EXTENSIONS_INSTALL_TEMPLATE = "func extensions install -c \"%s\"";
     public static final String INSTALL_FUNCTION_EXTENSIONS_FAIL = "Failed to install the Function extensions";
-    public static final String NO_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
-            "exist, skip package phase. To install it, see: https://aka.ms/azfunc-install";
-    public static final String OUTDATED_LOCAL_FUNCTION_CORE_TOOLS = "Local Azure Functions Core Tools does not " +
-            "support extension auto-install, skip package phase. To upgrade it, " +
-            "see: https://aka.ms/azfunc-install";
+    public static final String CANNOT_AUTO_INSTALL = "Local Azure Functions Core Tools does not " +
+            "exist or is too old to support function extension installation, skip package phase." +
+            " To install or update it, see: https://aka.ms/azfunc-install";
     public static final String NEED_UPDATE_FUNCTION_CORE_TOOLS = "Local version of Azure Functions Core Tools (%s) " +
             "does not match the latest (%s). Please update it for the best experience. " +
             "See: https://aka.ms/azfunc-install";
@@ -55,13 +53,9 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     protected void assureRequirementAddressed() throws Exception {
         final String localVersion = getLocalFunctionCoreToolsVersion();
         final String latestCoreVersion = getLatestFunctionCoreToolsVersion();
-        // Ensure azure function core tools has been installed
-        if (localVersion == null) {
-            throw new Exception(NO_LOCAL_FUNCTION_CORE_TOOLS);
-        }
-        // Ensure local azure function core tools support extension auto-install
-        if (LEAST_SUPPORTED_VERSION.greaterThan(Version.valueOf(localVersion))) {
-            throw new Exception(OUTDATED_LOCAL_FUNCTION_CORE_TOOLS);
+        // Ensure azure function core tools has been installed and support extension auto-install
+        if (localVersion == null || LEAST_SUPPORTED_VERSION.greaterThan(Version.valueOf(localVersion))) {
+            throw new Exception(CANNOT_AUTO_INSTALL);
         }
         // Verify whether local function core tools is the latest version
         if (latestCoreVersion == null) {

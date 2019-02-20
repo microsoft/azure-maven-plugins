@@ -25,16 +25,16 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     /**
      * Resource group of App Service. It will be created if it doesn't exist.
      */
-    @Parameter(property = "resourceGroup", required = true)
+    @Parameter(property = "resourceGroup", required = false)
     protected String resourceGroup;
 
     /**
      * App Service name. It will be created if it doesn't exist.
      */
-    @Parameter(property = "appName", required = true)
+    @Parameter(property = "appName", required = false)
     protected String appName;
 
-     /**
+    /**
      * Deployment type to deploy Web App or Function App.
      *
      * Supported values for Web App:
@@ -47,7 +47,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      *      <li>NONE - does nothing</li>
      *      <li>* defaults to AUTO if nothing is specified</li>
      * </ul>
-     * 
+     *
      * Supported values for Function App:
      * <ul>
      *      <li>MSDEPLOY</li>
@@ -119,8 +119,8 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     public String getDeploymentStagingDirectoryPath() {
         final String outputFolder = this.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
         return Paths.get(
-                this.getBuildDirectoryAbsolutePath(),
-                outputFolder, this.getAppName()
+            this.getBuildDirectoryAbsolutePath(),
+            outputFolder, this.getAppName()
         ).toString();
     }
 }

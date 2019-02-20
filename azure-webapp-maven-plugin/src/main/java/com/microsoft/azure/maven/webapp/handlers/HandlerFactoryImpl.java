@@ -14,12 +14,13 @@ import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.webapp.WebAppUtils;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
+import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
+
 import java.util.Locale;
 
 public class HandlerFactoryImpl extends HandlerFactory {
@@ -49,7 +50,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
         }
         return builder.appName(config.getAppName())
             .resourceGroup(config.getResourceGroup())
-            .region(config.getRegion().name())
+            .region(config.getRegion())
             .pricingTier(config.getPricingTier())
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))

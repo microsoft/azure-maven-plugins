@@ -9,9 +9,11 @@ package com.microsoft.azure.maven.function.handlers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.microsoft.azure.functions.OutputBinding;
 import com.microsoft.azure.functions.annotation.BlobInput;
 import com.microsoft.azure.functions.annotation.BlobOutput;
 import com.microsoft.azure.functions.annotation.BlobTrigger;
+import com.microsoft.azure.functions.annotation.Cardinality;
 import com.microsoft.azure.functions.annotation.CosmosDBOutput;
 import com.microsoft.azure.functions.annotation.CosmosDBTrigger;
 import com.microsoft.azure.functions.annotation.EventGridTrigger;
@@ -20,8 +22,6 @@ import com.microsoft.azure.functions.annotation.EventHubTrigger;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpOutput;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
-import com.microsoft.azure.functions.annotation.MobileTableInput;
-import com.microsoft.azure.functions.annotation.MobileTableOutput;
 import com.microsoft.azure.functions.annotation.QueueOutput;
 import com.microsoft.azure.functions.annotation.QueueTrigger;
 import com.microsoft.azure.functions.annotation.SendGridOutput;
@@ -34,7 +34,7 @@ import com.microsoft.azure.functions.annotation.TableInput;
 import com.microsoft.azure.functions.annotation.TableOutput;
 import com.microsoft.azure.functions.annotation.TimerTrigger;
 import com.microsoft.azure.functions.annotation.TwilioSmsOutput;
-import com.microsoft.azure.maven.function.bindings.BaseBinding;
+import com.microsoft.azure.maven.function.bindings.Binding;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
@@ -81,6 +81,12 @@ public class AnnotationHandlerImplTest {
         "connectionStringSetting", "leaseRenewInterval", "leaseAcquireInterval", "leaseExpirationInterval",
         "maxItemsPerInvocation", "startFromBeginning", "preferredLocations"};
 
+    public static final String[] COSMOSDB_OUTPUT_REQUIRED_ATTRIBUTES = new String[]{"name", "type",
+        "direction", "databaseName", "collectionName", "connectionStringSetting"};
+
+    public static final String[] EVENTHUB_TRIGGER_REQUIRED_ATTRIBUTES = new String[]{"name", "type", "direction",
+        "connection", "eventHubName", "cardinality", "consumerGroup"};
+
     public class FunctionEntryPoints {
         @FunctionName(HTTP_TRIGGER_FUNCTION)
         public String httpTriggerMethod(@HttpTrigger(name = "req") String req) {
@@ -101,6 +107,7 @@ public class AnnotationHandlerImplTest {
 
         @FunctionName(COSMOSDB_TRIGGER_FUNCTION)
         public void cosmosDBTriggerMethod(@CosmosDBTrigger(name = "cosmos",
+                dataType = "string",
                 databaseName = "db",
                 collectionName = "cl",
                 connectionStringSetting = "conn",
@@ -117,8 +124,11 @@ public class AnnotationHandlerImplTest {
                 leaseAcquireInterval = 1,
                 maxItemsPerInvocation = 1,
                 startFromBeginning = true,
-                preferredLocations = "location"
-        ) String in) {
+                preferredLocations = "location",
+                leaseExpirationInterval = 1
+        ) String in,
+            @CosmosDBOutput(name = "itemOut", databaseName = "CosmosDBDatabaseName", collectionName = "out",
+                connectionStringSetting = "conn") OutputBinding<String> outPutItem) {
         }
 
         @FunctionName(EVENTGRID_TRIGGER_FUNCTION)
@@ -127,19 +137,14 @@ public class AnnotationHandlerImplTest {
 
         @FunctionName(TIMER_TRIGGER_FUNCTION)
         @CosmosDBOutput(name = "$return", databaseName = "db", collectionName = "col", connectionStringSetting = "conn")
-        @MobileTableOutput(name = "$return", tableName = "table", connection = "conn", apiKey = "key")
         @SendGridOutput(name = "$return", apiKey = "key", to = "to", from = "from", subject = "sub", text = "text")
         @TwilioSmsOutput(name = "$return", accountSid = "sid", authToken = "auth", to = "to", from = "from", body = "b")
         public String timerTriggerMethod(@TimerTrigger(name = "timer", schedule = "") String timer,
                                          @CosmosDBOutput(name = "in1",
                                                  databaseName = "db",
                                                  collectionName = "col",
-                                                 connectionStringSetting = "conn") String in1,
-                                         @MobileTableInput(name = "in2",
-                                                 tableName = "table",
-                                                 id = "id",
-                                                 connection = "conn",
-                                                 apiKey = "key") String in2) {
+                                                 connectionStringSetting = "conn") String in1
+                                         ) {
             return "Hello!";
         }
 
@@ -156,7 +161,9 @@ public class AnnotationHandlerImplTest {
         @FunctionName(EVENTHUB_TRIGGER_FUNCTION)
         @EventHubOutput(name = "$return", eventHubName = "eventHub", connection = "conn")
         public String eventHubTriggerMethod(
-                @EventHubTrigger(name = "in", eventHubName = "eventHub", connection = "conn") String in) {
+            @EventHubTrigger(name = "messages", eventHubName = "test-input-java", connection =
+                "AzureWebJobsEventHubSender", consumerGroup = "consumerGroup", cardinality = Cardinality.MANY)
+                String[] messages) {
             return "Hello!";
         }
 
@@ -207,7 +214,7 @@ public class AnnotationHandlerImplTest {
 
         verifyFunctionConfiguration(configMap, QUEUE_TRIGGER_FUNCTION, QUEUE_TRIGGER_METHOD, 2);
 
-        verifyFunctionConfiguration(configMap, TIMER_TRIGGER_FUNCTION, TIMER_TRIGGER_METHOD, 7);
+        verifyFunctionConfiguration(configMap, TIMER_TRIGGER_FUNCTION, TIMER_TRIGGER_METHOD, 5);
 
         verifyFunctionConfiguration(configMap, MULTI_OUTPUT_FUNCTION, MULTI_OUTPUT_METHOD, 3);
 
@@ -219,12 +226,21 @@ public class AnnotationHandlerImplTest {
 
         verifyFunctionConfiguration(configMap, SERVICE_BUS_TOPIC_TRIGGER_FUNCTION, SERVICE_BUS_TOPIC_TRIGGER_METHOD, 2);
 
-        verifyFunctionConfiguration(configMap, COSMOSDB_TRIGGER_FUNCTION, COSMOSDB_TRIGGER_METHOD, 1);
+        verifyFunctionConfiguration(configMap, COSMOSDB_TRIGGER_FUNCTION, COSMOSDB_TRIGGER_METHOD, 2);
 
         verifyFunctionConfiguration(configMap, EVENTGRID_TRIGGER_FUNCTION, EVENTGRID_TRIGGER_METHOD, 1);
 
-        verifyFunctionBinding(configMap.get(COSMOSDB_TRIGGER_FUNCTION).getBindings().get(0),
-                COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES);
+        verifyFunctionBinding(configMap.get(COSMOSDB_TRIGGER_FUNCTION).getBindings().stream()
+                        .filter(baseBinding -> baseBinding.getName().equals("cosmos")).findFirst().get(),
+                COSMOSDB_TRIGGER_REQUIRED_ATTRIBUTES, true);
+
+        verifyFunctionBinding(configMap.get(COSMOSDB_TRIGGER_FUNCTION).getBindings().stream()
+                        .filter(baseBinding -> baseBinding.getName().equals("itemOut")).findFirst().get(),
+                COSMOSDB_OUTPUT_REQUIRED_ATTRIBUTES, false);
+
+        verifyFunctionBinding(configMap.get(EVENTHUB_TRIGGER_FUNCTION).getBindings().stream()
+                .filter(baseBinding -> baseBinding.getName().equals("messages")).findFirst().get(),
+            EVENTHUB_TRIGGER_REQUIRED_ATTRIBUTES, true);
     }
 
     private AnnotationHandlerImpl getAnnotationHandler() {
@@ -250,10 +266,12 @@ public class AnnotationHandlerImplTest {
         assertEquals(bindingNum, functionConfig.getBindings().size());
     }
 
-    private void verifyFunctionBinding(final BaseBinding binding, final String[] requiredAttributes)
-            throws JsonProcessingException {
+    private void verifyFunctionBinding(final Binding binding, final String[] requiredAttributes,
+                                       boolean isInDirection) throws JsonProcessingException {
         final ObjectWriter writer = new ObjectMapper().writerWithDefaultPrettyPrinter();
         final String functionJson = writer.writeValueAsString(binding);
-        Arrays.stream(requiredAttributes).forEach(attribute -> assertTrue(functionJson.contains(attribute)));
+        Arrays.stream(requiredAttributes).forEach(
+            attribute -> assertTrue(functionJson.contains(String.format("\"%s\"", attribute))));
+        assertTrue(functionJson.contains(isInDirection ? "\"in\"" : "\"out\""));
     }
 }
