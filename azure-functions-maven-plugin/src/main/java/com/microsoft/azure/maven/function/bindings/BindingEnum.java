@@ -31,7 +31,9 @@ public enum BindingEnum {
     TableInput("table", Direction.IN, true),
     TableOutput("table", Direction.OUT, true),
     TimerTrigger("timerTrigger", Direction.IN),
-    TwilioSmsOutput("twilioSms", Direction.OUT);
+    TwilioSmsOutput("twilioSms", Direction.OUT),
+    CustomBinding("customBinding", null),
+    ExtendedCustomBinding(null, null);
 
     enum Direction {
         IN, OUT;
@@ -39,6 +41,15 @@ public enum BindingEnum {
         @Override
         public String toString() {
             return this.name().toLowerCase(Locale.ENGLISH);
+        }
+
+        public static Direction fromString(String direction) {
+            for (final Direction d : Direction.values()) {
+                if (d.toString().equalsIgnoreCase(direction)) {
+                    return d;
+                }
+            }
+            throw new RuntimeException("Invalid direction is provided");
         }
     }
 
