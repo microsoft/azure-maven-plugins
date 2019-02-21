@@ -49,10 +49,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
-    public static final String FUNCTION_HOST_JAVA_VERSION = "Java version of function host : %s";
-    public static final String FUNCTION_HOST_JAVA_VERSION_OFF = "Java version of function host is not initiated," +
+    public static final String HOST_JAVA_VERSION = "Java version of function host : %s";
+    public static final String HOST_JAVA_VERSION_OFF = "Java version of function host is not initiated," +
         " set it to Java 8";
-    public static final String FUNCTION_HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
+    public static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
         " meet the requirement of Azure Functions, set it to Java 8";
 
     //region Entry Point
@@ -117,21 +117,21 @@ public class DeployMojo extends AbstractFunctionMojo {
         // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
         app.inner().withTags(null);
         final Update update = app.update();
-        checkFunctionHostJavaVersion(app, update); // Check Java Version of Server
+        checkHostJavaVersion(app, update); // Check Java Version of Server
         configureAppSettings(update::withAppSettings, getAppSettings());
         update.apply();
         info(FUNCTION_APP_UPDATE_DONE + getAppName());
     }
 
-    protected void checkFunctionHostJavaVersion(final FunctionApp app, final Update update) {
+    protected void checkHostJavaVersion(final FunctionApp app, final Update update) {
         final JavaVersion serverJavaVersion = app.javaVersion();
         if (serverJavaVersion.toString().matches(VALID_JAVA_VERSION_PATTERN)) {
-            info(String.format(FUNCTION_HOST_JAVA_VERSION, serverJavaVersion));
+            info(String.format(HOST_JAVA_VERSION, serverJavaVersion));
         } else if (serverJavaVersion.equals(JavaVersion.OFF)) {
-            info(FUNCTION_HOST_JAVA_VERSION_OFF);
+            info(HOST_JAVA_VERSION_OFF);
             update.withJavaVersion(DEFAULT_JAVA_VERSION);
         } else {
-            warning(FUNCTION_HOST_JAVA_VERSION_INCORRECT);
+            warning(HOST_JAVA_VERSION_INCORRECT);
             update.withJavaVersion(DEFAULT_JAVA_VERSION);
         }
     }
