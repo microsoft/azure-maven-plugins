@@ -15,7 +15,6 @@ import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Wi
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
@@ -36,20 +35,25 @@ import java.util.function.Consumer;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
+
+    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
+    public static final String VALID_JAVA_VERSION_PATTERN = "^1\\.8.*"; // For now we only support function with java 8
+
     public static final String DEPLOY_START = "Trying to deploy the function app...";
     public static final String DEPLOY_FINISH =
-            "Successfully deployed the function app at https://%s.azurewebsites.net";
+        "Successfully deployed the function app at https://%s.azurewebsites.net";
     public static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
-            "Creating a new function app...";
+        "Creating a new function app...";
     public static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s";
     public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
     public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
-    public static final String SERVER_JAVA_VERSION = "Server Java version %s";
-    public static final String SERVER_JAVA_VERSION_OFF = "Server Java version is not set, set it to Java 8";
-    public static final String SERVER_JAVA_VERSION_INCORRECT = "Server Java version %s does not" +
-            " meet the requirement of Azure Functions, set it to Java 8";
+    public static final String FUNCTION_HOST_JAVA_VERSION = "Java version of function host : %s";
+    public static final String FUNCTION_HOST_JAVA_VERSION_OFF = "Java version of function host is not initiated," +
+        " set it to Java 8";
+    public static final String FUNCTION_HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
+        " meet the requirement of Azure Functions, set it to Java 8";
 
     //region Entry Point
     @Override
@@ -59,7 +63,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         final FunctionApp app = getFunctionApp();
         if (app == null) {
             throw new MojoExecutionException(
-                    String.format("Failed to get the function app with name: %s", getAppName()));
+                String.format("Failed to get the function app with name: %s", getAppName()));
         }
 
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
@@ -88,7 +92,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         info(FUNCTION_APP_CREATE_START);
 
         final AppServicePlan plan = AppServiceUtils.getAppServicePlan(this.getAppServicePlanName(),
-                this.getAzureClient(), this.getResourceGroup(), this.getAppServicePlanResourceGroup());
+            this.getAzureClient(), this.getResourceGroup(), this.getAppServicePlanResourceGroup());
         final Blank functionApp = getAzureClient().appServices().functionApps().define(appName);
         final String resGrp = getResourceGroup();
         final WithCreate withCreate;
@@ -99,11 +103,11 @@ public class DeployMojo extends AbstractFunctionMojo {
         } else {
             final ExistingAppServicePlanWithGroup planWithGroup = functionApp.withExistingAppServicePlan(plan);
             withCreate = isResourceGroupExist(resGrp) ?
-                    planWithGroup.withExistingResourceGroup(resGrp) :
-                    planWithGroup.withNewResourceGroup(resGrp);
+                planWithGroup.withExistingResourceGroup(resGrp) :
+                planWithGroup.withNewResourceGroup(resGrp);
         }
         configureAppSettings(withCreate::withAppSettings, getAppSettings());
-        withCreate.withJavaVersion(JavaVersion.JAVA_8_NEWEST).withWebContainer(WebContainer.TOMCAT_9_0_NEWEST).create();
+        withCreate.withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
 
         info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
@@ -113,27 +117,30 @@ public class DeployMojo extends AbstractFunctionMojo {
         // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
         app.inner().withTags(null);
         final Update update = app.update();
-        // Check Java Version of Server
-        final JavaVersion serverJavaVersion = app.javaVersion();
-        if (serverJavaVersion.toString().startsWith("1.8")) {
-            info(String.format(SERVER_JAVA_VERSION, serverJavaVersion));
-        } else if (serverJavaVersion.equals(JavaVersion.OFF)) {
-            warning(SERVER_JAVA_VERSION_OFF);
-            update.withJavaVersion(JavaVersion.JAVA_8_NEWEST).withWebContainer(WebContainer.TOMCAT_9_0_NEWEST);
-        } else {
-            warning(SERVER_JAVA_VERSION_INCORRECT);
-            update.withJavaVersion(JavaVersion.JAVA_8_NEWEST).withWebContainer(WebContainer.TOMCAT_9_0_NEWEST);
-        }
+        checkFunctionHostJavaVersion(app, update); // Check Java Version of Server
         configureAppSettings(update::withAppSettings, getAppSettings());
         update.apply();
         info(FUNCTION_APP_UPDATE_DONE + getAppName());
     }
 
+    protected void checkFunctionHostJavaVersion(final FunctionApp app, final Update update) {
+        final JavaVersion serverJavaVersion = app.javaVersion();
+        if (serverJavaVersion.toString().matches(VALID_JAVA_VERSION_PATTERN)) {
+            info(String.format(FUNCTION_HOST_JAVA_VERSION, serverJavaVersion));
+        } else if (serverJavaVersion.equals(JavaVersion.OFF)) {
+            info(FUNCTION_HOST_JAVA_VERSION_OFF);
+            update.withJavaVersion(DEFAULT_JAVA_VERSION);
+        } else {
+            warning(FUNCTION_HOST_JAVA_VERSION_INCORRECT);
+            update.withJavaVersion(DEFAULT_JAVA_VERSION);
+        }
+    }
+
     protected WithCreate configureResourceGroup(final NewAppServicePlanWithGroup newAppServicePlanWithGroup,
                                                 final String resourceGroup) throws Exception {
         return isResourceGroupExist(resourceGroup) ?
-                newAppServicePlanWithGroup.withExistingResourceGroup(resourceGroup) :
-                newAppServicePlanWithGroup.withNewResourceGroup(resourceGroup);
+            newAppServicePlanWithGroup.withExistingResourceGroup(resourceGroup) :
+            newAppServicePlanWithGroup.withNewResourceGroup(resourceGroup);
     }
 
     protected boolean isResourceGroupExist(final String resourceGroup) throws Exception {
@@ -173,16 +180,16 @@ public class DeployMojo extends AbstractFunctionMojo {
                 break;
             default:
                 throw new MojoExecutionException(
-                        "The value of <deploymentType> is unknown, supported values are: ftp, zip and msdeploy.");
+                    "The value of <deploymentType> is unknown, supported values are: ftp, zip and msdeploy.");
         }
         return builder.project(this.getProject())
-                .session(this.getSession())
-                .filtering(this.getMavenResourcesFiltering())
-                .resources(this.getResources())
-                .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
-                .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
-                .log(this.getLog())
-                .build();
+            .session(this.getSession())
+            .filtering(this.getMavenResourcesFiltering())
+            .resources(this.getResources())
+            .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
+            .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
+            .log(this.getLog())
+            .build();
     }
 
     //region Telemetry Configuration Interface
