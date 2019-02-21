@@ -28,8 +28,13 @@ public class BindingSerializer extends StdSerializer<Binding> {
         generator.writeStartObject();
         generator.writeStringField("type", value.getType());
         generator.writeStringField("direction", value.getDirection());
+        generator.writeStringField("name", value.getName());
         final Map<String, Object> attributes = value.getBindingAttributes();
         for (final Map.Entry<String, Object> entry : attributes.entrySet()) {
+            // Skip 'name' property since we have serialized before the for-loop
+            if (entry.getKey().equals("name")) {
+                continue;
+            }
             generator.writeObjectField(entry.getKey(), entry.getValue());
         }
         generator.writeEndObject();
