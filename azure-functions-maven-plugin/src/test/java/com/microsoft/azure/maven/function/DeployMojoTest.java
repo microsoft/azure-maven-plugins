@@ -11,12 +11,13 @@ import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.AppServicePlans;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionApps;
+import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
@@ -32,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
@@ -117,7 +119,7 @@ public class DeployMojoTest extends MojoTestBase {
         final Update update = mock(Update.class);
         doReturn(update).when(app).update();
         doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
-
+        doReturn(JavaVersion.JAVA_8_NEWEST).when(app).javaVersion();
         mojoSpy.updateFunctionApp(app);
 
         verify(update, times(1)).apply();
@@ -134,14 +136,18 @@ public class DeployMojoTest extends MojoTestBase {
 
         final AppServicePlan appServicePlan = mock(AppServicePlan.class);
         doReturn(appServicePlan).when(appServicePlans).getByResourceGroup(anyString(), anyString());
-        final ExistingAppServicePlanWithGroup existingAppServicePlanWithGroup =
-                mock(ExistingAppServicePlanWithGroup.class);
+        final FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup existingAppServicePlanWithGroup =
+                mock(FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup.class);
         doReturn(existingAppServicePlanWithGroup).when(blank).withExistingAppServicePlan(appServicePlan);
         final WithCreate withCreate = mock(WithCreate.class);
         doReturn(withCreate).when(existingAppServicePlanWithGroup).withExistingResourceGroup(anyString());
         doReturn(true).when(mojoSpy).isResourceGroupExist(anyString());
         doNothing().when(mojoSpy).configureAppSettings(any(), anyMap());
         doReturn(null).when(withCreate).create();
+        final WebAppBase.DefinitionStages.WithWebContainer withWebContainer =
+                mock(WebAppBase.DefinitionStages.WithWebContainer.class);
+        doReturn(withWebContainer).when(withCreate).withJavaVersion(any());
+        doReturn(withCreate).when(withWebContainer).withWebContainer(any());
 
         mojoSpy.createFunctionApp();
 
@@ -167,6 +173,11 @@ public class DeployMojoTest extends MojoTestBase {
         doReturn(withCreate).when(mojoSpy).configureResourceGroup(any(), anyString());
         doReturn(PricingTier.STANDARD_S1).when(mojoSpy).getPricingTier();
         doNothing().when(mojoSpy).configurePricingTier(any(), any());
+        final WebAppBase.DefinitionStages.WithWebContainer withWebContainer =
+                mock(WebAppBase.DefinitionStages.WithWebContainer.class);
+        doReturn(withWebContainer).when(withCreate).withJavaVersion(any());
+        doReturn(withCreate).when(withWebContainer).withWebContainer(any());
+        doReturn(null).when(withCreate).create();
 
         mojoSpy.createFunctionApp();
 
