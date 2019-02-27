@@ -40,7 +40,7 @@
     "EventHubTrigger_description": "A function that will be run whenever an event hub receives a new event",
     "eventHubTrigger_displayName": "Azure Event Hubs",
     "eventHubTrigger_connection_label": "Event Hub connection",
-    "eventHubTrigger_connection_help": "The name of the app setting containing your your Event Hub connection string. The connection string must have Receive permissions.",
+    "eventHubTrigger_connection_help": "The name of the app setting containing your Event Hub connection string. The connection string must have Receive permissions.",
     "eventHubOut_path_label": "Event Hub name",
     "eventHubTrigger_path_help": "The name of the event hub from which to trigger",
     "eventHubTrigger_path_errorText": "The event hub name must start and end with a letter or number, and it can contain only letters, numbers, the hyphen, the period, and the underscore. The name must be 1 to 50 characters.",
