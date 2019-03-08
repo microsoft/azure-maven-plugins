@@ -7,10 +7,9 @@
 import com.microsoft.azure.maven.function.invoker.storage.EventHubProcesser
 import com.microsoft.azure.maven.function.invoker.CommonUtils
 
-String functionName = "eventhubtrigger-verify"
-String storageName = "mavenverifycihub"
-String namespaceName = "FunctionCIEventHubNamespace-verify"
-String resourceGroupName = "eventhubtrigger-verify-group"
+String storageName = "cihub${timestamp}"
+String namespaceName = "FunctionCIEventHubNamespace-${timestamp}"
+String resourceGroupName = "maven-functions-it-${timestamp}-rg-3"
 
 EventHubProcesser eventHubProcesser = null
 try {

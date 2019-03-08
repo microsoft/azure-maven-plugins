@@ -4,13 +4,13 @@
  * license information.
  */
 
-import com.microsoft.azure.maven.function.invoker.storage.EventHubProcesser
 import com.microsoft.azure.maven.function.invoker.CommonUtils
+import com.microsoft.azure.maven.function.invoker.storage.EventHubProcesser
 
-String functionName = "eventhubtrigger-verify"
-String storageName = "mavenverifycihub"
-String namespaceName = "FunctionCIEventHubNamespace-verify"
-String resourceGroupName = "eventhubtrigger-verify-group"
+String functionName = "maven-functions-it-${timestamp}-3"
+String storageName = "cihub${timestamp}"
+String namespaceName = "FunctionCIEventHubNamespace-${timestamp}"
+String resourceGroupName = "maven-functions-it-${timestamp}-rg-3"
 
 CommonUtils.azureLogin()
 CommonUtils.deleteAzureResourceGroup(resourceGroupName, true)
@@ -24,16 +24,11 @@ eventHubProcesser.createOrGetEventHubByName("output")
 // Get connnection string of EventHub and save it to pom
 def connectionString = eventHubProcesser.getEventHubConnectionString()
 
-def pomFile = "./pom.xml"
-def pomObject = new XmlParser().parse(pomFile)
-def pluginNode = pomObject.build.plugins.plugin.find { it.artifactId.text() == '@project.artifactId@' }
-pluginNode.configuration.appSettings.property.find {
-    it.name.text() == "CIEventHubConnection"
-}.value[0].value = connectionString
+// Create FunctionApp and set eventhub connection string
+CommonUtils.executeCommand("az functionapp create --resource-group ${resourceGroupName} --consumption-plan-location westus \\\n" +
+        "--name ${functionName} --storage-account  ${storageName} --runtime java ")
 
-def writer = new FileWriter(pomFile)
-def printer = new XmlNodePrinter(new PrintWriter(writer))
-printer.preserveWhitespace = true
-printer.print(pomObject)
+CommonUtils.executeCommand("az webapp config appsettings set --name ${functionName} --resource-group ${resourceGroupName} --settings CIEventHubConnection=\"${connectionString}\"")
+
 
 return true

@@ -9,10 +9,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <functionAppName>eventhubtrigger-verify</functionAppName>
+    <functionAppName>maven-functions-it-${timestamp}-3</functionAppName>
     <functionAppRegion>westus</functionAppRegion>
     <stagingDirectory>${project.build.directory}/azure-functions/${functionAppName}</stagingDirectory>
-    <functionResourceGroup>eventhubtrigger-verify-group</functionResourceGroup>
+    <functionResourceGroup>maven-functions-it-${timestamp}-rg-3</functionResourceGroup>
   </properties>
   <dependencies>
     <dependency>
@@ -70,10 +70,6 @@
             <property>
               <name>FUNCTIONS_EXTENSION_VERSION</name>
               <value>beta</value>
-            </property>
-            <property>
-              <name>CIEventHubConnection</name>
-              <value>Endpoint=sb://functioncieventhubnamespace-verify.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=13kYg7a3LCdUdWE2Tqf9pOMx8Xxc6DQRmaQW25lqh5o=</value>
             </property>
           </appSettings>
         </configuration>
