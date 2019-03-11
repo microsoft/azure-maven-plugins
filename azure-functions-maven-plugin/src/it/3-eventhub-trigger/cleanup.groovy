@@ -28,5 +28,5 @@ try {
         eventHubProcesser.close()
     }
 }
-//CommonUtils.deleteAzureResourceGroup(resourceGroupName, false)
+CommonUtils.deleteAzureResourceGroup(resourceGroupName, false)
 return true

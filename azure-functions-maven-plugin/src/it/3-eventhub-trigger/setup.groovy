@@ -25,10 +25,9 @@ eventHubProcesser.createOrGetEventHubByName("output")
 def connectionString = eventHubProcesser.getEventHubConnectionString()
 
 // Create FunctionApp and set eventhub connection string
-CommonUtils.executeCommand("az functionapp create --resource-group ${resourceGroupName} --consumption-plan-location westus \\\n" +
-        "--name ${functionName} --storage-account  ${storageName} --runtime java ")
+CommonUtils.executeCommand("az functionapp create --resource-group ${resourceGroupName} --consumption-plan-location westus " +
+        "--name ${functionName} --storage-account  ${storageName}")
 
 CommonUtils.executeCommand("az webapp config appsettings set --name ${functionName} --resource-group ${resourceGroupName} --settings CIEventHubConnection=\"${connectionString}\"")
-
 
 return true
