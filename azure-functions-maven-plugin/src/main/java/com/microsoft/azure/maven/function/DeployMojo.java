@@ -13,6 +13,7 @@ import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Ex
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
+import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
@@ -34,6 +35,10 @@ import java.util.function.Consumer;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
+
+    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
+    public static final String VALID_JAVA_VERSION_PATTERN = "^1\\.8.*"; // For now we only support function with java 8
+
     public static final String DEPLOY_START = "Trying to deploy the function app...";
     public static final String DEPLOY_FINISH =
         "Successfully deployed the function app at https://%s.azurewebsites.net";
@@ -44,8 +49,13 @@ public class DeployMojo extends AbstractFunctionMojo {
     public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
-    //region Entry Point
+    public static final String HOST_JAVA_VERSION = "Java version of function host : %s";
+    public static final String HOST_JAVA_VERSION_OFF = "Java version of function host is not initiated," +
+        " set it to Java 8";
+    public static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
+        " meet the requirement of Azure Functions, set it to Java 8";
 
+    //region Entry Point
     @Override
     protected void doExecute() throws Exception {
         createOrUpdateFunctionApp();
@@ -93,33 +103,44 @@ public class DeployMojo extends AbstractFunctionMojo {
         } else {
             final ExistingAppServicePlanWithGroup planWithGroup = functionApp.withExistingAppServicePlan(plan);
             withCreate = isResourceGroupExist(resGrp) ?
-                    planWithGroup.withExistingResourceGroup(resGrp) :
-                    planWithGroup.withNewResourceGroup(resGrp);
+                planWithGroup.withExistingResourceGroup(resGrp) :
+                planWithGroup.withNewResourceGroup(resGrp);
         }
         configureAppSettings(withCreate::withAppSettings, getAppSettings());
-        withCreate.create();
+        withCreate.withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
 
         info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
 
     protected void updateFunctionApp(final FunctionApp app) {
         info(FUNCTION_APP_UPDATE);
-
         // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
         app.inner().withTags(null);
-
         final Update update = app.update();
+        checkHostJavaVersion(app, update); // Check Java Version of Server
         configureAppSettings(update::withAppSettings, getAppSettings());
         update.apply();
-
         info(FUNCTION_APP_UPDATE_DONE + getAppName());
+    }
+
+    protected void checkHostJavaVersion(final FunctionApp app, final Update update) {
+        final JavaVersion serverJavaVersion = app.javaVersion();
+        if (serverJavaVersion.toString().matches(VALID_JAVA_VERSION_PATTERN)) {
+            info(String.format(HOST_JAVA_VERSION, serverJavaVersion));
+        } else if (serverJavaVersion.equals(JavaVersion.OFF)) {
+            info(HOST_JAVA_VERSION_OFF);
+            update.withJavaVersion(DEFAULT_JAVA_VERSION);
+        } else {
+            warning(HOST_JAVA_VERSION_INCORRECT);
+            update.withJavaVersion(DEFAULT_JAVA_VERSION);
+        }
     }
 
     protected WithCreate configureResourceGroup(final NewAppServicePlanWithGroup newAppServicePlanWithGroup,
                                                 final String resourceGroup) throws Exception {
         return isResourceGroupExist(resourceGroup) ?
-                newAppServicePlanWithGroup.withExistingResourceGroup(resourceGroup) :
-                newAppServicePlanWithGroup.withNewResourceGroup(resourceGroup);
+            newAppServicePlanWithGroup.withExistingResourceGroup(resourceGroup) :
+            newAppServicePlanWithGroup.withNewResourceGroup(resourceGroup);
     }
 
     protected boolean isResourceGroupExist(final String resourceGroup) throws Exception {
