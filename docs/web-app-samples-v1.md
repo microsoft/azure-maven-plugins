@@ -414,7 +414,7 @@ The following configuration is applicable for below scenario:
 
                     <!-- Deployment Slot Setting -->
                     <deploymentSlotSetting>
-                        <slotName>${SLOT_NAME}</slotName>
+                        <name>${SLOT_NAME}</name>
                         <configurationSource>parent</configurationSource>
                     </deploymentSlotSetting>
 
