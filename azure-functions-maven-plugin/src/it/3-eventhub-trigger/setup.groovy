@@ -31,3 +31,4 @@ CommonUtils.executeCommand("az functionapp create --resource-group ${resourceGro
 CommonUtils.executeCommand("az webapp config appsettings set --name ${functionName} --resource-group ${resourceGroupName} --settings CIEventHubConnection=\"${connectionString}\"")
 
 return true
+

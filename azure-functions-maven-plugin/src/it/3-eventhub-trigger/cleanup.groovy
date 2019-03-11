@@ -30,3 +30,4 @@ try {
 }
 CommonUtils.deleteAzureResourceGroup(resourceGroupName, false)
 return true
+
