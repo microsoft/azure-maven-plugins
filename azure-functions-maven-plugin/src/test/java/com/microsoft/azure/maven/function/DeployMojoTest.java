@@ -90,6 +90,7 @@ public class DeployMojoTest extends MojoTestBase {
         doReturn(handler).when(mojoSpy).getArtifactHandler();
         doCallRealMethod().when(mojoSpy).createOrUpdateFunctionApp();
         doCallRealMethod().when(mojoSpy).getAppName();
+        doNothing().when(mojoSpy).listHttpTriggerUrls();
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
         doNothing().when(mojoSpy).updateFunctionApp(app);
 

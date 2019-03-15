@@ -199,6 +199,16 @@
             <version>${azure.maven-plugin-lib.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.microsoft.azure.appservice.v2016_08_01</groupId>
+            <artifactId>azure-mgmt-appservice</artifactId>
+            <version>1.0.0-beta-1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-arm-client-runtime</artifactId>
+            <version>1.6.5</version>
+        </dependency>
+        <dependency>
             <groupId>com.microsoft.azure.functions</groupId>
             <artifactId>azure-functions-java-library</artifactId>
             <version>${azure.function.version}</version>

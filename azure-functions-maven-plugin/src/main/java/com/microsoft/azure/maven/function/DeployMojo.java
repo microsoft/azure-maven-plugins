@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
@@ -15,18 +16,27 @@ import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Wi
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.v2016_08_01.FunctionEnvelope;
+import com.microsoft.azure.management.appservice.v2016_08_01.implementation.AppServiceManager;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.function.bindings.BindingEnum;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
+import com.microsoft.rest.RestClient;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -54,6 +64,10 @@ public class DeployMojo extends AbstractFunctionMojo {
         " set it to Java 8";
     public static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
         " meet the requirement of Azure Functions, set it to Java 8";
+    public static final String HTTP_TRIGGER_TYPE = BindingEnum.HttpTrigger.getType();
+    public static final String HTTP_TRIGGERABLE_AUTHLEVEL = AuthorizationLevel.ANONYMOUS.name();
+    public static final String HTTP_TRIGGER_INFO = "HTTP Trigger Urls:";
+    public static final String HTTP_TRIGGER_PATTERN = " %s : https://%s.azurewebsites.net/api/%s";
 
     //region Entry Point
     @Override
@@ -73,6 +87,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         getArtifactHandler().publish(deployTarget);
 
         info(String.format(DEPLOY_FINISH, getAppName()));
+        listHttpTriggerUrls();
     }
 
     //endregion
@@ -85,6 +100,43 @@ public class DeployMojo extends AbstractFunctionMojo {
             createFunctionApp();
         } else {
             updateFunctionApp(app);
+        }
+    }
+
+    protected void listHttpTriggerUrls() throws Exception {
+        // Use Azure Java SDK to list functions as mgmt SDK hasn't supported this feature
+        final com.microsoft.azure.management.appservice.implementation.AppServiceManager mgmtAppServiceManager =
+            getAzureClient().appServices();
+        final Method getRestClientMethod = mgmtAppServiceManager.getClass().getDeclaredMethod("restClient");
+        getRestClientMethod.setAccessible(true);
+        final RestClient restClient = (RestClient) getRestClientMethod.invoke(mgmtAppServiceManager);
+        final AppServiceManager appServiceManager = AppServiceManager.authenticate(restClient,
+            getAzureClient().subscriptionId());
+        final Iterator<FunctionEnvelope> iterator = appServiceManager.webApps().listFunctionsAsync(getResourceGroup(),
+            getAppName()).toBlocking().getIterator();
+        final List<String> urls = new ArrayList<>();
+        while (iterator.hasNext()) {
+            final FunctionEnvelope functionEnvelope = iterator.next();
+            if (filterTriggerableFunctions(functionEnvelope)) {
+                final String functionName = functionEnvelope.functionEnvelopeName();
+                urls.add(String.format(HTTP_TRIGGER_PATTERN, functionName, getAppName(), functionName));
+            }
+        }
+        if (urls.size() > 0) {
+            info(HTTP_TRIGGER_INFO);
+            urls.forEach(url -> info(url));
+        }
+    }
+
+    private static boolean filterTriggerableFunctions(final FunctionEnvelope functionEnvelope) {
+        try {
+            final Map configObject = (Map) functionEnvelope.config();
+            final List<Map> bindings = (List<Map>) configObject.get("bindings");
+            return bindings.stream().filter(binding -> StringUtils.equalsIgnoreCase((String) binding.get("type"),
+                HTTP_TRIGGER_TYPE) && StringUtils.equalsIgnoreCase((String) binding.get("authLevel"),
+                HTTP_TRIGGERABLE_AUTHLEVEL)).count() > 0;
+        } catch (Exception e) {
+            return false;
         }
     }
 
