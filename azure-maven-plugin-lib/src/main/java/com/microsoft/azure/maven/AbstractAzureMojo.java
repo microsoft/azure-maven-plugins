@@ -209,17 +209,17 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     public String getUserAgent() {
         return isTelemetryAllowed() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
-                        INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
-                : String.format("%s/%s", getPluginName(), getPluginVersion());
+            INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
+            : String.format("%s/%s", getPluginName(), getPluginVersion());
     }
 
     public String getHttpProxyHost() {
         return httpProxyHost;
-    }  
-    
+    }
+
     public int getHttpProxyPort() {
         return httpProxyPort;
-    } 
+    }
 
     public Azure getAzureClient() throws AzureAuthFailureException {
         if (azure == null) {
@@ -310,6 +310,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
                 trackMojoSuccess();
             }
+            Thread.sleep(2 * 1000);
         } catch (Exception e) {
             handleException(e);
         } finally {
