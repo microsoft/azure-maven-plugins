@@ -18,5 +18,3 @@ build_script:
 on_failure:
   - ps: |
       .\ci\ps\errorNotificationSender.ps1 "azure-webapp-maven-plugin"
-
-  

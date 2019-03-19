@@ -17,8 +17,6 @@ CommonUtils.runVerification(new Runnable() {
     }
 })
 
-HashMap<String,String> testList = new HashMap<>(new HashMap<String, String>());
-
 // Clean up resources created in test
 CommonUtils.deleteAzureResourceGroup("maven-functions-it-${timestamp}-rg-0", false)
 
