@@ -6,7 +6,6 @@
 
 import com.microsoft.azure.maven.function.invoker.CommonUtils
 
-throw new Exception("Test Exception!");
 // Verify Azure Functions
 def url = "https://maven-functions-it-${timestamp}-0.azurewebsites.net/api/HttpTrigger-Java?json={\"body\":\"Azure\"}".toURL()
 

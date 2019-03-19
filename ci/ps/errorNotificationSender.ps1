@@ -132,10 +132,9 @@ cd $base;
 #send email
 $title = "Azure Maven Plugin CI Issue";
 $mailto = New-Object System.Collections.Generic.List[System.String];
-$mailto.Add("flankerlhx@gmail.com");
-# $mailto.Add("andxu@microsoft.com");
-# $mailto.Add("Sheng.Chen@microsoft.com");
-# $mailto.Add("Rome.Li@microsoft.com");
+$mailto.Add("andxu@microsoft.com");
+$mailto.Add("Sheng.Chen@microsoft.com");
+$mailto.Add("Rome.Li@microsoft.com");
 $mailcc = New-Object System.Collections.Generic.List[System.String];
 $mailcc.Add("hanli@microsoft.com");
 $sender = "insvsc@microsoft.com";
