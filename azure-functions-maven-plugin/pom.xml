@@ -103,7 +103,7 @@
                 </property>
             </activation>
             <properties>
-                <azure.ai.ikey>d3278c59-22d7-4697-af8c-ff0077e3b4e9</azure.ai.ikey>
+                <azure.ai.ikey>435bdea7-d399-49ee-8d2d-b2792aa060d2</azure.ai.ikey>
             </properties>
         </profile>
         <profile>
