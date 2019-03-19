@@ -135,6 +135,7 @@ $mailto = New-Object System.Collections.Generic.List[System.String];
 $mailto.Add("andxu@microsoft.com");
 $mailto.Add("Sheng.Chen@microsoft.com");
 $mailto.Add("Rome.Li@microsoft.com");
+$mailto.Add("Peng.Shi@microsoft.com");
 $mailcc = New-Object System.Collections.Generic.List[System.String];
 $mailcc.Add("hanli@microsoft.com");
 $sender = "insvsc@microsoft.com";
