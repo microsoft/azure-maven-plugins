@@ -310,7 +310,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
                 trackMojoSuccess();
             }
-            Thread.sleep(2 * 1000);
         } catch (Exception e) {
             handleException(e);
         } finally {
@@ -318,6 +317,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             // into endless loop when close, we need to call it in main thread.
             // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
             // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
+            try {
+                // Sleep to wait ai sdk flush teletetries
+                Thread.sleep(2 * 1000);
+            } catch (InterruptedException e) {
+                // swallow this exception
+            }
             ApacheSenderFactory.INSTANCE.create().close();
         }
     }
