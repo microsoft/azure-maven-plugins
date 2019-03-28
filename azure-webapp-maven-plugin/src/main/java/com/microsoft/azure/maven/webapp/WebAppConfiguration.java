@@ -14,7 +14,6 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
@@ -27,7 +26,7 @@ public class WebAppConfiguration {
 
     public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
     public static final PricingTierEnum DEFAULT_PRICINGTIER = PricingTierEnum.P1V2;
-    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_ZULU_1_8_0_144;
+    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
     public static final WebContainer DEFAULT_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
 
     // artifact deploy related configurations
@@ -171,7 +170,7 @@ public class WebAppConfiguration {
         return schemaVersion;
     }
 
-    public Builder getBuilderFromConfiguration(){
+    public Builder getBuilderFromConfiguration() {
         return new Builder().appName(this.appName)
             .resourceGroup(this.resourceGroup)
             .region(this.region)
@@ -203,11 +202,6 @@ public class WebAppConfiguration {
     public String getPricingTierOrDefault() {
         return pricingTier != null ? PricingTierEnum.getPricingTierStringByPricingTierObject(pricingTier) :
             DEFAULT_PRICINGTIER.toString();
-    }
-
-    public String getRuntimeStackOrDefault() {
-        return runtimeStack != null ? RuntimeSetting.getLinuxWebContainerByRuntimeStack(runtimeStack) :
-            RuntimeSetting.getDefaultLinuxRuntimeStack();
     }
 
     public String getJavaVersionOrDefault() {
@@ -353,12 +347,12 @@ public class WebAppConfiguration {
             return self();
         }
 
-        public Builder deploymentSlotSetting(final DeploymentSlotSetting value){
+        public Builder deploymentSlotSetting(final DeploymentSlotSetting value) {
             this.deploymentSlotSetting = value;
             return self();
         }
 
-        public Builder schemaVersion(final String schemaVersion){
+        public Builder schemaVersion(final String schemaVersion) {
             this.schemaVersion = schemaVersion;
             return self();
         }

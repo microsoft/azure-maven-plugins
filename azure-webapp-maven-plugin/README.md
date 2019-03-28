@@ -171,7 +171,7 @@ Maven | 3.0 or above
 
 ## Configuration Details
 #### `<javaVersion>`
-<b>The supported values for Web App on Linux is only `jre8`.</b>
+<b>The supported values for Web App on Linux are `jre8`,`java11`.</b>
 
 <b>The supported values for Web App on Windows:</b>
 
@@ -200,7 +200,7 @@ Supported Value | Description
 ---|---
 `tomcat 8.5` | Newest Tomcat 8.5
 `tomcat 9.0` | Tomcat 9.0
-`wildfly 14` | WildFly 14 
+`wildfly 14` | WildFly 14 (For jre8 only)
   
 
 <b>The supported Value for web App on windows</b>
