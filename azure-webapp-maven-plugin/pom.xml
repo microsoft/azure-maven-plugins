@@ -13,7 +13,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-webapp-maven-plugin</artifactId>
-    <version>1.5.4-SNAPSHOT</version>
+    <version>1.6.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Web Apps</name>
     <description>Maven Plugin for Azure Web Apps</description>
@@ -87,7 +87,7 @@
                 </property>
             </activation>
             <properties>
-                <azure.ai.ikey>d3278c59-22d7-4697-af8c-ff0077e3b4e9</azure.ai.ikey>
+                <azure.ai.ikey>435bdea7-d399-49ee-8d2d-b2792aa060d2</azure.ai.ikey>
             </properties>
         </profile>
         <profile>
@@ -124,6 +124,7 @@
                                     <goal>install</goal>
                                     <goal>integration-test</goal>
                                     <goal>verify</goal>
+                                    <goal>report</goal>
                                 </goals>
                             </execution>
                         </executions>
@@ -240,7 +241,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.4</version>
+                <version>3.6.0</version>
                 <configuration>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>

@@ -13,14 +13,8 @@ install:
   - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
 
 build_script:
-  - cmd: mvn clean install -l mvn_install.log && mvn -f azure-webapp-maven-plugin/pom.xml clean verify -P it -l mvn_verify.log
+  - cmd: mvn clean install && mvn -f azure-webapp-maven-plugin/pom.xml clean verify -P it
 
 on_failure:
   - ps: |
-      .\ci\ps\errorNotificationSender.ps1 $Env:WEBAPP_URL "mvn_install.log","mvn_verify.log"
-
-on_finish:
-  - ps: |
-      Get-Content "mvn_install.log" | Write-Host
-      Get-Content "mvn_verify.log" | Write-Host
-  
+      .\ci\ps\errorNotificationSender.ps1 "azure-webapp-maven-plugin"
