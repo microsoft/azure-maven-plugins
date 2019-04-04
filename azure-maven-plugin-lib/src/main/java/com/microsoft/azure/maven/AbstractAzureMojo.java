@@ -318,7 +318,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
             // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
             try {
-                // Sleep to wait ai sdk flush teletetries
+                // Sleep to wait ai sdk flush telemetries
                 Thread.sleep(2 * 1000);
             } catch (InterruptedException e) {
                 // swallow this exception
