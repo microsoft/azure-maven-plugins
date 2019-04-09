@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ApplicationInsights xmlns="http://schemas.microsoft.com/ApplicationInsights/2013/Settings" schemaVersion="2014-05-30">
+<ApplicationInsights>
     <!-- The key from the portal: -->
     <InstrumentationKey>${azure.ai.ikey}</InstrumentationKey>
 
     <!-- HTTP request component (not required for bare API) -->
     <TelemetryModules>
     </TelemetryModules>
-
+    <Channel type="com.microsoft.applicationinsights.channel.concrete.inprocess.InProcessTelemetryChannel">
+        <FlushIntervalInSeconds>1</FlushIntervalInSeconds><!-- must be between [1, 500]. values outside the bound will be rounded to nearest bound -->
+    </Channel>
     <!-- Events correlation (not required for bare API) -->
     <!-- These initializers add context data to each event -->
     <TelemetryInitializers>

@@ -33,6 +33,7 @@
         <common-net.version>3.6</common-net.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
+        <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
     </properties>
 
@@ -144,6 +145,18 @@
             <groupId>org.zeroturnaround</groupId>
             <artifactId>zt-zip</artifactId>
             <version>${zeroturnaround.zip.version}</version>
+        </dependency>
+
+        <!-- JAXB For Application Insight Issue -->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>${jaxb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>${jaxb.version}</version>
         </dependency>
 
         <!-- TEST -->

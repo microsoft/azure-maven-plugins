@@ -209,17 +209,17 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     public String getUserAgent() {
         return isTelemetryAllowed() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
-                        INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
-                : String.format("%s/%s", getPluginName(), getPluginVersion());
+            INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
+            : String.format("%s/%s", getPluginName(), getPluginVersion());
     }
 
     public String getHttpProxyHost() {
         return httpProxyHost;
-    }  
-    
+    }
+
     public int getHttpProxyPort() {
         return httpProxyPort;
-    } 
+    }
 
     public Azure getAzureClient() throws AzureAuthFailureException {
         if (azure == null) {
@@ -317,6 +317,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             // into endless loop when close, we need to call it in main thread.
             // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
             // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
+            try {
+                // Sleep to wait ai sdk flush telemetries
+                Thread.sleep(2 * 1000);
+            } catch (InterruptedException e) {
+                // swallow this exception
+            }
             ApacheSenderFactory.INSTANCE.create().close();
         }
     }
