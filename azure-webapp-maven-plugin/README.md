@@ -187,6 +187,8 @@ Maven | 3.0 or above
 `1.8.0_111` | Java 8, Update 111
 `1.8.0_92` | Azul's Zulu OpenJDK 8, Update 92
 `1.8.0_102` | Azul's Zulu OpenJDK 8, Update 102
+`11` | Java 11
+`11.0.2_ZULU` | Azul's Zulu OpenJDK 11
 > Note: It is recommended to ignore the minor version number so that the latest supported JVM will be used in your Web App.
   
 

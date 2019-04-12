@@ -248,17 +248,14 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration.Builder getRuntimeConfigurationOfLinux(WebAppConfiguration.Builder builder,
                                                                        WebAppConfiguration configuration)
         throws MojoFailureException {
-        final RuntimeStack runtimeStack = configuration.getRuntimeStack();
-        final String defaultJavaVersion = runtimeStack == null ? RuntimeStackUtils.DEFAULT_JAVA_VERSION :
-            RuntimeStackUtils.getJavaVersionFromRuntimeStack(runtimeStack);
+        final String defaultJavaVersion = configuration.getLinuxJavaVersionOrDefault();
         final String javaVersion = queryer.assureInputFromUser("javaVersion",
             defaultJavaVersion, RuntimeStackUtils.getValidJavaVersion(), null);
 
-        final String defaultLinuxRuntimeStack = runtimeStack == null ? RuntimeStackUtils.DEFAULT_WEB_CONTAINER :
-            RuntimeStackUtils.getWebContainerFromRuntimeStack(runtimeStack);
-        final String webContainer = queryer.assureInputFromUser("runtimeStack",
+        final String defaultLinuxRuntimeStack = configuration.getLinuxRuntimeStackOrDefault();
+        final String runtimeStack = queryer.assureInputFromUser("runtimeStack",
             defaultLinuxRuntimeStack, RuntimeStackUtils.getValidWebContainer(javaVersion), null);
-        return builder.runtimeStack(RuntimeStackUtils.getRuntimeStack(javaVersion, webContainer));
+        return builder.runtimeStack(RuntimeStackUtils.getRuntimeStack(javaVersion, runtimeStack));
     }
 
     private WebAppConfiguration.Builder getRuntimeConfigurationOfWindows(WebAppConfiguration.Builder builder,

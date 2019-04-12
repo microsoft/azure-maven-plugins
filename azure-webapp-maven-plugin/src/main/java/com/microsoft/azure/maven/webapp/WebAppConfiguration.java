@@ -14,6 +14,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
@@ -26,7 +27,7 @@ public class WebAppConfiguration {
 
     public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
     public static final PricingTierEnum DEFAULT_PRICINGTIER = PricingTierEnum.P1V2;
-    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
+    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_11;
     public static final WebContainer DEFAULT_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
 
     // artifact deploy related configurations
@@ -202,6 +203,16 @@ public class WebAppConfiguration {
     public String getPricingTierOrDefault() {
         return pricingTier != null ? PricingTierEnum.getPricingTierStringByPricingTierObject(pricingTier) :
             DEFAULT_PRICINGTIER.toString();
+    }
+
+    public String getLinuxJavaVersionOrDefault() {
+        return runtimeStack == null ? RuntimeStackUtils.DEFAULT_JAVA_VERSION :
+            RuntimeStackUtils.getJavaVersionFromRuntimeStack(runtimeStack);
+    }
+
+    public String getLinuxRuntimeStackOrDefault() {
+        return runtimeStack == null ? RuntimeStackUtils.DEFAULT_WEB_CONTAINER :
+            RuntimeStackUtils.getWebContainerFromRuntimeStack(runtimeStack);
     }
 
     public String getJavaVersionOrDefault() {
