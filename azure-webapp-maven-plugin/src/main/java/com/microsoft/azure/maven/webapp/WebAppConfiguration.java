@@ -27,8 +27,10 @@ public class WebAppConfiguration {
 
     public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
     public static final PricingTierEnum DEFAULT_PRICINGTIER = PricingTierEnum.P1V2;
-    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_11;
-    public static final WebContainer DEFAULT_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
+    public static final JavaVersion DEFAULT_WINDOWS_JAVA_VERSION = JavaVersion.JAVA_11;
+    public static final WebContainer DEFAULT_WINDOWS_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
+    public static final String DEFAULT_LINUX_JAVA_VERSION = "java11";
+    public static final String DEFAULT_LINUX_WEB_CONTAINER = "TOMCAT 8.5";
 
     // artifact deploy related configurations
     protected String appName;
@@ -206,21 +208,21 @@ public class WebAppConfiguration {
     }
 
     public String getLinuxJavaVersionOrDefault() {
-        return runtimeStack == null ? RuntimeStackUtils.DEFAULT_JAVA_VERSION :
+        return runtimeStack == null ? DEFAULT_LINUX_JAVA_VERSION :
             RuntimeStackUtils.getJavaVersionFromRuntimeStack(runtimeStack);
     }
 
     public String getLinuxRuntimeStackOrDefault() {
-        return runtimeStack == null ? RuntimeStackUtils.DEFAULT_WEB_CONTAINER :
+        return runtimeStack == null ? DEFAULT_LINUX_WEB_CONTAINER :
             RuntimeStackUtils.getWebContainerFromRuntimeStack(runtimeStack);
     }
 
     public String getJavaVersionOrDefault() {
-        return javaVersion != null ? javaVersion.toString() : DEFAULT_JAVA_VERSION.toString();
+        return javaVersion != null ? javaVersion.toString() : DEFAULT_WINDOWS_JAVA_VERSION.toString();
     }
 
     public String getWebContainerOrDefault() {
-        return webContainer != null ? webContainer.toString() : DEFAULT_WEB_CONTAINER.toString();
+        return webContainer != null ? webContainer.toString() : DEFAULT_WINDOWS_WEB_CONTAINER.toString();
     }
 
     // endregion

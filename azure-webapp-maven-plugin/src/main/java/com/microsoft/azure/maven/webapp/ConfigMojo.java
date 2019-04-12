@@ -7,7 +7,6 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
@@ -250,7 +249,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         throws MojoFailureException {
         final String defaultJavaVersion = configuration.getLinuxJavaVersionOrDefault();
         final String javaVersion = queryer.assureInputFromUser("javaVersion",
-            defaultJavaVersion, RuntimeStackUtils.getValidJavaVersion(), null);
+            defaultJavaVersion, RuntimeStackUtils.getValidJavaVersions(), null);
 
         final String defaultLinuxRuntimeStack = configuration.getLinuxRuntimeStackOrDefault();
         final String runtimeStack = queryer.assureInputFromUser("runtimeStack",

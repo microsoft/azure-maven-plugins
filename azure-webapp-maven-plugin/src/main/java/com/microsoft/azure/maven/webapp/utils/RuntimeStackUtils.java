@@ -19,9 +19,6 @@ import java.util.Set;
 
 public class RuntimeStackUtils {
 
-    public static final String DEFAULT_JAVA_VERSION = "java11";
-    public static final String DEFAULT_WEB_CONTAINER = "TOMCAT 8.5";
-
     private static final List<String> JAVA_STACKS = Arrays.asList("JAVA", "TOMCAT", "WILDFLY");
     private static final List<RuntimeStack> runtimeStacks = new ArrayList<>();
 
@@ -60,7 +57,7 @@ public class RuntimeStackUtils {
     }
 
     public static RuntimeStack getRuntimeStack(String javaVersion, String webContainer) {
-        if (StringUtils.isEmpty(webContainer) || getValidJavaVersion().contains(webContainer)) {
+        if (StringUtils.isEmpty(webContainer) || getValidJavaVersions().contains(webContainer)) {
             return getRuntimeStack(javaVersion);
         }
         for (final RuntimeStack runtimeStack : getValidRuntimeStacks()) {
@@ -88,7 +85,7 @@ public class RuntimeStackUtils {
         return new ArrayList<>(result);
     }
 
-    public static List<String> getValidJavaVersion() {
+    public static List<String> getValidJavaVersions() {
         final Set<String> result = new HashSet<>();
         for (final RuntimeStack runtimeStack : getValidRuntimeStacks()) {
             result.add(getJavaVersionFromRuntimeStack(runtimeStack));
