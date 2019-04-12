@@ -171,7 +171,7 @@ Maven | 3.0 or above
 
 ## Configuration Details
 #### `<javaVersion>`
-<b>The supported values for Web App on Linux is only `jre8`.</b>
+<b>The supported values for Web App on Linux are `jre8`,`java11`.</b>
 
 <b>The supported values for Web App on Windows:</b>
 
@@ -187,6 +187,8 @@ Maven | 3.0 or above
 `1.8.0_111` | Java 8, Update 111
 `1.8.0_92` | Azul's Zulu OpenJDK 8, Update 92
 `1.8.0_102` | Azul's Zulu OpenJDK 8, Update 102
+`11` | Java 11
+`11.0.2_ZULU` | Azul's Zulu OpenJDK 11
 > Note: It is recommended to ignore the minor version number so that the latest supported JVM will be used in your Web App.
   
 
@@ -200,7 +202,7 @@ Supported Value | Description
 ---|---
 `tomcat 8.5` | Newest Tomcat 8.5
 `tomcat 9.0` | Tomcat 9.0
-`wildfly 14` | WildFly 14 
+`wildfly 14` | WildFly 14 (For jre8 only)
   
 
 <b>The supported Value for web App on windows</b>

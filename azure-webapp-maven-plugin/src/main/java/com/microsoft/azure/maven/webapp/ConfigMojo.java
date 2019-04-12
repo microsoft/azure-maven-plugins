@@ -15,9 +15,9 @@ import com.microsoft.azure.maven.queryer.QueryFactory;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
+import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -31,6 +31,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Init or edit the configuration of azure webapp maven plugin.
+ */
 @Mojo(name = "config")
 public class ConfigMojo extends AbstractWebAppMojo {
 
@@ -244,10 +247,14 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration.Builder getRuntimeConfigurationOfLinux(WebAppConfiguration.Builder builder,
                                                                        WebAppConfiguration configuration)
         throws MojoFailureException {
-        final String defaultLinuxRuntimeStack = configuration.getRuntimeStackOrDefault();
+        final String defaultJavaVersion = configuration.getLinuxJavaVersionOrDefault();
+        final String javaVersion = queryer.assureInputFromUser("javaVersion",
+            defaultJavaVersion, RuntimeStackUtils.getValidJavaVersions(), null);
+
+        final String defaultLinuxRuntimeStack = configuration.getLinuxRuntimeStackOrDefault();
         final String runtimeStack = queryer.assureInputFromUser("runtimeStack",
-            defaultLinuxRuntimeStack, RuntimeSetting.getValidLinuxRuntime(), null);
-        return builder.runtimeStack(RuntimeSetting.getLinuxRuntimeStackByJavaVersion(runtimeStack));
+            defaultLinuxRuntimeStack, RuntimeStackUtils.getValidWebContainer(javaVersion), null);
+        return builder.runtimeStack(RuntimeStackUtils.getRuntimeStack(javaVersion, runtimeStack));
     }
 
     private WebAppConfiguration.Builder getRuntimeConfigurationOfWindows(WebAppConfiguration.Builder builder,

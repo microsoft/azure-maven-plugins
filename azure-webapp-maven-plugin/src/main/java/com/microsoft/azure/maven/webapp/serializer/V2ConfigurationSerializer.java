@@ -9,7 +9,7 @@ package com.microsoft.azure.maven.webapp.serializer;
 import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.dom4j.Element;
@@ -85,10 +85,14 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
         createOrUpdateAttribute("os", "linux", oldOS, configurationElement);
         final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
             oldConfigs.getJavaVersion().toString();
-        createOrUpdateAttribute("javaVersion", "jre8", oldJavaVersion, configurationElement);
+        createOrUpdateAttribute("javaVersion",
+            RuntimeStackUtils.getJavaVersionFromRuntimeStack(newConfigs.getRuntimeStack()), oldJavaVersion,
+            configurationElement);
+        final String oldWebContainer = oldConfigs.getRuntimeStack() == null ? null :
+            RuntimeStackUtils.getWebContainerFromRuntimeStack(oldConfigs.getRuntimeStack());
         createOrUpdateAttribute("webContainer",
-            RuntimeSetting.getLinuxWebContainerByRuntimeStack(newConfigs.getRuntimeStack())
-            , RuntimeSetting.getLinuxWebContainerByRuntimeStack(oldConfigs.getRuntimeStack()), configurationElement);
+            RuntimeStackUtils.getWebContainerFromRuntimeStack(newConfigs.getRuntimeStack())
+            , oldWebContainer, configurationElement);
     }
 
     private void updateWindowsRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
