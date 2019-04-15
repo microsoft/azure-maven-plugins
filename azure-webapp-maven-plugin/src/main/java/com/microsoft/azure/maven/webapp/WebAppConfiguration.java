@@ -27,9 +27,9 @@ public class WebAppConfiguration {
 
     public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
     public static final PricingTierEnum DEFAULT_PRICINGTIER = PricingTierEnum.P1V2;
-    public static final JavaVersion DEFAULT_WINDOWS_JAVA_VERSION = JavaVersion.JAVA_11;
+    public static final JavaVersion DEFAULT_WINDOWS_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
     public static final WebContainer DEFAULT_WINDOWS_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
-    public static final String DEFAULT_LINUX_JAVA_VERSION = "java11";
+    public static final String DEFAULT_LINUX_JAVA_VERSION = "jre8";
     public static final String DEFAULT_LINUX_WEB_CONTAINER = "TOMCAT 8.5";
 
     // artifact deploy related configurations
