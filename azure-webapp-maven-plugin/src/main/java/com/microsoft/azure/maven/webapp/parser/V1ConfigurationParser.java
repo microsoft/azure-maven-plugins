@@ -13,6 +13,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
@@ -22,14 +23,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class V1ConfigurationParser extends ConfigurationParser {
-    public static final String TOMCAT_8_5_JRE8 = "tomcat 8.5-jre8";
-    public static final String TOMCAT_9_0_JRE8 = "tomcat 9.0-jre8";
-    public static final String WILDFLY_14_JRE8 = "wildfly 14-jre8";
-    public static final String JRE8 = "jre8";
-    public static final List<String> SUPPORTED_LINUX_RUNTIMES =
-        Arrays.asList(TOMCAT_8_5_JRE8, TOMCAT_9_0_JRE8, WILDFLY_14_JRE8, JRE8);
     private static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>" +
         "and <containerSettings> should not be set at the same time.";
+    private static final String RUNTIME_NOT_EXIST = "The configuration of <linuxRuntime> in pom.xml is not correct. " +
+        "Please refer https://aka.ms/maven_webapp_runtime_v1 for more information";
 
     public V1ConfigurationParser(AbstractWebAppMojo mojo) {
         super(mojo);
@@ -75,19 +72,20 @@ public class V1ConfigurationParser extends ConfigurationParser {
         if (mojo.getLinuxRuntime() == null) {
             throw new MojoExecutionException("Please configure the <linuxRuntime> in pom.xml.");
         }
-        switch (mojo.getLinuxRuntime()) {
-            case TOMCAT_8_5_JRE8:
-                return RuntimeStack.TOMCAT_8_5_JRE8;
-            case TOMCAT_9_0_JRE8:
-                return RuntimeStack.TOMCAT_9_0_JRE8;
-            case WILDFLY_14_JRE8:
-                return RuntimeStack.WILDFLY_14_JRE8;
-            case JRE8:
-                return RuntimeStack.JAVA_8_JRE8;
-            default:
-                throw new MojoExecutionException("The configuration of <linuxRuntime> in pom.xml is not correct. " +
-                    "The supported values are " + SUPPORTED_LINUX_RUNTIMES.toString());
+        final String linuxRuntime = mojo.getLinuxRuntime();
+        // JavaSE runtime
+        final List<String> validJavaSEStacks = RuntimeStackUtils.getValidJavaVersions();
+        if (validJavaSEStacks.contains(linuxRuntime)) {
+            return RuntimeStackUtils.getRuntimeStack(linuxRuntime);
         }
+        // Tomcat/WildFly
+        final List<RuntimeStack> runtimeStacks = RuntimeStackUtils.getValidRuntimeStacks();
+        for (final RuntimeStack runtimeStack : runtimeStacks) {
+            if (runtimeStack.toString().equalsIgnoreCase(mojo.getLinuxRuntime())) {
+                return runtimeStack;
+            }
+        }
+        throw new MojoExecutionException(RUNTIME_NOT_EXIST);
     }
 
     @Override

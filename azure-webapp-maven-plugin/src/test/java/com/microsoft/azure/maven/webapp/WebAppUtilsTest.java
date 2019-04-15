@@ -11,7 +11,6 @@ import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.AppServicePlans;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.ExistingLinuxPlanWithGroup;
@@ -102,23 +101,6 @@ public class WebAppUtilsTest {
 
         assertEquals(DockerImageType.UNKNOWN, WebAppUtils.getDockerImageType("imageName", "",
             "https://microsoft.azurecr.io"));
-    }
-
-    @Test
-    public void getLinuxRunTimeStack() throws MojoExecutionException {
-        assertEquals(RuntimeStack.TOMCAT_8_5_JRE8, WebAppUtils.getLinuxRunTimeStack("tomcat 8.5-jre8"));
-        assertEquals(RuntimeStack.TOMCAT_9_0_JRE8, WebAppUtils.getLinuxRunTimeStack("tomcat 9.0-jre8"));
-        assertEquals(RuntimeStack.JAVA_8_JRE8, WebAppUtils.getLinuxRunTimeStack("jre8"));
-    }
-
-    @Test(expected = MojoExecutionException.class)
-    public void getLinuxRunTimeStackWithNonExistedInput() throws MojoExecutionException {
-        WebAppUtils.getLinuxRunTimeStack("non-existed-input");
-    }
-
-    @Test(expected = MojoExecutionException.class)
-    public void getLinuxRunTimeStackWithEmptyInput() throws MojoExecutionException {
-        WebAppUtils.getLinuxRunTimeStack("");
     }
 
     @Test(expected = MojoExecutionException.class)
