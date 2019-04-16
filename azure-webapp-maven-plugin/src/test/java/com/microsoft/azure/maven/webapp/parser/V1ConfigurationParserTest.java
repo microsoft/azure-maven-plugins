@@ -94,15 +94,27 @@ public class V1ConfigurationParserTest {
         doReturn("tomcat 9.0-jre8").when(mojo).getLinuxRuntime();
         assertEquals(RuntimeStack.TOMCAT_9_0_JRE8, parser.getRuntimeStack());
 
+        doReturn("wildfly 14-jre8").when(mojo).getLinuxRuntime();
+        assertEquals(RuntimeStack.WILDFLY_14_JRE8, parser.getRuntimeStack());
+
         doReturn("jre8").when(mojo).getLinuxRuntime();
         assertEquals(RuntimeStack.JAVA_8_JRE8, parser.getRuntimeStack());
+
+        doReturn("tomcat 8.5-java11").when(mojo).getLinuxRuntime();
+        assertEquals(RuntimeStack.TOMCAT_8_5_JAVA11, parser.getRuntimeStack());
+
+        doReturn("tomcat 9.0-java11").when(mojo).getLinuxRuntime();
+        assertEquals(RuntimeStack.TOMCAT_9_0_JAVA11, parser.getRuntimeStack());
+
+        doReturn("java11").when(mojo).getLinuxRuntime();
+        assertEquals(RuntimeStack.JAVA_11_JAVA11, parser.getRuntimeStack());
 
         doReturn("unknown-value").when(mojo).getLinuxRuntime();
         try {
             parser.getRuntimeStack();
         } catch (MojoExecutionException e) {
             assertEquals(e.getMessage(), "The configuration of <linuxRuntime> in pom.xml is not correct. " +
-                "The supported values are [tomcat 8.5-jre8, tomcat 9.0-jre8, wildfly 14-jre8, jre8]");
+                "Please refer https://aka.ms/maven_webapp_runtime_v1 for more information");
         }
     }
 
