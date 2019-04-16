@@ -25,6 +25,7 @@ import java.util.List;
 public class V1ConfigurationParser extends ConfigurationParser {
     private static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>" +
         "and <containerSettings> should not be set at the same time.";
+    private static final String TEST_STRING = "Test string";
     private static final String RUNTIME_NOT_EXIST = "The configuration of <linuxRuntime> in pom.xml is not correct. " +
         "Please refer https://aka.ms/maven_webapp_runtime_v1 for more information";
 
