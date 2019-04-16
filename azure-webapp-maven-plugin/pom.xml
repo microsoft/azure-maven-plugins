@@ -233,6 +233,7 @@
                 <filtering>true</filtering>
                 <includes>
                     <include>**/ApplicationInsights.xml</include>
+                    <include>**/applicationinsights.properties</include>
                     <include>**/web.config.template</include>
                 </includes>
             </resource>
