@@ -10,17 +10,20 @@ import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.channel.TelemetryChannel;
 import com.microsoft.applicationinsights.channel.concrete.TelemetryChannelBase;
 import com.microsoft.applicationinsights.channel.concrete.inprocess.InProcessTelemetryChannel;
-import org.codehaus.plexus.util.StringUtils;
-import org.w3c.dom.Document;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 
 public class AppInsightsProxy implements TelemetryProxy {
+
+    public static final String CONFIGURATION_FILE = "applicationinsights.properties";
+    public static final String INSTRUMENTATION_KEY = "instrumentation.key";
+
     protected TelemetryClient client;
 
     protected TelemetryConfiguration configuration;
@@ -57,14 +60,13 @@ public class AppInsightsProxy implements TelemetryProxy {
     }
 
     private String readInstrumentationKeyFromConfiguration() {
-        final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("ApplicationInsights.xml");
-        try {
-            final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            final Document configuration = builder.parse(inputStream);
-            return configuration.getDocumentElement().getElementsByTagName("InstrumentationKey")
-                .item(0).getTextContent();
-        } catch (Exception e) {
-            return "";
+        try (final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(
+            CONFIGURATION_FILE)) {
+            final Properties properties = new Properties();
+            properties.load(inputStream);
+            return properties.getProperty(INSTRUMENTATION_KEY);
+        } catch (IOException exception) {
+            return StringUtils.EMPTY;
         }
     }
 
