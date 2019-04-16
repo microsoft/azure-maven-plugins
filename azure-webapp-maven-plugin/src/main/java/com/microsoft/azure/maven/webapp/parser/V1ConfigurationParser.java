@@ -74,9 +74,9 @@ public class V1ConfigurationParser extends ConfigurationParser {
         }
         final String linuxRuntime = mojo.getLinuxRuntime();
         // JavaSE runtime
-        final List<String> validJavaSEStacks = RuntimeStackUtils.getValidJavaVersions();
-        if (validJavaSEStacks.contains(linuxRuntime)) {
-            return RuntimeStackUtils.getRuntimeStack(linuxRuntime);
+        final RuntimeStack javaSERuntimeStack = RuntimeStackUtils.getRuntimeStack(linuxRuntime);
+        if (javaSERuntimeStack != null) {
+            return javaSERuntimeStack;
         }
         // Tomcat/WildFly
         final List<RuntimeStack> runtimeStacks = RuntimeStackUtils.getValidRuntimeStacks();
