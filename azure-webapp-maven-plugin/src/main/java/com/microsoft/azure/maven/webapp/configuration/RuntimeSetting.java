@@ -31,6 +31,14 @@ public class RuntimeSetting {
         return this.os;
     }
 
+    public OperatingSystemEnum getOsEnum() {
+        try {
+            return OperatingSystemEnum.fromString(this.os);
+        } catch (MojoExecutionException e) {
+            return null;
+        }
+    }
+
     public JavaVersion getJavaVersion() {
         return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
     }

@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.model.Resource;
@@ -185,14 +186,15 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     private boolean isJavaSERuntime() throws MojoExecutionException {
         return runtimeSetting != null &&
-            ((runtimeSetting.getOs().equals("windows") && this.project.getPackaging().equals("jar")) ||
-                (runtimeSetting.getOs().equals("linux") &&
-                    this.runtimeSetting.getLinuxRuntime().stack().equals("JAVA")));
+            ((runtimeSetting.getOsEnum() == OperatingSystemEnum.Windows &&
+                project.getPackaging().equals("jar")) ||
+                (runtimeSetting.getOsEnum() == OperatingSystemEnum.Linux &&
+                    runtimeSetting.getLinuxRuntime().stack().equalsIgnoreCase("JAVA")));
     }
 
     private File getProjectJarArtifact(final List<File> artifacts) {
         final String finalName = project.getBuild().getFinalName();
-        final String fileName = String.format("%s.jar", finalName, project.getPackaging());
+        final String fileName = String.format("%s.%s", finalName, project.getPackaging());
         for (final File file : artifacts) {
             if (file.getName().equals(fileName)) {
                 return file;
@@ -209,17 +211,22 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         if (artifact == null) {
             return;
         }
-        if (runtimeSetting.getOs().equals("windows")) {
-            // Windows: Generate web.config to staging folder
-            try {
-                WebAppUtils.generateWebConfigFile(artifact.getName(), log, stagingDirectoryPath, this.getClass());
-            } catch (IOException e) {
-                throw new MojoExecutionException("Failed to generate web.config file");
-            }
-        } else {
-            // Linux: Rename project artifact to app.jar
-            log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_LINUX_JAR_NAME));
-            artifact.renameTo(new File(artifact.getParent(), "app.jar"));
+        switch (runtimeSetting.getOsEnum()) {
+            case Windows:
+                // Windows: Generate web.config to staging folder
+                try {
+                    WebAppUtils.generateWebConfigFile(artifact.getName(), log, stagingDirectoryPath, this.getClass());
+                } catch (IOException e) {
+                    throw new MojoExecutionException("Failed to generate web.config file");
+                }
+                break;
+            case Linux:
+                // Linux: Rename project artifact to app.jar
+                log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_LINUX_JAR_NAME));
+                artifact.renameTo(new File(artifact.getParent(), DEFAULT_LINUX_JAR_NAME));
+                break;
+            default:
+                return;
         }
     }
 }

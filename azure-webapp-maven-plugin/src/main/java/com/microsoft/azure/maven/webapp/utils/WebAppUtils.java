@@ -33,20 +33,17 @@ public class WebAppUtils {
     public static final String CREATE_SERVICE_PLAN = "Creating App Service Plan '%s'...";
     public static final String SERVICE_PLAN_EXIST = "Found existing App Service Plan '%s' in Resource Group '%s'.";
     public static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
-    private static final String CONFIGURATION_NOT_APPLICABLE =
-        "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
-    public static final String JAR_CMD = ":JAR_COMMAND:";
-    public static final String FILENAME = ":FILENAME:";
-    public static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true " +
-        "-Dserver.port=%HTTP_PLATFORM_PORT% " +
-        "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
     public static final String GENERATE_WEB_CONFIG_FAIL = "Failed to generate web.config file for JAR deployment.";
     public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
     public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
+    public static final String CONFIGURATION_NOT_APPLICABLE =
+        "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
 
-    private static boolean isLinuxWebApp(final WebApp app) {
-        return app.inner().kind().contains("linux");
-    }
+    private static final String JAR_CMD = ":JAR_COMMAND:";
+    private static final String FILENAME = ":FILENAME:";
+    private static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true " +
+        "-Dserver.port=%HTTP_PLATFORM_PORT% " +
+        "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
 
     public static void assureLinuxWebApp(final WebApp app) throws MojoExecutionException {
         if (!isLinuxWebApp(app)) {
@@ -73,13 +70,6 @@ public class WebAppUtils {
             existingLinuxPlanWithGroup.withNewResourceGroup(resourceGroup);
     }
 
-    private static void assureLinuxPlan(final AppServicePlan plan) throws MojoExecutionException {
-        if (!plan.operatingSystem().equals(OperatingSystem.LINUX)) {
-            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                plan.name(), OperatingSystem.LINUX.name()));
-        }
-    }
-
     public static WithCreate defineWindowsApp(final String resourceGroup,
                                               final String appName,
                                               final Azure azureClient, final AppServicePlan plan) throws Exception {
@@ -90,13 +80,6 @@ public class WebAppUtils {
         return azureClient.resourceGroups().contain(resourceGroup) ?
             existingWindowsPlanWithGroup.withExistingResourceGroup(resourceGroup) :
             existingWindowsPlanWithGroup.withNewResourceGroup(resourceGroup);
-    }
-
-    private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
-        if (!plan.operatingSystem().equals(OperatingSystem.WINDOWS)) {
-            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                plan.name(), OperatingSystem.WINDOWS.name()));
-        }
     }
 
     public static AppServicePlan createOrGetAppServicePlan(String servicePlanName,
@@ -189,5 +172,23 @@ public class WebAppUtils {
      */
     public static void clearTags(final WebApp app) {
         app.inner().withTags(null);
+    }
+
+    private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
+        if (!plan.operatingSystem().equals(OperatingSystem.WINDOWS)) {
+            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
+                plan.name(), OperatingSystem.WINDOWS.name()));
+        }
+    }
+
+    private static void assureLinuxPlan(final AppServicePlan plan) throws MojoExecutionException {
+        if (!plan.operatingSystem().equals(OperatingSystem.LINUX)) {
+            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
+                plan.name(), OperatingSystem.LINUX.name()));
+        }
+    }
+
+    private static boolean isLinuxWebApp(final WebApp app) {
+        return app.inner().kind().contains("linux");
     }
 }
