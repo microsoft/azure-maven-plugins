@@ -18,9 +18,15 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDoc
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class WebAppUtils {
     public static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
@@ -29,6 +35,15 @@ public class WebAppUtils {
     public static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
     private static final String CONFIGURATION_NOT_APPLICABLE =
         "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
+    public static final String JAR_CMD = ":JAR_COMMAND:";
+    public static final String FILENAME = ":FILENAME:";
+    public static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true " +
+        "-Dserver.port=%HTTP_PLATFORM_PORT% " +
+        "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
+    public static final String GENERATE_WEB_CONFIG_FAIL = "Failed to generate web.config file for JAR deployment.";
+    public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
+    public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
+
 
     private static boolean isLinuxWebApp(final WebApp app) {
         return app.inner().kind().contains("linux");
@@ -137,6 +152,30 @@ public class WebAppUtils {
             return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;
         } else {
             return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
+        }
+    }
+
+    public static void generateWebConfigFile(final String jarFileName, final Log log,
+                                             final String stagingDirectoryPath) throws IOException {
+        log.info(GENERATING_WEB_CONFIG);
+        final String templateContent;
+        try (final InputStream is = log.getClass().getResourceAsStream("web.config.template")) {
+            templateContent = IOUtils.toString(is, "UTF-8");
+        } catch (IOException e) {
+            log.error(READ_WEB_CONFIG_TEMPLATE_FAIL);
+            throw e;
+        }
+
+        final String webConfigFile = templateContent
+            .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
+
+        final File webConfig = new File(stagingDirectoryPath, "web.config");
+        webConfig.createNewFile();
+
+        try (final FileOutputStream fos = new FileOutputStream(webConfig)) {
+            IOUtils.write(webConfigFile, fos, "UTF-8");
+        } catch (Exception e) {
+            log.error(GENERATE_WEB_CONFIG_FAIL);
         }
     }
 
