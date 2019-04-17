@@ -144,6 +144,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
             .resources(mojo.getDeployment().getResources())
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .log(mojo.getLog())
+            .runtime(mojo.getRuntime())
             .build();
     }
 

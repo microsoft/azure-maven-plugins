@@ -23,4 +23,11 @@ public class RuntimeStackUtilsTest {
         assertEquals(RuntimeStackUtils.getRuntimeStack("java11", null), RuntimeStack.JAVA_11_JAVA11);
         assertEquals(RuntimeStackUtils.getRuntimeStack("jre8", "jre8"), RuntimeStack.JAVA_8_JRE8);
     }
+
+    @Test
+    public void getWebContainerFromRuntimeStack() {
+        assertEquals(RuntimeStackUtils.getWebContainerFromRuntimeStack(RuntimeStack.TOMCAT_8_5_JAVA11), "TOMCAT 8.5");
+        assertEquals(RuntimeStackUtils.getWebContainerFromRuntimeStack(RuntimeStack.JAVA_8_JRE8), "jre8");
+        assertEquals(RuntimeStackUtils.getWebContainerFromRuntimeStack(RuntimeStack.JAVA_11_JAVA11), "java11");
+    }
 }

@@ -43,7 +43,10 @@ public class RuntimeStackUtils {
     }
 
     public static String getWebContainerFromRuntimeStack(RuntimeStack runtimeStack) {
-        return String.format(runtimeStack.stack() + " " + runtimeStack.version().split("-")[0]);
+        final String stack = runtimeStack.stack();
+        final String version = runtimeStack.version();
+        return stack.equalsIgnoreCase("JAVA") ?
+            version.split("-")[1] : stack + " " + version.split("-")[0];
     }
 
     public static RuntimeStack getRuntimeStack(String javaVersion) {

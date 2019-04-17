@@ -18,21 +18,32 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDoc
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class WebAppUtils {
     public static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
     public static final String CREATE_SERVICE_PLAN = "Creating App Service Plan '%s'...";
     public static final String SERVICE_PLAN_EXIST = "Found existing App Service Plan '%s' in Resource Group '%s'.";
     public static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
-    private static final String CONFIGURATION_NOT_APPLICABLE =
+    public static final String GENERATE_WEB_CONFIG_FAIL = "Failed to generate web.config file for JAR deployment.";
+    public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
+    public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
+    public static final String CONFIGURATION_NOT_APPLICABLE =
         "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
 
-    private static boolean isLinuxWebApp(final WebApp app) {
-        return app.inner().kind().contains("linux");
-    }
+    private static final String JAR_CMD = ":JAR_COMMAND:";
+    private static final String FILENAME = ":FILENAME:";
+    private static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true " +
+        "-Dserver.port=%HTTP_PLATFORM_PORT% " +
+        "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
 
     public static void assureLinuxWebApp(final WebApp app) throws MojoExecutionException {
         if (!isLinuxWebApp(app)) {
@@ -59,13 +70,6 @@ public class WebAppUtils {
             existingLinuxPlanWithGroup.withNewResourceGroup(resourceGroup);
     }
 
-    private static void assureLinuxPlan(final AppServicePlan plan) throws MojoExecutionException {
-        if (!plan.operatingSystem().equals(OperatingSystem.LINUX)) {
-            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                plan.name(), OperatingSystem.LINUX.name()));
-        }
-    }
-
     public static WithCreate defineWindowsApp(final String resourceGroup,
                                               final String appName,
                                               final Azure azureClient, final AppServicePlan plan) throws Exception {
@@ -76,13 +80,6 @@ public class WebAppUtils {
         return azureClient.resourceGroups().contain(resourceGroup) ?
             existingWindowsPlanWithGroup.withExistingResourceGroup(resourceGroup) :
             existingWindowsPlanWithGroup.withNewResourceGroup(resourceGroup);
-    }
-
-    private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
-        if (!plan.operatingSystem().equals(OperatingSystem.WINDOWS)) {
-            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                plan.name(), OperatingSystem.WINDOWS.name()));
-        }
     }
 
     public static AppServicePlan createOrGetAppServicePlan(String servicePlanName,
@@ -140,6 +137,30 @@ public class WebAppUtils {
         }
     }
 
+    public static void generateWebConfigFile(final String jarFileName, final Log log, final String stagingDirectoryPath,
+                                             final Class pluginClass) throws IOException {
+        log.info(GENERATING_WEB_CONFIG);
+        final String templateContent;
+        try (final InputStream is = pluginClass.getResourceAsStream("web.config.template")) {
+            templateContent = IOUtils.toString(is, "UTF-8");
+        } catch (IOException e) {
+            log.error(READ_WEB_CONFIG_TEMPLATE_FAIL);
+            throw e;
+        }
+
+        final String webConfigFile = templateContent
+            .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
+
+        final File webConfig = new File(stagingDirectoryPath, "web.config");
+        webConfig.createNewFile();
+
+        try (final FileOutputStream fos = new FileOutputStream(webConfig)) {
+            IOUtils.write(webConfigFile, fos, "UTF-8");
+        } catch (Exception e) {
+            log.error(GENERATE_WEB_CONFIG_FAIL);
+        }
+    }
+
     /**
      * Workaround:
      * When a web app is created from Azure Portal, there are hidden tags associated with the app.
@@ -151,5 +172,23 @@ public class WebAppUtils {
      */
     public static void clearTags(final WebApp app) {
         app.inner().withTags(null);
+    }
+
+    private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
+        if (!plan.operatingSystem().equals(OperatingSystem.WINDOWS)) {
+            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
+                plan.name(), OperatingSystem.WINDOWS.name()));
+        }
+    }
+
+    private static void assureLinuxPlan(final AppServicePlan plan) throws MojoExecutionException {
+        if (!plan.operatingSystem().equals(OperatingSystem.LINUX)) {
+            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
+                plan.name(), OperatingSystem.LINUX.name()));
+        }
+    }
+
+    private static boolean isLinuxWebApp(final WebApp app) {
+        return app.inner().kind().contains("linux");
     }
 }

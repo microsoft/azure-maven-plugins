@@ -9,9 +9,13 @@ package com.microsoft.azure.maven.webapp.handlers;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.zeroturnaround.zip.ZipUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -27,11 +31,27 @@ import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.per
 public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
     private static final String ALWAYS_DEPLOY_PROPERTY = "alwaysDeploy";
+    public static final String DEFAULT_LINUX_JAR_NAME = "app.jar";
+    public static final String RENAMING_MESSAGE = "Renaming %s to %s";
+
+    private RuntimeSetting runtimeSetting;
 
     public static class Builder extends ArtifactHandlerBase.Builder<ArtifactHandlerImplV2.Builder> {
+
+        private RuntimeSetting runtimeSetting;
+
+        public RuntimeSetting getRuntimeSetting() {
+            return runtimeSetting;
+        }
+
         @Override
         protected ArtifactHandlerImplV2.Builder self() {
             return this;
+        }
+
+        public ArtifactHandlerImplV2.Builder runtime(RuntimeSetting runtimeSetting) {
+            this.runtimeSetting = runtimeSetting;
+            return self();
         }
 
         @Override
@@ -42,6 +62,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     protected ArtifactHandlerImplV2(final ArtifactHandlerImplV2.Builder builder) {
         super(builder);
+        this.runtimeSetting = builder.getRuntimeSetting();
     }
 
     @Override
@@ -50,10 +71,9 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
             return;
         }
-
         copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
-        final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
 
+        final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
         if (allArtifacts.size() == 0) {
             final String absolutePath = new File(stagingDirectoryPath).getAbsolutePath();
             throw new MojoExecutionException(
@@ -115,6 +135,9 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,
                                                 final String stagingDirectoryPath) throws MojoExecutionException {
+        if (isJavaSERuntime()) {
+            prepareJavaSERuntime(getAllArtifacts(stagingDirectoryPath));
+        }
         final File stagingDirectory = new File(stagingDirectoryPath);
         final File zipFile = new File(stagingDirectoryPath + ".zip");
         ZipUtil.pack(stagingDirectory, zipFile);
@@ -158,6 +181,52 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         if (!deploySuccess) {
             throw new MojoExecutionException(
                 String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES));
+        }
+    }
+
+    private boolean isJavaSERuntime() throws MojoExecutionException {
+        return runtimeSetting != null &&
+            ((runtimeSetting.getOsEnum() == OperatingSystemEnum.Windows &&
+                project.getPackaging().equals("jar")) ||
+                (runtimeSetting.getOsEnum() == OperatingSystemEnum.Linux &&
+                    runtimeSetting.getLinuxRuntime().stack().equalsIgnoreCase("JAVA")));
+    }
+
+    private File getProjectJarArtifact(final List<File> artifacts) {
+        final String finalName = project.getBuild().getFinalName();
+        final String fileName = String.format("%s.%s", finalName, project.getPackaging());
+        for (final File file : artifacts) {
+            if (file.getName().equals(fileName)) {
+                return file;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Rename project jar to app.jar for linux app service or generate web.config for windows javase app service
+     */
+    private void prepareJavaSERuntime(final List<File> artifacts) throws MojoExecutionException {
+        final File artifact = getProjectJarArtifact(artifacts);
+        if (artifact == null) {
+            return;
+        }
+        switch (runtimeSetting.getOsEnum()) {
+            case Windows:
+                // Windows: Generate web.config to staging folder
+                try {
+                    WebAppUtils.generateWebConfigFile(artifact.getName(), log, stagingDirectoryPath, this.getClass());
+                } catch (IOException e) {
+                    throw new MojoExecutionException("Failed to generate web.config file");
+                }
+                break;
+            case Linux:
+                // Linux: Rename project artifact to app.jar
+                log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_LINUX_JAR_NAME));
+                artifact.renameTo(new File(artifact.getParent(), DEFAULT_LINUX_JAR_NAME));
+                break;
+            default:
+                return;
         }
     }
 }
