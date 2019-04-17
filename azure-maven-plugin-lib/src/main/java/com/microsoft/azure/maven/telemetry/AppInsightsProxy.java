@@ -10,6 +10,7 @@ import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.channel.TelemetryChannel;
 import com.microsoft.applicationinsights.channel.concrete.TelemetryChannelBase;
 import com.microsoft.applicationinsights.channel.concrete.inprocess.InProcessTelemetryChannel;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -17,13 +18,14 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AppInsightsProxy implements TelemetryProxy {
 
-    public static final String CONFIGURATION_FILE = "applicationinsights.properties";
-    public static final String INSTRUMENTATION_KEY = "instrumentation.key";
-
+    public static final String CONFIGURATION_FILE = "ApplicationInsights.xml";
+    public static final Pattern INSTRUMENTATION_KEY_PATTERN = Pattern.compile("<InstrumentationKey>(.*)" +
+        "</InstrumentationKey>");
     protected TelemetryClient client;
 
     protected TelemetryConfiguration configuration;
@@ -42,11 +44,11 @@ public class AppInsightsProxy implements TelemetryProxy {
         defaultProperties = configuration.getTelemetryProperties();
     }
 
-    /**
-     * This is a workaround for telemetry issue. ApplicationInsight read configuration file by JAXB, and JAXB parse
-     * configuration by JAXBContext, but the context model differs in Java 8 and Java 11 during maven execution, so
-     * read the config file by maven plugin here.
-     */
+
+//      This is a workaround for telemetry issue. ApplicationInsight read configuration file by JAXB, and JAXB parse
+//      configuration by JAXBContext, but the context model differs in Java 8 and Java 11 during maven execution, so
+//      read the config file by maven plugin here.
+
     private com.microsoft.applicationinsights.TelemetryConfiguration readConfigurationFromFile() {
         final com.microsoft.applicationinsights.TelemetryConfiguration telemetryConfiguration =
             new com.microsoft.applicationinsights.TelemetryConfiguration();
@@ -59,16 +61,22 @@ public class AppInsightsProxy implements TelemetryProxy {
         return telemetryConfiguration;
     }
 
+    // Get instrumentation key from ApplicationInsights.xml
     private String readInstrumentationKeyFromConfiguration() {
         try (final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(
             CONFIGURATION_FILE)) {
-            final Properties properties = new Properties();
-            properties.load(inputStream);
-            return properties.getProperty(INSTRUMENTATION_KEY);
+            final String configuration = IOUtils.toString(inputStream);
+            final Matcher matcher = INSTRUMENTATION_KEY_PATTERN.matcher(configuration);
+            if (matcher.find()) {
+                return matcher.group(1);
+            } else {
+                return StringUtils.EMPTY;
+            }
         } catch (IOException exception) {
             return StringUtils.EMPTY;
         }
     }
+    // End
 
     public void addDefaultProperty(String key, String value) {
         if (StringUtils.isEmpty(key)) {
