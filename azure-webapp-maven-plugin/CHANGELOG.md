@@ -25,11 +25,11 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
 
 ## 1.5.3
 - Update config UI to fit AppService Portal.
-- Fix `webapp:config` may not response for project with schema V1.
+- Fix `webapp:config` may not respond for projects with schema V1.
 
 ## 1.5.2
 - Add `webapp:config` to init and update plugin configuration.
-- Fix NPE issue when deploy to an existing project without runtime configuration.
+- Fix NPE issue when deploying to an existing project without runtime configuration.
 
 ## 1.5.1
 - Change the default pricing tier of Web App to P1V2.
@@ -51,7 +51,7 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
 - Output the web app URL when deployment is finished.
 
 ## 1.3.0
-- Support deploy web application to deployment slot
+- Support deploy web applications to a deployment slot
 - Add new deployment types: *AUTO* *JAR* *NONE*
 - Refactor output messages during deployment
 
