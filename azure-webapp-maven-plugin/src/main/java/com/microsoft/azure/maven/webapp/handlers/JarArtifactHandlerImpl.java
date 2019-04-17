@@ -90,7 +90,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
             Files.copy(jar, new File(parent, DEFAULT_LINUX_JAR_NAME));
         } else {
             Files.copy(jar, new File(parent, jar.getName()));
-            WebAppUtils.generateWebConfigFile(jar.getName(),log,stagingDirectoryPath);
+            WebAppUtils.generateWebConfigFile(jar.getName(), log, stagingDirectoryPath, this.getClass());
         }
     }
 

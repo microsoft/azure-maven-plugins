@@ -44,7 +44,6 @@ public class WebAppUtils {
     public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
     public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
 
-
     private static boolean isLinuxWebApp(final WebApp app) {
         return app.inner().kind().contains("linux");
     }
@@ -155,11 +154,11 @@ public class WebAppUtils {
         }
     }
 
-    public static void generateWebConfigFile(final String jarFileName, final Log log,
-                                             final String stagingDirectoryPath) throws IOException {
+    public static void generateWebConfigFile(final String jarFileName, final Log log, final String stagingDirectoryPath,
+                                             final Class pluginClass) throws IOException {
         log.info(GENERATING_WEB_CONFIG);
         final String templateContent;
-        try (final InputStream is = log.getClass().getResourceAsStream("web.config.template")) {
+        try (final InputStream is = pluginClass.getResourceAsStream("web.config.template")) {
             templateContent = IOUtils.toString(is, "UTF-8");
         } catch (IOException e) {
             log.error(READ_WEB_CONFIG_TEMPLATE_FAIL);
