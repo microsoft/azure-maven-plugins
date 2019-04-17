@@ -46,8 +46,9 @@ public class AppInsightsProxy implements TelemetryProxy {
 
 
 //      This is a workaround for telemetry issue. ApplicationInsight read configuration file by JAXB, and JAXB parse
-//      configuration by JAXBContext, but the context model differs in Java 8 and Java 11 during maven execution, so
-//      read the config file by maven plugin here.
+//      configuration by JAXBContext, but the context model differs in Java 8 and Java 11 during maven execution,
+//      here is the link https://github.com/Microsoft/ApplicationInsights-Java/issues/674, will remove the code and
+//      use ai sdk to read configuration file once the issue was fixed
 
     private com.microsoft.applicationinsights.TelemetryConfiguration readConfigurationFromFile() {
         final com.microsoft.applicationinsights.TelemetryConfiguration telemetryConfiguration =
@@ -76,7 +77,7 @@ public class AppInsightsProxy implements TelemetryProxy {
             return StringUtils.EMPTY;
         }
     }
-    // End
+    // end
 
     public void addDefaultProperty(String key, String value) {
         if (StringUtils.isEmpty(key)) {
