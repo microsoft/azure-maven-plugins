@@ -10,6 +10,7 @@ import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.channel.TelemetryChannel;
 import com.microsoft.applicationinsights.channel.concrete.TelemetryChannelBase;
 import com.microsoft.applicationinsights.channel.concrete.inprocess.InProcessTelemetryChannel;
+import com.microsoft.applicationinsights.internal.config.TelemetryConfigurationFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -37,6 +38,7 @@ public class AppInsightsProxy implements TelemetryProxy {
 
     public AppInsightsProxy(final TelemetryConfiguration config) {
         client = new TelemetryClient(readConfigurationFromFile());
+
         if (config == null) {
             throw new NullPointerException();
         }
@@ -59,6 +61,8 @@ public class AppInsightsProxy implements TelemetryProxy {
 
         telemetryConfiguration.setChannel(channel);
         telemetryConfiguration.setInstrumentationKey(readInstrumentationKeyFromConfiguration());
+
+        TelemetryConfigurationFactory.INSTANCE.initialize(telemetryConfiguration);
         return telemetryConfiguration;
     }
 
