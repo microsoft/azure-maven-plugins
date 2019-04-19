@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ApplicationInsights>
+<ApplicationInsights xmlns="http://schemas.microsoft.com/ApplicationInsights/2013/Settings" schemaVersion="2014-05-30">
     <!-- The key from the portal: -->
     <InstrumentationKey>${azure.ai.ikey}</InstrumentationKey>
 
