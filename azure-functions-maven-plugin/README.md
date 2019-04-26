@@ -19,6 +19,7 @@
     - [Generate `function.json` from current project](#generate-functionjson-from-current-project)
     - [Run Azure Functions locally](#run-azure-functions-locally)
     - [Deploy Azure Functions to Azure](#deploy-azure-functions-to-azure)
+    - [Add Proxies Configuration to Your Azure Function](#add-proxies-configuration-to-your-azure-function)
   - [Common Questions](#common-questions)
 
 ## Prerequisites
@@ -203,6 +204,10 @@ Supported deployment methods are listed as below. The default value is **ZIP**.
 - ZIP
 - ~~~MSDeploy~~~ (deprecated)
 - ~~~FTP~~~ (deprecated)
+
+### Add Proxies Configuration to Your Azure Function
+
+[Azure Functions proxies](https://docs.microsoft.com/en-us/azure/azure-functions/functions-proxies) can be used for things like URL rewriting. To include a `proxies.json` file in your deployment you need to add it to the `maven-resources-plugin` configuration in `pom.xml` alongside `host.json` and `local.settings.json`.
 
 ## Common Questions
 **Q: Can I upload other static content, e.g. HTML files, as part of the function deployment?**
