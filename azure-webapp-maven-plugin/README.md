@@ -50,7 +50,7 @@ Maven | 3.0 or above
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <!-- check Maven Central for the latest version -->
-                <version>1.5.3</version>
+                <version>1.6.0</version>
                 <configuration>
                     <schemaVersion>v2</schemaVersion>
                     <resourceGroup>${RESOURCEGROUP_NAME}</resourceGroup>
@@ -207,7 +207,7 @@ Supported Value | Description
 
 <b>The supported Value for web App on windows</b>
 
-In Windows environment, default value is tomcat 8.5
+In Windows environment, if project `<packaging>` is set to `jar`, the project will be deployed to JavaSE runtime, which means no web container will be used, just run jar files. Otherwise, `tomcat 8.5` will be used as default value.
 
 Supported Value | Description
 ---|---
@@ -222,6 +222,7 @@ Supported Value | Description
 `jetty 9.1.0.20131115` | Jetty 9.1.0.v20131115
 `jetty 9.3` | Newest Jetty 9.3
 `jetty 9.3.13.20161014` | Jetty 9.3.13.v20161014
+
 > Note: It is recommended to ignore the minor version number so that the latest supported web container will be used in your Web App.
 
 #### `<resource>`
