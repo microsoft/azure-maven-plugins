@@ -209,6 +209,22 @@ Supported deployment methods are listed as below. The default value is **ZIP**.
 
 [Azure Functions proxies](https://docs.microsoft.com/en-us/azure/azure-functions/functions-proxies) can be used for things like URL rewriting. To include a `proxies.json` file in your deployment you need to add it to the `maven-resources-plugin` configuration in `pom.xml` alongside `host.json` and `local.settings.json`.
 
+For example, if you had a function bound to the path `api/index` which you wanted to also expose at the root URL of your Functions app you can do that with a `proxies.json` like this:
+
+```json
+{
+  "$schema": "http://json.schemastore.org/proxies",
+  "proxies": {
+    "IndexProxy": {
+      "matchCondition": {
+        "route": "/"
+      },
+      "backendUri": "https://%WEBSITE_HOSTNAME%/api/index"
+    }
+  }
+}
+```
+
 ## Common Questions
 **Q: Can I upload other static content, e.g. HTML files, as part of the function deployment?**
 
