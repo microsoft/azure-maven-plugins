@@ -2,6 +2,16 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for
  * license information.
+ * <p>
+ * Disclaimer:
+ * This class is copied from https://github.com/Microsoft/azure-tools-for-java/ with minor modification (fixing
+ * static analysis error).
+ * Location in the repo: /Utils/azuretools-core/src/com/microsoft/azuretools/azurecommons/util/GetHashMac.java
+ * <p>
+ * Disclaimer:
+ * This class is copied from https://github.com/Microsoft/azure-tools-for-java/ with minor modification (fixing
+ * static analysis error).
+ * Location in the repo: /Utils/azuretools-core/src/com/microsoft/azuretools/azurecommons/util/GetHashMac.java
  */
 
 /**
@@ -13,13 +23,21 @@
 
 package com.microsoft.azure.maven.telemetry;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,8 +64,11 @@ public class GetHashMac {
 
         final Pattern pattern = Pattern.compile(MAC_REGEX);
         final Pattern patternZero = Pattern.compile(MAC_REGEX_ZERO);
-        final Matcher matcher = pattern.matcher(rawMac);
+        Matcher matcher = pattern.matcher(rawMac);
         String mac = "";
+        if(!matcher.matches()){
+            matcher = pattern.matcher(getRawMacWithoutIfconfig());
+        }
         while (matcher.find()) {
             mac = matcher.group(0);
             if (!patternZero.matcher(mac).matches()) {
@@ -83,6 +104,29 @@ public class GetHashMac {
         }
 
         return ret;
+    }
+
+    private static String getRawMacWithoutIfconfig() {
+        List<String> macSet = new ArrayList<>();
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+                if (networkInterface.getHardwareAddress() != null) {
+                    byte[] mac = networkInterface.getHardwareAddress();
+                    // Refers https://www.mkyong.com/java/how-to-get-mac-address-in-java/
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < mac.length; i++) {
+                        sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+                    }
+                    macSet.add(sb.toString());
+                }
+            }
+        } catch (SocketException e) {
+            return StringUtils.EMPTY;
+        }
+        Collections.sort(macSet);
+        return StringUtils.join(macSet, "");
     }
 
     private static String hash(String mac) {
