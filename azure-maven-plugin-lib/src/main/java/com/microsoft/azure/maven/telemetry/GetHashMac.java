@@ -2,16 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for
  * license information.
- * <p>
- * Disclaimer:
- * This class is copied from https://github.com/Microsoft/azure-tools-for-java/ with minor modification (fixing
- * static analysis error).
- * Location in the repo: /Utils/azuretools-core/src/com/microsoft/azuretools/azurecommons/util/GetHashMac.java
- * <p>
- * Disclaimer:
- * This class is copied from https://github.com/Microsoft/azure-tools-for-java/ with minor modification (fixing
- * static analysis error).
- * Location in the repo: /Utils/azuretools-core/src/com/microsoft/azuretools/azurecommons/util/GetHashMac.java
  */
 
 /**
@@ -42,33 +32,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GetHashMac {
+
     public static final String MAC_REGEX = "([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}";
     public static final String MAC_REGEX_ZERO = "([0]{2}[:-]){5}[0]{2}";
-    public static final String HASHED_MAC_REGEX = "[0-9a-f]{64}";
-
-    public static boolean isValidHashMacFormat(String hashMac) {
-        if (hashMac == null || hashMac.isEmpty()) {
-            return false;
-        }
-
-        final Pattern hashedMacPattern = Pattern.compile(HASHED_MAC_REGEX);
-        final Matcher matcher = hashedMacPattern.matcher(hashMac);
-        return matcher.matches();
-    }
+    public static final Pattern MAC_PATTERN = Pattern.compile(MAC_REGEX);
 
     public static String getHashMac() {
-        final String rawMac = getRawMac();
-        if (rawMac == null || rawMac.isEmpty()) {
+        String rawMac = getRawMac();
+        rawMac = isValidRawMac(rawMac) ? rawMac : getRawMacWithoutIfconfig();
+        if (!isValidRawMac(rawMac)) {
             return null;
         }
 
-        final Pattern pattern = Pattern.compile(MAC_REGEX);
         final Pattern patternZero = Pattern.compile(MAC_REGEX_ZERO);
-        Matcher matcher = pattern.matcher(rawMac);
+        final Matcher matcher = MAC_PATTERN.matcher(rawMac);
         String mac = "";
-        if(!matcher.matches()){
-            matcher = pattern.matcher(getRawMacWithoutIfconfig());
-        }
         while (matcher.find()) {
             mac = matcher.group(0);
             if (!patternZero.matcher(mac).matches()) {
@@ -77,6 +55,10 @@ public class GetHashMac {
         }
 
         return hash(mac);
+    }
+
+    private static boolean isValidRawMac(String mac) {
+        return StringUtils.isNotEmpty(mac) && MAC_PATTERN.matcher(mac).find();
     }
 
     private static String getRawMac() {
@@ -90,8 +72,8 @@ public class GetHashMac {
 
             final ProcessBuilder builder = new ProcessBuilder(command);
             final Process process = builder.start();
-            final InputStream inputStream = process.getInputStream();
-            try (final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            try (final InputStream inputStream = process.getInputStream();
+                 final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                  final BufferedReader br = new BufferedReader(inputStreamReader)) {
                 String tmp;
                 while ((tmp = br.readLine()) != null) {
@@ -107,15 +89,15 @@ public class GetHashMac {
     }
 
     private static String getRawMacWithoutIfconfig() {
-        List<String> macSet = new ArrayList<>();
+        final List<String> macSet = new ArrayList<>();
         try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            final Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             while (interfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = interfaces.nextElement();
+                final NetworkInterface networkInterface = interfaces.nextElement();
                 if (networkInterface.getHardwareAddress() != null) {
-                    byte[] mac = networkInterface.getHardwareAddress();
+                    final byte[] mac = networkInterface.getHardwareAddress();
                     // Refers https://www.mkyong.com/java/how-to-get-mac-address-in-java/
-                    StringBuilder sb = new StringBuilder();
+                    final StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < mac.length; i++) {
                         sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
                     }
