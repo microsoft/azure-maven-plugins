@@ -58,12 +58,11 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
     private void updateRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
                                    Element configurationElement) throws MojoFailureException {
-        Element runtime = configurationElement.element("runtime");
-        if (!(runtime != null && newConfigs.getOs().equals(oldConfigs.getOs()))) {
-            XMLUtils.removeNode(configurationElement, "runtime");
-            runtime = new DOMElement("runtime");
-            configurationElement.add(runtime);
+        final Element runtime = XMLUtils.getOrCreateSubElement("runtime", configurationElement);
+        if (!newConfigs.getOs().equals(oldConfigs.getOs())) {
+            XMLUtils.clearNode(runtime);
         }
+
         switch (newConfigs.getOs()) {
             case Linux:
                 updateLinuxRunTimeNode(newConfigs, oldConfigs, runtime);
