@@ -41,7 +41,7 @@ public class WebAppUtils {
 
     private static final String JAR_CMD = ":JAR_COMMAND:";
     private static final String FILENAME = ":FILENAME:";
-    private static final String DEFAULT_JAR_COMMAND = "-Djava.net.preferIPv4Stack=true " +
+    private static final String DEFAULT_JAR_COMMAND = "%JAVA_OPTS% -Djava.net.preferIPv4Stack=true " +
         "-Dserver.port=%HTTP_PLATFORM_PORT% " +
         "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
 
