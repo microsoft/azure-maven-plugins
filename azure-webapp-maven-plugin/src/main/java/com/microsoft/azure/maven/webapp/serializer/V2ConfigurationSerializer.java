@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.serializer;
 
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
@@ -32,8 +32,8 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
         final String oldRegion = oldConfigs.getRegion() == null ? null : oldConfigs.getRegion().name();
         createOrUpdateAttribute("region", newConfigs.getRegion().name(), oldRegion, configurationElement);
         createOrUpdateAttribute("pricingTier",
-            PricingTierEnum.getPricingTierStringByPricingTierObject(newConfigs.getPricingTier()),
-            PricingTierEnum.getPricingTierStringByPricingTierObject(oldConfigs.getPricingTier()),
+            AppServiceUtils.convertPricingTierToString(newConfigs.getPricingTier()),
+            AppServiceUtils.convertPricingTierToString(oldConfigs.getPricingTier()),
             configurationElement);
 
         if (newConfigs.getOs() != null) {

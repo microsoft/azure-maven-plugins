@@ -7,11 +7,12 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.queryer.MavenPluginQueryer;
 import com.microsoft.azure.maven.queryer.QueryFactory;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
@@ -136,11 +137,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String resourceGroup = defaultName + "-rg";
         final String defaultSchemaVersion = "V2";
         final Region defaultRegion = WebAppConfiguration.DEFAULT_REGION;
-        final PricingTierEnum pricingTierEnum = WebAppConfiguration.DEFAULT_PRICINGTIER;
+        final PricingTier pricingTier = WebAppConfiguration.DEFAULT_PRICINGTIER;
         return builder.appName(defaultName)
             .resourceGroup(resourceGroup)
             .region(defaultRegion)
-            .pricingTier(pricingTierEnum.toPricingTier())
+            .pricingTier(pricingTier)
             .resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources())
             .schemaVersion(defaultSchemaVersion)
             .build();
@@ -187,7 +188,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return builder.appName(appName)
             .resourceGroup(resourceGroup)
             .region(Region.fromName(region))
-            .pricingTier(PricingTierEnum.valueOf(pricingTier).toPricingTier())
+            .pricingTier(AppServiceUtils.getPricingTierFromString(pricingTier))
             .build();
     }
 
@@ -307,8 +308,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private static List<String> getAvailablePricingTierList() {
         final Set<String> pricingTierSet = new HashSet<>();
-        for (final PricingTierEnum pricingTierEnum : PricingTierEnum.values()) {
-            pricingTierSet.add(pricingTierEnum.toString().toLowerCase());
+        for (final PricingTier pricingTier : AppServiceUtils.getAvailablePricingTiers()) {
+            pricingTierSet.add(pricingTier.toSkuDescription().size().toLowerCase());
         }
         final List<String> result = new ArrayList<>(pricingTierSet);
         Collections.sort(result);
