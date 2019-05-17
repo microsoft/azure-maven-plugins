@@ -16,12 +16,13 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.Existin
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -40,10 +41,8 @@ public class WebAppUtils {
             "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
 
     private static final String JAR_CMD = ":JAR_COMMAND:";
-    private static final String FILENAME = ":FILENAME:";
-    private static final String DEFAULT_JAR_COMMAND = "%JAVA_OPTS% -Djava.net.preferIPv4Stack=true " +
-            "-Dserver.port=%HTTP_PLATFORM_PORT% " +
-            "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
+    private static final String JAR_COMMAND_PATTERN = " %s -Djava.net.preferIPv4Stack=true -Dserver.port=" +
+            "%%HTTP_PLATFORM_PORT%% -jar &quot;%%HOME%%\\\\site\\\\wwwroot\\\\%s&quot;";
 
     public static void assureLinuxWebApp(final WebApp app) throws MojoExecutionException {
         if (!isLinuxWebApp(app)) {
@@ -137,19 +136,22 @@ public class WebAppUtils {
         }
     }
 
-    public static void generateWebConfigFile(final String jarFileName, final Log log, final String stagingDirectoryPath,
-                                             final Class pluginClass) throws IOException {
+    public static void generateWebConfigFile(final DeployTarget deployTarget, final String jarFileName,
+                                             final String stagingDirectoryPath, final Log log) throws IOException {
         log.info(GENERATING_WEB_CONFIG);
         final String templateContent;
-        try (final InputStream is = pluginClass.getResourceAsStream("web.config.template")) {
+        try (final InputStream is = WebAppUtils.class.getClassLoader()
+                .getResourceAsStream("web.config.template")) {
             templateContent = IOUtils.toString(is, "UTF-8");
         } catch (IOException e) {
             log.error(READ_WEB_CONFIG_TEMPLATE_FAIL);
             throw e;
         }
 
-        final String webConfigFile = templateContent
-                .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
+        final String javaOpts = deployTarget.getAppSettings().containsKey("JAVA_OPTS") ?
+                "%JAVA_OPTS%" : StringUtils.EMPTY;
+        final String jarCommand = String.format(JAR_COMMAND_PATTERN, javaOpts, jarFileName);
+        final String webConfigFile = templateContent.replaceAll(JAR_CMD, jarCommand);
 
         final File webConfig = new File(stagingDirectoryPath, "web.config");
         webConfig.createNewFile();

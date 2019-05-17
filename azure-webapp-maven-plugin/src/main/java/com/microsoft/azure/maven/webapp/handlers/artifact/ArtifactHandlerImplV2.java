@@ -77,7 +77,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         if (allArtifacts.size() == 0) {
             final String absolutePath = new File(stagingDirectoryPath).getAbsolutePath();
             throw new MojoExecutionException(
-                String.format("There is no artifact to deploy in staging directory: '%s'", absolutePath));
+                    String.format("There is no artifact to deploy in staging directory: '%s'", absolutePath));
         }
 
         log.info(String.format(DEPLOY_START, target.getName()));
@@ -108,12 +108,12 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         }
 
         log.info(String.format("To get rid of the following message, set the property %s to true to always proceed " +
-            "with the deploy.", ALWAYS_DEPLOY_PROPERTY));
+                "with the deploy.", ALWAYS_DEPLOY_PROPERTY));
 
         final Scanner scanner = new Scanner(System.in, "UTF-8");
         while (true) {
             log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
-                "are you sure to proceed (y/n)?");
+                    "are you sure to proceed (y/n)?");
             final String input = scanner.nextLine();
             if ("y".equalsIgnoreCase(input)) {
                 return true;
@@ -136,7 +136,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,
                                                 final String stagingDirectoryPath) throws MojoExecutionException {
         if (isJavaSERuntime()) {
-            prepareJavaSERuntime(getAllArtifacts(stagingDirectoryPath));
+            prepareJavaSERuntime(getAllArtifacts(stagingDirectoryPath), target);
         }
         final File stagingDirectory = new File(stagingDirectoryPath);
         final File zipFile = new File(stagingDirectoryPath + ".zip");
@@ -154,7 +154,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final boolean deploySuccess = performActionWithRetry(runnable, MAX_RETRY_TIMES, log);
         if (!deploySuccess) {
             throw new MojoExecutionException(
-                String.format("The zip deploy failed after %d times of retry.", MAX_RETRY_TIMES + 1));
+                    String.format("The zip deploy failed after %d times of retry.", MAX_RETRY_TIMES + 1));
         }
     }
 
@@ -162,7 +162,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
                                                 final List<File> warArtifacts) throws MojoExecutionException {
         if (warArtifacts == null || warArtifacts.size() == 0) {
             throw new MojoExecutionException(
-                String.format("There is no war artifacts to deploy in staging path %s.", stagingDirectoryPath));
+                    String.format("There is no war artifacts to deploy in staging path %s.", stagingDirectoryPath));
         }
         for (final File warArtifact : warArtifacts) {
             final String contextPath = getContextPathFromFileName(stagingDirectoryPath, warArtifact.getAbsolutePath());
@@ -180,16 +180,16 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES, log);
         if (!deploySuccess) {
             throw new MojoExecutionException(
-                String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES));
+                    String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES));
         }
     }
 
     private boolean isJavaSERuntime() throws MojoExecutionException {
         return runtimeSetting != null &&
-            ((runtimeSetting.getOsEnum() == OperatingSystemEnum.Windows &&
-                project.getPackaging().equals("jar")) ||
-                (runtimeSetting.getOsEnum() == OperatingSystemEnum.Linux &&
-                    runtimeSetting.getLinuxRuntime().stack().equalsIgnoreCase("JAVA")));
+                ((runtimeSetting.getOsEnum() == OperatingSystemEnum.Windows &&
+                        project.getPackaging().equals("jar")) ||
+                        (runtimeSetting.getOsEnum() == OperatingSystemEnum.Linux &&
+                                runtimeSetting.getLinuxRuntime().stack().equalsIgnoreCase("JAVA")));
     }
 
     private File getProjectJarArtifact(final List<File> artifacts) {
@@ -206,7 +206,8 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     /**
      * Rename project jar to app.jar for linux app service or generate web.config for windows javase app service
      */
-    private void prepareJavaSERuntime(final List<File> artifacts) throws MojoExecutionException {
+    private void prepareJavaSERuntime(final List<File> artifacts, final DeployTarget target)
+            throws MojoExecutionException {
         final File artifact = getProjectJarArtifact(artifacts);
         if (artifact == null) {
             return;
@@ -215,7 +216,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             case Windows:
                 // Windows: Generate web.config to staging folder
                 try {
-                    WebAppUtils.generateWebConfigFile(artifact.getName(), log, stagingDirectoryPath, this.getClass());
+                    WebAppUtils.generateWebConfigFile(target, artifact.getName(), stagingDirectoryPath, log);
                 } catch (IOException e) {
                     throw new MojoExecutionException("Failed to generate web.config file");
                 }
