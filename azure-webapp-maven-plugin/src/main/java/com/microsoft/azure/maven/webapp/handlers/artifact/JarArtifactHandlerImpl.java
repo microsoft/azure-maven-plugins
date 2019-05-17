@@ -77,12 +77,12 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
         final File jar = getJarFile();
         assureJarFileExisted(jar);
 
-        prepareDeploymentFiles(jar);
+        prepareDeploymentFiles(deployTarget, jar);
 
         super.publish(deployTarget);
     }
 
-    protected void prepareDeploymentFiles(File jar) throws IOException {
+    protected void prepareDeploymentFiles(DeployTarget deployTarget, File jar) throws IOException {
         final File parent = new File(stagingDirectoryPath);
         parent.mkdirs();
 
@@ -90,13 +90,13 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
             Files.copy(jar, new File(parent, DEFAULT_LINUX_JAR_NAME));
         } else {
             Files.copy(jar, new File(parent, jar.getName()));
-            WebAppUtils.generateWebConfigFile(jar.getName(), log, stagingDirectoryPath, this.getClass());
+            WebAppUtils.generateWebConfigFile(deployTarget, jar.getName(), stagingDirectoryPath, log);
         }
     }
 
     protected File getJarFile() {
         final String jarFilePath = StringUtils.isNotEmpty(jarFile) ? jarFile :
-            Paths.get(buildDirectoryAbsolutePath, project.getBuild().getFinalName() + ".jar").toString();
+                Paths.get(buildDirectoryAbsolutePath, project.getBuild().getFinalName() + ".jar").toString();
         return new File(jarFilePath);
     }
 
