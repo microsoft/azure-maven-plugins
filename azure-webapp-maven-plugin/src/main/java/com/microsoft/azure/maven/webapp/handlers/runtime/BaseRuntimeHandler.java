@@ -4,14 +4,18 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.runtime;
 
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
+import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
+import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
 
@@ -129,6 +133,17 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
         protected abstract T self();
     }
 
+    @Override
+    public AppServicePlan updateAppServicePlan(final WebApp app) throws Exception {
+        final AppServicePlan appServicePlan = WebAppUtils.getAppServicePlanByWebApp(app);
+        final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
+        // Update pricing tier
+        if (pricingTier != null && appServicePlan.pricingTier().equals(pricingTier)) {
+            appServicePlanUpdate.withPricingTier(pricingTier);
+        }
+        return appServicePlanUpdate.apply();
+    }
+
     protected BaseRuntimeHandler(Builder<?> builder) {
         this.runtime = builder.runtime;
         this.javaVersion = builder.javaVersion;
@@ -146,4 +161,5 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
         this.registryUrl = builder.registryUrl;
         this.log = builder.log;
     }
+
 }

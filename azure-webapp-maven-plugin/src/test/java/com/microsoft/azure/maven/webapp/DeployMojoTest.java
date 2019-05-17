@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -131,7 +132,7 @@ public class DeployMojoTest {
 
         assertEquals("westeurope", mojo.getRegion());
 
-        assertEquals(new PricingTier("Premium", "P1V2"), mojo.getPricingTier());
+        assertEquals(PricingTier.PREMIUM_P1V2, mojo.getPricingTier());
 
         assertEquals(null, mojo.getJavaVersion());
 

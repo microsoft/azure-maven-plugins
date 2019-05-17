@@ -4,27 +4,28 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.runtime;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 
-public class PublicDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<PublicDockerHubRuntimeHandlerImpl.Builder>{
+public class LinuxRuntimeHandlerImpl extends BaseRuntimeHandler {
+    public static class Builder extends BaseRuntimeHandler.Builder<Builder>{
         @Override
-        protected PublicDockerHubRuntimeHandlerImpl.Builder self() {
+        protected Builder self() {
             return this;
         }
 
         @Override
-        public PublicDockerHubRuntimeHandlerImpl build() {
-            return new PublicDockerHubRuntimeHandlerImpl(this);
+        public LinuxRuntimeHandlerImpl build() {
+            return new LinuxRuntimeHandlerImpl(this);
         }
     }
 
-    private PublicDockerHubRuntimeHandlerImpl(final PublicDockerHubRuntimeHandlerImpl.Builder builder) {
+    private LinuxRuntimeHandlerImpl(final Builder builder) {
         super(builder);
     }
 
@@ -33,13 +34,13 @@ public class PublicDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
         final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
             servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.LINUX);
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
-            .withPublicDockerHubImage(image);
+            .withBuiltInImage(runtime);
     }
 
     @Override
-    public WebApp.Update updateAppRuntime(final WebApp app) throws Exception {
+    public Update updateAppRuntime(WebApp app) throws Exception {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
-        return app.update().withPublicDockerHubImage(image);
+        return app.update().withBuiltInImage(runtime);
     }
 }

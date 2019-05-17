@@ -4,11 +4,13 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.runtime;
 
+import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class NullRuntimeHandlerImpl implements RuntimeHandler {
@@ -23,6 +25,11 @@ public class NullRuntimeHandlerImpl implements RuntimeHandler {
 
     @Override
     public Update updateAppRuntime(final WebApp app) {
+        return null;
+    }
+
+    @Override
+    public AppServicePlan updateAppServicePlan(final WebApp app) throws Exception {
         return null;
     }
 }
