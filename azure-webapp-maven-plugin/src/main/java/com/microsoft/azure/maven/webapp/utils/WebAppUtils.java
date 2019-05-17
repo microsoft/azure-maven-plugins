@@ -37,13 +37,13 @@ public class WebAppUtils {
     public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
     public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
     public static final String CONFIGURATION_NOT_APPLICABLE =
-        "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
+            "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
 
     private static final String JAR_CMD = ":JAR_COMMAND:";
     private static final String FILENAME = ":FILENAME:";
     private static final String DEFAULT_JAR_COMMAND = "%JAVA_OPTS% -Djava.net.preferIPv4Stack=true " +
-        "-Dserver.port=%HTTP_PLATFORM_PORT% " +
-        "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
+            "-Dserver.port=%HTTP_PLATFORM_PORT% " +
+            "-jar &quot;%HOME%\\\\site\\\\wwwroot\\\\:FILENAME:&quot;";
 
     public static void assureLinuxWebApp(final WebApp app) throws MojoExecutionException {
         if (!isLinuxWebApp(app)) {
@@ -64,10 +64,10 @@ public class WebAppUtils {
         assureLinuxPlan(plan);
 
         final ExistingLinuxPlanWithGroup existingLinuxPlanWithGroup = azureClient.webApps()
-            .define(appName).withExistingLinuxPlan(plan);
+                .define(appName).withExistingLinuxPlan(plan);
         return azureClient.resourceGroups().contain(resourceGroup) ?
-            existingLinuxPlanWithGroup.withExistingResourceGroup(resourceGroup) :
-            existingLinuxPlanWithGroup.withNewResourceGroup(resourceGroup);
+                existingLinuxPlanWithGroup.withExistingResourceGroup(resourceGroup) :
+                existingLinuxPlanWithGroup.withNewResourceGroup(resourceGroup);
     }
 
     public static WithCreate defineWindowsApp(final String resourceGroup,
@@ -76,10 +76,10 @@ public class WebAppUtils {
         assureWindowsPlan(plan);
 
         final ExistingWindowsPlanWithGroup existingWindowsPlanWithGroup = azureClient.webApps()
-            .define(appName).withExistingWindowsPlan(plan);
+                .define(appName).withExistingWindowsPlan(plan);
         return azureClient.resourceGroups().contain(resourceGroup) ?
-            existingWindowsPlanWithGroup.withExistingResourceGroup(resourceGroup) :
-            existingWindowsPlanWithGroup.withNewResourceGroup(resourceGroup);
+                existingWindowsPlanWithGroup.withExistingResourceGroup(resourceGroup) :
+                existingWindowsPlanWithGroup.withNewResourceGroup(resourceGroup);
     }
 
     public static AppServicePlan createOrGetAppServicePlan(String servicePlanName,
@@ -91,25 +91,25 @@ public class WebAppUtils {
                                                            final Log log,
                                                            final OperatingSystem os) throws MojoExecutionException {
         AppServicePlan plan = AppServiceUtils.getAppServicePlan(servicePlanName, azure,
-            resourceGroup, servicePlanResourceGroup);
+                resourceGroup, servicePlanResourceGroup);
 
         if (plan == null) {
             if (region == null) {
                 throw new MojoExecutionException("Please config the <region> in pom.xml, " +
-                    "it is required to create a new Azure App Service Plan.");
+                        "it is required to create a new Azure App Service Plan.");
             }
             servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);
             final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(
-                resourceGroup, servicePlanResourceGroup);
+                    resourceGroup, servicePlanResourceGroup);
             log.info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
 
             final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
-                .define(servicePlanName).withRegion(region);
+                    .define(servicePlanName).withRegion(region);
 
             final AppServicePlan.DefinitionStages.WithPricingTier withPricingTier
-                = azure.resourceGroups().contain(servicePlanResGrp) ?
-                withGroup.withExistingResourceGroup(servicePlanResGrp) :
-                withGroup.withNewResourceGroup(servicePlanResGrp);
+                    = azure.resourceGroups().contain(servicePlanResGrp) ?
+                    withGroup.withExistingResourceGroup(servicePlanResGrp) :
+                    withGroup.withNewResourceGroup(servicePlanResGrp);
 
             plan = withPricingTier.withPricingTier(pricingTier).withOperatingSystem(os).create();
 
@@ -149,7 +149,7 @@ public class WebAppUtils {
         }
 
         final String webConfigFile = templateContent
-            .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
+                .replaceAll(JAR_CMD, DEFAULT_JAR_COMMAND.replaceAll(FILENAME, jarFileName));
 
         final File webConfig = new File(stagingDirectoryPath, "web.config");
         webConfig.createNewFile();
@@ -159,6 +159,10 @@ public class WebAppUtils {
         } catch (Exception e) {
             log.error(GENERATE_WEB_CONFIG_FAIL);
         }
+    }
+
+    public static AppServicePlan getAppServicePlanByWebApp(final WebApp webApp) {
+        return webApp.manager().appServicePlans().getById(webApp.appServicePlanId());
     }
 
     /**
@@ -177,14 +181,14 @@ public class WebAppUtils {
     private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
         if (!plan.operatingSystem().equals(OperatingSystem.WINDOWS)) {
             throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                plan.name(), OperatingSystem.WINDOWS.name()));
+                    plan.name(), OperatingSystem.WINDOWS.name()));
         }
     }
 
     private static void assureLinuxPlan(final AppServicePlan plan) throws MojoExecutionException {
         if (!plan.operatingSystem().equals(OperatingSystem.LINUX)) {
             throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
-                plan.name(), OperatingSystem.LINUX.name()));
+                    plan.name(), OperatingSystem.LINUX.name()));
         }
     }
 

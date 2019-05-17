@@ -189,7 +189,6 @@
                         <excludes>
                             <exclude>**/AuthenticationSetting.class</exclude>
                             <exclude>**/telemetry/**.class</exclude>
-                            <exclude>**/PricingTierEnum.class</exclude>
                         </excludes>
                     </instrumentation>
                 </configuration>

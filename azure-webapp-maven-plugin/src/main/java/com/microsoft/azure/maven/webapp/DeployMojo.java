@@ -38,9 +38,9 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String STOP_APP_DONE = "Successfully stopped Web App.";
     public static final String START_APP_DONE = "Successfully started Web App.";
     public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "The Web App specified in pom.xml does not exist. " +
-        "Please make sure the Web App name is correct.";
+            "Please make sure the Web App name is correct.";
     public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist. " +
-        "Please check if any error message during creation";
+            "Please check if any error message during creation";
 
     protected DeploymentUtil util = new DeploymentUtil();
 
@@ -73,6 +73,9 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     protected void updateWebApp(final RuntimeHandler runtimeHandler, final WebApp app) throws Exception {
+        // Update App Service Plan
+        runtimeHandler.updateAppServicePlan(app);
+        // Update Web App
         final Update update = runtimeHandler.updateAppRuntime(app);
         if (update == null) {
             info(UPDATE_WEBAPP_SKIP);

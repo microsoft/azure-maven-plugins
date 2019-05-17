@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import java.io.File;
 import java.io.IOException;
 

@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
@@ -21,12 +21,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
-import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.areAllWarFiles;
-import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getArtifactsRecursively;
-import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getContextPathFromFileName;
-import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.getRealWarDeployExecutor;
-import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.hasWarFiles;
-import static com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils.performActionWithRetry;
+import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.areAllWarFiles;
+import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getArtifactsRecursively;
+import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getContextPathFromFileName;
+import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getRealWarDeployExecutor;
+import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.hasWarFiles;
+import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.performActionWithRetry;
 
 public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
