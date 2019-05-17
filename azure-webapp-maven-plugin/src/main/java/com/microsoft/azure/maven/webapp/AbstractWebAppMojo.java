@@ -54,17 +54,17 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * App Service pricing tier, which will only be used to create Web App at the first time.<br/>
      * Below is the list of supported pricing tier:
      * <ul>
-     * <li>F1</li>
-     * <li>D1</li>
-     * <li>B1</li>
-     * <li>B2</li>
-     * <li>B3</li>
-     * <li>S1</li>
-     * <li>S2</li>
-     * <li>S3</li>
-     * <li>P1V2</li>
-     * <li>P2V2</li>
-     * <li>P3V2</li>
+     *     <li>F1</li>
+     *     <li>D1</li>
+     *     <li>B1</li>
+     *     <li>B2</li>
+     *     <li>B3</li>
+     *     <li>S1</li>
+     *     <li>S2</li>
+     *     <li>S3</li>
+     *     <li>P1V2</li>
+     *     <li>P2V2</li>
+     *     <li>P3V2</li>
      * </ul>
      */
     @Parameter(property = "webapp.pricingTier", defaultValue = "P1V2")
@@ -74,16 +74,16 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * JVM version of Web App. This only applies to Windows-based Web App.<br/>
      * Below is the list of supported JVM versions:
      * <ul>
-     * <li>1.7</li>
-     * <li>1.7.0_51</li>
-     * <li>1.7.0_71</li>
-     * <li>1.8</li>
-     * <li>1.8.0_25</li>
-     * <li>1.8.0_60</li>
-     * <li>1.8.0_73</li>
-     * <li>1.8.0_111</li>
-     * <li>1.8.0_92</li>
-     * <li>1.8.0_102</li>
+     *     <li>1.7</li>
+     *     <li>1.7.0_51</li>
+     *     <li>1.7.0_71</li>
+     *     <li>1.8</li>
+     *     <li>1.8.0_25</li>
+     *     <li>1.8.0_60</li>
+     *     <li>1.8.0_73</li>
+     *     <li>1.8.0_111</li>
+     *     <li>1.8.0_92</li>
+     *     <li>1.8.0_102</li>
      * </ul>
      *
      * @since 0.1.0
@@ -95,17 +95,17 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * Web container type and version within Web App. This only applies to Windows-based Web App.<br/>
      * Below is the list of supported web container types:
      * <ul>
-     * <li>tomcat 7.0</li>
-     * <li>tomcat 7.0.50</li>
-     * <li>tomcat 7.0.62</li>
-     * <li>tomcat 8.0</li>
-     * <li>tomcat 8.0.23</li>
-     * <li>tomcat 8.5</li>
-     * <li>tomcat 8.5.6</li>
-     * <li>jetty 9.1</li>
-     * <li>jetty 9.1.0.20131115</li>
-     * <li>jetty 9.3</li>
-     * <li>jetty 9.3.12.20161014</li>
+     *     <li>tomcat 7.0</li>
+     *     <li>tomcat 7.0.50</li>
+     *     <li>tomcat 7.0.62</li>
+     *     <li>tomcat 8.0</li>
+     *     <li>tomcat 8.0.23</li>
+     *     <li>tomcat 8.5</li>
+     *     <li>tomcat 8.5.6</li>
+     *     <li>jetty 9.1</li>
+     *     <li>jetty 9.1.0.20131115</li>
+     *     <li>jetty 9.3</li>
+     *     <li>jetty 9.3.12.20161014</li>
      * </ul>
      *
      * @since 0.1.0
@@ -116,9 +116,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     /**
      * Below is the list of supported Linux runtime:
      * <ul>
-     * <li>tomcat 8.5-jre8</li>
-     * <li>tomcat 9.0-jre8</li>
-     * <li>jre8</li>
+     *     <li>tomcat 8.5-jre8</li>
+     *     <li>tomcat 9.0-jre8</li>
+     *     <li>jre8</li>
      * </ul>
      */
     @Parameter(property = "webapp.linuxRuntime")

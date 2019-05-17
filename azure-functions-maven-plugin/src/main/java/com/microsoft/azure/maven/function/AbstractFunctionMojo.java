@@ -28,17 +28,17 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * App Service pricing tier, which will only be used to create Functions App at the first time.<br/>
      * Below is the list of supported pricing tier:
      * <ul>
-     * <li>F1</li>
-     * <li>D1</li>
-     * <li>B1</li>
-     * <li>B2</li>
-     * <li>B3</li>
-     * <li>S1</li>
-     * <li>S2</li>
-     * <li>S3</li>
-     * <li>P1V2</li>
-     * <li>P2V2</li>
-     * <li>P3V2</li>
+     *     <li>F1</li>
+     *     <li>D1</li>
+     *     <li>B1</li>
+     *     <li>B2</li>
+     *     <li>B3</li>
+     *     <li>S1</li>
+     *     <li>S2</li>
+     *     <li>S3</li>
+     *     <li>P1V2</li>
+     *     <li>P2V2</li>
+     *     <li>P3V2</li>
      * </ul>
      */
     @Parameter(property = "functions.pricingTier")
