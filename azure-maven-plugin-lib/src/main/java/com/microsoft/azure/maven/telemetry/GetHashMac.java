@@ -35,14 +35,11 @@ public class GetHashMac {
 
     private static final String MAC_REGEX = "([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}";
     private static final String MAC_REGEX_ZERO = "([0]{2}[:-]){5}[0]{2}";
-    private static final String USE_NETWORK_INTERFACE = "UseNetworkInterface";
-    private static final String NO_MAC_ADDRESS = "NoMacAddress";
     private static final Pattern MAC_PATTERN = Pattern.compile(MAC_REGEX);
 
-    public static String getHashMac(TelemetryProxy telemetryProxy) {
-        String rawMac = getRawMac(telemetryProxy);
+    public static String getHashMac() {
+        final String rawMac = getRawMac();
         if (!isValidRawMac(rawMac)) {
-            telemetryProxy.trackEvent(NO_MAC_ADDRESS);
             return null;
         }
 
@@ -63,7 +60,7 @@ public class GetHashMac {
         return StringUtils.isNotEmpty(mac) && MAC_PATTERN.matcher(mac).find();
     }
 
-    private static String getRawMac(TelemetryProxy telemetryProxy) {
+    private static String getRawMac() {
         String ret = null;
         try {
             final String os = System.getProperty("os.name").toLowerCase();
@@ -86,7 +83,6 @@ public class GetHashMac {
                 throw new IOException("Command execute fail.");
             }
         } catch (IOException | InterruptedException ex) {
-            telemetryProxy.trackEvent(USE_NETWORK_INTERFACE);
             return getRawMacWithNetworkInterface();
         }
 
