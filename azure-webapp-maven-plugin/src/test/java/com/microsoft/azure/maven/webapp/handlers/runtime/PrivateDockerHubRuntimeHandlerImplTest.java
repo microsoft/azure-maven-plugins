@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.runtime;
 
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.WebApp;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PrivateRegistryRuntimeHandlerImplTest {
+public class PrivateDockerHubRuntimeHandlerImplTest {
     @Mock
     private WebAppConfiguration config;
 
@@ -39,17 +39,17 @@ public class PrivateRegistryRuntimeHandlerImplTest {
     @Mock
     private Log log;
 
-    private final PrivateRegistryRuntimeHandlerImpl.Builder builder =
-        new PrivateRegistryRuntimeHandlerImpl.Builder();
+    private final PrivateDockerHubRuntimeHandlerImpl.Builder builder =
+        new PrivateDockerHubRuntimeHandlerImpl.Builder();
 
-    private PrivateRegistryRuntimeHandlerImpl handler;
+    private PrivateDockerHubRuntimeHandlerImpl handler;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
     }
 
-    private void initHandlerForV2() {
+    private void initHandlerV2() {
         handler = builder.appName(config.getAppName())
             .resourceGroup(config.getResourceGroup())
             .region(config.getRegion())
@@ -58,10 +58,10 @@ public class PrivateRegistryRuntimeHandlerImplTest {
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
             .mavenSettings(config.getMavenSettings())
+            .log(log)
             .image(config.getImage())
             .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
-            .log(log)
             .build();
     }
 
@@ -83,13 +83,15 @@ public class PrivateRegistryRuntimeHandlerImplTest {
 
     @Test
     public void updateAppRuntimeV2() throws Exception {
-        final SiteInner siteInner = mock(SiteInner.class);
-        doReturn("app,linux").when(siteInner).kind();
-        final WebApp.UpdateStages.WithCredentials withCredentials = mock(WebApp.UpdateStages.WithCredentials.class);
-        final WebApp.Update update = mock(WebApp.Update.class);
-        doReturn(withCredentials).when(update).withPrivateRegistryImage("", "");
         final WebApp app = mock(WebApp.class);
+
+        final SiteInner siteInner = mock(SiteInner.class);
         doReturn(siteInner).when(app).inner();
+        doReturn("app,linux").when(siteInner).kind();
+
+        final WebApp.Update update = mock(WebApp.Update.class);
+        final WebApp.UpdateStages.WithCredentials withCredentials = mock(WebApp.UpdateStages.WithCredentials.class);
+        doReturn(withCredentials).when(update).withPrivateDockerHubImage("");
         doReturn(update).when(app).update();
 
         final Server server = mock(Server.class);
@@ -97,27 +99,25 @@ public class PrivateRegistryRuntimeHandlerImplTest {
         doReturn(server).when(settings).getServer(anyString());
         doReturn(settings).when(config).getMavenSettings();
         doReturn("").when(config).getImage();
-        doReturn("").when(config).getRegistryUrl();
         doReturn("serverId").when(config).getServerId();
 
-        initHandlerForV2();
-
+        initHandlerV2();
         handler.updateAppRuntime(app);
 
-        verify(update, times(1)).withPrivateRegistryImage("", "");
+        verify(update, times(1)).withPrivateDockerHubImage("");
         verify(server, times(1)).getUsername();
         verify(server, times(1)).getPassword();
     }
 
     @Test
     public void updateAppRuntimeV1() throws Exception {
+        final WebApp app = mock(WebApp.class);
         final SiteInner siteInner = mock(SiteInner.class);
         doReturn("app,linux").when(siteInner).kind();
-        final WithCredentials withCredentials = mock(WithCredentials.class);
-        final Update update = mock(Update.class);
-        doReturn(withCredentials).when(update).withPrivateRegistryImage(null, null);
-        final WebApp app = mock(WebApp.class);
         doReturn(siteInner).when(app).inner();
+        final Update update = mock(Update.class);
+        final WithCredentials withCredentials = mock(WithCredentials.class);
+        doReturn(withCredentials).when(update).withPrivateDockerHubImage(null);
         doReturn(update).when(app).update();
         doReturn("serverId").when(config).getServerId();
 
@@ -129,9 +129,8 @@ public class PrivateRegistryRuntimeHandlerImplTest {
         initHandlerV1();
         handler.updateAppRuntime(app);
 
-        verify(update, times(1)).withPrivateRegistryImage(null, null);
+        verify(update, times(1)).withPrivateDockerHubImage(null);
         verify(server, times(1)).getUsername();
         verify(server, times(1)).getPassword();
     }
-
 }

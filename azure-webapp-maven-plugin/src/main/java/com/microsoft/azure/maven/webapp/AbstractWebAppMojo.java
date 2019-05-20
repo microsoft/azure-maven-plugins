@@ -12,8 +12,8 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
@@ -68,7 +68,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * </ul>
      */
     @Parameter(property = "webapp.pricingTier", defaultValue = "P1V2")
-    protected PricingTierEnum pricingTier;
+    protected String pricingTier;
 
     /**
      * JVM version of Web App. This only applies to Windows-based Web App.<br/>
@@ -203,6 +203,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     /**
      * Schema version, which will be used to indicate the version of settings schema to use.
+     *
      * @since 2.0.0
      */
     @Parameter(property = "schemaVersion", defaultValue = "v1")
@@ -210,6 +211,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     /**
      * Runtime setting
+     *
      * @since 2.0.0
      */
     @Parameter(property = "runtime")
@@ -217,6 +219,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     /**
      * Deployment setting
+     *
      * @since 2.0.0
      */
     @Parameter(property = "deployment")
@@ -258,7 +261,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     public PricingTier getPricingTier() throws MojoExecutionException {
-        return pricingTier == null ? new PricingTier("Premium", "P1V2") : pricingTier.toPricingTier();
+        return StringUtils.isEmpty(pricingTier) ? WebAppConfiguration.DEFAULT_PRICINGTIER :
+            AppServiceUtils.getPricingTierFromString(pricingTier);
     }
 
     public JavaVersion getJavaVersion() {

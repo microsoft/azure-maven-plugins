@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.google.common.io.Files;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
