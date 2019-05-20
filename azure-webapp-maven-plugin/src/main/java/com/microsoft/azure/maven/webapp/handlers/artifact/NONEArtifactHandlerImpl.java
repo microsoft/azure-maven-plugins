@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;

@@ -4,15 +4,11 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.runtime;
 
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.management.appservice.WebAppBase;
-import com.microsoft.azure.management.appservice.WebAppBase.UpdateStages.WithWebContainer;
-import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import org.apache.maven.plugin.logging.Log;
@@ -23,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertSame;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -31,7 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
-public class WindowsRuntimeHandlerImplTest {
+public class PublicDockerHubRuntimeHandlerImplTest {
     @Mock
     private WebAppConfiguration config;
 
@@ -40,16 +36,17 @@ public class WindowsRuntimeHandlerImplTest {
 
     @Mock
     private Log log;
-    private final WindowsRuntimeHandlerImpl.Builder builder = new WindowsRuntimeHandlerImpl.Builder();
 
-    private WindowsRuntimeHandlerImpl handler = null;
+    private PublicDockerHubRuntimeHandlerImpl.Builder builder = new PublicDockerHubRuntimeHandlerImpl.Builder();
+
+    private PublicDockerHubRuntimeHandlerImpl handler;
 
     @Before
-    public void setup() {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
     }
 
-    private void initHandlerV2() {
+    private void initHandlerV2()  {
         handler = builder.appName(config.getAppName())
             .resourceGroup(config.getResourceGroup())
             .region(config.getRegion())
@@ -57,8 +54,9 @@ public class WindowsRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .javaVersion(config.getJavaVersion())
-            .webContainer(config.getWebContainer())
+            .image(config.getImage())
+            .serverId(config.getServerId())
+            .registryUrl(config.getRegistryUrl())
             .log(log)
             .build();
     }
@@ -71,49 +69,44 @@ public class WindowsRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .javaVersion(config.getJavaVersion())
-            .webContainer(config.getWebContainer())
+            .image(config.getImage())
+            .serverId(config.getServerId())
+            .registryUrl(config.getRegistryUrl())
             .log(log)
             .build();
     }
 
     @Test
-    public void updateAppRuntimeTestV1() throws Exception {
+    public void updateAppRuntimeV2() throws Exception {
         final SiteInner siteInner = mock(SiteInner.class);
-        doReturn("app").when(siteInner).kind();
-        final WithWebContainer withWebContainer = mock(WithWebContainer.class);
-        final Update update = mock(Update.class);
-        doReturn(withWebContainer).when(update).withJavaVersion(null);
+        doReturn("app,linux").when(siteInner).kind();
+        final WebApp.Update update = mock(WebApp.Update.class);
         final WebApp app = mock(WebApp.class);
         doReturn(siteInner).when(app).inner();
         doReturn(update).when(app).update();
-        doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(config).getWebContainer();
+        doReturn("nginx").when(config).getImage();
 
-        initHandlerV1();
-        assertSame(update, handler.updateAppRuntime(app));
-        verify(withWebContainer, times(1)).withWebContainer(WebContainer.TOMCAT_8_5_NEWEST);
-        verifyNoMoreInteractions(withWebContainer);
+        initHandlerV2();
+        handler.updateAppRuntime(app);
+
+        verify(update, times(1)).withPublicDockerHubImage("nginx");
+        verifyNoMoreInteractions(update);
     }
 
     @Test
-    public void updateAppRuntimeTestV2() throws Exception {
-        final WebApp app = mock(WebApp.class);
+    public void updateAppRuntimeV1() throws Exception {
         final SiteInner siteInner = mock(SiteInner.class);
+        doReturn("app,linux").when(siteInner).kind();
+        final Update update = mock(Update.class);
+        final WebApp app = mock(WebApp.class);
         doReturn(siteInner).when(app).inner();
-        doReturn("app").when(siteInner).kind();
-        doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(config).getWebContainer();
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(config).getJavaVersion();
-
-        final WebAppBase.UpdateStages.WithWebContainer withWebContainer =
-            mock(WebAppBase.UpdateStages.WithWebContainer.class);
-        final WebApp.Update update = mock(WebApp.Update.class);
-        doReturn(withWebContainer).when(update).withJavaVersion(JavaVersion.JAVA_8_NEWEST);
         doReturn(update).when(app).update();
+        doReturn("nginx").when(config).getImage();
 
-        initHandlerV2();
+        initHandlerV1();
+        handler.updateAppRuntime(app);
 
-        assertSame(update, handler.updateAppRuntime(app));
-        verify(withWebContainer, times(1)).withWebContainer(WebContainer.TOMCAT_8_5_NEWEST);
-        verifyNoMoreInteractions(withWebContainer);
+        verify(update, times(1)).withPublicDockerHubImage(any(String.class));
+        verifyNoMoreInteractions(update);
     }
 }

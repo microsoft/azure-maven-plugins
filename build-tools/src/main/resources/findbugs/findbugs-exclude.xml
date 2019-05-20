@@ -12,15 +12,15 @@
     <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
     <Match>
         <Or>
-            <Class name = "com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils$1" />
-            <Class name = "com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils$2" />
+            <Class name = "com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils$1" />
+            <Class name = "com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils$2" />
         </Or>
         <Bug pattern = "SIC_INNER_SHOULD_BE_STATIC_ANON" />
     </Match>
     <Match>
         <Or>
-            <Class name = "com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils$1" />
-            <Class name = "com.microsoft.azure.maven.webapp.handlers.ArtifactHandlerUtils$2" />
+            <Class name = "com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils$1" />
+            <Class name = "com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils$2" />
         </Or>
         <Bug pattern = "BC_UNCONFIRMED_CAST" />
     </Match>

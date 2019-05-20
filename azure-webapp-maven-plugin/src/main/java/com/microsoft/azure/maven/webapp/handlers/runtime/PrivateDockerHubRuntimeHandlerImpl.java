@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.handlers;
+package com.microsoft.azure.maven.webapp.handlers.runtime;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
@@ -15,21 +15,20 @@ import org.apache.maven.settings.Server;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
 
-public class PrivateRegistryRuntimeHandlerImpl extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<Builder> {
-
+public class PrivateDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
+    public static class Builder extends BaseRuntimeHandler.Builder<Builder>{
         @Override
-        protected PrivateRegistryRuntimeHandlerImpl.Builder self() {
+        protected PrivateDockerHubRuntimeHandlerImpl.Builder self() {
             return this;
         }
 
         @Override
-        public PrivateRegistryRuntimeHandlerImpl build() {
-            return new PrivateRegistryRuntimeHandlerImpl(this);
+        public PrivateDockerHubRuntimeHandlerImpl build() {
+            return new PrivateDockerHubRuntimeHandlerImpl(this);
         }
     }
 
-    private PrivateRegistryRuntimeHandlerImpl(final Builder builder) {
+    private PrivateDockerHubRuntimeHandlerImpl(final Builder builder) {
         super(builder);
     }
 
@@ -41,7 +40,7 @@ public class PrivateRegistryRuntimeHandlerImpl extends BaseRuntimeHandler {
         final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
             servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.LINUX);
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
-            .withPrivateRegistryImage(image, registryUrl)
+            .withPrivateDockerHubImage(image)
             .withCredentials(server.getUsername(), server.getPassword());
     }
 
@@ -53,7 +52,7 @@ public class PrivateRegistryRuntimeHandlerImpl extends BaseRuntimeHandler {
         final Server server = Utils.getServer(settings, serverId);
         assureServerExist(server, serverId);
         return app.update()
-            .withPrivateRegistryImage(image, registryUrl)
+            .withPrivateDockerHubImage(image)
             .withCredentials(server.getUsername(), server.getPassword());
     }
 }

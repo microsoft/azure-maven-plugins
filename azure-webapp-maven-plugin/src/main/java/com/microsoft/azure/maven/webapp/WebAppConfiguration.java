@@ -11,7 +11,7 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
@@ -26,7 +26,7 @@ import java.util.List;
 public class WebAppConfiguration {
 
     public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
-    public static final PricingTierEnum DEFAULT_PRICINGTIER = PricingTierEnum.P1V2;
+    public static final PricingTier DEFAULT_PRICINGTIER = PricingTier.PREMIUM_P1V2;
     public static final JavaVersion DEFAULT_WINDOWS_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
     public static final WebContainer DEFAULT_WINDOWS_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
     public static final String DEFAULT_LINUX_JAVA_VERSION = "jre8";
@@ -203,8 +203,7 @@ public class WebAppConfiguration {
     }
 
     public String getPricingTierOrDefault() {
-        return pricingTier != null ? PricingTierEnum.getPricingTierStringByPricingTierObject(pricingTier) :
-            DEFAULT_PRICINGTIER.toString();
+        return AppServiceUtils.convertPricingTierToString(pricingTier == null ? pricingTier : DEFAULT_PRICINGTIER);
     }
 
     public String getLinuxJavaVersionOrDefault() {
