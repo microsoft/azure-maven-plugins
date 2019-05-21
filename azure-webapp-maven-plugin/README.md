@@ -50,7 +50,7 @@ Maven | 3.0 or above
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <!-- check Maven Central for the latest version -->
-                <version>1.5.3</version>
+                <version>1.6.0</version>
                 <configuration>
                     <schemaVersion>v2</schemaVersion>
                     <resourceGroup>${RESOURCEGROUP_NAME}</resourceGroup>
