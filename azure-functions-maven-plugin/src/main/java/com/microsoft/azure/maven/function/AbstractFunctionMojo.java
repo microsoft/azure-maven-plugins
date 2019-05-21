@@ -27,7 +27,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
     private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java";
     private static final String CHANGE_FUNCTIONS_WORKER_RUNTIME = "Function worker runtime doesn't " +
-            "meet th requirement, change it from %s to java";
+            "meet the requirement, change it from %s to java";
 
     //region Properties
     /**
