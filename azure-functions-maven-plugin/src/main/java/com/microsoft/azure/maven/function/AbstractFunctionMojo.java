@@ -17,11 +17,17 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Map;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     private static final String JDK_VERSION_ERROR = "Azure Functions only support JDK 8, which is lower than local " +
-        "JDK version %s";
+            "JDK version %s";
+    private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
+    private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
+    private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java";
+    private static final String CHANGE_FUNCTIONS_WORKER_RUNTIME = "Function worker runtime doesn't " +
+            "meet th requirement, change it from %s to java";
 
     //region Properties
     /**
@@ -64,6 +70,21 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.region", defaultValue = "westeurope")
     protected String region;
 
+    //endregion
+
+    //region get App Settings
+    @Override
+    public Map getAppSettings() {
+        final Map result = super.getAppSettings();
+        final String workerRuntime = (String) result.get(FUNCTIONS_WORKER_RUNTIME_NAME);
+        if (StringUtils.isEmpty(workerRuntime)) {
+            info(SET_FUNCTIONS_WORKER_RUNTIME);
+        } else if (!FUNCTIONS_WORKER_RUNTIME_VALUE.equals(workerRuntime)) {
+            warning(String.format(CHANGE_FUNCTIONS_WORKER_RUNTIME, workerRuntime));
+        }
+        result.put(FUNCTIONS_WORKER_RUNTIME_NAME, FUNCTIONS_WORKER_RUNTIME_VALUE);
+        return result;
+    }
     //endregion
 
     //region Getter
