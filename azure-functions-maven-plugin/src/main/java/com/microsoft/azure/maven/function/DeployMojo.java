@@ -23,6 +23,7 @@ import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -54,6 +55,25 @@ public class DeployMojo extends AbstractFunctionMojo {
         " set it to Java 8";
     public static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
         " meet the requirement of Azure Functions, set it to Java 8";
+    public static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
+    public static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
+    public static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java";
+    public static final String CHANGE_FUNCTIONS_WORKER_RUNTIME = "Function worker runtime doesn't meet requirement, change it to java";
+
+    //region get App Settings
+    @Override
+    public Map getAppSettings() {
+        final Map result = super.getAppSettings();
+        final String workerRuntime = (String) result.get(FUNCTIONS_WORKER_RUNTIME_NAME);
+        if (StringUtils.isEmpty(workerRuntime)) {
+            info(SET_FUNCTIONS_WORKER_RUNTIME);
+        } else if (!FUNCTIONS_WORKER_RUNTIME_VALUE.equals(workerRuntime)) {
+            warning(CHANGE_FUNCTIONS_WORKER_RUNTIME);
+        }
+        result.put(FUNCTIONS_WORKER_RUNTIME_NAME, FUNCTIONS_WORKER_RUNTIME_VALUE);
+        return result;
+    }
+    //endregion
 
     //region Entry Point
     @Override
