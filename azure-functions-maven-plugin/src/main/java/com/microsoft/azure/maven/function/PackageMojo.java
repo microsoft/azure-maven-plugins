@@ -45,6 +45,7 @@ import java.util.Set;
 public class PackageMojo extends AbstractFunctionMojo {
     public static final String SEARCH_FUNCTIONS = "Step 1 of 7: Searching for Azure Functions entry points";
     public static final String FOUND_FUNCTIONS = " Azure Functions entry point(s) found.";
+    public static final String NO_FUNCTIONS = "Azure Functions entry point not found, plugin will exit.";
     public static final String GENERATE_CONFIG = "Step 2 of 7: Generating Azure Functions configurations";
     public static final String GENERATE_SKIP = "No Azure Functions found. Skip configuration generation.";
     public static final String GENERATE_DONE = "Generation done.";
@@ -75,6 +76,11 @@ public class PackageMojo extends AbstractFunctionMojo {
         final AnnotationHandler annotationHandler = getAnnotationHandler();
 
         final Set<Method> methods = findAnnotatedMethods(annotationHandler);
+
+        if (methods.size() == 0) {
+            info(NO_FUNCTIONS);
+            return;
+        }
 
         final Map<String, FunctionConfiguration> configMap = getFunctionConfigurations(annotationHandler, methods);
 
