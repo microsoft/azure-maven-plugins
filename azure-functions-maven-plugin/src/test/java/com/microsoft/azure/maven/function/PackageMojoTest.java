@@ -15,13 +15,17 @@ import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.reflections.util.ClasspathHelper;
 
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
@@ -35,11 +39,10 @@ public class PackageMojoTest extends MojoTestBase {
     public void doExecute() throws Exception {
         final PackageMojo mojo = getMojoFromPom();
         final PackageMojo mojoSpy = spy(mojo);
+        final Set<Method> methods = new HashSet<>(Arrays.asList(this.getClass().getMethods()));
         ReflectionUtils.setVariableValueInObject(mojoSpy, "finalName", "artifact-0.1.0");
         doReturn(mock(AnnotationHandler.class)).when(mojoSpy).getAnnotationHandler();
-        doReturn(ClasspathHelper.forPackage("com.microsoft.azure.maven.function.handlers").toArray()[0])
-                .when(mojoSpy)
-                .getTargetClassUrl();
+        doReturn(methods).when(mojoSpy).findAnnotatedMethods(any());
         doReturn("target/azure-functions").when(mojoSpy).getDeploymentStagingDirectoryPath();
         doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(mock(MavenProject.class)).when(mojoSpy).getProject();
