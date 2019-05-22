@@ -67,7 +67,7 @@ public class AppServiceUtils {
     }
 
     public static String convertPricingTierToString(final PricingTier pricingTier) {
-        return pricingTier.toSkuDescription().size();
+        return pricingTier == null ? null : pricingTier.toSkuDescription().size();
     }
 
     public static List<PricingTier> getAvailablePricingTiers() {
