@@ -39,6 +39,7 @@ public class WebAppUtils {
     public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
     public static final String CONFIGURATION_NOT_APPLICABLE =
             "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
+    public static final String UPDATE_APP_SERVICE_PLAN = "Updating app service plan";
 
     private static final String JAR_CMD = ":JAR_COMMAND:";
     private static final String JAR_COMMAND_PATTERN = " %s -Djava.net.preferIPv4Stack=true -Dserver.port=" +
@@ -93,31 +94,55 @@ public class WebAppUtils {
                 resourceGroup, servicePlanResourceGroup);
 
         if (plan == null) {
-            if (region == null) {
-                throw new MojoExecutionException("Please config the <region> in pom.xml, " +
-                        "it is required to create a new Azure App Service Plan.");
-            }
-            servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);
-            final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(
-                    resourceGroup, servicePlanResourceGroup);
-            log.info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
-
-            final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
-                    .define(servicePlanName).withRegion(region);
-
-            final AppServicePlan.DefinitionStages.WithPricingTier withPricingTier
-                    = azure.resourceGroups().contain(servicePlanResGrp) ?
-                    withGroup.withExistingResourceGroup(servicePlanResGrp) :
-                    withGroup.withNewResourceGroup(servicePlanResGrp);
-
-            plan = withPricingTier.withPricingTier(pricingTier).withOperatingSystem(os).create();
-
-            log.info(SERVICE_PLAN_CREATED);
+            plan = createAppServicePlan(servicePlanName, resourceGroup, azure, servicePlanResourceGroup,
+                    region, pricingTier, log, os);
         } else {
-            log.info(String.format(SERVICE_PLAN_EXIST, plan.name(), plan.resourceGroupName()));
+            plan = updateAppServicePlan(plan, pricingTier, log);
         }
-
         return plan;
+    }
+
+    public static AppServicePlan createAppServicePlan(String servicePlanName,
+                                                           final String resourceGroup,
+                                                           final Azure azure,
+                                                           final String servicePlanResourceGroup,
+                                                           final Region region,
+                                                           final PricingTier pricingTier,
+                                                           final Log log,
+                                                           final OperatingSystem os) throws MojoExecutionException {
+        if (region == null) {
+            throw new MojoExecutionException("Please config the <region> in pom.xml, " +
+                    "it is required to create a new Azure App Service Plan.");
+        }
+        servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);
+        final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(
+                resourceGroup, servicePlanResourceGroup);
+        log.info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
+
+        final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
+                .define(servicePlanName).withRegion(region);
+
+        final AppServicePlan.DefinitionStages.WithPricingTier withPricingTier
+                = azure.resourceGroups().contain(servicePlanResGrp) ?
+                withGroup.withExistingResourceGroup(servicePlanResGrp) :
+                withGroup.withNewResourceGroup(servicePlanResGrp);
+
+        final AppServicePlan result = withPricingTier.withPricingTier(pricingTier).withOperatingSystem(os).create();
+
+        log.info(SERVICE_PLAN_CREATED);
+        return result;
+    }
+
+    public static AppServicePlan updateAppServicePlan(final AppServicePlan appServicePlan,
+                                                      final PricingTier pricingTier,
+                                                      final Log log) throws MojoExecutionException {
+        log.info(String.format(UPDATE_APP_SERVICE_PLAN));
+        final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
+        // Update pricing tier
+        if (!appServicePlan.pricingTier().equals(pricingTier)) {
+            appServicePlanUpdate.withPricingTier(pricingTier);
+        }
+        return appServicePlanUpdate.apply();
     }
 
     public static DockerImageType getDockerImageType(final String imageName, final String serverId,
