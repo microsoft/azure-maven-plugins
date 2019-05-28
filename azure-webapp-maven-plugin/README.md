@@ -196,18 +196,17 @@ Maven | 3.0 or above
 
 <b>The supported Value for web App on Linux</b>
 
-In Linux environment, if the `<webcontainer>` is not configured, `JavaSE` will be used as default. It means does not use any web container, just run your jar file.
-
 Supported Value | Description
 ---|---
 `tomcat 8.5` | Newest Tomcat 8.5
 `tomcat 9.0` | Tomcat 9.0
 `wildfly 14` | WildFly 14 (For jre8 only)
-  
+`jre8` | Java SE 8
+`java11` | Java SE 11
+
+> Note: If the `<webcontainer>` is not configured, maven plugin will deploy your project to correspond Java SE runtime, 
 
 <b>The supported Value for web App on windows</b>
-
-In Windows environment, if project `<packaging>` is set to `jar`, the project will be deployed to JavaSE runtime, which means no web container will be used, just run jar files. Otherwise, `tomcat 8.5` will be used as default value.
 
 Supported Value | Description
 ---|---
@@ -216,14 +215,17 @@ Supported Value | Description
 `tomcat 7.0.62` | Tomcat 7.0.62
 `tomcat 8.0` | Newest Tomcat 8.0
 `tomcat 8.0.23` | Tomcat 8.0.23
-`tomcat 8.5` | Newest Tomcat 8.5
+`tomcat 8.5` | Newest Tomcat 8.5 (Default)
 `tomcat 8.5.6` | Tomcat 8.5.6
 `jetty 9.1` | Newest Jetty 9.1
 `jetty 9.1.0.20131115` | Jetty 9.1.0.v20131115
 `jetty 9.3` | Newest Jetty 9.3
 `jetty 9.3.13.20161014` | Jetty 9.3.13.v20161014
 
-> Note: It is recommended to ignore the minor version number so that the latest supported web container will be used in your Web App.
+> Note1: It is recommended to ignore the minor version number so that the latest supported web container will be used in your Web App.
+
+> Note2: If project `<packaging>` is set to `jar`, maven plugin will deploy your project to correspond Java SE runtime, `<webcontainer>` will not work in this situation.
+
 
 #### `<resource>`
 Property | Description
