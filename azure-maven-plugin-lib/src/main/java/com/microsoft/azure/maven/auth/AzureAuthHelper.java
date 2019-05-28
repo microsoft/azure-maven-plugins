@@ -92,7 +92,11 @@ public class AzureAuthHelper {
         }
 
         try {
-            final String subscriptionId = config.getSubscriptionId();
+            String subscriptionId = config.getSubscriptionId();
+            // For cloud shell, use subscription in profile as the default subscription.
+            if (StringUtils.isEmpty(subscriptionId) && isInCloudShell()) {
+                subscriptionId = getSubscriptionOfCloudShell();
+            }
             return StringUtils.isEmpty(subscriptionId) ?
                     auth.withDefaultSubscription() :
                     auth.withSubscription(subscriptionId);
@@ -234,7 +238,6 @@ public class AzureAuthHelper {
             if (isInCloudShell()) {
                 getLog().info(AUTH_WITH_MSI);
                 auth = azureConfigurable.authenticate(new MSICredentials());
-                auth.withSubscription(getSubscriptionOfCloudShell());
             } else {
                 getLog().info(AUTH_WITH_AZURE_CLI);
                 auth = azureConfigurable.authenticate(AzureCliCredentials.create());
