@@ -6,6 +6,10 @@
 
 package com.microsoft.azure.maven.auth;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureCliCredentials;
@@ -14,6 +18,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.rest.LogLevel;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
@@ -21,11 +26,14 @@ import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Locale;
+import java.util.Scanner;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
 
@@ -59,6 +67,9 @@ public class AzureAuthHelper {
     public static final String AUTH_FILE_NOT_EXIST = "Authentication file does not exist: ";
     public static final String AUTH_FILE_READ_FAIL = "Failed to read authentication file: ";
     public static final String AZURE_CLI_AUTH_FAIL = "Failed to authenticate with Azure CLI 2.0";
+
+    private static final String AZURE_PROFILE_NAME = "azureProfile.json";
+    private static final String AZURE_PROFILE_FOLDER = ".azure";
 
     protected AuthConfiguration config;
 
@@ -110,7 +121,7 @@ public class AzureAuthHelper {
 
         return StringUtils.isNotEmpty(httpProxyHost) ?
             configurable.withProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(httpProxyHost, httpProxyPort))) :
-            configurable;                      
+            configurable;
     }
 
     protected AzureEnvironment getAzureEnvironment(String environment) {
@@ -223,6 +234,7 @@ public class AzureAuthHelper {
             if (isInCloudShell()) {
                 getLog().info(AUTH_WITH_MSI);
                 auth = azureConfigurable.authenticate(new MSICredentials());
+                auth.withSubscription(getSubscriptionOfCloudShell());
             } else {
                 getLog().info(AUTH_WITH_AZURE_CLI);
                 auth = azureConfigurable.authenticate(AzureCliCredentials.create());
@@ -286,6 +298,24 @@ public class AzureAuthHelper {
             getLog().debug(CERTIFICATE_FILE_READ_FAIL + certificate);
         }
 
+        return null;
+    }
+
+    private static String getSubscriptionOfCloudShell() throws IOException {
+        final File azureProfile = Paths.get(System.getProperty("user.home"),
+                AZURE_PROFILE_FOLDER, AZURE_PROFILE_NAME).toFile();
+        try (final FileInputStream fis = new FileInputStream(azureProfile);
+             final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
+            final String jsonProfile = scanner.useDelimiter("\\Z").next();
+            final JsonArray subscriptionList = (new Gson()).fromJson(jsonProfile, JsonObject.class)
+                    .getAsJsonArray("subscriptions");
+            for (final JsonElement child : subscriptionList) {
+                final JsonObject subscription = (JsonObject) child;
+                if (subscription.getAsJsonPrimitive("isDefault").getAsBoolean()) {
+                    return subscription.getAsJsonPrimitive("id").getAsString();
+                }
+            }
+        }
         return null;
     }
 
