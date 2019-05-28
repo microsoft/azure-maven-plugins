@@ -29,7 +29,7 @@ public class WebAppPomHandler {
 
     public static final String PLUGIN_GROUP_ID = "com.microsoft.azure";
     public static final String PLUGIN_ARTIFACT_ID = "azure-webapp-maven-plugin";
-    public static final String PROPERTIES_FILE = "plugin.properties";
+    public static final String PLUGIN_PROPERTIES_FILE = "plugin.properties";
     public static final String PROPERTY_VERSION = "project.version";
 
     final File file;
@@ -101,7 +101,7 @@ public class WebAppPomHandler {
     private static String getPluginVersion() throws IOException {
         final Properties properties = new Properties();
         try (final InputStream is = WebAppPomHandler.class.getClassLoader()
-                .getResourceAsStream(PROPERTIES_FILE)) {
+                .getResourceAsStream(PLUGIN_PROPERTIES_FILE)) {
             properties.load(is);
             return properties.getProperty(PROPERTY_VERSION);
         }
