@@ -77,7 +77,7 @@ To use the Maven Plugin for Azure Functions in your Maven Java app, add the foll
       <plugin>
         <groupId>com.microsoft.azure</groupId>
           <artifactId>azure-functions-maven-plugin</artifactId>
-          <version>1.0.0-beta-5</version>
+          <version>1.3.2</version>
           <configuration>
             ...
           </configuration>

@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
@@ -183,8 +184,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         final String defaultPricingTier = configuration.getPricingTierOrDefault();
         final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier,
-            getAvailablePricingTierList(), null);
-
+            getAvailablePricingTierList(configuration.getOs()), null);
         return builder.appName(appName)
             .resourceGroup(resourceGroup)
             .region(Region.fromName(region))
@@ -306,9 +306,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return result;
     }
 
-    private static List<String> getAvailablePricingTierList() {
+    private static List<String> getAvailablePricingTierList(OperatingSystemEnum operatingSystem) {
         final Set<String> pricingTierSet = new HashSet<>();
-        for (final PricingTier pricingTier : AppServiceUtils.getAvailablePricingTiers()) {
+        // Linux and docker app service uses linux as the os of app service plan.
+        final List<PricingTier> availablePricingTier = AppServiceUtils.getAvailablePricingTiers(
+                operatingSystem == OperatingSystemEnum.Windows ? OperatingSystem.WINDOWS : OperatingSystem.LINUX);
+        for (final PricingTier pricingTier : availablePricingTier) {
             pricingTierSet.add(pricingTier.toSkuDescription().size().toLowerCase());
         }
         final List<String> result = new ArrayList<>(pricingTierSet);

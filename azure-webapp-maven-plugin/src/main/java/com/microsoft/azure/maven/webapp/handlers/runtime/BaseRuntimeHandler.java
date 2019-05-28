@@ -136,12 +136,7 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
     @Override
     public AppServicePlan updateAppServicePlan(final WebApp app) throws Exception {
         final AppServicePlan appServicePlan = WebAppUtils.getAppServicePlanByWebApp(app);
-        final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
-        // Update pricing tier
-        if (!appServicePlan.pricingTier().equals(pricingTier)) {
-            appServicePlanUpdate.withPricingTier(pricingTier);
-        }
-        return appServicePlanUpdate.apply();
+        return WebAppUtils.updateAppServicePlan(appServicePlan, pricingTier, log);
     }
 
     protected BaseRuntimeHandler(Builder<?> builder) {

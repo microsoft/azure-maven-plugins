@@ -31,7 +31,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.3</version>
+               <version>1.6.0</version>
                <configuration>
                   <schemaVersion>V2</schemaVersion>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
@@ -103,7 +103,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.3</version>
+               <version>1.6.0</version>
                <configuration>
                   <schemaVersion>V2</schemaVersion>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
@@ -165,7 +165,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.3</version>
+               <version>1.6.0</version>
                <configuration>
                   <schemaVersion>V2</schemaVersion>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
@@ -221,7 +221,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.3</version>
+               <version>1.6.0</version>
                <configuration>
                   <schemaVersion>V2</schemaVersion>
                   <!-- Reference ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
@@ -267,7 +267,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.5.3</version>
+               <version>1.6.0</version>
                <configuration>
                   
                   <!-- Web App information -->
@@ -306,7 +306,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
-                <version>1.5.3</version>
+                <version>1.6.0</version>
                 <configuration>
                     <authentication>
                         <serverId>${AZURE_AUTH}</serverId>
