@@ -32,8 +32,8 @@ import java.io.InputStream;
 public class WebAppUtils {
     public static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
     public static final String CREATE_SERVICE_PLAN = "Creating App Service Plan '%s'...";
-    public static final String SERVICE_PLAN_EXIST = "Found existing App Service Plan '%s' in Resource Group '%s'.";
     public static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
+    public static final String SERVICE_PLAN_NOT_FOUND = "Failed to get App Service Plan";
     public static final String GENERATE_WEB_CONFIG_FAIL = "Failed to generate web.config file for JAR deployment.";
     public static final String READ_WEB_CONFIG_TEMPLATE_FAIL = "Failed to read the content of web.config.template.";
     public static final String GENERATING_WEB_CONFIG = "Generating web.config for Web App on Windows.";
@@ -136,10 +136,13 @@ public class WebAppUtils {
     public static AppServicePlan updateAppServicePlan(final AppServicePlan appServicePlan,
                                                       final PricingTier pricingTier,
                                                       final Log log) throws MojoExecutionException {
+        if (appServicePlan == null) {
+            throw new MojoExecutionException(SERVICE_PLAN_NOT_FOUND);
+        }
         log.info(String.format(UPDATE_APP_SERVICE_PLAN));
         final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
         // Update pricing tier
-        if (!appServicePlan.pricingTier().equals(pricingTier)) {
+        if (pricingTier != null && !appServicePlan.pricingTier().equals(pricingTier)) {
             appServicePlanUpdate.withPricingTier(pricingTier);
         }
         return appServicePlanUpdate.apply();
