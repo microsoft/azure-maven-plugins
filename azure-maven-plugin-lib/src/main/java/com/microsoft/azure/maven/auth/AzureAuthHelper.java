@@ -67,6 +67,10 @@ public class AzureAuthHelper {
     public static final String AUTH_FILE_NOT_EXIST = "Authentication file does not exist: ";
     public static final String AUTH_FILE_READ_FAIL = "Failed to read authentication file: ";
     public static final String AZURE_CLI_AUTH_FAIL = "Failed to authenticate with Azure CLI 2.0";
+    public static final String AZURE_CLI_GET_SUBSCRIPTION_FAIL = "Failed to get default subscription of Azure CLI, " +
+            "please login Azure CLI first.";
+    public static final String AZURE_CLI_LOAD_TOKEN_FAIL = "Failed to load Azure CLI token file, " +
+            "please login Azure CLI first.";
 
     private static final String AZURE_FOLDER = ".azure";
     private static final String AZURE_PROFILE_NAME = "azureProfile.json";
@@ -266,10 +270,15 @@ public class AzureAuthHelper {
      */
     protected ApplicationTokenCredentials getCredentialFromAzureCliWithServicePrincipal() throws IOException {
         final JsonObject subscription = getDefaultSubscriptionObject();
-        final JsonArray tokens = getAzureCliTokenList();
         final String servicePrincipalName = subscription == null ? null : subscription.get("user")
                 .getAsJsonObject().get("name").getAsString();
-        if (servicePrincipalName == null || tokens == null) {
+        if (servicePrincipalName == null) {
+            getLog().error(AZURE_CLI_GET_SUBSCRIPTION_FAIL);
+            return null;
+        }
+        final JsonArray tokens = getAzureCliTokenList();
+        if (tokens == null) {
+            getLog().error(AZURE_CLI_LOAD_TOKEN_FAIL);
             return null;
         }
         for (final JsonElement token : tokens) {
