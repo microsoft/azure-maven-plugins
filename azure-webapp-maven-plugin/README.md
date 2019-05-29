@@ -244,10 +244,11 @@ Some valid regions are listed as below. All valid regions please refer to [Azure
 
 #### `<pricingTier>`
 Some valid pricing tiers are listed as below. All valid pricing tiers please refer to [Azure App Service Plan Pricing](https://azure.microsoft.com/en-us/pricing/details/app-service/).
+- `F1` (Windows Only)
 - `P1V2`
 - `P2V2`
 
-> Note: Pricing tier selected should support the 'AlwaysOn' setting for deployment to succeed
+> Note: Pricing tier selected should support the 'AlwaysOn' setting for deployment to succeed.
 
 ## Samples
 A few typical usages of Maven Plugin for Azure App Service Web Apps are listed at [Web App Samples](../docs/web-app-samples.md). You can choose one to quickly get started.
