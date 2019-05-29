@@ -249,8 +249,10 @@ public class AzureAuthHelper {
                 if (azureCliCredentials.clientId() != null) {
                     return azureConfigurable.authenticate(azureCliCredentials);
                 } else {
-                    return azureConfigurable
-                            .authenticate(getCredentialFromAzureCliWithServicePrincipal());
+                    final ApplicationTokenCredentials servicePrincipalCredentials =
+                            getCredentialFromAzureCliWithServicePrincipal();
+                    return servicePrincipalCredentials == null ? null :
+                            azureConfigurable.authenticate(getCredentialFromAzureCliWithServicePrincipal());
                 }
             }
             return auth;
