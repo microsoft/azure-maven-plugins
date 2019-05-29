@@ -68,8 +68,9 @@ public class AzureAuthHelper {
     public static final String AUTH_FILE_READ_FAIL = "Failed to read authentication file: ";
     public static final String AZURE_CLI_AUTH_FAIL = "Failed to authenticate with Azure CLI 2.0";
 
+    private static final String AZURE_FOLDER = ".azure";
     private static final String AZURE_PROFILE_NAME = "azureProfile.json";
-    private static final String AZURE_PROFILE_FOLDER = ".azure";
+    private static final String AZURE_TOKEN_NAME = "accessTokens.json";
 
     protected AuthConfiguration config;
 
@@ -240,12 +241,45 @@ public class AzureAuthHelper {
                 auth = azureConfigurable.authenticate(new MSICredentials());
             } else {
                 getLog().info(AUTH_WITH_AZURE_CLI);
-                auth = azureConfigurable.authenticate(AzureCliCredentials.create());
+                final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create();
+                if (azureCliCredentials.clientId() != null) {
+                    return azureConfigurable.authenticate(azureCliCredentials);
+                } else {
+                    return azureConfigurable
+                            .authenticate(getCredentialFromAzureCliWithServicePrincipal());
+                }
             }
             return auth;
         } catch (Exception e) {
             getLog().debug(AZURE_CLI_AUTH_FAIL);
             getLog().debug(e);
+        }
+        return null;
+    }
+
+    /**
+     * Get Authenticated object from token file of Azure CLI 2.0 logged with Service Principal
+     *
+     * Note: This is a workaround for issue https://github.com/microsoft/azure-maven-plugins/issues/125
+     *
+     * @return Authenticated object if Azure CLI 2.0 is logged with Service Principal.
+     */
+    protected ApplicationTokenCredentials getCredentialFromAzureCliWithServicePrincipal() throws IOException {
+        final JsonObject subscription = getDefaultSubscriptionObject();
+        final JsonArray tokens = getAzureCliTokenList();
+        final String servicePrincipalName = subscription == null ? null : subscription.get("user")
+                .getAsJsonObject().get("name").getAsString();
+        if (servicePrincipalName == null || tokens == null) {
+            return null;
+        }
+        for (final JsonElement token : tokens) {
+            final JsonObject tokenObject = (JsonObject) token;
+            if (tokenObject.has("servicePrincipalId") &&
+                    tokenObject.get("servicePrincipalId").getAsString().equals(servicePrincipalName)) {
+                final String tenantId = tokenObject.get("servicePrincipalTenant").getAsString();
+                final String key = tokenObject.get("accessToken").getAsString();
+                return new ApplicationTokenCredentials(servicePrincipalName, tenantId, key, getAzureEnvironment(null));
+            }
         }
         return null;
     }
@@ -305,8 +339,13 @@ public class AzureAuthHelper {
     }
 
     private static String getSubscriptionOfCloudShell() throws IOException {
+        final JsonObject subscription = getDefaultSubscriptionObject();
+        return subscription == null ? null : subscription.getAsJsonPrimitive("id").getAsString();
+    }
+
+    private static JsonObject getDefaultSubscriptionObject() throws IOException {
         final File azureProfile = Paths.get(System.getProperty("user.home"),
-                AZURE_PROFILE_FOLDER, AZURE_PROFILE_NAME).toFile();
+                AZURE_FOLDER, AZURE_PROFILE_NAME).toFile();
         try (final FileInputStream fis = new FileInputStream(azureProfile);
              final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
             final String jsonProfile = scanner.useDelimiter("\\Z").next();
@@ -315,11 +354,21 @@ public class AzureAuthHelper {
             for (final JsonElement child : subscriptionList) {
                 final JsonObject subscription = (JsonObject) child;
                 if (subscription.getAsJsonPrimitive("isDefault").getAsBoolean()) {
-                    return subscription.getAsJsonPrimitive("id").getAsString();
+                    return subscription;
                 }
             }
         }
         return null;
+    }
+
+    private static JsonArray getAzureCliTokenList() throws IOException {
+        final File azureProfile = Paths.get(System.getProperty("user.home"),
+                AZURE_FOLDER, AZURE_TOKEN_NAME).toFile();
+        try (final FileInputStream fis = new FileInputStream(azureProfile);
+             final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
+            final String jsonProfile = scanner.useDelimiter("\\Z").next();
+            return (new Gson()).fromJson(jsonProfile, JsonArray.class);
+        }
     }
 
     private static boolean isInCloudShell() {
