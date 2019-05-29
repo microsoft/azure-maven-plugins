@@ -22,12 +22,15 @@ import org.dom4j.io.XMLWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class WebAppPomHandler {
 
-    public static final String PLUGIN_GROUPID = "com.microsoft.azure";
-    public static final String PLUGIN_ARTIFACTID = "azure-webapp-maven-plugin";
-    public static final String PLUGIN_XPATH = "/build/plugins/plugin[groupId=%s,artifactId=%s]";
+    public static final String PLUGIN_GROUP_ID = "com.microsoft.azure";
+    public static final String PLUGIN_ARTIFACT_ID = "azure-webapp-maven-plugin";
+    public static final String PLUGIN_PROPERTIES_FILE = "plugin.properties";
+    public static final String PROPERTY_VERSION = "project.version";
 
     final File file;
     final Document document;
@@ -41,25 +44,6 @@ public class WebAppPomHandler {
     public Element getConfiguration() {
         final Element mavenPlugin = getMavenPluginElement();
         return mavenPlugin == null ? null : mavenPlugin.element("configuration");
-    }
-
-    public void convertToV2Schema(WebAppConfiguration configurations) throws IOException, MojoFailureException {
-        final Element pluginElement = getMavenPluginElement();
-        final Element configurationNode = XMLUtils.getOrCreateSubElement("configuration", pluginElement);
-        removeV1ConfigurationNodes(configurationNode);
-        updatePluginConfiguration(configurations, new WebAppConfiguration.Builder().build());
-    }
-
-    private void removeV1ConfigurationNodes(Element configuration) {
-        XMLUtils.removeNode(configuration, "javaVersion");
-        XMLUtils.removeNode(configuration, "webContainer");
-        XMLUtils.removeNode(configuration, "linuxRuntime");
-        XMLUtils.removeNode(configuration, "containerSettings");
-        XMLUtils.removeNode(configuration, "deploymentType");
-        XMLUtils.removeNode(configuration, "warFile");
-        XMLUtils.removeNode(configuration, "jarFile");
-        XMLUtils.removeNode(configuration, "resources");
-        XMLUtils.removeNode(configuration, "path");
     }
 
     public void updatePluginConfiguration(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs)
@@ -92,7 +76,7 @@ public class WebAppPomHandler {
             for (final Element element : pluginsRoot.elements()) {
                 final String groupId = XMLUtils.getChildValue("groupId", element);
                 final String artifactId = XMLUtils.getChildValue("artifactId", element);
-                if (PLUGIN_GROUPID.equals(groupId) && PLUGIN_ARTIFACTID.equals(artifactId)) {
+                if (PLUGIN_GROUP_ID.equals(groupId) && PLUGIN_ARTIFACT_ID.equals(artifactId)) {
                     return element;
                 }
             }
@@ -102,12 +86,24 @@ public class WebAppPomHandler {
         return null;
     }
 
-    private static Element createNewMavenPluginNode(Element pluginsRootNode) {
+    private static Element createNewMavenPluginNode(Element pluginsRootNode) throws IOException {
+
         final Element result = new DOMElement("plugin");
+
         ((DOMElement) result).setNamespace(pluginsRootNode.getNamespace());
-        result.add(XMLUtils.createSimpleElement("groupId", PLUGIN_GROUPID));
-        result.add(XMLUtils.createSimpleElement("artifactId", PLUGIN_ARTIFACTID));
+        result.add(XMLUtils.createSimpleElement("groupId", PLUGIN_GROUP_ID));
+        result.add(XMLUtils.createSimpleElement("artifactId", PLUGIN_ARTIFACT_ID));
+        result.add(XMLUtils.createSimpleElement("version", getPluginVersion()));
         pluginsRootNode.add(result);
         return result;
+    }
+
+    private static String getPluginVersion() throws IOException {
+        final Properties properties = new Properties();
+        try (final InputStream is = WebAppPomHandler.class.getClassLoader()
+                .getResourceAsStream(PLUGIN_PROPERTIES_FILE)) {
+            properties.load(is);
+            return properties.getProperty(PROPERTY_VERSION);
+        }
     }
 }
