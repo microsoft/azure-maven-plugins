@@ -21,6 +21,10 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
     protected static final String DEPLOY_START = "Trying to deploy artifact to %s...";
     protected static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     protected static final String DEPLOY_ABORT = "Deployment is aborted.";
+    protected static final String NO_RESOURCES_CONFIG = "<resources> is empty. " +
+            "Please make sure it is configured in pom.xml.";
+    protected static final String STAGING_FOLDER_EMPTY = "Staging directory: '%s' is empty, please check " +
+            "your <resources> configuration.(Have you executed mvn package before this command?)";
     protected MavenProject project;
     protected MavenSession session;
     protected MavenResourcesFiltering filtering;
@@ -92,14 +96,13 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
         final File stagingDirectory = new File(stagingDirectoryPath);
         final File[] files = stagingDirectory.listFiles();
         if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
-            throw new MojoExecutionException(String.format("Staging directory: '%s' is empty.",
-                    stagingDirectory.getAbsolutePath()));
+            throw new MojoExecutionException(String.format(STAGING_FOLDER_EMPTY, stagingDirectory.getAbsolutePath()));
         }
     }
 
     protected void prepareResources() throws IOException, MojoExecutionException {
         if (resources == null || resources.isEmpty()) {
-            throw new MojoExecutionException("<resources> is empty. Please make sure it is configured in pom.xml.");
+            throw new MojoExecutionException(NO_RESOURCES_CONFIG);
         }
 
         Utils.copyResources(project, session, filtering, resources, stagingDirectoryPath);

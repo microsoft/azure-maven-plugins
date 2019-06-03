@@ -77,7 +77,7 @@ public class ArtifactHandlerImplV2Test {
         doNothing().when(log).info(anyString());
 
         buildHandler();
-        doNothing().when(handlerSpy).copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
+        doNothing().when(handlerSpy).copyArtifactsToStagingDirectory();
 
         final List<File> allArtifacts = new ArrayList<File>();
         allArtifacts.add(new File("dummypath\\dummy.war"));
@@ -90,8 +90,7 @@ public class ArtifactHandlerImplV2Test {
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
-        verify(handlerSpy, times(1)).
-            copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
+        verify(handlerSpy, times(1)).copyArtifactsToStagingDirectory();
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
         verify(handlerSpy, times(1))
             .publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
@@ -113,7 +112,7 @@ public class ArtifactHandlerImplV2Test {
         doNothing().when(log).info(anyString());
 
         buildHandler();
-        doNothing().when(handlerSpy).copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
+        doNothing().when(handlerSpy).copyArtifactsToStagingDirectory();
 
         final List<File> allArtifacts = new ArrayList<File>();
         allArtifacts.add(new File("dummypath\\dummy.jar"));
@@ -125,8 +124,7 @@ public class ArtifactHandlerImplV2Test {
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
-        verify(handlerSpy, times(1)).
-            copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
+        verify(handlerSpy, times(1)).copyArtifactsToStagingDirectory();
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
         verify(handlerSpy, times(1)).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
         verifyNoMoreInteractions(handlerSpy);
