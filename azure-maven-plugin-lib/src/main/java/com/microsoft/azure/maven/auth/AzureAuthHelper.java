@@ -355,7 +355,7 @@ public class AzureAuthHelper {
     }
 
     private static JsonObject getDefaultSubscriptionObject() throws IOException {
-        final File azureProfile = Paths.get(System.getProperty("user.home"),
+        final File azureProfile = Paths.get(getAzureConfigDirectory(),
                 AZURE_FOLDER, AZURE_PROFILE_NAME).toFile();
         try (final FileInputStream fis = new FileInputStream(azureProfile);
              final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
@@ -373,7 +373,7 @@ public class AzureAuthHelper {
     }
 
     private static JsonArray getAzureCliTokenList() throws IOException {
-        final File azureProfile = Paths.get(System.getProperty("user.home"),
+        final File azureProfile = Paths.get(getAzureConfigDirectory(),
                 AZURE_FOLDER, AZURE_TOKEN_NAME).toFile();
         try (final FileInputStream fis = new FileInputStream(azureProfile);
              final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
@@ -384,5 +384,15 @@ public class AzureAuthHelper {
 
     private static boolean isInCloudShell() {
         return System.getenv(CLOUD_SHELL_ENV_KEY) != null;
+    }
+
+    private static String getAzureConfigDirectory() {
+        final String azureConfigDir = System.getenv("AZURE_CONFIG_DIR");
+
+        if (azureConfigDir != null) {
+            return azureConfigDir;
+        }
+
+        return System.getProperty("user.home");
     }
 }

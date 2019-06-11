@@ -53,7 +53,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public static final String INIT_FAILURE = "InitFailure";
     public static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     public static final String FAILURE_REASON = "failureReason";
-    private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
+    private static final String CONFIGURATION_PATH = Paths.get(getAzureConfigDirectory()),
         ".azure", "mavenplugins.properties").toString();
     private static final String FIRST_RUN_KEY = "first.run";
     private static final String PRIVACY_STATEMENT = "\nData/Telemetry\n" +
@@ -368,6 +368,16 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     //endregion
 
     //region Helper methods
+
+    private static String getAzureConfigDirectory() {
+        final String azureConfigDir = System.getenv("AZURE_CONFIG_DIR");
+
+        if (azureConfigDir != null) {
+            return azureConfigDir;
+        }
+
+        return System.getProperty("user.home");
+    }
 
     protected void handleException(final Exception exception) throws MojoExecutionException {
         String message = exception.getMessage();
