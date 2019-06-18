@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.webapp.handlers.runtime;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
@@ -16,8 +17,10 @@ import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
+import org.codehaus.plexus.util.StringUtils;
 
 public abstract class BaseRuntimeHandler implements RuntimeHandler {
     protected RuntimeStack runtime;
@@ -131,13 +134,25 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
         public abstract BaseRuntimeHandler build();
 
         protected abstract T self();
+
     }
 
     @Override
     public AppServicePlan updateAppServicePlan(final WebApp app) throws Exception {
         final AppServicePlan appServicePlan = WebAppUtils.getAppServicePlanByWebApp(app);
-        return WebAppUtils.updateAppServicePlan(appServicePlan, pricingTier, log);
+        // If app's service plan differs from pom, change and update it
+        if ((StringUtils.isNotEmpty(servicePlanName) && !servicePlanName.equals(appServicePlan.name())) ||
+                (StringUtils.isNotEmpty(servicePlanResourceGroup) &&
+                        !servicePlanResourceGroup.equals(appServicePlan.resourceGroupName()))) {
+            final AppServicePlan newAppServicePlan = createOrGetAppServicePlan();
+            app.update().withExistingAppServicePlan(newAppServicePlan).apply();
+            return WebAppUtils.updateAppServicePlan(newAppServicePlan, pricingTier, log);
+        } else {
+            return WebAppUtils.updateAppServicePlan(appServicePlan, pricingTier, log);
+        }
     }
+
+    protected abstract OperatingSystem getAppServicePlatform();
 
     protected BaseRuntimeHandler(Builder<?> builder) {
         this.runtime = builder.runtime;
@@ -157,4 +172,8 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
         this.log = builder.log;
     }
 
+    protected AppServicePlan createOrGetAppServicePlan() throws MojoExecutionException {
+        return WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
+                servicePlanResourceGroup, region, pricingTier, log, getAppServicePlatform());
+    }
 }
