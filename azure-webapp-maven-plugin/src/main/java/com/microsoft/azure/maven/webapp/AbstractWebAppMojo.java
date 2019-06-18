@@ -241,7 +241,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     public String getAppName() {
-        return appName;
+        return appName == null ? "" : appName;
     }
 
     public DeploymentSlotSetting getDeploymentSlotSetting() {

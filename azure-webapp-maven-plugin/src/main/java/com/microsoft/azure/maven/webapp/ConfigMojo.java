@@ -19,6 +19,7 @@ import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
+import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -332,5 +333,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private boolean isJarProject(){
         return getProject().getPackaging().equalsIgnoreCase("jar");
+    }
+
+    @Override
+    public WebAppConfiguration getWebAppConfiguration() throws MojoExecutionException {
+        return new V2NoValidationConfigurationParser(this).getWebAppConfiguration();
     }
 }
