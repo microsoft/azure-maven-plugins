@@ -251,7 +251,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultJavaVersion = configuration.getLinuxJavaVersionOrDefault();
         final String javaVersion = queryer.assureInputFromUser("javaVersion",
             defaultJavaVersion, RuntimeStackUtils.getValidJavaVersions(), null);
-
+        // For project which package is jar, use java se runtime
+        if (isJarProject()) {
+            return builder.runtimeStack(RuntimeStackUtils.getRuntimeStack(javaVersion));
+        }
         final String defaultLinuxRuntimeStack = configuration.getLinuxRuntimeStackOrDefault();
         final String runtimeStack = queryer.assureInputFromUser("runtimeStack",
             defaultLinuxRuntimeStack, RuntimeStackUtils.getValidWebContainer(javaVersion), null);
@@ -264,7 +267,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultJavaVersion = configuration.getJavaVersionOrDefault();
         final String javaVersion = queryer.assureInputFromUser("javaVersion",
             defaultJavaVersion, getAvailableJavaVersion(), null);
-
+        // For project which package is jar, use java se runtime
+        if (isJarProject()) {
+            return builder.javaVersion(JavaVersion.fromString(javaVersion))
+                    .webContainer(WebAppConfiguration.DEFAULT_WINDOWS_WEB_CONTAINER);
+        }
         final String defaultWebContainer = configuration.getWebContainerOrDefault();
         final String webContainer = queryer.assureInputFromUser("webContainer",
             defaultWebContainer, getAvailableWebContainer(), null);
@@ -321,5 +328,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private String getDefaultValue(String defaultValue, String fallBack) {
         return StringUtils.isNotEmpty(defaultValue) ? defaultValue : fallBack;
+    }
+
+    private boolean isJarProject(){
+        return getProject().getPackaging().equalsIgnoreCase("jar");
     }
 }
