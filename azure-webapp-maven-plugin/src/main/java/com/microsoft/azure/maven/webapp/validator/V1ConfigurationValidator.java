@@ -14,7 +14,7 @@ import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Arrays;
 
-public class V1ConfigurationValidator extends ConfigurationValidator{
+public class V1ConfigurationValidator extends AbstractConfigurationValidator {
 
     private static final String RUNTIME_CONFIG_CONFLICT = "Conflict settings found. <javaVersion>, <linuxRuntime>" +
             "and <containerSettings> should not be set at the same time.";

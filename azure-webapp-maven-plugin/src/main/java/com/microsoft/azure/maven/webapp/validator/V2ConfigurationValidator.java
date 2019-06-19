@@ -17,7 +17,7 @@ import java.util.Arrays;
 
 import static com.microsoft.azure.maven.webapp.configuration.RuntimeSetting.RUNTIME_CONFIG_REFERENCE;
 
-public class V2ConfigurationValidator extends ConfigurationValidator {
+public class V2ConfigurationValidator extends AbstractConfigurationValidator {
 
     public static final String[] VALID_OS = new String[]{"windows", "linux", "docker"};
 

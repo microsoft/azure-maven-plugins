@@ -14,7 +14,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
-import com.microsoft.azure.maven.webapp.validator.ConfigurationValidator;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -42,7 +42,7 @@ public class ConfigurationParserTest {
     protected ConfigurationParser parser;
 
     public void buildParser() {
-        parser = new ConfigurationParser(mojo, new ConfigurationValidator(mojo) {
+        parser = new ConfigurationParser(mojo, new AbstractConfigurationValidator(mojo) {
             @Override
             public String validateRegion() {
                 return null;

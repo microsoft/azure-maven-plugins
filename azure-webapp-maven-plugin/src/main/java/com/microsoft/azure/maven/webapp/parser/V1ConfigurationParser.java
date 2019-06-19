@@ -14,7 +14,7 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
-import com.microsoft.azure.maven.webapp.validator.ConfigurationValidator;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
@@ -27,7 +27,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
     private static final String RUNTIME_NOT_EXIST = "The configuration of <linuxRuntime> in pom.xml is not correct. " +
         "Please refer https://aka.ms/maven_webapp_runtime_v1 for more information";
 
-    public V1ConfigurationParser(AbstractWebAppMojo mojo, ConfigurationValidator validator) {
+    public V1ConfigurationParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
         super(mojo, validator);
     }
 

@@ -13,7 +13,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
-import com.microsoft.azure.maven.webapp.validator.ConfigurationValidator;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -21,9 +21,9 @@ import java.util.List;
 
 public abstract class ConfigurationParser {
     protected final AbstractWebAppMojo mojo;
-    protected final ConfigurationValidator validator;
+    protected final AbstractConfigurationValidator validator;
 
-    protected ConfigurationParser(final AbstractWebAppMojo mojo, final ConfigurationValidator validator) {
+    protected ConfigurationParser(final AbstractWebAppMojo mojo, final AbstractConfigurationValidator validator) {
         this.mojo = mojo;
         this.validator = validator;
     }

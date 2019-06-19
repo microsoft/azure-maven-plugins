@@ -46,8 +46,7 @@ public class RuntimeSetting {
 
     public RuntimeStack getLinuxRuntime() {
         // todo: add unit tests
-        final RuntimeStack result = RuntimeStackUtils.getRuntimeStack(javaVersion, webContainer);
-        return result;
+        return RuntimeStackUtils.getRuntimeStack(javaVersion, webContainer);
     }
 
     public WebContainer getWebContainer() {

@@ -9,14 +9,14 @@ package com.microsoft.azure.maven.webapp.validator;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.codehaus.plexus.util.StringUtils;
 
-public abstract class ConfigurationValidator {
+public abstract class AbstractConfigurationValidator {
 
     public static final String APP_NAME_PATTERN = "[a-zA-Z0-9\\-]{2,60}";
     public static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9\\.\\_\\-\\(\\)]{1,90}";
 
     protected final AbstractWebAppMojo mojo;
 
-    public ConfigurationValidator(AbstractWebAppMojo mojo){
+    public AbstractConfigurationValidator(AbstractWebAppMojo mojo){
         this.mojo = mojo;
     }
 

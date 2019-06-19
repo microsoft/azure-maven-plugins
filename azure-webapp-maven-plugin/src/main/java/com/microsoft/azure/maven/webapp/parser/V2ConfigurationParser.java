@@ -14,7 +14,7 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-import com.microsoft.azure.maven.webapp.validator.ConfigurationValidator;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -23,7 +23,7 @@ import java.util.Locale;
 
 public class V2ConfigurationParser extends ConfigurationParser {
 
-    public V2ConfigurationParser(AbstractWebAppMojo mojo, ConfigurationValidator validator) {
+    public V2ConfigurationParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
         super(mojo, validator);
     }
 

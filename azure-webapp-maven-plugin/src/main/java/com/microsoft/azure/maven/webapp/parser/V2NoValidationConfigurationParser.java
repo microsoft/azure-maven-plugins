@@ -12,12 +12,12 @@ import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
-import com.microsoft.azure.maven.webapp.validator.ConfigurationValidator;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
 
-    public V2NoValidationConfigurationParser(AbstractWebAppMojo mojo, ConfigurationValidator validator) {
+    public V2NoValidationConfigurationParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
         super(mojo, validator);
     }
 

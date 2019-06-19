@@ -35,8 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.microsoft.azure.maven.webapp.validator.ConfigurationValidator.APP_NAME_PATTERN;
-import static com.microsoft.azure.maven.webapp.validator.ConfigurationValidator.RESOURCE_GROUP_PATTERN;
+import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.APP_NAME_PATTERN;
+import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.RESOURCE_GROUP_PATTERN;
 
 /**
  * Init or edit the configuration of azure webapp maven plugin.
