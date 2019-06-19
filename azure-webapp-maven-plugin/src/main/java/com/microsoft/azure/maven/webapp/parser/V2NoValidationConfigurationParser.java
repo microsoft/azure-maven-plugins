@@ -12,83 +12,60 @@ import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.validator.ConfigurationValidator;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
 
-    public V2NoValidationConfigurationParser(AbstractWebAppMojo mojo) {
-        super(mojo);
+    public V2NoValidationConfigurationParser(AbstractWebAppMojo mojo, ConfigurationValidator validator) {
+        super(mojo, validator);
     }
 
     @Override
-    protected String getAppName() {
-        try {
-            return super.getAppName();
-        } catch (MojoExecutionException e) {
-            return null;
-        }
+    protected String getAppName() throws MojoExecutionException {
+        return validateConfiguration(validator.validateAppName()) ? super.getAppName() : mojo.getAppName();
     }
 
     @Override
-    protected String getResourceGroup() {
-        try {
-            return super.getResourceGroup();
-        } catch (MojoExecutionException e) {
-            return null;
-        }
+    protected String getResourceGroup() throws MojoExecutionException {
+        return validateConfiguration(validator.validateResourceGroup()) ?
+                super.getResourceGroup() : mojo.getResourceGroup();
     }
 
     @Override
-    protected OperatingSystemEnum getOs() {
-        try {
-            return super.getOs();
-        } catch (MojoExecutionException e) {
-            return null;
-        }
+    protected OperatingSystemEnum getOs() throws MojoExecutionException {
+        return validateConfiguration(validator.validateOs()) ? super.getOs() : null;
     }
 
     @Override
-    protected Region getRegion() {
-        try {
-            return super.getRegion();
-        } catch (MojoExecutionException e) {
-            return null;
-        }
+    protected Region getRegion() throws MojoExecutionException {
+        return validateConfiguration(validator.validateRegion()) ? super.getRegion() : null;
     }
 
     @Override
-    protected RuntimeStack getRuntimeStack() {
-        try {
-            return super.getRuntimeStack();
-        } catch (MojoExecutionException e) {
-            return null;
-        }
+    protected RuntimeStack getRuntimeStack() throws MojoExecutionException {
+        return validateConfiguration(validator.validateRuntimeStack()) ? super.getRuntimeStack() : null;
     }
 
     @Override
-    protected String getImage() {
-        try {
-            return super.getImage();
-        } catch (MojoExecutionException e) {
-            return null;
-        }
+    protected String getImage() throws MojoExecutionException {
+        return validateConfiguration(validator.validateImage()) ? super.getImage() : null;
     }
 
     @Override
-    protected WebContainer getWebContainer() {
-        try {
-            return super.getWebContainer();
-        } catch (MojoExecutionException e) {
-            return null;
-        }
+    protected JavaVersion getJavaVersion() throws MojoExecutionException {
+        return validateConfiguration(validator.validateJavaVersion()) ? super.getJavaVersion() : null;
     }
 
     @Override
-    protected JavaVersion getJavaVersion() {
-        try {
-            return super.getJavaVersion();
-        } catch (MojoExecutionException e) {
-            return null;
+    protected WebContainer getWebContainer() throws MojoExecutionException {
+        return validateConfiguration(validator.validateWebContainer()) ? super.getWebContainer() : null;
+    }
+
+    protected boolean validateConfiguration(String errorMessage) {
+        if (errorMessage != null) {
+            mojo.getLog().warn(errorMessage);
         }
+        return errorMessage == null;
     }
 }

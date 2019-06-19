@@ -40,20 +40,20 @@ public class RuntimeSetting {
     }
 
     public JavaVersion getJavaVersion() {
-        return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
+        return (StringUtils.isEmpty(javaVersion) || !checkJavaVersion(javaVersion)) ?
+                null : JavaVersion.fromString(javaVersion);
     }
 
-    public RuntimeStack getLinuxRuntime() throws MojoExecutionException {
+    public RuntimeStack getLinuxRuntime() {
         // todo: add unit tests
         final RuntimeStack result = RuntimeStackUtils.getRuntimeStack(javaVersion, webContainer);
-        if (result == null) {
-            throw new MojoExecutionException(String.format("Unsupported values for linux runtime, please refer %s " +
-                "more information", RUNTIME_CONFIG_REFERENCE));
-        }
         return result;
     }
 
     public WebContainer getWebContainer() {
+        if (!checkWebContainer(webContainer)) {
+            return null;
+        }
         if (StringUtils.isEmpty(webContainer)) {
             return WebContainer.TOMCAT_8_5_NEWEST;
         }
@@ -76,5 +76,23 @@ public class RuntimeSetting {
         return StringUtils.isEmpty(this.os) && StringUtils.isEmpty(this.javaVersion) &&
             StringUtils.isEmpty(this.webContainer) && StringUtils.isEmpty(image) &&
             StringUtils.isEmpty(this.serverId) && StringUtils.isEmpty(this.registryUrl);
+    }
+
+    protected boolean checkJavaVersion(String value) {
+        for (final JavaVersion javaVersion : JavaVersion.values()) {
+            if (javaVersion.toString().equals(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean checkWebContainer(String value) {
+        for (final WebContainer webContainer : WebContainer.values()) {
+            if (webContainer.toString().equals(value)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
