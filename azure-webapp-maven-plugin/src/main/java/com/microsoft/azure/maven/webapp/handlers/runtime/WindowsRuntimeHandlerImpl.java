@@ -32,8 +32,7 @@ public class WindowsRuntimeHandlerImpl extends BaseRuntimeHandler {
 
     @Override
     public WithCreate defineAppWithRuntime() throws Exception {
-        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
-            servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.WINDOWS);
+        final AppServicePlan plan = createOrGetAppServicePlan();
         final WithCreate withCreate = WebAppUtils.defineWindowsApp(resourceGroup, appName, azure, plan);
         withCreate.withJavaVersion(javaVersion).withWebContainer(webContainer);
         return withCreate;
@@ -48,4 +47,8 @@ public class WindowsRuntimeHandlerImpl extends BaseRuntimeHandler {
         return update;
     }
 
+    @Override
+    protected OperatingSystem getAppServicePlatform() {
+        return OperatingSystem.WINDOWS;
+    }
 }

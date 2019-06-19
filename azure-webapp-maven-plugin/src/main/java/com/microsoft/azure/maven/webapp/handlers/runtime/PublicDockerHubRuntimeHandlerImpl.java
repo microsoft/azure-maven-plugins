@@ -30,8 +30,7 @@ public class PublicDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
 
     @Override
     public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
-        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
-            servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.LINUX);
+        final AppServicePlan plan = createOrGetAppServicePlan();
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
             .withPublicDockerHubImage(image);
     }
@@ -41,5 +40,10 @@ public class PublicDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
         return app.update().withPublicDockerHubImage(image);
+    }
+
+    @Override
+    protected OperatingSystem getAppServicePlatform() {
+        return OperatingSystem.LINUX;
     }
 }
