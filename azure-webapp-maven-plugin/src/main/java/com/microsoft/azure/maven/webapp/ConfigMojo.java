@@ -19,7 +19,9 @@ import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
+import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
+import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -32,6 +34,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.APP_NAME_PATTERN;
+import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.RESOURCE_GROUP_PATTERN;
 
 /**
  * Init or edit the configuration of azure webapp maven plugin.
@@ -59,7 +64,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         try {
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
-                getWebAppConfiguration();
+                    getWebAppConfigurationWithoutValidation();
             if (isV1Configuration(configuration)) {
                 warning(CONFIG_ONLY_SUPPORT_V2);
             } else {
@@ -168,15 +173,16 @@ public class ConfigMojo extends AbstractWebAppMojo {
         throws MojoFailureException, MojoExecutionException {
         final WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
 
-        final String defaultAppName = getDefaultValue(configuration.appName, getProject().getArtifactId());
+        final String defaultAppName =
+                getDefaultValue(configuration.appName, getProject().getArtifactId(), APP_NAME_PATTERN);
         final String appName = queryer.assureInputFromUser("appName", defaultAppName,
-            NOT_EMPTY_REGEX, null, null);
+                APP_NAME_PATTERN, null, null);
 
         final String defaultResourceGroup = getDefaultValue(configuration.resourceGroup,
-            String.format("%s-rg", appName));
+                String.format("%s-rg", appName), RESOURCE_GROUP_PATTERN);
         final String resourceGroup = queryer.assureInputFromUser("resourceGroup",
             defaultResourceGroup,
-            NOT_EMPTY_REGEX, null, null);
+                RESOURCE_GROUP_PATTERN, null, null);
 
         final String defaultRegion = configuration.getRegionOrDefault();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
@@ -330,7 +336,15 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return StringUtils.isNotEmpty(defaultValue) ? defaultValue : fallBack;
     }
 
+    private String getDefaultValue(String defaultValue, String fallBack, String pattern) {
+        return StringUtils.isNotEmpty(defaultValue) && defaultValue.matches(pattern) ? defaultValue : fallBack;
+    }
+
     private boolean isJarProject(){
         return getProject().getPackaging().equalsIgnoreCase("jar");
+    }
+
+    public WebAppConfiguration getWebAppConfigurationWithoutValidation() throws MojoExecutionException {
+        return new V2NoValidationConfigurationParser(this, new V2ConfigurationValidator(this)).getWebAppConfiguration();
     }
 }

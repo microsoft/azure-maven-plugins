@@ -13,6 +13,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +37,7 @@ public class V1ConfigurationParserTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        parser = new V1ConfigurationParser(mojo);
+        parser = new V1ConfigurationParser(mojo, new V1ConfigurationValidator(mojo));
     }
 
     @Test

@@ -13,39 +13,28 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
+
 import java.util.List;
 
 public abstract class ConfigurationParser {
     protected final AbstractWebAppMojo mojo;
+    protected final AbstractConfigurationValidator validator;
 
-    protected ConfigurationParser(final AbstractWebAppMojo mojo) {
+    protected ConfigurationParser(final AbstractWebAppMojo mojo, final AbstractConfigurationValidator validator) {
         this.mojo = mojo;
+        this.validator = validator;
     }
 
     protected String getAppName() throws MojoExecutionException {
-        final String appName = mojo.getAppName();
-        if (StringUtils.isEmpty(appName)) {
-            throw new MojoExecutionException("Please config the <appName> in pom.xml.");
-        }
-        if (appName.startsWith("-") || !appName.matches("[a-zA-Z0-9\\-]{2,60}")) {
-            throw new MojoExecutionException("The <appName> only allow alphanumeric characters, " +
-                "hyphens and cannot start or end in a hyphen.");
-        }
+        validate(validator.validateAppName());
         return mojo.getAppName();
     }
 
     protected String getResourceGroup() throws MojoExecutionException {
-        final String resourceGroupName = mojo.getResourceGroup();
-        if (StringUtils.isEmpty(resourceGroupName)) {
-            throw new MojoExecutionException("Please config the <resourceGroup> in pom.xml.");
-        }
-        if (resourceGroupName.endsWith(".") || !resourceGroupName.matches("[a-zA-Z0-9\\.\\_\\-\\(\\)]{1,90}")) {
-            throw new MojoExecutionException("The <resourceGroup> only allow alphanumeric characters, periods, " +
-                "underscores, hyphens and parenthesis and cannot end in a period.");
-        }
+        validate(validator.validateResourceGroup());
         return mojo.getResourceGroup();
     }
 
@@ -68,6 +57,12 @@ public abstract class ConfigurationParser {
     protected abstract WebContainer getWebContainer() throws MojoExecutionException;
 
     protected abstract List<Resource> getResources() throws MojoExecutionException;
+
+    protected void validate(String errorMessage) throws MojoExecutionException {
+        if (errorMessage != null) {
+            throw new MojoExecutionException(errorMessage);
+        }
+    }
 
     public WebAppConfiguration getWebAppConfiguration() throws MojoExecutionException {
         WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
@@ -98,7 +93,7 @@ public abstract class ConfigurationParser {
             .servicePlanName(mojo.getAppServicePlanName())
             .servicePlanResourceGroup(mojo.getAppServicePlanResourceGroup())
             .deploymentSlotSetting(mojo.getDeploymentSlotSetting())
-            .os(getOs())
+            .os(os)
             .mavenSettings(mojo.getSettings())
             .resources(getResources())
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
