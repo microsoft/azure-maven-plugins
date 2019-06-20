@@ -20,8 +20,8 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
 - Support update app service plan for existing app service.[PR#677](https://github.com/microsoft/azure-maven-plugins/pull/677)
 - Generate version tag if `<plugin>` is absent while `webapp:config`.[#660](https://github.com/microsoft/azure-maven-plugins/issues/660)
 - Optimization prompt messages.[#667](https://github.com/microsoft/azure-maven-plugins/issues/667)
-- Fix plugin can't get correct subscription in azure cloud shell.[#628](https://github.com/microsoft/azure-maven-plugins/issues/628)
-- Fix plugin can't get client id when user login azure cli with service principal.[#125](https://github.com/microsoft/azure-maven-plugins/issues/125)
+- Fix: Plugin can't get correct subscription in azure cloud shell.[#628](https://github.com/microsoft/azure-maven-plugins/issues/628)
+- Fix: Plugin can't get client id when user login azure cli with service principal.[#125](https://github.com/microsoft/azure-maven-plugins/issues/125)
 
 ## 1.6.0
 - Support Java 11 AppService.[PR#606](https://github.com/Microsoft/azure-maven-plugins/pull/606)

@@ -11,9 +11,9 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
 
 ## 1.3.3
 - Set `FUNCTIONS_WORKER_RUNTIME` to `java` by default.[#400](https://github.com/microsoft/azure-maven-plugins/issues/400)
-- Exit when no annotated methods was found in project folder.[#426](https://github.com/microsoft/azure-maven-plugins/issues/426)
-- Fix plugin can't get correct subscription in azure cloud shell.[#628](https://github.com/microsoft/azure-maven-plugins/issues/628)
-- Fix plugin can't get client id when user login azure cli with service principal.[#125](https://github.com/microsoft/azure-maven-plugins/issues/125)
+- Exit when no annotated methods are found in project folder.[#426](https://github.com/microsoft/azure-maven-plugins/issues/426)
+- Fix: Plugin can't get correct subscription in azure cloud shell.[#628](https://github.com/microsoft/azure-maven-plugins/issues/628)
+- Fix: Plugin can't get client id when user login azure cli with service principal.[#125](https://github.com/microsoft/azure-maven-plugins/issues/125)
 
 ## 1.3.2
 - Fix plugin will break down in Java 11.[PR#610](https://github.com/Microsoft/azure-maven-plugins/pull/610)
