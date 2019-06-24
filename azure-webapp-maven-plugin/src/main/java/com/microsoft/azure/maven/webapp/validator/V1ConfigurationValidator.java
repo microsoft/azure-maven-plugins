@@ -35,7 +35,7 @@ public class V1ConfigurationValidator extends AbstractConfigurationValidator {
     @Override
     public String validateOs() {
         final String linuxRuntime = mojo.getLinuxRuntime();
-        final JavaVersion javaVersion = mojo.getJavaVersion();
+        final String javaVersion = mojo.getJavaVersion();
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final boolean isContainerSettingEmpty = containerSetting == null || containerSetting.isEmpty();
         int osCount = 0;
@@ -76,10 +76,16 @@ public class V1ConfigurationValidator extends AbstractConfigurationValidator {
 
     @Override
     public String validateJavaVersion() {
-        if (mojo.getJavaVersion() == null) {
-            return "The configuration of <javaVersion> in pom.xml is not correct.";
+        final String javaVersion = mojo.getJavaVersion();
+        if (StringUtils.isEmpty(javaVersion)) {
+            return "Please config the <javaVersion> in pom.xml.";
         }
-        return null;
+        for (final JavaVersion version : JavaVersion.values()) {
+            if (version.toString().equals(javaVersion)) {
+                return null;
+            }
+        }
+        return "The configuration of <javaVersion> in pom.xml is not correct.";
     }
 
     @Override

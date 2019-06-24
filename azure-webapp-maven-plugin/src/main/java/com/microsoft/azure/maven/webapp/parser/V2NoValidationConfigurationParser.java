@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
@@ -30,6 +31,12 @@ public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
     protected String getResourceGroup() throws MojoExecutionException {
         return validateConfiguration(validator.validateResourceGroup()) ?
                 super.getResourceGroup() : mojo.getResourceGroup();
+    }
+
+    @Override
+    protected PricingTier getPricingTier() throws MojoExecutionException{
+        return validateConfiguration(validator.validatePricingTier()) ?
+                super.getPricingTier() : null;
     }
 
     @Override

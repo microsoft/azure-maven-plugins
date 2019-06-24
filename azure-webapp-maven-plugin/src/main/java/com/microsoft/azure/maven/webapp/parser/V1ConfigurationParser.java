@@ -35,7 +35,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
     public OperatingSystemEnum getOs() throws MojoExecutionException {
         validate(validator.validateOs());
         final String linuxRuntime = mojo.getLinuxRuntime();
-        final JavaVersion javaVersion = mojo.getJavaVersion();
+        final String javaVersion = mojo.getJavaVersion();
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         final boolean isContainerSettingEmpty = containerSetting == null || containerSetting.isEmpty();
         final List<OperatingSystemEnum> osList = new ArrayList<>();
@@ -119,7 +119,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
     @Override
     public JavaVersion getJavaVersion() throws MojoExecutionException {
         validate(validator.validateJavaVersion());
-        return mojo.getJavaVersion();
+        return JavaVersion.fromString(mojo.getJavaVersion());
     }
 
     @Override

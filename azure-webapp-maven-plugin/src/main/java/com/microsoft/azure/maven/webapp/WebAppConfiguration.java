@@ -203,7 +203,7 @@ public class WebAppConfiguration {
     }
 
     public String getPricingTierOrDefault() {
-        return AppServiceUtils.convertPricingTierToString(pricingTier == null ? pricingTier : DEFAULT_PRICINGTIER);
+        return AppServiceUtils.convertPricingTierToString(pricingTier != null ? pricingTier : DEFAULT_PRICINGTIER);
     }
 
     public String getLinuxJavaVersionOrDefault() {

@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.validator;
 
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -40,6 +41,13 @@ public abstract class AbstractConfigurationValidator {
         if (resourceGroupName.endsWith(".") || !resourceGroupName.matches(RESOURCE_GROUP_PATTERN)) {
             return "The <resourceGroup> only allow alphanumeric characters, periods, underscores," +
                     " hyphens and parenthesis and cannot end in a period.";
+        }
+        return null;
+    }
+
+    public String validatePricingTier(){
+        if (mojo.getPricingTier() != null && AppServiceUtils.getPricingTierFromString(mojo.getPricingTier()) == null) {
+            return "Unknown value of the pricingTier.";
         }
         return null;
     }
