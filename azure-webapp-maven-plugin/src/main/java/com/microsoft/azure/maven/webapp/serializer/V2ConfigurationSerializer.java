@@ -82,14 +82,14 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
                                         Element configurationElement) {
         final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
         createOrUpdateAttribute("os", "linux", oldOS, configurationElement);
-        if (newConfigs.getJavaVersion() != null) {
-            final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
-                    oldConfigs.getJavaVersion().toString();
+        if (newConfigs.getRuntimeStack() != null) {
+            final String oldJavaVersion = oldConfigs.getRuntimeStack() == null ? null :
+                    RuntimeStackUtils.getJavaVersionFromRuntimeStack(oldConfigs.getRuntimeStack());
             createOrUpdateAttribute("javaVersion",
                     RuntimeStackUtils.getJavaVersionFromRuntimeStack(newConfigs.getRuntimeStack()), oldJavaVersion,
                     configurationElement);
         }
-        if (newConfigs.getWebContainer() != null) {
+        if (newConfigs.getRuntimeStack() != null) {
             final String oldWebContainer = oldConfigs.getRuntimeStack() == null ? null :
                     RuntimeStackUtils.getWebContainerFromRuntimeStack(oldConfigs.getRuntimeStack());
             createOrUpdateAttribute("webContainer",
