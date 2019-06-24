@@ -15,6 +15,7 @@ import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
@@ -132,7 +133,7 @@ public class DeployMojoTest {
 
         assertEquals("westeurope", mojo.getRegion());
 
-        assertEquals(PricingTier.PREMIUM_P1V2, mojo.getPricingTier());
+        assertEquals(null, mojo.getPricingTier());
 
         assertEquals(null, mojo.getJavaVersion());
 
@@ -159,11 +160,11 @@ public class DeployMojoTest {
     public void getConfigurationForWindows() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-windows.xml");
 
-        assertEquals(JavaVersion.JAVA_8_NEWEST, mojo.getJavaVersion());
+        assertEquals(JavaVersion.JAVA_8_NEWEST, JavaVersion.fromString(mojo.getJavaVersion()));
 
         assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getJavaWebContainer());
 
-        assertEquals(PricingTier.STANDARD_S2, mojo.getPricingTier());
+        assertEquals(PricingTier.STANDARD_S2, AppServiceUtils.getPricingTierFromString(mojo.getPricingTier()));
     }
 
     @Test

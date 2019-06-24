@@ -7,11 +7,14 @@
 package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import org.apache.maven.model.Resource;
@@ -36,6 +39,17 @@ public abstract class ConfigurationParser {
     protected String getResourceGroup() throws MojoExecutionException {
         validate(validator.validateResourceGroup());
         return mojo.getResourceGroup();
+    }
+
+    protected PricingTier getPricingTier() throws MojoExecutionException{
+        validate(validator.validatePricingTier());
+        final PricingTier pricingTier = AppServiceUtils.getPricingTierFromString(mojo.getPricingTier());
+        return pricingTier == null ? WebAppConfiguration.DEFAULT_PRICINGTIER : pricingTier;
+    }
+
+    protected DeploymentSlotSetting getDeploymentSlotSetting() throws MojoExecutionException{
+        validate(validator.validateDeploymentSlot());
+        return mojo.getDeploymentSlotSetting();
     }
 
     protected abstract OperatingSystemEnum getOs() throws MojoExecutionException;
@@ -85,14 +99,13 @@ public abstract class ConfigurationParser {
                     throw new MojoExecutionException("Invalid operating system from the configuration.");
             }
         }
-
         return builder.appName(getAppName())
             .resourceGroup(getResourceGroup())
             .region(getRegion())
-            .pricingTier(mojo.getPricingTier())
+            .pricingTier(getPricingTier())
             .servicePlanName(mojo.getAppServicePlanName())
             .servicePlanResourceGroup(mojo.getAppServicePlanResourceGroup())
-            .deploymentSlotSetting(mojo.getDeploymentSlotSetting())
+            .deploymentSlotSetting(getDeploymentSlotSetting())
             .os(os)
             .mavenSettings(mojo.getSettings())
             .resources(getResources())

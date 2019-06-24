@@ -44,7 +44,7 @@ public class V1ConfigurationParserTest {
     public void getOs() throws MojoExecutionException {
         assertNull(parser.getOs());
 
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
+        doReturn("1.8").when(mojo).getJavaVersion();
         assertEquals(OperatingSystemEnum.Windows, parser.getOs());
 
         doReturn(null).when(mojo).getJavaVersion();
@@ -57,7 +57,7 @@ public class V1ConfigurationParserTest {
         assertEquals(OperatingSystemEnum.Docker, parser.getOs());
 
         doReturn("linuxRuntime").when(mojo).getLinuxRuntime();
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
+        doReturn("1.8").when(mojo).getJavaVersion();
         try {
             parser.getOs();
         } catch (MojoExecutionException e) {
@@ -177,10 +177,10 @@ public class V1ConfigurationParserTest {
         try {
             parser.getJavaVersion();
         } catch (MojoExecutionException e) {
-            assertEquals(e.getMessage(), "The configuration of <javaVersion> in pom.xml is not correct.");
+            assertEquals(e.getMessage(), "Please config the <javaVersion> in pom.xml.");
         }
 
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
+        doReturn("1.8").when(mojo).getJavaVersion();
         assertEquals(JavaVersion.JAVA_8_NEWEST, parser.getJavaVersion());
     }
 }

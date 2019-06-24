@@ -28,13 +28,15 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
         createOrUpdateAttribute("resourceGroup", newConfigs.getResourceGroup(),
             oldConfigs.getResourceGroup(), configurationElement);
         createOrUpdateAttribute("appName", newConfigs.getAppName(), oldConfigs.getAppName(), configurationElement);
-
-        final String oldRegion = oldConfigs.getRegion() == null ? null : oldConfigs.getRegion().name();
-        createOrUpdateAttribute("region", newConfigs.getRegion().name(), oldRegion, configurationElement);
         createOrUpdateAttribute("pricingTier",
-            AppServiceUtils.convertPricingTierToString(newConfigs.getPricingTier()),
-            AppServiceUtils.convertPricingTierToString(oldConfigs.getPricingTier()),
-            configurationElement);
+                AppServiceUtils.convertPricingTierToString(newConfigs.getPricingTier()),
+                AppServiceUtils.convertPricingTierToString(oldConfigs.getPricingTier()),
+                configurationElement);
+
+        if (newConfigs.getRegion() != null) {
+            final String oldRegion = oldConfigs.getRegion() == null ? null : oldConfigs.getRegion().name();
+            createOrUpdateAttribute("region", newConfigs.getRegion().name(), oldRegion, configurationElement);
+        }
 
         if (newConfigs.getOs() != null) {
             updateRunTimeNode(newConfigs, oldConfigs, configurationElement);

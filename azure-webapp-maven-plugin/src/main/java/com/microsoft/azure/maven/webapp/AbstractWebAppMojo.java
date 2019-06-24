@@ -7,13 +7,10 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
@@ -262,13 +259,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return region;
     }
 
-    public PricingTier getPricingTier() throws MojoExecutionException {
-        return StringUtils.isEmpty(pricingTier) ? WebAppConfiguration.DEFAULT_PRICINGTIER :
-            AppServiceUtils.getPricingTierFromString(pricingTier);
+    public String getPricingTier() {
+        return this.pricingTier;
     }
 
-    public JavaVersion getJavaVersion() {
-        return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
+    public String getJavaVersion() {
+        return this.javaVersion;
     }
 
     public String getLinuxRuntime() {
