@@ -252,11 +252,7 @@ public class WebAppUtilsTest {
 
         // found existing App Service Plan with user defined plan name
         reset(createMock);
-        final AppServicePlan.Update updateMock = mock(AppServicePlan.Update.class);
         doReturn(planMock).when(plansMock).getByResourceGroup(anyString(), anyString());
-        doReturn(updateMock).when(planMock).update();
-        doReturn(PricingTier.BASIC_B1).when(planMock).pricingTier();
-        doReturn(null).when(updateMock).apply();
         WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azureMock,
             servicePlanResourceGroup, region, PricingTier.BASIC_B1, logMock, OperatingSystem.LINUX);
         verify(createMock, times(0)).create();
