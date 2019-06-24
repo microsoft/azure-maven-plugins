@@ -259,15 +259,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return region;
     }
 
-//    public PricingTier getPricingTier() throws MojoExecutionException {
-//        return StringUtils.isEmpty(pricingTier) ? WebAppConfiguration.DEFAULT_PRICINGTIER :
-//            AppServiceUtils.getPricingTierFromString(pricingTier);
-//    }
-//throw new MojoExecutionException("Unknown value of the pricingTier.");
-//    public JavaVersion getJavaVersion() {
-//        return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
-//    }
-
     public String getPricingTier() {
         return this.pricingTier;
     }

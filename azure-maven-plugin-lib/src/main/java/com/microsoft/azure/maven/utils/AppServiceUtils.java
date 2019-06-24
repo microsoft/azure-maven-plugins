@@ -10,7 +10,6 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.lang.reflect.Field;
@@ -58,13 +57,13 @@ public class AppServiceUtils {
         return "ServicePlan" + UUID.randomUUID().toString().substring(0, 18);
     }
 
-    public static PricingTier getPricingTierFromString(final String pricingTierString) throws MojoExecutionException {
+    public static PricingTier getPricingTierFromString(final String pricingTierString) {
         for (final PricingTier pricingTier : pricingTiers) {
             if (pricingTier.toSkuDescription().size().equalsIgnoreCase(pricingTierString)) {
                 return pricingTier;
             }
         }
-        throw new MojoExecutionException("Unknown value of the pricingTier.");
+        return null;
     }
 
     public static String convertPricingTierToString(final PricingTier pricingTier) {

@@ -8,12 +8,14 @@ package com.microsoft.azure.maven.webapp.validator;
 
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import org.codehaus.plexus.util.StringUtils;
 
 public abstract class AbstractConfigurationValidator {
 
     public static final String APP_NAME_PATTERN = "[a-zA-Z0-9\\-]{2,60}";
     public static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9\\.\\_\\-\\(\\)]{1,90}";
+    public static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
 
     protected final AbstractWebAppMojo mojo;
 
@@ -48,6 +50,21 @@ public abstract class AbstractConfigurationValidator {
     public String validatePricingTier(){
         if (mojo.getPricingTier() != null && AppServiceUtils.getPricingTierFromString(mojo.getPricingTier()) == null) {
             return "Unknown value of the pricingTier.";
+        }
+        return null;
+    }
+
+    public String validateDeploymentSlot() {
+        final DeploymentSlotSetting deploymentSlotSetting = mojo.getDeploymentSlotSetting();
+        if (deploymentSlotSetting == null) {
+            return null;
+        }
+        if (StringUtils.isEmpty(deploymentSlotSetting.getName())) {
+            return "Please config the <name> of <deploymentSlot> in pom.xml";
+        }
+        if (!deploymentSlotSetting.getName().matches(SLOT_NAME_PATTERN)) {
+            return String.format("Invalid value of <name> inside <deploymentSlot> in pom.xml," +
+                    " it needs to match the pattern '%s'", SLOT_NAME_PATTERN);
         }
         return null;
     }

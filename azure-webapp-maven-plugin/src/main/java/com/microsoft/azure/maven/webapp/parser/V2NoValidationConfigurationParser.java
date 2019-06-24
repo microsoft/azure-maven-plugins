@@ -12,6 +12,7 @@ import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -37,6 +38,12 @@ public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
     protected PricingTier getPricingTier() throws MojoExecutionException{
         return validateConfiguration(validator.validatePricingTier()) ?
                 super.getPricingTier() : null;
+    }
+
+    @Override
+    protected DeploymentSlotSetting getDeploymentSlotSetting() throws MojoExecutionException {
+        return validateConfiguration(validator.validateDeploymentSlot()) ? super.getDeploymentSlotSetting()
+                : mojo.getDeploymentSlotSetting();
     }
 
     @Override
