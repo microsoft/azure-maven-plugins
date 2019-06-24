@@ -76,7 +76,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     private boolean isV2Configuration(WebAppConfiguration configuration) {
-        return configuration == null || configuration.getSchemaVersion().equals(SchemaVersion.V2.toString());
+        return configuration == null || schemaVersion.equals(SchemaVersion.V2.toString());
     }
 
     protected void config(WebAppConfiguration configuration) throws MojoFailureException, MojoExecutionException,
