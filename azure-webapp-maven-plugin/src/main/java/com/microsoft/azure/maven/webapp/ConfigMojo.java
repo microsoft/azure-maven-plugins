@@ -65,7 +65,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         try {
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
                     getWebAppConfigurationWithoutValidation();
-            if (isV1Configuration(configuration)) {
+            if (!isV2Configuration(configuration)) {
                 warning(CONFIG_ONLY_SUPPORT_V2);
             } else {
                 config(configuration);
@@ -75,8 +75,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
     }
 
-    private boolean isV1Configuration(WebAppConfiguration configuration) {
-        return configuration != null && configuration.getSchemaVersion().equals(SchemaVersion.V1.toString());
+    private boolean isV2Configuration(WebAppConfiguration configuration) {
+        return configuration == null || schemaVersion.equals(SchemaVersion.V2.toString());
     }
 
     protected void config(WebAppConfiguration configuration) throws MojoFailureException, MojoExecutionException,
