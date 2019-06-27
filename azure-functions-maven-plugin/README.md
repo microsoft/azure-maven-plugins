@@ -200,10 +200,7 @@ mvn azure-functions:run -DenableDebug
 
 Directly deploy to target Azure Functions by running `mvn azure-functions:deploy`.
 
-Supported deployment methods are listed as below. The default value is **ZIP**.
-- ZIP
-- ~~~MSDeploy~~~ (deprecated)
-- ~~~FTP~~~ (deprecated)
+The default supported deployment method is **ZIP**.
 
 ### Add Proxies Configuration to Your Azure Function
 
