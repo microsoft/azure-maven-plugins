@@ -13,7 +13,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugin-lib</artifactId>
-    <version>1.2.9-SNAPSHOT</version>
+    <version>1.2.9</version>
     <packaging>jar</packaging>
     <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
@@ -33,6 +33,7 @@
         <common-net.version>3.6</common-net.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
+        <powermock.version>2.0.2</powermock.version>
         <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
     </properties>
@@ -170,6 +171,18 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

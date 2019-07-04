@@ -28,13 +28,15 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
         createOrUpdateAttribute("resourceGroup", newConfigs.getResourceGroup(),
             oldConfigs.getResourceGroup(), configurationElement);
         createOrUpdateAttribute("appName", newConfigs.getAppName(), oldConfigs.getAppName(), configurationElement);
-
-        final String oldRegion = oldConfigs.getRegion() == null ? null : oldConfigs.getRegion().name();
-        createOrUpdateAttribute("region", newConfigs.getRegion().name(), oldRegion, configurationElement);
         createOrUpdateAttribute("pricingTier",
-            AppServiceUtils.convertPricingTierToString(newConfigs.getPricingTier()),
-            AppServiceUtils.convertPricingTierToString(oldConfigs.getPricingTier()),
-            configurationElement);
+                AppServiceUtils.convertPricingTierToString(newConfigs.getPricingTier()),
+                AppServiceUtils.convertPricingTierToString(oldConfigs.getPricingTier()),
+                configurationElement);
+
+        if (newConfigs.getRegion() != null) {
+            final String oldRegion = oldConfigs.getRegion() == null ? null : oldConfigs.getRegion().name();
+            createOrUpdateAttribute("region", newConfigs.getRegion().name(), oldRegion, configurationElement);
+        }
 
         if (newConfigs.getOs() != null) {
             updateRunTimeNode(newConfigs, oldConfigs, configurationElement);
@@ -82,16 +84,20 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
                                         Element configurationElement) {
         final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
         createOrUpdateAttribute("os", "linux", oldOS, configurationElement);
-        final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
-            oldConfigs.getJavaVersion().toString();
-        createOrUpdateAttribute("javaVersion",
-            RuntimeStackUtils.getJavaVersionFromRuntimeStack(newConfigs.getRuntimeStack()), oldJavaVersion,
-            configurationElement);
-        final String oldWebContainer = oldConfigs.getRuntimeStack() == null ? null :
-            RuntimeStackUtils.getWebContainerFromRuntimeStack(oldConfigs.getRuntimeStack());
-        createOrUpdateAttribute("webContainer",
-            RuntimeStackUtils.getWebContainerFromRuntimeStack(newConfigs.getRuntimeStack())
-            , oldWebContainer, configurationElement);
+        if (newConfigs.getRuntimeStack() != null) {
+            final String oldJavaVersion = oldConfigs.getRuntimeStack() == null ? null :
+                    RuntimeStackUtils.getJavaVersionFromRuntimeStack(oldConfigs.getRuntimeStack());
+            createOrUpdateAttribute("javaVersion",
+                    RuntimeStackUtils.getJavaVersionFromRuntimeStack(newConfigs.getRuntimeStack()), oldJavaVersion,
+                    configurationElement);
+        }
+        if (newConfigs.getRuntimeStack() != null) {
+            final String oldWebContainer = oldConfigs.getRuntimeStack() == null ? null :
+                    RuntimeStackUtils.getWebContainerFromRuntimeStack(oldConfigs.getRuntimeStack());
+            createOrUpdateAttribute("webContainer",
+                    RuntimeStackUtils.getWebContainerFromRuntimeStack(newConfigs.getRuntimeStack())
+                    , oldWebContainer, configurationElement);
+        }
     }
 
     private void updateWindowsRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
@@ -99,14 +105,18 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
         final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
         createOrUpdateAttribute("os", "windows", oldOS, configurationElement);
-        final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
-            oldConfigs.getJavaVersion().toString();
-        createOrUpdateAttribute("javaVersion", newConfigs.getJavaVersion().toString(),
-            oldJavaVersion, configurationElement);
-        final String oldWebContainer = oldConfigs.getWebContainer() == null ? null :
-            oldConfigs.getWebContainer().toString();
-        createOrUpdateAttribute("webContainer", newConfigs.getWebContainer().toString(), oldWebContainer,
-            configurationElement);
+        if (newConfigs.getJavaVersion() != null) {
+            final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
+                    oldConfigs.getJavaVersion().toString();
+            createOrUpdateAttribute("javaVersion", newConfigs.getJavaVersion().toString(),
+                    oldJavaVersion, configurationElement);
+        }
+        if (newConfigs.getWebContainer() != null) {
+            final String oldWebContainer = oldConfigs.getWebContainer() == null ? null :
+                    oldConfigs.getWebContainer().toString();
+            createOrUpdateAttribute("webContainer", newConfigs.getWebContainer().toString(), oldWebContainer,
+                    configurationElement);
+        }
     }
 
     private void updateDockerRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,

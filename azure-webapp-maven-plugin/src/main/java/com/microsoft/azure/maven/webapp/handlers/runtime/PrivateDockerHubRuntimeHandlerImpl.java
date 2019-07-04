@@ -37,8 +37,7 @@ public class PrivateDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
         final Server server = Utils.getServer(settings, serverId);
         assureServerExist(server, serverId);
 
-        final AppServicePlan plan = WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
-            servicePlanResourceGroup, region, pricingTier, log, OperatingSystem.LINUX);
+        final AppServicePlan plan = createOrGetAppServicePlan();
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
             .withPrivateDockerHubImage(image)
             .withCredentials(server.getUsername(), server.getPassword());
@@ -54,5 +53,10 @@ public class PrivateDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
         return app.update()
             .withPrivateDockerHubImage(image)
             .withCredentials(server.getUsername(), server.getPassword());
+    }
+
+    @Override
+    protected OperatingSystem getAppServicePlatform() {
+        return OperatingSystem.LINUX;
     }
 }

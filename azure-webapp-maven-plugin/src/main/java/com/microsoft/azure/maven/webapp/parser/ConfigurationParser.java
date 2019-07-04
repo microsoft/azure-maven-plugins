@@ -7,46 +7,49 @@
 package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
+
 import java.util.List;
 
 public abstract class ConfigurationParser {
     protected final AbstractWebAppMojo mojo;
+    protected final AbstractConfigurationValidator validator;
 
-    protected ConfigurationParser(final AbstractWebAppMojo mojo) {
+    protected ConfigurationParser(final AbstractWebAppMojo mojo, final AbstractConfigurationValidator validator) {
         this.mojo = mojo;
+        this.validator = validator;
     }
 
     protected String getAppName() throws MojoExecutionException {
-        final String appName = mojo.getAppName();
-        if (StringUtils.isEmpty(appName)) {
-            throw new MojoExecutionException("Please config the <appName> in pom.xml.");
-        }
-        if (appName.startsWith("-") || !appName.matches("[a-zA-Z0-9\\-]{2,60}")) {
-            throw new MojoExecutionException("The <appName> only allow alphanumeric characters, " +
-                "hyphens and cannot start or end in a hyphen.");
-        }
+        validate(validator.validateAppName());
         return mojo.getAppName();
     }
 
     protected String getResourceGroup() throws MojoExecutionException {
-        final String resourceGroupName = mojo.getResourceGroup();
-        if (StringUtils.isEmpty(resourceGroupName)) {
-            throw new MojoExecutionException("Please config the <resourceGroup> in pom.xml.");
-        }
-        if (resourceGroupName.endsWith(".") || !resourceGroupName.matches("[a-zA-Z0-9\\.\\_\\-\\(\\)]{1,90}")) {
-            throw new MojoExecutionException("The <resourceGroup> only allow alphanumeric characters, periods, " +
-                "underscores, hyphens and parenthesis and cannot end in a period.");
-        }
+        validate(validator.validateResourceGroup());
         return mojo.getResourceGroup();
+    }
+
+    protected PricingTier getPricingTier() throws MojoExecutionException{
+        validate(validator.validatePricingTier());
+        final PricingTier pricingTier = AppServiceUtils.getPricingTierFromString(mojo.getPricingTier());
+        return pricingTier == null ? WebAppConfiguration.DEFAULT_PRICINGTIER : pricingTier;
+    }
+
+    protected DeploymentSlotSetting getDeploymentSlotSetting() throws MojoExecutionException{
+        validate(validator.validateDeploymentSlot());
+        return mojo.getDeploymentSlotSetting();
     }
 
     protected abstract OperatingSystemEnum getOs() throws MojoExecutionException;
@@ -69,6 +72,12 @@ public abstract class ConfigurationParser {
 
     protected abstract List<Resource> getResources() throws MojoExecutionException;
 
+    protected void validate(String errorMessage) throws MojoExecutionException {
+        if (errorMessage != null) {
+            throw new MojoExecutionException(errorMessage);
+        }
+    }
+
     public WebAppConfiguration getWebAppConfiguration() throws MojoExecutionException {
         WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
         final OperatingSystemEnum os = getOs();
@@ -90,15 +99,14 @@ public abstract class ConfigurationParser {
                     throw new MojoExecutionException("Invalid operating system from the configuration.");
             }
         }
-
         return builder.appName(getAppName())
             .resourceGroup(getResourceGroup())
             .region(getRegion())
-            .pricingTier(mojo.getPricingTier())
+            .pricingTier(getPricingTier())
             .servicePlanName(mojo.getAppServicePlanName())
             .servicePlanResourceGroup(mojo.getAppServicePlanResourceGroup())
-            .deploymentSlotSetting(mojo.getDeploymentSlotSetting())
-            .os(getOs())
+            .deploymentSlotSetting(getDeploymentSlotSetting())
+            .os(os)
             .mavenSettings(mojo.getSettings())
             .resources(getResources())
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
