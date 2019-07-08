@@ -11,7 +11,6 @@ import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Map;
 
@@ -19,7 +18,7 @@ public class DeployTarget<T extends WebAppBase> {
     protected DeployTargetType type;
     protected T app;
 
-    public DeployTarget(@Nonnull final T app, final DeployTargetType type) {
+    public DeployTarget(final T app, final DeployTargetType type) {
         this.app = app;
         this.type = type;
     }

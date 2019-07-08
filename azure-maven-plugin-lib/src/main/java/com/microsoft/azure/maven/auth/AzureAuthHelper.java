@@ -13,11 +13,15 @@ import com.google.gson.JsonObject;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureCliCredentials;
+import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.auth.oauth.AzureLoginHelper;
+
 import com.microsoft.rest.LogLevel;
+
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -52,6 +56,7 @@ public class AzureAuthHelper {
     public static final String AUTH_WITH_SERVER_ID = "Authenticate with ServerId: ";
     public static final String AUTH_WITH_FILE = "Authenticate with file: ";
     public static final String AUTH_WITH_AZURE_CLI = "Authenticate with Azure CLI 2.0";
+    
     public static final String AUTH_WITH_MSI = "In the Azure Cloud Shell, use MSI to authenticate.";
     public static final String USE_KEY_TO_AUTH = "Use key to get Azure authentication token: ";
     public static final String USE_CERTIFICATE_TO_AUTH = "Use certificate to get Azure authentication token.";
@@ -161,7 +166,40 @@ public class AzureAuthHelper {
         } else {
             auth = getAuthObjFromAzureCli();
         }
+        if (auth == null) {
+            auth = getAuthObjFromOAuth();
+        }
         return auth;
+    }
+
+    private Authenticated getAuthObjFromOAuth() {
+        // if we cannot get any credentials from azure cli, 
+        // we will use the integrated login provided by AzureLoginHelper.
+        final AzureEnvironment env = getAzureEnvironment(null);
+        try {
+            // TODO: record telemetry of which method is used for authorization.
+            AzureCredential cred = AzureLoginHelper.oauthLogin(env);
+            if (cred == null) {
+                // fallback to device login
+                cred = AzureLoginHelper.deviceLogin(env);
+            }
+            // if all tries fails
+            if (cred == null) {
+                return null;
+            }
+            final AzureCredential finalCred = cred;
+            return azureConfigure().authenticate(new AzureTokenCredentials(env, null) {
+                @Override
+                public String getToken(String resource) throws IOException {
+                    return finalCred.getCredential().getToken(resource);
+                }
+                
+            });
+        } catch (IOException ex) {
+            getLog().error(ex.getMessage());
+            return null;
+        }
+        
     }
 
     /**
@@ -244,8 +282,14 @@ public class AzureAuthHelper {
                 getLog().info(AUTH_WITH_MSI);
                 auth = azureConfigurable.authenticate(new MSICredentials());
             } else {
+                
+                if (!Paths.get(System.getProperty("user.home"), ".azure", "azureProfile.json").toFile().exists() ||
+                        !Paths.get(System.getProperty("user.home"), ".azure", "accessTokens.json").toFile().exists()) {
+                    return null;
+                }
+                
+                final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create();                
                 getLog().info(AUTH_WITH_AZURE_CLI);
-                final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create();
                 if (azureCliCredentials.clientId() != null) {
                     return azureConfigurable.authenticate(azureCliCredentials);
                 } else {
