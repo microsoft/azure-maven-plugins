@@ -48,5 +48,7 @@
         <module>azure-maven-plugins-pom</module>
         <module>azure-maven-plugin-lib</module>
         <module>azure-webapp-maven-plugin</module>
+        <module>azure-functions-maven-plugin</module>
+        <module>azure-sfmesh-maven-plugin</module>
     </modules>
 </project>
