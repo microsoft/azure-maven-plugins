@@ -51,7 +51,7 @@ public class AzureLoginHelper {
             System.out.println(AUTH_WITH_OAUTH);
         } catch (Exception ex) {
             // the browse is not available
-            
+            return null;
         }
         ExecutorService executorService = null;
         try {            
