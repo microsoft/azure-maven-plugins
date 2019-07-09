@@ -165,10 +165,11 @@ public class AzureAuthHelper {
             }
         } else {
             auth = getAuthObjFromAzureCli();
+            if (auth == null) {
+                auth = getAuthObjFromOAuth();
+            }
         }
-        if (auth == null) {
-            auth = getAuthObjFromOAuth();
-        }
+
         return auth;
     }
 
