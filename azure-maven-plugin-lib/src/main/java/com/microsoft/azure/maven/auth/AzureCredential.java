@@ -32,7 +32,7 @@ public class AzureCredential {
     }
 
     public AzureTokenCredentials getCredential() {
-        return new AzureTokenCredentials(null, null) {
+        return new AzureTokenCredentials(this.env, null) {
             @Override
             public String getToken(String resource) throws IOException {
                 if (authenticationResult.getExpiresOnDate().before(new Date())) {
