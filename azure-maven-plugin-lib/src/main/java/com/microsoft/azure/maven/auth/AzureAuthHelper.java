@@ -13,7 +13,6 @@ import com.google.gson.JsonObject;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureCliCredentials;
-import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
@@ -188,14 +187,7 @@ public class AzureAuthHelper {
             if (cred == null) {
                 return null;
             }
-            final AzureCredential finalCred = cred;
-            return azureConfigure().authenticate(new AzureTokenCredentials(env, null) {
-                @Override
-                public String getToken(String resource) throws IOException {
-                    return finalCred.getCredential().getToken(resource);
-                }
-                
-            });
+            return azureConfigure().authenticate(cred.getCredential());
         } catch (IOException ex) {
             getLog().error(ex.getMessage());
             return null;
