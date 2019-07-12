@@ -78,8 +78,8 @@ public class RuntimeSetting {
     }
 
     protected boolean checkJavaVersion(String value) {
-        for (final JavaVersion javaVersion : JavaVersion.values()) {
-            if (javaVersion.toString().equals(value)) {
+        for (final JavaVersion version : JavaVersion.values()) {
+            if (version.toString().equals(value)) {
                 return true;
             }
         }
@@ -87,8 +87,8 @@ public class RuntimeSetting {
     }
 
     protected boolean checkWebContainer(String value) {
-        for (final WebContainer webContainer : WebContainer.values()) {
-            if (webContainer.toString().equals(value)) {
+        for (final WebContainer container : WebContainer.values()) {
+            if (container.toString().equals(value)) {
                 return true;
             }
         }

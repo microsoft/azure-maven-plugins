@@ -44,7 +44,7 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
         if (isResourcesPreparationRequired(target)) {
             prepareResources();
         }
-        
+
         assureStagingDirectoryNotEmpty();
         log.info(String.format(DEPLOY_START, target.getName()));
 

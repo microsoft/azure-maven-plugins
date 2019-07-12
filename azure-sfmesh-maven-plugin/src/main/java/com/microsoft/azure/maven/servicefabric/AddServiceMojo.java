@@ -64,7 +64,7 @@ public class AddServiceMojo extends AbstractMojo {
     */
     @Parameter(property = "osType", defaultValue = Constants.DEFAULT_OS)
     String osType;
-    
+
     /**
      * Name of the code package
     */
@@ -76,7 +76,7 @@ public class AddServiceMojo extends AbstractMojo {
     */
     @Parameter(property = "listenerName", defaultValue = Constants.DEFAULT_LISTENER_NAME)
     String listenerName;
-    
+
     /**
      * Port to expose of the container
     */
@@ -99,13 +99,13 @@ public class AddServiceMojo extends AbstractMojo {
      * Replica count of the container
     */
     @Parameter(property = "replicaCount", defaultValue = Constants.DEFAULT_REPLICA_COUNT)
-    String replicaCount;    
+    String replicaCount;
 
     /**
      * Network resource reference in which the container should be deployed
     */
     @Parameter(property = "networkRef", alias = "networkName")
-    String networkRef; 
+    String networkRef;
 
     /**
      * Environmental variables suppiled in key1:val1,key2:val2 format
@@ -119,7 +119,7 @@ public class AddServiceMojo extends AbstractMojo {
     public void execute() throws MojoFailureException {
         addService();
     }
-    
+
     public void addService() throws MojoFailureException{
         final String serviceFabricResourcesDirectory = Utils.getServicefabricResourceDirectory(logger, project);
         final String appResourcesDirectory = Utils.getAppResourcesDirectory(logger, project);

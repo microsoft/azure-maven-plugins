@@ -347,9 +347,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     //endregion
 
     protected ConfigurationParser getParserBySchemaVersion() throws MojoExecutionException {
-        final String schemaVersion = StringUtils.isEmpty(getSchemaVersion()) ? "v1" : getSchemaVersion();
+        final String version = StringUtils.isEmpty(getSchemaVersion()) ? "v1" : getSchemaVersion();
 
-        switch (schemaVersion.toLowerCase(Locale.ENGLISH)) {
+        switch (version.toLowerCase(Locale.ENGLISH)) {
             case "v1":
                 return new V1ConfigurationParser(this, new V1ConfigurationValidator(this));
             case "v2":
@@ -382,28 +382,28 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
-        final WebAppConfiguration webAppConfiguration;
+        final WebAppConfiguration webAppConfig;
         try {
-            webAppConfiguration = getWebAppConfiguration();
+            webAppConfig = getWebAppConfiguration();
         } catch (Exception e) {
             map.put(INVALID_CONFIG_KEY, e.getMessage());
             return map;
         }
-        if (webAppConfiguration.getImage() != null) {
-            final String imageType = WebAppUtils.getDockerImageType(webAppConfiguration.getImage(),
-                webAppConfiguration.getServerId(), webAppConfiguration.getRegistryUrl()).toString();
+        if (webAppConfig.getImage() != null) {
+            final String imageType = WebAppUtils.getDockerImageType(webAppConfig.getImage(),
+                webAppConfig.getServerId(), webAppConfig.getRegistryUrl()).toString();
             map.put(DOCKER_IMAGE_TYPE_KEY, imageType);
         } else {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
         }
         map.put(SCHEMA_VERSION_KEY, schemaVersion);
-        map.put(OS_KEY, webAppConfiguration.getOs() == null ? "" : webAppConfiguration.getOs().toString());
-        map.put(JAVA_VERSION_KEY, webAppConfiguration.getJavaVersion() == null ? "" :
-            webAppConfiguration.getJavaVersion().toString());
-        map.put(JAVA_WEB_CONTAINER_KEY, webAppConfiguration.getWebContainer() == null ? "" :
-            webAppConfiguration.getJavaVersion().toString());
-        map.put(LINUX_RUNTIME_KEY, webAppConfiguration.getRuntimeStack() == null ? "" :
-            webAppConfiguration.getRuntimeStack().stack() + " " + webAppConfiguration.getRuntimeStack().version());
+        map.put(OS_KEY, webAppConfig.getOs() == null ? "" : webAppConfig.getOs().toString());
+        map.put(JAVA_VERSION_KEY, webAppConfig.getJavaVersion() == null ? "" :
+            webAppConfig.getJavaVersion().toString());
+        map.put(JAVA_WEB_CONTAINER_KEY, webAppConfig.getWebContainer() == null ? "" :
+            webAppConfig.getJavaVersion().toString());
+        map.put(LINUX_RUNTIME_KEY, webAppConfig.getRuntimeStack() == null ? "" :
+            webAppConfig.getRuntimeStack().stack() + " " + webAppConfig.getRuntimeStack().version());
 
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());

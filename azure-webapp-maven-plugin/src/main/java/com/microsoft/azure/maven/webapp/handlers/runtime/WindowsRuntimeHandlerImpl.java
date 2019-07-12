@@ -14,7 +14,7 @@ import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 
 public class WindowsRuntimeHandlerImpl extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<WindowsRuntimeHandlerImpl.Builder>{
+    public static class Builder extends BaseRuntimeHandler.Builder<WindowsRuntimeHandlerImpl.Builder> {
         @Override
         protected WindowsRuntimeHandlerImpl.Builder self() {
             return this;

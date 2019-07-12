@@ -166,7 +166,6 @@ public class DeployMojoTest extends MojoTestBase {
         final Blank blank = mock(Blank.class);
         prepareFunctionAppCreation(azure, appServiceManager, appServicePlans, functionApps, blank);
 
-
         final NewAppServicePlanWithGroup newAppServicePlanWithGroup = mock(NewAppServicePlanWithGroup.class);
         doReturn(newAppServicePlanWithGroup).when(blank).withRegion(anyString());
         final WithCreate withCreate = mock(WithCreate.class);
@@ -265,14 +264,13 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test(expected = MojoExecutionException.class)
     public void getArtifactHandlerThrowException() throws Exception {
-        final DeployMojo mojo = getMojoFromPom();
-        mojo.getArtifactHandler();
+        getMojoFromPom().getArtifactHandler();
     }
 
     private DeployMojo getMojoFromPom() throws Exception {
-        final DeployMojo mojo = (DeployMojo) getMojoFromPom("/pom.xml", "deploy");
-        assertNotNull(mojo);
-        return mojo;
+        final DeployMojo mojoFromPom = (DeployMojo) getMojoFromPom("/pom.xml", "deploy");
+        assertNotNull(mojoFromPom);
+        return mojoFromPom;
     }
 
     private void prepareFunctionAppCreation(Azure azure, AppServiceManager appServiceManager,
