@@ -8,8 +8,8 @@
   <parent>
       <groupId>com.microsoft.azure</groupId>
       <artifactId>azure-maven-plugins-pom</artifactId>
-      <version>1.0.1</version>
-      <relativePath></relativePath>
+      <version>1.0.2-SNAPSHOT</version>
+      <relativePath>../azure-maven-plugins-pom</relativePath>
   </parent>
 
   <groupId>com.microsoft.azure</groupId>
