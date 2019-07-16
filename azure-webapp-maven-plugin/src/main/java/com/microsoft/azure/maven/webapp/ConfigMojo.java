@@ -19,7 +19,9 @@ import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
+import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
+import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -32,6 +34,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.APP_NAME_PATTERN;
+import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.RESOURCE_GROUP_PATTERN;
 
 /**
  * Init or edit the configuration of azure webapp maven plugin.
@@ -59,8 +64,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         try {
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
-                getWebAppConfiguration();
-            if (isV1Configuration(configuration)) {
+                    getWebAppConfigurationWithoutValidation();
+            if (!isV2Configuration(configuration)) {
                 warning(CONFIG_ONLY_SUPPORT_V2);
             } else {
                 config(configuration);
@@ -70,8 +75,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
     }
 
-    private boolean isV1Configuration(WebAppConfiguration configuration) {
-        return configuration != null && configuration.getSchemaVersion().equals(SchemaVersion.V1.toString());
+    private boolean isV2Configuration(WebAppConfiguration configuration) {
+        return configuration == null || schemaVersion.equals(SchemaVersion.V2.toString());
     }
 
     protected void config(WebAppConfiguration configuration) throws MojoFailureException, MojoExecutionException,
@@ -168,15 +173,16 @@ public class ConfigMojo extends AbstractWebAppMojo {
         throws MojoFailureException, MojoExecutionException {
         final WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
 
-        final String defaultAppName = getDefaultValue(configuration.appName, getProject().getArtifactId());
+        final String defaultAppName =
+                getDefaultValue(configuration.appName, getProject().getArtifactId(), APP_NAME_PATTERN);
         final String appName = queryer.assureInputFromUser("appName", defaultAppName,
-            NOT_EMPTY_REGEX, null, null);
+                APP_NAME_PATTERN, null, null);
 
         final String defaultResourceGroup = getDefaultValue(configuration.resourceGroup,
-            String.format("%s-rg", appName));
+                String.format("%s-rg", appName), RESOURCE_GROUP_PATTERN);
         final String resourceGroup = queryer.assureInputFromUser("resourceGroup",
             defaultResourceGroup,
-            NOT_EMPTY_REGEX, null, null);
+                RESOURCE_GROUP_PATTERN, null, null);
 
         final String defaultRegion = configuration.getRegionOrDefault();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
@@ -251,7 +257,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultJavaVersion = configuration.getLinuxJavaVersionOrDefault();
         final String javaVersion = queryer.assureInputFromUser("javaVersion",
             defaultJavaVersion, RuntimeStackUtils.getValidJavaVersions(), null);
-
+        // For project which package is jar, use java se runtime
+        if (isJarProject()) {
+            return builder.runtimeStack(RuntimeStackUtils.getRuntimeStack(javaVersion));
+        }
         final String defaultLinuxRuntimeStack = configuration.getLinuxRuntimeStackOrDefault();
         final String runtimeStack = queryer.assureInputFromUser("runtimeStack",
             defaultLinuxRuntimeStack, RuntimeStackUtils.getValidWebContainer(javaVersion), null);
@@ -264,7 +273,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultJavaVersion = configuration.getJavaVersionOrDefault();
         final String javaVersion = queryer.assureInputFromUser("javaVersion",
             defaultJavaVersion, getAvailableJavaVersion(), null);
-
+        // For project which package is jar, use java se runtime
+        if (isJarProject()) {
+            return builder.javaVersion(JavaVersion.fromString(javaVersion))
+                    .webContainer(WebAppConfiguration.DEFAULT_WINDOWS_WEB_CONTAINER);
+        }
         final String defaultWebContainer = configuration.getWebContainerOrDefault();
         final String webContainer = queryer.assureInputFromUser("webContainer",
             defaultWebContainer, getAvailableWebContainer(), null);
@@ -321,5 +334,17 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private String getDefaultValue(String defaultValue, String fallBack) {
         return StringUtils.isNotEmpty(defaultValue) ? defaultValue : fallBack;
+    }
+
+    private String getDefaultValue(String defaultValue, String fallBack, String pattern) {
+        return StringUtils.isNotEmpty(defaultValue) && defaultValue.matches(pattern) ? defaultValue : fallBack;
+    }
+
+    private boolean isJarProject(){
+        return getProject().getPackaging().equalsIgnoreCase("jar");
+    }
+
+    public WebAppConfiguration getWebAppConfigurationWithoutValidation() throws MojoExecutionException {
+        return new V2NoValidationConfigurationParser(this, new V2ConfigurationValidator(this)).getWebAppConfiguration();
     }
 }

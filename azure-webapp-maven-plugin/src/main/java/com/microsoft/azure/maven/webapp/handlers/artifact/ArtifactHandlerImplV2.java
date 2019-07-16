@@ -6,13 +6,11 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
-import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.zeroturnaround.zip.ZipUtil;
 
@@ -71,7 +69,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
             return;
         }
-        copyArtifactsToStagingDirectory(resources, stagingDirectoryPath);
+        copyArtifactsToStagingDirectory();
 
         final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
         if (allArtifacts.size() == 0) {
@@ -128,9 +126,9 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         return getArtifactsRecursively(stagingDirectory);
     }
 
-    protected void copyArtifactsToStagingDirectory(final List<Resource> resources,
-                                                   final String stagingDirectoryPath) throws IOException {
-        Utils.copyResources(project, session, filtering, resources, stagingDirectoryPath);
+    protected void copyArtifactsToStagingDirectory() throws IOException, MojoExecutionException {
+        prepareResources();
+        assureStagingDirectoryNotEmpty();
     }
 
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,

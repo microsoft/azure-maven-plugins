@@ -13,6 +13,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,14 +37,14 @@ public class V1ConfigurationParserTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        parser = new V1ConfigurationParser(mojo);
+        parser = new V1ConfigurationParser(mojo, new V1ConfigurationValidator(mojo));
     }
 
     @Test
     public void getOs() throws MojoExecutionException {
         assertNull(parser.getOs());
 
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
+        doReturn("1.8").when(mojo).getJavaVersion();
         assertEquals(OperatingSystemEnum.Windows, parser.getOs());
 
         doReturn(null).when(mojo).getJavaVersion();
@@ -56,7 +57,7 @@ public class V1ConfigurationParserTest {
         assertEquals(OperatingSystemEnum.Docker, parser.getOs());
 
         doReturn("linuxRuntime").when(mojo).getLinuxRuntime();
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
+        doReturn("1.8").when(mojo).getJavaVersion();
         try {
             parser.getOs();
         } catch (MojoExecutionException e) {
@@ -176,10 +177,10 @@ public class V1ConfigurationParserTest {
         try {
             parser.getJavaVersion();
         } catch (MojoExecutionException e) {
-            assertEquals(e.getMessage(), "The configuration of <javaVersion> in pom.xml is not correct.");
+            assertEquals(e.getMessage(), "Please config the <javaVersion> in pom.xml.");
         }
 
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
+        doReturn("1.8").when(mojo).getJavaVersion();
         assertEquals(JavaVersion.JAVA_8_NEWEST, parser.getJavaVersion());
     }
 }

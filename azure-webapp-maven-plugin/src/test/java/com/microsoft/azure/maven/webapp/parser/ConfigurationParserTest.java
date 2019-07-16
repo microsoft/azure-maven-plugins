@@ -14,6 +14,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -25,6 +26,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -40,7 +42,37 @@ public class ConfigurationParserTest {
     protected ConfigurationParser parser;
 
     public void buildParser() {
-        parser = new ConfigurationParser(mojo) {
+        parser = new ConfigurationParser(mojo, new AbstractConfigurationValidator(mojo) {
+            @Override
+            public String validateRegion() {
+                return null;
+            }
+
+            @Override
+            public String validateOs() {
+                return null;
+            }
+
+            @Override
+            public String validateRuntimeStack() {
+                return null;
+            }
+
+            @Override
+            public String validateImage() {
+                return null;
+            }
+
+            @Override
+            public String validateJavaVersion() {
+                return null;
+            }
+
+            @Override
+            public String validateWebContainer() {
+                return null;
+            }
+        }) {
             @Override
             protected OperatingSystemEnum getOs() {
                 return null;
@@ -155,7 +187,7 @@ public class ConfigurationParserTest {
         doReturn(session).when(mojo).getSession();
         doReturn("test-staging-path").when(mojo).getDeploymentStagingDirectoryPath();
         doReturn("test-build-directory-path").when(mojo).getBuildDirectoryAbsolutePath();
-        doReturn(new PricingTier("Premium", "P1V2")).when(mojo).getPricingTier();
+        doReturn("p1v2").when(mojo).getPricingTier();
 
         doReturn(OperatingSystemEnum.Windows).when(parserSpy).getOs();
         WebAppConfiguration webAppConfiguration = parserSpy.getWebAppConfiguration();
@@ -163,7 +195,7 @@ public class ConfigurationParserTest {
         assertEquals("appName", webAppConfiguration.getAppName());
         assertEquals("resourceGroupName", webAppConfiguration.getResourceGroup());
         assertEquals(Region.EUROPE_WEST, webAppConfiguration.getRegion());
-        assertEquals(new PricingTier("Premium", "P1V2"), webAppConfiguration.getPricingTier());
+        assertEquals(new PricingTier("PremiumV2", "P1v2"), webAppConfiguration.getPricingTier());
         assertEquals(null, webAppConfiguration.getServicePlanName());
         assertEquals(null, webAppConfiguration.getServicePlanResourceGroup());
         assertEquals(OperatingSystemEnum.Windows, webAppConfiguration.getOs());

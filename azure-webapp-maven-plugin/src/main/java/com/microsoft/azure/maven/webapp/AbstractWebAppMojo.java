@@ -7,13 +7,10 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
@@ -24,6 +21,8 @@ import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
+import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
+import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -241,7 +240,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     public String getAppName() {
-        return appName;
+        return appName == null ? "" : appName;
     }
 
     public DeploymentSlotSetting getDeploymentSlotSetting() {
@@ -260,13 +259,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return region;
     }
 
-    public PricingTier getPricingTier() throws MojoExecutionException {
-        return StringUtils.isEmpty(pricingTier) ? WebAppConfiguration.DEFAULT_PRICINGTIER :
-            AppServiceUtils.getPricingTierFromString(pricingTier);
+    public String getPricingTier() {
+        return this.pricingTier;
     }
 
-    public JavaVersion getJavaVersion() {
-        return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
+    public String getJavaVersion() {
+        return this.javaVersion;
     }
 
     public String getLinuxRuntime() {
@@ -353,9 +351,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
         switch (schemaVersion.toLowerCase(Locale.ENGLISH)) {
             case "v1":
-                return new V1ConfigurationParser(this);
+                return new V1ConfigurationParser(this, new V1ConfigurationValidator(this));
             case "v2":
-                return new V2ConfigurationParser(this);
+                return new V2ConfigurationParser(this, new V2ConfigurationValidator(this));
             default:
                 throw new MojoExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
         }

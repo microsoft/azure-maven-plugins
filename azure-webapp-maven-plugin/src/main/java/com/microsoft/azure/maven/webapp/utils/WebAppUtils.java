@@ -90,16 +90,11 @@ public class WebAppUtils {
                                                            final PricingTier pricingTier,
                                                            final Log log,
                                                            final OperatingSystem os) throws MojoExecutionException {
-        AppServicePlan plan = AppServiceUtils.getAppServicePlan(servicePlanName, azure,
+        final AppServicePlan plan = AppServiceUtils.getAppServicePlan(servicePlanName, azure,
                 resourceGroup, servicePlanResourceGroup);
 
-        if (plan == null) {
-            plan = createAppServicePlan(servicePlanName, resourceGroup, azure, servicePlanResourceGroup,
-                    region, pricingTier, log, os);
-        } else {
-            plan = updateAppServicePlan(plan, pricingTier, log);
-        }
-        return plan;
+        return plan != null ? plan : createAppServicePlan(servicePlanName, resourceGroup, azure,
+                servicePlanResourceGroup, region, pricingTier, log, os);
     }
 
     public static AppServicePlan createAppServicePlan(String servicePlanName,

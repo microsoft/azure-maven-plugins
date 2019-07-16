@@ -47,12 +47,8 @@ public abstract class ConfigurationSerializer {
     }
 
     protected void createOrUpdateAttribute(String attribute, String value, String oldValue, Element element) {
-        if (value == null) {
-            XMLUtils.removeNode(element, attribute);
-            return;
-        }
         // if value is not changed, just return , in case overwrite ${} properties
-        if (value.equalsIgnoreCase(oldValue)) {
+        if (value == null || value.equalsIgnoreCase(oldValue)) {
             return;
         } else {
             XMLUtils.setChildValue(attribute, value, element);

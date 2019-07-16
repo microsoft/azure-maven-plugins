@@ -14,6 +14,7 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
@@ -37,7 +38,7 @@ public class V2ConfigurationParserTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        parser = new V2ConfigurationParser(mojo);
+        parser = new V2ConfigurationParser(mojo, new V2ConfigurationValidator(mojo));
     }
 
     @Test

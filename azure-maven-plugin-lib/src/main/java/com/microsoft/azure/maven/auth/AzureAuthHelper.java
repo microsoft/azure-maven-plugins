@@ -6,6 +6,10 @@
 
 package com.microsoft.azure.maven.auth;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureCliCredentials;
@@ -14,6 +18,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.rest.LogLevel;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
@@ -21,11 +26,14 @@ import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Locale;
+import java.util.Scanner;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
 
@@ -59,6 +67,14 @@ public class AzureAuthHelper {
     public static final String AUTH_FILE_NOT_EXIST = "Authentication file does not exist: ";
     public static final String AUTH_FILE_READ_FAIL = "Failed to read authentication file: ";
     public static final String AZURE_CLI_AUTH_FAIL = "Failed to authenticate with Azure CLI 2.0";
+    public static final String AZURE_CLI_GET_SUBSCRIPTION_FAIL = "Failed to get default subscription of Azure CLI, " +
+            "please login Azure CLI first.";
+    public static final String AZURE_CLI_LOAD_TOKEN_FAIL = "Failed to load Azure CLI token file, " +
+            "please login Azure CLI first.";
+
+    private static final String AZURE_FOLDER = ".azure";
+    private static final String AZURE_PROFILE_NAME = "azureProfile.json";
+    private static final String AZURE_TOKEN_NAME = "accessTokens.json";
 
     protected AuthConfiguration config;
 
@@ -81,7 +97,11 @@ public class AzureAuthHelper {
         }
 
         try {
-            final String subscriptionId = config.getSubscriptionId();
+            String subscriptionId = config.getSubscriptionId();
+            // For cloud shell, use subscription in profile as the default subscription.
+            if (StringUtils.isEmpty(subscriptionId) && isInCloudShell()) {
+                subscriptionId = getSubscriptionOfCloudShell();
+            }
             return StringUtils.isEmpty(subscriptionId) ?
                     auth.withDefaultSubscription() :
                     auth.withSubscription(subscriptionId);
@@ -110,7 +130,7 @@ public class AzureAuthHelper {
 
         return StringUtils.isNotEmpty(httpProxyHost) ?
             configurable.withProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(httpProxyHost, httpProxyPort))) :
-            configurable;                      
+            configurable;
     }
 
     protected AzureEnvironment getAzureEnvironment(String environment) {
@@ -225,12 +245,52 @@ public class AzureAuthHelper {
                 auth = azureConfigurable.authenticate(new MSICredentials());
             } else {
                 getLog().info(AUTH_WITH_AZURE_CLI);
-                auth = azureConfigurable.authenticate(AzureCliCredentials.create());
+                final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create();
+                if (azureCliCredentials.clientId() != null) {
+                    return azureConfigurable.authenticate(azureCliCredentials);
+                } else {
+                    final ApplicationTokenCredentials servicePrincipalCredentials =
+                            getCredentialFromAzureCliWithServicePrincipal();
+                    return servicePrincipalCredentials == null ? null :
+                            azureConfigurable.authenticate(getCredentialFromAzureCliWithServicePrincipal());
+                }
             }
             return auth;
         } catch (Exception e) {
             getLog().debug(AZURE_CLI_AUTH_FAIL);
             getLog().debug(e);
+        }
+        return null;
+    }
+
+    /**
+     * Get Authenticated object from token file of Azure CLI 2.0 logged with Service Principal
+     *
+     * Note: This is a workaround for issue https://github.com/microsoft/azure-maven-plugins/issues/125
+     *
+     * @return Authenticated object if Azure CLI 2.0 is logged with Service Principal.
+     */
+    protected ApplicationTokenCredentials getCredentialFromAzureCliWithServicePrincipal() throws IOException {
+        final JsonObject subscription = getDefaultSubscriptionObject();
+        final String servicePrincipalName = subscription == null ? null : subscription.get("user")
+                .getAsJsonObject().get("name").getAsString();
+        if (servicePrincipalName == null) {
+            getLog().error(AZURE_CLI_GET_SUBSCRIPTION_FAIL);
+            return null;
+        }
+        final JsonArray tokens = getAzureCliTokenList();
+        if (tokens == null) {
+            getLog().error(AZURE_CLI_LOAD_TOKEN_FAIL);
+            return null;
+        }
+        for (final JsonElement token : tokens) {
+            final JsonObject tokenObject = (JsonObject) token;
+            if (tokenObject.has("servicePrincipalId") &&
+                    tokenObject.get("servicePrincipalId").getAsString().equals(servicePrincipalName)) {
+                final String tenantId = tokenObject.get("servicePrincipalTenant").getAsString();
+                final String key = tokenObject.get("accessToken").getAsString();
+                return new ApplicationTokenCredentials(servicePrincipalName, tenantId, key, getAzureEnvironment(null));
+            }
         }
         return null;
     }
@@ -287,6 +347,39 @@ public class AzureAuthHelper {
         }
 
         return null;
+    }
+
+    private static String getSubscriptionOfCloudShell() throws IOException {
+        final JsonObject subscription = getDefaultSubscriptionObject();
+        return subscription == null ? null : subscription.getAsJsonPrimitive("id").getAsString();
+    }
+
+    private static JsonObject getDefaultSubscriptionObject() throws IOException {
+        final File azureProfile = Paths.get(System.getProperty("user.home"),
+                AZURE_FOLDER, AZURE_PROFILE_NAME).toFile();
+        try (final FileInputStream fis = new FileInputStream(azureProfile);
+             final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
+            final String jsonProfile = scanner.useDelimiter("\\Z").next();
+            final JsonArray subscriptionList = (new Gson()).fromJson(jsonProfile, JsonObject.class)
+                    .getAsJsonArray("subscriptions");
+            for (final JsonElement child : subscriptionList) {
+                final JsonObject subscription = (JsonObject) child;
+                if (subscription.getAsJsonPrimitive("isDefault").getAsBoolean()) {
+                    return subscription;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static JsonArray getAzureCliTokenList() throws IOException {
+        final File azureProfile = Paths.get(System.getProperty("user.home"),
+                AZURE_FOLDER, AZURE_TOKEN_NAME).toFile();
+        try (final FileInputStream fis = new FileInputStream(azureProfile);
+             final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
+            final String jsonProfile = scanner.useDelimiter("\\Z").next();
+            return (new Gson()).fromJson(jsonProfile, JsonArray.class);
+        }
     }
 
     private static boolean isInCloudShell() {
