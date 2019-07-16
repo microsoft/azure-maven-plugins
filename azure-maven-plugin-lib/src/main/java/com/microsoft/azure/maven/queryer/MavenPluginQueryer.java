@@ -22,8 +22,7 @@ public abstract class MavenPluginQueryer {
                                                List<String> options, String prompt) throws MojoFailureException;
 
     public abstract String assureInputFromUser(String attribute, String defaultValue,
-                                               String regex, String prompt, String errorMessage)
-        throws MojoFailureException;
+                                               String regex, String prompt, String errorMessage) throws MojoFailureException;
 
     public abstract void close();
 

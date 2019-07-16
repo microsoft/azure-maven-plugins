@@ -11,7 +11,7 @@ import org.codehaus.plexus.util.StringUtils;
 import java.util.Locale;
 
 /**
- * Values of <configurationSource> property..
+ * Values of &lt;configurationSource&gt; property.
  * If it is null or empty, PARENT will be used as default.
  * If set the value NEW, a brand new deployment slot without any configuration will be created.
  * If set the value PARENT, will create a new deployment slot and copy the configuration from parent.

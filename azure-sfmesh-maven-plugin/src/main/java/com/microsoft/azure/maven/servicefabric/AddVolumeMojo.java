@@ -63,13 +63,13 @@ public class AddVolumeMojo extends AbstractMojo {
     String volumeAccountName;
 
     /**
-     * Key of the volume account 
+     * Key of the volume account
     */
     @Parameter(property = "volumeAccountKey", required = true)
     String volumeAccountKey;
 
     public Log logger  = getLog();
-    
+
     @Override
     public void execute() throws MojoFailureException {
         final String serviceFabricResourcesDirectory = Utils.getServicefabricResourceDirectory(logger, project);

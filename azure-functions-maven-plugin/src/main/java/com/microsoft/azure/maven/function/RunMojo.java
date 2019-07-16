@@ -28,7 +28,7 @@ public class RunMojo extends AbstractFunctionMojo {
     public static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
             "Please go to https://aka.ms/azfunc-install to install Azure Functions Core Tools first.";
     public static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
-    
+
     public static final String FUNC_HOST_START_CMD = "func host start";
     public static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start --language-worker -- " +
             "\"-agentlib:jdwp=%s\"";
@@ -86,7 +86,7 @@ public class RunMojo extends AbstractFunctionMojo {
         info(RUNTIME_FOUND);
     }
 
-    protected void runFunctions(final CommandHandler handler) throws Exception {        
+    protected void runFunctions(final CommandHandler handler) throws Exception {
         handler.runCommandWithReturnCodeCheck(
                 getStartFunctionHostCommand(),
                 true, /* showStdout */
@@ -114,8 +114,7 @@ public class RunMojo extends AbstractFunctionMojo {
     }
 
     protected String getStartFunctionHostWithDebugCommand() {
-        final String localDebugConfig = this.getLocalDebugConfig();
-        return String.format(FUNC_HOST_START_WITH_DEBUG_CMD, localDebugConfig);
+        return String.format(FUNC_HOST_START_WITH_DEBUG_CMD, this.getLocalDebugConfig());
     }
 
     //endregion

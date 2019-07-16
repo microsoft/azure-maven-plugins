@@ -13,7 +13,7 @@ import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 
 public class LinuxRuntimeHandlerImpl extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<Builder>{
+    public static class Builder extends BaseRuntimeHandler.Builder<Builder> {
 
         @Override
         protected Builder self() {

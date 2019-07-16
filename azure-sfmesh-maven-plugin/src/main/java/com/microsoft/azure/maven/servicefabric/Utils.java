@@ -133,7 +133,7 @@ public class Utils {
     }
 
     public static String getOS(){
-        return System.getProperty("os.name").toLowerCase();   
+        return System.getProperty("os.name").toLowerCase();
     }
 
     public static boolean isWindows(){
@@ -143,7 +143,7 @@ public class Utils {
     public static boolean isLinux(){
         final String os = getOS();
         return (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 ||
-            os.indexOf("aix") >= 0 || os.indexOf("mac") >= 0);    
+            os.indexOf("aix") >= 0 || os.indexOf("mac") >= 0);
     }
 
     @SuppressWarnings("unchecked")
@@ -164,7 +164,7 @@ public class Utils {
         final DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setPrettyFlow(true);
-        final Yaml dumper = new Yaml (options);
+        final Yaml dumper = new Yaml(options);
         dumper.dump(yaml, content);
         return content.toString();
     }

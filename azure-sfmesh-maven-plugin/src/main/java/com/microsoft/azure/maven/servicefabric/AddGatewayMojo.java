@@ -31,7 +31,7 @@ public class AddGatewayMojo extends AbstractMojo {
     */
     @Parameter(property = "schemaVersion", defaultValue = Constants.DEFAULT_SCHEMA_VERSION)
     String schemaVersion;
-    
+
 
     /**
      * Name of the gateway
@@ -80,7 +80,7 @@ public class AddGatewayMojo extends AbstractMojo {
     */
     @Parameter(property = "listenerName", required = true)
     String listenerName;
-    
+
     /**
      * Port to be on the listener of the service
      */

@@ -197,7 +197,6 @@ public class AddMojo extends AbstractFunctionMojo {
     //endregion
 
     //region Get function template
-
     protected FunctionTemplate getFunctionTemplate(final List<FunctionTemplate> templates) throws Exception {
         info("");
         info(FIND_TEMPLATE);
@@ -430,8 +429,8 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected File getTargetFile(final File packageDir) throws Exception {
-        final String functionName = getClassName() + ".java";
-        final File targetFile = new File(packageDir, functionName);
+        final String javaFileName = getClassName() + ".java";
+        final File targetFile = new File(packageDir, javaFileName);
         if (targetFile.exists()) {
             throw new FileAlreadyExistsException(format(FILE_EXIST, targetFile.getAbsolutePath()));
         }

@@ -25,7 +25,7 @@ public class AddNetworkMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     MavenProject project;
-    
+
     /**
      * schema version of the network yaml to be generated
     */
@@ -37,7 +37,7 @@ public class AddNetworkMojo extends AbstractMojo {
     */
     @Parameter(property = "networkName", required = true)
     String networkName;
-    
+
     /**
      * Description of the network
     */

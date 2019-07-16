@@ -9,6 +9,7 @@ what the following rules do, please see the checkstyle configuration
 page at https://checkstyle.org/config.html -->
 
 <module name="Checker">
+    <property name="charset" value="UTF-8"/>
 
     <module name="SuppressionFilter">
         <property name="file" value="${checkstyle.suppressions.file}"/>
@@ -22,6 +23,7 @@ page at https://checkstyle.org/config.html -->
     <module name="FileTabCharacter">
         <!-- Checks that there are no tab characters in the file.
         -->
+        <property name="eachLine" value="true"/>
     </module>
 
     <module name="NewlineAtEndOfFile">
@@ -34,6 +36,19 @@ page at https://checkstyle.org/config.html -->
         <property name="format" value="((//.*)|(\*.*))FIXME"/>
         <property name="message"
                   value='TODO is preferred to FIXME.  e.g. "TODO(johndoe): Refactor when v2 is released."'/>
+    </module>
+
+
+    <!-- No trailing spaces allowed -->
+    <module name="RegexpSingleline">
+        <property name="format" value="\s+$"/>
+        <property name="message" value="Line has trailing spaces."/>
+    </module>
+
+    <!-- CRLF is not allowed -->
+    <module name="RegexpMultiline">
+        <property name="format" value="(?s:(\r\n|\r).*)"/>
+        <property name="message" value="CRLF and CR line endings are prohibited, but this file uses them."/>
     </module>
 
     <module name="RegexpSingleline">
@@ -58,7 +73,13 @@ page at https://checkstyle.org/config.html -->
             <!-- Checks for redundant import statements. -->
             <property name="severity" value="error"/>
         </module>
-
+        <module name="InnerAssignment"/>
+        <module name="OuterTypeFilename"/>
+        <module name="AvoidEscapedUnicodeCharacters">
+            <property name="allowEscapesForControlCharacters" value="true"/>
+            <property name="allowByTailComment" value="true"/>
+            <property name="allowNonPrintableEscapes" value="true"/>
+        </module>
         <!--
 
         NAMING CHECKS
@@ -140,12 +161,6 @@ page at https://checkstyle.org/config.html -->
             <property name="severity" value="warning"/>
         </module>
 
-        <module name="LocalVariableName">
-            <!-- Validates identifiers for local variables against the
-              expression "^[a-z][a-zA-Z0-9]*$". -->
-            <property name="severity" value="warning"/>
-        </module>
-
         <module name="FinalLocalVariable">
             <!-- Checks that local variables that never have their values changed are declared final. -->
             <property name="tokens" value="VARIABLE_DEF"/>
@@ -159,8 +174,8 @@ page at https://checkstyle.org/config.html -->
         -->
 
         <module name="LineLength">
-            <!-- Checks if a line is too long. -->
-            <property name="max" value="${com.puppycrawl.tools.checkstyle.checks.sizes.LineLength.max}" default="120"/>
+            <!-- Checks if a line is too long, default value of 120 is too short -->
+            <property name="max" value="${com.puppycrawl.tools.checkstyle.checks.sizes.LineLength.max}" default="160"/>
             <property name="severity" value="error"/>
 
             <!--
@@ -243,6 +258,7 @@ page at https://checkstyle.org/config.html -->
         WHITESPACE CHECKS
 
         -->
+        <module name="EmptyForIteratorPad"/>
 
         <module name="WhitespaceAround">
             <!-- Checks that various tokens are surrounded by whitespace.
@@ -297,6 +313,51 @@ page at https://checkstyle.org/config.html -->
                       value="BAND, BOR, BSR, BXOR, DIV, EQUAL, GE, GT, LAND, LE, LITERAL_INSTANCEOF, LOR, LT, MINUS, MOD, NOT_EQUAL, PLUS, QUESTION, SL, SR, STAR "/>
         </module>
         <module name="AvoidStarImport"/>
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+            <message key="name.invalidPattern"
+                     value="Package name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="TypeName">
+            <message key="name.invalidPattern"
+                     value="Type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="MemberName">
+            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9_]*$"/>
+            <message key="name.invalidPattern"
+                     value="Member name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="ParameterName">
+            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
+            <message key="name.invalidPattern"
+                     value="Parameter name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="CatchParameterName">
+            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
+            <message key="name.invalidPattern"
+                     value="Catch parameter name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="LocalVariableName">
+            <property name="tokens" value="VARIABLE_DEF"/>
+            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
+            <message key="name.invalidPattern"
+                     value="Local variable name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="ClassTypeParameterName">
+            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
+            <message key="name.invalidPattern"
+                     value="Class type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="MethodTypeParameterName">
+            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
+            <message key="name.invalidPattern"
+                     value="Method type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="InterfaceTypeParameterName">
+            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
+            <message key="name.invalidPattern"
+                     value="Interface type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
         <module name="Indentation">
             <property name="basicOffset" value="4"/>
             <property name="braceAdjustment" value="0"/>
@@ -305,7 +366,16 @@ page at https://checkstyle.org/config.html -->
             <property name="lineWrappingIndentation" value="4"/>
             <property name="arrayInitIndent" value="4"/>
         </module>
-
+        <module name="GenericWhitespace">
+            <message key="ws.followed"
+                     value="GenericWhitespace ''{0}'' is followed by whitespace."/>
+            <message key="ws.preceded"
+                     value="GenericWhitespace ''{0}'' is preceded with whitespace."/>
+            <message key="ws.illegalFollow"
+                     value="GenericWhitespace ''{0}'' should followed by whitespace."/>
+            <message key="ws.notPreceded"
+                     value="GenericWhitespace ''{0}'' is not preceded with whitespace."/>
+        </module>
         <module name="CustomImportOrder">
             <property name="customImportOrderRules" value="THIRD_PARTY_PACKAGE###SPECIAL_IMPORTS###STANDARD_JAVA_PACKAGE###STATIC"/>
             <property name="specialImportsRegExp" value="^javax\."/>
@@ -317,8 +387,47 @@ page at https://checkstyle.org/config.html -->
 
         <module name="EmptyLineSeparator">
             <property name="allowNoEmptyLineBetweenFields" value="true"/>
-             <property name="allowMultipleEmptyLines" value="false"/>
+            <property name="allowMultipleEmptyLines" value="false"/>
+            <property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
+            <property name="tokens" value="VARIABLE_DEF, METHOD_DEF"/>
         </module>
-
+        <!-- Only apply this to local variables; Designers seem to prefer using same parameter names as class members. -->
+        <module name="HiddenField">
+            <property name="tokens" value="VARIABLE_DEF"/>
+        </module>
+        <!-- Developer should probably bring up this issue with designer if ever it occurs. -->
+        <module name="EqualsHashCode">
+            <property name="severity" value="info" />
+        </module>
+        <module name="StringLiteralEquality"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="CommentsIndentation"/>
+        <module name="AtclauseOrder">
+            <property name="tagOrder" value="@param, @return, @throws, @deprecated"/>
+            <property name="target" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF, VARIABLE_DEF"/>
+        </module>
+        <module name="MethodParamPad"/>
+        <module name="AnnotationLocation">
+            <property name="id" value="AnnotationLocationMostCases"/>
+            <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF"/>
+        </module>
+        <module name="AnnotationLocation">
+            <property name="id" value="AnnotationLocationVariables"/>
+            <property name="tokens" value="VARIABLE_DEF"/>
+            <property name="allowSamelineMultipleAnnotations" value="true"/>
+        </module>
+        <module name="VariableDeclarationUsageDistance"/>
+        <module name="TypecastParenPad"/>
+        <!-- Added some coding problems as INFO.  Up to developer to react to them. -->
+        <module name="CovariantEquals">
+            <property name="severity" value="info"/>
+        </module>
+        <module name="OneTopLevelClass"/>
+        <module name="NoLineWrap"/>
+        <module name="OneStatementPerLine"/>
+        <module name="MultipleVariableDeclarations"/>
+        <module name="ArrayTypeStyle"/>
+        <module name="MissingSwitchDefault"/>
     </module>
 </module>

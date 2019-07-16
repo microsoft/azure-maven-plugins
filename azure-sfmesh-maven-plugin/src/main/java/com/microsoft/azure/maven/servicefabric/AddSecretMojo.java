@@ -25,22 +25,22 @@ public class AddSecretMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     MavenProject project;
-    
+
     /**
      * schema version of the secret yaml to be generated
-    */
+     */
     @Parameter(property = "schemaVersion", defaultValue = Constants.DEFAULT_SCHEMA_VERSION)
     String schemaVersion;
 
     /**
      * Name of the secret
-    */
+     */
     @Parameter(property = "secretName", required = true)
     String secretName;
-    
+
     /**
      * Description of the secret
-    */
+     */
     @Parameter(property = "secretDescription", defaultValue = Constants.DEFAULT_SECRET_DESCRIPTION)
     String secretDescription;
 
@@ -57,14 +57,14 @@ public class AddSecretMojo extends AbstractMojo {
     String secretContentType;
 
     public Log logger  = getLog();
-    
+
     @Override
     public void execute() throws MojoFailureException {
         final String serviceFabricResourcesDirectory = Utils.getServicefabricResourceDirectory(logger, project);
         final String appResourcesDirectory = Utils.getAppResourcesDirectory(logger, project);
         if (!Utils.checkIfExists(serviceFabricResourcesDirectory)){
-            throw new MojoFailureException("Service fabric resources folder " + 
-                "does not exist. Please run init goal before running this goal!");
+            throw new MojoFailureException("Service fabric resources folder " +
+                    "does not exist. Please run init goal before running this goal!");
         }
         if (Utils.checkIfExists(Utils.getPath(appResourcesDirectory, "secret_" + secretName + ".yaml"))){
             throw new MojoFailureException("Secret Resource with the specified name already exists");
@@ -79,10 +79,10 @@ public class AddSecretMojo extends AbstractMojo {
                 .build(logger, Constants.SECRET_RESOURCE_NAME);
         try {
             FileUtils.fileWrite(Utils.getPath(appResourcesDirectory,
-                "secret_" + secretName + ".yaml"), secretContent);
+                    "secret_" + secretName + ".yaml"), secretContent);
             logger.debug(String.format("Wrote %s secret content to output", secretName));
             TelemetryHelper.sendEvent(TelemetryEventType.ADDSECRET,
-                String.format("Added secret with name: %s", secretName), logger);
+                    String.format("Added secret with name: %s", secretName), logger);
         } catch (IOException e) {
             logger.error(e);
             throw new MojoFailureException("Error while writing output");
