@@ -25,7 +25,7 @@ public class AzureAuthHelper {
      *
      * @param env the azure environment
      * @return the azure credential
-     * @throws AzureLoginFailureException when there are some other failures.
+     * @throws AzureLoginFailureException when there are some errors during login.
      */
     public static AzureCredential oAuthLogin(AzureEnvironment env) throws AzureLoginFailureException {
         throw new UnsupportedOperationException("Not implemented");
@@ -36,7 +36,7 @@ public class AzureAuthHelper {
      *
      * @param env the azure environment
      * @return the azure credential through
-     * @throws AzureLoginFailureException when there are some other failures.
+     * @throws AzureLoginFailureException when there are some errors during login.
      */
     public static AzureCredential deviceLogin(AzureEnvironment env) throws AzureLoginFailureException {
         throw new UnsupportedOperationException("Not implemented");
@@ -49,7 +49,7 @@ public class AzureAuthHelper {
      * @param refreshToken the refresh token
      *
      * @return the azure credential
-     * @throws AzureLoginFailureException when there are some other failures.
+     * @throws AzureLoginFailureException when there are some errors during refreshing.
      */
     public static AzureCredential refreshToken(AzureEnvironment env, String refreshToken) throws AzureLoginFailureException {
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
