@@ -52,6 +52,12 @@ public class AzureAuthHelper {
      * @throws AzureLoginFailureException when there are some errors during refreshing.
      */
     public static AzureCredential refreshToken(AzureEnvironment env, String refreshToken) throws AzureLoginFailureException {
+        if (env == null) {
+            throw new NullPointerException("Parameter 'env' cannot be null.");
+        }
+        if (StringUtils.isBlank(refreshToken)) {
+            throw new IllegalArgumentException("Parameter 'refreshToken' cannot be empty.");
+        }
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
             // TODO: handle proxy
@@ -101,6 +107,9 @@ public class AzureAuthHelper {
     static String authorizationUrl(AzureEnvironment env, String redirectUrl) {
         if (env == null) {
             throw new NullPointerException("Parameter 'env' cannot be null.");
+        }
+        if (StringUtils.isBlank(redirectUrl)) {
+            throw new IllegalArgumentException("Parameter 'redirectUrl' cannot be empty.");
         }
         return String.format(
                 "%s/oauth2/authorize?client_id=%s&response_type=code" + "&redirect_uri=%s&prompt=select_account&resource=%s",
