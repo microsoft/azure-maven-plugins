@@ -14,13 +14,15 @@ import com.microsoft.aad.adal4j.DeviceCode;
 import com.microsoft.azure.AzureEnvironment;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.LoggerFactory;
 import org.slf4j.spi.LocationAwareLogger;
 
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -28,9 +30,8 @@ import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 
 public class AzureAuthHelper {
-    private static final String AUTH_WITH_OAUTH = "Authenticate with OAuth 2.0";
+    private static final String AUTH_WITH_OAUTH = "Authenticate with OAuth";
     private static final String AUTH_WITH_DEVICE_LOGIN = "Authenticate with Device Login";
-    private static final String DEVICE_LOGIN_MESSAGE_TEMPLATE = "To sign in, use a web browser to open the page %s and enter the code %s to authenticate.";
 
     /**
      * Performs an OAuth 2.0 login.
@@ -40,29 +41,25 @@ public class AzureAuthHelper {
      * @throws AzureLoginFailureException when there are some errors during login.
      */
     public static AzureCredential oAuthLogin(AzureEnvironment env) throws AzureLoginFailureException {
+
+        if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            return null;
+        }
         try {
-            final WebAppServer webAppServer = new WebAppServer();
+            final LocalAuthServer webAppServer = new LocalAuthServer();
             final String redirectUrl = webAppServer.getUrl();
             final URI redirectUri = new URI(redirectUrl);
             try {
                 final String authorizationUrl = authorizationUrl(env, redirectUrl);
-                try {
-                    Desktop.getDesktop().browse(new URL(authorizationUrl).toURI());
-                    System.out.println(AUTH_WITH_OAUTH);
-                } catch (Exception ex) {
-                    // the browse is not available
-                    return null;
-                }
+                Desktop.getDesktop().browse(new URL(authorizationUrl).toURI());
+                System.out.println(AUTH_WITH_OAUTH);
 
                 webAppServer.start();
-                return new AzureCredentialCallable(baseURL(env), context -> context.acquireTokenByAuthorizationCode(webAppServer.getResult(),
+                return new AzureContextExecutor(baseURL(env), context -> context.acquireTokenByAuthorizationCode(webAppServer.getResult(),
                         env.managementEndpoint(), Constants.CLIENT_ID, redirectUri, null).get()
-                ).call();
+                ).execute();
             } finally {
-                if (webAppServer != null) {
-                    webAppServer.stop();
-                }
-
+                webAppServer.stop();
             }
 
         } catch (IOException | URISyntaxException e) {
@@ -78,8 +75,8 @@ public class AzureAuthHelper {
      * @throws AzureLoginFailureException when there are some errors during login.
      */
     public static AzureCredential deviceLogin(AzureEnvironment env) throws AzureLoginFailureException {
+        final String currentLogLevelFieldName = "currentLogLevel";
         Object logger = null;
-        Field levelField = null;
         Object oldLevelValue = null;
 
         try {
@@ -92,14 +89,19 @@ public class AzureAuthHelper {
                 // see
                 // https://github.com/AzureAD/azure-activedirectory-library-for-java/issues/246
                 logger = LoggerFactory.getLogger(AuthenticationContext.class);
-                levelField = logger.getClass().getSuperclass().getDeclaredField("currentLogLevel");
-                oldLevelValue = setObjectValue(logger, levelField, LocationAwareLogger.ERROR_INT + 1);
-            } catch (Exception e) {
+                if (logger != null) {
+                    oldLevelValue = FieldUtils.readField(logger, currentLogLevelFieldName, true);
+                    FieldUtils.writeField(logger, currentLogLevelFieldName, LocationAwareLogger.ERROR_INT + 1, true);
+                }
+            } catch (IllegalArgumentException | IllegalAccessException e) {
                 System.out.println("Failed to disable the log of " + AuthenticationContext.class.getName() + ", it will continue being noisy.");
             }
-            return new AzureCredentialCallable(baseURL(env), authenticationContext -> {
+            return new AzureContextExecutor(baseURL(env), authenticationContext -> {
                 final DeviceCode deviceCode = authenticationContext.acquireDeviceCode(Constants.CLIENT_ID, env.activeDirectoryResourceId(), null).get();
-                System.out.println(String.format(DEVICE_LOGIN_MESSAGE_TEMPLATE, deviceCode.getVerificationUrl(), deviceCode.getUserCode()));
+                // print device code hint message:
+                // to sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code xxxxxx to authenticate.
+                // TODO: add a color wrap
+                System.err.println(deviceCode.getMessage());
                 long remaining = deviceCode.getExpiresIn();
                 final long interval = deviceCode.getInterval();
                 AuthenticationResult result = null;
@@ -119,12 +121,14 @@ public class AzureAuthHelper {
                         }
                     }
                 }
+                if (result == null) {
+                    throw new AzureLoginFailureException("Cannot proceed with device login after waiting for " + deviceCode.getExpiresIn() / 60 + " minutes.");
+                }
                 return result;
-            }).call();
+            }).execute();
         } finally {
             try {
-                // reset currentLogLevel to the logger in AuthenticationContext
-                setObjectValue(logger, levelField, oldLevelValue);
+                FieldUtils.writeField(logger, currentLogLevelFieldName, oldLevelValue, true);
             } catch (IllegalArgumentException | IllegalAccessException e) {
                 // ignore
                 System.out.println("Failed to reset the log level of " + AuthenticationContext.class.getName());
@@ -144,15 +148,14 @@ public class AzureAuthHelper {
      */
     public static AzureCredential refreshToken(AzureEnvironment env, String refreshToken) throws AzureLoginFailureException {
         if (env == null) {
-            throw new NullPointerException("Parameter 'env' cannot be null.");
+            throw new IllegalArgumentException("Parameter 'env' cannot be null.");
         }
         if (StringUtils.isBlank(refreshToken)) {
             throw new IllegalArgumentException("Parameter 'refreshToken' cannot be empty.");
         }
 
-        return new AzureCredentialCallable(baseURL(env), authenticationContext -> authenticationContext
-                .acquireTokenByRefreshToken(refreshToken, Constants.CLIENT_ID, env.managementEndpoint(), null).get())
-                        .call();
+        return new AzureContextExecutor(baseURL(env), authenticationContext -> authenticationContext
+                .acquireTokenByRefreshToken(refreshToken, Constants.CLIENT_ID, env.managementEndpoint(), null).get()).execute();
     }
 
     /**
@@ -186,34 +189,26 @@ public class AzureAuthHelper {
         throw new UnsupportedOperationException("Not implemented");
     }
 
-    static String authorizationUrl(AzureEnvironment env, String redirectUrl) {
+    static String authorizationUrl(AzureEnvironment env, String redirectUrl) throws URISyntaxException, MalformedURLException {
         if (env == null) {
-            throw new NullPointerException("Parameter 'env' cannot be null.");
+            throw new IllegalArgumentException("Parameter 'env' cannot be null.");
         }
         if (StringUtils.isBlank(redirectUrl)) {
             throw new IllegalArgumentException("Parameter 'redirectUrl' cannot be empty.");
         }
-        return String.format(
-                "%s/oauth2/authorize?client_id=%s&response_type=code" + "&redirect_uri=%s&prompt=select_account&resource=%s",
-                baseURL(env), Constants.CLIENT_ID, redirectUrl, env.managementEndpoint());
+
+        final URIBuilder builder = new URIBuilder(baseURL(env));
+        builder.setPath(builder.getPath() + "/oauth2/authorize")
+            .setParameter("client_id", Constants.CLIENT_ID)
+            .setParameter("response_type", "code")
+            .setParameter("redirect_uri", redirectUrl)
+            .setParameter("prompt", "select_account")
+            .setParameter("resource", env.managementEndpoint());
+        return builder.build().toURL().toString();
     }
 
     static String baseURL(AzureEnvironment env) {
         return env.activeDirectoryEndpoint() + Constants.COMMON_TENANT;
-    }
-
-    private static Object setObjectValue(Object obj, Field field, Object value)
-            throws IllegalArgumentException, IllegalAccessException {
-        if (field == null) {
-            return null;
-        }
-        field.setAccessible(true);
-        final Object oldLevelValue = field.get(obj);
-        if (value == null) {
-            field.set(obj, value);
-        }
-
-        return oldLevelValue;
     }
 
     private AzureAuthHelper() {

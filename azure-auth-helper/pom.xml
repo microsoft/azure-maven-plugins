@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.microsoft.azure</groupId>
@@ -23,6 +24,7 @@
 		<azure.client.authentication.version>1.6.10</azure.client.authentication.version>
 		<commons.collections4.version>4.4</commons.collections4.version>
 		<commons.io.version>2.6</commons.io.version>
+		<httpclient.version>4.5.9</httpclient.version>
 		<junit.version>4.12</junit.version>
 		<commons.lang3.version>3.9</commons.lang3.version>
 	</properties>
@@ -63,6 +65,11 @@
 	</profiles>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${httpclient.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.microsoft.azure</groupId>
 			<artifactId>azure</artifactId>

@@ -31,7 +31,7 @@ public class AzureCredentialTest {
                 "    },\n" +
                 "    \"accessToken\": \"eyJ0eXA...jmcnxMnQ\",\n" +
                 "    \"refreshToken\": \"AQAB...n5cgAA\",\n" +
-                "    \"isMultipleResourceRefreshToken\": false\n" +
+                "    \"isMultipleResourceRefreshToken\": true\n" +
                 "}";
         final AuthenticationResult result = JsonUtils.fromJson(authJson, AuthenticationResult.class);
         final AzureCredential cred = AzureCredential.fromAuthenticationResult(result);
@@ -49,7 +49,7 @@ public class AzureCredentialTest {
         assertEquals("Smith", cred.getUserInfo().getFamilyName());
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testFromNullResult() {
         AzureCredential.fromAuthenticationResult(null);
         fail("Should throw NPE");

@@ -42,8 +42,8 @@ public class AzureAuthHelperTest {
     public void testRefreshTokenInvalidParameter() throws Exception {
         try {
             AzureAuthHelper.refreshToken(null, "abc");
-            fail("Should throw NPE when env is null.");
-        } catch (NullPointerException e) {
+            fail("Should throw IAE when env is null.");
+        } catch (IllegalArgumentException e) {
             // ignore
         }
 
@@ -78,6 +78,7 @@ public class AzureAuthHelperTest {
     public void tesAuthorizationUrl() throws Exception {
         String url = AzureAuthHelper.authorizationUrl(AzureEnvironment.AZURE, "http://localhost:4663");
         Map<String, String> queryMap = QueryStringUtil.queryToMap(new URI(url).getQuery());
+
         assertEquals(Constants.CLIENT_ID, queryMap.get("client_id"));
         assertEquals("http://localhost:4663", queryMap.get("redirect_uri"));
         assertEquals("code", queryMap.get("response_type"));
@@ -94,11 +95,11 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void tesAuthorizationUrlInvalidParamter() {
+    public void tesAuthorizationUrlInvalidParameter() throws Exception {
         try {
             AzureAuthHelper.authorizationUrl(null, "http://localhost:4663");
-            fail("Should throw NPE when env is null.");
-        } catch (NullPointerException e) {
+            fail("Should throw IAE when env is null.");
+        } catch (IllegalArgumentException e) {
             // ignore
         }
 

@@ -26,7 +26,7 @@ public class AzureCredential {
      */
     public static AzureCredential fromAuthenticationResult(AuthenticationResult result) {
         if (result == null) {
-            throw new NullPointerException("result cannot be null");
+            throw new IllegalArgumentException("Parameter \"result\" cannot be null");
         }
         final AzureCredential token = new AzureCredential();
         token.setAccessTokenType(result.getAccessTokenType());
@@ -34,6 +34,7 @@ public class AzureCredential {
         token.setRefreshToken(result.getRefreshToken());
         token.setIdToken(result.getIdToken());
         token.setUserInfo(result.getUserInfo());
+        token.setMultipleResourceRefreshToken(result.isMultipleResourceRefreshToken());
         return token;
     }
 

@@ -6,24 +6,23 @@
 
 package com.microsoft.azure.auth;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class QueryStringUtil {
     public static Map<String, String> queryToMap(String query) throws UnsupportedEncodingException {
         final Map<String, String> queryMap = new LinkedHashMap<>();
-        final String[] pairs = query.split("&");
-        for (final String pair : pairs) {
-            final int idx = pair.indexOf("=");
-            queryMap.put(decodeUtf8(pair.substring(0, idx)), decodeUtf8(pair.substring(idx + 1)));
+        final List<NameValuePair> params = URLEncodedUtils.parse(query, Constants.UTF8);
+        for (final NameValuePair param : params) {
+            queryMap.put(param.getName(), param.getValue());
         }
-        return queryMap;
-    }
 
-    private static String decodeUtf8(String str) throws UnsupportedEncodingException {
-        return URLDecoder.decode(str, "UTF-8");
+        return queryMap;
     }
 
     private QueryStringUtil() {

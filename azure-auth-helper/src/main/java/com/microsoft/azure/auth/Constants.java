@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.auth;
 
+import java.nio.charset.Charset;
+
 public class Constants {
     // ClientId from https://github.com/Azure/azure-cli/blob/1beb6352ece2d06187bbccd66f1638f45b0340f7/src/azure-cli-core/azure/cli/core/_profile.py#L64
     public static final String CLIENT_ID = "04b07795-8ddb-461a-bbee-02f9e1bf7b46";
@@ -16,6 +18,7 @@ public class Constants {
     public static final String AZURE_HOME_KEY = "AZURE_CONFIG_DIR";
     public static final String AZURE_SECRET_FILE = "azure-secret.json";
 
+    public static final Charset UTF8 = Charset.forName("UTF-8");
 
     private Constants() {
 
