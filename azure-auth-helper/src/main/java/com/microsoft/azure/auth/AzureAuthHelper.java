@@ -182,7 +182,6 @@ public class AzureAuthHelper {
     /***
      * Read the credential from a file.
      *
-     * @param cred the credential
      * @param file the file to be read
      * @return the saved credential
      * @throws IOException if there is any IO error.
