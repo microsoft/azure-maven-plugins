@@ -136,15 +136,13 @@ public class AzureAuthHelper {
     /**
      * Refresh an azure credential using refresh token.
      *
-     * @param env          the azure environment
+     * @param env the azure environment
      * @param refreshToken the refresh token
      *
      * @return the azure credential
-     * @throws AzureLoginFailureException when there are some errors during
-     *                                    refreshing.
+     * @throws AzureLoginFailureException when there are some errors during refreshing.
      */
-    public static AzureCredential refreshToken(AzureEnvironment env, String refreshToken)
-            throws AzureLoginFailureException {
+    public static AzureCredential refreshToken(AzureEnvironment env, String refreshToken) throws AzureLoginFailureException {
         if (env == null) {
             throw new NullPointerException("Parameter 'env' cannot be null.");
         }
@@ -158,13 +156,11 @@ public class AzureAuthHelper {
     }
 
     /**
-     * Get the azure-secret.json file according to environment variable, the default
-     * location is $HOME/.azure/azure-secret.json
+     * Get the azure-secret.json file according to environment variable, the default location is $HOME/.azure/azure-secret.json
      */
     public static File getAzureSecretFile() {
         return (StringUtils.isBlank(System.getProperty(Constants.AZURE_HOME_KEY)) ?
-                Paths.get(System.getProperty(Constants.USER_HOME_KEY), Constants.AZURE_HOME_DEFAULT,
-                        Constants.AZURE_SECRET_FILE)
+                Paths.get(System.getProperty(Constants.USER_HOME_KEY), Constants.AZURE_HOME_DEFAULT, Constants.AZURE_SECRET_FILE)
                 : Paths.get(System.getProperty(Constants.AZURE_HOME_KEY), Constants.AZURE_SECRET_FILE)).toFile();
     }
 
@@ -198,8 +194,7 @@ public class AzureAuthHelper {
             throw new IllegalArgumentException("Parameter 'redirectUrl' cannot be empty.");
         }
         return String.format(
-                "%s/oauth2/authorize?client_id=%s&response_type=code" +
-                        "&redirect_uri=%s&prompt=select_account&resource=%s",
+                "%s/oauth2/authorize?client_id=%s&response_type=code" + "&redirect_uri=%s&prompt=select_account&resource=%s",
                 baseURL(env), Constants.CLIENT_ID, redirectUrl, env.managementEndpoint());
     }
 
