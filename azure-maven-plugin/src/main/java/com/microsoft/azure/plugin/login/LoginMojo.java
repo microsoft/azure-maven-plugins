@@ -33,7 +33,7 @@ public class LoginMojo extends AbstractMojo {
         getLog().info("Begin to login");
         AzureCredential cred = null;
         try {
-            cred = devicelogin ? null : AzureAuthHelper.oAuthLogin(AzureEnvironment.AZURE);
+            cred = devicelogin ? null : AzureAuthHelper.oAuthLogin(env);
 
             if (cred == null) {
                 // fallback to device login if oauth login fails
