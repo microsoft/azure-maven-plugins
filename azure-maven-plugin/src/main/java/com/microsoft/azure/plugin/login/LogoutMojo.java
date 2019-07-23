@@ -24,12 +24,8 @@ public class LogoutMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Log log = getLog();
         final File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
-        final boolean existsFile = azureSecretFile.exists() && azureSecretFile.length() > 0;
-        if (azureSecretFile.exists() && azureSecretFile.isFile()) {
+        if (AzureAuthHelper.existsAzureSecretFile()) {
             FileUtils.deleteQuietly(azureSecretFile);
-        }
-
-        if (existsFile) {
             log.info("You have logged out successfully.");
         } else {
             log.warn("You are not logged in.");

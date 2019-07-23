@@ -105,6 +105,15 @@ public class AzureAuthHelper {
               : Paths.get(System.getProperty(Constants.AZURE_HOME_KEY), Constants.AZURE_SECRET_FILE)).toFile();
     }
 
+    /**
+     * Check whether the azure-secret.json file exists and is not empty.
+     */
+    public static boolean existsAzureSecretFile() {
+        final File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
+        return azureSecretFile.exists() && azureSecretFile.isFile() && azureSecretFile.length() > 0;
+    }
+
+
     /***
      * Save the credential to a file.
      *
