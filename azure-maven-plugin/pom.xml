@@ -1,7 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.microsoft.azure</groupId>
@@ -15,17 +13,17 @@
     <packaging>maven-plugin</packaging>
     <description>Azure Authentication library for java</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
-
+    
     <prerequisites>
-		<maven>${maven.version}</maven>
-	</prerequisites>
+        <maven>${maven.version}</maven>
+    </prerequisites>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.version>3.5</maven.version>
         <junit.version>4.12</junit.version>
     </properties>
-
+    
     <licenses>
         <license>
             <name>MIT License</name>
@@ -33,14 +31,14 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
+    
     <scm>
         <connection>scm:git:https://github.com/microsoft/azure-maven-plugins</connection>
         <developerConnection>scm:git:git@github.com:microsoft/azure-maven-plugins</developerConnection>
         <url>https://github.com/microsoft/azure-maven-plugins</url>
         <tag>HEAD</tag>
     </scm>
-
+    
     <developers>
         <developer>
             <id>xscript</id>
@@ -48,7 +46,7 @@
             <email>andxu@microsoft.com</email>
         </developer>
     </developers>
-
+    
     <profiles>
         <profile>
             <id>doclint-java8-disable</id>
@@ -60,7 +58,7 @@
             </properties>
         </profile>
     </profiles>
-
+    
     <dependencies>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
@@ -72,7 +70,7 @@
             <artifactId>maven-plugin-api</artifactId>
             <version>3.5.0</version>
         </dependency>
-
+        
         <!-- dependencies to annotations -->
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
@@ -94,7 +92,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
+    
     <build>
         <plugins>
             <plugin>
@@ -115,7 +113,7 @@
                         <format>html</format>
                         <format>xml</format>
                     </formats>
-                    <check/>
+                    <check />
                 </configuration>
             </plugin>
             <plugin>
@@ -155,29 +153,28 @@
                     </execution>
                 </executions>
             </plugin>
-            	<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-plugin-plugin</artifactId>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
                 <version>${maven.version}</version>
-				<configuration>
-					<!-- <goalPrefix>maven-archetype-plugin</goalPrefix> -->
-					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
-				</configuration>
-				<executions>
-					<execution>
-						<id>mojo-descriptor</id>
-						<goals>
-							<goal>descriptor</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>help-goal</id>
-						<goals>
-							<goal>helpmojo</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+                <configuration>
+                    <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>mojo-descriptor</id>
+                        <goals>
+                            <goal>descriptor</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>help-goal</id>
+                        <goals>
+                            <goal>helpmojo</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

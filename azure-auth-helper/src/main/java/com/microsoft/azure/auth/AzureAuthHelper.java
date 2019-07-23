@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,6 +70,29 @@ public class AzureAuthHelper {
             throw new AzureLoginFailureException(e.getMessage());
         } finally {
             executorService.shutdown();
+        }
+    }
+
+    /**
+     * Get the corresponding azure environment
+     * .
+     * @param environment the environment key
+     * @return the AzureEnvironment instance
+     */
+    public static AzureEnvironment getAzureEnvironment(String environment) {
+        if (StringUtils.isEmpty(environment)) {
+            return AzureEnvironment.AZURE;
+        }
+
+        switch (environment.toUpperCase(Locale.ENGLISH)) {
+            case "AZURE_CHINA":
+                return AzureEnvironment.AZURE_CHINA;
+            case "AZURE_GERMANY":
+                return AzureEnvironment.AZURE_GERMANY;
+            case "AZURE_US_GOVERNMENT":
+                return AzureEnvironment.AZURE_US_GOVERNMENT;
+            default:
+                return AzureEnvironment.AZURE;
         }
     }
 
