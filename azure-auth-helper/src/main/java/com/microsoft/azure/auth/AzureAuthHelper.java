@@ -9,6 +9,7 @@ package com.microsoft.azure.auth;
 import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.azure.AzureEnvironment;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -113,6 +114,17 @@ public class AzureAuthHelper {
         return azureSecretFile.exists() && azureSecretFile.isFile() && azureSecretFile.length() > 0;
     }
 
+    /**
+     * Delete the azure-secret.json.
+     *
+     * @return true if the file is deleted.
+     */
+    public static boolean deleteAzureSecretFile() {
+        if (existsAzureSecretFile()) {
+            return FileUtils.deleteQuietly(AzureAuthHelper.getAzureSecretFile());
+        }
+        return false;
+    }
 
     /***
      * Save the credential to a file.
