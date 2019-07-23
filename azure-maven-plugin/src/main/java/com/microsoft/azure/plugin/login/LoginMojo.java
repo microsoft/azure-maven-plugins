@@ -30,7 +30,7 @@ public class LoginMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoFailureException {
         final AzureEnvironment env = AzureAuthHelper.getAzureEnvironment(environment);
-        getLog().info("Begin to login");
+        getLog().info("Begin to login...");
         AzureCredential cred = null;
         try {
             cred = devicelogin ? null : AzureAuthHelper.oAuthLogin(env);
