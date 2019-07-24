@@ -7,86 +7,112 @@
 package com.microsoft.azure.auth;
 
 import com.nimbusds.jose.util.IOUtils;
-import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.lang3.StringUtils;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.InetSocketAddress;
-import java.util.Map;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 
-@SuppressWarnings("restriction")
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URI;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
 public class LocalAuthServer {
-    private static final String ERROR = "error";
-    private static final String CODE = "code";
-    // TODO: need to update this URL after we post the login quick start at
-    // docs.microsoft.com
-    private static final String LOGIN_DOC_URL = "https://docs.microsoft.com/en-us/java/api/overview/azure/maven/azure-webapp-maven-plugin/readme/";
     private static transient boolean inited = false;
     private static Object initLock = new Object();
     private static String loginSuccessBodyTemplate;
     private static String loginErrorBodyTemplate;
+    private final Semaphore semaphore = new Semaphore(0);
+    private final Server jettyServer;
 
-    private HttpServer server;
     private String code;
     private String error;
     private String errorDescription;
-    private boolean finish;
 
+    public LocalAuthServer() {
+        jettyServer = new Server();
+        final ServerConnector connector = new ServerConnector(jettyServer);
+        connector.setHost("localhost");
+        jettyServer.setConnectors(new Connector[]{ connector });
+        jettyServer.setHandler(new AbstractHandler() {
+            @Override
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+                    throws IOException, ServletException {
+                initHtmlTemplate();
+                try {
+                    ((Request) request).setHandled(true);
+                    code = request.getParameter(Constants.CODE);
+                    // handle the error response described at
+                    // https://docs.microsoft.com/en-us/azure/active-directory/develop/v1-protocols-oauth-code#error-response
+                    errorDescription = request.getParameter(Constants.ERROR_DESCRIPTION);
+                    error = request.getParameter(Constants.ERROR);
 
-    public LocalAuthServer() throws IOException {
-        initHtmlTemplate();
-        server = HttpServer.create(new InetSocketAddress(0), 0);
-        server.createContext("/", httpExchange -> {
-            try {
-                final Map<String, String> attributeMap = QueryStringUtil.queryToMap(httpExchange.getRequestURI().getQuery());
-                LocalAuthServer.this.code = attributeMap.get(CODE);
-                LocalAuthServer.this.error = attributeMap.get(ERROR);
-                LocalAuthServer.this.errorDescription = attributeMap.containsKey("error_description") ? attributeMap.get("error_description")
-                        : attributeMap.get("error_response");
-
-                final boolean isSuccess = StringUtils.isEmpty(error) && StringUtils.isNotEmpty(code);
-
-
-                final OutputStreamWriter osw = new OutputStreamWriter(httpExchange.getResponseBody());
-                if (isSuccess) {
-                    httpExchange.sendResponseHeaders(200, loginSuccessBodyTemplate.length());
-                    osw.write(loginSuccessBodyTemplate);
-                    osw.flush();
-                } else {
-                    final String response = String.format(loginErrorBodyTemplate, error, errorDescription);
-                    httpExchange.sendResponseHeaders(200, response.length());
-                    osw.write(response);
-                    osw.flush();
+                    final boolean isSuccess = StringUtils.isEmpty(error) && StringUtils.isNotEmpty(code);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.setContentType(Constants.CONTENT_TYPE_TEXT_HTML);
+                    try (final PrintWriter writer = response.getWriter()) {
+                        writer.write(isSuccess ? loginSuccessBodyTemplate : String.format(loginErrorBodyTemplate, error, errorDescription));
+                        writer.flush();
+                    }
+                    response.flushBuffer();
+                } finally {
+                    semaphore.release();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                server.stop(0);
-                finish = true;
             }
+
         });
-        server.setExecutor(null); // creates a default executor
     }
 
-    public int getPort() {
-        return server.getAddress().getPort();
+    public URI getURI() {
+        return jettyServer.getURI();
     }
 
-    public String getUrl() {
-        return "http://localhost:" + getPort();
+    public void start() throws IOException {
+        if (jettyServer.isStarted()) {
+            return;
+        }
+        try {
+            jettyServer.start();
+        } catch (Exception e) { // server.start will throw Exception
+            if (e instanceof RuntimeException) {
+                // avoid unnecessary exception convert
+                throw (RuntimeException) e;
+            }
+
+            throw new IOException(e);
+        }
+
     }
 
-    public void start() {
-        server.start();
+    public void stop() throws IOException {
+        semaphore.release();
+        try {
+            jettyServer.stop();
+        } catch (Exception e) { // server.stop will throw Exception
+            if (e instanceof RuntimeException) {
+                // avoid unnecessary exception convert
+                throw (RuntimeException) e;
+            }
+
+            throw new IOException(e);
+        }
+
     }
 
-    public void stop() {
-        server.stop(0);
-    }
-
-    public String getResult() throws InterruptedException, AzureLoginFailureException {
-        while (!finish) {
-            Thread.sleep(50);
+    public String waitForCode() throws InterruptedException, AzureLoginFailureException {
+        if (!semaphore.tryAcquire(Constants.OAUTH_TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
+            try {
+                stop();
+            } catch (IOException e) {
+                // ignore
+            }
         }
         if (StringUtils.isEmpty(error) && StringUtils.isNotEmpty(code)) {
             return code;
@@ -108,9 +134,9 @@ public class LocalAuthServer {
 
         synchronized (initLock) {
             if (!inited) {
-                // don't use String.replace, which will do regex replacement
-                loginSuccessBodyTemplate = StringUtils.replace(loadResource("success.html"), "${refresh_url}", LOGIN_DOC_URL);
-                loginErrorBodyTemplate = StringUtils.replace(loadResource("failure.html"), "${refresh_url}", LOGIN_DOC_URL);
+                // don't use String.replace, which will do the regular expression replacement
+                loginSuccessBodyTemplate = StringUtils.replace(loadResource("success.html"), "${refresh_url}", Constants.LOGIN_LANDING_PAGE);
+                loginErrorBodyTemplate = StringUtils.replace(loadResource("failure.html"), "${refresh_url}", Constants.LOGIN_LANDING_PAGE);
                 inited = true;
             }
         }

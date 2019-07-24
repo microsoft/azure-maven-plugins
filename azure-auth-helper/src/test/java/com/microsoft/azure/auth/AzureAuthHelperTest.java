@@ -7,12 +7,17 @@
 package com.microsoft.azure.auth;
 
 import com.microsoft.azure.AzureEnvironment;
-
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.URI;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -75,10 +80,9 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void tesAuthorizationUrl() throws Exception {
+    public void testAuthorizationUrl() throws Exception {
         String url = AzureAuthHelper.authorizationUrl(AzureEnvironment.AZURE, "http://localhost:4663");
-        Map<String, String> queryMap = QueryStringUtil.queryToMap(new URI(url).getQuery());
-
+        Map<String, String> queryMap = splitQuery(url);
         assertEquals(Constants.CLIENT_ID, queryMap.get("client_id"));
         assertEquals("http://localhost:4663", queryMap.get("redirect_uri"));
         assertEquals("code", queryMap.get("response_type"));
@@ -86,7 +90,7 @@ public class AzureAuthHelperTest {
         assertEquals(AzureEnvironment.AZURE.activeDirectoryResourceId(), queryMap.get("resource"));
 
         url = AzureAuthHelper.authorizationUrl(AzureEnvironment.AZURE_CHINA, "http://localhost:4664");
-        queryMap = QueryStringUtil.queryToMap(new URI(url).getQuery());
+        queryMap = splitQuery(url);
         assertEquals(Constants.CLIENT_ID, queryMap.get("client_id"));
         assertEquals("http://localhost:4664", queryMap.get("redirect_uri"));
         assertEquals("code", queryMap.get("response_type"));
@@ -118,4 +122,15 @@ public class AzureAuthHelperTest {
         baseUrl = AzureAuthHelper.baseURL(AzureEnvironment.AZURE_US_GOVERNMENT);
         assertEquals("https://login.microsoftonline.us/common", baseUrl);
     }
+
+    private static Map<String, String> splitQuery(String url) throws UnsupportedEncodingException, MalformedURLException {
+        final Map<String, String> queryMap = new LinkedHashMap<>();
+        final List<NameValuePair> params = URLEncodedUtils.parse(new URL(url).getQuery(), Constants.UTF8);
+        for (final NameValuePair param : params) {
+            queryMap.put(param.getName(), param.getValue());
+        }
+
+        return queryMap;
+    }
+
 }

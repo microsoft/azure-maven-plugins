@@ -18,6 +18,13 @@ public class Constants {
     public static final String AZURE_HOME_KEY = "AZURE_CONFIG_DIR";
     public static final String AZURE_SECRET_FILE = "azure-secret.json";
 
+    public static final String ERROR = "error";
+    public static final String CODE = "code";
+    public static final String ERROR_DESCRIPTION = "error_description";
+    // TODO: need to update this URL after we post the login quick start at docs.microsoft.com
+    public static final String LOGIN_LANDING_PAGE = "https://docs.microsoft.com/en-us/java/api/overview/azure/maven/azure-webapp-maven-plugin/readme/";
+    public static final int OAUTH_TIMEOUT_MINUTES = 5;
+    public static final String CONTENT_TYPE_TEXT_HTML = "text/html";
     public static final Charset UTF8 = Charset.forName("UTF-8");
 
     private Constants() {
