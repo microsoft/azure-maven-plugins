@@ -58,7 +58,14 @@ public class AppInsightsProxy implements TelemetryProxy {
         final TelemetryChannel channel = new InProcessTelemetryChannel(channelProperties);
 
         telemetryConfiguration.setChannel(channel);
-        telemetryConfiguration.setInstrumentationKey(readInstrumentationKeyFromConfiguration());
+
+        final String key = readInstrumentationKeyFromConfiguration();
+        if (StringUtils.isNotEmpty(key)) {
+            telemetryConfiguration.setInstrumentationKey(key);
+        } else {
+            // No instrumentation key found.
+            disable();
+        }
 
         TelemetryConfigurationFactory.INSTANCE.initialize(telemetryConfiguration);
         return telemetryConfiguration;
@@ -75,7 +82,7 @@ public class AppInsightsProxy implements TelemetryProxy {
             } else {
                 return StringUtils.EMPTY;
             }
-        } catch (IOException exception) {
+        } catch (IOException | NullPointerException exception) {
             return StringUtils.EMPTY;
         }
     }
