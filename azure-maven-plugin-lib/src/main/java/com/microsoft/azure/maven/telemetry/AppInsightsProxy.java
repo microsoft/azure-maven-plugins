@@ -75,6 +75,10 @@ public class AppInsightsProxy implements TelemetryProxy {
     private String readInstrumentationKeyFromConfiguration() {
         try (final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(
             CONFIGURATION_FILE)) {
+            if (inputStream == null) {
+                return StringUtils.EMPTY;
+            }
+
             final String configurationContent = IOUtils.toString(inputStream);
             final Matcher matcher = INSTRUMENTATION_KEY_PATTERN.matcher(configurationContent);
             if (matcher.find()) {
@@ -82,7 +86,7 @@ public class AppInsightsProxy implements TelemetryProxy {
             } else {
                 return StringUtils.EMPTY;
             }
-        } catch (IOException | NullPointerException exception) {
+        } catch (IOException exception) {
             return StringUtils.EMPTY;
         }
     }
