@@ -12,7 +12,6 @@ import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.aad.adal4j.AuthenticationResult;
 import com.microsoft.aad.adal4j.DeviceCode;
 import com.microsoft.azure.AzureEnvironment;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -28,6 +27,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
@@ -42,10 +42,10 @@ public class AzureAuthHelper {
      * @return the azure credential
      * @throws AzureLoginFailureException when there are some errors during login.
      */
-    public static AzureCredential oAuthLogin(AzureEnvironment env) throws AzureLoginFailureException {
+    public static AzureCredential oAuthLogin(AzureEnvironment env) throws AzureLoginFailureException, DesktopNotSupportedException {
 
         if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            return null;
+            throw new DesktopNotSupportedException("Not able to launch a browser to log you in.");
         }
 
         final LocalAuthServer server = new LocalAuthServer();
@@ -99,7 +99,7 @@ public class AzureAuthHelper {
                     FieldUtils.writeField(logger, currentLogLevelFieldName, LocationAwareLogger.ERROR_INT + 1, true);
                 }
             } catch (IllegalArgumentException | IllegalAccessException e) {
-                System.out.println("Failed to disable the log of " + AuthenticationContext.class.getName() + ", it will continue being noisy.");
+                System.out.println("Failed to disable the log of AuthenticationContext, it will continue being noisy.");
             }
             return new AzureContextExecutor(baseURL(env), authenticationContext -> {
                 final DeviceCode deviceCode = authenticationContext.acquireDeviceCode(Constants.CLIENT_ID, env.activeDirectoryResourceId(), null).get();
@@ -114,7 +114,7 @@ public class AzureAuthHelper {
                 while (remaining > 0 && result == null) {
                     try {
                         remaining -= interval;
-                        Thread.sleep(interval * 1000);
+                        Thread.sleep(Duration.ofSeconds(interval).toMillis());
                         result = authenticationContext.acquireTokenByDeviceCode(deviceCode, null).get();
                     } catch (ExecutionException e) {
                         if (e.getCause() instanceof AuthenticationException &&
@@ -247,7 +247,7 @@ public class AzureAuthHelper {
         }
 
         final URIBuilder builder = new URIBuilder(baseURL(env));
-        builder.setPath(builder.getPath() + "/oauth2/authorize")
+        builder.setPath(String.format("%s/oauth2/authorize", builder.getPath()))
             .setParameter("client_id", Constants.CLIENT_ID)
             .setParameter("response_type", "code")
             .setParameter("redirect_uri", redirectUrl)

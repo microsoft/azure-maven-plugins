@@ -25,10 +25,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public class LocalAuthServer {
-    private static transient boolean inited = false;
-    private static Object initLock = new Object();
-    private static String loginSuccessBodyTemplate;
-    private static String loginErrorBodyTemplate;
+    private static String loginSuccessHTMLTemplate;
+    private static String loginErrorHTMLTemplate;
     private final Semaphore semaphore = new Semaphore(0);
     private final Server jettyServer;
 
@@ -37,6 +35,13 @@ public class LocalAuthServer {
     private String errorDescription;
 
     public LocalAuthServer() {
+        if (loginErrorHTMLTemplate == null) {
+            try {
+                initHtmlTemplate();
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot read html pages for local auth server.");
+            }
+        }
         jettyServer = new Server();
         final ServerConnector connector = new ServerConnector(jettyServer);
         connector.setHost("localhost");
@@ -58,7 +63,7 @@ public class LocalAuthServer {
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.setContentType(Constants.CONTENT_TYPE_TEXT_HTML);
                     try (final PrintWriter writer = response.getWriter()) {
-                        writer.write(isSuccess ? loginSuccessBodyTemplate : String.format(loginErrorBodyTemplate, error, errorDescription));
+                        writer.write(isSuccess ? loginSuccessHTMLTemplate : String.format(loginErrorHTMLTemplate, error, errorDescription));
                         writer.flush();
                     }
                     response.flushBuffer();
@@ -66,7 +71,6 @@ public class LocalAuthServer {
                     semaphore.release();
                 }
             }
-
         });
     }
 
@@ -107,39 +111,39 @@ public class LocalAuthServer {
     }
 
     public String waitForCode() throws InterruptedException, AzureLoginFailureException {
+        boolean timeout = false;
         if (!semaphore.tryAcquire(Constants.OAUTH_TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
+            timeout = true;
             try {
                 stop();
             } catch (IOException e) {
                 // ignore
             }
         }
+
         if (StringUtils.isEmpty(error) && StringUtils.isNotEmpty(code)) {
             return code;
         }
+
         if (StringUtils.isNotEmpty(error)) {
             if (StringUtils.isNotEmpty(errorDescription)) {
                 throw new AzureLoginFailureException(error + "\nReason: " + errorDescription);
             }
             throw new AzureLoginFailureException(error);
-        } else {
-            throw new AzureLoginFailureException("There is no error and no code.");
         }
+
+        if (timeout) {
+            throw new AzureLoginFailureException(
+                    String.format("Cannot proceed with login after waiting for %d minutes.", Constants.OAUTH_TIMEOUT_MINUTES));
+        }
+        throw new AzureLoginFailureException("There is no error and no code.");
+
     }
 
     static void initHtmlTemplate() throws IOException {
-        if (inited) {
-            return;
-        }
-
-        synchronized (initLock) {
-            if (!inited) {
-                // don't use String.replace, which will do the regular expression replacement
-                loginSuccessBodyTemplate = StringUtils.replace(loadResource("success.html"), "${refresh_url}", Constants.LOGIN_LANDING_PAGE);
-                loginErrorBodyTemplate = StringUtils.replace(loadResource("failure.html"), "${refresh_url}", Constants.LOGIN_LANDING_PAGE);
-                inited = true;
-            }
-        }
+        // don't use String.replace, which will do the regular expression replacement
+        loginSuccessHTMLTemplate = StringUtils.replace(loadResource("success.html"), "${refresh_url}", Constants.LOGIN_LANDING_PAGE);
+        loginErrorHTMLTemplate = StringUtils.replace(loadResource("failure.html"), "${refresh_url}", Constants.LOGIN_LANDING_PAGE);
     }
 
     static String loadResource(String resourceName) throws IOException {

@@ -8,13 +8,11 @@ package com.microsoft.azure.auth;
 
 import com.microsoft.azure.AzureEnvironment;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -123,9 +121,9 @@ public class AzureAuthHelperTest {
         assertEquals("https://login.microsoftonline.us/common", baseUrl);
     }
 
-    private static Map<String, String> splitQuery(String url) throws UnsupportedEncodingException, MalformedURLException {
+    private static Map<String, String> splitQuery(String url) throws URISyntaxException {
         final Map<String, String> queryMap = new LinkedHashMap<>();
-        final List<NameValuePair> params = URLEncodedUtils.parse(new URL(url).getQuery(), Constants.UTF8);
+        final List<NameValuePair> params = new URIBuilder(url).getQueryParams();
         for (final NameValuePair param : params) {
             queryMap.put(param.getName(), param.getValue());
         }
