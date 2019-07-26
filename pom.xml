@@ -34,7 +34,7 @@
         <layout>default</layout>
       </snapshotRepository>
     </distributionManagement>
-    
+
     <developers>
         <developer>
             <id>xscript</id>
@@ -51,5 +51,6 @@
         <module>azure-functions-maven-plugin</module>
         <module>azure-sfmesh-maven-plugin</module>
         <module>azure-auth-helper</module>
+        <module>azure-spring-maven-plugin</module>
     </modules>
 </project>
