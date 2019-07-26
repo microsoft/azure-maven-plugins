@@ -9,12 +9,14 @@ package com.microsoft.azure.auth;
 import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.azure.AzureEnvironment;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -73,12 +75,55 @@ public class AzureAuthHelper {
     }
 
     /**
+     * Get the corresponding azure environment
+     * .
+     * @param environment the environment key
+     * @return the AzureEnvironment instance
+     */
+    public static AzureEnvironment getAzureEnvironment(String environment) {
+        if (StringUtils.isEmpty(environment)) {
+            return AzureEnvironment.AZURE;
+        }
+
+        switch (environment.toUpperCase(Locale.ENGLISH)) {
+            case "AZURE_CHINA":
+                return AzureEnvironment.AZURE_CHINA;
+            case "AZURE_GERMANY":
+                return AzureEnvironment.AZURE_GERMANY;
+            case "AZURE_US_GOVERNMENT":
+                return AzureEnvironment.AZURE_US_GOVERNMENT;
+            default:
+                return AzureEnvironment.AZURE;
+        }
+    }
+
+    /**
      * Get the azure-secret.json file according to environment variable, the default location is $HOME/.azure/azure-secret.json
      */
     public static File getAzureSecretFile() {
         return (StringUtils.isBlank(System.getProperty(Constants.AZURE_HOME_KEY)) ?
               Paths.get(System.getProperty(Constants.USER_HOME_KEY), Constants.AZURE_HOME_DEFAULT, Constants.AZURE_SECRET_FILE)
               : Paths.get(System.getProperty(Constants.AZURE_HOME_KEY), Constants.AZURE_SECRET_FILE)).toFile();
+    }
+
+    /**
+     * Check whether the azure-secret.json file exists and is not empty.
+     */
+    public static boolean existsAzureSecretFile() {
+        final File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
+        return azureSecretFile.exists() && azureSecretFile.isFile() && azureSecretFile.length() > 0;
+    }
+
+    /**
+     * Delete the azure-secret.json.
+     *
+     * @return true if the file is deleted.
+     */
+    public static boolean deleteAzureSecretFile() {
+        if (existsAzureSecretFile()) {
+            return FileUtils.deleteQuietly(AzureAuthHelper.getAzureSecretFile());
+        }
+        return false;
     }
 
     /***
