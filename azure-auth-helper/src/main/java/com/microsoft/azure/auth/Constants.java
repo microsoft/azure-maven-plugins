@@ -16,6 +16,7 @@ public class Constants {
     public static final String AZURE_HOME_KEY = "AZURE_CONFIG_DIR";
     public static final String AZURE_SECRET_FILE = "azure-secret.json";
 
+    public static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
 
     private Constants() {
 
