@@ -32,9 +32,6 @@ public class Utils {
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
     private static final Pattern MEMORY_PATTERN = Pattern.compile(MEMORY_REGEX);
 
-    private Utils() {
-    }
-
     public static int convertSizeStringToNumber(String memory) throws MojoExecutionException {
         final Matcher matcher = MEMORY_PATTERN.matcher(memory);
         if (!matcher.matches()) {
@@ -107,5 +104,8 @@ public class Utils {
         //            throw new MojoExecutionException(e.getMessage(), e);
         //        }
         //        return false;
+    }
+
+    private Utils() {
     }
 }

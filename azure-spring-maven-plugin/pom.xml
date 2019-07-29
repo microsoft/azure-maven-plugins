@@ -6,7 +6,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.ms.azure</groupId>
+    <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-spring-maven-plugin</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
@@ -18,14 +18,14 @@
     </parent>
     <name>Azure Spring Cloud Maven Plugin</name>
 
-    <!-- FIXME change it to the project's website -->
-    <url>http://www.example.com</url>
+    <url>https://github.com/microsoft/azure-maven-plugins/</url>
 
     <prerequisites>
         <maven>${maven.version}</maven>
     </prerequisites>
 
     <properties>
+        <azure.version>1.24.1</azure.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -40,29 +40,15 @@
         </dependency>
 
         <dependency>
-            <groupId>com.taobao.text</groupId>
-            <artifactId>text-ui</artifactId>
-            <version>0.0.2</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.maven.shared/maven-shared-utils -->
-        <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-shared-utils</artifactId>
             <version>3.2.1</version>
         </dependency>
 
-
         <dependency>
             <groupId>com.microsoft.azure.microservices4spring.v2019_05_01_preview</groupId>
             <artifactId>azure-mgmt-microservices4spring</artifactId>
             <version>1.0.0-beta</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.ms.azure</groupId>
-            <artifactId>azure-login</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -74,7 +60,7 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure</artifactId>
-            <version>1.21.0</version>
+            <version>${azure.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -165,7 +151,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
                 <configuration>
-                    <!-- <goalPrefix>maven-archetype-plugin</goalPrefix> -->
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>
                 <executions>
