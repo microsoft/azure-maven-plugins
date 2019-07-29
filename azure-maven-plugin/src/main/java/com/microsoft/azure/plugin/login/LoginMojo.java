@@ -44,13 +44,14 @@ public class LoginMojo extends AbstractMojo {
             String previousSubscriptionId = null;
             try {
                 previousSubscriptionId = AzureAuthHelper.existsAzureSecretFile() ?
-                        AzureAuthHelper.readAzureCredentials(AzureAuthHelper.getAzureSecretFile()).getDefaultSubscription() : null;
+                        AzureAuthHelper.readAzureCredentials(AzureAuthHelper.getAzureSecretFile()).getDefaultSubscription() :
+                        null;
             } catch (IOException e) {
                 // ignore;
             }
 
             try {
-                newAzureCredential = devicelogin  ? null : AzureAuthHelper.oAuthLogin(env);
+                newAzureCredential = devicelogin ? AzureAuthHelper.deviceLogin(env) : AzureAuthHelper.oAuthLogin(env);
             } catch (DesktopNotSupportedException e) {
                 // fallback to device login if oauth login fails
                 newAzureCredential = AzureAuthHelper.deviceLogin(env);
