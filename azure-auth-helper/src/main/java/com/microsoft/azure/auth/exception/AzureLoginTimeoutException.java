@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.auth;
+package com.microsoft.azure.auth.exception;
 
 public class AzureLoginTimeoutException extends AzureLoginFailureException {
 

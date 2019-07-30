@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.auth;
+package com.microsoft.azure.auth.exception;
 
 public class AzureLoginFailureException extends Exception {
     private static final long serialVersionUID = -2454602745147535476L;

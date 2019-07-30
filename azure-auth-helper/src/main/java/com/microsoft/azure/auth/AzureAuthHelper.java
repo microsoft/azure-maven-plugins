@@ -7,6 +7,9 @@
 package com.microsoft.azure.auth;
 
 import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.auth.exception.AzureLoginFailureException;
+import com.microsoft.azure.auth.exception.AzureLoginTimeoutException;
+import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
 import com.microsoft.azure.credentials.AzureCliCredentials;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
@@ -110,10 +113,18 @@ public class AzureAuthHelper {
      * Get the azure-secret.json file according to environment variable, the default location is $HOME/.azure/azure-secret.json
      */
     public static File getAzureSecretFile() {
-        return (StringUtils.isBlank(System.getProperty(Constants.AZURE_HOME_KEY)) ?
-              Paths.get(System.getProperty(Constants.USER_HOME_KEY), Constants.AZURE_HOME_DEFAULT, Constants.AZURE_SECRET_FILE)
-              : Paths.get(System.getProperty(Constants.AZURE_HOME_KEY), Constants.AZURE_SECRET_FILE)).toFile();
+        return new File(getAzureConfigFolder(), Constants.AZURE_SECRET_FILE);
     }
+
+
+    /**
+     * Get the azure config folder location, the default location is $HOME/.azure.
+     */
+    public static File getAzureConfigFolder() {
+        return StringUtils.isNotBlank(System.getenv(Constants.AZURE_CONFIG_DIR)) ? new File(System.getenv(Constants.AZURE_CONFIG_DIR)) :
+            Paths.get(System.getProperty(Constants.USER_HOME), Constants.AZURE_FOLDER).toFile();
+    }
+
 
     /**
      * Check whether the azure-secret.json file exists and is not empty.
@@ -149,7 +160,6 @@ public class AzureAuthHelper {
     /***
      * Read the credential from a file.
      *
-     * @param cred the credential
      * @param file the file to be read
      * @return the saved credential
      * @throws IOException if there is any IO error.
@@ -211,11 +221,11 @@ public class AzureAuthHelper {
     }
 
     /**
-     * Get an AzureTokenCredentials from : a. $HOME/.azure/azure-secret.json(created
-     * by `mvn azure:login`) b. cloud shell c.
-     * $HOME/.azure/azure-secret.json(created by `az login`)
+     * Get an AzureTokenCredentials from :
+     * a. $HOME/.azure/azure-secret.json(created by `mvn azure:login`)
+     * b. cloud shell
+     * c. $HOME/.azure/azure-secret.json(created by `az login`)
      *
-     * @param env the azure environment
      * @return the azure credential through
      * @throws IOException when there are some IO errors.
      */
@@ -230,12 +240,10 @@ public class AzureAuthHelper {
         if (isInCloudShell()) {
             return new MSICredentials();
         }
-        final File credentialParent = StringUtils.isBlank(System.getProperty(Constants.AZURE_HOME_KEY)) ?
-                Paths.get(System.getProperty(Constants.USER_HOME_KEY), Constants.AZURE_HOME_DEFAULT).toFile() :
-                new File(Constants.AZURE_HOME_KEY);
+        final File credentialParent = getAzureConfigFolder();
         if (credentialParent.exists() && credentialParent.isDirectory()) {
-            final File azureProfile = new File(credentialParent, "azureProfile.json");
-            final File accessTokens = new File(credentialParent, "accessTokens.json");
+            final File azureProfile = new File(credentialParent, Constants.AZURE_PROFILE_NAME);
+            final File accessTokens = new File(credentialParent, Constants.AZURE_TOKEN_NAME);
 
             if (azureProfile.exists() && accessTokens.exists()) {
                 try {

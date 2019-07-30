@@ -11,10 +11,12 @@ public class Constants {
     public static final String CLIENT_ID = "04b07795-8ddb-461a-bbee-02f9e1bf7b46";
     public static final String COMMON_TENANT = "common";
 
-    public static final String AZURE_HOME_DEFAULT = ".azure";
-    public static final String USER_HOME_KEY = "user.home";
-    public static final String AZURE_HOME_KEY = "AZURE_CONFIG_DIR";
+    public static final String AZURE_FOLDER = ".azure";
+    public static final String USER_HOME = "user.home";
+    public static final String AZURE_CONFIG_DIR = "AZURE_CONFIG_DIR";
     public static final String AZURE_SECRET_FILE = "azure-secret.json";
+    public static final String AZURE_PROFILE_NAME = "azureProfile.json";
+    public static final String AZURE_TOKEN_NAME = "accessTokens.json";
 
     public static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
 
