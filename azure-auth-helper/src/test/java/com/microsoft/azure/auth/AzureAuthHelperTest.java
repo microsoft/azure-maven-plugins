@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -62,8 +63,12 @@ public class AzureAuthHelperTest {
     @Test
     public void tetGetAzureSecretFile() throws Exception {
         final File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
-        assertEquals(Paths.get(System.getProperty(Constants.USER_HOME), ".azure", "azure-secret.json").toString(),
+        assertEquals(Paths.get(System.getProperty("user.home"), ".azure", "azure-secret.json").toString(),
                 azureSecretFile.getAbsolutePath());
+
+        updateEnv("AZURE_CONFIG_DIR", "test_dir");
+        assertEquals(Paths.get("test_dir", "azure-secret.json").toFile().getAbsolutePath(),
+                AzureAuthHelper.getAzureSecretFile().getAbsolutePath());
     }
 
     @Test
@@ -130,4 +135,11 @@ public class AzureAuthHelperTest {
         return queryPairs;
     }
 
+    private static void updateEnv(String name, String val) throws ReflectiveOperationException {
+        // dangerous: please use this code only in unit test.
+        final Map<String, String> env = System.getenv();
+        final Field field = env.getClass().getDeclaredField("m");
+        field.setAccessible(true);
+        ((Map<String, String>) field.get(env)).put(name, val);
+    }
 }
