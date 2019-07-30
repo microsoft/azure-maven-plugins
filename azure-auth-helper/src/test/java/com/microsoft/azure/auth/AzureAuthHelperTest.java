@@ -62,9 +62,9 @@ public class AzureAuthHelperTest {
     @Test
     public void tetGetAzureSecretFile() throws Exception {
         File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
-        assertEquals(Paths.get(System.getProperty(Constants.USER_HOME_KEY), ".azure", "azure-secret.json").toString(),
+        assertEquals(Paths.get(System.getProperty(Constants.USER_HOME), ".azure", "azure-secret.json").toString(),
                 azureSecretFile.getAbsolutePath());
-        System.setProperty(Constants.AZURE_HOME_KEY, "test_dir");
+        System.setProperty(Constants.AZURE_CONFIG_DIR, "test_dir");
         azureSecretFile = AzureAuthHelper.getAzureSecretFile();
         assertEquals(Paths.get("test_dir", "azure-secret.json").toFile().getAbsolutePath(),
                 azureSecretFile.getAbsolutePath());

@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.auth;
 
+import com.microsoft.azure.auth.util.JsonUtils;
 import org.junit.Test;
 import java.util.Map;
 

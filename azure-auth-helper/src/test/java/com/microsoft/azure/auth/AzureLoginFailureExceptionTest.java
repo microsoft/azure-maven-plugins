@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.auth;
 
+import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import org.junit.Test;
 
 public class AzureLoginFailureExceptionTest {

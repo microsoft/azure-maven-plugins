@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.auth;
+package com.microsoft.azure.auth.exception;
 public class DesktopNotSupportedException extends Exception {
     private static final long serialVersionUID = -5613873966928201379L;
 

@@ -7,7 +7,7 @@
 package com.microsoft.azure.auth;
 
 import com.microsoft.aad.adal4j.AuthenticationResult;
-
+import com.microsoft.azure.auth.util.JsonUtils;
 import org.junit.Test;
 
 import java.util.Map;

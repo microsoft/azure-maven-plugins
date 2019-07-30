@@ -9,7 +9,7 @@ package com.microsoft.azure.plugin.login;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureCredential;
-import com.microsoft.azure.auth.TextUtils;
+import com.microsoft.azure.auth.util.TextUtils;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
