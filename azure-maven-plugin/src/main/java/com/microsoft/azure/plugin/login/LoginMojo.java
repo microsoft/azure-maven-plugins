@@ -9,11 +9,19 @@ package com.microsoft.azure.plugin.login;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureCredential;
-
+import com.microsoft.azure.auth.AzureLoginFailureException;
+import com.microsoft.azure.auth.DesktopNotSupportedException;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.Azure.Authenticated;
+import com.microsoft.azure.management.resources.Subscription;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Goal to login to azure.
@@ -30,19 +38,40 @@ public class LoginMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoFailureException {
         final AzureEnvironment env = AzureAuthHelper.getAzureEnvironment(environment);
-        getLog().info("Begin to login...");
-        AzureCredential cred = null;
+        AzureCredential newAzureCredential = null;
         try {
-            cred = devicelogin ? null : AzureAuthHelper.oAuthLogin(env);
 
-            if (cred == null) {
-                // fallback to device login if oauth login fails
-                cred = AzureAuthHelper.deviceLogin(env);
+            String previousSubscriptionId = null;
+            try {
+                previousSubscriptionId = AzureAuthHelper.existsAzureSecretFile() ?
+                        AzureAuthHelper.readAzureCredentials(AzureAuthHelper.getAzureSecretFile()).getDefaultSubscription() :
+                        null;
+            } catch (IOException e) {
+                // ignore;
             }
-            // device login will either success or either throw AzureLoginFailureException
-            AzureAuthHelper.writeAzureCredentials(cred, AzureAuthHelper.getAzureSecretFile());
 
-        } catch (Exception e) {
+            try {
+                newAzureCredential = devicelogin ? AzureAuthHelper.deviceLogin(env) : AzureAuthHelper.oAuthLogin(env);
+            } catch (DesktopNotSupportedException e) {
+                // fallback to device login if oauth login fails
+                newAzureCredential = AzureAuthHelper.deviceLogin(env);
+            }
+
+            if (StringUtils.isNotBlank(previousSubscriptionId)) {
+                // save the older subscription id if it is valid
+                final Authenticated azure = Azure.configure().authenticate(AzureAuthHelper.getMavenAzureLoginCredentials(newAzureCredential, env));
+                for (final Subscription subscription : azure.subscriptions().list()) {
+                    if (StringUtils.equalsIgnoreCase(previousSubscriptionId, subscription.subscriptionId())) {
+                        newAzureCredential.setDefaultSubscription(previousSubscriptionId);
+                        break;
+                    }
+                }
+            }
+
+            // device login will either success or either throw AzureLoginFailureException
+            AzureAuthHelper.writeAzureCredentials(newAzureCredential, AzureAuthHelper.getAzureSecretFile());
+
+        } catch (AzureLoginFailureException | ExecutionException | InterruptedException | IOException e) {
             throw new MojoFailureException(String.format("Fail to login due to error: %s.", e.getMessage()));
         }
     }

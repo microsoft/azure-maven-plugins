@@ -7,7 +7,6 @@
 package com.microsoft.azure.auth;
 
 import com.microsoft.azure.AzureEnvironment;
-
 import org.junit.Test;
 
 import java.io.File;
@@ -18,6 +17,7 @@ import java.net.URLDecoder;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -37,7 +37,7 @@ public class AzureAuthHelperTest {
         try {
             AzureAuthHelper.refreshToken(AzureEnvironment.AZURE, "invalid");
             fail("Should throw AzureLoginFailureException when refreshToken is invalid.");
-        } catch (AzureLoginFailureException e) {
+        } catch (ExecutionException e) {
             // ignore
         }
     }
@@ -46,8 +46,8 @@ public class AzureAuthHelperTest {
     public void testRefreshTokenInvalidParameter() throws Exception {
         try {
             AzureAuthHelper.refreshToken(null, "abc");
-            fail("Should throw NPE when env is null.");
-        } catch (NullPointerException e) {
+            fail("Should throw IAE when env is null.");
+        } catch (IllegalArgumentException e) {
             // ignore
         }
 
@@ -79,7 +79,7 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void tesAuthorizationUrl() throws Exception {
+    public void testAuthorizationUrl() throws Exception {
         String url = AzureAuthHelper.authorizationUrl(AzureEnvironment.AZURE, "http://localhost:4663");
         Map<String, String> queryMap = splitQuery(url);
         assertEquals(Constants.CLIENT_ID, queryMap.get("client_id"));
@@ -98,11 +98,11 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void tesAuthorizationUrlInvalidParamter() {
+    public void tesAuthorizationUrlInvalidParameter() throws Exception {
         try {
             AzureAuthHelper.authorizationUrl(null, "http://localhost:4663");
-            fail("Should throw NPE when env is null.");
-        } catch (NullPointerException e) {
+            fail("Should throw IAE when env is null.");
+        } catch (IllegalArgumentException e) {
             // ignore
         }
 
