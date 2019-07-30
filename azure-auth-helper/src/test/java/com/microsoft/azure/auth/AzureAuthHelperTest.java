@@ -76,3 +76,4 @@ public class AzureAuthHelperTest {
     public void testReadAzureCredentials() throws Exception {
     }
 }
+
