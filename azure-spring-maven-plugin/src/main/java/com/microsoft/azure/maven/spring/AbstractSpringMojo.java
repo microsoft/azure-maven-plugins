@@ -19,6 +19,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.util.HashMap;
@@ -28,6 +29,13 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
     private static final String TELEMETRY_KEY_PLUGIN_NAME = "pluginName";
     private static final String TELEMETRY_KEY_PLUGIN_VERSION = "pluginVersion";
+    private static final String TELEMETRY_KEY_PUBLIC = "public";
+    private static final String TELEMETRY_KEY_JAVA_VERSION = "javaVersion";
+    private static final String TELEMETRY_KEY_CPU = "cpu";
+    private static final String TELEMETRY_KEY_MEMORY = "memory";
+    private static final String TELEMETRY_KEY_INSTANCE_COUNT = "instanceCount";
+    private static final String TELEMETRY_KEY_JVM_PARAMETER = "jvmParameter";
+    private static final String TELEMETRY_KEY_WITHIN_PARENT_POM = "isExecutedWithinParentPom";
 
     @Parameter(property = "port")
     protected int port;
@@ -35,7 +43,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     @Parameter(alias = "public")
     protected boolean isPublic;
 
-    @Parameter(property = "isTelemetryAllowed")
+    @Parameter(property = "isTelemetryAllowed", defaultValue = "true")
     protected boolean isTelemetryAllowed;
 
     @Parameter(property = "subscriptionId")
@@ -94,7 +102,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected void initExecution() {
-        if (isTelemetryAllowed) {
+        if (!isTelemetryAllowed) {
             AppInsightHelper.INSTANCE.disable();
         }
         initTelemetry();
@@ -115,7 +123,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected void trackMojoExecution(MojoStatus status) {
-        final String eventName = String.join("%s.%s", this.getClass().getSimpleName(), status.name());
+        final String eventName = String.format("%s.%s", this.getClass().getSimpleName(), status.name());
         AppInsightHelper.INSTANCE.trackEvent(eventName, getTelemetryProperties(), false);
     }
 
@@ -123,6 +131,17 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         telemetries = new HashMap<>();
         telemetries.put(TELEMETRY_KEY_PLUGIN_NAME, plugin.getArtifactId());
         telemetries.put(TELEMETRY_KEY_PLUGIN_VERSION, plugin.getVersion());
+        telemetries.put(TELEMETRY_KEY_WITHIN_PARENT_POM, String.valueOf(project.getPackaging().equalsIgnoreCase("pom")));
+    }
+
+    protected void updateTelemetry(SpringConfiguration configuration) {
+        telemetries.put(TELEMETRY_KEY_PUBLIC, String.valueOf(configuration.isPublic()));
+        telemetries.put(TELEMETRY_KEY_JAVA_VERSION, configuration.getJavaVersion());
+        telemetries.put(TELEMETRY_KEY_CPU, String.valueOf(configuration.getDeployment().getCpu()));
+        telemetries.put(TELEMETRY_KEY_MEMORY, String.valueOf(configuration.getDeployment().getMemoryInGB()));
+        telemetries.put(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getInstanceCount()));
+        telemetries.put(TELEMETRY_KEY_JVM_PARAMETER,
+                String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmParameter())));
     }
 
     protected abstract void doExecute() throws MojoExecutionException, MojoFailureException;

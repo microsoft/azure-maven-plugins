@@ -40,4 +40,15 @@ public class DeployMojo extends AbstractSpringMojo {
         // Update deployment, show url
         getLog().info(app.properties().url());
     }
+
+    @Override
+    protected void updateTelemetry(SpringConfiguration springConfiguration) {
+        super.updateTelemetry(springConfiguration);
+        // Todo update deploy mojo telemetries with real value
+        telemetries.put("authMethod", "Pom Configuration");
+        telemetries.put("isServicePrincipal", "false");
+        telemetries.put("isKeyEncrypted", "");
+        telemetries.put("isCreateNewApp", "");
+        telemetries.put("isUpdateConfiguration", "");
+    }
 }
