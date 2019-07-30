@@ -242,8 +242,8 @@ public class AzureAuthHelper {
         }
         final File credentialParent = getAzureConfigFolder();
         if (credentialParent.exists() && credentialParent.isDirectory()) {
-            final File azureProfile = new File(credentialParent, "azureProfile.json");
-            final File accessTokens = new File(credentialParent, "accessTokens.json");
+            final File azureProfile = new File(credentialParent, Constants.AZURE_PROFILE_NAME);
+            final File accessTokens = new File(credentialParent, Constants.AZURE_TOKEN_NAME);
 
             if (azureProfile.exists() && accessTokens.exists()) {
                 try {
