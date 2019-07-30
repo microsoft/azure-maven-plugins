@@ -8,16 +8,17 @@ package com.microsoft.azure.auth;
 
 import com.microsoft.azure.AzureEnvironment;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -25,6 +26,8 @@ import java.util.concurrent.ExecutionException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({System.class, AzureAuthHelper.class})
 public class AzureAuthHelperTest {
 
     @Test
@@ -66,8 +69,8 @@ public class AzureAuthHelperTest {
     public void tetGetAzureSecretFile() throws Exception {
         final File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
         assertEquals(Paths.get(System.getProperty("user.home"), ".azure", "azure-secret.json").toString(), azureSecretFile.getAbsolutePath());
-
-        updateEnv("AZURE_CONFIG_DIR", "test_dir");
+        PowerMockito.mockStatic(System.class);
+        PowerMockito.when(System.getenv("AZURE_CONFIG_DIR")).thenReturn("test_dir");
         assertEquals(Paths.get("test_dir", "azure-secret.json").toFile().getAbsolutePath(), AzureAuthHelper.getAzureSecretFile().getAbsolutePath());
     }
 
@@ -134,39 +137,4 @@ public class AzureAuthHelperTest {
         }
         return queryPairs;
     }
-
-    private static void updateEnv(String name, String val) throws ReflectiveOperationException {
-        // dangerous: please use this code only in unit test.
-        final Map<String, String> env = new HashMap<>(System.getenv());
-        env.put(name, val);
-        setEnv(env);
-    }
-
-    protected static void setEnv(Map<String, String> newenv) throws ReflectiveOperationException {
-        try {
-            final Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
-            final Field theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment");
-            theEnvironmentField.setAccessible(true);
-            final Map<String, String> env = (Map<String, String>) theEnvironmentField.get(null);
-            env.putAll(newenv);
-            final Field theCaseInsensitiveEnvironmentField = processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment");
-            theCaseInsensitiveEnvironmentField.setAccessible(true);
-            final Map<String, String> cienv = (Map<String, String>) theCaseInsensitiveEnvironmentField.get(null);
-            cienv.putAll(newenv);
-        } catch (NoSuchFieldException e) {
-            final Class[] classes = Collections.class.getDeclaredClasses();
-            final Map<String, String> env = System.getenv();
-            for (final Class cl : classes) {
-                if ("java.util.Collections$UnmodifiableMap".equals(cl.getName())) {
-                    final Field field = cl.getDeclaredField("m");
-                    field.setAccessible(true);
-                    final Object obj = field.get(env);
-                    final Map<String, String> map = (Map<String, String>) obj;
-                    map.clear();
-                    map.putAll(newenv);
-                }
-            }
-        }
-    }
-
 }
