@@ -8,10 +8,13 @@ package com.microsoft.azure.auth;
 
 import com.microsoft.azure.AzureEnvironment;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -23,6 +26,8 @@ import java.util.concurrent.ExecutionException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({System.class, AzureAuthHelper.class})
 public class AzureAuthHelperTest {
 
     @Test
@@ -63,12 +68,10 @@ public class AzureAuthHelperTest {
     @Test
     public void tetGetAzureSecretFile() throws Exception {
         final File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
-        assertEquals(Paths.get(System.getProperty("user.home"), ".azure", "azure-secret.json").toString(),
-                azureSecretFile.getAbsolutePath());
-
-        updateEnv("AZURE_CONFIG_DIR", "test_dir");
-        assertEquals(Paths.get("test_dir", "azure-secret.json").toFile().getAbsolutePath(),
-                AzureAuthHelper.getAzureSecretFile().getAbsolutePath());
+        assertEquals(Paths.get(System.getProperty("user.home"), ".azure", "azure-secret.json").toString(), azureSecretFile.getAbsolutePath());
+        PowerMockito.mockStatic(System.class);
+        PowerMockito.when(System.getenv("AZURE_CONFIG_DIR")).thenReturn("test_dir");
+        assertEquals(Paths.get("test_dir", "azure-secret.json").toFile().getAbsolutePath(), AzureAuthHelper.getAzureSecretFile().getAbsolutePath());
     }
 
     @Test
@@ -133,13 +136,5 @@ public class AzureAuthHelperTest {
                     URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
         }
         return queryPairs;
-    }
-
-    private static void updateEnv(String name, String val) throws ReflectiveOperationException {
-        // dangerous: please use this code only in unit test.
-        final Map<String, String> env = System.getenv();
-        final Field field = env.getClass().getDeclaredField("m");
-        field.setAccessible(true);
-        ((Map<String, String>) field.get(env)).put(name, val);
     }
 }
