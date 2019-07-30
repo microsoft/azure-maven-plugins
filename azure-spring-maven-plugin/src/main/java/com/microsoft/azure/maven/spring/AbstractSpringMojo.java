@@ -112,7 +112,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected void handleException(Exception exception) {
-        boolean isUserError = exception instanceof IllegalArgumentException || exception instanceof SpringConfigurationException;
+        final boolean isUserError = exception instanceof IllegalArgumentException || exception instanceof SpringConfigurationException;
         telemetries.put("errorCode", "1");
         telemetries.put("errorType", isUserError ? "userError" : "systemError");
         telemetries.put("errorMessage", exception.getMessage());
