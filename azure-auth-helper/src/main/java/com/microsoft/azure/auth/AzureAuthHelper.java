@@ -240,9 +240,7 @@ public class AzureAuthHelper {
         if (isInCloudShell()) {
             return new MSICredentials();
         }
-        final File credentialParent = StringUtils.isBlank(System.getProperty(Constants.AZURE_CONFIG_DIR)) ?
-                Paths.get(System.getProperty(Constants.USER_HOME), Constants.AZURE_FOLDER).toFile() :
-                new File(Constants.AZURE_CONFIG_DIR);
+        final File credentialParent = getAzureConfigFolder();
         if (credentialParent.exists() && credentialParent.isDirectory()) {
             final File azureProfile = new File(credentialParent, "azureProfile.json");
             final File accessTokens = new File(credentialParent, "accessTokens.json");
