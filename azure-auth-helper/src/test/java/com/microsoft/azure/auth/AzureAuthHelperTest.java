@@ -60,7 +60,7 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void tetGetAzureSecretFile() throws Exception {
+    public void testGetAzureSecretFile() throws Exception {
         final File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
         assertEquals(Paths.get(System.getProperty("user.home"), ".azure", "azure-secret.json").toString(), azureSecretFile.getAbsolutePath());
         PowerMockito.mockStatic(System.class);

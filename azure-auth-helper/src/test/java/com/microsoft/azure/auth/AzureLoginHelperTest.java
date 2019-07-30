@@ -7,13 +7,13 @@
 package com.microsoft.azure.auth;
 
 import com.microsoft.azure.AzureEnvironment;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URIBuilder;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLDecoder;
+import java.net.URISyntaxException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -64,16 +64,14 @@ public class AzureLoginHelperTest {
         assertEquals("https://login.microsoftonline.us/common", baseUrl);
     }
 
-    private static Map<String, String> splitQuery(String url) throws UnsupportedEncodingException, MalformedURLException {
-        final Map<String, String> queryPairs = new LinkedHashMap<>();
-        final String query = new URL(url).getQuery();
-        final String[] pairs = query.split("&");
-        for (final String pair : pairs) {
-            final int idx = pair.indexOf("=");
-            queryPairs.put(URLDecoder.decode(pair.substring(0, idx), "UTF-8"),
-                    URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
+    private static Map<String, String> splitQuery(String url) throws URISyntaxException {
+        final Map<String, String> queryMap = new LinkedHashMap<>();
+        final List<NameValuePair> params = new URIBuilder(url).getQueryParams();
+        for (final NameValuePair param : params) {
+            queryMap.put(param.getName(), param.getValue());
         }
-        return queryPairs;
+
+        return queryMap;
     }
 
 }
