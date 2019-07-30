@@ -1,0 +1,22 @@
+branches:
+  only:
+    - feature-spring
+
+environment:
+  JAVA_HOME: "C:\\Program Files\\Java\\jdk1.8.0"
+  PYTHON: "C:\\Python35"
+  dotnetcore_version: 2.1.302
+  nodejs_version: "8"
+
+install:
+  - cmd: npm i -g azure-functions-core-tools@core --unsafe-perm true
+  - cmd: SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%
+  - cmd: python -m pip install azure-cli
+  - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
+
+build_script:
+  - ps: |
+      git clone $Env:SDK_REPO
+      mvn clean install -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml
+      mvn clean verify
+  
