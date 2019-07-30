@@ -70,12 +70,6 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
     protected Map<String, String> telemetries;
 
-    public AbstractSpringMojo() {
-        telemetries = new HashMap<>();
-        telemetries.put(TELEMETRY_KEY_PLUGIN_NAME, plugin.getArtifactId());
-        telemetries.put(TELEMETRY_KEY_PLUGIN_VERSION, plugin.getVersion());
-    }
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -103,6 +97,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         if (isTelemetryAllowed) {
             AppInsightHelper.INSTANCE.disable();
         }
+        initTelemetry();
         trackMojoExecution(MojoStatus.Start);
     }
 
@@ -122,6 +117,12 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     protected void trackMojoExecution(MojoStatus status) {
         final String eventName = String.join("%s.%s", this.getClass().getSimpleName(), status.name());
         AppInsightHelper.INSTANCE.trackEvent(eventName, getTelemetryProperties(), false);
+    }
+
+    protected void initTelemetry() {
+        telemetries = new HashMap<>();
+        telemetries.put(TELEMETRY_KEY_PLUGIN_NAME, plugin.getArtifactId());
+        telemetries.put(TELEMETRY_KEY_PLUGIN_VERSION, plugin.getVersion());
     }
 
     protected abstract void doExecute() throws MojoExecutionException, MojoFailureException;
