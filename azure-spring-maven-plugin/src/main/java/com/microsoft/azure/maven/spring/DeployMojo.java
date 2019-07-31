@@ -19,12 +19,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.File;
 
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_AUTH_METHOD;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_NEW_APP;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_KEY_ENCRYPTED;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_SERVICE_PRINCIPAL;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_UPDATE_CONFIGURATION;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_AUTH_POM_CONFIGURATION;
 
 @Mojo(name = "deploy")
 public class DeployMojo extends AbstractSpringMojo {
