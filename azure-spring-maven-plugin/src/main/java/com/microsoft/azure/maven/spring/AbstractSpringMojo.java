@@ -24,16 +24,20 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_AUTH_METHOD;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_CPU;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_ERROR_CODE;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_ERROR_MESSAGE;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_ERROR_TYPE;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_INSTANCE_COUNT;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_KEY_ENCRYPTED;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_SERVICE_PRINCIPAL;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JAVA_VERSION;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JVM_PARAMETER;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_MEMORY;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PUBLIC;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_WITHIN_PARENT_POM;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_AUTH_POM_CONFIGURATION;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_FAILURE;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_SUCCESS;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_SYSTEM_ERROR;
@@ -98,10 +102,11 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected void initExecution() {
+        telemetries = new HashMap<>();
         if (!isTelemetryAllowed) {
             AppInsightHelper.INSTANCE.disable();
         }
-        initTelemetry();
+        tracePluginInformation();
         trackMojoExecution(MojoStatus.Start);
     }
 
@@ -123,8 +128,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         AppInsightHelper.INSTANCE.trackEvent(eventName, getTelemetryProperties(), false);
     }
 
-    protected void initTelemetry() {
-        telemetries = new HashMap<>();
+    protected void tracePluginInformation() {
         telemetries.put(TELEMETRY_KEY_PLUGIN_NAME, plugin.getArtifactId());
         telemetries.put(TELEMETRY_KEY_PLUGIN_VERSION, plugin.getVersion());
         telemetries.put(TELEMETRY_KEY_WITHIN_PARENT_POM, String.valueOf(project.getPackaging().equalsIgnoreCase("pom")));
@@ -138,6 +142,13 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getInstanceCount()));
         telemetries.put(TELEMETRY_KEY_JVM_PARAMETER,
                 String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmParameter())));
+    }
+
+    protected void traceAuth() {
+        // Todo update deploy mojo telemetries with real value
+        telemetries.put(TELEMETRY_KEY_AUTH_METHOD, TELEMETRY_VALUE_AUTH_POM_CONFIGURATION);
+        telemetries.put(TELEMETRY_KEY_IS_SERVICE_PRINCIPAL, "false");
+        telemetries.put(TELEMETRY_KEY_IS_KEY_ENCRYPTED, "false");
     }
 
     protected abstract void doExecute() throws MojoExecutionException, MojoFailureException;

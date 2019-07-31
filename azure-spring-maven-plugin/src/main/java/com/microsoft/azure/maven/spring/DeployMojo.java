@@ -51,13 +51,14 @@ public class DeployMojo extends AbstractSpringMojo {
     }
 
     protected void traceTelemetry(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {
+        traceAuth();
         traceConfiguration(springConfiguration);
+        traceDeployment(springAppClient, springConfiguration);
+    }
+
+    protected void traceDeployment(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {
         final boolean isNewApp = springAppClient.getApp() == null;
         final boolean isUpdateConfiguration = springConfiguration.getDeployment().getResources().isEmpty();
-        // Todo update deploy mojo telemetries with real value
-        telemetries.put(TELEMETRY_KEY_AUTH_METHOD, TELEMETRY_VALUE_AUTH_POM_CONFIGURATION);
-        telemetries.put(TELEMETRY_KEY_IS_SERVICE_PRINCIPAL, "false");
-        telemetries.put(TELEMETRY_KEY_IS_KEY_ENCRYPTED, "false");
         telemetries.put(TELEMETRY_KEY_IS_CREATE_NEW_APP, String.valueOf(isNewApp));
         telemetries.put(TELEMETRY_KEY_IS_UPDATE_CONFIGURATION, String.valueOf(isUpdateConfiguration));
     }
