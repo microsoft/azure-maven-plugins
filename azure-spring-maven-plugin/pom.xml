@@ -29,15 +29,20 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.5.0</maven.version>
+        <azure.maven-plugin-lib.version>1.2.10-SNAPSHOT</azure.maven-plugin-lib.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-storage-blob</artifactId>
-            <version>11.0.1</version>
+            <version>11.0.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-maven-plugin-lib</artifactId>
+            <version>${azure.maven-plugin-lib.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-shared-utils</artifactId>
@@ -141,6 +146,15 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>ApplicationInsights.xml</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -171,6 +185,28 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <property>
+                    <name>!release</name>
+                </property>
+            </activation>
+            <properties>
+                <azure.ai.ikey>fda156f5-2eb8-48ab-8a3c-3e06b3c64b49</azure.ai.ikey>
+            </properties>
+        </profile>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>release</name>
+                </property>
+            </activation>
+            <properties>
+                <azure.ai.ikey>435bdea7-d399-49ee-8d2d-b2792aa060d2</azure.ai.ikey>
+            </properties>
+        </profile>
         <profile>
             <id>run-its</id>
             <build>

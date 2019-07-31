@@ -19,6 +19,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.File;
 
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_NEW_APP;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_UPDATE_CONFIGURATION;
+
 @Mojo(name = "deploy")
 public class DeployMojo extends AbstractSpringMojo {
 
@@ -26,6 +29,8 @@ public class DeployMojo extends AbstractSpringMojo {
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
         final SpringConfiguration configuration = this.getConfiguration();
         final SpringAppClient springAppClient = SpringServiceUtils.newSpringAppClient(configuration);
+        // Prepare telemetries
+        traceTelemetry(springAppClient, configuration);
         // Create or update new App
         AppResourceInner app = springAppClient.createOrUpdateApp(configuration);
         // Upload artifact
@@ -39,5 +44,18 @@ public class DeployMojo extends AbstractSpringMojo {
         app = springAppClient.updateActiveDeployment(deployment.id());
         // Update deployment, show url
         getLog().info(app.properties().url());
+    }
+
+    protected void traceTelemetry(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {
+        traceAuth();
+        traceConfiguration(springConfiguration);
+        traceDeployment(springAppClient, springConfiguration);
+    }
+
+    protected void traceDeployment(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {
+        final boolean isNewApp = springAppClient.getApp() == null;
+        final boolean isUpdateConfiguration = springConfiguration.getDeployment().getResources().isEmpty();
+        telemetries.put(TELEMETRY_KEY_IS_CREATE_NEW_APP, String.valueOf(isNewApp));
+        telemetries.put(TELEMETRY_KEY_IS_UPDATE_CONFIGURATION, String.valueOf(isUpdateConfiguration));
     }
 }
