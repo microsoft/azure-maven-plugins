@@ -7,16 +7,17 @@
 package com.microsoft.azure.maven.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_INSTALLATIONID;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_SESSION_ID;
+
 public enum AppInsightHelper implements TelemetryProxy {
     INSTANCE;
-
-    private static final String TELEMETRY_KEY_SESSION_ID = "sessionId";
-    private static final String TELEMETRY_KEY_INSTALLATIONID = "installationId";
 
     private boolean isEnabled = true;
     private String sessionId;
@@ -52,6 +53,20 @@ public enum AppInsightHelper implements TelemetryProxy {
         final Map<String, String> properties = mergeProperties(customProperties, overrideDefaultProperties);
         client.trackEvent(eventName, properties, null);
         client.flush();
+    }
+
+    // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
+    // into endless loop when close, we need to call it in main thread.
+    // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
+    // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
+    public void close(){
+        try {
+            // Sleep to wait ai sdk flush telemetries
+            Thread.sleep(2 * 1000);
+        } catch (InterruptedException e) {
+            // swallow this exception
+        }
+        ApacheSenderFactory.INSTANCE.create().close();
     }
 
     public String getSessionId() {

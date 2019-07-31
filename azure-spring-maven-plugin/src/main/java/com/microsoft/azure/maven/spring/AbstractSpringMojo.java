@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.spring;
 
-import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParser;
@@ -25,17 +24,24 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class AbstractSpringMojo extends AbstractMojo {
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_CPU;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_ERROR_CODE;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_ERROR_MESSAGE;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_ERROR_TYPE;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_INSTANCE_COUNT;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JAVA_VERSION;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JVM_PARAMETER;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_MEMORY;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PUBLIC;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_WITHIN_PARENT_POM;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_FAILURE;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_SUCCESS;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_SYSTEM_ERROR;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_USER_ERROR;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_PLUGIN_NAME;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_PLUGIN_VERSION;
 
-    private static final String TELEMETRY_KEY_PLUGIN_NAME = "pluginName";
-    private static final String TELEMETRY_KEY_PLUGIN_VERSION = "pluginVersion";
-    private static final String TELEMETRY_KEY_PUBLIC = "public";
-    private static final String TELEMETRY_KEY_JAVA_VERSION = "javaVersion";
-    private static final String TELEMETRY_KEY_CPU = "cpu";
-    private static final String TELEMETRY_KEY_MEMORY = "memory";
-    private static final String TELEMETRY_KEY_INSTANCE_COUNT = "instanceCount";
-    private static final String TELEMETRY_KEY_JVM_PARAMETER = "jvmParameter";
-    private static final String TELEMETRY_KEY_WITHIN_PARENT_POM = "isExecutedWithinParentPom";
+public abstract class AbstractSpringMojo extends AbstractMojo {
 
     @Parameter(property = "port")
     protected int port;
@@ -87,17 +93,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         } catch (Exception e) {
             handleException(e);
         } finally {
-            // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
-            // into endless loop when close, we need to call it in main thread.
-            // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
-            // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
-            try {
-                // Sleep to wait ai sdk flush telemetries
-                Thread.sleep(2 * 1000);
-            } catch (InterruptedException e) {
-                // swallow this exception
-            }
-            ApacheSenderFactory.INSTANCE.create().close();
+            AppInsightHelper.INSTANCE.close();
         }
     }
 
@@ -110,15 +106,15 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected void handleSuccess() {
-        telemetries.put("errorCode", "0");
+        telemetries.put(TELEMETRY_KEY_ERROR_CODE, TELEMETRY_VALUE_ERROR_CODE_SUCCESS);
         trackMojoExecution(MojoStatus.Success);
     }
 
     protected void handleException(Exception exception) {
         final boolean isUserError = exception instanceof IllegalArgumentException || exception instanceof SpringConfigurationException;
-        telemetries.put("errorCode", "1");
-        telemetries.put("errorType", isUserError ? "userError" : "systemError");
-        telemetries.put("errorMessage", exception.getMessage());
+        telemetries.put(TELEMETRY_KEY_ERROR_CODE, TELEMETRY_VALUE_ERROR_CODE_FAILURE);
+        telemetries.put(TELEMETRY_KEY_ERROR_TYPE, isUserError ? TELEMETRY_VALUE_USER_ERROR : TELEMETRY_VALUE_SYSTEM_ERROR);
+        telemetries.put(TELEMETRY_KEY_ERROR_MESSAGE, exception.getMessage());
         trackMojoExecution(MojoStatus.Failure);
     }
 
@@ -134,7 +130,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_WITHIN_PARENT_POM, String.valueOf(project.getPackaging().equalsIgnoreCase("pom")));
     }
 
-    protected void updateTelemetry(SpringConfiguration configuration) {
+    protected void traceConfiguration(SpringConfiguration configuration) {
         telemetries.put(TELEMETRY_KEY_PUBLIC, String.valueOf(configuration.isPublic()));
         telemetries.put(TELEMETRY_KEY_JAVA_VERSION, configuration.getJavaVersion());
         telemetries.put(TELEMETRY_KEY_CPU, String.valueOf(configuration.getDeployment().getCpu()));

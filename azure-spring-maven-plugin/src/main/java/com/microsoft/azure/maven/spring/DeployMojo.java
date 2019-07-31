@@ -19,6 +19,13 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.File;
 
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_AUTH_METHOD;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_NEW_APP;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_KEY_ENCRYPTED;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_SERVICE_PRINCIPAL;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_UPDATE_CONFIGURATION;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_AUTH_POM_CONFIGURATION;
+
 @Mojo(name = "deploy")
 public class DeployMojo extends AbstractSpringMojo {
 
@@ -26,6 +33,8 @@ public class DeployMojo extends AbstractSpringMojo {
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
         final SpringConfiguration configuration = this.getConfiguration();
         final SpringAppClient springAppClient = SpringServiceUtils.newSpringAppClient(configuration);
+        // Prepare telemetries
+        traceTelemetry(springAppClient, configuration);
         // Create or update new App
         AppResourceInner app = springAppClient.createOrUpdateApp(configuration);
         // Upload artifact
@@ -41,14 +50,15 @@ public class DeployMojo extends AbstractSpringMojo {
         getLog().info(app.properties().url());
     }
 
-    @Override
-    protected void updateTelemetry(SpringConfiguration springConfiguration) {
-        super.updateTelemetry(springConfiguration);
+    protected void traceTelemetry(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {
+        traceConfiguration(springConfiguration);
+        final boolean isNewApp = springAppClient.getApp() == null;
+        final boolean isUpdateConfiguration = springConfiguration.getDeployment().getResources().isEmpty();
         // Todo update deploy mojo telemetries with real value
-        telemetries.put("authMethod", "Pom Configuration");
-        telemetries.put("isServicePrincipal", "false");
-        telemetries.put("isKeyEncrypted", "");
-        telemetries.put("isCreateNewApp", "");
-        telemetries.put("isUpdateConfiguration", "");
+        telemetries.put(TELEMETRY_KEY_AUTH_METHOD, TELEMETRY_VALUE_AUTH_POM_CONFIGURATION);
+        telemetries.put(TELEMETRY_KEY_IS_SERVICE_PRINCIPAL, "false");
+        telemetries.put(TELEMETRY_KEY_IS_KEY_ENCRYPTED, "false");
+        telemetries.put(TELEMETRY_KEY_IS_CREATE_NEW_APP, String.valueOf(isNewApp));
+        telemetries.put(TELEMETRY_KEY_IS_UPDATE_CONFIGURATION, String.valueOf(isUpdateConfiguration));
     }
 }
