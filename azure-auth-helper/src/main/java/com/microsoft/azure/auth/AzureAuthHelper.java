@@ -7,9 +7,11 @@
 package com.microsoft.azure.auth;
 
 import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
-import com.microsoft.azure.auth.exception.AzureLoginTimeoutException;
 import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
+import com.microsoft.azure.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.auth.util.JsonUtils;
 import com.microsoft.azure.credentials.AzureCliCredentials;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
@@ -39,7 +41,7 @@ public class AzureAuthHelper {
      */
     public static AzureCredential oAuthLogin(AzureEnvironment env)
             throws AzureLoginFailureException, DesktopNotSupportedException, InterruptedException, ExecutionException {
-        throw new UnsupportedOperationException("Not implemented");
+        return AzureLoginHelper.oAuthLogin(env);
     }
 
     /**
@@ -54,7 +56,7 @@ public class AzureAuthHelper {
      */
     public static AzureCredential deviceLogin(AzureEnvironment env)
             throws AzureLoginFailureException, MalformedURLException, InterruptedException, ExecutionException {
-        throw new UnsupportedOperationException("Not implemented");
+        return AzureLoginHelper.deviceLogin(env);
     }
 
     /**
@@ -70,20 +72,7 @@ public class AzureAuthHelper {
      */
     public static AzureCredential refreshToken(AzureEnvironment env, String refreshToken)
             throws MalformedURLException, InterruptedException, ExecutionException {
-        if (env == null) {
-            throw new IllegalArgumentException("Parameter 'env' cannot be null.");
-        }
-        if (StringUtils.isBlank(refreshToken)) {
-            throw new IllegalArgumentException("Parameter 'refreshToken' cannot be empty.");
-        }
-
-        try {
-            return new AzureContextExecutor(baseURL(env), authenticationContext -> authenticationContext
-                    .acquireTokenByRefreshToken(refreshToken, Constants.CLIENT_ID, env.managementEndpoint(), null).get()).execute();
-        } catch (AzureLoginTimeoutException e) {
-            // ignore: it will never throw during refreshing
-            return null;
-        }
+        return AzureLoginHelper.refreshToken(env, refreshToken);
     }
 
     /**
@@ -99,10 +88,13 @@ public class AzureAuthHelper {
 
         switch (environment.toUpperCase(Locale.ENGLISH)) {
             case "AZURE_CHINA":
+            case "AZURECHINACLOUD": // this value comes from azure cli
                 return AzureEnvironment.AZURE_CHINA;
             case "AZURE_GERMANY":
+            case "AZUREGERMANCLOUD": // this value comes from azure cli
                 return AzureEnvironment.AZURE_GERMANY;
             case "AZURE_US_GOVERNMENT":
+            case "AZUREUSGOVERNMENT": // this value comes from azure cli
                 return AzureEnvironment.AZURE_US_GOVERNMENT;
             default:
                 return AzureEnvironment.AZURE;
@@ -130,7 +122,7 @@ public class AzureAuthHelper {
      * Check whether the azure-secret.json file exists and is not empty.
      */
     public static boolean existsAzureSecretFile() {
-        final File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
+        final File azureSecretFile = getAzureSecretFile();
         return azureSecretFile.exists() && azureSecretFile.isFile() && azureSecretFile.length() > 0;
     }
 
@@ -141,7 +133,7 @@ public class AzureAuthHelper {
      */
     public static boolean deleteAzureSecretFile() {
         if (existsAzureSecretFile()) {
-            return FileUtils.deleteQuietly(AzureAuthHelper.getAzureSecretFile());
+            return FileUtils.deleteQuietly(getAzureSecretFile());
         }
         return false;
     }
@@ -154,7 +146,23 @@ public class AzureAuthHelper {
      * @throws IOException if there is any IO error.
      */
     public static void writeAzureCredentials(AzureCredential cred, File file) throws IOException {
-        throw new UnsupportedOperationException("Not implemented");
+        if (cred == null) {
+            throw new IllegalArgumentException("Parameter 'cred' cannot be null.");
+        }
+        if (file == null) {
+            throw new IllegalArgumentException("Parameter 'file' cannot be null.");
+        }
+        FileUtils.writeStringToFile(file, JsonUtils.toJson(cred), "utf8");
+    }
+
+    /***
+     * Read the credential from default location.
+     *
+     * @return the saved credential
+     * @throws IOException if there is any IO error.
+     */
+    public static AzureCredential readAzureCredentials() throws IOException {
+        return readAzureCredentials(getAzureSecretFile());
     }
 
     /***
@@ -165,7 +173,11 @@ public class AzureAuthHelper {
      * @throws IOException if there is any IO error.
      */
     public static AzureCredential readAzureCredentials(File file) throws IOException {
-        throw new UnsupportedOperationException("Not implemented");
+        if (file == null) {
+            throw new IllegalArgumentException("Parameter 'file' cannot be null.");
+        }
+        final String jsonStr = FileUtils.readFileToString(file, "utf8");
+        return JsonUtils.fromJson(jsonStr, AzureCredential.class);
     }
 
     /**
@@ -222,14 +234,20 @@ public class AzureAuthHelper {
 
     /**
      * Get an AzureTokenCredentials from :
-     * a. $HOME/.azure/azure-secret.json(created by `mvn azure:login`)
-     * b. cloud shell
-     * c. $HOME/.azure/azure-secret.json(created by `az login`)
+     * a. in-place &lt;auth&gt; configuration in pom.xml
+     * b. $HOME/.azure/azure-secret.json(created by `mvn azure:login`)
+     * c. cloud shell
+     * d: $HOME/.azure/accessTokens.json(created by `az login`)
      *
+     * @param configuration the in-place &lt;auth&gt; configuration in pom.xml
      * @return the azure credential through
      * @throws IOException when there are some IO errors.
      */
-    public static AzureTokenCredentials getAzureTokenCredentials() throws IOException {
+    public static AzureTokenCredentials getAzureTokenCredentials(AuthConfiguration configuration)
+            throws InvalidConfigurationException, IOException {
+        if (configuration != null) {
+            return AzureServicePrincipleAuthHelper.getAzureServicePrincipleCredentials(configuration);
+        }
         if (existsAzureSecretFile()) {
             try {
                 return getMavenAzureLoginCredentials();
@@ -250,6 +268,8 @@ public class AzureAuthHelper {
                     final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create(azureProfile, accessTokens);
                     if (azureCliCredentials.clientId() != null) {
                         return azureCliCredentials;
+                    } else {
+                        return AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
                     }
 
                 } catch (IOException ex) {
@@ -263,22 +283,6 @@ public class AzureAuthHelper {
 
     static boolean isInCloudShell() {
         return System.getenv(Constants.CLOUD_SHELL_ENV_KEY) != null;
-    }
-
-    static String authorizationUrl(AzureEnvironment env, String redirectUrl) {
-        if (env == null) {
-            throw new IllegalArgumentException("Parameter 'env' cannot be null.");
-        }
-        if (StringUtils.isBlank(redirectUrl)) {
-            throw new IllegalArgumentException("Parameter 'redirectUrl' cannot be empty.");
-        }
-        return String.format(
-                "%s/oauth2/authorize?client_id=%s&response_type=code" + "&redirect_uri=%s&prompt=select_account&resource=%s",
-                baseURL(env), Constants.CLIENT_ID, redirectUrl, env.managementEndpoint());
-    }
-
-    static String baseURL(AzureEnvironment env) {
-        return env.activeDirectoryEndpoint() + Constants.COMMON_TENANT;
     }
 
     private AzureAuthHelper() {
