@@ -25,4 +25,8 @@ public class TextUtils {
     public static String green(String message) {
         return applyColorToText(message, Color.GREEN);
     }
+
+    public static String blue(String message) {
+        return applyColorToText(message, Color.BLUE);
+    }
 }
