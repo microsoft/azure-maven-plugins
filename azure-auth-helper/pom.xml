@@ -20,7 +20,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <azure.version>1.23.0</azure.version>
         <azure.ai.version>2.2.1</azure.ai.version>
-        <azure.client.authentication.version>1.6.10</azure.client.authentication.version>
+        <azure.client.authentication.version>1.6.12</azure.client.authentication.version>
         <commons.collections4.version>4.4</commons.collections4.version>
         <commons.io.version>2.6</commons.io.version>
         <httpclient.version>4.5.9</httpclient.version>
