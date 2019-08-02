@@ -4,9 +4,8 @@
  * license information.
  */
 
-package com.microsoft.azure.auth;
+package com.microsoft.azure.maven.utils;
 
-import com.microsoft.azure.auth.util.JsonUtils;
 import org.junit.Test;
 import java.util.Map;
 

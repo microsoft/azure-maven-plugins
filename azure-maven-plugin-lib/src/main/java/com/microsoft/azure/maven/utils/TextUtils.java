@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.auth.util;
+package com.microsoft.azure.maven.utils;
 
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 import org.fusesource.jansi.Ansi;
