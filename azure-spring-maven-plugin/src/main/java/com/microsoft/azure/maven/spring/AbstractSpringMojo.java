@@ -11,6 +11,7 @@ import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParser;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParserFactory;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
+import com.microsoft.azure.maven.telemetry.MojoStatus;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,9 +27,9 @@ import java.util.Map;
 
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_AUTH_METHOD;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_CPU;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_ERROR_CODE;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_ERROR_MESSAGE;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_ERROR_TYPE;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_CODE;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_MESSAGE;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_TYPE;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_INSTANCE_COUNT;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_KEY_ENCRYPTED;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_SERVICE_PRINCIPAL;
@@ -38,10 +39,10 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PUBLIC;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_WITHIN_PARENT_POM;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_AUTH_POM_CONFIGURATION;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_FAILURE;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_SUCCESS;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_SYSTEM_ERROR;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_USER_ERROR;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_ERROR_CODE_FAILURE;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_ERROR_CODE_SUCCESS;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_SYSTEM_ERROR;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_USER_ERROR;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_PLUGIN_NAME;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_PLUGIN_VERSION;
 
@@ -210,10 +211,4 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         return telemetries;
     }
 
-    enum MojoStatus {
-        Start,
-        Skip,
-        Success,
-        Failure
-    }
 }

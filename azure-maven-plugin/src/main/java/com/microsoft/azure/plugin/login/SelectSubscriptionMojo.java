@@ -29,7 +29,7 @@ import java.util.Scanner;
  * Goal to switch among multiple azure subscriptions.
  */
 @Mojo(name = "select-subscription", inheritByDefault = true, aggregator = true)
-public class SelectSubscriptionMojo extends AbstractMojo  {
+public class SelectSubscriptionMojo extends AbstractAzureMojo  {
 
     /**
      * The maven cli argument for set the active subscription by id or name
@@ -38,7 +38,7 @@ public class SelectSubscriptionMojo extends AbstractMojo  {
     private String subscriptionId;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void doExecute() throws MojoExecutionException, MojoFailureException {
         final Log log = getLog();
         final AzureTokenCredentials tokenCredentials;
 
