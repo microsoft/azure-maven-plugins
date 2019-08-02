@@ -7,8 +7,6 @@
 package com.microsoft.azure.plugin.login;
 
 import com.microsoft.azure.auth.AzureAuthHelper;
-
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;

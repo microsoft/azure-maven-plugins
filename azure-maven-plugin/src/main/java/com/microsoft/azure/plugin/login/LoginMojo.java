@@ -19,7 +19,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.awt.*;
+import java.awt.Desktop;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
@@ -64,7 +64,7 @@ public class LoginMojo extends AbstractAzureMojo {
                 newAzureCredential = AzureAuthHelper.deviceLogin(env);
                 loginMethod = TELEMETRY_VALUE_AUTH_METHOD_DEVICE;
             }
-            trackLogin(loginMethod);
+            trackLoginMethod(loginMethod);
 
             if (StringUtils.isNotBlank(previousSubscriptionId)) {
                 // save the older subscription id if it is valid
@@ -85,7 +85,7 @@ public class LoginMojo extends AbstractAzureMojo {
         }
     }
 
-    protected void trackLogin(final String loginMethod) {
+    protected void trackLoginMethod(final String loginMethod) {
         final boolean isLoggedIn = AzureAuthHelper.existsAzureSecretFile();
         final boolean isBrowserAvailable = Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE);
         getTelemetries().put(TELEMETRY_KEY_AUTH_METHOD, loginMethod);

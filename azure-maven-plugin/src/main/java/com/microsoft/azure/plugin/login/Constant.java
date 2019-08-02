@@ -11,6 +11,6 @@ public class Constant {
     public static final String TELEMETRY_KEY_IS_BROWSER_AVAILABLE = "isBrowserAvailable";
     public static final String TELEMETRY_KEY_IS_LOGGED_IN = "isLoggedIn";
 
-    public static final String TELEMETRY_VALUE_AUTH_METHOD_OAUTH = "OAuth ";
+    public static final String TELEMETRY_VALUE_AUTH_METHOD_OAUTH = "OAuth";
     public static final String TELEMETRY_VALUE_AUTH_METHOD_DEVICE = "DeviceLogin";
 }
