@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.auth.util;
+package com.microsoft.azure.maven.utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 

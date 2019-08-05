@@ -14,7 +14,7 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.AzureLoginTimeoutException;
 import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
-import com.microsoft.azure.auth.util.TextUtils;
+import com.microsoft.azure.maven.utils.TextUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;

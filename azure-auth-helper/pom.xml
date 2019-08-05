@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -19,15 +20,13 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <azure.version>1.23.0</azure.version>
         <azure.ai.version>2.2.1</azure.ai.version>
-        <gson.version>2.8.5</gson.version>
-        <azure.client.authentication.version>1.6.10</azure.client.authentication.version>
+        <azure.client.authentication.version>1.6.12</azure.client.authentication.version>
         <commons.collections4.version>4.4</commons.collections4.version>
         <commons.io.version>2.6</commons.io.version>
         <httpclient.version>4.5.9</httpclient.version>
         <junit.version>4.12</junit.version>
         <commons.lang3.version>3.9</commons.lang3.version>
         <jetty.server.version>9.4.15.v20190215</jetty.server.version>
-        <jansi.version>1.17.1</jansi.version>
         <jsonwebtoken.jjwt.version>0.9.1</jsonwebtoken.jjwt.version>
         <maven.version>3.5.0</maven.version>
         <mockito.version>2.22.0</mockito.version>
@@ -98,11 +97,6 @@
             <version>${httpclient.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.fusesource.jansi</groupId>
-            <artifactId>jansi</artifactId>
-            <version>${jansi.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>${jsonwebtoken.jjwt.version}</version>
@@ -111,11 +105,6 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure</artifactId>
             <version>${azure.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
