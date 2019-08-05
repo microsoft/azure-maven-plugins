@@ -7,7 +7,7 @@
 package com.microsoft.azure.auth;
 
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
-import com.microsoft.azure.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.auth.exception.MavenDecryptException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.Server;
@@ -26,86 +26,69 @@ public class MavenSettingHelper {
      * @param settingsDecrypter the decrypter
      * @param serverId          the server id
      * @return the auth configuration
-     * @throws InvalidConfigurationException when the configuration is invalid
+     * @throws MavenDecryptException when there are errors decrypting maven generated password
      */
-    public static AuthConfiguration loadFromMavenSettings(MavenSession session, SettingsDecrypter settingsDecrypter, String serverId)
-            throws InvalidConfigurationException {
+    public static AuthConfiguration getAuthConfigurationFromServer(MavenSession session, SettingsDecrypter settingsDecrypter, String serverId)
+            throws MavenDecryptException {
         if (StringUtils.isBlank(serverId)) {
             throw new IllegalArgumentException("Parameter 'serverId' cannot be empty.");
         }
-        final Server originServer = session.getSettings().getServer(serverId);
-        if (originServer == null) {
-            throw new IllegalArgumentException(String.format("Cannot find %s in settings.xml.", serverId));
+        final Server server = session.getSettings().getServer(serverId);
+        if (server == null) {
+            return null;
+        }
+        final AuthConfiguration configurationFromServer = new AuthConfiguration();
+        final Xpp3Dom configuration = (Xpp3Dom) server.getConfiguration();
+        if (configuration == null) {
+            return configurationFromServer;
         }
 
-        final SettingsDecryptionRequest request = new DefaultSettingsDecryptionRequest(originServer);
-        final String rawKey = getConfiguration(originServer, "key");
-        final String rawCertificatePassword = getConfiguration(originServer, "certificatePassword");
-        boolean isKeyEncrypted = false;
-        boolean isCertificatePasswordEncrypted = false;
-        if (isValueEncrypted(rawKey)) {
-            originServer.setPassword(rawKey);
-            isKeyEncrypted = true;
-        } else if (isValueEncrypted(rawCertificatePassword)) {
-            originServer.setPassword(rawCertificatePassword);
-            isCertificatePasswordEncrypted = true;
-        }
-        final SettingsDecryptionResult result = settingsDecrypter.decrypt(request);
-        for (final SettingsProblem problem : result.getProblems()) {
-            if (problem.getSeverity() == SettingsProblem.Severity.ERROR || problem.getSeverity() == SettingsProblem.Severity.FATAL) {
-                // for java 8+, it is ok to use operator '+' for string concatenation
-                throw new InvalidConfigurationException("Unable to decrypt server(" + serverId + ") info from settings.xml: " + problem);
-            }
-        }
-        final Server server = result.getServer();
-        final AuthConfiguration conf = new AuthConfiguration();
+        configurationFromServer.setTenant(getConfiguration(configuration, "tenant"));
+        configurationFromServer.setClient(getConfiguration(configuration, "client"));
+        final String rawKey = getConfiguration(configuration, "key");
+        configurationFromServer.setKey(isValueEncrypted(rawKey) ? decryptMavenProtectedValue(settingsDecrypter, "key", rawKey) : rawKey);
+        configurationFromServer.setCertificate(getConfiguration(configuration, "certificate"));
+        final String rawCertificatePassword = getConfiguration(configuration, "certificatePassword");
+        configurationFromServer.setCertificatePassword(isValueEncrypted(rawCertificatePassword) ?
+                decryptMavenProtectedValue(settingsDecrypter, "certificatePassword", rawCertificatePassword) :
+                rawCertificatePassword);
+        configurationFromServer.setEnvironment(getConfiguration(configuration, "environment"));
+        configurationFromServer.setHttpProxyHost(getConfiguration(configuration, "httpProxyHost"));
+        configurationFromServer.setHttpProxyPort(getConfiguration(configuration, "httpProxyPort"));
 
-        conf.setTenant(getConfiguration(server, "tenant"));
-        conf.setClient(getConfiguration(server, "client"));
-        conf.setKey(isKeyEncrypted ? server.getPassword() : rawKey);
-        conf.setCertificate(getConfiguration(server, "certificate"));
-        conf.setCertificatePassword(isCertificatePasswordEncrypted ? server.getPassword() : rawCertificatePassword);
-        conf.setCertificatePassword(getConfiguration(server, "environment"));
-
-        if (StringUtils.isBlank(conf.getTenant())) {
-            throw new InvalidConfigurationException(String.format("Cannot find 'tenant' in settings.xml for sever: %s.", serverId));
-        }
-        if (StringUtils.isBlank(conf.getClient())) {
-            throw new InvalidConfigurationException(String.format("Cannot find 'client' in settings.xml for sever: %s.", serverId));
-        }
-
-        if (StringUtils.isBlank(conf.getKey()) && StringUtils.isBlank(conf.getCertificate())) {
-            throw new InvalidConfigurationException(
-                    String.format("Cannot find either 'key' or 'certificate' in settings.xml for sever: %s.", serverId));
-        }
-
-        return conf;
+        return configurationFromServer;
     }
 
     /**
      * Get string value from server configuration section in settings.xml.
      *
-     * @param server Server object.
-     * @param key    Key string.
-     * @return String value if key exists; otherwise, return null.
+     * @param configuration the <i>Xpp3Dom</i> object representing the configuration in &gt;server&gt;'.
+     * @param property           the property name
+     * @return String value if property exists; otherwise, return null.
      */
-    private static String getConfiguration(final Server server, final String key) {
-        if (server == null) {
-            return null;
-        }
-
-        final Xpp3Dom configuration = (Xpp3Dom) server.getConfiguration();
-        if (configuration == null) {
-            return null;
-        }
-
-        final Xpp3Dom node = configuration.getChild(key);
+    private static String getConfiguration(final Xpp3Dom configuration, final String property) {
+        final Xpp3Dom node = configuration.getChild(property);
         return node == null ? null : node.getValue();
     }
 
     private static boolean isValueEncrypted(String value) {
         return value != null && value.startsWith("{") && value.endsWith("}");
     }
+
+    private static String decryptMavenProtectedValue(SettingsDecrypter settingsDecrypter, String propertyName, String value) throws MavenDecryptException {
+        final Server server = new Server();
+        server.setPassword(value);
+        final SettingsDecryptionRequest request = new DefaultSettingsDecryptionRequest(server);
+        final SettingsDecryptionResult result = settingsDecrypter.decrypt(request);
+        for (final SettingsProblem problem : result.getProblems()) {
+            if (problem.getSeverity() == SettingsProblem.Severity.ERROR || problem.getSeverity() == SettingsProblem.Severity.FATAL) {
+                // for java 8+, it is ok to use operator '+' for string concatenation
+                throw new MavenDecryptException(propertyName, value, "Unable to decrypt value(" + value + ") info from settings.xml: " + problem);
+            }
+        }
+        return result.getServer().getPassword();
+    }
+
 
     private MavenSettingHelper() {
 
