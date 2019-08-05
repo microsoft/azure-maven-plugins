@@ -7,18 +7,16 @@
 package com.microsoft.azure.plugin.login;
 
 import com.microsoft.azure.auth.AzureAuthHelper;
-
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Mojo;
 
 @Mojo(name = "logout", inheritByDefault = true, aggregator = true)
-public class LogoutMojo extends AbstractMojo {
+public class LogoutMojo extends AbstractAzureMojo {
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void doExecute() throws MojoExecutionException, MojoFailureException {
         final Log log = getLog();
         if (AzureAuthHelper.deleteAzureSecretFile()) {
             log.info("You have logged out successfully.");
