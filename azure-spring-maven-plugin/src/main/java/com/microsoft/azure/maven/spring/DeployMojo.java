@@ -7,8 +7,8 @@
 package com.microsoft.azure.maven.spring;
 
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppResourceInner;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ArtifactResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
 import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
@@ -35,13 +35,12 @@ public class DeployMojo extends AbstractSpringMojo {
         AppResourceInner app = springAppClient.createOrUpdateApp(configuration);
         // Upload artifact
         final File toDeploy = Utils.getArtifactFromConfiguration(configuration);
-        springAppClient.uploadArtifact(toDeploy);
+        final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
         // Create or update deployment
         final SpringDeploymentClient deploymentClient = springAppClient.getActiveDeploymentClient();
-        final ArtifactResourceInner artifact = deploymentClient.createArtifact(configuration, toDeploy); // Create artifact first
-        final DeploymentResourceInner deployment = deploymentClient.createOrUpdateDeployment(configuration.getDeployment(), artifact);
+        final DeploymentResourceInner deployment = deploymentClient.createOrUpdateDeployment(configuration.getDeployment(),uploadDefinition);
         // Update the app with new deployment
-        app = springAppClient.updateActiveDeployment(deployment.id());
+        app = springAppClient.updateActiveDeployment(deployment.name());
         // Update deployment, show url
         getLog().info(app.properties().url());
     }

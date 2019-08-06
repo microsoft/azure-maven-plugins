@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.spring.spring;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.AppResourceProperties;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.SpringConfiguration;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -49,11 +50,12 @@ public class SpringAppClient extends AbstractSpringClient {
                 .createOrUpdate(resourceGroup, clusterName, appName, getAppResourceProperties(configuration, appResourceProperties));
     }
 
-    public AppResourceInner updateActiveDeployment(String deploymentId) {
+    public AppResourceInner updateActiveDeployment(String deploymentName) {
         final AppResourceInner appResourceInner = getApp();
         final AppResourceProperties properties = appResourceInner.properties();
-        if (!properties.activeDeploymentId().equals(deploymentId)) {
-            properties.withActiveDeploymentId(deploymentId);
+
+        if (!properties.activeDeploymentName().equals(deploymentName)) {
+            properties.withActiveDeploymentName(deploymentName);
             return springManager.apps().inner().createOrUpdate(resourceGroup, clusterName, appName, properties);
         }
         return appResourceInner;
@@ -66,20 +68,21 @@ public class SpringAppClient extends AbstractSpringClient {
                 .findFirst().orElse(null);
     }
 
-    public String getActiveDeploymentId() {
-        return getApp().properties().activeDeploymentId();
+    public String getActiveDeploymentName() {
+        return getApp().properties().activeDeploymentName();
     }
 
     public SpringDeploymentClient getActiveDeploymentClient() {
-        final String activeDeploymentId = getActiveDeploymentId();
+        final String activeDeploymentId = getActiveDeploymentName();
         final DeploymentResourceInner activeDeployment = StringUtils.isEmpty(activeDeploymentId) ? null : getDeploymentById(activeDeploymentId);
         final String activeDeploymentName = activeDeployment == null ? String.format("deployment_%s", Utils.generateTimestamp()) : activeDeployment.name();
         return new SpringDeploymentClient(this, activeDeploymentName);
     }
 
-    public void uploadArtifact(File artifact) throws MojoExecutionException {
-        final String uploadUrl = springManager.apps().inner().getArtifactUploadUrl(resourceGroup, clusterName, appName).uploadUrl();
-        Utils.uploadFileToStorage(artifact, uploadUrl);
+    public ResourceUploadDefinitionInner uploadArtifact(File artifact) throws MojoExecutionException {
+        final ResourceUploadDefinitionInner resourceUploadDefinition = springManager.apps().inner().getResourceUploadUrl(resourceGroup, clusterName, appName);
+        Utils.uploadFileToStorage(artifact, resourceUploadDefinition.uploadUrl());
+        return resourceUploadDefinition;
     }
 
     public AppResourceInner getApp() {
