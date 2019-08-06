@@ -38,7 +38,7 @@ public class DeployMojo extends AbstractSpringMojo {
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
         // Create or update deployment
         final SpringDeploymentClient deploymentClient = springAppClient.getActiveDeploymentClient();
-        final DeploymentResourceInner deployment = deploymentClient.createOrUpdateDeployment(configuration.getDeployment(),uploadDefinition);
+        final DeploymentResourceInner deployment = deploymentClient.createOrUpdateDeployment(configuration.getDeployment(), uploadDefinition);
         // Update the app with new deployment
         app = springAppClient.updateActiveDeployment(deployment.name());
         // Update deployment, show url
