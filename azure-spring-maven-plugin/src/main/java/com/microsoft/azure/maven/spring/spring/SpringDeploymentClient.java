@@ -6,21 +6,19 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.ArtifactResourceProperties;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.ArtifactType;
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.ArtifactInfo;
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.ArtifactResourceType;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceProperties;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentSettings;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.PersistentDisk;
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.RuntimeVersion;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.TemporaryDisk;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ArtifactResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
-import com.microsoft.azure.maven.spring.SpringConfiguration;
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.configuration.Volume;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.maven.plugin.MojoExecutionException;
-
-import java.io.File;
 
 public class SpringDeploymentClient extends AbstractSpringClient {
     protected String appName;
@@ -49,7 +47,8 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         }
     }
 
-    public DeploymentResourceInner createOrUpdateDeployment(Deployment deploymentConfiguration, ArtifactResourceInner artifact) throws MojoExecutionException {
+    public DeploymentResourceInner createOrUpdateDeployment(
+            Deployment deploymentConfiguration, ResourceUploadDefinitionInner resourceUploadDefinitionInner) throws MojoExecutionException {
         final DeploymentResourceInner deployment = getDeployment();
         final DeploymentResourceProperties deploymentProperties = deployment == null ? new DeploymentResourceProperties() : deployment.properties();
 
@@ -71,24 +70,16 @@ public class SpringDeploymentClient extends AbstractSpringClient {
 
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
                 .withInstanceCount(deploymentConfiguration.getInstanceCount())
-                .withJvmParameter(deploymentConfiguration.getJvmParameter())
+                .withJvmOptions(deploymentConfiguration.getJvmParameter())
                 .withMemoryInGB(deploymentConfiguration.getMemoryInGB())
                 .withPersistentDisk(persistentDisk)
-                .withTemporaryDisk(temporaryDisk);
+                .withTemporaryDisk(temporaryDisk)
+                .withRuntimeVersion(RuntimeVersion.JAVA_8);
 
-        deploymentProperties.withArtifactName(artifact.name()).withDeploymentSettings(deploymentSettings);
+        final ArtifactInfo artifactInfo = new ArtifactInfo();
+        artifactInfo.withResourceType(ArtifactResourceType.JAR).withRelativePath(resourceUploadDefinitionInner.relativePath());
+        deploymentProperties.withArtifact(artifactInfo).withDeploymentSettings(deploymentSettings);
         return springManager.deployments().inner().createOrUpdate(resourceGroup, clusterName, appName, deploymentName, deploymentProperties);
-    }
-
-    public ArtifactResourceInner createArtifact(SpringConfiguration configuration, File file) {
-        // Get the artifact according to resource
-        final ArtifactResourceProperties artifactResourceProperties = new ArtifactResourceProperties();
-        artifactResourceProperties.withFileName(file.getName())
-                .withJavaVersion(configuration.getJavaVersion())
-                .withType(ArtifactType.JAR)
-                .withVersion(Utils.generateTimestamp());
-        return springManager.artifacts().inner().create(resourceGroup, clusterName, appName,
-                String.format("artifact_%s", artifactResourceProperties.version()), artifactResourceProperties);
     }
 
     public DeploymentResourceInner getDeployment() {
