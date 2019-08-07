@@ -78,10 +78,13 @@ public class SpringDeploymentClient extends AbstractSpringClient {
                 .withMemoryInGB(deploymentConfiguration.getMemoryInGB())
                 .withPersistentDisk(persistentDisk)
                 .withTemporaryDisk(temporaryDisk)
+                // Hard code Java 8 for now we support java 8 only
                 .withRuntimeVersion(RuntimeVersion.JAVA_8)
                 .withEnvironmentVariables(deploymentConfiguration.getEnvironment());
 
         final ArtifactInfo artifactInfo = new ArtifactInfo();
+        // There are some issues with server side resourceUpload logic
+        // Use uploadUrl instead of relativePath
         final String relativePath = resourceUploadDefinitionInner.uploadUrl().split("\\?")[0];
         artifactInfo.withResourceType(ArtifactResourceType.JAR).withRelativePath(relativePath);
         deploymentProperties.withArtifact(artifactInfo).withDeploymentSettings(deploymentSettings);
