@@ -6,79 +6,42 @@
 
 package com.microsoft.azure.maven.spring.configuration;
 
-import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import org.apache.maven.model.Resource;
 
 import java.util.List;
 import java.util.Map;
 
 public class Deployment {
-    private int cpu;
-    private int memoryInGB;
-    private int instanceCount;
+    private Integer cpu;
+    private Integer memoryInGB;
+    private Integer instanceCount;
     private String jvmParameter;
     private Map<String, String> environment;
     private List<Volume> volumes;
     private List<Resource> resources;
 
-    public int getCpu() {
+    public Integer getCpu() {
         return cpu;
     }
 
-    public void setCpu(int cpu) {
-        this.cpu = cpu;
-    }
-
-    public int getMemoryInGB() {
+    public Integer getMemoryInGB() {
         return memoryInGB;
     }
 
-    public void setMemoryInGB(int memoryInGB) {
-        this.memoryInGB = memoryInGB;
-    }
-
-    public int getInstanceCount() {
+    public Integer getInstanceCount() {
         return instanceCount;
-    }
-
-    public void setInstanceCount(int instanceCount) {
-        this.instanceCount = instanceCount;
     }
 
     public String getJvmParameter() {
         return jvmParameter;
     }
 
-    public void setJvmParameter(String jvmParameter) {
-        this.jvmParameter = jvmParameter;
-    }
-
     public Map<String, String> getEnvironment() {
         return environment;
     }
 
-    public void setEnvironment(Map<String, String> environment) {
-        this.environment = environment;
-    }
-
-    public List<Volume> getVolumes() {
-        return volumes;
-    }
-
-    public void setVolumes(List<Volume> volumes) {
-        this.volumes = volumes;
-    }
-
     public List<Resource> getResources() {
         return resources;
-    }
-
-    public void setResources(List<Resource> resources) {
-        this.resources = resources;
-    }
-
-    public boolean validate() throws SpringConfigurationException {
-        return true;
     }
 
     public Volume getPersistentDisk() {
@@ -87,5 +50,40 @@ public class Deployment {
 
     public Volume getTemporaryDisk() {
         return volumes.stream().filter(volume -> !volume.isPersist()).findFirst().orElse(null);
+    }
+
+    public Deployment withCpu(Integer cpu) {
+        this.cpu = cpu;
+        return this;
+    }
+
+    public Deployment withMemoryInGB(Integer memoryInGB) {
+        this.memoryInGB = memoryInGB;
+        return this;
+    }
+
+    public Deployment withInstanceCount(Integer instanceCount) {
+        this.instanceCount = instanceCount;
+        return this;
+    }
+
+    public Deployment withJvmParameter(String jvmParameter) {
+        this.jvmParameter = jvmParameter;
+        return this;
+    }
+
+    public Deployment withEnvironment(Map<String, String> environment) {
+        this.environment = environment;
+        return this;
+    }
+
+    public Deployment withVolumes(List<Volume> volumes) {
+        this.volumes = volumes;
+        return this;
+    }
+
+    public Deployment withResources(List<Resource> resources) {
+        this.resources = resources;
+        return this;
     }
 }

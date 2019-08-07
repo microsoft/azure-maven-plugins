@@ -10,7 +10,7 @@ import com.microsoft.azure.maven.spring.configuration.Deployment;
 
 public class SpringConfiguration {
 
-    private boolean isPublic;
+    private Boolean isPublic;
     private String subscriptionId;
     private String resourceGroup;
     private String clusterName;
@@ -18,7 +18,7 @@ public class SpringConfiguration {
     private String javaVersion;
     private Deployment deployment;
 
-    public boolean isPublic() {
+    public Boolean isPublic() {
         return isPublic;
     }
 
@@ -46,37 +46,37 @@ public class SpringConfiguration {
         return deployment;
     }
 
-    public SpringConfiguration setPublic(boolean isPublic) {
+    public SpringConfiguration withPublic(Boolean isPublic) {
         this.isPublic = isPublic;
         return this;
     }
 
-    public SpringConfiguration setSubscriptionId(String subscriptionId) {
+    public SpringConfiguration withSubscriptionId(String subscriptionId) {
         this.subscriptionId = subscriptionId;
         return this;
     }
 
-    public SpringConfiguration setResourceGroup(String resourceGroup) {
+    public SpringConfiguration withResourceGroup(String resourceGroup) {
         this.resourceGroup = resourceGroup;
         return this;
     }
 
-    public SpringConfiguration setClusterName(String clusterName) {
+    public SpringConfiguration withClusterName(String clusterName) {
         this.clusterName = clusterName;
         return this;
     }
 
-    public SpringConfiguration setAppName(String appName) {
+    public SpringConfiguration withAppName(String appName) {
         this.appName = appName;
         return this;
     }
 
-    public SpringConfiguration setJavaVersion(String javaVersion) {
+    public SpringConfiguration withJavaVersion(String javaVersion) {
         this.javaVersion = javaVersion;
         return this;
     }
 
-    public SpringConfiguration setDeployment(Deployment deployment) {
+    public SpringConfiguration withDeployment(Deployment deployment) {
         this.deployment = deployment;
         return this;
     }
