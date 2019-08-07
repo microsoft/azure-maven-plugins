@@ -14,13 +14,12 @@ public class SpringConfigurationParserImpl implements SpringConfigurationParser 
     @Override
     public SpringConfiguration parse(AbstractSpringMojo springMojo) {
         return new SpringConfiguration()
-                .setAppName(springMojo.getAppName())
-                .setClusterName(springMojo.getClusterName())
-                .setDeployment(springMojo.getDeployment())
-                .setJavaVersion(springMojo.getJavaVersion())
-                .setPort(springMojo.getPort())
-                .setPublic(springMojo.isPublic())
-                .setResourceGroup(springMojo.getResourceGroup())
-                .setSubscriptionId(springMojo.getSubscriptionId());
+                .withAppName(springMojo.getAppName())
+                .withClusterName(springMojo.getClusterName())
+                .withDeployment(springMojo.getDeployment())
+                .withJavaVersion(springMojo.getJavaVersion())
+                .withPublic(springMojo.isPublic())
+                .withResourceGroup(springMojo.getResourceGroup())
+                .withSubscriptionId(springMojo.getSubscriptionId());
     }
 }
