@@ -10,7 +10,6 @@ import com.microsoft.azure.maven.spring.configuration.Deployment;
 
 public class SpringConfiguration {
 
-    private int port;
     private boolean isPublic;
     private String subscriptionId;
     private String resourceGroup;
@@ -18,10 +17,6 @@ public class SpringConfiguration {
     private String appName;
     private String javaVersion;
     private Deployment deployment;
-
-    public int getPort() {
-        return port;
-    }
 
     public boolean isPublic() {
         return isPublic;
@@ -49,11 +44,6 @@ public class SpringConfiguration {
 
     public Deployment getDeployment() {
         return deployment;
-    }
-
-    public SpringConfiguration setPort(int port) {
-        this.port = port;
-        return this;
     }
 
     public SpringConfiguration setPublic(boolean isPublic) {

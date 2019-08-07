@@ -18,7 +18,6 @@ public class SpringConfigurationParserImpl implements SpringConfigurationParser 
                 .setClusterName(springMojo.getClusterName())
                 .setDeployment(springMojo.getDeployment())
                 .setJavaVersion(springMojo.getJavaVersion())
-                .setPort(springMojo.getPort())
                 .setPublic(springMojo.isPublic())
                 .setResourceGroup(springMojo.getResourceGroup())
                 .setSubscriptionId(springMojo.getSubscriptionId());

@@ -44,10 +44,11 @@ public class SpringAppClient extends AbstractSpringClient {
 
     public AppResourceInner createOrUpdateApp(SpringConfiguration configuration) {
         final AppResourceInner appResource = getApp();
-        final AppResourceProperties originProperties = appResource == null ? null : appResource.properties();
-        final AppResourceProperties appResourceProperties = getAppResourceProperties(configuration, originProperties);
+        final AppResourceProperties appResourceProperties = appResource == null ?
+                new AppResourceProperties() : appResource.properties();
+        appResourceProperties.withPublicProperty(configuration.isPublic());
         return springManager.apps().inner()
-                .createOrUpdate(resourceGroup, clusterName, appName, getAppResourceProperties(configuration, appResourceProperties));
+                .createOrUpdate(resourceGroup, clusterName, appName, appResourceProperties);
     }
 
     public AppResourceInner updateActiveDeployment(String deploymentName) {
@@ -87,14 +88,5 @@ public class SpringAppClient extends AbstractSpringClient {
 
     public AppResourceInner getApp() {
         return springManager.apps().inner().get(resourceGroup, clusterName, appName);
-    }
-
-    private AppResourceProperties getAppResourceProperties(SpringConfiguration configuration, AppResourceProperties properties) {
-        if (properties == null) {
-            properties = new AppResourceProperties();
-        }
-        properties.withPort(configuration.getPort())
-                .withPublicProperty(configuration.isPublic());
-        return properties;
     }
 }
