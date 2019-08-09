@@ -45,11 +45,11 @@ public class Deployment {
     }
 
     public Volume getPersistentDisk() {
-        return volumes.stream().filter(Volume::isPersist).findFirst().orElse(null);
+        return volumes == null ? null : volumes.stream().filter(Volume::isPersist).findFirst().orElse(null);
     }
 
     public Volume getTemporaryDisk() {
-        return volumes.stream().filter(volume -> !volume.isPersist()).findFirst().orElse(null);
+        return volumes == null ? null : volumes.stream().filter(volume -> !volume.isPersist()).findFirst().orElse(null);
     }
 
     public Deployment withCpu(Integer cpu) {

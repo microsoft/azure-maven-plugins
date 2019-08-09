@@ -43,6 +43,7 @@ public class DeployMojo extends AbstractSpringMojo {
         app = springAppClient.updateActiveDeployment(deployment.name());
         // Update deployment, show url
         getLog().info(app.properties().url());
+        getLog().info(deploymentClient.getDeploymentStatus().toString());
     }
 
     protected void traceTelemetry(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {

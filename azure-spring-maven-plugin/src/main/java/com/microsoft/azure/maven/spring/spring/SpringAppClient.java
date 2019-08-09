@@ -47,25 +47,29 @@ public class SpringAppClient extends AbstractSpringClient {
         final AppResourceProperties appResourceProperties = appResource == null ?
                 new AppResourceProperties() : appResource.properties();
         appResourceProperties.withPublicProperty(configuration.isPublic());
-        return springManager.apps().inner()
-                .createOrUpdate(resourceGroup, clusterName, appName, appResourceProperties);
+        if (appResource == null) {
+            return springManager.apps().inner()
+                    .createOrUpdate(resourceGroup, clusterName, appName, appResourceProperties);
+        } else {
+            return springManager.apps().inner().update(resourceGroup, clusterName, appName, appResourceProperties);
+        }
     }
 
     public AppResourceInner updateActiveDeployment(String deploymentName) {
         final AppResourceInner appResourceInner = getApp();
         final AppResourceProperties properties = appResourceInner.properties();
 
-        if (!properties.activeDeploymentName().equals(deploymentName)) {
+        if (!deploymentName.equals(properties.activeDeploymentName())) {
             properties.withActiveDeploymentName(deploymentName);
-            return springManager.apps().inner().createOrUpdate(resourceGroup, clusterName, appName, properties);
+            return springManager.apps().inner().update(resourceGroup, clusterName, appName, properties);
         }
         return appResourceInner;
     }
 
-    public DeploymentResourceInner getDeploymentById(String deploymentId) {
+    public DeploymentResourceInner getDeploymentByName(String deploymentName) {
         return springManager.deployments().inner().list(resourceGroup, clusterName, appName)
                 .stream()
-                .filter(deploymentResourceInner -> deploymentResourceInner.id().equals(deploymentId))
+                .filter(deploymentResourceInner -> deploymentResourceInner.name().equals(deploymentName))
                 .findFirst().orElse(null);
     }
 
@@ -75,8 +79,8 @@ public class SpringAppClient extends AbstractSpringClient {
 
     public SpringDeploymentClient getActiveDeploymentClient() {
         final String activeDeploymentId = getActiveDeploymentName();
-        final DeploymentResourceInner activeDeployment = StringUtils.isEmpty(activeDeploymentId) ? null : getDeploymentById(activeDeploymentId);
-        final String activeDeploymentName = activeDeployment == null ? String.format("deployment_%s", Utils.generateTimestamp()) : activeDeployment.name();
+        final DeploymentResourceInner activeDeployment = StringUtils.isEmpty(activeDeploymentId) ? null : getDeploymentByName(activeDeploymentId);
+        final String activeDeploymentName = activeDeployment == null ? String.format("deployment-%s", Utils.generateTimestamp()) : activeDeployment.name();
         return new SpringDeploymentClient(this, activeDeploymentName);
     }
 

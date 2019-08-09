@@ -10,8 +10,10 @@ import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParser;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParserFactory;
+import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
+import com.microsoft.rest.LogLevel;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -103,6 +105,11 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected void initExecution() {
+        // Init sdk log level
+        if (getLog().isDebugEnabled()) {
+            SpringServiceUtils.setLogLevel(LogLevel.BODY_AND_HEADERS);
+        }
+        // Init telemetries
         telemetries = new HashMap<>();
         if (!isTelemetryAllowed) {
             AppInsightHelper.INSTANCE.disable();

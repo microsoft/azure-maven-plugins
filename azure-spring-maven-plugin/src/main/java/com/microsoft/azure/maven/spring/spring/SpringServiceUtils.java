@@ -12,6 +12,7 @@ import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppClusterResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.Microservices4SpringManager;
 import com.microsoft.azure.maven.spring.SpringConfiguration;
+import com.microsoft.rest.LogLevel;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,13 +25,16 @@ public class SpringServiceUtils {
 
     }
 
+    private static LogLevel logLevel = LogLevel.NONE;
     private static Microservices4SpringManager springManager;
 
     public static Microservices4SpringManager getSpringManager(String subscriptionId) {
         if (springManager == null || !springManager.subscriptionId().equals(subscriptionId)) {
             synchronized (SpringServiceUtils.class) {
                 if (springManager == null || !springManager.subscriptionId().equals(subscriptionId)) {
-                    springManager = Microservices4SpringManager.authenticate(getCredential(), subscriptionId);
+                    springManager = Microservices4SpringManager.configure()
+                            .withLogLevel(logLevel)
+                            .authenticate(getCredential(), subscriptionId);
                 }
             }
         }
@@ -82,5 +86,9 @@ public class SpringServiceUtils {
                 .inner().listByResourceGroup(resourceGroup);
         clusterList.loadAll();
         return new ArrayList<>(clusterList);
+    }
+
+    public static void setLogLevel(LogLevel logLevel) {
+        SpringServiceUtils.logLevel = logLevel;
     }
 }

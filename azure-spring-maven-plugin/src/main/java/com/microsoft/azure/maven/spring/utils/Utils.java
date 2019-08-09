@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.spring.utils;
 
 import com.microsoft.azure.maven.spring.SpringConfiguration;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
+import com.microsoft.azure.storage.file.CloudFile;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
@@ -15,6 +16,7 @@ import org.apache.maven.shared.utils.io.DirectoryScanner;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,16 +96,13 @@ public class Utils {
         }
     }
 
-    public static boolean uploadFileToStorage(File file, String sasUrl) throws MojoExecutionException {
-        // Return true since mock server can't return valid upload url
-        return true;
-        //        try {
-        //            CloudFile cloudFile = new CloudFile(new URI(sasUrl));
-        //            cloudFile.uploadFromFile(file.getPath());
-        //        } catch (Exception e) {
-        //            throw new MojoExecutionException(e.getMessage(), e);
-        //        }
-        //        return false;
+    public static void uploadFileToStorage(File file, String sasUrl) throws MojoExecutionException {
+        try {
+            final CloudFile cloudFile = new CloudFile(new URI(sasUrl));
+            cloudFile.uploadFromFile(file.getPath());
+        } catch (Exception e) {
+            throw new MojoExecutionException(e.getMessage(), e);
+        }
     }
 
     private Utils() {
