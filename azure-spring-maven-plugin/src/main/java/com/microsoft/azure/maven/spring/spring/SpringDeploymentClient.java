@@ -78,7 +78,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
                 .withMemoryInGB(deploymentConfiguration.getMemoryInGB())
                 .withPersistentDisk(persistentDisk)
                 .withTemporaryDisk(temporaryDisk)
-                // Hard code Java 8 for now we support java 8 only
+                // Now we support java 8 only
                 .withRuntimeVersion(RuntimeVersion.JAVA_8)
                 .withEnvironmentVariables(deploymentConfiguration.getEnvironment());
 

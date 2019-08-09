@@ -96,14 +96,13 @@ public class Utils {
         }
     }
 
-    public static boolean uploadFileToStorage(File file, String sasUrl) throws MojoExecutionException {
+    public static void uploadFileToStorage(File file, String sasUrl) throws MojoExecutionException {
         try {
             final CloudFile cloudFile = new CloudFile(new URI(sasUrl));
             cloudFile.uploadFromFile(file.getPath());
         } catch (Exception e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
-        return false;
     }
 
     private Utils() {
