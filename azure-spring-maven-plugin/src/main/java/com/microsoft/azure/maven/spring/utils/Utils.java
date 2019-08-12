@@ -107,22 +107,22 @@ public class Utils {
         return JAR.equalsIgnoreCase(mavenProject.getPackaging());
     }
 
-    public static void replaceWithValue(Xpp3Dom node, String key, Object value) {
+    public static void replaceDomWithKeyValue(Xpp3Dom node, String key, Object value) {
         if (value == null) {
             return;
         }
         if (node.getChild(key) == null) {
-            node.addChild(createDomKeyValue(key, value.toString()));
+            node.addChild(createDomWithKeyValue(key, value.toString()));
         } else {
             node.getChild(key).setValue(value.toString());
         }
     }
 
-    public static Xpp3Dom createDom(String name) {
+    public static Xpp3Dom createDomWithName(String name) {
         return new Xpp3Dom(name);
     }
 
-    public static Xpp3Dom createDomKeyValue(String name, String value) {
+    public static Xpp3Dom createDomWithKeyValue(String name, String value) {
         final Xpp3Dom dom = new Xpp3Dom(name);
         dom.setValue(value);
         return dom;
