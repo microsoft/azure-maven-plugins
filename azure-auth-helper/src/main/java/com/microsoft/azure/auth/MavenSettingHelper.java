@@ -31,7 +31,7 @@ public class MavenSettingHelper {
     public static AuthConfiguration getAuthConfigurationFromServer(MavenSession session, SettingsDecrypter settingsDecrypter, String serverId)
             throws MavenDecryptException {
         if (StringUtils.isBlank(serverId)) {
-            throw new IllegalArgumentException("Parameter 'serverId' cannot be empty.");
+            throw new IllegalArgumentException("Parameter 'serverId' cannot be null or empty.");
         }
         final Server server = session.getSettings().getServer(serverId);
         if (server == null) {
@@ -55,7 +55,7 @@ public class MavenSettingHelper {
         configurationFromServer.setEnvironment(getConfiguration(configuration, "environment"));
         configurationFromServer.setHttpProxyHost(getConfiguration(configuration, "httpProxyHost"));
         configurationFromServer.setHttpProxyPort(getConfiguration(configuration, "httpProxyPort"));
-
+        configurationFromServer.setServerId(serverId);
         return configurationFromServer;
     }
 

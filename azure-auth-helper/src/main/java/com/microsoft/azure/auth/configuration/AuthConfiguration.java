@@ -65,9 +65,6 @@ public class AuthConfiguration {
         this.environment = environment;
     }
 
-    /**
-     * @return the serverId
-     */
     public String getServerId() {
         return serverId;
     }
