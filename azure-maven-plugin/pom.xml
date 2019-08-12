@@ -78,7 +78,7 @@
                 </property>
             </activation>
             <properties>
-                <azure.ai.ikey>435bdea7-d399-49ee-8d2d-b2792aa060d2</azure.ai.ikey>
+                <azure.ai.ikey>44685384-d4d5-4aed-9190-0a32a58587c8</azure.ai.ikey>
             </properties>
         </profile>
     </profiles>
