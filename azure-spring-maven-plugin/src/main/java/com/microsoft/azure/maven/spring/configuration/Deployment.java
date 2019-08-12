@@ -6,7 +6,9 @@
 
 package com.microsoft.azure.maven.spring.configuration;
 
+import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.maven.model.Resource;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +17,7 @@ public class Deployment {
     private Integer cpu;
     private Integer memoryInGB;
     private Integer instanceCount;
-    private String jvmParameter;
+    private String jvmOptions;
     private Map<String, String> environment;
     private List<Volume> volumes;
     private List<Resource> resources;
@@ -30,10 +32,6 @@ public class Deployment {
 
     public Integer getInstanceCount() {
         return instanceCount;
-    }
-
-    public String getJvmParameter() {
-        return jvmParameter;
     }
 
     public Map<String, String> getEnvironment() {
@@ -67,8 +65,8 @@ public class Deployment {
         return this;
     }
 
-    public Deployment withJvmParameter(String jvmParameter) {
-        this.jvmParameter = jvmParameter;
+    public Deployment withJvmOptions(String jvmOptions) {
+        this.jvmOptions = jvmOptions;
         return this;
     }
 
@@ -85,5 +83,16 @@ public class Deployment {
     public Deployment withResources(List<Resource> resources) {
         this.resources = resources;
         return this;
+    }
+
+    public String getJvmOptions() {
+        return jvmOptions;
+    }
+
+    public void applyToXpp3Dom(Xpp3Dom deployment) {
+        Utils.replaceWithValue(deployment, "cpu", this.cpu);
+        Utils.replaceWithValue(deployment, "memoryInGB", this.memoryInGB);
+        Utils.replaceWithValue(deployment, "instanceCount", this.instanceCount);
+        Utils.replaceWithValue(deployment, "jvmOptions", this.jvmOptions);
     }
 }

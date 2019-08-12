@@ -13,6 +13,7 @@ import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -89,16 +90,6 @@ public class Utils {
         return files.parallelStream().filter(file -> isExecutableJar(file)).findFirst().orElse(null);
     }
 
-    private static boolean isExecutableJar(File file) {
-        try (final FileInputStream fileInputStream = new FileInputStream(file);
-             final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
-            final Manifest manifest = jarInputStream.getManifest();
-            return manifest.getMainAttributes().getValue("Main-Class") != null;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
     public static void uploadFileToStorage(File file, String sasUrl) throws MojoExecutionException {
         try {
             final CloudFile cloudFile = new CloudFile(new URI(sasUrl));
@@ -114,6 +105,37 @@ public class Utils {
 
     public static boolean isJarPackagingProject(MavenProject mavenProject) {
         return JAR.equalsIgnoreCase(mavenProject.getPackaging());
+    }
+
+    public static void replaceWithValue(Xpp3Dom node, String key, Object value) {
+        if (value == null) {
+            return;
+        }
+        if (node.getChild(key) == null) {
+            node.addChild(createDomKeyValue(key, value.toString()));
+        } else {
+            node.getChild(key).setValue(value.toString());
+        }
+    }
+
+    public static Xpp3Dom createDom(String name) {
+        return new Xpp3Dom(name);
+    }
+
+    public static Xpp3Dom createDomKeyValue(String name, String value) {
+        final Xpp3Dom dom = new Xpp3Dom(name);
+        dom.setValue(value);
+        return dom;
+    }
+
+    private static boolean isExecutableJar(File file) {
+        try (final FileInputStream fileInputStream = new FileInputStream(file);
+                final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
+            final Manifest manifest = jarInputStream.getManifest();
+            return manifest.getMainAttributes().getValue("Main-Class") != null;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private Utils() {
