@@ -76,8 +76,7 @@ public class AzureAuthHelper {
     }
 
     /**
-     * Get the corresponding azure environment
-     * .
+     * Get the corresponding azure environment.
      * @param environment the environment key
      * @return the AzureEnvironment instance
      */
@@ -98,6 +97,31 @@ public class AzureAuthHelper {
                 return AzureEnvironment.AZURE_US_GOVERNMENT;
             default:
                 return AzureEnvironment.AZURE;
+        }
+    }
+
+
+    /**
+     * Validate the azure environment.
+     *
+     * @param environment the environment string
+     * @return true if the environment string is a valid azure environment
+     */
+    public static boolean validateEnvironment(String environment) {
+        if (StringUtils.isBlank(environment)) {
+            return true;
+        }
+        switch (environment.toUpperCase(Locale.ENGLISH)) {
+            case "AZURE_CHINA":
+            case "AZURECHINACLOUD":
+            case "AZURE_GERMANY":
+            case "AZUREGERMANCLOUD":
+            case "AZURE_US_GOVERNMENT":
+            case "AZUREUSGOVERNMENT":
+            case "AZURE":
+            case "AZURE_CLOUD":
+                return true;
+            default : return false;
         }
     }
 
