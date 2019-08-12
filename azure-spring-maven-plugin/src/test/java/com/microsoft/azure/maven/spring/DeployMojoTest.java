@@ -7,7 +7,6 @@
 package com.microsoft.azure.maven.spring;
 
 
-import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.junit.Test;
@@ -23,16 +22,14 @@ public class DeployMojoTest extends DeployMojo {
     @Test
     public void testCheckProjectPackaging() throws MojoExecutionException {
         final MavenProject mockProject = mock(MavenProject.class);
-        final Model projectModel = mock(Model.class);
-        doReturn(projectModel).when(mockProject).getModel();
 
-        doReturn("jar").when(projectModel).getPackaging();
+        doReturn("jar").when(mockProject).getPackaging();
         assertTrue(checkProjectPackaging(mockProject));
 
-        doReturn("pom").when(projectModel).getPackaging();
+        doReturn("pom").when(mockProject).getPackaging();
         assertFalse(checkProjectPackaging(mockProject));
 
-        doReturn("war").when(projectModel).getPackaging();
+        doReturn("war").when(mockProject).getPackaging();
         try {
             checkProjectPackaging(mockProject);
             fail("Check project packaging should throw exception when project packing is war");

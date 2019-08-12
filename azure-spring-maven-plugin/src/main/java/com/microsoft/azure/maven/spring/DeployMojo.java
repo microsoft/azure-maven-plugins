@@ -27,7 +27,7 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 public class DeployMojo extends AbstractSpringMojo {
 
     protected static final String PROJECT_NOT_SUPPORT = "`azure-spring:deploy` does not support maven project with " +
-            "build type %s, only jar is supported";
+            "packaging %s, only jar is supported";
     protected static final String PROJECT_SKIP = "Skip pom project";
 
     @Override
@@ -55,15 +55,13 @@ public class DeployMojo extends AbstractSpringMojo {
     }
 
     protected boolean checkProjectPackaging(MavenProject project) throws MojoExecutionException {
-        final String buildType = project.getModel().getPackaging();
-        switch (buildType) {
-            case "jar":
-                return true;
-            case "pom":
-                getLog().info(PROJECT_SKIP);
-                return false;
-            default:
-                throw new MojoExecutionException(String.format(PROJECT_NOT_SUPPORT, buildType));
+        if (Utils.isJarPackagingProject(project)) {
+            return true;
+        } else if (Utils.isPomPackagingProject(project)) {
+            getLog().info(PROJECT_SKIP);
+            return false;
+        } else {
+            throw new MojoExecutionException(String.format(PROJECT_NOT_SUPPORT, project.getPackaging()));
         }
     }
 
