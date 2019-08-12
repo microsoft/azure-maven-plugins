@@ -16,6 +16,7 @@ import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 
@@ -25,8 +26,15 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 @Mojo(name = "deploy")
 public class DeployMojo extends AbstractSpringMojo {
 
+    protected static final String PROJECT_NOT_SUPPORT = "`azure-spring:deploy` does not support maven project with " +
+            "build type %s, only jar is supported";
+    protected static final String PROJECT_SKIP = "Skip pom project";
+
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
+        if (!checkProjectPackaging(project)) {
+            return;
+        }
         final SpringConfiguration configuration = this.getConfiguration();
         final SpringAppClient springAppClient = SpringServiceUtils.newSpringAppClient(configuration);
         // Prepare telemetries
@@ -44,6 +52,19 @@ public class DeployMojo extends AbstractSpringMojo {
         // Update deployment, show url
         getLog().info(app.properties().url());
         getLog().info(deploymentClient.getDeploymentStatus().toString());
+    }
+
+    protected boolean checkProjectPackaging(MavenProject project) throws MojoExecutionException {
+        final String buildType = project.getModel().getPackaging();
+        switch (buildType) {
+            case "jar":
+                return true;
+            case "pom":
+                getLog().info(PROJECT_SKIP);
+                return false;
+            default:
+                throw new MojoExecutionException(String.format(PROJECT_NOT_SUPPORT, buildType));
+        }
     }
 
     protected void traceTelemetry(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {
