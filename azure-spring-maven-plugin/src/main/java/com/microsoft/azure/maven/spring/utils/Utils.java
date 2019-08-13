@@ -13,7 +13,6 @@ import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -105,27 +104,6 @@ public class Utils {
 
     public static boolean isJarPackagingProject(MavenProject mavenProject) {
         return JAR.equalsIgnoreCase(mavenProject.getPackaging());
-    }
-
-    public static void replaceDomWithKeyValue(Xpp3Dom node, String key, Object value) {
-        if (value == null) {
-            return;
-        }
-        if (node.getChild(key) == null) {
-            node.addChild(createDomWithKeyValue(key, value.toString()));
-        } else {
-            node.getChild(key).setValue(value.toString());
-        }
-    }
-
-    public static Xpp3Dom createDomWithName(String name) {
-        return new Xpp3Dom(name);
-    }
-
-    public static Xpp3Dom createDomWithKeyValue(String name, String value) {
-        final Xpp3Dom dom = new Xpp3Dom(name);
-        dom.setValue(value);
-        return dom;
     }
 
     private static boolean isExecutableJar(File file) {

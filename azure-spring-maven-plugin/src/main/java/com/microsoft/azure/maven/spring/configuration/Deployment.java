@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.spring.configuration;
 
-import com.microsoft.azure.maven.spring.utils.Utils;
+import com.microsoft.azure.maven.spring.utils.XmlUtils;
 import org.apache.maven.model.Resource;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
@@ -90,9 +90,9 @@ public class Deployment {
     }
 
     public void applyToXpp3Dom(Xpp3Dom deployment) {
-        Utils.replaceDomWithKeyValue(deployment, "cpu", this.cpu);
-        Utils.replaceDomWithKeyValue(deployment, "memoryInGB", this.memoryInGB);
-        Utils.replaceDomWithKeyValue(deployment, "instanceCount", this.instanceCount);
-        Utils.replaceDomWithKeyValue(deployment, "jvmOptions", this.jvmOptions);
+        XmlUtils.replaceDomWithKeyValue(deployment, "cpu", this.cpu);
+        XmlUtils.replaceDomWithKeyValue(deployment, "memoryInGB", this.memoryInGB);
+        XmlUtils.replaceDomWithKeyValue(deployment, "instanceCount", this.instanceCount);
+        XmlUtils.replaceDomWithKeyValue(deployment, "jvmOptions", this.jvmOptions);
     }
 }
