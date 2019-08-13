@@ -44,7 +44,13 @@
     </developers>
 
     <modules>
+        <module>build-tools</module>
+        <module>azure-maven-plugins-pom</module>
         <module>azure-maven-plugin-lib</module>
+        <module>azure-maven-plugin</module>
+        <module>azure-webapp-maven-plugin</module>
+        <module>azure-functions-maven-plugin</module>
+        <module>azure-sfmesh-maven-plugin</module>
         <module>azure-auth-helper</module>
         <module>azure-spring-maven-plugin</module>
     </modules>
