@@ -100,7 +100,6 @@ public class AzureAuthHelper {
         }
     }
 
-
     /**
      * Validate the azure environment.
      *
@@ -132,7 +131,6 @@ public class AzureAuthHelper {
         return new File(getAzureConfigFolder(), Constants.AZURE_SECRET_FILE);
     }
 
-
     /**
      * Get the azure config folder location, the default location is $HOME/.azure.
      */
@@ -140,7 +138,6 @@ public class AzureAuthHelper {
         return StringUtils.isNotBlank(System.getenv(Constants.AZURE_CONFIG_DIR)) ? new File(System.getenv(Constants.AZURE_CONFIG_DIR)) :
             Paths.get(System.getProperty(Constants.USER_HOME), Constants.AZURE_FOLDER).toFile();
     }
-
 
     /**
      * Check whether the azure-secret.json file exists and is not empty.
