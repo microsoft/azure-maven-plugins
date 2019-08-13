@@ -62,7 +62,7 @@ page at https://checkstyle.org/config.html -->
 
     <!-- All Java AST specific tests live under TreeWalker module. -->
     <module name="TreeWalker">
-
+        <module name="SingleSpaceSeparator"/>
         <!--
 
         IMPORT CHECKS
