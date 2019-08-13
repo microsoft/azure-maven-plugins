@@ -80,10 +80,10 @@ public class SpringServiceUtils {
                 configuration.getClusterName(), configuration.getAppName());
     }
 
-    public List<AppClusterResourceInner> getAvailableClusters(String subscriptionId, String resourceGroup) {
+    public static List<AppClusterResourceInner> getAvailableClusters(String subscriptionId) {
         final Microservices4SpringManager microservices4SpringManager = getSpringManager(subscriptionId);
         final PagedList<AppClusterResourceInner> clusterList = microservices4SpringManager.appClusters()
-                .inner().listByResourceGroup(resourceGroup);
+                .inner().list();
         clusterList.loadAll();
         return new ArrayList<>(clusterList);
     }

@@ -12,7 +12,7 @@ public class TelemetryConstants {
     public static final String TELEMETRY_KEY_CPU = "cpu";
     public static final String TELEMETRY_KEY_MEMORY = "memory";
     public static final String TELEMETRY_KEY_INSTANCE_COUNT = "instanceCount";
-    public static final String TELEMETRY_KEY_JVM_PARAMETER = "jvmParameter";
+    public static final String TELEMETRY_KEY_JVM_OPTIONS = "jvmOptions";
     public static final String TELEMETRY_KEY_WITHIN_PARENT_POM = "isExecutedWithinParentPom";
 
     public static final String TELEMETRY_KEY_AUTH_METHOD = "authMethod";

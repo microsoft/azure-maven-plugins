@@ -89,16 +89,6 @@ public class Utils {
         return files.parallelStream().filter(file -> isExecutableJar(file)).findFirst().orElse(null);
     }
 
-    private static boolean isExecutableJar(File file) {
-        try (final FileInputStream fileInputStream = new FileInputStream(file);
-             final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
-            final Manifest manifest = jarInputStream.getManifest();
-            return manifest.getMainAttributes().getValue("Main-Class") != null;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
     public static void uploadFileToStorage(File file, String sasUrl) throws MojoExecutionException {
         try {
             final CloudFile cloudFile = new CloudFile(new URI(sasUrl));
@@ -114,6 +104,16 @@ public class Utils {
 
     public static boolean isJarPackagingProject(MavenProject mavenProject) {
         return JAR.equalsIgnoreCase(mavenProject.getPackaging());
+    }
+
+    private static boolean isExecutableJar(File file) {
+        try (final FileInputStream fileInputStream = new FileInputStream(file);
+                final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
+            final Manifest manifest = jarInputStream.getManifest();
+            return manifest.getMainAttributes().getValue("Main-Class") != null;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private Utils() {
