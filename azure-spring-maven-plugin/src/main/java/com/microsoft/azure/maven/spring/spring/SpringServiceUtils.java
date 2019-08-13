@@ -89,17 +89,15 @@ public class SpringServiceUtils {
     }
 
     public static AppClusterResourceInner getClusterByName(String cluster, String subscriptionId) {
-        final Microservices4SpringManager microservices4SpringManager = getSpringManager(subscriptionId);
-        final PagedList<AppClusterResourceInner> clusterList = microservices4SpringManager.appClusters()
-                .inner().list();
-        clusterList.loadAll();
+        final List<AppClusterResourceInner> clusterList = getAvailableClusters(subscriptionId);
         return clusterList.stream().filter(appClusterResourceInner -> appClusterResourceInner.name().equals(cluster))
                 .findFirst()
                 .orElseThrow(() -> new InvalidParameterException(String.format(NO_CLUSTER, cluster, subscriptionId)));
     }
 
-    public static String getResourceGroupOfCluster(AppClusterResourceInner clusterResourceInner) {
-        final String[] attributes = clusterResourceInner.id().split("/");
+    public static String getResourceGroupByCluster(String clusterName, String subscriptionId) {
+        final AppClusterResourceInner cluster = getClusterByName(clusterName, subscriptionId);
+        final String[] attributes = cluster.id().split("/");
         return attributes[ArrayUtils.indexOf(attributes, "resourceGroups") + 1];
     }
 

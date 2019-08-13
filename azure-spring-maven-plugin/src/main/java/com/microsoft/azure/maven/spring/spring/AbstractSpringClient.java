@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppClusterResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.Microservices4SpringManager;
 
 public abstract class AbstractSpringClient {
@@ -40,8 +39,7 @@ public abstract class AbstractSpringClient {
         this.subscriptionId = builder.subscriptionId;
         this.springManager = getSpringManager();
 
-        final AppClusterResourceInner cluster = SpringServiceUtils.getClusterByName(clusterName, subscriptionId);
-        this.resourceGroup = SpringServiceUtils.getResourceGroupOfCluster(cluster);
+        this.resourceGroup = SpringServiceUtils.getResourceGroupByCluster(clusterName, subscriptionId);
     }
 
     protected AbstractSpringClient(AbstractSpringClient abstractSpringClient) {
@@ -49,8 +47,7 @@ public abstract class AbstractSpringClient {
         this.subscriptionId = abstractSpringClient.subscriptionId;
         this.springManager = abstractSpringClient.springManager;
 
-        final AppClusterResourceInner cluster = SpringServiceUtils.getClusterByName(clusterName, subscriptionId);
-        this.resourceGroup = SpringServiceUtils.getResourceGroupOfCluster(cluster);
+        this.resourceGroup = SpringServiceUtils.getResourceGroupByCluster(clusterName, subscriptionId);
     }
 
     protected Microservices4SpringManager getSpringManager() {
