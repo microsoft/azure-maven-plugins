@@ -21,8 +21,6 @@ public class ConfigurationProblem {
     private final String errorMessage;
     private final Severity severity;
 
-
-
     public ConfigurationProblem(String key, String value, String errorMessage, Severity severity) {
         this.key = key;
         this.value = value;

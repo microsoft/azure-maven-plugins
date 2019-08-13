@@ -135,7 +135,7 @@ public class AuthConfiguration {
                         String.format("Invalid integer number for httpProxyPort: '%s'.", httpProxyPort), ERROR));
             } else if (NumberUtils.toInt(httpProxyPort) <= 0 || NumberUtils.toInt(httpProxyPort) > 65535) {
                 results.add(new ConfigurationProblem("httpProxyPort", httpProxyPort,
-                        String.format("Invalid range of httpProxyPort: '%s'.", httpProxyPort), ERROR));
+                        String.format("Invalid range of httpProxyPort: '%s', it should be a number between %d and %d", httpProxyPort, 1, 65535), ERROR));
             }
 
         }
