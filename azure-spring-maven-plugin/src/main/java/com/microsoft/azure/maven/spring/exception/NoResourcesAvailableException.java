@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.spring.exception;
 
 public class NoResourcesAvailableException extends Exception {
 
-    public NoResourcesAvailableException(String message)  {
+    public NoResourcesAvailableException(String message) {
         super(message);
     }
 
