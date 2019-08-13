@@ -74,7 +74,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
 
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
                 .withInstanceCount(deploymentConfiguration.getInstanceCount())
-                .withJvmOptions(deploymentConfiguration.getJvmParameter())
+                .withJvmOptions(deploymentConfiguration.getJvmOptions())
                 .withMemoryInGB(deploymentConfiguration.getMemoryInGB())
                 .withPersistentDisk(persistentDisk)
                 .withTemporaryDisk(temporaryDisk)
