@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppClusterResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.Microservices4SpringManager;
 
 public abstract class AbstractSpringClient {
@@ -17,16 +18,10 @@ public abstract class AbstractSpringClient {
 
     public abstract static class Builder<T extends Builder<T>> {
         protected String subscriptionId;
-        protected String resourceGroup;
         protected String clusterName;
 
         public T withSubscriptionId(String subscriptionId) {
             this.subscriptionId = subscriptionId;
-            return self();
-        }
-
-        public T withResourceGroup(String resourceGroup) {
-            this.resourceGroup = resourceGroup;
             return self();
         }
 
@@ -43,15 +38,19 @@ public abstract class AbstractSpringClient {
     protected AbstractSpringClient(Builder<?> builder) {
         this.clusterName = builder.clusterName;
         this.subscriptionId = builder.subscriptionId;
-        this.resourceGroup = builder.resourceGroup;
         this.springManager = getSpringManager();
+
+        final AppClusterResourceInner cluster = SpringServiceUtils.getClusterByName(clusterName, subscriptionId);
+        this.resourceGroup = SpringServiceUtils.getResourceGroupOfCluster(cluster);
     }
 
     protected AbstractSpringClient(AbstractSpringClient abstractSpringClient) {
         this.clusterName = abstractSpringClient.clusterName;
         this.subscriptionId = abstractSpringClient.subscriptionId;
-        this.resourceGroup = abstractSpringClient.resourceGroup;
         this.springManager = abstractSpringClient.springManager;
+
+        final AppClusterResourceInner cluster = SpringServiceUtils.getClusterByName(clusterName, subscriptionId);
+        this.resourceGroup = SpringServiceUtils.getResourceGroupOfCluster(cluster);
     }
 
     protected Microservices4SpringManager getSpringManager() {
