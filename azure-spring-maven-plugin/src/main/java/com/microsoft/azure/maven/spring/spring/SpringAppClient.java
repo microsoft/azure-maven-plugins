@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
+import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.AppResourceProperties;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
@@ -16,6 +17,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class SpringAppClient extends AbstractSpringClient {
     protected String appName;
@@ -77,17 +80,33 @@ public class SpringAppClient extends AbstractSpringClient {
         return getApp().properties().activeDeploymentName();
     }
 
-    public SpringDeploymentClient getActiveDeploymentClient() {
-        final String activeDeploymentId = getActiveDeploymentName();
-        final DeploymentResourceInner activeDeployment = StringUtils.isEmpty(activeDeploymentId) ? null : getDeploymentByName(activeDeploymentId);
-        final String activeDeploymentName = activeDeployment == null ? String.format("deployment-%s", Utils.generateTimestamp()) : activeDeployment.name();
-        return new SpringDeploymentClient(this, activeDeploymentName);
+    public SpringDeploymentClient getDeploymentClient(String deployment) {
+        if (StringUtils.isEmpty(deployment)) {
+            // When deployment name is not specified, get the active Deployment
+            final String activeDeploymentName = getActiveDeploymentName();
+            final List<DeploymentResourceInner> deployments = getDeployments();
+            if (StringUtils.isEmpty(activeDeploymentName) && deployments.size() > 0) {
+                throw new IllegalArgumentException();
+            }
+            deployment = StringUtils.isEmpty(activeDeploymentName) ? "Init-Deployment" : activeDeploymentName;
+        }
+        return new SpringDeploymentClient(this, deployment);
     }
 
     public ResourceUploadDefinitionInner uploadArtifact(File artifact) throws MojoExecutionException {
         final ResourceUploadDefinitionInner resourceUploadDefinition = springManager.apps().inner().getResourceUploadUrl(resourceGroup, clusterName, appName);
         Utils.uploadFileToStorage(artifact, resourceUploadDefinition.uploadUrl());
         return resourceUploadDefinition;
+    }
+
+    public List<DeploymentResourceInner> getDeployments() {
+        final PagedList<DeploymentResourceInner> deployments = springManager.deployments().inner().list(resourceGroup, clusterName, appName);
+        deployments.loadAll();
+        return deployments.stream().collect(Collectors.toList());
+    }
+
+    public String getApplicationUrl() {
+        return getApp().properties().url();
     }
 
     public AppResourceInner getApp() {

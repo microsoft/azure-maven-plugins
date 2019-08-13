@@ -105,6 +105,10 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         return springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
     }
 
+    public boolean isDeploymentExist() {
+        return getDeployment() != null;
+    }
+
     public SpringDeploymentClient(Builder builder) {
         super(builder);
         this.appName = builder.appName;
