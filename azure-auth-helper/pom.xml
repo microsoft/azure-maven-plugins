@@ -10,7 +10,7 @@
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
     <artifactId>azure-auth-helper</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>Azure Authentication Library</name>
     <description>Azure Authentication Library</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
@@ -31,7 +31,7 @@
         <maven.version>3.5.0</maven.version>
         <mockito.version>2.22.0</mockito.version>
         <powermock.version>2.0.2</powermock.version>
-        <azure.maven-plugin-lib.version>1.2.10-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.2.10</azure.maven-plugin-lib.version>
     </properties>
 
     <licenses>

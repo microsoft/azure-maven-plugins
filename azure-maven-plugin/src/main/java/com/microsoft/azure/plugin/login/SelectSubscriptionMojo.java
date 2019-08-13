@@ -28,7 +28,7 @@ import java.util.Scanner;
  * Goal to switch among multiple azure subscriptions.
  */
 @Mojo(name = "select-subscription", inheritByDefault = true, aggregator = true)
-public class SelectSubscriptionMojo extends AbstractAzureMojo  {
+public class SelectSubscriptionMojo extends AbstractAzureMojo {
 
     /**
      * The maven cli argument for set the active subscription by id or name

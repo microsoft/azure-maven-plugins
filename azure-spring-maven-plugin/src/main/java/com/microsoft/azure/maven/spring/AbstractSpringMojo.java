@@ -33,7 +33,7 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_KEY_ENCRYPTED;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_SERVICE_PRINCIPAL;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JAVA_VERSION;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JVM_PARAMETER;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JVM_OPTIONS;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_MEMORY;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PUBLIC;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_WITHIN_PARENT_POM;
@@ -49,10 +49,6 @@ import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_SYST
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_USER_ERROR;
 
 public abstract class AbstractSpringMojo extends AbstractMojo {
-
-    @Parameter(property = "port")
-    protected int port;
-
     @Parameter(alias = "public")
     protected boolean isPublic;
 
@@ -99,6 +95,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
             handleSuccess();
         } catch (Exception e) {
             handleException(e);
+            throw e;
         } finally {
             AppInsightHelper.INSTANCE.close();
         }
@@ -148,8 +145,8 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_CPU, String.valueOf(configuration.getDeployment().getCpu()));
         telemetries.put(TELEMETRY_KEY_MEMORY, String.valueOf(configuration.getDeployment().getMemoryInGB()));
         telemetries.put(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getInstanceCount()));
-        telemetries.put(TELEMETRY_KEY_JVM_PARAMETER,
-                String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmParameter())));
+        telemetries.put(TELEMETRY_KEY_JVM_OPTIONS,
+                String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmOptions())));
     }
 
     protected void traceAuth() {
@@ -160,10 +157,6 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected abstract void doExecute() throws MojoExecutionException, MojoFailureException;
-
-    public int getPort() {
-        return port;
-    }
 
     public boolean isPublic() {
         return isPublic;

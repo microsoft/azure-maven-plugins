@@ -9,7 +9,7 @@
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
     <artifactId>azure-maven-plugin</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>Azure Plugin</name>
     <packaging>maven-plugin</packaging>
     <description>Azure Authentication library for java</description>
@@ -23,7 +23,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.version>3.5</maven.version>
         <junit.version>4.12</junit.version>
-        <azure.maven-plugin-lib.version>1.2.10-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.2.10</azure.maven-plugin-lib.version>
     </properties>
 
     <licenses>
@@ -78,7 +78,7 @@
                 </property>
             </activation>
             <properties>
-                <azure.ai.ikey>435bdea7-d399-49ee-8d2d-b2792aa060d2</azure.ai.ikey>
+                <azure.ai.ikey>44685384-d4d5-4aed-9190-0a32a58587c8</azure.ai.ikey>
             </properties>
         </profile>
     </profiles>
@@ -92,7 +92,7 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-auth-helper</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>

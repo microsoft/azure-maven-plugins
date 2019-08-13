@@ -11,6 +11,7 @@ import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.storage.file.CloudFile;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
 
 import java.io.File;
@@ -33,6 +34,8 @@ public class Utils {
     private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
     private static final Pattern MEMORY_PATTERN = Pattern.compile(MEMORY_REGEX);
+    private static final String POM = "pom";
+    private static final String JAR = "jar";
 
     public static int convertSizeStringToNumber(String memory) throws MojoExecutionException {
         final Matcher matcher = MEMORY_PATTERN.matcher(memory);
@@ -86,22 +89,30 @@ public class Utils {
         return files.parallelStream().filter(file -> isExecutableJar(file)).findFirst().orElse(null);
     }
 
-    private static boolean isExecutableJar(File file) {
-        try (final FileInputStream fileInputStream = new FileInputStream(file);
-             final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
-            final Manifest manifest = jarInputStream.getManifest();
-            return manifest.getMainAttributes().getValue("Main-Class") != null;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
     public static void uploadFileToStorage(File file, String sasUrl) throws MojoExecutionException {
         try {
             final CloudFile cloudFile = new CloudFile(new URI(sasUrl));
             cloudFile.uploadFromFile(file.getPath());
         } catch (Exception e) {
             throw new MojoExecutionException(e.getMessage(), e);
+        }
+    }
+
+    public static boolean isPomPackagingProject(MavenProject mavenProject) {
+        return POM.equalsIgnoreCase(mavenProject.getPackaging());
+    }
+
+    public static boolean isJarPackagingProject(MavenProject mavenProject) {
+        return JAR.equalsIgnoreCase(mavenProject.getPackaging());
+    }
+
+    private static boolean isExecutableJar(File file) {
+        try (final FileInputStream fileInputStream = new FileInputStream(file);
+                final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
+            final Manifest manifest = jarInputStream.getManifest();
+            return manifest.getMainAttributes().getValue("Main-Class") != null;
+        } catch (IOException e) {
+            return false;
         }
     }
 
