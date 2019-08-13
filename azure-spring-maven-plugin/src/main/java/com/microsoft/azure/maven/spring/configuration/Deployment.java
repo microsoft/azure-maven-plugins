@@ -90,9 +90,9 @@ public class Deployment {
     }
 
     public void applyToXpp3Dom(Xpp3Dom deployment) {
-        Utils.replaceWithValue(deployment, "cpu", this.cpu);
-        Utils.replaceWithValue(deployment, "memoryInGB", this.memoryInGB);
-        Utils.replaceWithValue(deployment, "instanceCount", this.instanceCount);
-        Utils.replaceWithValue(deployment, "jvmOptions", this.jvmOptions);
+        Utils.replaceDomWithKeyValue(deployment, "cpu", this.cpu);
+        Utils.replaceDomWithKeyValue(deployment, "memoryInGB", this.memoryInGB);
+        Utils.replaceDomWithKeyValue(deployment, "instanceCount", this.instanceCount);
+        Utils.replaceDomWithKeyValue(deployment, "jvmOptions", this.jvmOptions);
     }
 }
