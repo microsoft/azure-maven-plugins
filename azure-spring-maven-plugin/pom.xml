@@ -37,6 +37,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.commonjava.maven</groupId>
+            <artifactId>maven3-model-jdom-support</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-auth-helper</artifactId>
             <version>0.0.1</version>
