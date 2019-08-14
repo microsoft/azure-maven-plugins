@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SpringAppClient extends AbstractSpringClient {
+
+    public static final String DEFAULT_DEPLOYMENT = "Init-Deployment";
+    public static final String NO_ACTIVE_DEPLOYMENT = "No active deployment found in app %s, please specify the deployment name in configuration.";
+
     protected String appName;
 
     public static class Builder extends AbstractSpringClient.Builder<Builder> {
@@ -86,9 +90,9 @@ public class SpringAppClient extends AbstractSpringClient {
             final String activeDeploymentName = getActiveDeploymentName();
             final List<DeploymentResourceInner> deployments = getDeployments();
             if (StringUtils.isEmpty(activeDeploymentName) && deployments.size() > 0) {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException(String.format(NO_ACTIVE_DEPLOYMENT, appName));
             }
-            deployment = StringUtils.isEmpty(activeDeploymentName) ? "Init-Deployment" : activeDeploymentName;
+            deployment = StringUtils.isEmpty(activeDeploymentName) ? DEFAULT_DEPLOYMENT : activeDeploymentName;
         }
         return new SpringDeploymentClient(this, deployment);
     }
