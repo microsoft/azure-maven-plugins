@@ -71,9 +71,6 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     @Parameter(property = "subscriptionId")
     protected String subscriptionId;
 
-    @Parameter(property = "resourceGroup")
-    protected String resourceGroup;
-
     @Parameter(property = "clusterName")
     protected String clusterName;
 
@@ -211,10 +208,6 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
     public String getSubscriptionId() {
         return subscriptionId;
-    }
-
-    public String getResourceGroup() {
-        return resourceGroup;
     }
 
     public String getClusterName() {

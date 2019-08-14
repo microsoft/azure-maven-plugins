@@ -37,6 +37,13 @@ public class Utils {
     private static final String POM = "pom";
     private static final String JAR = "jar";
 
+    public static <T> T firstOrNull(Iterable<T> list) {
+        if (list != null && list.iterator().hasNext()) {
+            return list.iterator().next();
+        }
+        return null;
+    }
+
     public static int convertSizeStringToNumber(String memory) throws MojoExecutionException {
         final Matcher matcher = MEMORY_PATTERN.matcher(memory);
         if (!matcher.matches()) {
