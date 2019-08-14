@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 public class SpringAppClient extends AbstractSpringClient {
 
-    public static final String DEFAULT_DEPLOYMENT = "Init-Deployment";
+    public static final String DEFAULT_DEPLOYMENT_NAME = "Init-Deployment";
     public static final String NO_ACTIVE_DEPLOYMENT = "No active deployment found in app %s, please specify the deployment name in configuration.";
 
     protected String appName;
@@ -84,17 +84,17 @@ public class SpringAppClient extends AbstractSpringClient {
         return getApp().properties().activeDeploymentName();
     }
 
-    public SpringDeploymentClient getDeploymentClient(String deployment) {
-        if (StringUtils.isEmpty(deployment)) {
+    public SpringDeploymentClient getDeploymentClient(String deploymentName) {
+        if (StringUtils.isEmpty(deploymentName)) {
             // When deployment name is not specified, get the active Deployment
             final String activeDeploymentName = getActiveDeploymentName();
             final List<DeploymentResourceInner> deployments = getDeployments();
             if (StringUtils.isEmpty(activeDeploymentName) && deployments.size() > 0) {
                 throw new IllegalArgumentException(String.format(NO_ACTIVE_DEPLOYMENT, appName));
             }
-            deployment = StringUtils.isEmpty(activeDeploymentName) ? DEFAULT_DEPLOYMENT : activeDeploymentName;
+            deploymentName = StringUtils.isEmpty(activeDeploymentName) ? DEFAULT_DEPLOYMENT_NAME : activeDeploymentName;
         }
-        return new SpringDeploymentClient(this, deployment);
+        return new SpringDeploymentClient(this, deploymentName);
     }
 
     public ResourceUploadDefinitionInner uploadArtifact(File artifact) throws MojoExecutionException {
@@ -114,6 +114,6 @@ public class SpringAppClient extends AbstractSpringClient {
     }
 
     public AppResourceInner getApp() {
-        return springManager.apps().inner().get(resourceGroup, clusterName, appName);
+        return springManager.apps().inner().get(resourceGroup, clusterName, appName, "true");
     }
 }
