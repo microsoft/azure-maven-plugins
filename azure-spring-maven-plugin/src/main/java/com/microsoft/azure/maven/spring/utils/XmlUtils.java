@@ -29,4 +29,8 @@ public class XmlUtils {
         dom.setValue(value);
         return dom;
     }
+
+    private XmlUtils() {
+
+    }
 }

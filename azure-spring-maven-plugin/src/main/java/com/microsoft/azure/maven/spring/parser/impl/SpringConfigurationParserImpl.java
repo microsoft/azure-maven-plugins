@@ -19,7 +19,6 @@ public class SpringConfigurationParserImpl implements SpringConfigurationParser 
                 .withDeployment(springMojo.getDeployment())
                 .withRuntimeVersion(springMojo.getRuntimeVersion())
                 .withPublic(springMojo.isPublic())
-                .withResourceGroup(springMojo.getResourceGroup())
                 .withSubscriptionId(springMojo.getSubscriptionId());
     }
 }
