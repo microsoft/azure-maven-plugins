@@ -123,8 +123,11 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     protected void initExecution() throws MojoFailureException {
         initializeAuthConfiguration();
         // Init sdk log level
-        if (getLog().isDebugEnabled()) {
-            SpringServiceUtils.setLogLevel(LogLevel.BODY_AND_HEADERS);
+        final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
+        try {
+            SpringServiceUtils.setSpringManager(auth, subscriptionId, logLevel);
+        } catch (Exception e) {
+            throw new MojoFailureException("Unable to auth with azure", e);
         }
         // Init telemetries
         telemetries = new HashMap<>();
