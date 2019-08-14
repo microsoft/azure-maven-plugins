@@ -6,14 +6,14 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.ArtifactInfo;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.ArtifactResourceType;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceProperties;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceStatus;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentSettings;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.PersistentDisk;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.RuntimeVersion;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.TemporaryDisk;
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.UserSourceInfo;
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.UserSourceType;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
@@ -75,19 +75,19 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
                 .withInstanceCount(deploymentConfiguration.getInstanceCount())
                 .withJvmOptions(deploymentConfiguration.getJvmOptions())
-                .withMemoryInGB(deploymentConfiguration.getMemoryInGB())
+                .withMemoryInGb(deploymentConfiguration.getMemoryInGB())
                 .withPersistentDisk(persistentDisk)
                 .withTemporaryDisk(temporaryDisk)
                 // Now we support java 8 only
                 .withRuntimeVersion(RuntimeVersion.JAVA_8)
                 .withEnvironmentVariables(deploymentConfiguration.getEnvironment());
 
-        final ArtifactInfo artifactInfo = new ArtifactInfo();
+        final UserSourceInfo userSourceInfo = new UserSourceInfo();
         // There are some issues with server side resourceUpload logic
         // Use uploadUrl instead of relativePath
         final String relativePath = resourceUploadDefinitionInner.uploadUrl().split("\\?")[0];
-        artifactInfo.withResourceType(ArtifactResourceType.JAR).withRelativePath(relativePath);
-        deploymentProperties.withArtifact(artifactInfo).withDeploymentSettings(deploymentSettings);
+        userSourceInfo.withType(UserSourceType.JAR).withRelativePath(relativePath);
+        deploymentProperties.withSource(userSourceInfo).withDeploymentSettings(deploymentSettings);
         if (deployment == null) {
             deployment = springManager.deployments().inner().createOrUpdate(resourceGroup, clusterName, appName, deploymentName, deploymentProperties);
         } else {
