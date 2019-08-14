@@ -115,8 +115,6 @@ public class ConfigMojo extends AbstractSpringMojo {
         } catch (IOException | NoResourcesAvailableException | InvalidConfigurationException e) {
             throw new MojoFailureException(e.getMessage());
         }
-
-        System.out.println(subscriptionId);
     }
 
     private void initializeProjects() throws MojoFailureException, IOException {
