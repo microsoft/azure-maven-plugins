@@ -6,8 +6,10 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
+import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.auth.AzureAuthHelper;
+import com.microsoft.azure.auth.AzureCredential;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
@@ -21,6 +23,7 @@ import org.codehaus.plexus.util.StringUtils;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class SpringServiceUtils {
@@ -41,7 +44,7 @@ public class SpringServiceUtils {
         if (springManager == null || !springManager.subscriptionId().equals(subscriptionId)) {
             synchronized (SpringServiceUtils.class) {
                 if (springManager == null || !springManager.subscriptionId().equals(subscriptionId)) {
-                    final AzureTokenCredentials credentials = AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
+                    final AzureTokenCredentials credentials = getCredential();
                     final String authSubscription = StringUtils.isEmpty(subscriptionId) ? credentials.defaultSubscriptionId() : subscriptionId;
                     springManager = Microservices4SpringManager.configure()
                             .withLogLevel(logLevel)
@@ -50,6 +53,29 @@ public class SpringServiceUtils {
             }
         }
         return springManager;
+    }
+
+    public static AzureTokenCredentials getCredential() {
+        final AzureEnvironment dogFoodEnvironment = new AzureEnvironment(new HashMap<String, String>() {{
+                put(AzureEnvironment.Endpoint.MANAGEMENT.toString(), "https://management.core.windows.net/");
+                put(AzureEnvironment.Endpoint.RESOURCE_MANAGER.toString(), "https://api-dogfood.resources.windows-int.net");
+                put(AzureEnvironment.Endpoint.GALLERY.toString(), "https://current.gallery.azure-test.net/");
+                put(AzureEnvironment.Endpoint.GRAPH.toString(), "https://graph.ppe.windows.net/");
+                put(AzureEnvironment.Endpoint.ACTIVE_DIRECTORY.toString(), "https://login.windows-ppe.net");
+            }});
+        AzureCredential azureCredential = null;
+        try {
+            if (AzureAuthHelper.existsAzureSecretFile()) {
+                azureCredential = AzureAuthHelper.readAzureCredentials();
+            } else {
+                azureCredential = AzureAuthHelper.oAuthLogin(dogFoodEnvironment);
+            }
+            AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
+            return AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, dogFoodEnvironment);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static SpringDeploymentClient newSpringDeploymentClient(String subscriptionId, String cluster, String app, String deployment) {
