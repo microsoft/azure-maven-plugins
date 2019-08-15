@@ -59,6 +59,7 @@ public interface IPrompter extends Closeable {
      *
      * @param <T> the entity type
      * @param name the property name
+     * @param message the message print before printing the options
      * @param entities the known list which are to be selected in
      * @param getNameFunc the entity to string convert function
      * @param allowEmpty whether or not to accept empty list.
@@ -68,7 +69,7 @@ public interface IPrompter extends Closeable {
      * @return the list user selected
      * @throws IOException when there are any IO errors.
      */
-    <T> List<T> promoteMultipleEntities(String name, List<T> entities, Function<T, String> getNameFunc, boolean allowEmpty, String enterPromote,
+    <T> List<T> promoteMultipleEntities(String name, String message, List<T> entities, Function<T, String> getNameFunc, boolean allowEmpty, String enterPromote,
             List<T> defaultEntities) throws IOException;
 
 
@@ -77,12 +78,13 @@ public interface IPrompter extends Closeable {
      *
      * @param <T> the entity type
      * @param name the property name
+     * @param message the message print before printing the options
      * @param entities the known list which are to be selected in
      * @param getNameFunc the entity to string convert function
      * @param defaultEntity the default entity when pressing ENTER key directly.
      * @return the entity user selected
      * @throws IOException when there are any IO errors.
      */
-    <T> T promoteSingleEntity(String name, List<T> entities, T defaultEntity, Function<T, String> getNameFunc, boolean isRequired)
+    <T> T promoteSingleEntity(String name, String message, List<T> entities, T defaultEntity, Function<T, String> getNameFunc, boolean isRequired)
             throws IOException, NoResourcesAvailableException;
 }

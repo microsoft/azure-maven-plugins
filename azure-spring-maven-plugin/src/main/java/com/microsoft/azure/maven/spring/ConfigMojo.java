@@ -46,6 +46,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Mojo(name = "config", requiresProject = true, requiresDirectInvocation = true, aggregator = true)
@@ -74,7 +75,7 @@ public class ConfigMojo extends AbstractSpringMojo {
                     this.project.getName(), this.project.getPackaging()));
         }
         if (isProjectConfigured(this.project)) {
-            throw new MojoFailureException(String.format("Project (%s) is already configured.", this.project.getName()));
+            throw new MojoFailureException(String.format("Project (%s) is already configured and won't be effected by this command.", this.project.getName()));
         }
 
         if (this.deployment == null) {
@@ -85,11 +86,15 @@ public class ConfigMojo extends AbstractSpringMojo {
         final boolean isRunningInParent = Utils.isPomPackagingProject(this.project);
 
         try {
+            // prompt = new DefaultPrompter();
             if (isRunningInParent) {
                 if (full) {
                     throw new MojoFailureException("The \"full\" mode is not supported at parent folder.");
                 }
                 initializeProjects();
+                if (this.targetProjects.size() == 0) {
+                    return;
+                }
             }
             initializeCredentials();
             selectAppCluster();
@@ -110,10 +115,14 @@ public class ConfigMojo extends AbstractSpringMojo {
                 }
                 confirmAndSave();
             }
-
-            this.prompt.close();
         } catch (IOException | NoResourcesAvailableException | InvalidConfigurationException e) {
             throw new MojoFailureException(e.getMessage());
+        } finally {
+            try {
+                this.prompt.close();
+            } catch (IOException e) {
+                // ignore at final step
+            }
         }
     }
 
@@ -127,20 +136,32 @@ public class ConfigMojo extends AbstractSpringMojo {
                 targetProjects.add(proj);
             }
         }
+
+        if (targetProjects.size() == 0) {
+            getLog().warn("There are no projects in current folder which are not configured yet!");
+            return;
+        }
+
         if (configuredProjects.size() > 0) {
             getLog().warn(String.format("Project (%s) %s already configured.",
                     TextUtils.yellow(configuredProjects.stream().collect(Collectors.joining(", "))), configuredProjects.size() > 1 ? "are" : "is"));
         }
 
-        if (targetProjects.size() == 0) {
-            getLog().warn("There are no projects in current folder which are not configured yet!");
+        if (targetProjects.size() == 1) {
+            if (!prompt.promoteYesNo(true,
+                    String.format("There is only one project(%s) which is not configured, would you like to select it to config?",
+                            TextUtils.blue(targetProjects.get(0).getName())), true)) {
+                // user cancels
+                targetProjects.clear();
+            }
             return;
         }
         selectProjects();
     }
 
     private void selectProjects() throws MojoFailureException, IOException {
-        targetProjects = prompt.promoteMultipleEntities("project", targetProjects, MavenProject::getName, false, " for ALL projects", targetProjects);
+        targetProjects = prompt.promoteMultipleEntities("project", "Select apps to deploy from following un-configured modules",
+                targetProjects, MavenProject::getName, false, " for ALL projects", targetProjects);
     }
 
     private void configureJvmOptions() throws IOException {
@@ -163,47 +184,56 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private void confirmAndSave() throws IOException {
-        System.out.println("Please confirm the following properties");
-        System.out.println("subscription id: " + TextUtils.green(this.subscriptionId));
-        System.out.println("service name   : " + TextUtils.green(this.clusterName));
-        System.out.println("app name       : " + TextUtils.green(this.appName));
+        System.out.println("Confirm to save the following properties:");
+        confirmCommon();
+        printConfirmation("App name", this.appName);
+
         if (this.isPublic != null && this.isPublic.booleanValue()) {
-            System.out.println("public access  : " + TextUtils.green(this.isPublic.toString()));
+            printConfirmation("Public access", "enable");
         }
+
         if (this.deployment.getInstanceCount() != null) {
-            System.out.println("instance count : " + TextUtils.green(this.deployment.getInstanceCount().toString()));
+            printConfirmation("Instance count", this.deployment.getInstanceCount());
         }
 
         if (this.deployment.getCpu() != null) {
-            System.out.println("cpu            : " + TextUtils.green(this.deployment.getCpu().toString()));
+            printConfirmation("CPU cores", this.deployment.getCpu());
         }
 
         if (this.deployment.getMemoryInGB() != null) {
-            System.out.println("memory(GB)     : " + TextUtils.green(this.deployment.getMemoryInGB().toString()));
+            printConfirmation("Memory(GB)", this.deployment.getMemoryInGB());
         }
 
         if (StringUtils.isNotEmpty(this.deployment.getJvmOptions())) {
-            System.out.println("jvm options    : " + TextUtils.green(this.deployment.getJvmOptions()));
+            printConfirmation("JVM options", this.deployment.getJvmOptions());
         }
 
-        if (prompt.promoteYesNo(true, "Confirm to save all the properties listed above?", true)) {
+        if (confirmSavePrompt()) {
             saveConfigurationToProject(this.project, true);
-            getLog().info("These changes are saved to the pom.xml file.");
+            getLog().info(String.format("Configurations are saved to: %s", TextUtils.blue(this.project.getFile().toString())));
         }
     }
 
     private void confirmAndSaveParent() throws IOException {
-        System.out.println("Please confirm the following properties");
-        System.out.println("subscription id : " + TextUtils.green(this.subscriptionId));
-        System.out.println("service name    : " + TextUtils.green(this.clusterName));
+        confirmCommon();
         if (this.publicProjects != null && this.publicProjects.size() > 0) {
-            System.out
-                    .println("public app(s)  : " + TextUtils.green(publicProjects.stream().map(t -> t.getName()).collect(Collectors.joining(", "))));
+            printConfirmation(this.publicProjects.size() > 1 ? "Public apps" : "Public app",
+                    publicProjects.stream().map(t -> t.getName()).collect(Collectors.joining(", ")));
         }
-        if (prompt.promoteYesNo(true, "Confirm to save all the properties listed above?", true)) {
+        if (confirmSavePrompt()) {
             saveConfigurationParent();
-            getLog().info("These changes are saved to the related pom.xml files.");
+            getLog().info("Configurations are saved to the child pom.xml files.");
         }
+    }
+
+    private void confirmCommon() {
+        System.out.println("Confirm to save the following properties:");
+        printConfirmation("Subscription id", this.subscriptionId);
+        printConfirmation("Service name", this.clusterName);
+    }
+
+    private boolean confirmSavePrompt() throws IOException {
+        return prompt.promoteYesNo(true, "Confirm to save all the properties listed above?", true);
     }
 
     private void saveConfigurationParent() {
@@ -275,7 +305,8 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private void configurePublicParent() throws IOException {
-        publicProjects = prompt.promoteMultipleEntities("project", targetProjects, t -> t.getName(), true, " to select none",
+        publicProjects = prompt.promoteMultipleEntities("project", "Select public accessible apps",
+                targetProjects, t -> t.getName(), true, " to select NONE",
                 new ArrayList<MavenProject>());
     }
 
@@ -284,11 +315,12 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private void selectAppCluster() throws IOException, NoResourcesAvailableException {
-        final List<AppClusterResourceInner> clusters = SpringServiceUtils.getAvailableClusters(this.subscriptionId);
+        final List<AppClusterResourceInner> clusters = SpringServiceUtils.getAvailableClusters();
         final AppClusterResourceInner clusterByName = clusters.stream().filter(t -> StringUtils.equals(this.clusterName, t.name())).findFirst()
                 .orElse(null);
         if (clusterByName == null) {
-            clusterName = prompt.promoteSingleEntity("service", clusters, Utils.firstOrNull(clusters), t -> t.name(), true).name();
+            clusterName = prompt.promoteSingleEntity("service", "Select a SCS to deploy your apps to",
+                    clusters, Utils.firstOrNull(clusters), t -> t.name(), true).name();
         }
 
         getLog().info(String.format("Using service: %s", TextUtils.blue(clusterName)));
@@ -305,9 +337,8 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     private String selectSubscription() throws IOException, NoResourcesAvailableException {
         final PagedList<Subscription> subscriptions = azure.subscriptions().list();
-        final Subscription select = this.prompt.promoteSingleEntity("subscription", subscriptions, Utils.firstOrNull(subscriptions),
-            t -> String.format("%s (%s)", t.displayName(), t.subscriptionId()), true);
-
+        final Subscription select = this.prompt.promoteSingleEntity("subscription", "Select a subscription:",
+                subscriptions, Utils.firstOrNull(subscriptions), t -> String.format("%s (%s)", t.displayName(), t.subscriptionId()), true);
         return select.subscriptionId();
     }
 
@@ -337,4 +368,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         return false;
     }
 
+    private static void printConfirmation(String key, Object value) {
+        System.out.printf("%-17s : %s%n", key, TextUtils.green(Objects.toString(value)));
+    }
 }
