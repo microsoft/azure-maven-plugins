@@ -39,7 +39,7 @@ public abstract class AbstractSpringClient {
         this.subscriptionId = builder.subscriptionId;
         this.springManager = getSpringManager();
 
-        this.resourceGroup = SpringServiceUtils.getResourceGroupByCluster(clusterName, subscriptionId);
+        this.resourceGroup = SpringServiceUtils.getResourceGroupByCluster(clusterName);
     }
 
     protected AbstractSpringClient(AbstractSpringClient abstractSpringClient) {
@@ -47,10 +47,10 @@ public abstract class AbstractSpringClient {
         this.subscriptionId = abstractSpringClient.subscriptionId;
         this.springManager = abstractSpringClient.springManager;
 
-        this.resourceGroup = SpringServiceUtils.getResourceGroupByCluster(clusterName, subscriptionId);
+        this.resourceGroup = SpringServiceUtils.getResourceGroupByCluster(clusterName);
     }
 
     protected Microservices4SpringManager getSpringManager() {
-        return SpringServiceUtils.getSpringManager(subscriptionId);
+        return SpringServiceUtils.getSpringManager();
     }
 }

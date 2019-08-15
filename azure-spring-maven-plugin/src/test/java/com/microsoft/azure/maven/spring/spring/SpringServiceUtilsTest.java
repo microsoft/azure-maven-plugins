@@ -31,11 +31,11 @@ public class SpringServiceUtilsTest {
         final List<AppClusterResourceInner> mockClusterList = new ArrayList<>();
         mockClusterList.add(mockCluster);
 
-        PowerMockito.stub(PowerMockito.method(SpringServiceUtils.class, "getAvailableClusters", String.class)).toReturn(mockClusterList);
-        assertTrue(SpringServiceUtils.getClusterByName("existCluster", "subscription") == mockCluster);
+        PowerMockito.stub(PowerMockito.method(SpringServiceUtils.class, "getAvailableClusters")).toReturn(mockClusterList);
+        assertTrue(SpringServiceUtils.getClusterByName("existCluster") == mockCluster);
 
         try {
-            SpringServiceUtils.getClusterByName("unExistCluster", "subscription");
+            SpringServiceUtils.getClusterByName("unExistCluster");
             fail("Should throw IPE when cluster doesn't exist");
         } catch (InvalidParameterException e) {
             // Should throw IPE when cluster doesn't exist
@@ -46,7 +46,7 @@ public class SpringServiceUtilsTest {
     public void getResourceGroupByCluster() {
         final AppClusterResourceInner mockCluster = PowerMockito.mock(AppClusterResourceInner.class);
         PowerMockito.doReturn("/resourceGroups/test").when(mockCluster).id();
-        PowerMockito.stub(PowerMockito.method(SpringServiceUtils.class, "getClusterByName", String.class, String.class)).toReturn(mockCluster);
-        assertTrue(SpringServiceUtils.getResourceGroupByCluster("cluster", "subscription").equals("test"));
+        PowerMockito.stub(PowerMockito.method(SpringServiceUtils.class, "getClusterByName", String.class)).toReturn(mockCluster);
+        assertTrue(SpringServiceUtils.getResourceGroupByCluster("cluster").equals("test"));
     }
 }

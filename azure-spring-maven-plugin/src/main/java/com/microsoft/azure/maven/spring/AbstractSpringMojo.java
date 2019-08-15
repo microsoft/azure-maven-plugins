@@ -14,6 +14,7 @@ import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParser;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParserFactory;
 import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
+import com.microsoft.azure.maven.spring.utils.MavenUtils;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
 import com.microsoft.azure.maven.validation.ConfigurationProblem;
@@ -30,6 +31,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.util.HashMap;
@@ -118,22 +120,25 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected void initExecution() throws MojoFailureException {
-        initializeAuthConfiguration();
-        // Init sdk log level
-        if (getLog().isDebugEnabled()) {
-            SpringServiceUtils.setLogLevel(LogLevel.BODY_AND_HEADERS);
-        }
         // Init telemetries
         telemetries = new HashMap<>();
         if (!isTelemetryAllowed) {
             AppInsightHelper.INSTANCE.disable();
+        }
+        initializeAuthConfiguration();
+        // Init sdk log level
+        final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
+        try {
+            SpringServiceUtils.setSpringManager(auth, subscriptionId, logLevel);
+        } catch (Exception e) {
+            throw new MojoFailureException("Unable to auth with azure", e);
         }
         tracePluginInformation();
         trackMojoExecution(MojoStatus.Start);
     }
 
     protected void initializeAuthConfiguration() throws MojoFailureException {
-        if (auth == null) {
+        if (!isAuthConfigurationExist()) {
             return;
         }
         if (StringUtils.isNotBlank(auth.getServerId())) {
@@ -154,6 +159,13 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
                     problems.stream().map(problem -> problem.getErrorMessage()).collect(Collectors.joining("\n"))));
         }
 
+    }
+
+    protected boolean isAuthConfigurationExist() {
+        final String pluginKey = String.format("%s:%s", plugin.getGroupId(), plugin.getArtifactId());
+        final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
+        final Xpp3Dom authDom = pluginDom.getChild("auth");
+        return authDom != null && authDom.getChildren().length > 0;
     }
 
     protected void handleSuccess() {
