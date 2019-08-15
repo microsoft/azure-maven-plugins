@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.spring;
 
+import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
@@ -16,12 +17,14 @@ import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.i
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
+import com.microsoft.azure.maven.spring.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.spring.prompt.IPrompter;
 import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
 import com.microsoft.azure.maven.spring.utils.MavenUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import com.microsoft.azure.maven.spring.utils.XmlUtils;
 import com.microsoft.azure.maven.utils.TextUtils;
+import com.microsoft.rest.LogLevel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
@@ -45,6 +48,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -56,7 +60,7 @@ public class ConfigMojo extends AbstractSpringMojo {
     @Parameter(property = "full")
     private boolean full;
 
-    private IPrompter prompt = null; // new DefaultPrompter();
+    private IPrompter prompt;
 
     private List<MavenProject> targetProjects = new ArrayList<>();
 
@@ -86,7 +90,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         final boolean isRunningInParent = Utils.isPomPackagingProject(this.project);
 
         try {
-            // prompt = new DefaultPrompter();
+            prompt = new DefaultPrompter();
             if (isRunningInParent) {
                 if (full) {
                     throw new MojoFailureException("The \"full\" mode is not supported at parent folder.");
@@ -305,22 +309,40 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private void configurePublicParent() throws IOException {
-        publicProjects = prompt.promoteMultipleEntities("project", "Select public accessible apps",
-                targetProjects, t -> t.getName(), true, " to select NONE",
-                new ArrayList<MavenProject>());
+        if (targetProjects.size() == 1) {
+            if (prompt.promoteYesNo(false,
+                    String.format("Do you want to enable public access for this app: %s?",
+                            TextUtils.blue(targetProjects.get(0).getName())), true)) {
+                publicProjects = targetProjects;
+            }
+        } else {
+            publicProjects = prompt.promoteMultipleEntities("project", "Select public accessible apps",
+                    targetProjects, t -> t.getName(), true, " to select NONE",
+                    new ArrayList<MavenProject>());
+        }
     }
 
     private void configureAppName() throws IOException {
         appName = prompt.promoteString("app name", "${project.artifactId}", "[A-Za-z0-9_\\.]+", true);
     }
 
-    private void selectAppCluster() throws IOException, NoResourcesAvailableException {
+    private void selectAppCluster() throws IOException, NoResourcesAvailableException, MojoFailureException {
         final List<AppClusterResourceInner> clusters = SpringServiceUtils.getAvailableClusters();
         final AppClusterResourceInner clusterByName = clusters.stream().filter(t -> StringUtils.equals(this.clusterName, t.name())).findFirst()
                 .orElse(null);
         if (clusterByName == null) {
-            clusterName = prompt.promoteSingleEntity("service", "Select a SCS to deploy your apps to",
+            if (clusters.size() == 1) {
+                final boolean useFirstCluster = prompt.promoteYesNo(true,
+                        String.format("Would you like to deploy your apps to SCS %s?", TextUtils.blue(clusters.get(0).name())),
+                        true);
+                if (!useFirstCluster) {
+                    throw new MojoFailureException("You have not selected any SCS, 'config' will terminate.");
+                }
+
+            } else {
+                clusterName = prompt.promoteSingleEntity("service", "Select a SCS to deploy your apps to",
                     clusters, Utils.firstOrNull(clusters), t -> t.name(), true).name();
+            }
         }
 
         getLog().info(String.format("Using service: %s", TextUtils.blue(clusterName)));
