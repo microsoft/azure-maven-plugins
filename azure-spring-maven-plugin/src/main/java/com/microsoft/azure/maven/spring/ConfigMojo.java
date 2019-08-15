@@ -238,7 +238,7 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     private void saveConfigurationParent() {
         for (final MavenProject proj : targetProjects) {
-             this.isPublic = publicProjects != null && publicProjects.contains(proj);
+            this.isPublic = publicProjects != null && publicProjects.contains(proj);
             saveConfigurationToProject(proj, false);
         }
     }
