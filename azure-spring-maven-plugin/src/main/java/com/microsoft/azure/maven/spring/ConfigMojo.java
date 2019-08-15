@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.spring;
 
-import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
@@ -24,7 +23,6 @@ import com.microsoft.azure.maven.spring.utils.MavenUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import com.microsoft.azure.maven.spring.utils.XmlUtils;
 import com.microsoft.azure.maven.utils.TextUtils;
-import com.microsoft.rest.LogLevel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
@@ -48,7 +46,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
