@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.maven.spring;
 
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
+import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
 import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
@@ -16,6 +16,7 @@ import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
@@ -26,9 +27,14 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 @Mojo(name = "deploy")
 public class DeployMojo extends AbstractSpringMojo {
 
+    @Parameter(property = "createInactive")
+    protected boolean createInactive;
+
+    protected static final String PROJECT_SKIP = "Skip pom project";
     protected static final String PROJECT_NOT_SUPPORT = "`azure-spring:deploy` does not support maven project with " +
             "packaging %s, only jar is supported";
-    protected static final String PROJECT_SKIP = "Skip pom project";
+    protected static final String DEPLOYMENT_NOT_EXIST = "Deployment %s doesn't exist in app %s, please check the " +
+            "configuration or use -DcreateInactive to create a inactive one";
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
@@ -40,17 +46,26 @@ public class DeployMojo extends AbstractSpringMojo {
         // Prepare telemetries
         traceTelemetry(springAppClient, configuration);
         // Create or update new App
-        AppResourceInner app = springAppClient.createOrUpdateApp(configuration);
+        springAppClient.createOrUpdateApp(configuration);
         // Upload artifact
         final File toDeploy = Utils.getArtifactFromConfiguration(configuration);
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
         // Create or update deployment
-        final SpringDeploymentClient deploymentClient = springAppClient.getActiveDeploymentClient();
-        final DeploymentResourceInner deployment = deploymentClient.createOrUpdateDeployment(configuration.getDeployment(), uploadDefinition);
-        // Update the app with new deployment
-        app = springAppClient.updateActiveDeployment(deployment.name());
+        final Deployment deploymentConfiguration = configuration.getDeployment();
+        final SpringDeploymentClient deploymentClient = springAppClient.getDeploymentClient(deploymentConfiguration.getDeploymentName());
+        if (deploymentClient.isDeploymentExist() || createInactive) {
+            // Update existing deployment or create an inactive one
+            deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
+        } else if (springAppClient.getDeployments().size() == 0) {
+            // Create new deployment and active it
+            final DeploymentResourceInner deployment = deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
+            springAppClient.updateActiveDeployment(deployment.name());
+        } else {
+            throw new IllegalArgumentException(DEPLOYMENT_NOT_EXIST);
+        }
+
         // Update deployment, show url
-        getLog().info(app.properties().url());
+        getLog().info(springAppClient.getApplicationUrl());
         getLog().info(deploymentClient.getDeploymentStatus().toString());
     }
 

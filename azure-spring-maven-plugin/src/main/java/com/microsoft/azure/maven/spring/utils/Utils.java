@@ -31,11 +31,11 @@ import java.util.stream.Collectors;
 
 public class Utils {
 
+    private static final String POM = "pom";
+    private static final String JAR = "jar";
     private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
     private static final Pattern MEMORY_PATTERN = Pattern.compile(MEMORY_REGEX);
-    private static final String POM = "pom";
-    private static final String JAR = "jar";
 
     public static <T> T firstOrNull(Iterable<T> list) {
         if (list != null && list.iterator().hasNext()) {
@@ -115,7 +115,7 @@ public class Utils {
 
     private static boolean isExecutableJar(File file) {
         try (final FileInputStream fileInputStream = new FileInputStream(file);
-                final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
+             final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
             final Manifest manifest = jarInputStream.getManifest();
             return manifest.getMainAttributes().getValue("Main-Class") != null;
         } catch (IOException e) {
