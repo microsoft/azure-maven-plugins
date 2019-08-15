@@ -16,7 +16,6 @@ import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.i
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
-import com.microsoft.azure.maven.spring.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.spring.prompt.IPrompter;
 import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
 import com.microsoft.azure.maven.spring.utils.MavenUtils;
@@ -87,7 +86,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         final boolean isRunningInParent = Utils.isPomPackagingProject(this.project);
 
         try {
-            prompt = new DefaultPrompter();
+            // prompt = new DefaultPrompter();
             if (isRunningInParent) {
                 if (full) {
                     throw new MojoFailureException("The \"full\" mode is not supported at parent folder.");
