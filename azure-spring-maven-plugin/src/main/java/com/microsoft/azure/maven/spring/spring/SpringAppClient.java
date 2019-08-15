@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
+import com.microsoft.azure.PagedList;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.AppResourceProperties;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
@@ -16,8 +17,14 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class SpringAppClient extends AbstractSpringClient {
+
+    public static final String DEFAULT_DEPLOYMENT_NAME = "Init-Deployment";
+    public static final String NO_ACTIVE_DEPLOYMENT = "No active deployment found in app %s, please specify the deployment name in configuration.";
+
     protected String appName;
 
     public static class Builder extends AbstractSpringClient.Builder<Builder> {
@@ -77,11 +84,17 @@ public class SpringAppClient extends AbstractSpringClient {
         return getApp().properties().activeDeploymentName();
     }
 
-    public SpringDeploymentClient getActiveDeploymentClient() {
-        final String activeDeploymentId = getActiveDeploymentName();
-        final DeploymentResourceInner activeDeployment = StringUtils.isEmpty(activeDeploymentId) ? null : getDeploymentByName(activeDeploymentId);
-        final String activeDeploymentName = activeDeployment == null ? String.format("deployment-%s", Utils.generateTimestamp()) : activeDeployment.name();
-        return new SpringDeploymentClient(this, activeDeploymentName);
+    public SpringDeploymentClient getDeploymentClient(String deploymentName) {
+        if (StringUtils.isEmpty(deploymentName)) {
+            // When deployment name is not specified, get the active Deployment
+            final String activeDeploymentName = getActiveDeploymentName();
+            final List<DeploymentResourceInner> deployments = getDeployments();
+            if (StringUtils.isEmpty(activeDeploymentName) && deployments.size() > 0) {
+                throw new IllegalArgumentException(String.format(NO_ACTIVE_DEPLOYMENT, appName));
+            }
+            deploymentName = StringUtils.isEmpty(activeDeploymentName) ? DEFAULT_DEPLOYMENT_NAME : activeDeploymentName;
+        }
+        return new SpringDeploymentClient(this, deploymentName);
     }
 
     public ResourceUploadDefinitionInner uploadArtifact(File artifact) throws MojoExecutionException {
@@ -90,7 +103,17 @@ public class SpringAppClient extends AbstractSpringClient {
         return resourceUploadDefinition;
     }
 
+    public List<DeploymentResourceInner> getDeployments() {
+        final PagedList<DeploymentResourceInner> deployments = springManager.deployments().inner().list(resourceGroup, clusterName, appName);
+        deployments.loadAll();
+        return deployments.stream().collect(Collectors.toList());
+    }
+
+    public String getApplicationUrl() {
+        return getApp().properties().url();
+    }
+
     public AppResourceInner getApp() {
-        return springManager.apps().inner().get(resourceGroup, clusterName, appName);
+        return springManager.apps().inner().get(resourceGroup, clusterName, appName, "true");
     }
 }
