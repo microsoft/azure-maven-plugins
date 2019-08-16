@@ -9,6 +9,7 @@ package com.microsoft.azure.auth;
 import com.microsoft.azure.AzureEnvironment;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URISyntaxException;
@@ -17,9 +18,29 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class AzureLoginHelperTest {
+
+    /**
+     * Please remove @Ignore when the browser is available.
+     */
+    @Test
+    @Ignore
+    public void testOauthWithBrowser() throws Exception {
+        AzureLoginHelper.oAuthLogin(AzureEnvironment.AZURE);
+    }
+
+    /**
+     * Please remove @Ignore when you can visit the device login url in terminal.
+     */
+    @Test
+    @Ignore
+    public void testDeviceLogin() throws Exception {
+        AzureLoginHelper.deviceLogin(AzureEnvironment.AZURE);
+    }
+
     @Test
     public void testAuthorizationUrl() throws Exception {
         String url = AzureLoginHelper.authorizationUrl(AzureEnvironment.AZURE, "http://localhost:4663");
@@ -62,6 +83,14 @@ public class AzureLoginHelperTest {
         assertEquals("https://login.microsoftonline.com/common", baseUrl);
         baseUrl = AzureLoginHelper.baseURL(AzureEnvironment.AZURE_US_GOVERNMENT);
         assertEquals("https://login.microsoftonline.us/common", baseUrl);
+    }
+
+    @Test
+    public void testAzureEnvironmentShortName() {
+        assertEquals("azure", AzureLoginHelper.getShortNameForAzureEnvironment(AzureEnvironment.AZURE));
+        assertEquals("azure_china", AzureLoginHelper.getShortNameForAzureEnvironment(AzureEnvironment.AZURE_CHINA));
+        assertEquals("azure_us_government", AzureLoginHelper.getShortNameForAzureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT));
+        assertNull(AzureLoginHelper.getShortNameForAzureEnvironment(null));
     }
 
     private static Map<String, String> splitQuery(String url) throws URISyntaxException {
