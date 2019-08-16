@@ -15,7 +15,7 @@ public class SpringConfiguration {
     private String resourceGroup;
     private String clusterName;
     private String appName;
-    private String javaVersion;
+    private String runtimeVersion;
     private Deployment deployment;
 
     public Boolean isPublic() {
@@ -38,8 +38,8 @@ public class SpringConfiguration {
         return appName;
     }
 
-    public String getJavaVersion() {
-        return javaVersion;
+    public String getRuntimeVersion() {
+        return runtimeVersion;
     }
 
     public Deployment getDeployment() {
@@ -71,8 +71,8 @@ public class SpringConfiguration {
         return this;
     }
 
-    public SpringConfiguration withJavaVersion(String javaVersion) {
-        this.javaVersion = javaVersion;
+    public SpringConfiguration withRuntimeVersion(String runtimeVersion) {
+        this.runtimeVersion = runtimeVersion;
         return this;
     }
 

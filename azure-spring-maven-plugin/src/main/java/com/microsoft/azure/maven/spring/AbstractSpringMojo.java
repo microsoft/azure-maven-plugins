@@ -6,36 +6,48 @@
 
 package com.microsoft.azure.maven.spring;
 
+import com.microsoft.azure.auth.MavenSettingHelper;
+import com.microsoft.azure.auth.configuration.AuthConfiguration;
+import com.microsoft.azure.auth.exception.MavenDecryptException;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParser;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParserFactory;
 import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
+import com.microsoft.azure.maven.spring.utils.MavenUtils;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
+import com.microsoft.azure.maven.validation.ConfigurationProblem;
+import com.microsoft.azure.maven.validation.ConfigurationProblem.Severity;
 import com.microsoft.rest.LogLevel;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Settings;
+import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_AUTH_METHOD;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_CPU;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_INSTANCE_COUNT;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_KEY_ENCRYPTED;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_SERVICE_PRINCIPAL;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JAVA_VERSION;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JVM_PARAMETER;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JVM_OPTIONS;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_MEMORY;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PUBLIC;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_RUNTIME_VERSION;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_WITHIN_PARENT_POM;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_AUTH_POM_CONFIGURATION;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_CODE;
@@ -49,12 +61,11 @@ import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_SYST
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_USER_ERROR;
 
 public abstract class AbstractSpringMojo extends AbstractMojo {
-
-    @Parameter(property = "port")
-    protected int port;
+    @Parameter(property = "auth")
+    protected AuthConfiguration auth;
 
     @Parameter(alias = "public")
-    protected boolean isPublic;
+    protected Boolean isPublic;
 
     @Parameter(property = "isTelemetryAllowed", defaultValue = "true")
     protected boolean isTelemetryAllowed;
@@ -62,17 +73,14 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     @Parameter(property = "subscriptionId")
     protected String subscriptionId;
 
-    @Parameter(property = "resourceGroup")
-    protected String resourceGroup;
-
     @Parameter(property = "clusterName")
     protected String clusterName;
 
     @Parameter(property = "appName")
     protected String appName;
 
-    @Parameter(property = "javaVersion")
-    protected String javaVersion;
+    @Parameter(property = "runtimeVersion")
+    protected String runtimeVersion;
 
     @Parameter(property = "deployment")
     protected Deployment deployment;
@@ -91,6 +99,12 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
     protected Map<String, String> telemetries;
 
+    @Component
+    protected SettingsDecrypter settingsDecrypter;
+
+    @Parameter(defaultValue = "${settings}", readonly = true)
+    protected Settings settings;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -105,18 +119,53 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         }
     }
 
-    protected void initExecution() {
-        // Init sdk log level
-        if (getLog().isDebugEnabled()) {
-            SpringServiceUtils.setLogLevel(LogLevel.BODY_AND_HEADERS);
-        }
+    protected void initExecution() throws MojoFailureException {
         // Init telemetries
         telemetries = new HashMap<>();
         if (!isTelemetryAllowed) {
             AppInsightHelper.INSTANCE.disable();
         }
+        initializeAuthConfiguration();
+        // Init sdk log level
+        final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
+        try {
+            SpringServiceUtils.setSpringManager(auth, subscriptionId, logLevel);
+        } catch (Exception e) {
+            throw new MojoFailureException("Unable to auth with azure", e);
+        }
         tracePluginInformation();
         trackMojoExecution(MojoStatus.Start);
+    }
+
+    protected void initializeAuthConfiguration() throws MojoFailureException {
+        if (!isAuthConfigurationExist()) {
+            return;
+        }
+        if (StringUtils.isNotBlank(auth.getServerId())) {
+            if (this.settings.getServer(auth.getServerId()) != null) {
+                try {
+                    auth = MavenSettingHelper.getAuthConfigurationFromServer(session, settingsDecrypter, auth.getServerId());
+                } catch (MavenDecryptException e) {
+                    throw new MojoFailureException(e.getMessage());
+                }
+            } else {
+                throw new MojoFailureException(String.format("Unable to get server('%s') from settings.xml.", auth.getServerId()));
+            }
+        }
+
+        final List<ConfigurationProblem> problems = auth.validate();
+        if (problems.stream().anyMatch(problem -> problem.getSeverity() == Severity.ERROR)) {
+            throw new MojoFailureException(String.format("Unable to validate auth configuration due to the following errors: %s",
+                    problems.stream().map(problem -> problem.getErrorMessage()).collect(Collectors.joining("\n"))));
+        }
+
+    }
+
+    protected boolean isAuthConfigurationExist() {
+        final String pluginKey = String.format("%s:%s", plugin.getGroupId(), plugin.getArtifactId());
+        final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
+        final Xpp3Dom authDom = pluginDom.getChild("auth");
+        return authDom != null && authDom.getChildren().length > 0;
     }
 
     protected void handleSuccess() {
@@ -145,12 +194,12 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
     protected void traceConfiguration(SpringConfiguration configuration) {
         telemetries.put(TELEMETRY_KEY_PUBLIC, String.valueOf(configuration.isPublic()));
-        telemetries.put(TELEMETRY_KEY_JAVA_VERSION, configuration.getJavaVersion());
+        telemetries.put(TELEMETRY_KEY_RUNTIME_VERSION, configuration.getRuntimeVersion());
         telemetries.put(TELEMETRY_KEY_CPU, String.valueOf(configuration.getDeployment().getCpu()));
         telemetries.put(TELEMETRY_KEY_MEMORY, String.valueOf(configuration.getDeployment().getMemoryInGB()));
         telemetries.put(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getInstanceCount()));
-        telemetries.put(TELEMETRY_KEY_JVM_PARAMETER,
-                String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmParameter())));
+        telemetries.put(TELEMETRY_KEY_JVM_OPTIONS,
+                String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmOptions())));
     }
 
     protected void traceAuth() {
@@ -162,20 +211,12 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
     protected abstract void doExecute() throws MojoExecutionException, MojoFailureException;
 
-    public int getPort() {
-        return port;
-    }
-
     public boolean isPublic() {
         return isPublic;
     }
 
     public String getSubscriptionId() {
         return subscriptionId;
-    }
-
-    public String getResourceGroup() {
-        return resourceGroup;
     }
 
     public String getClusterName() {
@@ -186,8 +227,8 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         return appName;
     }
 
-    public String getJavaVersion() {
-        return javaVersion;
+    public String getRuntimeVersion() {
+        return runtimeVersion;
     }
 
     public Deployment getDeployment() {

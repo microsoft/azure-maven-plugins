@@ -31,11 +31,18 @@ import java.util.stream.Collectors;
 
 public class Utils {
 
+    private static final String POM = "pom";
+    private static final String JAR = "jar";
     private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
     private static final Pattern MEMORY_PATTERN = Pattern.compile(MEMORY_REGEX);
-    private static final String POM = "pom";
-    private static final String JAR = "jar";
+
+    public static <T> T firstOrNull(Iterable<T> list) {
+        if (list != null && list.iterator().hasNext()) {
+            return list.iterator().next();
+        }
+        return null;
+    }
 
     public static int convertSizeStringToNumber(String memory) throws MojoExecutionException {
         final Matcher matcher = MEMORY_PATTERN.matcher(memory);
@@ -89,16 +96,6 @@ public class Utils {
         return files.parallelStream().filter(file -> isExecutableJar(file)).findFirst().orElse(null);
     }
 
-    private static boolean isExecutableJar(File file) {
-        try (final FileInputStream fileInputStream = new FileInputStream(file);
-             final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
-            final Manifest manifest = jarInputStream.getManifest();
-            return manifest.getMainAttributes().getValue("Main-Class") != null;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
     public static void uploadFileToStorage(File file, String sasUrl) throws MojoExecutionException {
         try {
             final CloudFile cloudFile = new CloudFile(new URI(sasUrl));
@@ -114,6 +111,16 @@ public class Utils {
 
     public static boolean isJarPackagingProject(MavenProject mavenProject) {
         return JAR.equalsIgnoreCase(mavenProject.getPackaging());
+    }
+
+    private static boolean isExecutableJar(File file) {
+        try (final FileInputStream fileInputStream = new FileInputStream(file);
+             final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
+            final Manifest manifest = jarInputStream.getManifest();
+            return manifest.getMainAttributes().getValue("Main-Class") != null;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private Utils() {

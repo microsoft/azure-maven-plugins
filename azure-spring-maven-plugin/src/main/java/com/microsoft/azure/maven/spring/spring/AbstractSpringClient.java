@@ -17,16 +17,10 @@ public abstract class AbstractSpringClient {
 
     public abstract static class Builder<T extends Builder<T>> {
         protected String subscriptionId;
-        protected String resourceGroup;
         protected String clusterName;
 
         public T withSubscriptionId(String subscriptionId) {
             this.subscriptionId = subscriptionId;
-            return self();
-        }
-
-        public T withResourceGroup(String resourceGroup) {
-            this.resourceGroup = resourceGroup;
             return self();
         }
 
@@ -43,18 +37,20 @@ public abstract class AbstractSpringClient {
     protected AbstractSpringClient(Builder<?> builder) {
         this.clusterName = builder.clusterName;
         this.subscriptionId = builder.subscriptionId;
-        this.resourceGroup = builder.resourceGroup;
         this.springManager = getSpringManager();
+
+        this.resourceGroup = SpringServiceUtils.getResourceGroupByCluster(clusterName);
     }
 
     protected AbstractSpringClient(AbstractSpringClient abstractSpringClient) {
         this.clusterName = abstractSpringClient.clusterName;
         this.subscriptionId = abstractSpringClient.subscriptionId;
-        this.resourceGroup = abstractSpringClient.resourceGroup;
         this.springManager = abstractSpringClient.springManager;
+
+        this.resourceGroup = SpringServiceUtils.getResourceGroupByCluster(clusterName);
     }
 
     protected Microservices4SpringManager getSpringManager() {
-        return SpringServiceUtils.getSpringManager(subscriptionId);
+        return SpringServiceUtils.getSpringManager();
     }
 }

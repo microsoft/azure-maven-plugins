@@ -3,10 +3,23 @@ branches:
     - feature-spring
 
 environment:
-  JAVA_HOME: "C:\\Program Files\\Java\\jdk1.8.0"
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      JAVA_HOME: "C:\\Program Files\\Java\\jdk1.8.0"
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      JAVA_HOME: "/usr/lib/jvm/java-8-openjdk-amd64"
 
 install:
   - cmd: SET PATH=%JAVA_HOME%\bin;%PATH%
 
 build_script:
-  - cmd: git clone %SDK_REPO% && mvnw clean install -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml && mvnw clean verify
+  - cmd: git clone %SDK_REPO% && mvnw clean install -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml && mvnw clean verify && mvnw cobertura:cobertura
+  - sh: |
+          git clone $SDK_REPO
+          ./mvnw clean install -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml
+          ./mvnw clean verify
+          ./mvnw cobertura:cobertura
+
+on_success:
+  - curl -s https://codecov.io/bash

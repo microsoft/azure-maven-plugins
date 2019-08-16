@@ -6,7 +6,9 @@
 
 package com.microsoft.azure.maven.spring.configuration;
 
+import com.microsoft.azure.maven.spring.utils.XmlUtils;
 import org.apache.maven.model.Resource;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +17,8 @@ public class Deployment {
     private Integer cpu;
     private Integer memoryInGB;
     private Integer instanceCount;
-    private String jvmParameter;
+    private String deploymentName;
+    private String jvmOptions;
     private Map<String, String> environment;
     private List<Volume> volumes;
     private List<Resource> resources;
@@ -32,8 +35,8 @@ public class Deployment {
         return instanceCount;
     }
 
-    public String getJvmParameter() {
-        return jvmParameter;
+    public String getDeploymentName() {
+        return deploymentName;
     }
 
     public Map<String, String> getEnvironment() {
@@ -67,13 +70,18 @@ public class Deployment {
         return this;
     }
 
-    public Deployment withJvmParameter(String jvmParameter) {
-        this.jvmParameter = jvmParameter;
+    public Deployment withJvmOptions(String jvmOptions) {
+        this.jvmOptions = jvmOptions;
         return this;
     }
 
     public Deployment withEnvironment(Map<String, String> environment) {
         this.environment = environment;
+        return this;
+    }
+
+    public Deployment withDeploymentName(String deploymentName) {
+        this.deploymentName = deploymentName;
         return this;
     }
 
@@ -85,5 +93,16 @@ public class Deployment {
     public Deployment withResources(List<Resource> resources) {
         this.resources = resources;
         return this;
+    }
+
+    public String getJvmOptions() {
+        return jvmOptions;
+    }
+
+    public void applyToXpp3Dom(Xpp3Dom deployment) {
+        XmlUtils.replaceDomWithKeyValue(deployment, "cpu", this.cpu);
+        XmlUtils.replaceDomWithKeyValue(deployment, "memoryInGB", this.memoryInGB);
+        XmlUtils.replaceDomWithKeyValue(deployment, "instanceCount", this.instanceCount);
+        XmlUtils.replaceDomWithKeyValue(deployment, "jvmOptions", this.jvmOptions);
     }
 }

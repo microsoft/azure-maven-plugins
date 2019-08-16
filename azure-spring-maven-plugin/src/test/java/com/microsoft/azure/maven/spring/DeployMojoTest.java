@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.spring;
 
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.junit.Test;
