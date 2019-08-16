@@ -5,8 +5,7 @@ jdk:
 
 branches:
   only:
-    - master
-    - develop
+    - feature-spring
 
 addons:
   apt:
@@ -17,16 +16,12 @@ addons:
       - build-essential
 
 install:
-  - pip install azure-cli --user
   - nvm install lts/*
-  - npm i -g azure-functions-core-tools@core --unsafe-perm true
 
 script:
-  # - if [ "${TRAVIS_PULL_REQUEST}" = "false" ];
-  #   then ./mvnw verify -P it;
-  #   else ./mvnw verify;
-  #   fi
-  - './mvnw verify'
+  - 'git clone $SDK_REPO'
+  - './mvnw clean install -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml'
+  - './mvnw clean verify'
   - './mvnw cobertura:cobertura'
 
 after_success:
