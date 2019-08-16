@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.spring.prompt;
 
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.utils.TextUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -17,11 +16,13 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class DefaultPrompter implements Closeable {
     private static final String EMPTY_REPLACEMENT = ":";
@@ -75,12 +76,12 @@ public class DefaultPrompter implements Closeable {
         final Pattern pattern = StringUtils.isNotBlank(regex) ? Pattern.compile(regex) : ANY_STRING_REGEX;
         return loopInput(defaultValue, hasDefaultValue, isRequired, String.format("Please input the %s%s: ", name, hintMessage), input -> {
             if (!isRequired && StringUtils.equals(EMPTY_REPLACEMENT, input.trim())) {
-                return "";
+                return UserInputHandleResult.wrap("");
             }
             if (pattern.matcher(input).find()) {
-                return input;
+                return UserInputHandleResult.wrap(input);
             }
-            throw new UserInputException(String.format(PROMPT_MESSAGE_STRING_TEMPLATE, input, name, finalHintMessage));
+            return UserInputHandleResult.error(String.format(PROMPT_MESSAGE_STRING_TEMPLATE, input, name, finalHintMessage));
         });
     }
 
@@ -96,19 +97,19 @@ public class DefaultPrompter implements Closeable {
 
         return loopInput(defaultValue, hasDefaultValue, isRequired, String.format("%s %s: ", message, hintMessage), input -> {
             if (input.equalsIgnoreCase("Y")) {
-                return Boolean.TRUE;
+                return UserInputHandleResult.wrap(Boolean.TRUE);
             }
             if (input.equalsIgnoreCase("N")) {
-                return Boolean.FALSE;
+                return UserInputHandleResult.wrap(Boolean.FALSE);
             }
-            throw new UserInputException(String.format("Invalid input (%s).%n%s %s: ", input, message, hintMessage));
+            return UserInputHandleResult.error(String.format("Invalid input (%s).%n%s %s: ", input, message, hintMessage));
         });
     }
 
     public <T> List<T> promoteMultipleEntities(String name, List<T> entities, Function<T, String> getNameFunc, boolean allowEmpty,
             String enterPromote, List<T> defaultValue) throws IOException {
         final boolean hasDefaultValue = defaultValue != null && defaultValue.size() > 0;
-        List<T> res = new ArrayList<>();
+        final List<T> res = new ArrayList<>();
         int index = 1;
 
         if (!allowEmpty && entities.size() == 1) {
@@ -138,7 +139,6 @@ public class DefaultPrompter implements Closeable {
                 for (final int i : parseIntRanges(input, 1, entities.size())) {
                     res.add(entities.get(i - 1));
                 }
-                res = res.stream().distinct().collect(Collectors.toList());
                 if (res.size() > 0 || allowEmpty) {
                     return res;
                 }
@@ -178,9 +178,12 @@ public class DefaultPrompter implements Closeable {
         System.out.flush();
 
         return loopInput(defaultEntity, hasDefaultValue, isRequired, String.format(PROMPT_MESSAGE_INDEX_TEMPLATE, name, hintMessage), input -> {
-            final Integer selectIndex = validateUserInputAsInteger(input, 1, entities.size(),
+            final UserInputHandleResult<Integer> selectIndex = validateUserInputAsInteger(input, 1, entities.size(),
                     String.format(PROMPT_MESSAGE_BAD_INDEX_TEMPLATE, input, name, hintMessage));
-            return entities.get(selectIndex - 1);
+            if (selectIndex.getErrorMessage() == null) {
+                return UserInputHandleResult.wrap(entities.get(selectIndex.getObj() - 1));
+            }
+            return UserInputHandleResult.error(selectIndex.getErrorMessage());
         });
     }
 
@@ -200,16 +203,8 @@ public class DefaultPrompter implements Closeable {
         });
     }
 
-    static class UserInputException extends RuntimeException {
-        private static final long serialVersionUID = 7986173597822766589L;
-
-        UserInputException(String message) {
-            super(message);
-        }
-    }
-
     private <T> T loopInput(T defaultValue, boolean hasDefaultValue, boolean isRequired, String emptyPromoteMessage,
-            Function<String, T> handleInput) throws IOException {
+            Function<String, UserInputHandleResult<T>> handleInput) throws IOException {
         while (true) {
             final String input = reader.readLine();
             if (StringUtils.isBlank(input)) {
@@ -218,27 +213,28 @@ public class DefaultPrompter implements Closeable {
                 }
                 System.out.print(emptyPromoteMessage);
             } else {
-                try {
-                    return handleInput.apply(input);
-                } catch (UserInputException ex) {
-                    System.out.print(ex.getMessage());
+                final UserInputHandleResult<T> res = handleInput.apply(input);
+                if (res.getErrorMessage() != null) {
+                    System.out.print(res.getErrorMessage());
+                } else {
+                    return res.getObj();
                 }
             }
             System.out.flush();
         }
     }
 
-    private Integer validateUserInputAsInteger(String input, int start, int end, String message) {
+    private UserInputHandleResult<Integer> validateUserInputAsInteger(String input, int start, int end, String message) {
         if (!NumberUtils.isDigits(input)) {
-            throw new UserInputException(message);
+            return UserInputHandleResult.error(message);
         }
 
         final int value = Integer.parseInt(input);
         if (value >= start && value <= end) {
-            return value;
+            return UserInputHandleResult.wrap(value);
         }
 
-        throw new UserInputException(message);
+        return UserInputHandleResult.error(message);
     }
 
     public void close() {
@@ -263,9 +259,9 @@ public class DefaultPrompter implements Closeable {
         return REGEX_COMMA_SEPARATED_INTEGER_RANGES.matcher(text).matches();
     }
 
-    private static int[] parseIntRanges(String text, int minValue, int maxValue) {
+    private static Collection<Integer> parseIntRanges(String text, int minValue, int maxValue) {
         final Matcher m = REGEX_NEXT_INTEGER_RANGE.matcher(text);
-        final List<Integer> values = new ArrayList<>();
+        final Set<Integer> values = new LinkedHashSet<>();
         while (m.find()) {
             final int s1 = Math.max(minValue, Integer.parseInt(m.group(1)));
 
@@ -282,6 +278,32 @@ public class DefaultPrompter implements Closeable {
 
             }
         }
-        return ArrayUtils.toPrimitive(values.toArray(new Integer[0]));
+        return values;
+    }
+
+    static class UserInputHandleResult<T> {
+        T obj;
+        String errorMessage;
+
+        T getObj() {
+            return obj;
+        }
+
+        String getErrorMessage() {
+            return errorMessage;
+        }
+
+        static <T> UserInputHandleResult<T> wrap(T obj) {
+            final UserInputHandleResult<T> res = new UserInputHandleResult<>();
+            res.obj = obj;
+            return res;
+        }
+
+        static <T> UserInputHandleResult<T> error(String errorMessage) {
+            final UserInputHandleResult<T> res = new UserInputHandleResult<>();
+            res.errorMessage = errorMessage;
+            return res;
+        }
+
     }
 }
