@@ -12,8 +12,9 @@ addons:
     packages:
       - libssl-dev
       - libffi-dev
-      - python-dev
       - build-essential
+      
+dist: trusty
 
 install:
   - nvm install lts/*
