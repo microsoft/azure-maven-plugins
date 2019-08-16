@@ -17,6 +17,7 @@ public class Deployment {
     private Integer cpu;
     private Integer memoryInGB;
     private Integer instanceCount;
+    private String deploymentName;
     private String jvmOptions;
     private Map<String, String> environment;
     private List<Volume> volumes;
@@ -32,6 +33,10 @@ public class Deployment {
 
     public Integer getInstanceCount() {
         return instanceCount;
+    }
+
+    public String getDeploymentName() {
+        return deploymentName;
     }
 
     public Map<String, String> getEnvironment() {
@@ -72,6 +77,11 @@ public class Deployment {
 
     public Deployment withEnvironment(Map<String, String> environment) {
         this.environment = environment;
+        return this;
+    }
+
+    public Deployment withDeploymentName(String deploymentName) {
+        this.deploymentName = deploymentName;
         return this;
     }
 

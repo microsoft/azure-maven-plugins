@@ -47,11 +47,21 @@ public class AzureCredentialTest {
         assertEquals("george@microsoft.com", cred.getUserInfo().getDisplayableId());
         assertEquals("George", cred.getUserInfo().getGivenName());
         assertEquals("Smith", cred.getUserInfo().getFamilyName());
+
+        cred.setEnvironment("azure");
+        cred.setDefaultSubscription("c58a8b4f-00c8-436d-895c-6d5003e87e4e");
+        assertEquals("azure", cred.getEnvironment());
+        assertEquals("c58a8b4f-00c8-436d-895c-6d5003e87e4e", cred.getDefaultSubscription());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testFromNullResult() {
-        AzureCredential.fromAuthenticationResult(null);
-        fail("Should throw NPE");
+        try {
+            AzureCredential.fromAuthenticationResult(null);
+            fail("Should throw IAE");
+        } catch (IllegalArgumentException ex) {
+            // IllegalArgumentException expected
+        }
+
     }
 }
