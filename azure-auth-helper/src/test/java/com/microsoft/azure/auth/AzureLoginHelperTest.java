@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class AzureLoginHelperTest {
@@ -82,6 +83,14 @@ public class AzureLoginHelperTest {
         assertEquals("https://login.microsoftonline.com/common", baseUrl);
         baseUrl = AzureLoginHelper.baseURL(AzureEnvironment.AZURE_US_GOVERNMENT);
         assertEquals("https://login.microsoftonline.us/common", baseUrl);
+    }
+
+    @Test
+    public void testAzureEnvironmentShortName() {
+        assertEquals("azure", AzureLoginHelper.getShortNameForAzureEnvironment(AzureEnvironment.AZURE));
+        assertEquals("azure_china", AzureLoginHelper.getShortNameForAzureEnvironment(AzureEnvironment.AZURE_CHINA));
+        assertEquals("azure_us_government", AzureLoginHelper.getShortNameForAzureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT));
+        assertNull(AzureLoginHelper.getShortNameForAzureEnvironment(null));
     }
 
     private static Map<String, String> splitQuery(String url) throws URISyntaxException {
