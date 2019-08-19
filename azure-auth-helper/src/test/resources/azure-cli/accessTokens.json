@@ -1,0 +1,7 @@
+[
+	{
+		"servicePrincipalId": "00000000-0000-0000-0000-000000000002",
+		"servicePrincipalTenant": "00000000-0000-0000-0000-000000000003",
+		"accessToken": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+	}
+]

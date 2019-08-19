@@ -65,7 +65,8 @@ class AzureServicePrincipleAuthHelper {
             if (tokenObject.has("servicePrincipalId") && tokenObject.get("servicePrincipalId").getAsString().equals(servicePrincipalName)) {
                 final String tenantId = tokenObject.get("servicePrincipalTenant").getAsString();
                 final String key = tokenObject.get("accessToken").getAsString();
-                final String env = tokenObject.get("environment").getAsString();
+
+                final String env = subscription.get("environmentName") != null ? subscription.get("environmentName").getAsString() : null;
                 return new ApplicationTokenCredentials(servicePrincipalName, tenantId, key, AzureAuthHelper.getAzureEnvironment(env));
             }
         }
