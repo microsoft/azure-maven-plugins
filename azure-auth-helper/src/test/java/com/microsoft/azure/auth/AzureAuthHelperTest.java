@@ -74,7 +74,7 @@ public class AzureAuthHelperTest {
         assertEquals(Paths.get(System.getProperty("user.home"), ".azure", "azure-secret.json").toString(), azureSecretFile.getAbsolutePath());
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "test_dir");
         assertEquals(Paths.get("test_dir", "azure-secret.json").toFile().getAbsolutePath(), AzureAuthHelper.getAzureSecretFile().getAbsolutePath());
-        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, null);
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "");
     }
 
     @Test
@@ -83,7 +83,7 @@ public class AzureAuthHelperTest {
         assertEquals(Paths.get(System.getProperty("user.home"), ".azure").toString(), azureConfigFolder.getAbsolutePath());
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "test_dir");
         assertEquals(Paths.get("test_dir").toFile().getAbsolutePath(), AzureAuthHelper.getAzureConfigFolder().getAbsolutePath());
-        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, null);
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "");
     }
 
 }

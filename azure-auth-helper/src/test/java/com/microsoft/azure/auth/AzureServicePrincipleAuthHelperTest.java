@@ -74,7 +74,7 @@ public class AzureServicePrincipleAuthHelperTest {
         assertEquals("00000000-0000-0000-0000-000000000002", cred.clientId());
         assertEquals("https://management.chinacloudapi.cn/", cred.environment().resourceManagerEndpoint());
         assertEquals("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", TestHelper.readField(cred, "clientSecret"));
-        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, null);
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "");
     }
 
     @Test
@@ -83,6 +83,6 @@ public class AzureServicePrincipleAuthHelperTest {
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
         final ApplicationTokenCredentials cred = AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
         assertNull(cred);
-        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, null);
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "");
     }
 }
