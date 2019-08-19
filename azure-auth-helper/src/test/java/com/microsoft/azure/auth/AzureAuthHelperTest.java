@@ -16,8 +16,10 @@ import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -185,7 +187,7 @@ public class AzureAuthHelperTest {
         // 1. use azure-secret.json
         File testConfigDir = new File(this.getClass().getResource("/azure-login/azure-secret.json").getFile()).getParentFile();
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
-        AzureTokenCredentials cred = AzureAuthHelper.getMavenAzureLoginCredentials();
+        AzureTokenCredentials cred = AzureAuthHelper.getAzureTokenCredentials(null);
         assertNotNull(cred);
         assertEquals("00000000-0000-0000-0000-000000000001", cred.defaultSubscriptionId());
 
@@ -242,4 +244,26 @@ public class AzureAuthHelperTest {
         assertEquals("client_id", ((ApplicationTokenCredentials) cred).clientId());
     }
 
+    @Test
+    public void testGetToken() throws Exception {
+        final AzureEnvironment testEnvironment = new AzureEnvironment(new HashMap<String, String>() {{
+                put(AzureEnvironment.Endpoint.ACTIVE_DIRECTORY.toString(), "https://xxxxxxx/");
+                put(AzureEnvironment.Endpoint.MANAGEMENT.toString(), "https://xxxxxxx/");
+                put(AzureEnvironment.Endpoint.RESOURCE_MANAGER.toString(), "https://xxxxxxx/");
+            }});
+
+        final AzureCredential cred = AzureCredential.fromAuthenticationResult(TestHelper.createAuthenticationResult());
+        // sample token from https://medium.com/@siddharthac6/json-web-token-jwt-the-right-way-of-implementing-with-node-js-65b8915d550e
+        final String token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhMSI6IkRhdGEgMSIsImRhdGEyIjoiRGF0YSAyIiwiZGF0YTMiOiJEYXRhIDMiLCJkYXRhNCI6IkRhdG" +
+                "EgNCIsImlhdCI6MTUyNTE5MzM3NywiZXhwIjoxNTI1MjM2NTc3LCJhdWQiOiJodHRwOi8vbXlzb2Z0Y29ycC5pbiIsImlzcyI6Ik15c29mdCBjb3JwIiwic3ViIjoic29tZUB1c2VyL" +
+                "mNvbSJ9.ID2fn6t0tcoXeTgkG2AivnG1skctbCAyY8M1ZF38kFvUJozRWSbdVc7FLwot-bwV8k1imV8o0fqdv5sVY0Yzmg";
+        cred.setAccessToken(token);
+        try {
+            AzureAuthHelper.getMavenAzureLoginCredentials(cred, testEnvironment).getToken(testEnvironment.resourceManagerEndpoint());
+            fail("should throw UnknownHostException when refreshing the access token.");
+        } catch (UnknownHostException ex) {
+            // expected
+        }
+
+    }
 }
