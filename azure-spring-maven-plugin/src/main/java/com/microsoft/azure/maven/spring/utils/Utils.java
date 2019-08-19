@@ -141,7 +141,7 @@ public class Utils {
         return JAR.equalsIgnoreCase(mavenProject.getPackaging());
     }
 
-    private static boolean isExecutableJar(File file) {
+    public static boolean isExecutableJar(File file) {
         try (final FileInputStream fileInputStream = new FileInputStream(file);
              final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
             final Manifest manifest = jarInputStream.getManifest();
