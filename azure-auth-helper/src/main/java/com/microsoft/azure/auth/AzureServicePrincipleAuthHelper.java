@@ -52,7 +52,7 @@ class AzureServicePrincipleAuthHelper {
      * @throws InvalidConfigurationException where there are some configuration errors
      * @throws IOException where there read some read error when reading the file
      */
-    static ApplicationTokenCredentials getCredentialFromAzureCliWithServicePrincipal() throws InvalidConfigurationException, IOException {
+    static AzureTokenCredentials getCredentialFromAzureCliWithServicePrincipal() throws InvalidConfigurationException, IOException {
         final JsonObject subscription = getDefaultSubscriptionObject();
         final String servicePrincipalName = subscription == null ? null : subscription.get("user").getAsJsonObject().get("name").getAsString();
         if (servicePrincipalName == null) {
@@ -69,7 +69,8 @@ class AzureServicePrincipleAuthHelper {
                 final String key = tokenObject.get("accessToken").getAsString();
 
                 final String env = subscription.get("environmentName") != null ? subscription.get("environmentName").getAsString() : null;
-                return new ApplicationTokenCredentials(servicePrincipalName, tenantId, key, AzureAuthHelper.getAzureEnvironment(env));
+                return new ApplicationTokenCredentials(servicePrincipalName, tenantId, key, AzureAuthHelper.getAzureEnvironment(env))
+                        .withDefaultSubscriptionId(subscription.get("id").getAsString());
             }
         }
         return null;
