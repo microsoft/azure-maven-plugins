@@ -135,7 +135,6 @@ public class AzureAuthHelper {
      * Get the azure config folder location, the default location is $HOME/.azure.
      */
     public static File getAzureConfigFolder() {
-        System.out.println(System.getenv(Constants.AZURE_CONFIG_DIR));
         return StringUtils.isNotBlank(System.getenv(Constants.AZURE_CONFIG_DIR)) ? new File(System.getenv(Constants.AZURE_CONFIG_DIR)) :
             Paths.get(System.getProperty(Constants.USER_HOME), Constants.AZURE_FOLDER).toFile();
     }

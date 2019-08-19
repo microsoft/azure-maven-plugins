@@ -9,15 +9,22 @@ package com.microsoft.azure.auth;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
+import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class AzureServicePrincipleAuthHelperTest {
+    @After
+    public void afterEachTestMethod() {
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, null);
+    }
+
     @Test
     public void testGetSPCredentialsBadParameter() throws Exception {
         final AuthConfiguration config = new AuthConfiguration();
@@ -67,13 +74,19 @@ public class AzureServicePrincipleAuthHelperTest {
 
     @Test
     public void testGetSPCredentials() throws Exception {
-        final File testConfigDir = new File(this.getClass().getResource("/azure-cli/azureProfile.json").getFile()).getParentFile();
+        final File testConfigDir = new File(this.getClass().getResource("/azure-cli/sp/azureProfile.json").getFile()).getParentFile();
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
         final ApplicationTokenCredentials cred = AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
         assertEquals("00000000-0000-0000-0000-000000000002", cred.clientId());
         assertEquals("https://management.chinacloudapi.cn/", cred.environment().resourceManagerEndpoint());
         assertEquals("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", TestHelper.readField(cred, "clientSecret"));
-        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, null);
+    }
 
+    @Test
+    public void testGetCredentialsFromCliNotSP() throws Exception {
+        final File testConfigDir = new File(this.getClass().getResource("/azure-cli/default/azureProfile.json").getFile()).getParentFile();
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
+        final ApplicationTokenCredentials cred = AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
+        assertNull(cred);
     }
 }

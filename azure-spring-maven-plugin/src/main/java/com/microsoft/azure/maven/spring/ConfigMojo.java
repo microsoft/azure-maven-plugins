@@ -16,6 +16,7 @@ import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.i
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
+import com.microsoft.azure.maven.spring.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.spring.prompt.IPrompter;
 import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
 import com.microsoft.azure.maven.spring.utils.MavenUtils;
@@ -86,7 +87,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         final boolean isRunningInParent = Utils.isPomPackagingProject(this.project);
 
         try {
-            // prompt = new DefaultPrompter();
+            prompt = new DefaultPrompter();
             if (isRunningInParent) {
                 if (full) {
                     throw new MojoFailureException("The \"full\" mode is not supported at parent folder.");
@@ -245,8 +246,8 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     private void saveConfigurationToProject(MavenProject proj, boolean includeDeployment) {
         final Model model = proj.getOriginalModel();
-        final String pluginIdentifer = this.plugin.getPluginLookupKey();
-        Plugin target = MavenUtils.getPluginFromMavenModel(proj.getOriginalModel(), pluginIdentifer, false);
+        final String pluginIdentifier = this.plugin.getPluginLookupKey();
+        Plugin target = MavenUtils.getPluginFromMavenModel(proj.getOriginalModel(), pluginIdentifier, false);
         if (target == null) {
             target = MavenUtils.createPlugin(this.plugin.getGroupId(), this.plugin.getArtifactId(), this.plugin.getVersion());
             if (model.getBuild() == null) {
@@ -361,8 +362,8 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private boolean isProjectConfigured(MavenProject proj) {
-        final String pluginIdentifer = plugin.getPluginLookupKey();
-        final Xpp3Dom configuration = MavenUtils.getPluginConfiguration(proj, pluginIdentifer);
+        final String pluginIdentifier = plugin.getPluginLookupKey();
+        final Xpp3Dom configuration = MavenUtils.getPluginConfiguration(proj, pluginIdentifier);
         final List<String> topLevelProperties = Arrays.asList("subscriptionId", "appName", "isPublic", "runtimeVersion");
 
         if (configuration == null) {
