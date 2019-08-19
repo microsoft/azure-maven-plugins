@@ -85,8 +85,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         final UserSourceInfo userSourceInfo = new UserSourceInfo();
         // There are some issues with server side resourceUpload logic
         // Use uploadUrl instead of relativePath
-        final String relativePath = resourceUploadDefinitionInner.uploadUrl().split("\\?")[0];
-        userSourceInfo.withType(UserSourceType.JAR).withRelativePath(relativePath);
+        userSourceInfo.withType(UserSourceType.JAR).withRelativePath(resourceUploadDefinitionInner.relativePath());
         deploymentProperties.withSource(userSourceInfo).withDeploymentSettings(deploymentSettings);
         if (deployment == null) {
             deployment = springManager.deployments().inner().createOrUpdate(resourceGroup, clusterName, appName, deploymentName, deploymentProperties);

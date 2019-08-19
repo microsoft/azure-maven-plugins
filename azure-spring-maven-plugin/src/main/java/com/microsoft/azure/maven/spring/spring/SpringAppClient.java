@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 public class SpringAppClient extends AbstractSpringClient {
 
-    public static final String DEFAULT_DEPLOYMENT_NAME = "Init-Deployment";
+    public static final String DEFAULT_DEPLOYMENT_NAME = "init";
     public static final String NO_ACTIVE_DEPLOYMENT = "No active deployment found in app %s, please specify the deployment name in configuration.";
 
     protected String appName;
