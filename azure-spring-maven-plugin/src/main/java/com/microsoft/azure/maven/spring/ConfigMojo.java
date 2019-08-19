@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.spring;
 
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
-import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppClusterResourceInner;
@@ -345,10 +344,10 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     private void initializeCredentials() throws InvalidConfigurationException, IOException, NoResourcesAvailableException {
         // TODO: getAzureTokenCredentials will check auth for null, but maven will always map a default AuthConfiguration
-        final AzureTokenCredentials cred = azureTokenCredentials;
-        azure = Azure.configure().authenticate(cred);
+        azure = Azure.configure().authenticate(azureTokenCredentials);
         if (StringUtils.isBlank(subscriptionId)) {
-            subscriptionId = StringUtils.isBlank(cred.defaultSubscriptionId()) ? selectSubscription() : cred.defaultSubscriptionId();
+            subscriptionId = StringUtils.isBlank(azureTokenCredentials.defaultSubscriptionId()) ?
+                    selectSubscription() : azureTokenCredentials.defaultSubscriptionId();
         }
     }
 
