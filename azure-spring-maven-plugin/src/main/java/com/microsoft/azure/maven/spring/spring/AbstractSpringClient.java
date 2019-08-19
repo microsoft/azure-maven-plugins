@@ -44,8 +44,9 @@ public abstract class AbstractSpringClient {
     protected AbstractSpringClient(Builder<?> builder) {
         this.clusterName = builder.clusterName;
         this.subscriptionId = builder.subscriptionId;
-        this.springManager = springServiceClient.getSpringManager();
+        this.springServiceClient = builder.springServiceClient;
 
+        this.springManager = springServiceClient.getSpringManager();
         this.resourceGroup = springServiceClient.getResourceGroupByCluster(clusterName);
     }
 
@@ -53,6 +54,7 @@ public abstract class AbstractSpringClient {
         this.clusterName = abstractSpringClient.clusterName;
         this.subscriptionId = abstractSpringClient.subscriptionId;
         this.springManager = abstractSpringClient.springManager;
+        this.springServiceClient = abstractSpringClient.springServiceClient;
 
         this.resourceGroup = springServiceClient.getResourceGroupByCluster(clusterName);
     }
