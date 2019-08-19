@@ -90,7 +90,7 @@ public class AzureAuthHelper {
             case "AZURECHINACLOUD": // this value comes from azure cli
                 return AzureEnvironment.AZURE_CHINA;
             case "AZURE_GERMANY":
-            case "AZUREGERMANCLOUD": // this value comes from azure cli
+            case "AZUREGERMANCLOUD": // the TYPO comes from azure cli: https://docs.microsoft.com/en-us/azure/germany/germany-get-started-connect-with-cli
                 return AzureEnvironment.AZURE_GERMANY;
             case "AZURE_US_GOVERNMENT":
             case "AZUREUSGOVERNMENT": // this value comes from azure cli
@@ -135,6 +135,7 @@ public class AzureAuthHelper {
      * Get the azure config folder location, the default location is $HOME/.azure.
      */
     public static File getAzureConfigFolder() {
+        System.out.println(System.getenv(Constants.AZURE_CONFIG_DIR));
         return StringUtils.isNotBlank(System.getenv(Constants.AZURE_CONFIG_DIR)) ? new File(System.getenv(Constants.AZURE_CONFIG_DIR)) :
             Paths.get(System.getProperty(Constants.USER_HOME), Constants.AZURE_FOLDER).toFile();
     }
