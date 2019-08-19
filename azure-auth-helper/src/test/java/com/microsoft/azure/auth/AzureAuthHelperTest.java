@@ -119,6 +119,24 @@ public class AzureAuthHelperTest {
     }
 
     @Test
+    public void testWriteAzureCredentials() throws Exception {
+        final File testConfigDir = new File(this.getClass().getResource("/azure-login/azure-secret.json").getFile()).getParentFile();
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
+        assertTrue(AzureAuthHelper.existsAzureSecretFile());
+        final AzureCredential cred = AzureAuthHelper.readAzureCredentials();
+        final File tempFile = File.createTempFile("azure-auth-helper-test", ".json");
+        AzureAuthHelper.writeAzureCredentials(cred, tempFile);
+        final AzureCredential cred2 = AzureAuthHelper.readAzureCredentials(tempFile);
+        assertEquals(cred.getAccessToken(), cred2.getAccessToken());
+        assertEquals(cred.getAccessTokenType(), cred2.getAccessTokenType());
+        assertEquals(cred.getRefreshToken(), cred2.getRefreshToken());
+        assertEquals(cred.getDefaultSubscription(), cred2.getDefaultSubscription());
+        assertEquals(cred.getEnvironment(), cred2.getEnvironment());
+        assertEquals(cred.getIdToken(), cred2.getIdToken());
+        tempFile.delete();
+    }
+
+    @Test
     public void testIsInCloudShell() {
         TestHelper.injectEnvironmentVariable(Constants.CLOUD_SHELL_ENV_KEY, "azure");
         assertTrue(AzureAuthHelper.isInCloudShell());
