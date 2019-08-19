@@ -49,16 +49,18 @@ class AzureServicePrincipleAuthHelper {
      * Note: This is a workaround for issue https://github.com/microsoft/azure-maven-plugins/issues/125
      *
      * @return Authenticated object if Azure CLI 2.0 is logged with Service Principal.
+     * @throws InvalidConfigurationException where there are some configuration errors
+     * @throws IOException where there read some read error when reading the file
      */
-    static ApplicationTokenCredentials getCredentialFromAzureCliWithServicePrincipal() throws IOException {
+    static ApplicationTokenCredentials getCredentialFromAzureCliWithServicePrincipal() throws InvalidConfigurationException, IOException {
         final JsonObject subscription = getDefaultSubscriptionObject();
         final String servicePrincipalName = subscription == null ? null : subscription.get("user").getAsJsonObject().get("name").getAsString();
         if (servicePrincipalName == null) {
-            throw new IOException(AZURE_CLI_GET_SUBSCRIPTION_FAIL);
+            throw new InvalidConfigurationException(AZURE_CLI_GET_SUBSCRIPTION_FAIL);
         }
         final JsonArray tokens = getAzureCliTokenList();
         if (tokens == null) {
-            throw new IOException(AZURE_CLI_LOAD_TOKEN_FAIL);
+            throw new InvalidConfigurationException(AZURE_CLI_LOAD_TOKEN_FAIL);
         }
         for (final JsonElement token : tokens) {
             final JsonObject tokenObject = (JsonObject) token;
@@ -102,5 +104,9 @@ class AzureServicePrincipleAuthHelper {
         final File azureTokenFile = new File(AzureAuthHelper.getAzureConfigFolder(), Constants.AZURE_TOKEN_NAME);
         final String tokenJsonContent = FileUtils.readFileToString(azureTokenFile, Constants.UTF8);
         return (new Gson()).fromJson(tokenJsonContent, JsonArray.class);
+    }
+
+    private AzureServicePrincipleAuthHelper() {
+
     }
 }
