@@ -9,12 +9,14 @@ package com.microsoft.azure.maven.spring;
 import com.microsoft.azure.auth.MavenSettingHelper;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.exception.MavenDecryptException;
+import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParser;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParserFactory;
-import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
+import com.microsoft.azure.maven.spring.spring.SpringServiceClient;
 import com.microsoft.azure.maven.spring.utils.MavenUtils;
+import com.microsoft.azure.maven.spring.utils.Utils;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
 import com.microsoft.azure.maven.validation.ConfigurationProblem;
@@ -105,6 +107,10 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
+    protected AzureTokenCredentials azureTokenCredentials;
+
+    protected SpringServiceClient springServiceClient;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -126,13 +132,11 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
             AppInsightHelper.INSTANCE.disable();
         }
         initializeAuthConfiguration();
-        // Init sdk log level
-        final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-        try {
-            SpringServiceUtils.setSpringManager(auth, subscriptionId, logLevel);
-        } catch (Exception e) {
-            throw new MojoFailureException("Unable to auth with azure", e);
-        }
+        // AuthConfiguration authConfiguration = isAuthConfigurationExist() ? auth : null;
+        // this.azureTokenCredentials = AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
+        // Use mock environment for test
+        this.azureTokenCredentials = Utils.getCredential();
+
         tracePluginInformation();
         trackMojoExecution(MojoStatus.Start);
     }
@@ -260,4 +264,11 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         return telemetries;
     }
 
+    public SpringServiceClient getSpringServiceClient() {
+        if (springServiceClient == null) {
+            final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
+            springServiceClient = new SpringServiceClient(azureTokenCredentials, subscriptionId, logLevel);
+        }
+        return springServiceClient;
+    }
 }

@@ -11,7 +11,6 @@ import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.i
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
-import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -42,7 +41,7 @@ public class DeployMojo extends AbstractSpringMojo {
             return;
         }
         final SpringConfiguration configuration = this.getConfiguration();
-        final SpringAppClient springAppClient = SpringServiceUtils.newSpringAppClient(configuration);
+        final SpringAppClient springAppClient = getSpringServiceClient().newSpringAppClient(configuration);
         // Prepare telemetries
         traceTelemetry(springAppClient, configuration);
         // Create or update new App
