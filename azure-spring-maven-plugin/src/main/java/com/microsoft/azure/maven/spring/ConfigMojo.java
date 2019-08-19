@@ -7,7 +7,6 @@
 package com.microsoft.azure.maven.spring;
 
 import com.microsoft.azure.PagedList;
-import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
@@ -18,7 +17,6 @@ import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.spring.prompt.IPrompter;
-import com.microsoft.azure.maven.spring.spring.SpringServiceUtils;
 import com.microsoft.azure.maven.spring.utils.MavenUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import com.microsoft.azure.maven.spring.utils.XmlUtils;
@@ -324,7 +322,7 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private void selectAppCluster() throws IOException, NoResourcesAvailableException, MojoFailureException {
-        final List<AppClusterResourceInner> clusters = SpringServiceUtils.getAvailableClusters();
+        final List<AppClusterResourceInner> clusters = getSpringServiceClient().getAvailableClusters();
         final AppClusterResourceInner clusterByName = clusters.stream().filter(t -> StringUtils.equals(this.clusterName, t.name())).findFirst()
                 .orElse(null);
         if (clusterByName == null) {
@@ -347,7 +345,7 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     private void initializeCredentials() throws InvalidConfigurationException, IOException, NoResourcesAvailableException {
         // TODO: getAzureTokenCredentials will check auth for null, but maven will always map a default AuthConfiguration
-        final AzureTokenCredentials cred = AzureAuthHelper.getAzureTokenCredentials(this.auth);
+        final AzureTokenCredentials cred = azureTokenCredentials;
         azure = Azure.configure().authenticate(cred);
         if (StringUtils.isBlank(subscriptionId)) {
             subscriptionId = StringUtils.isBlank(cred.defaultSubscriptionId()) ? selectSubscription() : cred.defaultSubscriptionId();
