@@ -7,9 +7,9 @@
         "accessToken": "xxxx",
         "refreshToken": "xxxxx",
         "oid": "00000000-0000-0000-0000-000000000001",
-        "userId": "andxu@microsoft.com",
+        "userId": "jack@microsoft.com",
         "isMRRT": true,
         "_clientId": "00000000-0000-0000-0000-000000000002",
-        "_authority": "https://login.microsoftonline.com/common"
+        "_authority": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000003"
     }
 ]

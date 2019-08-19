@@ -9,6 +9,7 @@ package com.microsoft.azure.auth;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
+import com.microsoft.azure.credentials.AzureTokenCredentials;
 import org.junit.After;
 import org.junit.Test;
 
@@ -76,8 +77,8 @@ public class AzureServicePrincipleAuthHelperTest {
     public void testGetSPCredentials() throws Exception {
         final File testConfigDir = new File(this.getClass().getResource("/azure-cli/sp/azureProfile.json").getFile()).getParentFile();
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
-        final ApplicationTokenCredentials cred = AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
-        assertEquals("00000000-0000-0000-0000-000000000002", cred.clientId());
+        final AzureTokenCredentials cred = AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
+        assertEquals("00000000-0000-0000-0000-000000000002", ((ApplicationTokenCredentials) cred).clientId());
         assertEquals("https://management.chinacloudapi.cn/", cred.environment().resourceManagerEndpoint());
         assertEquals("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", TestHelper.readField(cred, "clientSecret"));
     }
@@ -86,7 +87,7 @@ public class AzureServicePrincipleAuthHelperTest {
     public void testGetCredentialsFromCliNotSP() throws Exception {
         final File testConfigDir = new File(this.getClass().getResource("/azure-cli/default/azureProfile.json").getFile()).getParentFile();
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
-        final ApplicationTokenCredentials cred = AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
+        final AzureTokenCredentials cred = AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
         assertNull(cred);
     }
 }

@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.auth;
 
+import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
@@ -241,6 +242,13 @@ public class AzureAuthHelper {
                     credentials.setAccessToken(newCredentials.getAccessToken());
                     writeAzureCredentials(credentials, getAzureSecretFile());
                 } catch (InterruptedException | ExecutionException e) {
+                    if (e.getCause() instanceof AuthenticationException) {
+                        throw (AuthenticationException) e.getCause();
+                    }
+                    if (e.getCause() instanceof IOException) {
+                        throw (IOException) e.getCause();
+                    }
+                    // because get token method declares throwing IOException
                     throw new IOException(String.format("Error happened during refreshing access token, due to error: %s.", e.getMessage()));
                 }
 
