@@ -246,6 +246,7 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetToken() throws Exception {
+        @SuppressWarnings("serial")
         final AzureEnvironment testEnvironment = new AzureEnvironment(new HashMap<String, String>() {{
                 put(AzureEnvironment.Endpoint.ACTIVE_DIRECTORY.toString(), "https://xxxxxxx/");
                 put(AzureEnvironment.Endpoint.MANAGEMENT.toString(), "https://xxxxxxx/");
@@ -254,16 +255,38 @@ public class AzureAuthHelperTest {
 
         final AzureCredential cred = AzureCredential.fromAuthenticationResult(TestHelper.createAuthenticationResult());
         // sample token from https://medium.com/@siddharthac6/json-web-token-jwt-the-right-way-of-implementing-with-node-js-65b8915d550e
-        final String token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhMSI6IkRhdGEgMSIsImRhdGEyIjoiRGF0YSAyIiwiZGF0YTMiOiJEYXRhIDMiLCJkYXRhNCI6IkRhdG" +
-                "EgNCIsImlhdCI6MTUyNTE5MzM3NywiZXhwIjoxNTI1MjM2NTc3LCJhdWQiOiJodHRwOi8vbXlzb2Z0Y29ycC5pbiIsImlzcyI6Ik15c29mdCBjb3JwIiwic3ViIjoic29tZUB1c2VyL" +
-                "mNvbSJ9.ID2fn6t0tcoXeTgkG2AivnG1skctbCAyY8M1ZF38kFvUJozRWSbdVc7FLwot-bwV8k1imV8o0fqdv5sVY0Yzmg";
-        cred.setAccessToken(token);
+        final String EXPIRED_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhMSI6IkRhdGEgMSIsImRhdGEyIjoiRGF0YSAyIiwiZGF0YTMiOiJEYXRhIDMiLCJkYXRhNCI6Ik" +
+                "RhdGEgNCIsImlhdCI6MTUyNTE5MzM3NywiZXhwIjoxNTI1MjM2NTc3LCJhdWQiOiJodHRwOi8vbXlzb2Z0Y29ycC5pbiIsImlzcyI6Ik15c29mdCBjb3JwIiwic3ViIjoic29tZUB1c2" +
+                "VyLmNvbSJ9.ID2fn6t0tcoXeTgkG2AivnG1skctbCAyY8M1ZF38kFvUJozRWSbdVc7FLwot-bwV8k1imV8o0fqdv5sVY0Yzmg";
+        cred.setAccessToken(EXPIRED_TOKEN);
         try {
             AzureAuthHelper.getMavenAzureLoginCredentials(cred, testEnvironment).getToken(testEnvironment.resourceManagerEndpoint());
             fail("should throw UnknownHostException when refreshing the access token.");
         } catch (UnknownHostException ex) {
             // expected
         }
+
+        // token created by site: http://jwtbuilder.jamiekurtz.com/,
+        //{
+        //    "iss": "Online JWT Builder",
+        //    "iat": 1566201321,
+        //    "exp": 4090722921,
+        //    "aud": "www.example.com",
+        //    "sub": "jrocket@example.com",
+        //    "GivenName": "Johnny",
+        //    "Surname": "Rocket",
+        //    "Email": "jrocket@example.com",
+        //    "Role": [
+        //        "Manager",
+        //        "Project Administrator"
+        //    ]
+        //}
+        final String VALID_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE1NjYyMDEzMjEsImV4cCI6NDA5MDcyMjkyMSwiYXVkIjoid3d3" +
+                "LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhh" +
+                "bXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.m0yY1rRd9-zo9pUKWdkuuCSIj48K-X8IPr1-3gj-dGQ";
+
+        cred.setAccessToken(VALID_TOKEN);
+        assertEquals(VALID_TOKEN,  AzureAuthHelper.getMavenAzureLoginCredentials(cred, testEnvironment).getToken(testEnvironment.resourceManagerEndpoint()));
 
     }
 }
