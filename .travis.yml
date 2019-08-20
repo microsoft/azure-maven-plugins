@@ -23,7 +23,7 @@ script:
   - 'git clone $SDK_REPO'
   - './mvnw -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B clean install -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml'
   - './mvnw -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -B clean verify'
-  - './mvnw cobertura:cobertura'
+  - './mvnw -pl azure-functions-maven-plugin,azure-webapp-maven-plugin,azure-maven-plugin-lib cobertura:cobertura'
 
 after_success:
   # test coverage reporting
