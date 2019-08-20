@@ -32,7 +32,7 @@ public class DeployMojo extends AbstractSpringMojo {
     @Parameter(property = "createInactive")
     protected boolean createInactive;
 
-    @Parameter(defaultValue = "${project.build.directory}/${project.build.finalName}", readonly = true)
+    @Parameter(defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}", readonly = true)
     private File defaultArtifact;
 
     protected static final int GET_STATUS_TIMEOUT = 30;
@@ -46,7 +46,6 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final String GET_DEPLOYMENT_STATUS_FAIL = "Fail to get deployment status in %d s";
     protected static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
     protected static final String GET_APP_URL_FAIL = "Fail to get application url in %d s";
-    protected static final String STATUS_GETTING_CLUSTER_STATUS = "Getting cluster status...";
     protected static final String STATUS_CREATE_OR_UPDATE_APP = "Creating/Updating app...";
     protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT = "Creating/Updating deployment...";
     protected static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
@@ -56,7 +55,6 @@ public class DeployMojo extends AbstractSpringMojo {
         if (!checkProjectPackaging(project)) {
             return;
         }
-        getLog().info(STATUS_GETTING_CLUSTER_STATUS);
         final SpringConfiguration configuration = this.getConfiguration();
         final SpringAppClient springAppClient = getSpringServiceClient().newSpringAppClient(configuration);
         // Prepare telemetries
@@ -67,7 +65,7 @@ public class DeployMojo extends AbstractSpringMojo {
         // Upload artifact
         getLog().info(STATUS_UPLOADING_ARTIFACTS);
         final File toDeploy = isResourceSpecified(configuration) ? Utils.getArtifactFromConfiguration(configuration) : defaultArtifact;
-        if (toDeploy == null || Utils.isExecutableJar(toDeploy)) {
+        if (toDeploy == null || !Utils.isExecutableJar(toDeploy)) {
             throw new MojoExecutionException(ARTIFACT_NOT_SUPPORTED);
         }
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
@@ -112,7 +110,7 @@ public class DeployMojo extends AbstractSpringMojo {
     protected void getDeploymentStatus(SpringDeploymentClient springDeploymentClient) {
         final DeploymentResourceInner deploymentResource = Utils.executeCallableWithPrompt(() -> {
             DeploymentResourceInner deployment = springDeploymentClient.getDeployment();
-            while (isDeploymentDone(deployment)) {
+            while (!isDeploymentDone(deployment)) {
                 Thread.sleep(2000);
                 deployment = springDeploymentClient.getDeployment();
             }
@@ -138,7 +136,7 @@ public class DeployMojo extends AbstractSpringMojo {
             return false;
         }
         return !deploymentResource.properties().instances().stream()
-                .anyMatch(instance -> instance.status().equalsIgnoreCase("processing"));
+                .anyMatch(instance -> instance.status().equalsIgnoreCase("pending"));
     }
 
     protected boolean checkProjectPackaging(MavenProject project) throws MojoExecutionException {

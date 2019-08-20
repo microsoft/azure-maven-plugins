@@ -159,8 +159,8 @@ public class Utils {
 
     private static <T> Callable<T> getWrappedCallable(String prompt, Future<T> future) {
         return () -> {
+            System.out.print(prompt);
             try {
-                System.out.print(prompt);
                 for (int i = 0; !future.isDone(); i++) {
                     System.out.print(PENDING_STRING_LIST[i % 4]);
                     Thread.sleep(500);
