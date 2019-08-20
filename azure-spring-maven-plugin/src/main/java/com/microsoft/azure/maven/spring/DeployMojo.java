@@ -11,6 +11,8 @@ import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.D
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
+import com.microsoft.azure.maven.spring.prompt.DefaultPrompter;
+import com.microsoft.azure.maven.spring.prompt.IPrompter;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
 import com.microsoft.azure.maven.spring.utils.Utils;
@@ -22,6 +24,9 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_NEW_APP;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_UPDATE_CONFIGURATION;
@@ -31,6 +36,9 @@ public class DeployMojo extends AbstractSpringMojo {
 
     @Parameter(property = "createInactive")
     protected boolean createInactive;
+
+    @Parameter(property = "skipConfirm")
+    private boolean skipConfirm;
 
     @Parameter(defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}", readonly = true)
     private File defaultArtifact;
@@ -49,14 +57,27 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final String STATUS_CREATE_OR_UPDATE_APP = "Creating/Updating app...";
     protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT = "Creating/Updating deployment...";
     protected static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
+    protected static final String CONFIRM_PROMPT_START = "`azure-spring:deploy` will do the following jobs";
+    protected static final String CONFIRM_PROMPT_CREATE_NEW_APP = "Create new app %s";
+    protected static final String CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT = "Create new deployment %s in app %s";
+    protected static final String CONFIRM_PROMPT_UPDATE_DEPLOYMENT = "Update deployment %s in app %s";
+    protected static final String CONFIRM_PROMPT_CONFIRM = "Do you confirm the behaviors?";
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
         if (!checkProjectPackaging(project)) {
             return;
         }
+        // Init spring clients, and prompt users to confirm
         final SpringConfiguration configuration = this.getConfiguration();
+        final Deployment deploymentConfiguration = configuration.getDeployment();
         final SpringAppClient springAppClient = getSpringServiceClient().newSpringAppClient(configuration);
+        final SpringDeploymentClient deploymentClient = springAppClient.
+                getDeploymentClient(deploymentConfiguration.getDeploymentName());
+        if (!shouldSkipConfirm() && !confirmDeploy(springAppClient, deploymentClient)) {
+            getLog().info("Terminate deployment");
+            return;
+        }
         // Prepare telemetries
         traceTelemetry(springAppClient, configuration);
         // Create or update new App
@@ -71,8 +92,6 @@ public class DeployMojo extends AbstractSpringMojo {
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
         // Create or update deployment
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT);
-        final Deployment deploymentConfiguration = configuration.getDeployment();
-        final SpringDeploymentClient deploymentClient = springAppClient.getDeploymentClient(deploymentConfiguration.getDeploymentName());
         if (deploymentClient.isDeploymentExist() || createInactive) {
             // Update existing deployment or create an inactive one
             deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
@@ -137,6 +156,48 @@ public class DeployMojo extends AbstractSpringMojo {
         }
         return !deploymentResource.properties().instances().stream()
                 .anyMatch(instance -> instance.status().equalsIgnoreCase("pending"));
+    }
+
+    protected boolean shouldSkipConfirm() {
+        // Skip confirm when -DskipConfirm or in batch model
+        return skipConfirm || (this.settings != null && !this.settings.isInteractiveMode());
+    }
+
+    protected boolean confirmDeploy(SpringAppClient springAppClient, SpringDeploymentClient deploymentClient) throws MojoFailureException {
+        final IPrompter prompter = new DefaultPrompter();
+        final List<String> operations = getOperations(springAppClient, deploymentClient);
+        try {
+            System.out.println(CONFIRM_PROMPT_START);
+            for (int i = 1; i <= operations.size(); i++) {
+                System.out.println(String.format("%-2d  %s", i, operations.get(i - 1)));
+            }
+            return prompter.promoteYesNo(true, CONFIRM_PROMPT_CONFIRM, true);
+        } catch (IOException e) {
+            throw new MojoFailureException(e.getMessage());
+        } finally {
+            try {
+                prompter.close();
+            } catch (IOException e) {
+                //swallow final exception
+            }
+        }
+    }
+
+    protected List<String> getOperations(SpringAppClient springAppClient, SpringDeploymentClient deploymentClient) {
+        final List<String> operations = new ArrayList<>();
+        final boolean isCreateNewApp = springAppClient.getApp() == null;
+        final boolean isCreateNewDeployment = deploymentClient.getDeployment() == null;
+        if (isCreateNewApp) {
+            operations.add(String.format(CONFIRM_PROMPT_CREATE_NEW_APP, springAppClient.getAppName()));
+        }
+        if (isCreateNewDeployment && !createInactive && springAppClient.getDeployments().size() > 0) {
+            throw new IllegalArgumentException(DEPLOYMENT_NOT_EXIST);
+        }
+        final String deploymentPrompt = isCreateNewDeployment ?
+                String.format(CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT, deploymentClient.getDeploymentName(), deploymentClient.getAppName()) :
+                String.format(CONFIRM_PROMPT_UPDATE_DEPLOYMENT, deploymentClient.getDeploymentName(), deploymentClient.getAppName());
+        operations.add(deploymentPrompt);
+        return operations;
     }
 
     protected boolean checkProjectPackaging(MavenProject project) throws MojoExecutionException {
