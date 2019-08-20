@@ -46,25 +46,33 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final String GET_DEPLOYMENT_STATUS_FAIL = "Fail to get deployment status in %d s";
     protected static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
     protected static final String GET_APP_URL_FAIL = "Fail to get application url in %d s";
+    protected static final String STATUS_GETTING_CLUSTER_STATUS = "Getting cluster status...";
+    protected static final String STATUS_CREATE_OR_UPDATE_APP = "Creating/Updating app...";
+    protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT = "Creating/Updating deployment...";
+    protected static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
         if (!checkProjectPackaging(project)) {
             return;
         }
+        getLog().info(STATUS_GETTING_CLUSTER_STATUS);
         final SpringConfiguration configuration = this.getConfiguration();
         final SpringAppClient springAppClient = getSpringServiceClient().newSpringAppClient(configuration);
         // Prepare telemetries
         traceTelemetry(springAppClient, configuration);
         // Create or update new App
+        getLog().info(STATUS_CREATE_OR_UPDATE_APP);
         springAppClient.createOrUpdateApp(configuration);
         // Upload artifact
+        getLog().info(STATUS_UPLOADING_ARTIFACTS);
         final File toDeploy = isResourceSpecified(configuration) ? Utils.getArtifactFromConfiguration(configuration) : defaultArtifact;
         if (toDeploy == null || Utils.isExecutableJar(toDeploy)) {
             throw new MojoExecutionException(ARTIFACT_NOT_SUPPORTED);
         }
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
         // Create or update deployment
+        getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT);
         final Deployment deploymentConfiguration = configuration.getDeployment();
         final SpringDeploymentClient deploymentClient = springAppClient.getDeploymentClient(deploymentConfiguration.getDeploymentName());
         if (deploymentClient.isDeploymentExist() || createInactive) {
