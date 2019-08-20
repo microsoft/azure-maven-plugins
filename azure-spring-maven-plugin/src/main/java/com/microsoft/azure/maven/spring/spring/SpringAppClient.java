@@ -113,6 +113,10 @@ public class SpringAppClient extends AbstractSpringClient {
         return getApp().properties().url();
     }
 
+    public boolean isPublic(){
+        return getApp().properties().publicProperty();
+    }
+
     public AppResourceInner getApp() {
         return springManager.apps().inner().get(resourceGroup, clusterName, appName, "true");
     }
