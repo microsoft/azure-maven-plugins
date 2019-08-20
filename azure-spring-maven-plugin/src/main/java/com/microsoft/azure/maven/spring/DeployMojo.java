@@ -29,11 +29,16 @@ public class DeployMojo extends AbstractSpringMojo {
     @Parameter(property = "createInactive")
     protected boolean createInactive;
 
+    @Parameter(defaultValue = "${project.build.directory}/${project.build.finalName}", readonly = true)
+    private File defaultArtifact;
+
     protected static final String PROJECT_SKIP = "Skip pom project";
     protected static final String PROJECT_NOT_SUPPORT = "`azure-spring:deploy` does not support maven project with " +
             "packaging %s, only jar is supported";
     protected static final String DEPLOYMENT_NOT_EXIST = "Deployment %s doesn't exist in app %s, please check the " +
             "configuration or use -DcreateInactive to create a inactive one";
+    protected static final String ARTIFACT_NOT_SUPPORTED = "Target file doesn't exist or is not executable, please " +
+            "check the configuration.";
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
@@ -47,7 +52,10 @@ public class DeployMojo extends AbstractSpringMojo {
         // Create or update new App
         springAppClient.createOrUpdateApp(configuration);
         // Upload artifact
-        final File toDeploy = Utils.getArtifactFromConfiguration(configuration);
+        final File toDeploy = isResourceSpecified(configuration) ? Utils.getArtifactFromConfiguration(configuration) : defaultArtifact;
+        if (toDeploy == null || Utils.isExecutableJar(toDeploy)) {
+            throw new MojoExecutionException(ARTIFACT_NOT_SUPPORTED);
+        }
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
         // Create or update deployment
         final Deployment deploymentConfiguration = configuration.getDeployment();
@@ -79,6 +87,11 @@ public class DeployMojo extends AbstractSpringMojo {
         }
     }
 
+    protected boolean isResourceSpecified(SpringConfiguration springConfiguration) {
+        final Deployment deploymentConfiguration = springConfiguration.getDeployment();
+        return deploymentConfiguration.getResources() != null && deploymentConfiguration.getResources().size() > 0;
+    }
+
     protected void traceTelemetry(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {
         traceAuth();
         traceConfiguration(springConfiguration);
@@ -87,7 +100,7 @@ public class DeployMojo extends AbstractSpringMojo {
 
     protected void traceDeployment(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {
         final boolean isNewApp = springAppClient.getApp() == null;
-        final boolean isUpdateConfiguration = springConfiguration.getDeployment().getResources().isEmpty();
+        final boolean isUpdateConfiguration = false;
         telemetries.put(TELEMETRY_KEY_IS_CREATE_NEW_APP, String.valueOf(isNewApp));
         telemetries.put(TELEMETRY_KEY_IS_UPDATE_CONFIGURATION, String.valueOf(isUpdateConfiguration));
     }
