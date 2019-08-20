@@ -81,7 +81,8 @@ public class SpringAppClient extends AbstractSpringClient {
     }
 
     public String getActiveDeploymentName() {
-        return getApp().properties().activeDeploymentName();
+        final AppResourceInner appResourceInner = getApp();
+        return appResourceInner == null ? null : appResourceInner.properties().activeDeploymentName();
     }
 
     public SpringDeploymentClient getDeploymentClient(String deploymentName) {
@@ -115,5 +116,9 @@ public class SpringAppClient extends AbstractSpringClient {
 
     public AppResourceInner getApp() {
         return springManager.apps().inner().get(resourceGroup, clusterName, appName, "true");
+    }
+
+    public String getAppName() {
+        return appName;
     }
 }

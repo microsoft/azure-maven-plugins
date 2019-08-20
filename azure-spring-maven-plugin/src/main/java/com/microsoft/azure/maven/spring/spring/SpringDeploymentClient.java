@@ -108,6 +108,14 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         return getDeployment() != null;
     }
 
+    public String getAppName() {
+        return appName;
+    }
+
+    public String getDeploymentName() {
+        return deploymentName;
+    }
+
     public SpringDeploymentClient(Builder builder) {
         super(builder);
         this.appName = builder.appName;
