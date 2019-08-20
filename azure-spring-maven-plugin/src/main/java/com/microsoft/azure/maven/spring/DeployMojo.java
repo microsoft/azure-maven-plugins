@@ -64,7 +64,7 @@ public class DeployMojo extends AbstractSpringMojo {
         final SpringAppClient springAppClient = getSpringServiceClient().newSpringAppClient(configuration);
         final SpringDeploymentClient deploymentClient = springAppClient.
                 getDeploymentClient(deploymentConfiguration.getDeploymentName());
-        if (!skipConfirm && !confirmDeploy(springAppClient, deploymentClient)) {
+        if (!shouldSkipConfirm() && !confirmDeploy(springAppClient, deploymentClient)) {
             getLog().info("Terminate deployment");
             return;
         }
@@ -94,6 +94,11 @@ public class DeployMojo extends AbstractSpringMojo {
         // Update deployment, show url
         getLog().info(springAppClient.getApplicationUrl());
         getLog().info(deploymentClient.getDeploymentStatus().toString());
+    }
+
+    protected boolean shouldSkipConfirm() {
+        // Skip confirm when -DskipConfirm or in batch model
+        return skipConfirm || (this.settings != null && !this.settings.isInteractiveMode());
     }
 
     protected boolean confirmDeploy(SpringAppClient springAppClient, SpringDeploymentClient deploymentClient) throws MojoFailureException {
