@@ -28,6 +28,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
@@ -41,6 +46,7 @@ public class Utils {
     private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
     private static final Pattern MEMORY_PATTERN = Pattern.compile(MEMORY_REGEX);
+    private static final String[] PENDING_STRING_LIST = {"   ", ".  ", ".. ", "..."};
 
     public static AzureTokenCredentials getCredential() {
         final AzureEnvironment dogFoodEnvironment = new AzureEnvironment(new HashMap<String, String>() {{
@@ -148,6 +154,39 @@ public class Utils {
             return manifest.getMainAttributes().getValue("Main-Class") != null;
         } catch (IOException e) {
             return false;
+        }
+    }
+
+    private static <T> Callable<T> getWrappedCallable(String prompt, Future<T> future) {
+        return () -> {
+            System.out.print(prompt);
+            try {
+                for (int i = 0; !future.isDone(); i++) {
+                    System.out.print(PENDING_STRING_LIST[i % 4]);
+                    Thread.sleep(500);
+                    System.out.print("\b\b\b");
+                }
+                return future.get();
+            } catch (InterruptedException e) {
+                future.cancel(true);
+                return null;
+            } finally {
+                System.out.println();
+            }
+        };
+    }
+
+    public static <T> T executeCallableWithPrompt(Callable<T> callable, String prompt, int timeOutInSeconds) {
+        final ExecutorService executorService = Executors.newFixedThreadPool(2);
+        final Future<T> future = executorService.submit(callable);
+        final Future<T> wrappedFuture = executorService.submit(getWrappedCallable(prompt, future));
+        try {
+            return wrappedFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            wrappedFuture.cancel(true);
+            return null;
+        } finally {
+            executorService.shutdown();
         }
     }
 

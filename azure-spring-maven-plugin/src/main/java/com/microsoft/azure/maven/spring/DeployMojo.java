@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.spring;
 
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentInstance;
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceStatus;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
@@ -19,6 +21,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +43,7 @@ public class DeployMojo extends AbstractSpringMojo {
     @Parameter(defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}", readonly = true)
     private File defaultArtifact;
 
+    protected static final int GET_STATUS_TIMEOUT = 30;
     protected static final String PROJECT_SKIP = "Skip pom project";
     protected static final String PROJECT_NOT_SUPPORT = "`azure-spring:deploy` does not support maven project with " +
             "packaging %s, only jar is supported";
@@ -47,6 +51,12 @@ public class DeployMojo extends AbstractSpringMojo {
             "configuration or use -DcreateInactive to create a inactive one";
     protected static final String ARTIFACT_NOT_SUPPORTED = "Target file doesn't exist or is not executable, please " +
             "check the configuration.";
+    protected static final String GET_DEPLOYMENT_STATUS_FAIL = "Fail to get deployment status in %d s";
+    protected static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
+    protected static final String GET_APP_URL_FAIL = "Fail to get application url in %d s";
+    protected static final String STATUS_CREATE_OR_UPDATE_APP = "Creating/Updating app...";
+    protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT = "Creating/Updating deployment...";
+    protected static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
     protected static final String CONFIRM_PROMPT_START = "`azure-spring:deploy` will do the following jobs";
     protected static final String CONFIRM_PROMPT_CREATE_NEW_APP = "Create new app %s";
     protected static final String CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT = "Create new deployment %s in app %s";
@@ -71,15 +81,17 @@ public class DeployMojo extends AbstractSpringMojo {
         // Prepare telemetries
         traceTelemetry(springAppClient, configuration);
         // Create or update new App
+        getLog().info(STATUS_CREATE_OR_UPDATE_APP);
         springAppClient.createOrUpdateApp(configuration);
         // Upload artifact
+        getLog().info(STATUS_UPLOADING_ARTIFACTS);
         final File toDeploy = isResourceSpecified(configuration) ? Utils.getArtifactFromConfiguration(configuration) : defaultArtifact;
         if (toDeploy == null || !Utils.isExecutableJar(toDeploy)) {
             throw new MojoExecutionException(ARTIFACT_NOT_SUPPORTED);
         }
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
         // Create or update deployment
-
+        getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT);
         if (deploymentClient.isDeploymentExist() || createInactive) {
             // Update existing deployment or create an inactive one
             deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
@@ -91,9 +103,59 @@ public class DeployMojo extends AbstractSpringMojo {
             throw new IllegalArgumentException(DEPLOYMENT_NOT_EXIST);
         }
 
-        // Update deployment, show url
-        getLog().info(springAppClient.getApplicationUrl());
-        getLog().info(deploymentClient.getDeploymentStatus().toString());
+        // Showing deployment status and public url
+        getDeploymentStatus(deploymentClient);
+        getPublicUrl(springAppClient);
+    }
+
+    protected void getPublicUrl(SpringAppClient springAppClient) {
+        if (!springAppClient.isPublic()) {
+            return;
+        }
+        final String publicUrl = Utils.executeCallableWithPrompt(() -> {
+            String url = springAppClient.getApplicationUrl();
+            while (StringUtils.isEmpty(url) || StringUtils.equalsIgnoreCase(url, "pending")) {
+                url = springAppClient.getApplicationUrl();
+            }
+            return url;
+        }, String.format("Getting the public url", springAppClient.getApp()), GET_STATUS_TIMEOUT);
+        if (publicUrl == null) {
+            getLog().warn(String.format(GET_APP_URL_FAIL, GET_STATUS_TIMEOUT));
+        } else {
+            System.out.println(String.format(GET_APP_URL_SUCCESSFULLY, publicUrl));
+        }
+    }
+
+    protected void getDeploymentStatus(SpringDeploymentClient springDeploymentClient) {
+        final DeploymentResourceInner deploymentResource = Utils.executeCallableWithPrompt(() -> {
+            DeploymentResourceInner deployment = springDeploymentClient.getDeployment();
+            while (!isDeploymentDone(deployment)) {
+                Thread.sleep(2000);
+                deployment = springDeploymentClient.getDeployment();
+            }
+            return deployment;
+        }, "Getting deployment status", GET_STATUS_TIMEOUT);
+        if (deploymentResource == null) {
+            getLog().warn(String.format(GET_DEPLOYMENT_STATUS_FAIL, GET_STATUS_TIMEOUT));
+        } else {
+            showDeploymentStatus(deploymentResource);
+        }
+    }
+
+    protected void showDeploymentStatus(DeploymentResourceInner deploymentResource) {
+        System.out.println(String.format("Deployment Status: %s", deploymentResource.properties().status()));
+        for (final DeploymentInstance instance : deploymentResource.properties().instances()) {
+            System.out.println(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s", instance.name(), instance.status()
+                    , instance.reason(), instance.discoveryStatus()));
+        }
+    }
+
+    protected boolean isDeploymentDone(DeploymentResourceInner deploymentResource) {
+        if (deploymentResource.properties().status() == DeploymentResourceStatus.PROCESSING) {
+            return false;
+        }
+        return !deploymentResource.properties().instances().stream()
+                .anyMatch(instance -> instance.status().equalsIgnoreCase("pending"));
     }
 
     protected boolean shouldSkipConfirm() {
