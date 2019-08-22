@@ -7,7 +7,6 @@
 package com.microsoft.azure.maven.spring.spring;
 
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceProperties;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceStatus;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentSettings;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.PersistentDisk;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.RuntimeVersion;
@@ -96,16 +95,8 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         return deployment;
     }
 
-    public DeploymentResourceStatus getDeploymentStatus() {
-        return getDeployment().properties().status();
-    }
-
     public DeploymentResourceInner getDeployment() {
         return springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
-    }
-
-    public boolean isDeploymentExist() {
-        return getDeployment() != null;
     }
 
     public String getAppName() {
