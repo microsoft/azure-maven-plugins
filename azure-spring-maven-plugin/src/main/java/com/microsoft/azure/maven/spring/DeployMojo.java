@@ -34,8 +34,8 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 @Mojo(name = "deploy")
 public class DeployMojo extends AbstractSpringMojo {
 
-    @Parameter(property = "createInactive")
-    protected boolean createInactive;
+    @Parameter(property = "noWait")
+    private boolean noWait;
 
     @Parameter(property = "skipConfirm")
     private boolean skipConfirm;
@@ -44,23 +44,24 @@ public class DeployMojo extends AbstractSpringMojo {
     private File defaultArtifact;
 
     protected static final int GET_STATUS_TIMEOUT = 30;
+    protected static final int GET_URL_TIMEOUT = 60;
     protected static final String PROJECT_SKIP = "Skip pom project";
     protected static final String PROJECT_NOT_SUPPORT = "`azure-spring:deploy` does not support maven project with " +
             "packaging %s, only jar is supported";
-    protected static final String DEPLOYMENT_NOT_EXIST = "Deployment %s doesn't exist in app %s, please check the " +
-            "configuration or use -DcreateInactive to create a inactive one";
     protected static final String ARTIFACT_NOT_SUPPORTED = "Target file doesn't exist or is not executable, please " +
             "check the configuration.";
-    protected static final String GET_DEPLOYMENT_STATUS_FAIL = "Fail to get deployment status in %d s";
     protected static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
-    protected static final String GET_APP_URL_FAIL = "Fail to get application url in %d s";
+    protected static final String GET_APP_URL_FAIL = "Fail to get application url";
+    protected static final String GET_APP_URL_FAIL_WITH_TIMEOUT = "Fail to get application url in %d s";
     protected static final String STATUS_CREATE_OR_UPDATE_APP = "Creating/Updating app...";
     protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT = "Creating/Updating deployment...";
     protected static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
     protected static final String CONFIRM_PROMPT_START = "`azure-spring:deploy` will do the following jobs";
     protected static final String CONFIRM_PROMPT_CREATE_NEW_APP = "Create new app %s";
+    protected static final String CONFIRM_PROMPT_UPDATE_APP = "Update app %s";
     protected static final String CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT = "Create new deployment %s in app %s";
     protected static final String CONFIRM_PROMPT_UPDATE_DEPLOYMENT = "Update deployment %s in app %s";
+    protected static final String CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT = "Set %s as the active deployment of app %s";
     protected static final String CONFIRM_PROMPT_CONFIRM = "Do you confirm the behaviors?";
 
     @Override
@@ -91,18 +92,13 @@ public class DeployMojo extends AbstractSpringMojo {
         }
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
         // Create or update deployment
+        final boolean createNewDeployment = deploymentClient.getDeployment() == null;
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT);
-        if (deploymentClient.isDeploymentExist() || createInactive) {
-            // Update existing deployment or create an inactive one
-            deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
-        } else if (springAppClient.getDeployments().size() == 0) {
-            // Create new deployment and active it
-            final DeploymentResourceInner deployment = deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
-            springAppClient.updateActiveDeployment(deployment.name());
-        } else {
-            throw new IllegalArgumentException(DEPLOYMENT_NOT_EXIST);
+        deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
+        if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName()) && createNewDeployment) {
+            // Active deployment if no existing active deployment
+            springAppClient.activateDeployment(deploymentClient.getDeploymentName());
         }
-
         // Showing deployment status and public url
         getDeploymentStatus(deploymentClient);
         getPublicUrl(springAppClient);
@@ -112,34 +108,41 @@ public class DeployMojo extends AbstractSpringMojo {
         if (!springAppClient.isPublic()) {
             return;
         }
-        final String publicUrl = Utils.executeCallableWithPrompt(() -> {
-            String url = springAppClient.getApplicationUrl();
-            while (StringUtils.isEmpty(url) || StringUtils.equalsIgnoreCase(url, "pending")) {
-                url = springAppClient.getApplicationUrl();
-            }
-            return url;
-        }, String.format("Getting the public url", springAppClient.getApp()), GET_STATUS_TIMEOUT);
-        if (publicUrl == null) {
-            getLog().warn(String.format(GET_APP_URL_FAIL, GET_STATUS_TIMEOUT));
+        String publicUrl = springAppClient.getApplicationUrl();
+        if (!noWait) {
+            publicUrl = Utils.executeCallableWithPrompt(() -> {
+                String url = springAppClient.getApplicationUrl();
+                while (StringUtils.isEmpty(url) || StringUtils.equalsIgnoreCase(url, "pending")) {
+                    url = springAppClient.getApplicationUrl();
+                }
+                return url;
+            }, String.format("Getting the public url", springAppClient.getApp()), GET_URL_TIMEOUT);
+        }
+        if (StringUtils.isEmpty(publicUrl)) {
+            final String message = noWait ? GET_APP_URL_FAIL :
+                    String.format(GET_APP_URL_FAIL_WITH_TIMEOUT, GET_URL_TIMEOUT);
+            getLog().warn(message);
         } else {
             System.out.println(String.format(GET_APP_URL_SUCCESSFULLY, publicUrl));
         }
     }
 
     protected void getDeploymentStatus(SpringDeploymentClient springDeploymentClient) {
-        final DeploymentResourceInner deploymentResource = Utils.executeCallableWithPrompt(() -> {
-            DeploymentResourceInner deployment = springDeploymentClient.getDeployment();
-            while (!isDeploymentDone(deployment)) {
-                Thread.sleep(2000);
-                deployment = springDeploymentClient.getDeployment();
-            }
-            return deployment;
-        }, "Getting deployment status", GET_STATUS_TIMEOUT);
-        if (deploymentResource == null) {
-            getLog().warn(String.format(GET_DEPLOYMENT_STATUS_FAIL, GET_STATUS_TIMEOUT));
-        } else {
-            showDeploymentStatus(deploymentResource);
+        DeploymentResourceInner deploymentResource = null;
+        if (!noWait) {
+            deploymentResource = Utils.executeCallableWithPrompt(() -> {
+                DeploymentResourceInner deployment = springDeploymentClient.getDeployment();
+                while (!isDeploymentDone(deployment)) {
+                    Thread.sleep(2000);
+                    deployment = springDeploymentClient.getDeployment();
+                }
+                return deployment;
+            }, "Getting deployment status", GET_STATUS_TIMEOUT);
         }
+        if (deploymentResource == null) {
+            deploymentResource = springDeploymentClient.getDeployment();
+        }
+        showDeploymentStatus(deploymentResource);
     }
 
     protected void showDeploymentStatus(DeploymentResourceInner deploymentResource) {
@@ -155,7 +158,7 @@ public class DeployMojo extends AbstractSpringMojo {
             return false;
         }
         return !deploymentResource.properties().instances().stream()
-                .anyMatch(instance -> instance.status().equalsIgnoreCase("pending"));
+                .anyMatch(instance -> instance.status().equalsIgnoreCase("waiting"));
     }
 
     protected boolean shouldSkipConfirm() {
@@ -186,17 +189,20 @@ public class DeployMojo extends AbstractSpringMojo {
     protected List<String> getOperations(SpringAppClient springAppClient, SpringDeploymentClient deploymentClient) {
         final List<String> operations = new ArrayList<>();
         final boolean isCreateNewApp = springAppClient.getApp() == null;
+        final String appPrompt = isCreateNewApp ?
+                String.format(CONFIRM_PROMPT_CREATE_NEW_APP, deploymentClient.getAppName()) :
+                String.format(CONFIRM_PROMPT_UPDATE_APP, deploymentClient.getAppName());
+        operations.add(appPrompt);
+
         final boolean isCreateNewDeployment = deploymentClient.getDeployment() == null;
-        if (isCreateNewApp) {
-            operations.add(String.format(CONFIRM_PROMPT_CREATE_NEW_APP, springAppClient.getAppName()));
-        }
-        if (isCreateNewDeployment && !createInactive && springAppClient.getDeployments().size() > 0) {
-            throw new IllegalArgumentException(DEPLOYMENT_NOT_EXIST);
-        }
         final String deploymentPrompt = isCreateNewDeployment ?
                 String.format(CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT, deploymentClient.getDeploymentName(), deploymentClient.getAppName()) :
                 String.format(CONFIRM_PROMPT_UPDATE_DEPLOYMENT, deploymentClient.getDeploymentName(), deploymentClient.getAppName());
         operations.add(deploymentPrompt);
+
+        if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName()) && isCreateNewDeployment) {
+            operations.add(String.format(CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT, deploymentClient.getDeploymentName(), deploymentClient.getAppName()));
+        }
         return operations;
     }
 
