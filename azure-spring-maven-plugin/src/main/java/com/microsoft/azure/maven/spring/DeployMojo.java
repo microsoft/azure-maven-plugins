@@ -200,7 +200,7 @@ public class DeployMojo extends AbstractSpringMojo {
                 String.format(CONFIRM_PROMPT_UPDATE_DEPLOYMENT, deploymentClient.getDeploymentName(), deploymentClient.getAppName());
         operations.add(deploymentPrompt);
 
-        if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName())) {
+        if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName()) && isCreateNewDeployment) {
             operations.add(String.format(CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT, deploymentClient.getDeploymentName(), deploymentClient.getAppName()));
         }
         return operations;
