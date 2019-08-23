@@ -6,8 +6,10 @@
 
 package com.microsoft.azure.maven.spring;
 
+import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.MavenSettingHelper;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
+import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.auth.exception.MavenDecryptException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
@@ -36,6 +38,7 @@ import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +110,10 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
+    // todo: Remove this parameter before release
+    @Parameter(property = "dogFood", defaultValue = "false")
+    protected Boolean dogFood;
+
     protected AzureTokenCredentials azureTokenCredentials;
 
     protected SpringServiceClient springServiceClient;
@@ -119,23 +126,22 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
             handleSuccess();
         } catch (Exception e) {
             handleException(e);
-            throw e;
+            throw new MojoFailureException(e.getMessage(), e);
         } finally {
             AppInsightHelper.INSTANCE.close();
         }
     }
 
-    protected void initExecution() throws MojoFailureException {
+    protected void initExecution() throws MojoFailureException, InvalidConfigurationException, IOException {
         // Init telemetries
         telemetries = new HashMap<>();
         if (!isTelemetryAllowed) {
             AppInsightHelper.INSTANCE.disable();
         }
         initializeAuthConfiguration();
-        // AuthConfiguration authConfiguration = isAuthConfigurationExist() ? auth : null;
-        // this.azureTokenCredentials = AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
-        // Use mock environment for test
-        this.azureTokenCredentials = Utils.getCredential();
+
+        final AuthConfiguration authConfiguration = isAuthConfigurationExist() ? auth : null;
+        this.azureTokenCredentials = dogFood ? Utils.getCredential() : AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
 
         tracePluginInformation();
         trackMojoExecution(MojoStatus.Start);
@@ -181,7 +187,8 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected void handleException(Exception exception) {
-        final boolean isUserError = exception instanceof IllegalArgumentException || exception instanceof SpringConfigurationException;
+        final boolean isUserError = exception instanceof IllegalArgumentException ||
+                exception instanceof SpringConfigurationException || exception instanceof InvalidConfigurationException;
         telemetries.put(TELEMETRY_KEY_ERROR_CODE, TELEMETRY_VALUE_ERROR_CODE_FAILURE);
         telemetries.put(TELEMETRY_KEY_ERROR_TYPE, isUserError ? TELEMETRY_VALUE_USER_ERROR : TELEMETRY_VALUE_SYSTEM_ERROR);
         telemetries.put(TELEMETRY_KEY_ERROR_MESSAGE, exception.getMessage());
