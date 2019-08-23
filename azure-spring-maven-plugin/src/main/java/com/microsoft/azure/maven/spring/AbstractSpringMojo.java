@@ -6,9 +6,13 @@
 
 package com.microsoft.azure.maven.spring;
 
+import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.AzureAuthHelper;
+import com.microsoft.azure.auth.AzureCredential;
 import com.microsoft.azure.auth.MavenSettingHelper;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
+import com.microsoft.azure.auth.exception.AzureLoginFailureException;
+import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.auth.exception.MavenDecryptException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
@@ -42,6 +46,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_AUTH_METHOD;
@@ -132,7 +137,8 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         }
     }
 
-    protected void initExecution() throws MojoFailureException, InvalidConfigurationException, IOException {
+    protected void initExecution() throws MojoFailureException, InvalidConfigurationException, IOException, DesktopNotSupportedException,
+            ExecutionException, AzureLoginFailureException, InterruptedException {
         // Init telemetries
         telemetries = new HashMap<>();
         if (!isTelemetryAllowed) {
@@ -142,6 +148,13 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
         final AuthConfiguration authConfiguration = isAuthConfigurationExist() ? auth : null;
         this.azureTokenCredentials = dogFood ? Utils.getCredential() : AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
+        // Use oauth if no existing credentials
+        if (azureTokenCredentials == null) {
+            final AzureEnvironment environment = AzureEnvironment.AZURE;
+            final AzureCredential azureCredential = AzureAuthHelper.oAuthLogin(environment);
+            AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
+            this.azureTokenCredentials = AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, environment);
+        }
 
         tracePluginInformation();
         trackMojoExecution(MojoStatus.Start);
