@@ -37,32 +37,35 @@ public class DeployMojo extends AbstractSpringMojo {
     @Parameter(property = "noWait")
     private boolean noWait;
 
-    @Parameter(property = "skipConfirm")
-    private boolean skipConfirm;
+    @Parameter(property = "prompt")
+    private boolean prompt;
 
     @Parameter(defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}", readonly = true)
     private File defaultArtifact;
 
     protected static final int GET_STATUS_TIMEOUT = 30;
     protected static final int GET_URL_TIMEOUT = 60;
-    protected static final String PROJECT_SKIP = "Skip pom project";
+    protected static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     protected static final String PROJECT_NOT_SUPPORT = "`azure-spring:deploy` does not support maven project with " +
             "packaging %s, only jar is supported";
-    protected static final String ARTIFACT_NOT_SUPPORTED = "Target file doesn't exist or is not executable, please " +
+    protected static final String ARTIFACT_NOT_SUPPORTED = "Target file does not exist or is not executable, please " +
             "check the configuration.";
     protected static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
     protected static final String GET_APP_URL_FAIL = "Fail to get application url";
     protected static final String GET_APP_URL_FAIL_WITH_TIMEOUT = "Fail to get application url in %d s";
-    protected static final String STATUS_CREATE_OR_UPDATE_APP = "Creating/Updating app...";
-    protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT = "Creating/Updating deployment...";
+    protected static final String STATUS_CREATE_OR_UPDATE_APP = "Creating/Updating the spring cloud service app...";
+    protected static final String STATUS_CREATE_OR_UPDATE_APP_DONE = "Successfully created/updated the spring cloud service app.";
+    protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT = "Creating/Updating the deployment...";
+    protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE = "Successfully created/updated the deployment.";
     protected static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
-    protected static final String CONFIRM_PROMPT_START = "`azure-spring:deploy` will do the following jobs";
-    protected static final String CONFIRM_PROMPT_CREATE_NEW_APP = "Create new app %s";
-    protected static final String CONFIRM_PROMPT_UPDATE_APP = "Update app %s";
-    protected static final String CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT = "Create new deployment %s in app %s";
-    protected static final String CONFIRM_PROMPT_UPDATE_DEPLOYMENT = "Update deployment %s in app %s";
-    protected static final String CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT = "Set %s as the active deployment of app %s";
-    protected static final String CONFIRM_PROMPT_CONFIRM = "Do you confirm the behaviors?";
+    protected static final String STATUS_UPLOADING_ARTIFACTS_DONE = "Successfully uploaded the artifacts.";
+    protected static final String CONFIRM_PROMPT_START = "`azure-spring:deploy` will perform the following tasks";
+    protected static final String CONFIRM_PROMPT_CREATE_NEW_APP = "Create new app [%s]";
+    protected static final String CONFIRM_PROMPT_UPDATE_APP = "Update app [%s]";
+    protected static final String CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT = "Create new deployment [%s] in app [%s]";
+    protected static final String CONFIRM_PROMPT_UPDATE_DEPLOYMENT = "Update deployment [%s] in app [%s]";
+    protected static final String CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT = "Set [%s] as the active deployment of app [%s]";
+    protected static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks?";
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
@@ -84,6 +87,7 @@ public class DeployMojo extends AbstractSpringMojo {
         // Create or update new App
         getLog().info(STATUS_CREATE_OR_UPDATE_APP);
         springAppClient.createOrUpdateApp(configuration);
+        getLog().info(STATUS_CREATE_OR_UPDATE_APP_DONE);
         // Upload artifact
         getLog().info(STATUS_UPLOADING_ARTIFACTS);
         final File toDeploy = isResourceSpecified(configuration) ? Utils.getArtifactFromConfiguration(configuration) : defaultArtifact;
@@ -91,6 +95,7 @@ public class DeployMojo extends AbstractSpringMojo {
             throw new MojoExecutionException(ARTIFACT_NOT_SUPPORTED);
         }
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
+        getLog().info(STATUS_UPLOADING_ARTIFACTS_DONE);
         // Create or update deployment
         final boolean createNewDeployment = deploymentClient.getDeployment() == null;
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT);
@@ -99,6 +104,7 @@ public class DeployMojo extends AbstractSpringMojo {
             // Active deployment if no existing active deployment
             springAppClient.activateDeployment(deploymentClient.getDeploymentName());
         }
+        getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE);
         // Showing deployment status and public url
         getDeploymentStatus(deploymentClient);
         getPublicUrl(springAppClient);
@@ -162,8 +168,8 @@ public class DeployMojo extends AbstractSpringMojo {
     }
 
     protected boolean shouldSkipConfirm() {
-        // Skip confirm when -DskipConfirm or in batch model
-        return skipConfirm || (this.settings != null && !this.settings.isInteractiveMode());
+        // Skip confirm when -Dprompt or in batch model
+        return !prompt || (this.settings != null && !this.settings.isInteractiveMode());
     }
 
     protected boolean confirmDeploy(SpringAppClient springAppClient, SpringDeploymentClient deploymentClient) throws MojoFailureException {
