@@ -7,7 +7,6 @@
 package com.microsoft.azure.maven.spring.spring;
 
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceProperties;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceStatus;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentSettings;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.PersistentDisk;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.RuntimeVersion;
@@ -85,8 +84,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         final UserSourceInfo userSourceInfo = new UserSourceInfo();
         // There are some issues with server side resourceUpload logic
         // Use uploadUrl instead of relativePath
-        final String relativePath = resourceUploadDefinitionInner.uploadUrl().split("\\?")[0];
-        userSourceInfo.withType(UserSourceType.JAR).withRelativePath(relativePath);
+        userSourceInfo.withType(UserSourceType.JAR).withRelativePath(resourceUploadDefinitionInner.relativePath());
         deploymentProperties.withSource(userSourceInfo).withDeploymentSettings(deploymentSettings);
         if (deployment == null) {
             deployment = springManager.deployments().inner().createOrUpdate(resourceGroup, clusterName, appName, deploymentName, deploymentProperties);
@@ -97,16 +95,16 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         return deployment;
     }
 
-    public DeploymentResourceStatus getDeploymentStatus() {
-        return getDeployment().properties().status();
-    }
-
     public DeploymentResourceInner getDeployment() {
         return springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
     }
 
-    public boolean isDeploymentExist() {
-        return getDeployment() != null;
+    public String getAppName() {
+        return appName;
+    }
+
+    public String getDeploymentName() {
+        return deploymentName;
     }
 
     public SpringDeploymentClient(Builder builder) {

@@ -6,6 +6,10 @@
 
 package com.microsoft.azure.maven.spring.utils;
 
+import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.auth.AzureAuthHelper;
+import com.microsoft.azure.auth.AzureCredential;
+import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.maven.spring.SpringConfiguration;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.storage.file.CloudFile;
@@ -22,7 +26,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
@@ -36,6 +46,30 @@ public class Utils {
     private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
     private static final Pattern MEMORY_PATTERN = Pattern.compile(MEMORY_REGEX);
+    private static final String[] PENDING_STRING_LIST = {"   ", ".  ", ".. ", "..."};
+
+    public static AzureTokenCredentials getCredential() {
+        final AzureEnvironment dogFoodEnvironment = new AzureEnvironment(new HashMap<String, String>() {{
+                put(AzureEnvironment.Endpoint.MANAGEMENT.toString(), "https://management.core.windows.net/");
+                put(AzureEnvironment.Endpoint.RESOURCE_MANAGER.toString(), "https://api-dogfood.resources.windows-int.net");
+                put(AzureEnvironment.Endpoint.GALLERY.toString(), "https://current.gallery.azure-test.net/");
+                put(AzureEnvironment.Endpoint.GRAPH.toString(), "https://graph.ppe.windows.net/");
+                put(AzureEnvironment.Endpoint.ACTIVE_DIRECTORY.toString(), "https://login.windows-ppe.net");
+            }});
+        AzureCredential azureCredential = null;
+        try {
+            if (AzureAuthHelper.existsAzureSecretFile()) {
+                azureCredential = AzureAuthHelper.readAzureCredentials();
+            } else {
+                azureCredential = AzureAuthHelper.oAuthLogin(dogFoodEnvironment);
+            }
+            AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
+            return AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, dogFoodEnvironment);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public static <T> T firstOrNull(Iterable<T> list) {
         if (list != null && list.iterator().hasNext()) {
@@ -113,13 +147,46 @@ public class Utils {
         return JAR.equalsIgnoreCase(mavenProject.getPackaging());
     }
 
-    private static boolean isExecutableJar(File file) {
+    public static boolean isExecutableJar(File file) {
         try (final FileInputStream fileInputStream = new FileInputStream(file);
              final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
             final Manifest manifest = jarInputStream.getManifest();
             return manifest.getMainAttributes().getValue("Main-Class") != null;
         } catch (IOException e) {
             return false;
+        }
+    }
+
+    private static <T> Callable<T> getWrappedCallable(String prompt, Future<T> future) {
+        return () -> {
+            System.out.print(prompt);
+            try {
+                for (int i = 0; !future.isDone(); i++) {
+                    System.out.print(PENDING_STRING_LIST[i % 4]);
+                    Thread.sleep(500);
+                    System.out.print("\b\b\b");
+                }
+                return future.get();
+            } catch (InterruptedException e) {
+                future.cancel(true);
+                return null;
+            } finally {
+                System.out.println();
+            }
+        };
+    }
+
+    public static <T> T executeCallableWithPrompt(Callable<T> callable, String prompt, int timeOutInSeconds) {
+        final ExecutorService executorService = Executors.newFixedThreadPool(2);
+        final Future<T> future = executorService.submit(callable);
+        final Future<T> wrappedFuture = executorService.submit(getWrappedCallable(prompt, future));
+        try {
+            return wrappedFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            wrappedFuture.cancel(true);
+            return null;
+        } finally {
+            executorService.shutdown();
         }
     }
 

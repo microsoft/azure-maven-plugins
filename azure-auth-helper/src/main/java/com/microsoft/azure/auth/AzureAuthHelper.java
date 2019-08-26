@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.auth;
 
+import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
@@ -90,7 +91,7 @@ public class AzureAuthHelper {
             case "AZURECHINACLOUD": // this value comes from azure cli
                 return AzureEnvironment.AZURE_CHINA;
             case "AZURE_GERMANY":
-            case "AZUREGERMANCLOUD": // this value comes from azure cli
+            case "AZUREGERMANCLOUD": // the TYPO comes from azure cli: https://docs.microsoft.com/en-us/azure/germany/germany-get-started-connect-with-cli
                 return AzureEnvironment.AZURE_GERMANY;
             case "AZURE_US_GOVERNMENT":
             case "AZUREUSGOVERNMENT": // this value comes from azure cli
@@ -241,6 +242,13 @@ public class AzureAuthHelper {
                     credentials.setAccessToken(newCredentials.getAccessToken());
                     writeAzureCredentials(credentials, getAzureSecretFile());
                 } catch (InterruptedException | ExecutionException e) {
+                    if (e.getCause() instanceof AuthenticationException) {
+                        throw (AuthenticationException) e.getCause();
+                    }
+                    if (e.getCause() instanceof IOException) {
+                        throw (IOException) e.getCause();
+                    }
+                    // because get token method declares throwing IOException
                     throw new IOException(String.format("Error happened during refreshing access token, due to error: %s.", e.getMessage()));
                 }
 

@@ -22,8 +22,7 @@ import java.util.stream.Collectors;
 
 public class SpringAppClient extends AbstractSpringClient {
 
-    public static final String DEFAULT_DEPLOYMENT_NAME = "Init-Deployment";
-    public static final String NO_ACTIVE_DEPLOYMENT = "No active deployment found in app %s, please specify the deployment name in configuration.";
+    public static final String DEFAULT_DEPLOYMENT_NAME = "init";
 
     protected String appName;
 
@@ -62,7 +61,7 @@ public class SpringAppClient extends AbstractSpringClient {
         }
     }
 
-    public AppResourceInner updateActiveDeployment(String deploymentName) {
+    public AppResourceInner activateDeployment(String deploymentName) {
         final AppResourceInner appResourceInner = getApp();
         final AppResourceProperties properties = appResourceInner.properties();
 
@@ -81,17 +80,15 @@ public class SpringAppClient extends AbstractSpringClient {
     }
 
     public String getActiveDeploymentName() {
-        return getApp().properties().activeDeploymentName();
+        final AppResourceInner appResourceInner = getApp();
+        return appResourceInner == null ? null : appResourceInner.properties().activeDeploymentName();
     }
 
     public SpringDeploymentClient getDeploymentClient(String deploymentName) {
         if (StringUtils.isEmpty(deploymentName)) {
             // When deployment name is not specified, get the active Deployment
+            // Todo: throw exception when there are multi active deployments
             final String activeDeploymentName = getActiveDeploymentName();
-            final List<DeploymentResourceInner> deployments = getDeployments();
-            if (StringUtils.isEmpty(activeDeploymentName) && deployments.size() > 0) {
-                throw new IllegalArgumentException(String.format(NO_ACTIVE_DEPLOYMENT, appName));
-            }
             deploymentName = StringUtils.isEmpty(activeDeploymentName) ? DEFAULT_DEPLOYMENT_NAME : activeDeploymentName;
         }
         return new SpringDeploymentClient(this, deploymentName);
@@ -113,7 +110,15 @@ public class SpringAppClient extends AbstractSpringClient {
         return getApp().properties().url();
     }
 
+    public boolean isPublic() {
+        return getApp().properties().publicProperty();
+    }
+
     public AppResourceInner getApp() {
         return springManager.apps().inner().get(resourceGroup, clusterName, appName, "true");
+    }
+
+    public String getAppName() {
+        return appName;
     }
 }

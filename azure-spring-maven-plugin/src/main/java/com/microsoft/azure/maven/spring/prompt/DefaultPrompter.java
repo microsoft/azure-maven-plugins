@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -24,7 +23,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DefaultPrompter implements Closeable {
+public class DefaultPrompter implements IPrompter {
     private static final String EMPTY_REPLACEMENT = ":";
     private static final String PROMPT_MESSAGE_INDEX_TEMPLATE = "Enter an index value for %s %s: ";
     private static final String PROMPT_MESSAGE_BAD_INDEX_TEMPLATE = "You have input a wrong number (%s).%nPlease enter an index value for %s again %s: ";
@@ -106,20 +105,15 @@ public class DefaultPrompter implements Closeable {
         });
     }
 
-    public <T> List<T> promoteMultipleEntities(String name, List<T> entities, Function<T, String> getNameFunc, boolean allowEmpty,
+    public <T> List<T> promoteMultipleEntities(String name, String message, List<T> entities, Function<T, String> getNameFunc, boolean allowEmpty,
             String enterPromote, List<T> defaultValue) throws IOException {
         final boolean hasDefaultValue = defaultValue != null && defaultValue.size() > 0;
         final List<T> res = new ArrayList<>();
-        int index = 1;
 
         if (!allowEmpty && entities.size() == 1) {
             return entities;
         }
-        System.out.println(String.format("Please select values for %ss: ", name));
-        for (final T entity : entities) {
-            final String displayLine = String.format("%2d. %s", index++, getNameFunc.apply(entity));
-            System.out.println(displayLine);
-        }
+        printOptionList(message, entities, null, getNameFunc);
         final String hintMessage = String.format("(eg: %s, press %s %s)", TextUtils.blue("[1-2,4,4]"), TextUtils.blue("ENTER"), enterPromote);
         System.out.print(String.format("Enter index values separated by comma%s: ", hintMessage));
         System.out.flush();
@@ -152,10 +146,9 @@ public class DefaultPrompter implements Closeable {
         }
     }
 
-    public <T> T promoteSingleEntity(String name, List<T> entities, T defaultEntity, Function<T, String> getNameFunc, boolean isRequired)
+    public <T> T promoteSingleEntity(String name, String message, List<T> entities, T defaultEntity, Function<T, String> getNameFunc, boolean isRequired)
             throws IOException, NoResourcesAvailableException {
         final boolean hasDefaultValue = defaultEntity != null;
-        int index = 1;
         if (entities.size() == 0) {
             throw new NoResourcesAvailableException(String.format("No %ss are found.", name));
         }
@@ -163,12 +156,7 @@ public class DefaultPrompter implements Closeable {
             System.out.println(String.format("Use %s (%s) automatically.", name, getNameFunc.apply(entities.get(0))));
             return entities.get(0);
         }
-
-        System.out.println(String.format("Please select a %s: ", name));
-        for (final T entity : entities) {
-            final String displayLine = String.format("%2d. %s", index++, getNameFunc.apply(entity));
-            System.out.println(defaultEntity == entity ? TextUtils.blue(displayLine) : displayLine);
-        }
+        printOptionList(message, entities, defaultEntity, getNameFunc);
 
         final int selectedIndex = entities.indexOf(defaultEntity);
 
@@ -275,10 +263,19 @@ public class DefaultPrompter implements Closeable {
                 if (s1 <= maxValue) {
                     values.add(s1);
                 }
-
             }
         }
         return values;
+    }
+
+    private static <T> void printOptionList(String message, List<T> entities, T defaultEntity, Function<T, String> getNameFunc) {
+        int index = 1;
+        System.out.println(message);
+        for (final T entity : entities) {
+            final String displayLine = String.format("%2d. %s", index++, getNameFunc.apply(entity));
+            System.out.println(defaultEntity == entity ? TextUtils.blue(displayLine) + "*" : displayLine);
+        }
+
     }
 
     static class UserInputHandleResult<T> {

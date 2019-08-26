@@ -49,24 +49,28 @@ class AzureServicePrincipleAuthHelper {
      * Note: This is a workaround for issue https://github.com/microsoft/azure-maven-plugins/issues/125
      *
      * @return Authenticated object if Azure CLI 2.0 is logged with Service Principal.
+     * @throws InvalidConfigurationException where there are some configuration errors
+     * @throws IOException where there read some read error when reading the file
      */
-    static ApplicationTokenCredentials getCredentialFromAzureCliWithServicePrincipal() throws IOException {
+    static AzureTokenCredentials getCredentialFromAzureCliWithServicePrincipal() throws InvalidConfigurationException, IOException {
         final JsonObject subscription = getDefaultSubscriptionObject();
         final String servicePrincipalName = subscription == null ? null : subscription.get("user").getAsJsonObject().get("name").getAsString();
         if (servicePrincipalName == null) {
-            throw new IOException(AZURE_CLI_GET_SUBSCRIPTION_FAIL);
+            throw new InvalidConfigurationException(AZURE_CLI_GET_SUBSCRIPTION_FAIL);
         }
         final JsonArray tokens = getAzureCliTokenList();
         if (tokens == null) {
-            throw new IOException(AZURE_CLI_LOAD_TOKEN_FAIL);
+            throw new InvalidConfigurationException(AZURE_CLI_LOAD_TOKEN_FAIL);
         }
         for (final JsonElement token : tokens) {
             final JsonObject tokenObject = (JsonObject) token;
             if (tokenObject.has("servicePrincipalId") && tokenObject.get("servicePrincipalId").getAsString().equals(servicePrincipalName)) {
                 final String tenantId = tokenObject.get("servicePrincipalTenant").getAsString();
                 final String key = tokenObject.get("accessToken").getAsString();
-                final String env = tokenObject.get("environment").getAsString();
-                return new ApplicationTokenCredentials(servicePrincipalName, tenantId, key, AzureAuthHelper.getAzureEnvironment(env));
+
+                final String env = subscription.get("environmentName") != null ? subscription.get("environmentName").getAsString() : null;
+                return new ApplicationTokenCredentials(servicePrincipalName, tenantId, key, AzureAuthHelper.getAzureEnvironment(env))
+                        .withDefaultSubscriptionId(subscription.get("id").getAsString());
             }
         }
         return null;
@@ -101,5 +105,9 @@ class AzureServicePrincipleAuthHelper {
         final File azureTokenFile = new File(AzureAuthHelper.getAzureConfigFolder(), Constants.AZURE_TOKEN_NAME);
         final String tokenJsonContent = FileUtils.readFileToString(azureTokenFile, Constants.UTF8);
         return (new Gson()).fromJson(tokenJsonContent, JsonArray.class);
+    }
+
+    private AzureServicePrincipleAuthHelper() {
+
     }
 }

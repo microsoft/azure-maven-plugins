@@ -19,7 +19,3 @@ build_script:
           git clone $SDK_REPO
           ./mvnw clean install -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml
           ./mvnw clean verify
-          ./mvnw cobertura:cobertura
-
-on_success:
-  - curl -s https://codecov.io/bash
