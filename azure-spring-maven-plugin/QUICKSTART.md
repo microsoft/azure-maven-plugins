@@ -7,10 +7,6 @@ Azure Spring Cloud Maven Plugin is intended to help you easily create and update
 >
 > More features will be coming after the initial Private Preview announcement.
 
-Keep reading the following section to get started with Azure Managed Service for Spring Cloud.
-
-## Get Started
-
 ### Prerequisite
 
 - Azure Subscription, which has been whitelisted to access Azure Managed Service for Spring Cloud
@@ -130,12 +126,12 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
 1. Deploy the above apps with the following command
 
     ``` 
-    mvn -pl gateway,auth-service,account-service azure-spring:deploy
+    mvn com.microsoft.azure:azure-spring-maven-plugin:0.0.1-SNAPSHOT:deploy
     ```
     
 1. You may access Piggy Metrics with the url printed in above command
 
-## Next Steps
+### Next Steps
 
 Learn more about Azure Managed Service for Spring Cloud by reading below links.
 - [HOW-TO guide of using Azure Managed Service for Spring Cloud](./docs/how-to.md)
