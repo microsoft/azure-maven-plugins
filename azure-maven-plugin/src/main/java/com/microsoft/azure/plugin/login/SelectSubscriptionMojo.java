@@ -70,7 +70,7 @@ public class SelectSubscriptionMojo extends AbstractAzureMojo {
                 throw new MojoFailureException(String.format("The subscription of '%s' doesn't exist.", subscriptionId));
             }
             if (subscriptions.size() == 0) {
-                throw new MojoExecutionException("No subscriptions are found.");
+                throw new MojoExecutionException("Cannot find any subscriptions.");
             } else if (subscriptions.size() == 1) {
                 selectSubscription = subscriptions.get(0);
             } else {
