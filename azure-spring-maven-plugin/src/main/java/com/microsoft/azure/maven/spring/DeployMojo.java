@@ -231,7 +231,7 @@ public class DeployMojo extends AbstractSpringMojo {
     }
 
     protected boolean checkConfiguration() {
-        final String pluginKey = String.format("%s:%s", plugin.getGroupId(), plugin.getArtifactId());
+        final String pluginKey = getPluginKey();
         final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
         if (pluginDom == null) {
             getLog().warn(PROJECT_NO_CONFIGURATION);
