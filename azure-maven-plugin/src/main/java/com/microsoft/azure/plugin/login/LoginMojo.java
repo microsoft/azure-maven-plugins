@@ -82,7 +82,7 @@ public class LoginMojo extends AbstractAzureMojo {
             // device login will either success or either throw AzureLoginFailureException
             final File secretFile = AzureAuthHelper.getAzureSecretFile();
             AzureAuthHelper.writeAzureCredentials(newAzureCredential, secretFile);
-            getLog().info(String.format("The azure credentials are saved to file: %s.", TextUtils.blue(secretFile.getAbsolutePath())));
+            getLog().info(String.format("The azure credential has been saved to file: %s.", TextUtils.blue(secretFile.getAbsolutePath())));
         } catch (AzureLoginFailureException | ExecutionException | InterruptedException | IOException e) {
             throw new MojoFailureException(String.format("Fail to login due to error: %s.", e.getMessage()));
         }
