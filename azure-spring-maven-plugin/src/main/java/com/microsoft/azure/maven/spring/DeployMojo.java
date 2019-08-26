@@ -54,8 +54,8 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
     protected static final String GET_APP_URL_FAIL = "Fail to get application url";
     protected static final String GET_APP_URL_FAIL_WITH_TIMEOUT = "Fail to get application url in %d s";
-    protected static final String STATUS_CREATE_OR_UPDATE_APP = "Creating/Updating the spring cloud service app...";
-    protected static final String STATUS_CREATE_OR_UPDATE_APP_DONE = "Successfully created/updated the spring cloud service app.";
+    protected static final String STATUS_CREATE_OR_UPDATE_APP = "Creating/Updating the app...";
+    protected static final String STATUS_CREATE_OR_UPDATE_APP_DONE = "Successfully created/updated the app.";
     protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT = "Creating/Updating the deployment...";
     protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE = "Successfully created/updated the deployment.";
     protected static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
