@@ -15,6 +15,7 @@ import com.microsoft.azure.maven.spring.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.spring.prompt.IPrompter;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
+import com.microsoft.azure.maven.spring.utils.MavenUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import com.microsoft.azure.maven.utils.TextUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -23,6 +24,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +49,7 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final int GET_STATUS_TIMEOUT = 30;
     protected static final int GET_URL_TIMEOUT = 60;
     protected static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
+    protected static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     protected static final String PROJECT_NOT_SUPPORT = "`azure-spring:deploy` does not support maven project with " +
             "packaging %s, only jar is supported";
     protected static final String ARTIFACT_NOT_SUPPORTED = "Target file does not exist or is not executable, please " +
@@ -70,7 +73,7 @@ public class DeployMojo extends AbstractSpringMojo {
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
-        if (!checkProjectPackaging(project)) {
+        if (!checkProjectPackaging(project) || !checkConfiguration()) {
             return;
         }
         // Init spring clients, and prompt users to confirm
@@ -224,6 +227,17 @@ public class DeployMojo extends AbstractSpringMojo {
             return false;
         } else {
             throw new MojoExecutionException(String.format(PROJECT_NOT_SUPPORT, project.getPackaging()));
+        }
+    }
+
+    protected boolean checkConfiguration() {
+        final String pluginKey = String.format("%s:%s", plugin.getGroupId(), plugin.getArtifactId());
+        final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
+        if (pluginDom == null) {
+            getLog().warn(PROJECT_NO_CONFIGURATION);
+            return false;
+        } else {
+            return true;
         }
     }
 
