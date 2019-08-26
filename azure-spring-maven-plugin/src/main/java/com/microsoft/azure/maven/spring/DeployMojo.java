@@ -16,6 +16,7 @@ import com.microsoft.azure.maven.spring.prompt.IPrompter;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
 import com.microsoft.azure.maven.spring.utils.Utils;
+import com.microsoft.azure.maven.utils.TextUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -196,18 +197,21 @@ public class DeployMojo extends AbstractSpringMojo {
         final List<String> operations = new ArrayList<>();
         final boolean isCreateNewApp = springAppClient.getApp() == null;
         final String appPrompt = isCreateNewApp ?
-                String.format(CONFIRM_PROMPT_CREATE_NEW_APP, deploymentClient.getAppName()) :
-                String.format(CONFIRM_PROMPT_UPDATE_APP, deploymentClient.getAppName());
+                String.format(CONFIRM_PROMPT_CREATE_NEW_APP, TextUtils.blue(deploymentClient.getAppName())) :
+                String.format(CONFIRM_PROMPT_UPDATE_APP, TextUtils.blue(deploymentClient.getAppName()));
         operations.add(appPrompt);
 
         final boolean isCreateNewDeployment = deploymentClient.getDeployment() == null;
         final String deploymentPrompt = isCreateNewDeployment ?
-                String.format(CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT, deploymentClient.getDeploymentName(), deploymentClient.getAppName()) :
-                String.format(CONFIRM_PROMPT_UPDATE_DEPLOYMENT, deploymentClient.getDeploymentName(), deploymentClient.getAppName());
+                String.format(CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT, TextUtils.blue(deploymentClient.getDeploymentName()),
+                        TextUtils.blue(deploymentClient.getAppName())) :
+                String.format(CONFIRM_PROMPT_UPDATE_DEPLOYMENT, TextUtils.blue(deploymentClient.getDeploymentName()),
+                        TextUtils.blue(deploymentClient.getAppName()));
         operations.add(deploymentPrompt);
 
         if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName()) && isCreateNewDeployment) {
-            operations.add(String.format(CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT, deploymentClient.getDeploymentName(), deploymentClient.getAppName()));
+            operations.add(String.format(CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT, TextUtils.blue(deploymentClient.getDeploymentName()),
+                    TextUtils.blue(deploymentClient.getAppName())));
         }
         return operations;
     }
