@@ -7,10 +7,6 @@
 package com.microsoft.azure.auth.exception;
 
 public class AzureLoginTimeoutException extends AzureLoginFailureException {
-
-    /**
-     * @param message
-     */
     public AzureLoginTimeoutException(String message) {
         super(message);
     }
