@@ -24,105 +24,30 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
     ```
     git clone https://github.com/xscript/PiggyMetrics
     ```
+    
+1. Update the pom of `gateway`,`auth-service` and `account-service`, set the `<finalName>` of `spring-boot-maven-plugin` to be `${project.build.finalName}` 
+    > Spring maven plugin uses `${project.build.directory}/${project.build.finalName}.${project.packaging}` as the default artifact, you set the `<resources>` in `<configuration>` to specify the uploaded jars
+  
 1. Change directory and build the project by running below command.
     ```
     cd PiggyMetrics
     mvn clean package -DskipTests
     ```
 
-1. Add the following configuration to correspond pom.xml.
+1. Generate configuration by run `mvn com.microsoft.azure:azure-spring-maven-plugin:0.0.1-SNAPSHOT:config`
 
-    - *account-service*
+    1. Select module `gateway`,`auth-service` and `account-service`
+
+        ![](img\SelectChildModules.png)
+
+    1. Select your subscription and spring cloud service cluster
+
+    1. Expose public access to gateway
+
+        ![](img\ExposePublicAccess.png)
     
-    ```pom
-    <plugin>
-    	<groupId>com.microsoft.azure</groupId>
-    	<artifactId>azure-spring-maven-plugin</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
-    	<configuration>
-    		<subscriptionId>${SUBSCRIPTION_ID}</subscriptionId>
-    		<clusterName>${CLUSTER}</clusterName>
-    		<appName>${project.artifactId}</appName>
-    		<isPublic>false</isPublic>
-    		<deployment>
-    			<cpu>1</cpu>
-    			<memoryInGB>2</memoryInGB>
-    			<instanceCount>1</instanceCount>
-    			<jvmOptions>-Xmx1G</jvmOptions>
-    			<resources>
-    				<resource>
-    					<directory>${project.basedir}/target</directory>
-    					<includes>
-    						<include>account-service.jar</include>
-    					</includes>
-    				</resource>
-    			</resources>
-    		</deployment>
-    	</configuration>
-    </plugin>
-    ```
-    
-    - *auth-service*
-    
-    ```pom
-    <plugin>
-    	<groupId>com.microsoft.azure</groupId>
-    	<artifactId>azure-spring-maven-plugin</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
-    	<configuration>
-    		<subscriptionId>${SUBSCRIPTION_ID}</subscriptionId>
-    		<clusterName>${CLUSTER}</clusterName>
-    		<appName>${project.artifactId}</appName>
-    		<isPublic>false</isPublic>
-    		<deployment>
-    			<cpu>1</cpu>
-    			<memoryInGB>2</memoryInGB>
-    			<instanceCount>1</instanceCount>
-    			<jvmOptions>-Xmx1G</jvmOptions>
-    			<resources>
-    				<resource>
-    					<directory>${project.basedir}/target</directory>
-    					<includes>
-    						<include>auth-service.jar</include>
-    					</includes>
-    				</resource>
-    			</resources>
-    		</deployment>
-    	</configuration>
-    </plugin>
-    ```
-    
-    - *gateway*
-    
-    ```pom
-    <plugin>
-    	<groupId>com.microsoft.azure</groupId>
-    	<artifactId>azure-spring-maven-plugin</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
-    	<configuration>
-    		<subscriptionId>${SUBSCRIPTION_ID}</subscriptionId>
-    		<clusterName>${CLUSTER}</clusterName>
-    		<appName>${project.artifactId}</appName>
-    		<isPublic>true</isPublic>
-    		<deployment>
-    			<cpu>1</cpu>
-    			<memoryInGB>2</memoryInGB>
-    			<instanceCount>1</instanceCount>
-    			<jvmOptions>-Xmx1G</jvmOptions>
-    			<resources>
-    				<resource>
-    					<directory>${project.basedir}/target</directory>
-    					<includes>
-    						<include>gateway.jar</include>
-    					</includes>
-    				</resource>
-    			</resources>
-    		</deployment>
-    	</configuration>
-    </plugin>
-    ```
-    
-> You may use `mvn com.microsoft.azure:azure-spring-maven-plugin:0.0.1-SNAPSHOT:config` to generate configuration, in this case, you need to speicfy resource in each pom as spring cloud maven plugin will use artifact with project's final name. 
+    1. Confirm the configuration
+
 1. Deploy the above apps with the following command
 
     ``` 
