@@ -14,12 +14,14 @@ import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.management.resources.Subscription;
+import com.microsoft.azure.maven.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.awt.Desktop;
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
@@ -78,8 +80,9 @@ public class LoginMojo extends AbstractAzureMojo {
             }
 
             // device login will either success or either throw AzureLoginFailureException
-            AzureAuthHelper.writeAzureCredentials(newAzureCredential, AzureAuthHelper.getAzureSecretFile());
-
+            final File secretFile = AzureAuthHelper.getAzureSecretFile();
+            AzureAuthHelper.writeAzureCredentials(newAzureCredential, secretFile);
+            getLog().info(String.format("The azure credential has been saved to file: %s.", TextUtils.blue(secretFile.getAbsolutePath())));
         } catch (AzureLoginFailureException | ExecutionException | InterruptedException | IOException e) {
             throw new MojoFailureException(String.format("Fail to login due to error: %s.", e.getMessage()));
         }

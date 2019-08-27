@@ -188,10 +188,19 @@
                 <filtering>true</filtering>
                 <includes>
                     <include>ApplicationInsights.xml</include>
+                    <include>**/*.json</include>
+                    <include>*.yaml</include>
                 </includes>
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <escapeString>\</escapeString>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
