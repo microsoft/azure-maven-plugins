@@ -24,16 +24,19 @@
         <url>https://github.com/microsoft/azure-maven-plugins</url>
         <tag>HEAD</tag>
     </scm>
-
+    
     <distributionManagement>
-      <snapshotRepository>
-        <id>ossrh</id>
-        <name>Sonatype Snapshots</name>
-        <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        <uniqueVersion>true</uniqueVersion>
-        <layout>default</layout>
-      </snapshotRepository>
-    </distributionManagement>
+        <repository>
+            <id>dev-azure-com-hanli-private-hanli-private</id>
+            <url>https://pkgs.dev.azure.com/hanli-private/_packaging/hanli-private/maven/v1</url>
+            <releases>
+              <enabled>true</enabled>
+            </releases>
+            <snapshots>
+              <enabled>true</enabled>
+            </snapshots>
+          </repository>
+       </distributionManagement>
 
     <developers>
         <developer>
