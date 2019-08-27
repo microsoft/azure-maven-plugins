@@ -185,7 +185,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected boolean isAuthConfigurationExist() {
-        final String pluginKey = getPluginLookUpKey();
+        final String pluginKey = plugin.getPluginLookupKey();
         final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
         if (pluginDom == null) {
             return false;
@@ -276,10 +276,6 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
     public PluginDescriptor getPlugin() {
         return plugin;
-    }
-
-    public String getPluginLookUpKey() {
-        return String.format("%s:%s", plugin.getGroupId(), plugin.getArtifactId());
     }
 
     public SpringConfiguration getConfiguration() {
