@@ -150,7 +150,7 @@ public class PromptWrapper {
         return handle(templateId, autoApplyDefault, null);
     }
 
-    public String handle(String templateId, boolean autoApplyDefault, Object defaultValueCli)
+    public String handle(String templateId, boolean autoApplyDefault, Object cliParameter)
             throws InvalidConfigurationException, IOException, ExpressionEvaluationException {
         final Map<String, Object> variables = createVariableTables(templateId);
         final String resourceName = (String) variables.get("resource");
@@ -171,14 +171,14 @@ public class PromptWrapper {
 
         final String type = (String) schema.get("type");
 
-        if (defaultValueCli != null) {
+        if (cliParameter != null) {
             // valid against the property from cli parameter, if it passes, then we skip the configuration
-            final String errorMessage = validator.validateSchema(resourceName, propertyName, defaultValueCli.toString());
+            final String errorMessage = validator.validateSchema(resourceName, propertyName, cliParameter.toString());
             if (errorMessage == null) {
-                return defaultValueCli.toString();
+                return cliParameter.toString();
             }
             System.out.println(TextUtils
-                    .yellow(String.format("Input validation failure for %s[%s[: ", propertyName, defaultValueCli.toString(), errorMessage)));
+                    .yellow(String.format("Input validation failure for %s[%s]: ", propertyName, cliParameter.toString(), errorMessage)));
         }
 
         if (autoApplyDefault) {
@@ -248,12 +248,12 @@ public class PromptWrapper {
     }
 
     private Map<String, Object> createVariableTables(String templateId) {
-        final Map<String, Object> templateById = templates.get(templateId);
-        if (templateById == null) {
+        final Map<String, Object> variables = templates.get(templateId);
+        if (variables == null) {
             throw new IllegalArgumentException("Cannot find template: " + templateId);
         }
-
-        return this.mergeCommonProperties(templateById);
+        variables.putAll(this.commonVariables);
+        return variables;
     }
 
     private String evaluateMavenExpression(String input) throws ExpressionEvaluationException {
@@ -261,13 +261,6 @@ public class PromptWrapper {
             return (String) expressionEvaluator.evaluate(input);
         }
         return input;
-    }
-
-    private Map<String, Object> mergeCommonProperties(Map<String, Object> map) {
-        for (final Map.Entry<String, Object> entity : commonVariables.entrySet()) {
-            map.put(entity.getKey(), entity.getValue());
-        }
-        return map;
     }
 
     private static void printConfirmation(String key, Object value) {
