@@ -6,8 +6,6 @@
 
 package com.microsoft.azure.maven.spring.prompt;
 
-import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
@@ -18,27 +16,15 @@ public interface IPrompter extends Closeable {
     /**
      * Promote user to input a text value through a terminal.
      *
-     * @param name the property name
+     * @param message the promote message
      * @param defaultValue the default value if user presses ENTER key.
      * @param regex the regex to check against user's input
      * @param isRequired whether or not a null/empty value is acceptable
      * @return the text value user has input
      * @throws IOException when there are any IO errors.
      */
-    String promoteString(String name, String defaultValue, String regex, boolean isRequired) throws IOException;
+    String promoteString(String message, String defaultValue, Function<String, InputValidationResult> verify, boolean isRequired) throws IOException;
 
-    /**
-     * Promote user to input a number value through a terminal.
-     *
-     * @param name the property name
-     * @param defaultValue the default number value if user presses ENTER key.
-     * @param minValue the minimal value
-     * @param maxValue the maximal value
-     * @param isRequired whether or not a null value is acceptable
-     * @return the number value user has input
-     * @throws IOException when there are any IO errors.
-     */
-    Integer promoteInteger(String name, Integer defaultValue, int minValue, int maxValue, boolean isRequired) throws IOException;
 
 
     /**
@@ -63,13 +49,19 @@ public interface IPrompter extends Closeable {
      * @param entities the known list which are to be selected in
      * @param getNameFunc the entity to string convert function
      * @param allowEmpty whether or not to accept empty list.
-     * @param enterPromote the promote message to give user a hint about the behaviour of pressing ENTER key directly, should be align with the
+     * @param enterPromote the promote message to give user a hint about the behavior of pressing ENTER key directly, should be align with the
      *  actual meaning of defaultValue
      * @param defaultEntities the default entities when pressing ENTER key directly.
      * @return the list user selected
      * @throws IOException when there are any IO errors.
      */
-    <T> List<T> promoteMultipleEntities(String name, String message, List<T> entities, Function<T, String> getNameFunc, boolean allowEmpty, String enterPromote,
+    <T> List<T> promoteMultipleEntities(
+            String header,
+            String promotePrefix,
+            String selectNoneMessage,
+            List<T> entities, Function<T, String> getNameFunc,
+            boolean allowEmpty,
+            String enterPromote,
             List<T> defaultEntities) throws IOException;
 
 
@@ -86,5 +78,5 @@ public interface IPrompter extends Closeable {
      * @throws IOException when there are any IO errors.
      */
     <T> T promoteSingleEntity(String name, String message, List<T> entities, T defaultEntity, Function<T, String> getNameFunc, boolean isRequired)
-            throws IOException, NoResourcesAvailableException;
+            throws IOException;
 }

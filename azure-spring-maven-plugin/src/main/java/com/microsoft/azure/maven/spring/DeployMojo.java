@@ -184,7 +184,7 @@ public class DeployMojo extends AbstractSpringMojo {
             for (int i = 1; i <= operations.size(); i++) {
                 System.out.println(String.format("%-2d  %s", i, operations.get(i - 1)));
             }
-            return prompter.promoteYesNo(true, CONFIRM_PROMPT_CONFIRM, true);
+            return prompter.promoteYesNo(CONFIRM_PROMPT_CONFIRM, true, true);
         } catch (IOException e) {
             throw new MojoFailureException(e.getMessage());
         } finally {

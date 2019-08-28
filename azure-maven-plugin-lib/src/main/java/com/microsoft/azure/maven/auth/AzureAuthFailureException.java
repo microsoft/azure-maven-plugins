@@ -7,6 +7,8 @@
 package com.microsoft.azure.maven.auth;
 
 public class AzureAuthFailureException extends Exception {
+    private static final long serialVersionUID = 6870052716860684958L;
+
     public AzureAuthFailureException(String message) {
         super(message);
     }
