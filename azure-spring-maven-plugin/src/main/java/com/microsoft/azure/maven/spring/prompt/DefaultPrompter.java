@@ -127,7 +127,7 @@ public class DefaultPrompter implements IPrompter {
                     System.out.println(TextUtils.yellow(String.format("The input value('%s') is invalid.", input)));
                 }
             } else {
-
+                System.out.println(TextUtils.yellow(String.format("The input value('%s') is invalid.", input)));
             }
             System.out.flush();
         }
