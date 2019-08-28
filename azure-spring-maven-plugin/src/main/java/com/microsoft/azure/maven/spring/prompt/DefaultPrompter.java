@@ -54,7 +54,8 @@ public class DefaultPrompter implements IPrompter {
 
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-    public String promoteString(String message, String defaultValue, Function<String, InputValidationResult> verify, boolean isRequired) throws IOException {
+    public String promoteString(String message, String defaultValue, Function<String, InputValidationResult> verify, boolean isRequired)
+            throws IOException {
         final boolean hasDefaultValue = StringUtils.isNotBlank(defaultValue);
         System.out.print(message);
         System.out.flush();
@@ -87,10 +88,8 @@ public class DefaultPrompter implements IPrompter {
         });
     }
 
-    public <T> List<T> promoteMultipleEntities(String header, String promotePrefix,
-            String selectNoneMessage,
-            List<T> entities, Function<T, String> getNameFunc, boolean allowEmpty,
-            String enterPromote, List<T> defaultValue) throws IOException {
+    public <T> List<T> promoteMultipleEntities(String header, String promotePrefix, String selectNoneMessage, List<T> entities,
+            Function<T, String> getNameFunc, boolean allowEmpty, String enterPromote, List<T> defaultValue) throws IOException {
         final boolean hasDefaultValue = defaultValue != null && defaultValue.size() > 0;
         final List<T> res = new ArrayList<>();
 
@@ -116,22 +115,26 @@ public class DefaultPrompter implements IPrompter {
                 System.out.println(selectNoneMessage);
             }
             if (isValidIntRangeInput(input)) {
-                for (final int i : parseIntRanges(input, 1, entities.size())) {
-                    res.add(entities.get(i - 1));
+                try {
+                    for (final int i : parseIntRanges(input, 1, entities.size())) {
+                        res.add(entities.get(i - 1));
+                    }
+                    if (res.size() > 0 || allowEmpty) {
+                        return res;
+                    }
+                    System.out.print(selectNoneMessage);
+                } catch (NumberFormatException ex) {
+                    System.out.println(TextUtils.yellow(String.format("The input value('%s') is invalid.", input)));
                 }
-                if (res.size() > 0 || allowEmpty) {
-                    return res;
-                }
-                System.out.print(selectNoneMessage);
             } else {
-                System.out.println(TextUtils.yellow(String.format("The input value('%s') is invalid.", input)));
+
             }
             System.out.flush();
         }
     }
 
-    public <T> T promoteSingleEntity(String header, String message, List<T> entities, T defaultEntity, Function<T, String> getNameFunc, boolean isRequired)
-            throws IOException {
+    public <T> T promoteSingleEntity(String header, String message, List<T> entities, T defaultEntity, Function<T, String> getNameFunc,
+            boolean isRequired) throws IOException {
         final boolean hasDefaultValue = defaultEntity != null;
 
         printOptionList(header, entities, defaultEntity, getNameFunc);
@@ -180,10 +183,13 @@ public class DefaultPrompter implements IPrompter {
         if (!NumberUtils.isDigits(input)) {
             return InputValidationResult.error(message);
         }
-
-        final int value = Integer.parseInt(input);
-        if (value >= start && value <= end) {
-            return InputValidationResult.wrap(value);
+        try {
+            final int value = Integer.parseInt(input);
+            if (value >= start && value <= end) {
+                return InputValidationResult.wrap(value);
+            }
+        } catch (NumberFormatException ex) {
+            // ignore since last statement is error
         }
 
         return InputValidationResult.error(message);
