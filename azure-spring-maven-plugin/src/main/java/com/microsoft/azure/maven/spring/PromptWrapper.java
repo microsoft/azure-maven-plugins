@@ -6,14 +6,7 @@
 
 package com.microsoft.azure.maven.spring;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jackson.JsonLoader;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.ProcessingMessage;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import com.github.fge.jsonschema.main.JsonValidator;
+import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.prompt.DefaultPrompter;
@@ -21,6 +14,7 @@ import com.microsoft.azure.maven.spring.prompt.IPrompter;
 import com.microsoft.azure.maven.spring.prompt.InputValidationResult;
 import com.microsoft.azure.maven.spring.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.spring.utils.TemplateUtils;
+import com.microsoft.azure.maven.spring.validation.SchemaValidator;
 import com.microsoft.azure.maven.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.logging.Log;
@@ -30,37 +24,31 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class PromptWrapper {
     private ExpressionEvaluator expressionEvaluator;
-    private ObjectMapper mapper;
     private IPrompter prompt;
     private Map<String, Map<String, Object>> templates;
-    private Map<String, JsonNode> schemas;
     private Map<String, Object> commonVariables;
-    private JsonValidator validator;
+    private SchemaValidator validator;
     private Log log;
 
     public PromptWrapper(ExpressionEvaluator expressionEvaluator, Log log) {
         this.expressionEvaluator = expressionEvaluator;
 
-        this.mapper = new ObjectMapper();
         this.prompt = new DefaultPrompter();
-        validator = JsonSchemaFactory.byDefault().getValidator();
+        validator = new SchemaValidator();
         this.log = log;
     }
 
     public void initialize() throws IOException {
         templates = new HashMap<>();
-        schemas = new HashMap<>();
         commonVariables = new HashMap<>();
         final Yaml yaml = new Yaml();
         try (final InputStream inputStream = this.getClass().getResourceAsStream("/MessageTemplates.yaml")) {
@@ -162,35 +150,39 @@ public class PromptWrapper {
         return selectedEntities;
     }
 
-    public String handle(String templateId, boolean autoApplyDefault) throws IOException, ExpressionEvaluationException {
+    public String handle(String templateId, boolean autoApplyDefault) throws InvalidConfigurationException, IOException, ExpressionEvaluationException {
         return handle(templateId, autoApplyDefault, null);
     }
 
-    public String handle(String templateId, boolean autoApplyDefault, Object defaultValueCli) throws IOException, ExpressionEvaluationException {
+    public String handle(String templateId, boolean autoApplyDefault, Object defaultValueCli)
+            throws InvalidConfigurationException, IOException, ExpressionEvaluationException {
         final Map<String, Object> variables = createVariableTables(templateId);
         final String resourceName = (String) variables.get("resource");
-        String type = (String) variables.get("type");
-        Object defaultObj = variables.get("default");
-        final String propertyName = (String) variables.get("property");
-        if (StringUtils.isNotBlank(resourceName)) {
-            final Map<String, Object> schema = getSchema(resourceName, propertyName);
-            variables.put("schema", schema);
-            if (defaultObj == null) {
-                defaultObj = schema.get("default");
-            }
 
-            if (StringUtils.isBlank(type)) {
-                type = (String) schema.get("type");
+        final String propertyName = (String) variables.get("property");
+        if (StringUtils.isBlank(propertyName)) {
+            throw new InvalidConfigurationException("Cannot find propertyName in template: " + templateId);
+        }
+        if (StringUtils.isBlank(resourceName)) {
+            throw new InvalidConfigurationException("Cannot find schema for property " + propertyName);
+        }
+        final Map<String, Object> schema = validator.getSchemaMap(resourceName, propertyName);
+        variables.put("schema", schema);
+        Object defaultObj = variables.get("default");
+        if (defaultObj == null) {
+            defaultObj = schema.get("default");
+        }
+
+        final String type = (String) schema.get("type");
+
+        if (defaultValueCli != null) {
+            // valid against the property from cli parameter, if it passes, then we skip the configuration
+            final String errorMessage = validator.validateSchema(resourceName, propertyName, defaultValueCli.toString());
+            if (errorMessage == null) {
+                return defaultValueCli.toString();
             }
-            if (defaultValueCli != null) {
-                // valid against the property from cli parameter, if it passes, then we skip the configuration
-                final String errorMessage = validateSchema(resourceName, type, propertyName, defaultValueCli.toString());
-                if (errorMessage == null) {
-                    return defaultValueCli.toString();
-                }
-                System.out.println(TextUtils
-                        .yellow(String.format("Input validation failure for %s[%s[: ", propertyName, defaultValueCli.toString(), errorMessage)));
-            }
+            System.out.println(TextUtils
+                    .yellow(String.format("Input validation failure for %s[%s[: ", propertyName, defaultValueCli.toString(), errorMessage)));
         }
 
         if (autoApplyDefault) {
@@ -199,10 +191,9 @@ public class PromptWrapper {
         if (defaultObj instanceof String && ((String) defaultObj).contains("${")) {
             variables.put("evaluatedDefault", expressionEvaluator.evaluate((String) defaultObj));
         }
-        final String finalType = type;
         final String promoteMessage = TemplateUtils.evalText("promote", variables);
         final String inputAfterValidate = prompt.promoteString(promoteMessage, Objects.toString(defaultObj, null), input -> {
-            if ("boolean".equals(finalType)) {
+            if ("boolean".equals(type)) {
                 if (input.equalsIgnoreCase("Y")) {
                     return InputValidationResult.wrap("true");
                 }
@@ -217,29 +208,7 @@ public class PromptWrapper {
                 return SneakyThrowUtils.sneakyThrow(e);
             }
 
-            if (StringUtils.isBlank(resourceName)) {
-                if ("boolean".equals(finalType)) {
-                    if (value.equalsIgnoreCase("TRUE") || value.equalsIgnoreCase("FALSE")) {
-                        return InputValidationResult.wrap(input);
-                    }
-
-                    return InputValidationResult
-                            .error(String.format("'%s' cannot be converted to a boolean value.", input == value ? input : input + " -> " + value));
-                }
-
-                if ("integer".equals(finalType)) {
-                    try {
-                        Integer.parseInt(value);
-                        return InputValidationResult.wrap(input);
-                    } catch (NumberFormatException ex) {
-                        return InputValidationResult.error(
-                                String.format("'%s' cannot be converted to an integer value.", input == value ? input : input + " -> " + value));
-                    }
-                }
-
-                return InputValidationResult.wrap(input);
-            }
-            final String errorMessage = validateSchema(resourceName, finalType, propertyName, value);
+            final String errorMessage = validator.validateSchema(resourceName, propertyName, value);
             return errorMessage == null ? InputValidationResult.wrap(input) : InputValidationResult.error(errorMessage);
 
         }, TemplateUtils.evalBoolean("required", variables));
@@ -286,28 +255,6 @@ public class PromptWrapper {
         return this.mergeCommonProperties(templateById);
     }
 
-    private String validateSchema(String resourceName, String type, String name, String value) {
-        try {
-            final ProcessingReport reports = validator.validate(this.schemas.get(resourceName),
-                    mapper.valueToTree(Collections.singletonMap(name, convertToType(type, value))));
-            if (reports.isSuccess()) {
-                return null;
-            }
-
-            final List<String> errors = new ArrayList<>();
-            for (final ProcessingMessage pm : reports) {
-                errors.add(pm.getMessage());
-            }
-            if (errors.size() == 1) {
-                return errors.get(0);
-            }
-            return String.format("The input violates the validation rules:\n %s", errors.stream().collect(Collectors.joining("\n")));
-
-        } catch (IllegalArgumentException | ProcessingException e) {
-            return e.getMessage();
-        }
-    }
-
     private String evaluateMavenExpression(String input) throws ExpressionEvaluationException {
         if (input != null && input.contains("${")) {
             return (String) expressionEvaluator.evaluate(input);
@@ -320,38 +267,5 @@ public class PromptWrapper {
             map.put(entity.getKey(), entity.getValue());
         }
         return map;
-    }
-
-    private Map<String, Object> getSchema(String resourceName, String property) throws IOException {
-        final JsonNode schemaRoot = this.schemas.computeIfAbsent(resourceName,
-            t -> {
-                try {
-                    return JsonLoader.fromResource("/schema/" + resourceName + ".json");
-                } catch (IOException e) {
-                    return SneakyThrowUtils.sneakyThrow(e);
-                }
-            });
-        final JsonNode propertyJson = schemaRoot.get("properties").get(property);
-        return mapper.treeToValue(propertyJson, Map.class);
-    }
-
-    private static Object convertToType(String type, String value) {
-        if ("string".equals(type)) {
-            return value;
-        }
-        if ("integer".equals(type)) {
-            try {
-                return Integer.parseInt(value);
-            } catch (Exception ex) {
-            }
-        }
-        if ("boolean".equals(type)) {
-            try {
-                return Boolean.parseBoolean(value);
-            } catch (Exception ex) {
-
-            }
-        }
-        return value;
     }
 }

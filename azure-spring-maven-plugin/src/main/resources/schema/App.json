@@ -8,6 +8,11 @@
 			"description": "The app name",
 			"type": "string",
 			"pattern": "^[a-zA-Z_][0-9a-zA-Z_\\-]*$"
+		},
+		"isPublic": {
+			"description": "Public accessible to this app",
+			"type": "boolean",
+			"default": false
 		}
 	},
 	"required": [

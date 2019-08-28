@@ -152,7 +152,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         }
     }
 
-    private void configCommon() throws IOException, ExpressionEvaluationException, NoResourcesAvailableException {
+    private void configCommon() throws IOException, ExpressionEvaluationException, NoResourcesAvailableException, InvalidConfigurationException {
         configureAppName();
         configurePublic();
         configureInstanceCount();
@@ -193,19 +193,19 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     }
 
-    private void configureJvmOptions() throws IOException, ExpressionEvaluationException {
+    private void configureJvmOptions() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
         this.deploymentSettings.withJvmOptions(this.wrapper.handle("configure-jvm-options", !advancedOptions || parentMode));
     }
 
-    private void configureCpu() throws IOException, ExpressionEvaluationException {
+    private void configureCpu() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
         this.deploymentSettings.withCpu(this.wrapper.handle("configure-cpu", !advancedOptions || parentMode));
     }
 
-    private void configureMemory() throws IOException, ExpressionEvaluationException {
+    private void configureMemory() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
         this.deploymentSettings.withMemoryInGB(this.wrapper.handle("configure-memory", !advancedOptions || parentMode));
     }
 
-    private void configureInstanceCount() throws IOException, ExpressionEvaluationException {
+    private void configureInstanceCount() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
         this.deploymentSettings.withInstanceCount(this.wrapper.handle("configure-instance-count", !advancedOptions || parentMode));
     }
 
@@ -315,7 +315,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         }
     }
 
-    private void configurePublic() throws IOException, NoResourcesAvailableException, ExpressionEvaluationException {
+    private void configurePublic() throws IOException, NoResourcesAvailableException, ExpressionEvaluationException, InvalidConfigurationException {
         if (this.parentMode) {
             publicProjects = this.wrapper.handleMultipleCase("configure-public-list", targetProjects, MavenProject::getName);
         } else {
@@ -324,7 +324,7 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     }
 
-    private void configureAppName() throws IOException, ExpressionEvaluationException {
+    private void configureAppName() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
         if (StringUtils.isNotBlank(appName)) {
             if (this.parentMode) {
                 throw new UnsupportedOperationException("Cannot specify appName in parent mode.");

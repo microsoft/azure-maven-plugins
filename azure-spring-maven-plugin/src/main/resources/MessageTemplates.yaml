@@ -58,9 +58,9 @@ required:         true
 ---
 id:               configure-public
 promote:          "Expose public access for this app ***{{project.getName()}}***? (y/N):"
+resource:         App
+property:         isPublic
 required:         false
-default:          false
-type:             boolean
 ---
 id:               configure-instance-count
 promote:          "Input instance count [***{{schema.minimum}}***-***{{schema.maximum}}***] (***{{schema.default}}***):"
