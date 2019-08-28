@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class PromptWrapper {
     private ExpressionEvaluator expressionEvaluator;
@@ -82,8 +83,8 @@ public class PromptWrapper {
                 return options.get(0);
             }
             if (!this.prompt.promoteYesNo(TemplateUtils.evalText("promote.one", variables),
-                    /* if only one options is avaiable,
-                       when it is required, select it by defaut*/
+                    /* if only one options is available,
+                       when it is required, select it by default*/
                     isRequired ,
                     isRequired)) {
                 if (isRequired) {
@@ -212,26 +213,27 @@ public class PromptWrapper {
         return inputAfterValidate;
     }
 
-    public void confirmCommonHeader() {
-        System.out.println(TemplateUtils.evalText("promote.header", createVariableTables("confirm")));
-    }
-
-    public boolean confirmCommonFooter(Log log) throws IOException {
+    public void confirmChanges(Map<String, String> changesToConfirm, Supplier<Integer> confirmedAction) throws IOException {
         final Map<String, Object> variables = createVariableTables("confirm");
+        System.out.println(TemplateUtils.evalText("promote.header", variables));
+        for (final Map.Entry<String, String> entry : changesToConfirm.entrySet()) {
+            if (StringUtils.isNotBlank(entry.getValue())) {
+                printConfirmation(entry.getKey(), entry.getValue());
+            }
+        }
+
         final Boolean userConfirm = prompt.promoteYesNo(
                 TemplateUtils.evalText("promote.footer", variables),
                 TemplateUtils.evalBoolean("default", variables),
                 TemplateUtils.evalBoolean("required", variables));
         if (userConfirm == null || !userConfirm.booleanValue()) {
             log.info(TemplateUtils.evalText("message.skip", variables));
-            return false;
+            return;
         }
-        return true;
-    }
-
-    public void printConfirmResult(int size, Log log) {
-        final Map<String, Object> variables = createVariableTables("confirm");
-        if (size == 1) {
+        final Integer appliedCount = confirmedAction.get();
+        if (appliedCount == null || appliedCount.intValue() == 0) {
+            log.info(TemplateUtils.evalText("message.none", variables));
+        } else if (appliedCount.intValue() == 1) {
             log.info(TemplateUtils.evalText("message.one", variables));
         } else {
             log.info(TemplateUtils.evalText("message.many", variables));
@@ -263,5 +265,9 @@ public class PromptWrapper {
             map.put(entity.getKey(), entity.getValue());
         }
         return map;
+    }
+
+    private static void printConfirmation(String key, Object value) {
+        System.out.printf("%-17s : %s%n", key, TextUtils.green(Objects.toString(value)));
     }
 }

@@ -49,8 +49,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -197,73 +198,55 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private void configureJvmOptions() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
-        this.deploymentSettings.withJvmOptions(this.wrapper.handle("configure-jvm-options", !advancedOptions || parentMode));
+        this.deploymentSettings.withJvmOptions(this.wrapper.handle("configure-jvm-options", autoUseDefault()));
     }
 
     private void configureCpu() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
-        this.deploymentSettings.withCpu(this.wrapper.handle("configure-cpu", !advancedOptions || parentMode));
+        this.deploymentSettings.withCpu(this.wrapper.handle("configure-cpu", autoUseDefault()));
     }
 
     private void configureMemory() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
-        this.deploymentSettings.withMemoryInGB(this.wrapper.handle("configure-memory", !advancedOptions || parentMode));
+        this.deploymentSettings.withMemoryInGB(this.wrapper.handle("configure-memory", autoUseDefault()));
     }
 
     private void configureInstanceCount() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
-        this.deploymentSettings.withInstanceCount(this.wrapper.handle("configure-instance-count", !advancedOptions || parentMode));
+        this.deploymentSettings.withInstanceCount(this.wrapper.handle("configure-instance-count", autoUseDefault()));
+    }
+
+    private boolean autoUseDefault() {
+        return !advancedOptions || parentMode;
     }
 
     private void confirmAndSave() throws IOException {
-        this.wrapper.confirmCommonHeader();
-        confirmCommon();
+        final Map<String, String> changesToConfirm = new LinkedHashMap<>();
+        changesToConfirm.put("Subscription id", this.subscriptionId);
+        changesToConfirm.put("Service name", this.appSettings.getClusterName());
+
         if (this.parentMode) {
             if (this.publicProjects != null && this.publicProjects.size() > 0) {
-                printConfirmation("Public " + English.plural("app", this.publicProjects.size()),
+                changesToConfirm.put("Public " + English.plural("app", this.publicProjects.size()),
                         publicProjects.stream().map(t -> t.getName()).collect(Collectors.joining(", ")));
             }
-            if (this.wrapper.confirmCommonFooter(getLog())) {
-                saveConfigurationParent();
-                this.wrapper.printConfirmResult(this.targetProjects.size(), getLog());
-            }
+            this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
         } else {
-            printConfirmation("App name", this.appSettings.getAppName());
-
-            if (StringUtils.isNotBlank(this.appSettings.isPublic())) {
-                printConfirmation("Public access", this.appSettings.isPublic());
-            }
-
-            if (StringUtils.isNotBlank(this.deploymentSettings.getInstanceCount())) {
-                printConfirmation("Instance count", this.deploymentSettings.getInstanceCount());
-            }
-
-            if (StringUtils.isNotBlank(this.deploymentSettings.getCpu())) {
-                printConfirmation("CPU count", this.deploymentSettings.getCpu());
-            }
-
-            if (StringUtils.isNotBlank(this.deploymentSettings.getMemoryInGB())) {
-                printConfirmation("Memory size(GB)", this.deploymentSettings.getMemoryInGB());
-            }
-
-            if (StringUtils.isNotBlank(this.deploymentSettings.getJvmOptions())) {
-                printConfirmation("JVM options", this.deploymentSettings.getJvmOptions());
-            }
-
-            if (this.wrapper.confirmCommonFooter(getLog())) {
-                saveConfigurationToProject(this.project);
-                this.wrapper.printConfirmResult(this.targetProjects.size(), getLog());
-            }
+            changesToConfirm.put("App name", this.appSettings.getAppName());
+            changesToConfirm.put("Public access", this.appSettings.isPublic());
+            changesToConfirm.put("Instance count", this.deploymentSettings.getInstanceCount());
+            changesToConfirm.put("CPU count", this.deploymentSettings.getCpu());
+            changesToConfirm.put("Memory size(GB)", this.deploymentSettings.getMemoryInGB());
+            changesToConfirm.put("JVM options", this.deploymentSettings.getJvmOptions());
+            this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
         }
     }
 
-    private void confirmCommon() {
-        printConfirmation("Subscription id", this.subscriptionId);
-        printConfirmation("Service name", this.appSettings.getClusterName());
-    }
-
-    private void saveConfigurationParent() {
+    private Integer saveConfigurationToPom() {
         for (final MavenProject proj : targetProjects) {
-            this.appSettings.setIsPublic((publicProjects != null && publicProjects.contains(proj)) ? "true" : "false");
+            if (this.parentMode) {
+                this.appSettings.setIsPublic((publicProjects != null && publicProjects.contains(proj)) ? "true" : "false");
+            }
             saveConfigurationToProject(proj);
         }
+        return targetProjects.size();
     }
 
     private void saveConfigurationToProject(MavenProject proj) {
@@ -374,7 +357,6 @@ public class ConfigMojo extends AbstractSpringMojo {
         final Subscription select = this.wrapper.handleSelectOne("select-subscriptions", subscriptions, null,
             t -> String.format("%s (%s)", t.displayName(), t.subscriptionId()));
         return select.subscriptionId();
-
     }
 
     private boolean isProjectConfigured(MavenProject proj) {
@@ -399,9 +381,5 @@ public class ConfigMojo extends AbstractSpringMojo {
             }
         }
         return false;
-    }
-
-    private static void printConfirmation(String key, Object value) {
-        System.out.printf("%-17s : %s%n", key, TextUtils.green(Objects.toString(value)));
     }
 }
