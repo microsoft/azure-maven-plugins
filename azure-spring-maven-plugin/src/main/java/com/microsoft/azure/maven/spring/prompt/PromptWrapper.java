@@ -9,7 +9,6 @@ package com.microsoft.azure.maven.spring.prompt;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
-import com.microsoft.azure.maven.spring.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.spring.utils.TemplateUtils;
 import com.microsoft.azure.maven.spring.validation.SchemaValidator;
 import com.microsoft.azure.maven.utils.TextUtils;
@@ -191,18 +190,22 @@ public class PromptWrapper {
         final String promoteMessage = TemplateUtils.evalText("promote", variables);
         final String inputAfterValidate = prompt.promoteString(promoteMessage, Objects.toString(defaultObj, null), input -> {
             if ("boolean".equals(type)) {
+                // convert user input from y to true and N to false
                 if (input.equalsIgnoreCase("Y")) {
-                    return InputValidationResult.wrap("true");
+                    input = "true";
                 }
                 if (input.equalsIgnoreCase("N")) {
-                    return InputValidationResult.wrap("false");
+                    input = "false";
                 }
             }
             final String value;
             try {
                 value = evaluateMavenExpression(input);
+                if (value == null) {
+                    return InputValidationResult.error(String.format("Cannot evaluate maven expression: %s", input));
+                }
             } catch (ExpressionEvaluationException e) {
-                return SneakyThrowUtils.sneakyThrow(e);
+                return InputValidationResult.error(e.getMessage());
             }
 
             final String errorMessage = validator.validateSchema(resourceName, propertyName, value);

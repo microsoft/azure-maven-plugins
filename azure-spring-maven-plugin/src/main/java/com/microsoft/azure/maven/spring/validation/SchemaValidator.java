@@ -41,9 +41,9 @@ public class SchemaValidator {
         Preconditions.checkArgument(StringUtils.isNoneBlank(name), "Parameter 'name' should not be null or empty.");
         try {
             final JsonNode schema = this.schemas.get(resourceName);
-            final String type = schema.get("type").asText();
+            final String type = schema.get("properties").get(name).get("type").asText();
             if (StringUtils.isBlank(type)) {
-                return "Invalid ";
+                return "Invalid schema configuration for property " + name;
             }
             final ProcessingReport reports = validator.validate(schema,
                     mapper.valueToTree(Collections.singletonMap(name, stringToObject(type, value))));
@@ -82,10 +82,20 @@ public class SchemaValidator {
             return value;
         }
         if ("integer".equals(type)) {
-            return Integer.parseInt(value);
+            try {
+                return Integer.parseInt(value);
+            } catch (NumberFormatException ex) {
+                throw new IllegalArgumentException(String.format("%s cannot be converted to an integer", value));
+            }
         }
         if ("boolean".equals(type)) {
-            return Boolean.parseBoolean(value);
+            if ("true".equalsIgnoreCase(value)) {
+                return Boolean.TRUE;
+            }
+            if ("false".equalsIgnoreCase(value)) {
+                return Boolean.FALSE;
+            }
+            throw new IllegalArgumentException(String.format("%s cannot be converted to a boolean value.", value));
         }
         throw new IllegalArgumentException(String.format("Type '%s' is not supported in schema validation.", type));
     }
