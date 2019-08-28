@@ -4,14 +4,11 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring;
+package com.microsoft.azure.maven.spring.prompt;
 
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
-import com.microsoft.azure.maven.spring.prompt.DefaultPrompter;
-import com.microsoft.azure.maven.spring.prompt.IPrompter;
-import com.microsoft.azure.maven.spring.prompt.InputValidationResult;
 import com.microsoft.azure.maven.spring.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.spring.utils.TemplateUtils;
 import com.microsoft.azure.maven.spring.validation.SchemaValidator;
@@ -41,13 +38,12 @@ public class PromptWrapper {
 
     public PromptWrapper(ExpressionEvaluator expressionEvaluator, Log log) {
         this.expressionEvaluator = expressionEvaluator;
-
-        this.prompt = new DefaultPrompter();
-        validator = new SchemaValidator();
         this.log = log;
     }
 
     public void initialize() throws IOException {
+        prompt = new DefaultPrompter();
+        validator = new SchemaValidator();
         templates = new HashMap<>();
         commonVariables = new HashMap<>();
         final Yaml yaml = new Yaml();

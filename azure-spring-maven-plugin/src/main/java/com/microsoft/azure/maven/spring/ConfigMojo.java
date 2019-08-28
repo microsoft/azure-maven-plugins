@@ -16,6 +16,7 @@ import com.microsoft.azure.maven.spring.configuration.AppSettings;
 import com.microsoft.azure.maven.spring.configuration.DeploymentSettings;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
+import com.microsoft.azure.maven.spring.prompt.PromptWrapper;
 import com.microsoft.azure.maven.spring.utils.MavenUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import com.microsoft.azure.maven.spring.utils.XmlUtils;
@@ -58,6 +59,8 @@ import java.util.stream.Collectors;
 @Mojo(name = "config", requiresProject = true, requiresDirectInvocation = true, aggregator = true)
 public class ConfigMojo extends AbstractSpringMojo {
     private static final String DEPLOYMENT_TAG = "deployment";
+    private static final List<String> APP_PROPERTIES = Arrays.asList("subscriptionId", "appName", "isPublic", "runtimeVersion");
+    private static final List<String> DEPLOYMENT_PROPERTIES = Arrays.asList("cpu", "memoryInGB", "instanceCount", "jvmOptions");
 
     private boolean parentMode;
 
@@ -377,22 +380,20 @@ public class ConfigMojo extends AbstractSpringMojo {
     private boolean isProjectConfigured(MavenProject proj) {
         final String pluginIdentifier = plugin.getPluginLookupKey();
         final Xpp3Dom configuration = MavenUtils.getPluginConfiguration(proj, pluginIdentifier);
-        final List<String> topLevelProperties = Arrays.asList("subscriptionId", "appName", "isPublic", "runtimeVersion");
 
         if (configuration == null) {
             return false;
         }
 
         for (final Xpp3Dom child : configuration.getChildren()) {
-            if (topLevelProperties.contains(child.getName())) {
+            if (APP_PROPERTIES.contains(child.getName())) {
                 return true;
             }
         }
 
-        final List<String> deploymentProperties = Arrays.asList("cpu", "memoryInGB", "instanceCount", "jvmOptions");
         if (configuration.getChild(DEPLOYMENT_TAG) != null) {
             for (final Xpp3Dom child : configuration.getChild(DEPLOYMENT_TAG).getChildren()) {
-                if (deploymentProperties.contains(child.getName())) {
+                if (DEPLOYMENT_PROPERTIES.contains(child.getName())) {
                     return true;
                 }
             }
