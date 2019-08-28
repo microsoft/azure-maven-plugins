@@ -18,7 +18,7 @@ public interface IPrompter extends Closeable {
      *
      * @param message the promote message
      * @param defaultValue the default value if user presses ENTER key.
-     * @param regex the regex to check against user's input
+     * @param verify the function against user's input
      * @param isRequired whether or not a null/empty value is acceptable
      * @return the text value user has input
      * @throws IOException when there are any IO errors.
@@ -31,21 +31,21 @@ public interface IPrompter extends Closeable {
      * Promote user to choose YES or NO through a terminal. If this property is optional and there is no default option,
      * then this method returns null when user presses ENTER key.
      *
-     * @param defaultValue the default option if user presses ENTER key.
      * @param message the promote message to give user a hint about the options.
+     * @param defaultValue the default option if user presses ENTER key.
      * @param isRequired whether or not user must to accept or decline explicitly.
      * @return the yes/no option
      * @throws IOException when there are any IO errors.
      */
-    Boolean promoteYesNo(Boolean defaultValue, String message, boolean isRequired) throws IOException;
+    Boolean promoteYesNo(String message, Boolean defaultValue, boolean isRequired) throws IOException;
 
     /**
      * Promote user to choose some entities from a known list. if <code>allowEmpty</code> is true, then user has the option to select none from
      * the list, otherwise, at least one entry must be selected.
      *
      * @param <T> the entity type
-     * @param name the property name
-     * @param message the message print before printing the options
+     * @param header the message print before the option list
+     * @param promotePrefix the promote message after the options list, will be append with the text of range example and default entity.
      * @param entities the known list which are to be selected in
      * @param getNameFunc the entity to string convert function
      * @param allowEmpty whether or not to accept empty list.
@@ -69,7 +69,7 @@ public interface IPrompter extends Closeable {
      * Promote user to choose a single entity from a known list. if <code>isRequired</code> is true, then user must select one entity.
      *
      * @param <T> the entity type
-     * @param name the property name
+     * @param header the message print before the option list
      * @param message the message print before printing the options
      * @param entities the known list which are to be selected in
      * @param getNameFunc the entity to string convert function
@@ -77,6 +77,6 @@ public interface IPrompter extends Closeable {
      * @return the entity user selected
      * @throws IOException when there are any IO errors.
      */
-    <T> T promoteSingleEntity(String name, String message, List<T> entities, T defaultEntity, Function<T, String> getNameFunc, boolean isRequired)
+    <T> T promoteSingleEntity(String header, String message, List<T> entities, T defaultEntity, Function<T, String> getNameFunc, boolean isRequired)
             throws IOException;
 }

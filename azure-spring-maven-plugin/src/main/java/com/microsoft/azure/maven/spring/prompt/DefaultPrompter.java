@@ -71,7 +71,7 @@ public class DefaultPrompter implements IPrompter {
         });
     }
 
-    public Boolean promoteYesNo(Boolean defaultValue, String message, boolean isRequired) throws IOException {
+    public Boolean promoteYesNo(String message, Boolean defaultValue, boolean isRequired) throws IOException {
         final boolean hasDefaultValue = defaultValue != null;
         System.out.print(message);
         System.out.flush();
