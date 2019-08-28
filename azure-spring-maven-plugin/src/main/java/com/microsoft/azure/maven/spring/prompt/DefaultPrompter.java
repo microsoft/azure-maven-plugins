@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.spring.prompt;
 
-import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -25,10 +24,6 @@ import java.util.regex.Pattern;
 
 public class DefaultPrompter implements IPrompter {
     private static final String EMPTY_REPLACEMENT = ":";
-    private static final String PROMPT_MESSAGE_INDEX_TEMPLATE = "Enter an index value for %s %s: ";
-    private static final String PROMPT_MESSAGE_BAD_INDEX_TEMPLATE = "You have input a wrong number (%s).%nPlease enter an index value for %s again %s: ";
-    private static final String PROMPT_MESSAGE_NUM_TEMPLATE = "You have input a wrong number (%s).%nPlease enter a number for %s again %s: ";
-    private static final String PROMPT_MESSAGE_STRING_TEMPLATE = "You have input a wrong value (%s).%nPlease input %s again %s: ";
 
     // this code is copied from https://stackoverflow.com/questions/13011657/advanced-parsing-of-numeric-ranges-from-string
     // the author of it is: https://stackoverflow.com/users/433790/ridgerunner
@@ -56,69 +51,59 @@ public class DefaultPrompter implements IPrompter {
             "  ([0-9]+)    # $2: 2nd integer (Range)         \n" +
             ")?            # Range for value (optional). \n" +
             "(?:,|$)       # End on comma or string end.", Pattern.COMMENTS);
-    private static final Pattern ANY_STRING_REGEX = Pattern.compile(".*");
 
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-    public String promoteString(String name, String defaultValue, String regex, boolean isRequired) throws IOException {
+    public String promoteString(String message, String defaultValue, Function<String, InputValidationResult> verify, boolean isRequired)
+            throws IOException {
         final boolean hasDefaultValue = StringUtils.isNotBlank(defaultValue);
-        String hintMessage = hasDefaultValue ? TextUtils.green(defaultValue) : "";
-        if (!isRequired && hasDefaultValue) {
-            hintMessage = hintMessage + ", press '" + EMPTY_REPLACEMENT + "' to input empty";
-        }
-        if (StringUtils.isNotBlank(hintMessage)) {
-            hintMessage = "(" + hintMessage + ")";
-        }
-        System.out.printf("Please input the %s%s: ", name, hintMessage);
+        System.out.print(message);
         System.out.flush();
-        final String finalHintMessage = hintMessage;
-        final Pattern pattern = StringUtils.isNotBlank(regex) ? Pattern.compile(regex) : ANY_STRING_REGEX;
-        return loopInput(defaultValue, hasDefaultValue, isRequired, String.format("Please input the %s%s: ", name, hintMessage), input -> {
+        return loopInput(defaultValue, hasDefaultValue, isRequired, "", message, input -> {
             if (!isRequired && StringUtils.equals(EMPTY_REPLACEMENT, input.trim())) {
-                return UserInputHandleResult.wrap("");
+                return InputValidationResult.wrap("");
             }
-            if (pattern.matcher(input).find()) {
-                return UserInputHandleResult.wrap(input);
+            final InputValidationResult<String> result = verify.apply(input);
+            if (result.getErrorMessage() != null) {
+                return InputValidationResult.error(result.getErrorMessage());
+            } else {
+                return InputValidationResult.wrap(result.getObj());
             }
-            return UserInputHandleResult.error(String.format(PROMPT_MESSAGE_STRING_TEMPLATE, input, name, finalHintMessage));
         });
     }
 
-    public Boolean promoteYesNo(Boolean defaultValue, String message, boolean isRequired) throws IOException {
+    public Boolean promoteYesNo(String message, Boolean defaultValue, boolean isRequired) throws IOException {
         final boolean hasDefaultValue = defaultValue != null;
-
-        if (!isRequired && hasDefaultValue) {
-            throw new IllegalArgumentException("There is no way to input empty value for a non-required field with default value.");
-        }
-        final String hintMessage = yesOrNo(defaultValue);
-        System.out.printf("%s %s: ", message, hintMessage);
+        System.out.print(message);
         System.out.flush();
 
-        return loopInput(defaultValue, hasDefaultValue, isRequired, String.format("%s %s: ", message, hintMessage), input -> {
+        return loopInput(defaultValue, hasDefaultValue, isRequired, "", message, input -> {
             if (input.equalsIgnoreCase("Y")) {
-                return UserInputHandleResult.wrap(Boolean.TRUE);
+                return InputValidationResult.wrap(Boolean.TRUE);
             }
             if (input.equalsIgnoreCase("N")) {
-                return UserInputHandleResult.wrap(Boolean.FALSE);
+                return InputValidationResult.wrap(Boolean.FALSE);
             }
-            return UserInputHandleResult.error(String.format("Invalid input (%s).%n%s %s: ", input, message, hintMessage));
+            return InputValidationResult.error(String.format("Invalid input (%s).", input));
         });
     }
 
-    public <T> List<T> promoteMultipleEntities(String name, String message, List<T> entities, Function<T, String> getNameFunc, boolean allowEmpty,
-            String enterPromote, List<T> defaultValue) throws IOException {
+    public <T> List<T> promoteMultipleEntities(String header, String promotePrefix, String selectNoneMessage, List<T> entities,
+            Function<T, String> getNameFunc, boolean allowEmpty, String enterPromote, List<T> defaultValue) throws IOException {
         final boolean hasDefaultValue = defaultValue != null && defaultValue.size() > 0;
         final List<T> res = new ArrayList<>();
 
         if (!allowEmpty && entities.size() == 1) {
             return entities;
         }
-        printOptionList(message, entities, null, getNameFunc);
-        final String hintMessage = String.format("(eg: %s, press %s %s)", TextUtils.blue("[1-2,4,4]"), TextUtils.blue("ENTER"), enterPromote);
-        System.out.print(String.format("Enter index values separated by comma%s: ", hintMessage));
-        System.out.flush();
-        for (;;) {
+        printOptionList(header, entities, null, getNameFunc);
+        final String example = TextUtils.blue("[1-2,4,6]");
+        final String hintMessage = String.format("(input numbers separated by comma, eg: %s, %s %s)", example, TextUtils.blue("ENTER"), enterPromote);
+        final String promoteMessage = String.format("%s%s: ", promotePrefix, hintMessage);
 
+        for (;;) {
+            System.out.print(promoteMessage);
+            System.out.flush();
             final String input = reader.readLine();
             if (StringUtils.isBlank(input)) {
                 if (hasDefaultValue) {
@@ -127,72 +112,53 @@ public class DefaultPrompter implements IPrompter {
                 if (allowEmpty) {
                     return res;
                 }
-                System.out.print(String.format("You have not select any %ss.%nPlease enter index values separated by comma%s: ", name, hintMessage));
+                System.out.println(selectNoneMessage);
             }
             if (isValidIntRangeInput(input)) {
-                for (final int i : parseIntRanges(input, 1, entities.size())) {
-                    res.add(entities.get(i - 1));
+                try {
+                    for (final int i : parseIntRanges(input, 1, entities.size())) {
+                        res.add(entities.get(i - 1));
+                    }
+                    if (res.size() > 0 || allowEmpty) {
+                        return res;
+                    }
+                    System.out.print(selectNoneMessage);
+                } catch (NumberFormatException ex) {
+                    System.out.println(TextUtils.yellow(String.format("The input value('%s') is invalid.", input)));
                 }
-                if (res.size() > 0 || allowEmpty) {
-                    return res;
-                }
-                System.out.print(String.format("You have not select any %ss.%nPlease enter index values separated by comma%s: ", name, hintMessage));
             } else {
-                System.out.print(String.format("The input value('%s') cannot be recognized.%n" + "Please enter index values separated by comma%s: ",
-                        input, hintMessage));
+                System.out.println(TextUtils.yellow(String.format("The input value('%s') is invalid.", input)));
             }
-
             System.out.flush();
         }
     }
 
-    public <T> T promoteSingleEntity(String name, String message, List<T> entities, T defaultEntity, Function<T, String> getNameFunc, boolean isRequired)
-            throws IOException, NoResourcesAvailableException {
+    public <T> T promoteSingleEntity(String header, String message, List<T> entities, T defaultEntity, Function<T, String> getNameFunc,
+            boolean isRequired) throws IOException {
         final boolean hasDefaultValue = defaultEntity != null;
-        if (entities.size() == 0) {
-            throw new NoResourcesAvailableException(String.format("No %ss are found.", name));
-        }
-        if (entities.size() == 1) {
-            System.out.println(String.format("Use %s (%s) automatically.", name, getNameFunc.apply(entities.get(0))));
-            return entities.get(0);
-        }
-        printOptionList(message, entities, defaultEntity, getNameFunc);
+
+        printOptionList(header, entities, defaultEntity, getNameFunc);
 
         final int selectedIndex = entities.indexOf(defaultEntity);
 
         final String defaultValueMessage = selectedIndex >= 0 ? " (" + TextUtils.blue(new Integer(selectedIndex + 1).toString()) + ")" : "";
         final String hintMessage = String.format("[1-%d]%s", entities.size(), defaultValueMessage);
-        System.out.printf(PROMPT_MESSAGE_INDEX_TEMPLATE, name, hintMessage);
+        final String promoteMessage = String.format("%s %s: ", message, hintMessage);
+        System.out.print(promoteMessage);
         System.out.flush();
 
-        return loopInput(defaultEntity, hasDefaultValue, isRequired, String.format(PROMPT_MESSAGE_INDEX_TEMPLATE, name, hintMessage), input -> {
-            final UserInputHandleResult<Integer> selectIndex = validateUserInputAsInteger(input, 1, entities.size(),
-                    String.format(PROMPT_MESSAGE_BAD_INDEX_TEMPLATE, input, name, hintMessage));
+        return loopInput(defaultEntity, hasDefaultValue, isRequired, null, promoteMessage, input -> {
+            final InputValidationResult<Integer> selectIndex = validateUserInputAsInteger(input, 1, entities.size(),
+                    String.format("You have input a wrong value %s.", TextUtils.red(input)));
             if (selectIndex.getErrorMessage() == null) {
-                return UserInputHandleResult.wrap(entities.get(selectIndex.getObj() - 1));
+                return InputValidationResult.wrap(entities.get(selectIndex.getObj() - 1));
             }
-            return UserInputHandleResult.error(selectIndex.getErrorMessage());
+            return InputValidationResult.error(selectIndex.getErrorMessage());
         });
     }
 
-    public Integer promoteInteger(String name, Integer defaultValue, int minValue, int maxValue, boolean isRequired) throws IOException {
-        final boolean hasDefaultValue = defaultValue != null;
-        if (!isRequired && hasDefaultValue) {
-            throw new IllegalArgumentException("There is no way to input empty value for a non-required field with default value.");
-        }
-        final String defaultValueMessage = hasDefaultValue ? " (" + TextUtils.blue(defaultValue.toString()) + ")" : "";
-        final String hintMessage = String.format("[%d-%d]%s", minValue, maxValue, defaultValueMessage);
-        final String message = String.format("Please input the %s %s: ", name, hintMessage);
-        System.out.print(message);
-        System.out.flush();
-
-        return loopInput(defaultValue, hasDefaultValue, isRequired, message, input -> {
-            return validateUserInputAsInteger(input, minValue, maxValue, String.format(PROMPT_MESSAGE_NUM_TEMPLATE, input, name, hintMessage));
-        });
-    }
-
-    private <T> T loopInput(T defaultValue, boolean hasDefaultValue, boolean isRequired, String emptyPromoteMessage,
-            Function<String, UserInputHandleResult<T>> handleInput) throws IOException {
+    private <T> T loopInput(T defaultValue, boolean hasDefaultValue, boolean isRequired, String emptyPromoteMessage, String promoteMessage,
+            Function<String, InputValidationResult<T>> handleInput) throws IOException {
         while (true) {
             final String input = reader.readLine();
             if (StringUtils.isBlank(input)) {
@@ -201,28 +167,32 @@ public class DefaultPrompter implements IPrompter {
                 }
                 System.out.print(emptyPromoteMessage);
             } else {
-                final UserInputHandleResult<T> res = handleInput.apply(input);
+                final InputValidationResult<T> res = handleInput.apply(input);
                 if (res.getErrorMessage() != null) {
-                    System.out.print(res.getErrorMessage());
+                    System.out.println(TextUtils.yellow(res.getErrorMessage()));
                 } else {
                     return res.getObj();
                 }
             }
+            System.out.print(promoteMessage);
             System.out.flush();
         }
     }
 
-    private UserInputHandleResult<Integer> validateUserInputAsInteger(String input, int start, int end, String message) {
+    private InputValidationResult<Integer> validateUserInputAsInteger(String input, int start, int end, String message) {
         if (!NumberUtils.isDigits(input)) {
-            return UserInputHandleResult.error(message);
+            return InputValidationResult.error(message);
+        }
+        try {
+            final int value = Integer.parseInt(input);
+            if (value >= start && value <= end) {
+                return InputValidationResult.wrap(value);
+            }
+        } catch (NumberFormatException ex) {
+            // ignore since last statement is error
         }
 
-        final int value = Integer.parseInt(input);
-        if (value >= start && value <= end) {
-            return UserInputHandleResult.wrap(value);
-        }
-
-        return UserInputHandleResult.error(message);
+        return InputValidationResult.error(message);
     }
 
     public void close() {
@@ -233,16 +203,6 @@ public class DefaultPrompter implements IPrompter {
         }
     }
 
-    private static String yesOrNo(Boolean defaultValue) {
-        if (defaultValue == null) {
-            return "(y/n)";
-        }
-        if (defaultValue.booleanValue()) {
-            return "(Y/n)";
-        }
-        return "(y/N)";
-    }
-
     private static boolean isValidIntRangeInput(String text) {
         return REGEX_COMMA_SEPARATED_INTEGER_RANGES.matcher(text).matches();
     }
@@ -251,7 +211,7 @@ public class DefaultPrompter implements IPrompter {
         final Matcher m = REGEX_NEXT_INTEGER_RANGE.matcher(text);
         final Set<Integer> values = new LinkedHashSet<>();
         while (m.find()) {
-            final int s1 = Math.max(minValue, Integer.parseInt(m.group(1)));
+            final int s1 = Integer.parseInt(m.group(1));
 
             if (m.group(2) != null) {
                 // use maxValue to avoid very large enumeration like 1-2^32
@@ -260,7 +220,7 @@ public class DefaultPrompter implements IPrompter {
                     values.add(i);
                 }
             } else {
-                if (s1 <= maxValue) {
+                if (s1 >= minValue && s1 <= maxValue) {
                     values.add(s1);
                 }
             }
@@ -273,33 +233,7 @@ public class DefaultPrompter implements IPrompter {
         System.out.println(message);
         for (final T entity : entities) {
             final String displayLine = String.format("%2d. %s", index++, getNameFunc.apply(entity));
-            System.out.println(defaultEntity == entity ? TextUtils.blue(displayLine) + "*" : displayLine);
-        }
-
-    }
-
-    static class UserInputHandleResult<T> {
-        T obj;
-        String errorMessage;
-
-        T getObj() {
-            return obj;
-        }
-
-        String getErrorMessage() {
-            return errorMessage;
-        }
-
-        static <T> UserInputHandleResult<T> wrap(T obj) {
-            final UserInputHandleResult<T> res = new UserInputHandleResult<>();
-            res.obj = obj;
-            return res;
-        }
-
-        static <T> UserInputHandleResult<T> error(String errorMessage) {
-            final UserInputHandleResult<T> res = new UserInputHandleResult<>();
-            res.errorMessage = errorMessage;
-            return res;
+            System.out.println(defaultEntity == entity ? TextUtils.blue(displayLine + "*") : displayLine);
         }
 
     }

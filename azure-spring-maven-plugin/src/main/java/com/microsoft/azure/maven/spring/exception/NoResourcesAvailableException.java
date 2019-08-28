@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.spring.exception;
 
-public class NoResourcesAvailableException extends Exception {
+public class NoResourcesAvailableException extends SpringConfigurationException {
 
     public NoResourcesAvailableException(String message) {
         super(message);

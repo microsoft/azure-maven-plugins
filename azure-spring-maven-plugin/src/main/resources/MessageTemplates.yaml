@@ -44,7 +44,7 @@ message:
   select_none:    "You have not selected any Azure Spring Cloud, 'config' will terminate."
 required:         true
 auto_select:      true
-default:          0
+default_index:    0
 
 ---
 id:               configure-app-name
@@ -58,9 +58,9 @@ required:         true
 ---
 id:               configure-public
 promote:          "Expose public access for this app ***{{project.getName()}}***? (y/N):"
+resource:         App
+property:         isPublic
 required:         false
-default:          false
-type:             boolean
 ---
 id:               configure-instance-count
 promote:          "Input instance count [***{{schema.minimum}}***-***{{schema.maximum}}***] (***{{schema.default}}***):"
