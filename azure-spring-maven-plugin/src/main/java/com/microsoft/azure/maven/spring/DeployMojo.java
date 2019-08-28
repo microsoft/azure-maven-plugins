@@ -43,17 +43,12 @@ public class DeployMojo extends AbstractSpringMojo {
     @Parameter(property = "prompt")
     private boolean prompt;
 
-    @Parameter(defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}", readonly = true)
-    private File defaultArtifact;
-
     protected static final int GET_STATUS_TIMEOUT = 30;
     protected static final int GET_URL_TIMEOUT = 60;
     protected static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     protected static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     protected static final String PROJECT_NOT_SUPPORT = "`azure-spring:deploy` does not support maven project with " +
             "packaging %s, only jar is supported";
-    protected static final String ARTIFACT_NOT_SUPPORTED = "Target file does not exist or is not executable, please " +
-            "check the configuration.";
     protected static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
     protected static final String GET_APP_URL_FAIL = "Fail to get application url";
     protected static final String GET_APP_URL_FAIL_WITH_TIMEOUT = "Fail to get application url in %d s";
@@ -94,10 +89,8 @@ public class DeployMojo extends AbstractSpringMojo {
         getLog().info(STATUS_CREATE_OR_UPDATE_APP_DONE);
         // Upload artifact
         getLog().info(STATUS_UPLOADING_ARTIFACTS);
-        final File toDeploy = isResourceSpecified(configuration) ? Utils.getArtifactFromConfiguration(configuration) : defaultArtifact;
-        if (toDeploy == null || !Utils.isExecutableJar(toDeploy)) {
-            throw new MojoExecutionException(ARTIFACT_NOT_SUPPORTED);
-        }
+        final File toDeploy = isResourceSpecified(configuration) ? Utils.getArtifactFromConfiguration(configuration) :
+                Utils.getArtifactFromTargetFolder(project);
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
         getLog().info(STATUS_UPLOADING_ARTIFACTS_DONE);
         // Create or update deployment
