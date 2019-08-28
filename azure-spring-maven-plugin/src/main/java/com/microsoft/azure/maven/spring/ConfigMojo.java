@@ -117,13 +117,12 @@ public class ConfigMojo extends AbstractSpringMojo {
             getLog().warn(String.format("Project (%s) is already configured and won't be affected by this command.", this.project.getName()));
             return;
         }
-        if (parentMode && advancedOptions) {
-            throw new UnsupportedOperationException("The \"advancedOptions\" mode is not supported at parent folder.");
-        }
-
         appSettings = new AppSettings();
         deploymentSettings = new DeploymentSettings();
         parentMode = Utils.isPomPackagingProject(this.project);
+        if (parentMode && advancedOptions) {
+            throw new UnsupportedOperationException("The \"advancedOptions\" mode is not supported at parent folder.");
+        }
         final ExpressionEvaluator expressionEvaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
         try {
             this.wrapper = new PromptWrapper(expressionEvaluator, getLog());
