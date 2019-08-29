@@ -16,16 +16,13 @@ import com.microsoft.azure.maven.spring.configuration.AppSettings;
 import com.microsoft.azure.maven.spring.configuration.DeploymentSettings;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
+import com.microsoft.azure.maven.spring.pom.PomXmlUpdater;
 import com.microsoft.azure.maven.spring.prompt.PromptWrapper;
 import com.microsoft.azure.maven.spring.utils.MavenUtils;
+import com.microsoft.azure.maven.spring.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
-import com.microsoft.azure.maven.spring.utils.XmlUtils;
 import com.microsoft.azure.maven.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.model.Build;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.model.io.jdom.MavenJDOMWriter;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -36,17 +33,10 @@ import org.apache.maven.project.MavenProject;
 import org.atteo.evo.inflector.English;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluator;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.WriterFactory;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.jdom2.Document;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.Format;
-import org.jdom2.output.Format.TextMode;
+import org.dom4j.DocumentException;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -114,8 +104,9 @@ public class ConfigMojo extends AbstractSpringMojo {
         }
 
         if (!Utils.isPomPackagingProject(this.project) && !Utils.isJarPackagingProject(this.project)) {
-            throw new UnsupportedOperationException(String.format("The project (%s) with packaging %s is not supported for azure spring cloud service.",
-                    this.project.getName(), this.project.getPackaging()));
+            throw new UnsupportedOperationException(
+                    String.format("The project (%s) with packaging %s is not supported for azure spring cloud service.", this.project.getName(),
+                            this.project.getPackaging()));
         }
         if (isProjectConfigured(this.project)) {
             getLog().warn(String.format("Project (%s) is already configured and won't be affected by this command.", this.project.getName()));
@@ -139,10 +130,12 @@ public class ConfigMojo extends AbstractSpringMojo {
                 return;
             }
             selectSubscription();
+
             selectAppCluster();
             configCommon();
             confirmAndSave();
-        } catch (IOException | InvalidConfigurationException | SpringConfigurationException | ExpressionEvaluationException | UnsupportedOperationException e) {
+        } catch (IOException | InvalidConfigurationException | SpringConfigurationException | ExpressionEvaluationException | DocumentException |
+                UnsupportedOperationException e) {
             throw new MojoFailureException(e.getMessage());
         } finally {
             if (this.wrapper != null) {
@@ -167,7 +160,8 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     private void selectProjects() throws MojoFailureException, IOException, NoResourcesAvailableException {
         if (this.parentMode) {
-            final List<MavenProject> allProjects = session.getAllProjects().stream().filter(Utils::isJarPackagingProject).collect(Collectors.toList());
+            final List<MavenProject> allProjects = session.getAllProjects().stream().filter(Utils::isJarPackagingProject)
+                    .collect(Collectors.toList());
             final List<MavenProject> configuredProjects = new ArrayList<>();
             for (final MavenProject proj : allProjects) {
                 if (isProjectConfigured(proj)) {
@@ -217,7 +211,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         return !advancedOptions || parentMode;
     }
 
-    private void confirmAndSave() throws IOException {
+    private void confirmAndSave() throws DocumentException, IOException {
         final Map<String, String> changesToConfirm = new LinkedHashMap<>();
         changesToConfirm.put("Subscription id", this.subscriptionId);
         changesToConfirm.put("Service name", this.appSettings.getClusterName());
@@ -240,72 +234,29 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private Integer saveConfigurationToPom() {
+        this.appSettings.setSubscriptionId(this.subscriptionId);
         for (final MavenProject proj : targetProjects) {
             if (this.parentMode) {
-                this.appSettings.setIsPublic((publicProjects != null && publicProjects.contains(proj)) ? "true" : "false");
+                this.appSettings.setPublic((publicProjects != null && publicProjects.contains(proj)) ? "true" : "false");
             }
-            saveConfigurationToProject(proj);
+            try {
+                saveConfigurationToProject(proj);
+            } catch (DocumentException | IOException e) {
+                return SneakyThrowUtils.sneakyThrow(e);
+            }
         }
         return targetProjects.size();
     }
 
-    private void saveConfigurationToProject(MavenProject proj) {
-        final Model model = proj.getOriginalModel();
-        final String pluginIdentifier = this.plugin.getPluginLookupKey();
-        Plugin target = MavenUtils.getPluginFromMavenModel(proj.getOriginalModel(), pluginIdentifier, false);
-        if (target == null) {
-            target = MavenUtils.createPlugin(this.plugin.getGroupId(), this.plugin.getArtifactId(), this.plugin.getVersion());
-            if (model.getBuild() == null) {
-                model.setBuild(new Build());
-            }
-            model.getBuild().addPlugin(target);
-        }
-        if (StringUtils.isBlank(target.getVersion())) {
-            target.setVersion(this.plugin.getVersion());
-        }
-
-        if (target.getConfiguration() == null) {
-            target.setConfiguration(new Xpp3Dom("configuration"));
-        }
-        final Xpp3Dom config = (Xpp3Dom) target.getConfiguration();
-
-        XmlUtils.replaceDomWithKeyValue(config, "subscriptionId", this.subscriptionId);
-        this.appSettings.applyToXpp3Dom(config);
-        if (config.getChild(DEPLOYMENT_TAG) == null) {
-            config.addChild(XmlUtils.createDomWithName(DEPLOYMENT_TAG));
-        }
-
-        this.deploymentSettings.applyToXpp3Dom(config.getChild(DEPLOYMENT_TAG));
-
-        Writer writer = null;
-        try {
-            // this code is copied from https://github.com/Commonjava/maven-model-jdom-support
-            // which can apply the xml changes and preserve existing order of elements, formatting, and comments
-            final File pom = proj.getFile();
-            final SAXBuilder builder = new SAXBuilder();
-            builder.setIgnoringBoundaryWhitespace(false);
-            builder.setIgnoringElementContentWhitespace(false);
-            final Document doc = builder.build(pom);
-            String encoding = model.getModelEncoding();
-            if (encoding == null) {
-                encoding = "UTF-8";
-            }
-
-            final Format format = Format.getRawFormat().setEncoding(encoding).setTextMode(TextMode.PRESERVE);
-            writer = WriterFactory.newWriter(pom, encoding);
-            new MavenJDOMWriter().write(model, doc, writer, format);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            IOUtil.close(writer);
-        }
+    private void saveConfigurationToProject(MavenProject proj) throws DocumentException, IOException {
+        new PomXmlUpdater(proj, plugin).updateSettings(this.appSettings, this.deploymentSettings);
     }
 
     private void configurePublic() throws IOException, NoResourcesAvailableException, ExpressionEvaluationException, InvalidConfigurationException {
         if (this.parentMode) {
             publicProjects = this.wrapper.handleMultipleCase("configure-public-list", targetProjects, MavenProject::getName);
         } else {
-            this.appSettings.setIsPublic(this.wrapper.handle("configure-public", false));
+            this.appSettings.setPublic(this.wrapper.handle("configure-public", false));
         }
 
     }
@@ -334,8 +285,7 @@ public class ConfigMojo extends AbstractSpringMojo {
             getLog().warn(String.format("Cannot find Azure Spring Cloud Service with name: %s.", TextUtils.yellow(this.clusterName)));
         }
 
-        final AppClusterResourceInner targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, AppClusterResourceInner::name
-                );
+        final AppClusterResourceInner targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, AppClusterResourceInner::name);
         if (targetAppCluster != null) {
             this.appSettings.setClusterName(targetAppCluster.name());
             getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.name())));
