@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.spring.parser;
 
 import com.microsoft.azure.maven.spring.AbstractSpringMojo;
-import com.microsoft.azure.maven.spring.SpringConfiguration;
+import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 
 public interface SpringConfigurationParser {
     SpringConfiguration parse(AbstractSpringMojo springMojo);

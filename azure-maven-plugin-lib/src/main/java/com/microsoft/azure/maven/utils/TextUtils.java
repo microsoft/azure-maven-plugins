@@ -33,4 +33,8 @@ public class TextUtils {
     public static String red(String message) {
         return applyColorToText(message, Color.RED);
     }
+
+    private TextUtils() {
+
+    }
 }

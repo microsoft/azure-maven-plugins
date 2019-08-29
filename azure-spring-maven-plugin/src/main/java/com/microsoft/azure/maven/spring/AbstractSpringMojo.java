@@ -17,6 +17,7 @@ import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.auth.exception.MavenDecryptException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
+import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParser;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParserFactory;
@@ -185,7 +186,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected boolean isAuthConfigurationExist() {
-        final String pluginKey = String.format("%s:%s", plugin.getGroupId(), plugin.getArtifactId());
+        final String pluginKey = plugin.getPluginLookupKey();
         final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
         if (pluginDom == null) {
             return false;

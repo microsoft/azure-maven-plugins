@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Deployment",
+  "description": "A deployment in Azure Spring Cloud service",
+  "type": "object",
+  "properties": {
+    "deploymentName": {
+      "description": "The deployment name",
+      "type": "string",
+      "pattern": "^[a-zA-Z_][0-9a-zA-Z_\\-]*$"
+    },
+    "cpu": {
+      "description": "cpu cores",
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 16
+    },
+    "memoryInGB": {
+      "description": "memory in GB",
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 64
+    },
+    "instanceCount": {
+      "description": "instance count",
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 4
+    },
+    "jvmOptions": {
+      "type": "string",
+      "default": "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2"
+    }
+  }
+}

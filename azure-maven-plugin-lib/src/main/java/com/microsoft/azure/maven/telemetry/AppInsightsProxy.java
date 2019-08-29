@@ -79,7 +79,7 @@ public class AppInsightsProxy implements TelemetryProxy {
                 return StringUtils.EMPTY;
             }
 
-            final String configurationContent = IOUtils.toString(inputStream);
+            final String configurationContent = IOUtils.toString(inputStream, "utf8");
             final Matcher matcher = INSTRUMENTATION_KEY_PATTERN.matcher(configurationContent);
             if (matcher.find()) {
                 return matcher.group(1);

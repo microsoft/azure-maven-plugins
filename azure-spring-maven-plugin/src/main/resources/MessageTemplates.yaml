@@ -1,0 +1,102 @@
+---
+id:               select-projects
+promote:
+       header:    "The following child modules are not configured:"
+       many:      "Select child modules to configure"
+       one:       "There is only one project (***{{ projects[0].name }}***) which is not configured, would you like to select it to config? (Y/n):"
+message:
+  empty_options:  "There are no projects in current folder which are not configured yet."
+  select_none:    "You have not selected any projects, 'config' will terminate."
+
+allow_empty:      true
+default_selected: true
+
+---
+id:               configure-public-list
+promote:
+  header:         "Project list:"
+  many:           "Select apps to expose public access:"
+  one:            "Expose public access for this app: ***{{projects[0].getName()}}***? (y/N):"
+allow_empty:      true
+default_selected: false
+
+---
+id:               select-subscriptions
+promote:
+       header:    "Available subscription:"
+       many:      "Select subscription"
+required:         true
+auto_select:      true
+message:
+  empty:          "Cannot find any subscriptions."
+  auto_select:    "There is only one subscription (***{{ subscriptions[0].displayName() }}***) in your account, will use it automatically."
+  select_none:    "You have not selected any subscriptions, 'config' will terminate."
+default_index:    0
+
+---
+id:               select-ASC
+promote:
+    header:       "Available Azure Spring Cloud Services:"
+    many:         "Select Azure Spring Cloud for deployment:"
+message:
+  empty:          "There are no Azure Spring Cloud Service in current subscription, please create it in Azure Portal."
+  auto_select:    "There is only one Azure Spring Cloud Service (***{{clusters.get(0).getName()}}***) in current subscription, will use it automatically."
+  select_none:    "You have not selected any Azure Spring Cloud, 'config' will terminate."
+required:         true
+auto_select:      true
+default_index:    0
+
+---
+id:               configure-app-name
+promote:          "Input the app name (***{{evaluatedDefault}}***):"
+resource:         App
+property:         appName
+default:          '\${project.artifactId}'
+expression:       true
+required:         true
+
+---
+id:               configure-public
+promote:          "Expose public access for this app ***{{project.getName()}}***? (y/N):"
+resource:         App
+property:         isPublic
+required:         false
+---
+id:               configure-instance-count
+promote:          "Input instance count [***{{schema.minimum}}***-***{{schema.maximum}}***] (***{{schema.default}}***):"
+resource:         Deployment
+property:         instanceCount
+
+---
+id:               configure-cpu
+promote:          "Input cpu count per instance [***{{schema.minimum}}***-***{{schema.maximum}}***] (***{{schema.default}}***):"
+resource:         Deployment
+property:         cpu
+
+---
+id:               configure-memory
+promote:          "Input the memory size(GB) [***{{schema.minimum}}***-***{{schema.maximum}}***] (***{{schema.default}}***):"
+resource:         Deployment
+property:         memoryInGB
+
+---
+id:               configure-jvm-options
+promote:          "Input JVM options (***{{schema.default}}***):"
+resource:         Deployment
+property:         jvmOptions
+
+---
+id:               confirm
+promote:
+      header:     'Summary of properties:'
+      footer:     "Confirm to save all the above configurations (Y/n):"
+message:
+    one: 'Configurations are saved to: ***{{projects[0].getFile().toString()}}***'
+    many:         >-
+      Configurations are saved to the following pom.xml files:{{"\n"}}
+      {% for project in projects %}
+      ***{{ project.getFile().toString()}}***{{"\n"}}
+      {% endfor %}
+    skip:         'You have quit the config goal, your pom files will not be changed.'
+default:          true
+required:         true

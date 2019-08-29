@@ -4,9 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring;
-
-import com.microsoft.azure.maven.spring.configuration.Deployment;
+package com.microsoft.azure.maven.spring.configuration;
 
 public class SpringConfiguration {
 

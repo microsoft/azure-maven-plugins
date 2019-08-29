@@ -23,7 +23,7 @@ import java.io.IOException;
 
 class AzureServicePrincipleAuthHelper {
     private static final String AZURE_CLI_GET_SUBSCRIPTION_FAIL = "Failed to get default subscription of Azure CLI, please login Azure CLI first.";
-    private static final String AZURE_CLI_LOAD_TOKEN_FAIL = "Failed to load Azure CLI token file, " + "please login Azure CLI first.";
+    private static final String AZURE_CLI_LOAD_TOKEN_FAIL = "Failed to load Azure CLI token file, please login Azure CLI first.";
 
     static AzureTokenCredentials getAzureServicePrincipleCredentials(AuthConfiguration config) throws InvalidConfigurationException, IOException {
         if (StringUtils.isBlank(config.getClient())) {

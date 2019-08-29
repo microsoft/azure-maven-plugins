@@ -10,9 +10,10 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureCredential;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
-import com.microsoft.azure.maven.spring.SpringConfiguration;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
+import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.storage.file.CloudFile;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -25,6 +26,7 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +48,12 @@ public class Utils {
     private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
     private static final Pattern MEMORY_PATTERN = Pattern.compile(MEMORY_REGEX);
+    private static final String[] ARTIFACT_EXTENSIONS = {"jar"};
     private static final String[] PENDING_STRING_LIST = {"   ", ".  ", ".. ", "..."};
+    protected static final String ARTIFACT_NOT_SUPPORTED = "Target file does not exist or is not executable, please " +
+            "check the configuration.";
+    protected static final String MULTI_ARTIFACT = "Multiple artifacts(%s) could be deployed, please specify " +
+            "the target artifact in plugin configurations.";
 
     public static AzureTokenCredentials getCredential() {
         final AzureEnvironment dogFoodEnvironment = new AzureEnvironment(new HashMap<String, String>() {{
@@ -100,34 +107,20 @@ public class Utils {
         }
     }
 
-    public static List<File> getArtifacts(List<Resource> resources) {
-        final List<File> result = new ArrayList<>();
-        final DirectoryScanner directoryScanner = new DirectoryScanner();
-        for (final Resource resource : resources) {
-            if (resource.getIncludes() != null && resource.getIncludes().size() > 0) {
-                directoryScanner.setBasedir(resource.getDirectory());
-                directoryScanner.setIncludes(resource.getIncludes().toArray(new String[0]));
-                final String[] exclude = resource.getExcludes() == null ? new String[0] :
-                        resource.getExcludes().toArray(new String[0]);
-                directoryScanner.setExcludes(exclude);
-                directoryScanner.scan();
-                final List<File> resourceFiles = Arrays.stream(directoryScanner.getIncludedFiles())
-                        .map(path -> new File(resource.getDirectory(), path))
-                        .collect(Collectors.toList());
-                result.addAll(resourceFiles);
-            }
-        }
-        return result;
-    }
-
     public static String generateTimestamp() {
         return new SimpleDateFormat(DATE_FORMAT).format(new Date());
     }
 
-    public static File getArtifactFromConfiguration(SpringConfiguration springConfiguration) {
+    public static File getArtifactFromTargetFolder(MavenProject project) throws MojoExecutionException {
+        final String targetFolder = project.getBuild().getDirectory();
+        final Collection<File> files = FileUtils.listFiles(new File(targetFolder), ARTIFACT_EXTENSIONS, true);
+        return getRunnableArtifactFromFiles(files);
+    }
+
+    public static File getArtifactFromConfiguration(SpringConfiguration springConfiguration) throws MojoExecutionException {
         final Deployment deployment = springConfiguration.getDeployment();
         final List<File> files = getArtifacts(deployment.getResources());
-        return files.parallelStream().filter(file -> isExecutableJar(file)).findFirst().orElse(null);
+        return getRunnableArtifactFromFiles(files);
     }
 
     public static void uploadFileToStorage(File file, String sasUrl) throws MojoExecutionException {
@@ -157,6 +150,40 @@ public class Utils {
         }
     }
 
+    public static <T> T executeCallableWithPrompt(Callable<T> callable, String prompt, int timeOutInSeconds) {
+        final ExecutorService executorService = Executors.newFixedThreadPool(2);
+        final Future<T> future = executorService.submit(callable);
+        final Future<T> wrappedFuture = executorService.submit(getWrappedCallable(prompt, future));
+        try {
+            return wrappedFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            wrappedFuture.cancel(true);
+            return null;
+        } finally {
+            executorService.shutdown();
+        }
+    }
+
+    private static List<File> getArtifacts(List<Resource> resources) {
+        final List<File> result = new ArrayList<>();
+        final DirectoryScanner directoryScanner = new DirectoryScanner();
+        for (final Resource resource : resources) {
+            if (resource.getIncludes() != null && resource.getIncludes().size() > 0) {
+                directoryScanner.setBasedir(resource.getDirectory());
+                directoryScanner.setIncludes(resource.getIncludes().toArray(new String[0]));
+                final String[] exclude = resource.getExcludes() == null ? new String[0] :
+                        resource.getExcludes().toArray(new String[0]);
+                directoryScanner.setExcludes(exclude);
+                directoryScanner.scan();
+                final List<File> resourceFiles = Arrays.stream(directoryScanner.getIncludedFiles())
+                        .map(path -> new File(resource.getDirectory(), path))
+                        .collect(Collectors.toList());
+                result.addAll(resourceFiles);
+            }
+        }
+        return result;
+    }
+
     private static <T> Callable<T> getWrappedCallable(String prompt, Future<T> future) {
         return () -> {
             System.out.print(prompt);
@@ -176,18 +203,18 @@ public class Utils {
         };
     }
 
-    public static <T> T executeCallableWithPrompt(Callable<T> callable, String prompt, int timeOutInSeconds) {
-        final ExecutorService executorService = Executors.newFixedThreadPool(2);
-        final Future<T> future = executorService.submit(callable);
-        final Future<T> wrappedFuture = executorService.submit(getWrappedCallable(prompt, future));
-        try {
-            return wrappedFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            wrappedFuture.cancel(true);
-            return null;
-        } finally {
-            executorService.shutdown();
+    private static File getRunnableArtifactFromFiles(Collection<File> files) throws MojoExecutionException {
+        final List<File> runnableArtifacts = files.stream().filter(Utils::isExecutableJar).collect(Collectors.toList());
+        if (runnableArtifacts.isEmpty()) {
+            throw new MojoExecutionException(ARTIFACT_NOT_SUPPORTED);
         }
+        // Throw exception when there are multi runnable artifacts
+        if (runnableArtifacts.size() > 1) {
+            final String artifactNameLists = runnableArtifacts.stream()
+                    .map(file -> file.getName()).collect(Collectors.joining(","));
+            throw new MojoExecutionException(String.format(MULTI_ARTIFACT, artifactNameLists));
+        }
+        return runnableArtifacts.get(0);
     }
 
     private Utils() {

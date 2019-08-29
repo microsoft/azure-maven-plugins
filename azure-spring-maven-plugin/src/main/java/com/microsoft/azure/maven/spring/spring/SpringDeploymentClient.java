@@ -60,7 +60,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         final Volume persistentDiskConfiguration = deploymentConfiguration.getPersistentDisk();
         if (persistentDiskConfiguration != null) {
             persistentDisk.withMountPath(persistentDiskConfiguration.getPath())
-                    .withSizeInGB(Utils.convertSizeStringToNumber(persistentDiskConfiguration.getSize()));
+                    .withSizeInGb(Utils.convertSizeStringToNumber(persistentDiskConfiguration.getSize()));
         }
         // Update temporary disk configuration
         final TemporaryDisk temporaryDisk = deploymentSettings.temporaryDisk() == null ? new TemporaryDisk()
@@ -68,7 +68,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         final Volume temporaryDiskConfiguration = deploymentConfiguration.getTemporaryDisk();
         if (temporaryDiskConfiguration != null) {
             temporaryDisk.withMountPath(temporaryDiskConfiguration.getPath())
-                    .withSizeInGB(Utils.convertSizeStringToNumber(temporaryDiskConfiguration.getSize()));
+                    .withSizeInGb(Utils.convertSizeStringToNumber(temporaryDiskConfiguration.getSize()));
         }
 
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
