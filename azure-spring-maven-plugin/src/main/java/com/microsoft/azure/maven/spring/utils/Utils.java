@@ -13,7 +13,7 @@ import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.maven.spring.SpringConfiguration;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.storage.file.CloudFile;
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -23,11 +23,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +48,7 @@ public class Utils {
     private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
     private static final Pattern MEMORY_PATTERN = Pattern.compile(MEMORY_REGEX);
+    private static final String[] ARTIFACT_EXTENSIONS = {"jar"};
     private static final String[] PENDING_STRING_LIST = {"   ", ".  ", ".. ", "..."};
     protected static final String ARTIFACT_NOT_SUPPORTED = "Target file does not exist or is not executable, please " +
             "check the configuration.";
@@ -112,16 +112,9 @@ public class Utils {
     }
 
     public static File getArtifactFromTargetFolder(MavenProject project) throws MojoExecutionException {
-        try {
-            final String targetFolder = project.getBuild().getDirectory();
-            final List<File> files = Files.walk(Paths.get(targetFolder))
-                    .filter(file -> FilenameUtils.getExtension(file.toString()).equalsIgnoreCase("jar"))
-                    .map(path -> path.toFile())
-                    .collect(Collectors.toList());
-            return getRunnableArtifactFromFiles(files);
-        } catch (IOException e) {
-            throw new MojoExecutionException(e.getMessage(), e);
-        }
+        final String targetFolder = project.getBuild().getDirectory();
+        final Collection<File> files = FileUtils.listFiles(new File(targetFolder), ARTIFACT_EXTENSIONS, true);
+        return getRunnableArtifactFromFiles(files);
     }
 
     public static File getArtifactFromConfiguration(SpringConfiguration springConfiguration) throws MojoExecutionException {
@@ -210,17 +203,18 @@ public class Utils {
         };
     }
 
-    private static File getRunnableArtifactFromFiles(List<File> files) throws MojoExecutionException {
+    private static File getRunnableArtifactFromFiles(Collection<File> files) throws MojoExecutionException {
         final List<File> runnableArtifacts = files.stream().filter(Utils::isExecutableJar).collect(Collectors.toList());
-        if (runnableArtifacts.size() == 1) {
-            return runnableArtifacts.get(0);
-        } else if (runnableArtifacts.size() == 0) {
+        if (runnableArtifacts.isEmpty()) {
             throw new MojoExecutionException(ARTIFACT_NOT_SUPPORTED);
-        } else {
-            final List<String> artifactNameLists = runnableArtifacts.stream()
-                    .map(file -> file.getName()).collect(Collectors.toList());
-            throw new MojoExecutionException(String.format(MULTI_ARTIFACT, String.join(",", artifactNameLists)));
         }
+        // Throw exception when there are multi runnable artifacts
+        if (runnableArtifacts.size() > 1) {
+            final String artifactNameLists = runnableArtifacts.stream()
+                    .map(file -> file.getName()).collect(Collectors.joining(","));
+            throw new MojoExecutionException(String.format(MULTI_ARTIFACT, artifactNameLists));
+        }
+        return runnableArtifacts.get(0);
     }
 
     private Utils() {
