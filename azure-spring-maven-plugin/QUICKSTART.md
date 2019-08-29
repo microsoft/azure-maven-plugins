@@ -24,9 +24,6 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
     ```
     git clone https://github.com/xscript/PiggyMetrics
     ```
-    
-1. Update the pom of `gateway`,`auth-service` and `account-service`, set the `<finalName>` of `spring-boot-maven-plugin` to be `${project.build.finalName}` 
-    > Spring maven plugin uses `${project.build.directory}/${project.build.finalName}.${project.packaging}` as the default artifact, you set the `<resources>` in `<configuration>` to specify the uploaded jars
   
 1. Change directory and build the project by running below command.
     ```
@@ -38,13 +35,13 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
 
     1. Select module `gateway`,`auth-service` and `account-service`
 
-        ![](img\SelectChildModules.png)
+        ![](./img/SelectChildModules.png)
 
     1. Select your subscription and spring cloud service cluster
 
     1. Expose public access to gateway
 
-        ![](img\ExposePublicAccess.png)
+        ![](./img/ExposePublicAccess.png)
     
     1. Confirm the configuration
 
