@@ -6,14 +6,25 @@
 
 package com.microsoft.azure.maven.spring.configuration;
 
-import com.microsoft.azure.maven.spring.utils.XmlUtils;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 
-public class AppSettings {
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class AppSettings extends BaseSettings {
+    private String subscriptionId;
     private String clusterName;
     private String appName;
-    private String runtimeVersion;
     private String isPublic;
+
+    public String getSubscriptionId() {
+        return subscriptionId;
+    }
+
+    public void setSubscriptionId(String subscriptionId) {
+        this.subscriptionId = subscriptionId;
+    }
 
     public String getClusterName() {
         return clusterName;
@@ -31,26 +42,22 @@ public class AppSettings {
         this.appName = appName;
     }
 
-    public String getRuntimeVersion() {
-        return runtimeVersion;
-    }
-
-    public void setRuntimeVersion(String runtimeVersion) {
-        this.runtimeVersion = runtimeVersion;
-    }
-
     public String isPublic() {
         return isPublic;
     }
 
-    public void setIsPublic(String isPublic) {
+    public void setPublic(String isPublic) {
         this.isPublic = isPublic;
     }
 
-    public void applyToXpp3Dom(Xpp3Dom deployment) {
-        XmlUtils.replaceDomWithKeyValue(deployment, "clusterName", this.clusterName);
-        XmlUtils.replaceDomWithKeyValue(deployment, "appName", this.appName);
-        XmlUtils.replaceDomWithKeyValue(deployment, "isPublic", this.isPublic);
-        XmlUtils.replaceDomWithKeyValue(deployment, "runtimeVersion", this.runtimeVersion);
+    @Override
+    protected Map<String, Object> getProperties() {
+        return MapUtils.putAll(new LinkedHashMap<>(), new Map.Entry[] {
+            new DefaultMapEntry("subscriptionId", this.subscriptionId),
+            new DefaultMapEntry("clusterName", this.clusterName),
+            new DefaultMapEntry("appName", this.appName),
+            new DefaultMapEntry("isPublic", this.isPublic)
+        });
     }
+
 }
