@@ -35,7 +35,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class PomXmlUpdater {
@@ -52,8 +51,7 @@ public class PomXmlUpdater {
         final SAXReader reader = new CustomSAXReader();
         reader.setDocumentFactory(new LocatorAwareDocumentFactory());
         final Document doc = reader.read(new InputStreamReader(new FileInputStream(pom)));
-        final List pathsToBuild = Arrays.asList("build", "plugins");
-        final Element pluginsNode = createToPath(doc.getRootElement(), pathsToBuild);
+        final Element pluginsNode = createToPath(doc.getRootElement(), "build", "plugins");
         Element springPluginNode = null;
         for (final Element element : pluginsNode.elements()) {
             final String groupId = XmlUtils.getChildValue("groupId", element);
@@ -68,33 +66,34 @@ public class PomXmlUpdater {
             springPluginNode = createMavenSpringPluginNode(pluginsNode);
         }
 
-        final Element configurationNode = createToPath(springPluginNode, Arrays.asList("configuration"));
+        final Element configurationNode = createToPath(springPluginNode, "configuration");
         app.applyToDom4j(configurationNode);
-        final Element deployNode = createToPath(configurationNode, Arrays.asList("deployment"));
+        final Element deployNode = createToPath(configurationNode, "deployment");
         deploy.applyToDom4j(deployNode);
         // newly created nodes are not LocationAwareElement
-        Element firstCreatedNode = configurationNode;
-        while (!(firstCreatedNode.getParent() instanceof LocationAwareElement)) {
-            firstCreatedNode = firstCreatedNode.getParent();
+        // use configurationNode as initial value since we want to format configuration node if it exists.
+        Element newNode = configurationNode;
+        while (!(newNode.getParent() instanceof LocationAwareElement)) {
+            newNode = newNode.getParent();
         }
-        FileUtils.fileWrite(pom, formatElement(firstCreatedNode.getParent(), firstCreatedNode));
+        FileUtils.fileWrite(pom, formatElement((LocationAwareElement) newNode.getParent(), newNode));
     }
 
-    private static String formatElement(Element parent, Element self) {
-        final String[] ls = IndentUtil.splitLines(parent.getDocument().asXML());
-        final String baseIndent = IndentUtil.calcXmlIndent(ls, ((LocationAwareElement) parent).getLineNumber() - 1,
-                ((LocationAwareElement) parent).getColumnNumber() - 2);
+    private static String formatElement(LocationAwareElement parent, Element newNode) {
+        final String[] originXmlLines = IndentUtil.splitLines(parent.getDocument().asXML());
+        final String baseIndent = IndentUtil.calcXmlIndent(originXmlLines, parent.getLineNumber() - 1,
+                parent.getColumnNumber() - 2);
         final String placeHolder = String.format("@PLACEHOLDER_RANDOM_%s@", RandomUtils.nextLong());
         final Text placeHolderNode = new DefaultText("\n" + placeHolder);
         // replace target node to placeholder
-        parent.content().replaceAll(t -> t == self ? placeHolderNode : t);
-        self.setParent(null);
+        parent.content().replaceAll(t -> t == newNode ? placeHolderNode : t);
+        newNode.setParent(null);
         // remove all spaces before target node
         XmlUtils.trimTextBeforeEnd(parent, placeHolderNode);
         final String originalXml = parent.getDocument().asXML();
 
-        final String[] ts = IndentUtil.splitLines(XmlUtils.prettyPrintElementNoNamespace(self));
-        final String replacement = Arrays.stream(ts).map(t -> baseIndent + "    " + t).collect(Collectors.joining("\n")) + "\n" + baseIndent;
+        final String[] newXmlLines = IndentUtil.splitLines(XmlUtils.prettyPrintElementNoNamespace(newNode));
+        final String replacement = Arrays.stream(newXmlLines).map(t -> baseIndent + "    " + t).collect(Collectors.joining("\n")) + "\n" + baseIndent;
         return originalXml.replace(placeHolder, replacement);
     }
 
@@ -107,7 +106,7 @@ public class PomXmlUpdater {
         return result;
     }
 
-    private static Element createToPath(Element node, Iterable<String> paths) {
+    private static Element createToPath(Element node, String... paths) {
         for (final String path : paths) {
             Element newNode = node.element(path);
             if (newNode == null) {

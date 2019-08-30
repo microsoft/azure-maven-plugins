@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.spring.utils;
 
-import org.apache.commons.lang3.CharUtils;
 import org.parboiled.common.Preconditions;
 
 public class IndentUtil {
@@ -18,28 +17,20 @@ public class IndentUtil {
     public static String calcXmlIndent(String[] lines, int row, int column) {
         Preconditions.checkArgNotNull(lines, "lines");
         Preconditions.checkArgument(lines.length > row, "The parameter 'row' overflows.");
-        final String s = lines[row];
-        Preconditions.checkArgument(s != null, "Encounter null on row: " + row);
-        Preconditions.checkArgument(s.length() >= column, "The parameter 'column' overflows");
+        final String line = lines[row];
+        Preconditions.checkArgument(line != null, "Encounter null on row: " + row);
+        Preconditions.checkArgument(line.length() >= column, "The parameter 'column' overflows");
 
-        final StringBuilder b = new StringBuilder();
-        int pos = column;
-        while (pos >= 0 && s.charAt(pos--) != '<') {
-            // empty
-        }
-
+        final StringBuilder buffer = new StringBuilder();
+        final int pos = line.lastIndexOf('<', column) - 1; // skip the current tag like : <tag>
         for (int i = 0; i <= pos; i++) {
-            if (s.charAt(i) == '\t') {
-                b.append('\t');
+            if (line.charAt(i) == '\t') {
+                buffer.append('\t');
             } else {
-                b.append(' ');
+                buffer.append(' ');
             }
         }
-        return b.toString();
-    }
-
-    public static boolean isCrLf(char ch) {
-        return ch == CharUtils.CR || ch == CharUtils.LF;
+        return buffer.toString();
     }
 
     private IndentUtil() {
