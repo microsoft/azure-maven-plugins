@@ -61,6 +61,7 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_RUNTIME_VERSION;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_WITHIN_PARENT_POM;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_AUTH_POM_CONFIGURATION;
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_DURATION;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_CODE;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_MESSAGE;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_TYPE;
@@ -124,6 +125,8 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
     protected SpringServiceClient springServiceClient;
 
+    protected Long timeStart;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -141,6 +144,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     protected void initExecution() throws MojoFailureException, InvalidConfigurationException, IOException, DesktopNotSupportedException,
             ExecutionException, AzureLoginFailureException, InterruptedException {
         // Init telemetries
+        timeStart = System.currentTimeMillis();
         telemetries = new HashMap<>();
         if (!isTelemetryAllowed) {
             AppInsightHelper.INSTANCE.disable();
@@ -197,6 +201,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
     protected void handleSuccess() {
         telemetries.put(TELEMETRY_KEY_ERROR_CODE, TELEMETRY_VALUE_ERROR_CODE_SUCCESS);
+        telemetries.put(TELEMETRY_KEY_DURATION, String.valueOf(System.currentTimeMillis() - timeStart));
         trackMojoExecution(MojoStatus.Success);
     }
 
@@ -206,6 +211,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_ERROR_CODE, TELEMETRY_VALUE_ERROR_CODE_FAILURE);
         telemetries.put(TELEMETRY_KEY_ERROR_TYPE, isUserError ? TELEMETRY_VALUE_USER_ERROR : TELEMETRY_VALUE_SYSTEM_ERROR);
         telemetries.put(TELEMETRY_KEY_ERROR_MESSAGE, exception.getMessage());
+        telemetries.put(TELEMETRY_KEY_DURATION, String.valueOf(System.currentTimeMillis() - timeStart));
         trackMojoExecution(MojoStatus.Failure);
     }
 

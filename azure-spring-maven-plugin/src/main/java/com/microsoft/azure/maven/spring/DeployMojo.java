@@ -32,8 +32,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_DEPLOYMENT;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_NEW_APP;
-import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_UPDATE_CONFIGURATION;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_DEPLOYMENT_NAME_GIVEN;
 
 @Mojo(name = "deploy")
 public class DeployMojo extends AbstractSpringMojo {
@@ -83,7 +84,7 @@ public class DeployMojo extends AbstractSpringMojo {
             return;
         }
         // Prepare telemetries
-        traceTelemetry(springAppClient, configuration);
+        traceTelemetry(springAppClient, deploymentClient, configuration);
         // Create or update new App
         getLog().info(STATUS_CREATE_OR_UPDATE_APP);
         springAppClient.createOrUpdateApp(configuration);
@@ -240,16 +241,21 @@ public class DeployMojo extends AbstractSpringMojo {
         return deploymentConfiguration.getResources() != null && deploymentConfiguration.getResources().size() > 0;
     }
 
-    protected void traceTelemetry(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {
+    protected void traceTelemetry(SpringAppClient springAppClient, SpringDeploymentClient deploymentClient,
+                                  SpringConfiguration springConfiguration) {
         traceAuth();
         traceConfiguration(springConfiguration);
-        traceDeployment(springAppClient, springConfiguration);
+        traceDeployment(springAppClient, deploymentClient, springConfiguration);
     }
 
-    protected void traceDeployment(SpringAppClient springAppClient, SpringConfiguration springConfiguration) {
+    protected void traceDeployment(SpringAppClient springAppClient, SpringDeploymentClient deploymentClient,
+                                   SpringConfiguration springConfiguration) {
         final boolean isNewApp = springAppClient.getApp() == null;
-        final boolean isUpdateConfiguration = false;
+        final boolean isNewDeployment = deploymentClient.getDeployment() == null;
+        final boolean isDeploymentNameGiven = springConfiguration.getDeployment() != null &&
+                StringUtils.isNotEmpty(springConfiguration.getDeployment().getDeploymentName());
         telemetries.put(TELEMETRY_KEY_IS_CREATE_NEW_APP, String.valueOf(isNewApp));
-        telemetries.put(TELEMETRY_KEY_IS_UPDATE_CONFIGURATION, String.valueOf(isUpdateConfiguration));
+        telemetries.put(TELEMETRY_KEY_IS_CREATE_DEPLOYMENT, String.valueOf(isNewDeployment));
+        telemetries.put(TELEMETRY_KEY_IS_DEPLOYMENT_NAME_GIVEN, String.valueOf(isDeploymentNameGiven));
     }
 }
