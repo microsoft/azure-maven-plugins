@@ -52,7 +52,7 @@ public class LocalAuthServerTest {
     @Test
     public void testErrorResult() throws Exception {
         final String url = localAuthServer.getURI().toString();
-        final String queryString = "access_denied&error_description=the+user+canceled+the+authentication";
+        final String queryString = "access_denied&error_description=the+user+canceled+the+authentication&error=error1";
         final URLConnection conn = new URL(url + "?" + queryString).openConnection();
         final Runnable runnable = () -> {
             try {

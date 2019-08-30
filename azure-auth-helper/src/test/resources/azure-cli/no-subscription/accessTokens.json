@@ -1,0 +1,15 @@
+[
+	{
+        "tokenType": "Bearer",
+        "expiresIn": 3600,
+        "expiresOn": "0000-00-00 00:00:00",
+        "resource": "https://management.core.windows.net/",
+        "accessToken": "xxxx",
+        "refreshToken": "xxxxx",
+        "oid": "00000000-0000-0000-0000-000000000001",
+        "userId": "jack@microsoft.com",
+        "isMRRT": true,
+        "_clientId": "00000000-0000-0000-0000-000000000002",
+        "_authority": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000003"
+    }
+]

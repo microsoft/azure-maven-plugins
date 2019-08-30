@@ -84,6 +84,28 @@ public class AzureServicePrincipleAuthHelperTest {
     }
 
     @Test
+    public void testGetSPCredentialsNoSubscription() throws Exception {
+        final File testConfigDir = new File(this.getClass().getResource("/azure-cli/no-subscription/azureProfile.json").getFile()).getParentFile();
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
+        try {
+            AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
+        } catch (InvalidConfigurationException ex) {
+            // expect
+        }
+    }
+
+    @Test
+    public void testGetSPCredentialsNoTokens() throws Exception {
+        final File testConfigDir = new File(this.getClass().getResource("/azure-cli/no-tokens/azureProfile.json").getFile()).getParentFile();
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
+        try {
+            AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
+        } catch (InvalidConfigurationException ex) {
+            // expect
+        }
+    }
+
+    @Test
     public void testGetCredentialsFromCliNotSP() throws Exception {
         final File testConfigDir = new File(this.getClass().getResource("/azure-cli/default/azureProfile.json").getFile()).getParentFile();
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
