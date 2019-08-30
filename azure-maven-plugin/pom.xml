@@ -8,7 +8,7 @@
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
     <artifactId>azure-maven-plugin</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>Azure Plugin</name>
     <packaging>maven-plugin</packaging>
     <description>Azure Authentication library for java</description>
@@ -22,7 +22,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.version>3.5</maven.version>
         <junit.version>4.12</junit.version>
-        <azure.maven-plugin-lib.version>1.2.10</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.2.11-SNAPSHOT</azure.maven-plugin-lib.version>
     </properties>
 
     <licenses>
