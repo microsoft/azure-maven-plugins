@@ -6,19 +6,23 @@
 
 package com.microsoft.azure.maven.spring.configuration;
 
-import com.microsoft.azure.maven.spring.utils.XmlUtils;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.keyvalue.DefaultMapEntry;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * The string version of <class>Deployment</class> which is used in `config` goal due to the reason that users may use
  * an expression(string) to represent a cpu(integer).
  */
-public class DeploymentSettings {
+public class DeploymentSettings extends BaseSettings {
     private String cpu;
     private String memoryInGB;
     private String instanceCount;
     private String deploymentName;
     private String jvmOptions;
+    private String runtimeVersion;
 
     public String getCpu() {
         return cpu;
@@ -65,10 +69,22 @@ public class DeploymentSettings {
         return jvmOptions;
     }
 
-    public void applyToXpp3Dom(Xpp3Dom deployment) {
-        XmlUtils.replaceDomWithKeyValue(deployment, "cpu", this.cpu);
-        XmlUtils.replaceDomWithKeyValue(deployment, "memoryInGB", this.memoryInGB);
-        XmlUtils.replaceDomWithKeyValue(deployment, "instanceCount", this.instanceCount);
-        XmlUtils.replaceDomWithKeyValue(deployment, "jvmOptions", this.jvmOptions);
+    public String getRuntimeVersion() {
+        return runtimeVersion;
+    }
+
+    public void setRuntimeVersion(String runtimeVersion) {
+        this.runtimeVersion = runtimeVersion;
+    }
+
+    @Override
+    protected Map<String, Object> getProperties() {
+        return MapUtils.putAll(new LinkedHashMap<>(), new Map.Entry[] {
+            new DefaultMapEntry("cpu", this.cpu),
+            new DefaultMapEntry("memoryInGB", this.memoryInGB),
+            new DefaultMapEntry("instanceCount", this.instanceCount),
+            new DefaultMapEntry("jvmOptions", this.jvmOptions),
+            new DefaultMapEntry("runtimeVersion", this.runtimeVersion),
+        });
     }
 }
