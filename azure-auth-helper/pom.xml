@@ -24,7 +24,7 @@
         <httpclient.version>4.5.9</httpclient.version>
         <junit.version>4.12</junit.version>
         <commons.lang3.version>3.9</commons.lang3.version>
-        <jetty.server.version>9.4.15.v20190215</jetty.server.version>
+        <jetty.server.version>9.4.20.v20190813</jetty.server.version>
         <jsonwebtoken.jjwt.version>0.9.1</jsonwebtoken.jjwt.version>
         <maven.version>3.5.0</maven.version>
         <mockito.version>2.22.0</mockito.version>
