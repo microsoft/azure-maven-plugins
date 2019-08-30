@@ -65,7 +65,7 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final String CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT = "Create new deployment [%s] in app [%s]";
     protected static final String CONFIRM_PROMPT_UPDATE_DEPLOYMENT = "Update deployment [%s] in app [%s]";
     protected static final String CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT = "Set [%s] as the active deployment of app [%s]";
-    protected static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks?";
+    protected static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
