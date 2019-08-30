@@ -76,11 +76,11 @@ public class PomXmlUpdater {
         while (!(newNode.getParent() instanceof LocationAwareElement)) {
             newNode = newNode.getParent();
         }
-        FileUtils.fileWrite(pom, formatElement((LocationAwareElement) newNode.getParent(), newNode));
+        FileUtils.fileWrite(pom, formatElement(FileUtils.fileRead(pom), (LocationAwareElement) newNode.getParent(), newNode));
     }
 
-    private static String formatElement(LocationAwareElement parent, Element newNode) {
-        final String[] originXmlLines = IndentUtil.splitLines(parent.getDocument().asXML());
+    private static String formatElement(String originalXml, LocationAwareElement parent, Element newNode) {
+        final String[] originXmlLines = IndentUtil.splitLines(originalXml);
         final String baseIndent = IndentUtil.calcXmlIndent(originXmlLines, parent.getLineNumber() - 1,
                 parent.getColumnNumber() - 2);
         final String placeHolder = String.format("@PLACEHOLDER_RANDOM_%s@", RandomUtils.nextLong());
@@ -90,11 +90,11 @@ public class PomXmlUpdater {
         newNode.setParent(null);
         // remove all spaces before target node
         XmlUtils.trimTextBeforeEnd(parent, placeHolderNode);
-        final String originalXml = parent.getDocument().asXML();
+        final String xmlWithPlaceholder = parent.getDocument().asXML();
 
         final String[] newXmlLines = IndentUtil.splitLines(XmlUtils.prettyPrintElementNoNamespace(newNode));
         final String replacement = Arrays.stream(newXmlLines).map(t -> baseIndent + "    " + t).collect(Collectors.joining("\n")) + "\n" + baseIndent;
-        return originalXml.replace(placeHolder, replacement);
+        return xmlWithPlaceholder.replace(placeHolder, replacement);
     }
 
     private Element createMavenSpringPluginNode(Element pluginsRootNode) throws IOException {
