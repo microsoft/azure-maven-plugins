@@ -19,7 +19,9 @@ public class TelemetryConstants {
     public static final String TELEMETRY_KEY_IS_SERVICE_PRINCIPAL = "isServicePrincipal";
     public static final String TELEMETRY_KEY_IS_KEY_ENCRYPTED = "isKeyEncrypted";
     public static final String TELEMETRY_KEY_IS_CREATE_NEW_APP = "isCreateNewApp";
-    public static final String TELEMETRY_KEY_IS_UPDATE_CONFIGURATION = "isUpdateConfiguration";
+    public static final String TELEMETRY_KEY_IS_CREATE_DEPLOYMENT = "isCreateDeployment";
+    public static final String TELEMETRY_KEY_IS_DEPLOYMENT_NAME_GIVEN = "isDeploymentNameGiven";
+
 
     public static final String TELEMETRY_VALUE_AUTH_POM_CONFIGURATION = "Pom Configuration";
     public static final String TELEMETRY_VALUE_AUTH_MAVEN_SERVER = "Maven Server";
