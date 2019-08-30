@@ -26,6 +26,28 @@ public class XmlUtils {
         return child == null ? null : child.getText();
     }
 
+    public static void addNotEmptyElement(Element element, String attribute, String value) {
+        if (StringUtils.isNotEmpty(value)) {
+            element.add(createSimpleElement(attribute, value));
+        }
+    }
+
+    public static DOMElement createSimpleElement(String name, String value) {
+        final DOMElement result = new DOMElement(name);
+        result.setText(value);
+        return result;
+    }
+
+    public static void addNotEmptyListElement(Element element, String attribute, String subAttribute, List<String> values) {
+        if (values != null && !values.isEmpty()) {
+            final DOMElement resultNode = new DOMElement(attribute);
+            for (final String value : values) {
+                resultNode.add(createSimpleElement(subAttribute, value));
+            }
+            element.add(resultNode);
+        }
+    }
+
     public static String prettyPrintElementNoNamespace(Element node) {
         removeAllNamespaces(node);
         try {
