@@ -81,7 +81,7 @@ property:         memoryInGB
 
 ---
 id:               configure-jvm-options
-promote:          "Input JVM options (***{{schema.default}}***):"
+promote:          "Input JVM options{{(schema.default) ? '(***' ~ schema.default ~ '***)' : ''}}:"
 resource:         Deployment
 property:         jvmOptions
 

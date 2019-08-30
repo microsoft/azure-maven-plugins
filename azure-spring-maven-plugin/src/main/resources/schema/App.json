@@ -7,7 +7,8 @@
 		"appName": {
 			"description": "The app name",
 			"type": "string",
-			"pattern": "^[a-zA-Z_][0-9a-zA-Z_\\-]*$"
+			"pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])$",
+			"maxLength": 32
 		},
 		"isPublic": {
 			"description": "Public accessible to this app",
