@@ -14,8 +14,10 @@ public class Constants {
     public static final String TELEMETRY_KEY_ERROR_CODE = "errorCode";
     public static final String TELEMETRY_KEY_ERROR_TYPE = "errorType";
     public static final String TELEMETRY_KEY_ERROR_MESSAGE = "errorMessage";
+    public static final String TELEMETRY_KEY_DURATION = "duration";
     public static final String TELEMETRY_VALUE_USER_ERROR = "userError";
     public static final String TELEMETRY_VALUE_SYSTEM_ERROR = "systemError";
+    public static final String TELEMETRY_EVENT_TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
     public static final String TELEMETRY_VALUE_ERROR_CODE_SUCCESS = "0";
     public static final String TELEMETRY_VALUE_ERROR_CODE_FAILURE = "1";
 

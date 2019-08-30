@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_EVENT_TELEMETRY_NOT_ALLOWED;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_INSTALLATIONID;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_SESSION_ID;
 
@@ -35,6 +36,7 @@ public enum AppInsightHelper implements TelemetryProxy {
     }
 
     public void disable() {
+        trackEvent(TELEMETRY_EVENT_TELEMETRY_NOT_ALLOWED);
         this.isEnabled = false;
     }
 

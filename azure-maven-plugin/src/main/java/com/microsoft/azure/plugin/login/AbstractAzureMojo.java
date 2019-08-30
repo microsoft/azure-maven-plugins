@@ -17,6 +17,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_DURATION;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_CODE;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_MESSAGE;
 import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_TYPE;
@@ -37,6 +38,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     @Parameter(defaultValue = "${plugin}", readonly = true, required = true)
     protected PluginDescriptor plugin;
 
+    protected Long timeStart;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -52,6 +55,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     }
 
     protected void initTelemetry() {
+        timeStart = System.currentTimeMillis();
         telemetries = new HashMap<>();
         if (!isTelemetryAllowed) {
             AppInsightHelper.INSTANCE.disable();
@@ -64,6 +68,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
 
     protected void handleSuccess() {
         telemetries.put(TELEMETRY_KEY_ERROR_CODE, TELEMETRY_VALUE_ERROR_CODE_SUCCESS);
+        telemetries.put(TELEMETRY_KEY_DURATION, String.valueOf(System.currentTimeMillis() - timeStart));
         trackMojoExecution(MojoStatus.Success);
     }
 
@@ -72,6 +77,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_ERROR_CODE, TELEMETRY_VALUE_ERROR_CODE_FAILURE);
         telemetries.put(TELEMETRY_KEY_ERROR_TYPE, isUserError ? TELEMETRY_VALUE_USER_ERROR : TELEMETRY_VALUE_SYSTEM_ERROR);
         telemetries.put(TELEMETRY_KEY_ERROR_MESSAGE, exception.getMessage());
+        telemetries.put(TELEMETRY_KEY_DURATION, String.valueOf(System.currentTimeMillis() - timeStart));
         trackMojoExecution(MojoStatus.Failure);
     }
 
