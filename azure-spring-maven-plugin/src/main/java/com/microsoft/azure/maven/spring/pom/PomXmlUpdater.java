@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.spring.pom;
 import com.microsoft.azure.maven.spring.configuration.AppSettings;
 import com.microsoft.azure.maven.spring.configuration.DeploymentSettings;
 import com.microsoft.azure.maven.spring.utils.IndentUtil;
+import com.microsoft.azure.maven.spring.utils.ResourcesUtils;
 import com.microsoft.azure.maven.spring.utils.XmlUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -70,6 +71,7 @@ public class PomXmlUpdater {
         app.applyToDom4j(configurationNode);
         final Element deployNode = createToPath(configurationNode, "deployment");
         deploy.applyToDom4j(deployNode);
+        ResourcesUtils.applyDefaultResourcesToDom4j(deployNode);
         // newly created nodes are not LocationAwareElement
         // use configurationNode as initial value since we want to format configuration node if it exists.
         Element newNode = configurationNode;
