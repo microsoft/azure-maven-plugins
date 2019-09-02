@@ -14,12 +14,14 @@ import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -27,12 +29,59 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({AzureLoginHelper.class})
 public class AzureAuthHelperTest {
-
     @After
     public void afterEachTestMethod() {
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, null);
+    }
+
+    @Test
+    public void testoAuthLogin() throws Exception {
+        final AzureEnvironment env = AzureEnvironment.AZURE;
+        final AzureCredential credExpected = AzureCredential.fromAuthenticationResult(TestHelper.createAuthenticationResult());
+        mockStatic(AzureLoginHelper.class);
+        when(AzureLoginHelper.oAuthLogin(env)).thenReturn(credExpected);
+
+        final AzureCredential cred = AzureAuthHelper.oAuthLogin(env);
+        assertEquals(credExpected, cred);
+    }
+
+    @Test
+    public void testDeviceLogin() throws Exception {
+        final AzureEnvironment env = AzureEnvironment.AZURE;
+        final AzureCredential credExpected = AzureCredential.fromAuthenticationResult(TestHelper.createAuthenticationResult());
+        mockStatic(AzureLoginHelper.class);
+        when(AzureLoginHelper.deviceLogin(env)).thenReturn(credExpected);
+
+        final AzureCredential cred = AzureAuthHelper.deviceLogin(env);
+        assertEquals(credExpected, cred);
+    }
+
+    @Test
+    public void testRefreshToken() throws Exception {
+        final AzureEnvironment env = AzureEnvironment.AZURE;
+        final AzureCredential credExpected = AzureCredential.fromAuthenticationResult(TestHelper.createAuthenticationResult());
+        mockStatic(AzureLoginHelper.class);
+        when(AzureLoginHelper.refreshToken(env, "token for power mock")).thenReturn(credExpected);
+
+        final AzureCredential cred = AzureAuthHelper.refreshToken(env, "token for power mock");
+        assertEquals(credExpected, cred);
+    }
+
+    @Test
+    public void testRefreshTokenInvalidToken() throws Exception {
+        try {
+            AzureAuthHelper.refreshToken(AzureEnvironment.AZURE, "invalid");
+            fail("Should throw AzureLoginFailureException when refreshToken is invalid.");
+        } catch (ExecutionException e) {
+            // ignore
+        }
     }
 
     @Test
@@ -246,25 +295,20 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetToken() throws Exception {
-        @SuppressWarnings("serial")
-        final AzureEnvironment testEnvironment = new AzureEnvironment(new HashMap<String, String>() {{
-                put(AzureEnvironment.Endpoint.ACTIVE_DIRECTORY.toString(), "https://xxxxxxx/");
-                put(AzureEnvironment.Endpoint.MANAGEMENT.toString(), "https://xxxxxxx/");
-                put(AzureEnvironment.Endpoint.RESOURCE_MANAGER.toString(), "https://xxxxxxx/");
-            }});
+        final AzureCredential credExpected = AzureCredential.fromAuthenticationResult(TestHelper.createAuthenticationResult());
+        credExpected.setAccessToken("token refreshed");
+        mockStatic(AzureLoginHelper.class);
 
+        final AzureEnvironment env = AzureEnvironment.AZURE;
         final AzureCredential cred = AzureCredential.fromAuthenticationResult(TestHelper.createAuthenticationResult());
-        // sample token from https://medium.com/@siddharthac6/json-web-token-jwt-the-right-way-of-implementing-with-node-js-65b8915d550e
+        when(AzureLoginHelper.refreshToken(eq(env), eq("refresh token"))).thenReturn(credExpected);
+        cred.setRefreshToken("refresh token");
+        //  sample token from https://medium.com/@siddharthac6/json-web-token-jwt-the-right-way-of-implementing-with-node-js-65b8915d550e
         final String expiredToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhMSI6IkRhdGEgMSIsImRhdGEyIjoiRGF0YSAyIiwiZGF0YTMiOiJEYXRhIDMiLCJkYXRhNCI6Ik" +
                 "RhdGEgNCIsImlhdCI6MTUyNTE5MzM3NywiZXhwIjoxNTI1MjM2NTc3LCJhdWQiOiJodHRwOi8vbXlzb2Z0Y29ycC5pbiIsImlzcyI6Ik15c29mdCBjb3JwIiwic3ViIjoic29tZUB1c2" +
                 "VyLmNvbSJ9.ID2fn6t0tcoXeTgkG2AivnG1skctbCAyY8M1ZF38kFvUJozRWSbdVc7FLwot-bwV8k1imV8o0fqdv5sVY0Yzmg";
         cred.setAccessToken(expiredToken);
-        try {
-            AzureAuthHelper.getMavenAzureLoginCredentials(cred, testEnvironment).getToken(testEnvironment.resourceManagerEndpoint());
-            fail("should throw UnknownHostException when refreshing the access token.");
-        } catch (UnknownHostException ex) {
-            // expected
-        }
+        assertEquals("token refreshed", AzureAuthHelper.getMavenAzureLoginCredentials(cred, env).getToken(env.resourceManagerEndpoint()));
 
         // token created by site: http://jwtbuilder.jamiekurtz.com/,
         //{
@@ -284,9 +328,9 @@ public class AzureAuthHelperTest {
         final String validToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE1NjYyMDEzMjEsImV4cCI6NDA5MDcyMjkyMSw" +
                 "iYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2" +
                 "NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.m0yY1rRd9-zo9pUKWdkuuCSIj48K-X8IPr1-3gj-dGQ";
-
         cred.setAccessToken(validToken);
-        assertEquals(validToken, AzureAuthHelper.getMavenAzureLoginCredentials(cred, testEnvironment).getToken(testEnvironment.resourceManagerEndpoint()));
+
+        assertEquals(validToken, AzureAuthHelper.getMavenAzureLoginCredentials(cred, env).getToken(env.resourceManagerEndpoint()));
 
     }
 }
