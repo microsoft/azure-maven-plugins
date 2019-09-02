@@ -16,6 +16,8 @@ addons:
       - python-dev
       - build-essential
 
+dist: trusty
+
 install:
   - pip install azure-cli --user
   - nvm install lts/*
