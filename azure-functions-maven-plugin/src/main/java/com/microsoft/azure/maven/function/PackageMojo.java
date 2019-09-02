@@ -314,7 +314,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected boolean isInstallingExtensionNeeded(Set<BindingEnum> bindingTypes) {
         final JsonObject hostJson = readHostJson();
         final JsonObject extensionBundle = hostJson.getAsJsonObject(EXTENSION_BUNDLE);
-        if (extensionBundle != null &&
+        if (extensionBundle != null && extensionBundle.has("id") &&
                 StringUtils.equalsIgnoreCase(extensionBundle.get("id").getAsString(), EXTENSION_BUNDLE_ID)) {
             getLog().info(SKIP_INSTALL_EXTENSIONS_BUNDLE);
             return false;
