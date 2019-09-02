@@ -60,7 +60,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     @Override
     protected void doExecute() throws Exception {
         queryer = QueryFactory.getQueryer(settings, getLog());
-        pomHandler = new WebAppPomHandler("pom.xml");
+        pomHandler = new WebAppPomHandler(project.getFile().getAbsolutePath());
 
         try {
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
@@ -76,7 +76,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     private boolean isV2Configuration(WebAppConfiguration configuration) {
-        return configuration == null || schemaVersion.equals(SchemaVersion.V2.toString());
+        return configuration == null || schemaVersion.equalsIgnoreCase(SchemaVersion.V2.toString());
     }
 
     protected void config(WebAppConfiguration configuration) throws MojoFailureException, MojoExecutionException,
