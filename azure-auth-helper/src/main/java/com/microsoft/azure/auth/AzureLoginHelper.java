@@ -133,7 +133,7 @@ class AzureLoginHelper {
                 System.out.println("Failed to disable the log of AuthenticationContext, it will continue being noisy.");
             }
             final AzureCredential cred = new AzureContextExecutor(baseURL(env), authenticationContext -> {
-                final DeviceCode deviceCode = authenticationContext.acquireDeviceCode(Constants.CLIENT_ID, env.activeDirectoryResourceId(), null).get();
+                final DeviceCode deviceCode = authenticationContext.acquireDeviceCode(Constants.CLIENT_ID, env.managementEndpoint(), null).get();
                 // print device code hint message:
                 // to sign in, use a web browser to open the page
                 // https://microsoft.com/devicelogin and enter the code xxxxxx to authenticate.
