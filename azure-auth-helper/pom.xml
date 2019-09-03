@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -32,6 +33,7 @@
         <powermock.version>2.0.2</powermock.version>
         <azure.maven-plugin-lib.version>1.2.10</azure.maven-plugin-lib.version>
         <surefire.version>2.22.0</surefire.version>
+        <jacoco.version>0.8.4</jacoco.version>
     </properties>
 
     <licenses>
@@ -187,6 +189,12 @@
             <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.agent</artifactId>
+            <version>${jacoco.version}</version>
+            <classifier>runtime</classifier>
+        </dependency>
     </dependencies>
 
     <build>
@@ -203,15 +211,9 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <useSystemClassLoader>true</useSystemClassLoader>
-                    <argLine>@{jacocoArgLine}
-                        -javaagent:${settings.localRepository}/org/powermock/powermock-module-javaagent/${powermock.version}/powermock-module-javaagent-${powermock.version}.jar
-                        -noverify -Xmx1024m
-                    </argLine>
-                    <trimStackTrace>false</trimStackTrace>
-                    <includes>
-                        <include>**/*Test.java</include>
-                    </includes>
+                    <systemPropertyVariables>
+                        <jacoco-agent.destfile>${project.build.directory}/coverage.exec</jacoco-agent.destfile>
+                    </systemPropertyVariables>
                 </configuration>
                 <version>${surefire.version}</version>
             </plugin>
@@ -219,24 +221,29 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.4</version>
+                <version>${jacoco.version}</version>
                 <executions>
                     <execution>
-                        <id>test-coverage</id>
+                        <id>default-instrument</id>
                         <goals>
-                            <goal>prepare-agent</goal>
+                            <goal>instrument</goal>
                         </goals>
-                        <phase>process-test-classes</phase>
-                        <configuration>
-                            <propertyName>jacocoArgLine</propertyName>
-                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-restore-instrumented-classes</id>
+                        <goals>
+                            <goal>restore-instrumented-classes</goal>
+                        </goals>
                     </execution>
                     <execution>
                         <id>report</id>
-                        <phase>test</phase>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/coverage.exec</dataFile>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -7,7 +7,6 @@
 package com.microsoft.azure.auth;
 
 import com.microsoft.aad.adal4j.AuthenticationResult;
-import com.microsoft.azure.maven.utils.JsonUtils;
 import org.junit.Test;
 
 import java.util.Map;
@@ -19,23 +18,9 @@ import static org.junit.Assert.fail;
 public class AzureCredentialTest {
     @Test
     public void testConstructor() {
-        final String authJson = "{\n" +
-                "    \"accessTokenType\": \"Bearer\",\n" +
-                "    \"idToken\": \"eyJ0eXAi...iOiIxLjAifQ.\",\n" +
-                "    \"userInfo\": {\n" +
-                "        \"uniqueId\": \"daaaa...3f2\",\n" +
-                "        \"displayableId\": \"george@microsoft.com\",\n" +
-                "        \"givenName\": \"George\",\n" +
-                "        \"familyName\": \"Smith\",\n" +
-                "        \"tenantId\": \"72f988bf-86f1-41af-91ab-2d7cd011db47\"\n" +
-                "    },\n" +
-                "    \"accessToken\": \"eyJ0eXA...jmcnxMnQ\",\n" +
-                "    \"refreshToken\": \"AQAB...n5cgAA\",\n" +
-                "    \"isMultipleResourceRefreshToken\": true\n" +
-                "}";
-        final AuthenticationResult result = JsonUtils.fromJson(authJson, AuthenticationResult.class);
+        final AuthenticationResult result = TestHelper.createAuthenticationResult();
+        final Map<String, Object> map = TestHelper.getAuthenticationMap();
         final AzureCredential cred = AzureCredential.fromAuthenticationResult(result);
-        final Map<String, Object> map = JsonUtils.fromJson(authJson, Map.class);
         assertNotNull(cred);
         assertEquals(map.get("accessTokenType"), cred.getAccessTokenType());
         assertEquals(map.get("accessToken"), cred.getAccessToken());
@@ -62,6 +47,5 @@ public class AzureCredentialTest {
         } catch (IllegalArgumentException ex) {
             // IllegalArgumentException expected
         }
-
     }
 }
