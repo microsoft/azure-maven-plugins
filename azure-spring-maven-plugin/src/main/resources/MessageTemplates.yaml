@@ -28,7 +28,7 @@ promote:
 required:         true
 auto_select:      true
 message:
-  empty:          "Cannot find any subscriptions."
+  empty_options:  "Cannot find any subscriptions."
   auto_select:    "There is only one subscription (***{{ subscriptions[0].displayName() }}***) in your account, will use it automatically."
   select_none:    "You have not selected any subscriptions, 'config' will terminate."
 default_index:    0
@@ -39,7 +39,7 @@ promote:
     header:       "Available Azure Spring Cloud Services:"
     many:         "Select Azure Spring Cloud for deployment:"
 message:
-  empty:          "There are no Azure Spring Cloud Service in current subscription, please create it in Azure Portal."
+  empty_options:  "There are no Azure Spring Cloud Service in current subscription, please create it in Azure Portal."
   auto_select:    "There is only one Azure Spring Cloud Service (***{{clusters.get(0).getName()}}***) in current subscription, will use it automatically."
   select_none:    "You have not selected any Azure Spring Cloud, 'config' will terminate."
 required:         true
