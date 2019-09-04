@@ -224,9 +224,6 @@ public class SelectSubscriptionMojoTest extends AbstractMojoTestCase {
         TestHelper.mockAzureWithSubs(TestHelper.createOneMockSubscriptions());
         final AzureTokenCredentials mockTokenCred = mock(AzureTokenCredentials.class);
         when(AzureAuthHelper.getMavenAzureLoginCredentials()).thenReturn(mockTokenCred);
-
-
-
         when(azureCredential.getDefaultSubscription()).thenReturn("old_subs_id");
         when(azureCredential.getEnvironment()).thenReturn("azure_china");
         when(AzureAuthHelper.existsAzureSecretFile()).thenReturn(true);
