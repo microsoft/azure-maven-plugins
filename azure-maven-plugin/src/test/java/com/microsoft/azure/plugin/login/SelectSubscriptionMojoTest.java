@@ -21,10 +21,12 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Scanner;
 
@@ -166,7 +168,6 @@ public class SelectSubscriptionMojoTest extends AbstractMojoTestCase {
         final File tempDirectory = Files.createTempDirectory("azure-auth-helper-test").toFile();
         final File secretFile = new File(tempDirectory, "azure-secret.json");
         mockStatic(AzureAuthHelper.class);
-
         final Subscriptions subs = TestHelper.createTwoMockSubscriptions();
         TestHelper.mockAzureWithSubs(subs);
         when(AzureAuthHelper.existsAzureSecretFile()).thenReturn(true);
@@ -194,5 +195,67 @@ public class SelectSubscriptionMojoTest extends AbstractMojoTestCase {
         AzureAuthHelper.readAzureCredentials();
         tempDirectory.delete();
         verifyNoMoreInteractions(AzureAuthHelper.class);
+    }
+
+    @Test
+    public void testIOExceptionReadingCredentials() throws Exception {
+        mockStatic(AzureAuthHelper.class);
+        when(AzureAuthHelper.existsAzureSecretFile()).thenReturn(true);
+        when(AzureAuthHelper.getMavenAzureLoginCredentials()).thenThrow(IOException.class);
+
+        try {
+            mojo.execute();
+            fail("Should throw exception when there is an IOException during reading credentials .");
+        } catch (MojoFailureException ex) {
+            //expected
+        }
+    }
+
+    @Test
+    public void testIOExceptionWritingCredentials() throws Exception {
+        final AzureCredential azureCredential = mock(AzureCredential.class);
+        final File azureFile = mock(File.class);
+
+        mockStatic(AzureAuthHelper.class);
+        PowerMockito.doThrow(new IOException()).when(AzureAuthHelper.class);
+        AzureAuthHelper.writeAzureCredentials(azureCredential, azureFile);
+        when(AzureAuthHelper.existsAzureSecretFile()).thenReturn(true);
+
+        TestHelper.mockAzureWithSubs(TestHelper.createOneMockSubscriptions());
+        final AzureTokenCredentials mockTokenCred = mock(AzureTokenCredentials.class);
+        when(AzureAuthHelper.getMavenAzureLoginCredentials()).thenReturn(mockTokenCred);
+
+
+
+        when(azureCredential.getDefaultSubscription()).thenReturn("old_subs_id");
+        when(azureCredential.getEnvironment()).thenReturn("azure_china");
+        when(AzureAuthHelper.existsAzureSecretFile()).thenReturn(true);
+        when(AzureAuthHelper.getAzureSecretFile()).thenReturn(azureFile);
+        when(AzureAuthHelper.readAzureCredentials()).thenReturn(azureCredential);
+
+        try {
+            mojo.execute();
+            fail("Should throw exception when there is an IOException during reading credentials .");
+        } catch (MojoExecutionException ex) {
+            //expected
+        }
+    }
+
+    @Test
+    public void testBadSubscriptionArgument() throws Exception {
+        mockStatic(AzureAuthHelper.class);
+        when(AzureAuthHelper.existsAzureSecretFile()).thenReturn(true);
+        final AzureTokenCredentials mockTokenCred = mock(AzureTokenCredentials.class);
+        when(mockTokenCred.defaultSubscriptionId()).thenReturn("old_subs_id");
+        when(AzureAuthHelper.getMavenAzureLoginCredentials()).thenReturn(mockTokenCred);
+        final Subscriptions subs = TestHelper.createTwoMockSubscriptions();
+        TestHelper.mockAzureWithSubs(subs);
+        FieldUtils.writeField(mojo, "subscription", "bad-subscription-id", true);
+        try {
+            mojo.execute();
+            fail("Should throw exception when there is an IOException during reading credentials .");
+        } catch (MojoFailureException ex) {
+            //expected
+        }
     }
 }
