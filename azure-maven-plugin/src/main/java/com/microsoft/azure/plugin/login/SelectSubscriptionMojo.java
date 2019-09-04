@@ -34,7 +34,7 @@ public class SelectSubscriptionMojo extends AbstractAzureMojo {
      * The maven cli argument for set the active subscription by id or name
      */
     @Parameter(property = "subscription")
-    private String subscriptionId;
+    private String subscription;
 
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
@@ -55,10 +55,10 @@ public class SelectSubscriptionMojo extends AbstractAzureMojo {
         Subscription selectSubscription = null;
 
         final PagedList<Subscription> subscriptions = azure.subscriptions().list();
-        for (final Subscription subscription : subscriptions) {
-            if (StringUtils.equalsIgnoreCase(subscriptionId, subscription.subscriptionId()) ||
-                    StringUtils.equalsIgnoreCase(subscriptionId, subscription.displayName())) {
-                selectSubscription = subscription;
+        for (final Subscription newSubscription : subscriptions) {
+            if (StringUtils.equalsIgnoreCase(subscription, newSubscription.subscriptionId()) ||
+                    StringUtils.equalsIgnoreCase(subscription, newSubscription.displayName())) {
+                selectSubscription = newSubscription;
                 break;
             }
         }
@@ -66,8 +66,8 @@ public class SelectSubscriptionMojo extends AbstractAzureMojo {
         final String oldSelectedSubscription = tokenCredentials.defaultSubscriptionId();
 
         if (selectSubscription == null) {
-            if (StringUtils.isNotBlank(subscriptionId)) {
-                throw new MojoFailureException(String.format("The subscription of '%s' doesn't exist.", subscriptionId));
+            if (StringUtils.isNotBlank(subscription)) {
+                throw new MojoFailureException(String.format("The subscription of '%s' doesn't exist.", subscription));
             }
             if (subscriptions.size() == 0) {
                 throw new MojoExecutionException("Cannot find any subscriptions.");
@@ -78,9 +78,9 @@ public class SelectSubscriptionMojo extends AbstractAzureMojo {
                 // TODO: wrap it in an utility method
                 System.out.println("Please choose from the following subscriptions:");
                 int index = 1;
-                for (final Subscription subscription : subscriptions) {
-                    final boolean current = StringUtils.equalsIgnoreCase(oldSelectedSubscription, subscription.subscriptionId());
-                    final String subscriptionLine = String.format("%2d. %s (%s)%s", index++, subscription.displayName(), subscription.subscriptionId(),
+                for (final Subscription subs : subscriptions) {
+                    final boolean current = StringUtils.equalsIgnoreCase(oldSelectedSubscription, subs.subscriptionId());
+                    final String subscriptionLine = String.format("%2d. %s (%s)%s", index++, subs.displayName(), subs.subscriptionId(),
                             current ? " [CURRENT]" : "");
 
                     if (current) {
@@ -118,7 +118,7 @@ public class SelectSubscriptionMojo extends AbstractAzureMojo {
 
         if (selectSubscription != null && !StringUtils.equalsIgnoreCase(selectSubscription.subscriptionId(), oldSelectedSubscription)) {
             try {
-                final AzureCredential azureCredential = AzureAuthHelper.readAzureCredentials(AzureAuthHelper.getAzureSecretFile());
+                final AzureCredential azureCredential = AzureAuthHelper.readAzureCredentials();
                 azureCredential.setDefaultSubscription(selectSubscription.subscriptionId());
                 AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
                 log.info(String.format("You have set default subscription to '%s'.", TextUtils.green(selectSubscription.displayName())));
