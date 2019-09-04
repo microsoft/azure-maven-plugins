@@ -313,7 +313,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected boolean isInstallingExtensionNeeded(Set<BindingEnum> bindingTypes) {
         final JsonObject hostJson = readHostJson();
-        final JsonObject extensionBundle = hostJson.getAsJsonObject(EXTENSION_BUNDLE);
+        final JsonObject extensionBundle = hostJson == null ? null : hostJson.getAsJsonObject(EXTENSION_BUNDLE);
         if (extensionBundle != null && extensionBundle.has("id") &&
                 StringUtils.equalsIgnoreCase(extensionBundle.get("id").getAsString(), EXTENSION_BUNDLE_ID)) {
             getLog().info(SKIP_INSTALL_EXTENSIONS_BUNDLE);
@@ -336,7 +336,6 @@ public class PackageMojo extends AbstractFunctionMojo {
             final String jsonRaw = scanner.useDelimiter("\\Z").next();
             return parser.parse(jsonRaw).getAsJsonObject();
         } catch (IOException e) {
-            e.printStackTrace();
             return null;
         }
     }
