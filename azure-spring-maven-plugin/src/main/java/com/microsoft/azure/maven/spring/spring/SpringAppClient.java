@@ -61,12 +61,13 @@ public class SpringAppClient extends AbstractSpringClient {
         }
     }
 
-    public AppResourceInner activateDeployment(String deploymentName) {
+    public AppResourceInner activateDeployment(String deploymentName, SpringConfiguration springConfiguration) {
         final AppResourceInner appResourceInner = getApp();
         final AppResourceProperties properties = appResourceInner.properties();
 
         if (!deploymentName.equals(properties.activeDeploymentName())) {
             properties.withActiveDeploymentName(deploymentName);
+            properties.withPublicProperty(springConfiguration.isPublic());
             return springManager.apps().inner().update(resourceGroup, clusterName, appName, properties);
         }
         return appResourceInner;

@@ -101,7 +101,7 @@ public class DeployMojo extends AbstractSpringMojo {
         deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
         if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName()) && createNewDeployment) {
             // Active deployment if no existing active deployment
-            springAppClient.activateDeployment(deploymentClient.getDeploymentName());
+            springAppClient.activateDeployment(deploymentClient.getDeploymentName(), configuration);
         }
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE);
         // Showing deployment status and public url
