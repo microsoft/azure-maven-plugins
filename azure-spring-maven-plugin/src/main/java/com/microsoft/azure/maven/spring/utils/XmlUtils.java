@@ -21,7 +21,7 @@ import java.io.StringWriter;
 import java.util.List;
 
 public class XmlUtils {
-    public static String getChildValue(String attribute, Element element) {
+    public static String getChildValue(Element element, String attribute) {
         final Element child = element.element(attribute);
         return child == null ? null : child.getText();
     }
@@ -81,7 +81,7 @@ public class XmlUtils {
         if (values != null && !values.isEmpty()) {
             final DOMElement resultNode = new DOMElement(attribute);
             for (final String value : values) {
-                resultNode.add(createSimpleElement(subAttribute, value));
+                addDomWithKeyValue(resultNode, subAttribute, value);
             }
             element.add(resultNode);
         }
@@ -131,12 +131,6 @@ public class XmlUtils {
     private static void setNamespaces(Element elem, Namespace ns) {
         setNamespace(elem, ns);
         setNamespaces(elem.content(), ns);
-    }
-
-    private static DOMElement createSimpleElement(String name, String value) {
-        final DOMElement result = new DOMElement(name);
-        result.setText(value);
-        return result;
     }
 
     private XmlUtils() {

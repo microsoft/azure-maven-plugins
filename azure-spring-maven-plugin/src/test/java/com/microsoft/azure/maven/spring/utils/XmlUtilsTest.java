@@ -45,7 +45,7 @@ public class XmlUtilsTest {
 
     @Test
     public void testGetChildValue() {
-        assertEquals("1.8\n", XmlUtils.getChildValue("maven.compiler.target", propertiesNode));
+        assertEquals("1.8\n", XmlUtils.getChildValue(propertiesNode, "maven.compiler.target"));
     }
 
     @Test
