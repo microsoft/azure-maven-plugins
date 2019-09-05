@@ -39,7 +39,7 @@ public class LogoutMojoTest extends AbstractMojoTestCase {
         final File testConfigDir = new File(this.getClass().getResource("/auth/azure-secret.json").getFile()).getParentFile();
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
         assertTrue(AzureAuthHelper.existsAzureSecretFile());
-        final File tempDirectory = Files.createTempDirectory("azure-auth-helper-test").toFile();
+        final File tempDirectory = Files.createTempDirectory("azure-plugin-test").toFile();
         final File tempFile = new File(tempDirectory, "azure-secret.json");
         FileUtils.copyFile(AzureAuthHelper.getAzureSecretFile(), tempFile);
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, tempDirectory.getAbsolutePath());

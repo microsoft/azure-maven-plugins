@@ -192,19 +192,19 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private void configureJvmOptions() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
-        this.deploymentSettings.withJvmOptions(this.wrapper.handle("configure-jvm-options", autoUseDefault()));
+        this.deploymentSettings.setJvmOptions(this.wrapper.handle("configure-jvm-options", autoUseDefault()));
     }
 
     private void configureCpu() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
-        this.deploymentSettings.withCpu(this.wrapper.handle("configure-cpu", autoUseDefault()));
+        this.deploymentSettings.setCpu(this.wrapper.handle("configure-cpu", autoUseDefault()));
     }
 
     private void configureMemory() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
-        this.deploymentSettings.withMemoryInGB(this.wrapper.handle("configure-memory", autoUseDefault()));
+        this.deploymentSettings.setMemoryInGB(this.wrapper.handle("configure-memory", autoUseDefault()));
     }
 
     private void configureInstanceCount() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
-        this.deploymentSettings.withInstanceCount(this.wrapper.handle("configure-instance-count", autoUseDefault()));
+        this.deploymentSettings.setInstanceCount(this.wrapper.handle("configure-instance-count", autoUseDefault()));
     }
 
     private boolean autoUseDefault() {
