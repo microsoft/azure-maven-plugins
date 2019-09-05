@@ -52,11 +52,11 @@ public class SpringAppClient extends AbstractSpringClient {
         final AppResourceInner appResource = getApp();
         final AppResourceProperties appResourceProperties = appResource == null ?
                 new AppResourceProperties() : appResource.properties();
-        appResourceProperties.withPublicProperty(configuration.isPublic());
         if (appResource == null) {
             return springManager.apps().inner()
                     .createOrUpdate(resourceGroup, clusterName, appName, appResourceProperties);
         } else {
+            appResourceProperties.withPublicProperty(configuration.isPublic());
             return springManager.apps().inner().update(resourceGroup, clusterName, appName, appResourceProperties);
         }
     }
