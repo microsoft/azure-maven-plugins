@@ -29,12 +29,12 @@ public class ResourcesUtils {
         for (final Resource resource : getDefaultResources()) {
             final DOMElement resourceNode = new DOMElement("resource");
 
-            XmlUtils.addNotEmptyElement(resourceNode, "filtering", resource.getFiltering());
-            XmlUtils.addNotEmptyElement(resourceNode, "mergeId", resource.getMergeId());
-            XmlUtils.addNotEmptyElement(resourceNode, "targetPath", resource.getTargetPath());
-            XmlUtils.addNotEmptyElement(resourceNode, "directory", resource.getDirectory());
-            XmlUtils.addNotEmptyListElement(resourceNode, "includes", "include", resource.getIncludes());
-            XmlUtils.addNotEmptyListElement(resourceNode, "excludes", "exclude", resource.getExcludes());
+            XmlUtils.addDomWithKeyValue(resourceNode, "filtering", resource.getFiltering());
+            XmlUtils.addDomWithKeyValue(resourceNode, "mergeId", resource.getMergeId());
+            XmlUtils.addDomWithKeyValue(resourceNode, "targetPath", resource.getTargetPath());
+            XmlUtils.addDomWithKeyValue(resourceNode, "directory", resource.getDirectory());
+            XmlUtils.addDomWithValueList(resourceNode, "includes", "include", resource.getIncludes());
+            XmlUtils.addDomWithValueList(resourceNode, "excludes", "exclude", resource.getExcludes());
 
             resourceRootNode.add(resourceNode);
         }

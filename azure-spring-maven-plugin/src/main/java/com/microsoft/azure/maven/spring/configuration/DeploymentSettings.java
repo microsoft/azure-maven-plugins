@@ -40,29 +40,24 @@ public class DeploymentSettings extends BaseSettings {
         return deploymentName;
     }
 
-    public DeploymentSettings withCpu(String cpu) {
+    public void setCpu(String cpu) {
         this.cpu = cpu;
-        return this;
     }
 
-    public DeploymentSettings withMemoryInGB(String memoryInGB) {
+    public void setMemoryInGB(String memoryInGB) {
         this.memoryInGB = memoryInGB;
-        return this;
     }
 
-    public DeploymentSettings withInstanceCount(String instanceCount) {
+    public void setInstanceCount(String instanceCount) {
         this.instanceCount = instanceCount;
-        return this;
     }
 
-    public DeploymentSettings withJvmOptions(String jvmOptions) {
+    public void setJvmOptions(String jvmOptions) {
         this.jvmOptions = jvmOptions;
-        return this;
     }
 
-    public DeploymentSettings withDeploymentName(String deploymentName) {
+    public void setDeploymentName(String deploymentName) {
         this.deploymentName = deploymentName;
-        return this;
     }
 
     public String getJvmOptions() {

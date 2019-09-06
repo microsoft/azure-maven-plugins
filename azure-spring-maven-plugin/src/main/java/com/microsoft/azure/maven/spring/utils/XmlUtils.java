@@ -21,31 +21,9 @@ import java.io.StringWriter;
 import java.util.List;
 
 public class XmlUtils {
-    public static String getChildValue(String attribute, Element element) {
+    public static String getChildValue(Element element, String attribute) {
         final Element child = element.element(attribute);
         return child == null ? null : child.getText();
-    }
-
-    public static void addNotEmptyElement(Element element, String attribute, String value) {
-        if (StringUtils.isNotEmpty(value)) {
-            element.add(createSimpleElement(attribute, value));
-        }
-    }
-
-    public static DOMElement createSimpleElement(String name, String value) {
-        final DOMElement result = new DOMElement(name);
-        result.setText(value);
-        return result;
-    }
-
-    public static void addNotEmptyListElement(Element element, String attribute, String subAttribute, List<String> values) {
-        if (values != null && !values.isEmpty()) {
-            final DOMElement resultNode = new DOMElement(attribute);
-            for (final String value : values) {
-                resultNode.add(createSimpleElement(subAttribute, value));
-            }
-            element.add(resultNode);
-        }
     }
 
     public static String prettyPrintElementNoNamespace(Element node) {
@@ -55,6 +33,7 @@ public class XmlUtils {
             final OutputFormat format = OutputFormat.createPrettyPrint();
             format.setSuppressDeclaration(true);
             format.setIndent("    "); // 4 spaces
+            format.setPadText(false);
             final XMLWriter writer = new XMLWriter(out, format);
             writer.write(node);
             writer.flush();
@@ -89,12 +68,22 @@ public class XmlUtils {
         }
     }
 
-    public static void setNamespace(Element element, Namespace nameSpace) {
+    private static void setNamespace(Element element, Namespace nameSpace) {
         if (element instanceof AbstractElement) {
             ((AbstractElement) element).setNamespace(nameSpace);
         }
         for (final Element child : element.elements()) {
             setNamespace(child, nameSpace);
+        }
+    }
+
+    public static void addDomWithValueList(Element element, String attribute, String subAttribute, List<String> values) {
+        if (values != null && !values.isEmpty()) {
+            final DOMElement resultNode = new DOMElement(attribute);
+            for (final String value : values) {
+                addDomWithKeyValue(resultNode, subAttribute, value);
+            }
+            element.add(resultNode);
         }
     }
 
@@ -107,7 +96,7 @@ public class XmlUtils {
     }
 
     // code copied from https://stackoverflow.com/questions/1422395/clean-namespace-handling-with-dom4j
-    private static void removeAllNamespaces(Element ele) {
+    public static void removeAllNamespaces(Element ele) {
         setNamespace(ele, Namespace.NO_NAMESPACE);
         removeNamespaces(ele.content());
     }
@@ -143,7 +132,6 @@ public class XmlUtils {
         setNamespace(elem, ns);
         setNamespaces(elem.content(), ns);
     }
-
 
     private XmlUtils() {
 

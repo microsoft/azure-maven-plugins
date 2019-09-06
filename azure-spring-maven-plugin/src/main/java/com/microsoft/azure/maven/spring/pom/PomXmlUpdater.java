@@ -12,6 +12,7 @@ import com.microsoft.azure.maven.spring.utils.IndentUtil;
 import com.microsoft.azure.maven.spring.utils.ResourcesUtils;
 import com.microsoft.azure.maven.spring.utils.XmlUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
@@ -55,11 +56,11 @@ public class PomXmlUpdater {
         final Element pluginsNode = createToPath(doc.getRootElement(), "build", "plugins");
         Element springPluginNode = null;
         for (final Element element : pluginsNode.elements()) {
-            final String groupId = XmlUtils.getChildValue("groupId", element);
-            final String artifactId = XmlUtils.getChildValue("artifactId", element);
-            final String version = XmlUtils.getChildValue("version", element);
+            final String groupId = XmlUtils.getChildValue(element, "groupId");
+            final String artifactId = XmlUtils.getChildValue(element, "artifactId");
+            final String version = XmlUtils.getChildValue(element, "version");
             if (plugin.getGroupId().equals(groupId) && plugin.getArtifactId().equals(artifactId) &&
-                    (plugin.getVersion().equals(version) || version == null)) {
+                    (version == null || StringUtils.equals(plugin.getVersion(), version))) {
                 springPluginNode = element;
             }
         }

@@ -18,7 +18,7 @@ public class MavenUtils {
         return plugin == null ? null : (Xpp3Dom) plugin.getConfiguration();
     }
 
-    public static Plugin getPluginFromMavenModel(Model model, String pluginKey, boolean firstSeen) {
+    private static Plugin getPluginFromMavenModel(Model model, String pluginKey, boolean firstSeen) {
         Plugin res = null;
         if (model.getBuild() == null) {
             return res;
@@ -45,15 +45,6 @@ public class MavenUtils {
         }
 
         return res;
-    }
-
-    public static Plugin createPlugin(String groupId, String artifactId, String version) {
-        final Plugin plugin = new Plugin();
-        plugin.setGroupId(groupId);
-        plugin.setArtifactId(artifactId);
-        plugin.setVersion(version);
-
-        return plugin;
     }
 
     private MavenUtils() {
