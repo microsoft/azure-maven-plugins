@@ -172,9 +172,8 @@ public class DeployMojo extends AbstractSpringMojo {
     }
 
     protected boolean confirmDeploy(SpringAppClient springAppClient, SpringDeploymentClient deploymentClient) throws MojoFailureException {
-        final IPrompter prompter = new DefaultPrompter();
-        final List<String> operations = getOperations(springAppClient, deploymentClient);
-        try {
+        try (IPrompter prompter = new DefaultPrompter()) {
+            final List<String> operations = getOperations(springAppClient, deploymentClient);
             System.out.println(CONFIRM_PROMPT_START);
             for (int i = 1; i <= operations.size(); i++) {
                 System.out.println(String.format("%-2d  %s", i, operations.get(i - 1)));
@@ -182,12 +181,6 @@ public class DeployMojo extends AbstractSpringMojo {
             return prompter.promoteYesNo(CONFIRM_PROMPT_CONFIRM, true, true);
         } catch (IOException e) {
             throw new MojoFailureException(e.getMessage());
-        } finally {
-            try {
-                prompter.close();
-            } catch (IOException e) {
-                //swallow final exception
-            }
         }
     }
 

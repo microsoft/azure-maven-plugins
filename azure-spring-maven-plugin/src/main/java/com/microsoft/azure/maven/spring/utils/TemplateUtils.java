@@ -65,9 +65,7 @@ public class TemplateUtils {
     private static String eval(String expr, Map<String, Object> variableMap) {
         final JtwigTemplate template = JtwigTemplate.inlineTemplate(expr);
         final JtwigModel model = JtwigModel.newModel();
-        variableMap.entrySet().stream().forEach((t) -> {
-            model.with(t.getKey(), t.getValue());
-        });
+        variableMap.entrySet().stream().forEach((t) -> model.with(t.getKey(), t.getValue()));
 
         return template.render(model);
     }
