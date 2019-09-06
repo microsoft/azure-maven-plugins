@@ -184,7 +184,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         final List<ConfigurationProblem> problems = auth.validate();
         if (problems.stream().anyMatch(problem -> problem.getSeverity() == Severity.ERROR)) {
             throw new MojoFailureException(String.format("Unable to validate auth configuration due to the following errors: %s",
-                    problems.stream().map(problem -> problem.getErrorMessage()).collect(Collectors.joining("\n"))));
+                    problems.stream().map(ConfigurationProblem::getErrorMessage).collect(Collectors.joining("\n"))));
         }
 
     }

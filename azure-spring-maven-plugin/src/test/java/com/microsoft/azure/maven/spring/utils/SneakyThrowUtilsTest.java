@@ -15,8 +15,8 @@ import static org.junit.Assert.assertTrue;
 
 public class SneakyThrowUtilsTest {
     @Test
-    public void testSneakyThrowLambda() throws IOException {
-        final Supplier<Integer> throwIOExcpetion = () -> {
+    public void testSneakyThrowLambda() {
+        final Supplier<Integer> throwIOException = () -> {
             try {
                 return throwIOException();
             } catch (IOException e) {
@@ -24,7 +24,7 @@ public class SneakyThrowUtilsTest {
             }
         };
         try {
-            throwIOExcpetion.get();
+            throwIOException.get();
         } catch (Exception ex) {
             assertTrue(ex instanceof IOException);
         }

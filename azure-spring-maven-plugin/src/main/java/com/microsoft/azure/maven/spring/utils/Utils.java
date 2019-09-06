@@ -63,7 +63,7 @@ public class Utils {
                 put(AzureEnvironment.Endpoint.GRAPH.toString(), "https://graph.ppe.windows.net/");
                 put(AzureEnvironment.Endpoint.ACTIVE_DIRECTORY.toString(), "https://login.windows-ppe.net");
             }});
-        AzureCredential azureCredential = null;
+        final AzureCredential azureCredential;
         try {
             if (AzureAuthHelper.existsAzureSecretFile()) {
                 azureCredential = AzureAuthHelper.readAzureCredentials();
@@ -204,7 +204,7 @@ public class Utils {
         // Throw exception when there are multi runnable artifacts
         if (runnableArtifacts.size() > 1) {
             final String artifactNameLists = runnableArtifacts.stream()
-                    .map(file -> file.getName()).collect(Collectors.joining(","));
+                    .map(File::getName).collect(Collectors.joining(","));
             throw new MojoExecutionException(String.format(MULTI_ARTIFACT, artifactNameLists));
         }
         return runnableArtifacts.get(0);

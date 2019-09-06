@@ -14,37 +14,31 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 public class MavenUtils {
 
     public static Xpp3Dom getPluginConfiguration(MavenProject mavenProject, String pluginKey) {
-        final Plugin plugin = getPluginFromMavenModel(mavenProject.getModel(), pluginKey, true);
+        final Plugin plugin = getPluginFromMavenModel(mavenProject.getModel(), pluginKey);
         return plugin == null ? null : (Xpp3Dom) plugin.getConfiguration();
     }
 
-    private static Plugin getPluginFromMavenModel(Model model, String pluginKey, boolean firstSeen) {
-        Plugin res = null;
+    private static Plugin getPluginFromMavenModel(Model model, String pluginKey) {
         if (model.getBuild() == null) {
-            return res;
+            return null;
         }
         for (final Plugin plugin: model.getBuild().getPlugins()) {
             if (pluginKey.equalsIgnoreCase(plugin.getKey())) {
-                if (firstSeen) {
-                    return plugin;
-                }
-                res = plugin;
+                return plugin;
             }
         }
 
         if (model.getBuild().getPluginManagement() == null) {
-            return res;
+            return null;
         }
+
         for (final Plugin plugin: model.getBuild().getPluginManagement().getPlugins()) {
             if (pluginKey.equalsIgnoreCase(plugin.getKey())) {
-                if (firstSeen) {
-                    return plugin;
-                }
-                res = plugin;
+                return plugin;
             }
         }
 
-        return res;
+        return null;
     }
 
     private MavenUtils() {

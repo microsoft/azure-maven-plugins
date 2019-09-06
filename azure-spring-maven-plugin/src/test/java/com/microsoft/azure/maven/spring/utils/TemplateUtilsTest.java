@@ -87,7 +87,7 @@ public class TemplateUtilsTest {
             evalPlainText("foo", map);
             fail("Should report error when evaluate text is not valid.");
         } catch (ParseException ex) {
-            // expectedc
+            // expected
         }
 
     }

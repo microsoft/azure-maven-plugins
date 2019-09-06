@@ -10,7 +10,7 @@ import org.apache.maven.model.Resource;
 import org.dom4j.Element;
 import org.dom4j.dom.DOMElement;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class ResourcesUtils {
@@ -21,7 +21,7 @@ public class ResourcesUtils {
         final Resource resource = new Resource();
         resource.setDirectory(DEFAULT_DIRECTORY);
         resource.addInclude(DEFAULT_INCLUDE);
-        return Arrays.asList(resource);
+        return Collections.singletonList(resource);
     }
 
     public static void applyDefaultResourcesToDom4j(Element root) {

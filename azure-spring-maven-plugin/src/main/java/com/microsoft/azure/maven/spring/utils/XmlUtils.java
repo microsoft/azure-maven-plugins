@@ -105,9 +105,8 @@ public class XmlUtils {
      * Recursively sets the namespace of the List and all children if the current namespace is match
      */
     private static void setNamespaces(List l, Namespace ns) {
-        Node n = null;
-        for (int i = 0; i < l.size(); i++) {
-            n = (Node) l.get(i);
+        for (final Object o : l) {
+            final Node n = (Node) o;
 
             if (n.getNodeType() == Node.ATTRIBUTE_NODE) {
                 ((Attribute) n).setNamespace(ns);

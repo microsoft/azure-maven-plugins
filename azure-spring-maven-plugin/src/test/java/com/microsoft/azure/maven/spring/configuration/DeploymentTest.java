@@ -9,34 +9,32 @@ package com.microsoft.azure.maven.spring.configuration;
 import com.microsoft.azure.maven.spring.utils.ResourcesUtils;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 public class DeploymentTest {
     @Test
     public void testWithCpu() {
         final Deployment deploy = new Deployment();
         deploy.withCpu(1);
-        assertTrue(1 == deploy.getCpu());
+        assertEquals(1, (int) deploy.getCpu());
     }
 
     @Test
     public void testWithMemoryInGB() {
         final Deployment deploy = new Deployment();
         deploy.withMemoryInGB(2);
-        assertTrue(2 == deploy.getMemoryInGB());
+        assertEquals(2, (int) deploy.getMemoryInGB());
     }
 
     @Test
     public void testWithInstanceCount() {
         final Deployment deploy = new Deployment();
         deploy.withInstanceCount(3);
-        assertTrue(3 == deploy.getInstanceCount());
+        assertEquals(3, (int) deploy.getInstanceCount());
     }
 
     @Test
@@ -67,7 +65,7 @@ public class DeploymentTest {
         volume.withPersist(false);
         volume.withPath("/home/shared");
         volume.withSize("10G");
-        final List<Volume> volumes = Arrays.asList(volume);
+        final List<Volume> volumes = Collections.singletonList(volume);
         deploy.withVolumes(volumes);
         assertEquals(volumes.get(0), deploy.getTemporaryDisk());
         assertNull(deploy.getPersistentDisk());

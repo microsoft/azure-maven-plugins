@@ -7,8 +7,8 @@
 package com.microsoft.azure.maven.spring.prompt;
 
 public class InputValidationResult<T> {
-    T obj;
-    String errorMessage;
+    private T obj;
+    private String errorMessage;
 
     public T getObj() {
         return obj;
