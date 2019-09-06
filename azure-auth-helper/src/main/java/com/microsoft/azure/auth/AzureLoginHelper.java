@@ -163,7 +163,9 @@ class AzureLoginHelper {
             return cred;
         } finally {
             try {
-                FieldUtils.writeField(logger, currentLogLevelFieldName, oldLevelValue, true);
+                if (logger != null) {
+                    FieldUtils.writeField(logger, currentLogLevelFieldName, oldLevelValue, true);
+                }
             } catch (IllegalArgumentException | IllegalAccessException e) {
                 // ignore
                 System.out.println("Failed to reset the log level of AuthenticationContext.");

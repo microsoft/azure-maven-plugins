@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
+import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
@@ -121,6 +122,7 @@ public class AzureLoginHelperTest {
             .thenReturn(future);
         final Map<String, Object> map = TestHelper.getAuthenticationMap();
         final AzureCredential cred = AzureLoginHelper.refreshToken(env, "token for power mock");
+        assertNotNull(cred);
         assertEquals(map.get("accessTokenType"), cred.getAccessTokenType());
         assertEquals(map.get("accessToken"), cred.getAccessToken());
         assertEquals(map.get("refreshToken"), cred.getRefreshToken());

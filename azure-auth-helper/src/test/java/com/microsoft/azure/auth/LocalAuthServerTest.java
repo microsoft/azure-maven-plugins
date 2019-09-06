@@ -59,7 +59,7 @@ public class LocalAuthServerTest {
                 localAuthServer.waitForCode();
                 fail();
             } catch (AzureLoginFailureException ex) {
-
+                // expected
             } catch (InterruptedException e) {
                 fail("Unexpected InterruptedException:" + e.getMessage());
             }

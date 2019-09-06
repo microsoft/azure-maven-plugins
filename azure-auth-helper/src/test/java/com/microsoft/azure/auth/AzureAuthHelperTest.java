@@ -42,7 +42,7 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void testoAuthLogin() throws Exception {
+    public void testOAuthLogin() throws Exception {
         final AzureEnvironment env = AzureEnvironment.AZURE;
         final AzureCredential credExpected = AzureCredential.fromAuthenticationResult(TestHelper.createAuthenticationResult());
         mockStatic(AzureLoginHelper.class);
@@ -139,7 +139,7 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void testGetAzureSecretFile() throws Exception {
+    public void testGetAzureSecretFile() {
         final File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
         assertEquals(Paths.get(System.getProperty("user.home"), ".azure", "azure-secret.json").toString(), azureSecretFile.getAbsolutePath());
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "test_dir");
@@ -147,7 +147,7 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void testGetAzureConfigFolder() throws Exception {
+    public void testGetAzureConfigFolder() {
         final File azureConfigFolder = AzureAuthHelper.getAzureConfigFolder();
         assertEquals(Paths.get(System.getProperty("user.home"), ".azure").toString(), azureConfigFolder.getAbsolutePath());
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "test_dir");

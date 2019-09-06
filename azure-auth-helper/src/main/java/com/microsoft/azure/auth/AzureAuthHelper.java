@@ -220,9 +220,8 @@ public class AzureAuthHelper {
      * @param credentials the azure credential
      * @param env the azure environment
      * @return the azure token credential can be used in Azure SDK.
-     * @throws IOException when there are some IO errors.
      */
-    public static AzureTokenCredentials getMavenAzureLoginCredentials(AzureCredential credentials, AzureEnvironment env) throws IOException {
+    public static AzureTokenCredentials getMavenAzureLoginCredentials(AzureCredential credentials, AzureEnvironment env) {
         final AzureTokenCredentials azureTokenCredentials = new AzureTokenCredentials(env, null) {
             @Override
             public String getToken(String resource) throws IOException {
