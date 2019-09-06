@@ -32,7 +32,6 @@
         <junit.version>4.12</junit.version>
         <powermock.version>2.0.2</powermock.version>
         <azure.maven-plugin-lib.version>1.2.11-SNAPSHOT</azure.maven-plugin-lib.version>
-        <surefire.version>2.22.0</surefire.version>
         <mockito.version>2.28.2</mockito.version>
         <jacoco.version>0.8.4</jacoco.version>
     </properties>
@@ -248,7 +247,6 @@
                         <jacoco-agent.destfile>${project.build.directory}/coverage.exec</jacoco-agent.destfile>
                     </systemPropertyVariables>
                 </configuration>
-                <version>${surefire.version}</version>
             </plugin>
 
             <plugin>

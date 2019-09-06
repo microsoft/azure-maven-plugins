@@ -62,7 +62,7 @@ public class PromptWrapper {
     }
 
     public <T> T handleSelectOne(String templateId, List<T> options, T defaultEntity, Function<T, String> getNameFunc)
-            throws IOException, SpringConfigurationException, NoResourcesAvailableException {
+            throws IOException, SpringConfigurationException {
         final Map<String, Object> variables = createVariableTables(templateId);
         final boolean isRequired = TemplateUtils.evalBoolean("required", variables);
         if (options.size() == 0) {
@@ -178,7 +178,7 @@ public class PromptWrapper {
                 return cliParameter.toString();
             }
             System.out.println(TextUtils
-                    .yellow(String.format("Input validation failure for %s[%s]: ", propertyName, cliParameter.toString(), errorMessage)));
+                    .yellow(String.format("Input validation failure for %s[%s]: %s", propertyName, cliParameter.toString(), errorMessage)));
         }
 
         if (autoApplyDefault) {
@@ -229,14 +229,14 @@ public class PromptWrapper {
                 TemplateUtils.evalText("promote.footer", variables),
                 TemplateUtils.evalBoolean("default", variables),
                 TemplateUtils.evalBoolean("required", variables));
-        if (userConfirm == null || !userConfirm.booleanValue()) {
+        if (userConfirm == null || !userConfirm) {
             log.info(TemplateUtils.evalText("message.skip", variables));
             return;
         }
         final Integer appliedCount = confirmedAction.get();
-        if (appliedCount == null || appliedCount.intValue() == 0) {
+        if (appliedCount == null || appliedCount == 0) {
             log.info(TemplateUtils.evalText("message.none", variables));
-        } else if (appliedCount.intValue() == 1) {
+        } else if (appliedCount == 1) {
             log.info(TemplateUtils.evalText("message.one", variables));
         } else {
             log.info(TemplateUtils.evalText("message.many", variables));

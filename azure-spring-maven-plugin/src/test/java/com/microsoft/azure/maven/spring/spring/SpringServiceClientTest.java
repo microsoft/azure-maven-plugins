@@ -19,7 +19,8 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -51,7 +52,7 @@ public class SpringServiceClientTest {
         mockClusterList.add(mockCluster);
 
         doReturn(mockClusterList).when(spyClient).getAvailableClusters();
-        assertTrue(spyClient.getClusterByName("existCluster") == mockCluster);
+        assertSame(spyClient.getClusterByName("existCluster"), mockCluster);
 
         try {
             spyClient.getClusterByName("unExistCluster");
@@ -67,6 +68,6 @@ public class SpringServiceClientTest {
         doReturn("/resourceGroups/test").when(mockCluster).id();
 
         doReturn(mockCluster).when(spyClient).getClusterByName(any());
-        assertTrue(spyClient.getResourceGroupByCluster("cluster").equals("test"));
+        assertEquals("test", spyClient.getResourceGroupByCluster("cluster"));
     }
 }
