@@ -37,10 +37,16 @@ public class SchemaValidator {
     }
 
     public String validateSchema(String resourceName, String name, String value) {
-        Preconditions.checkArgument(StringUtils.isNoneBlank(resourceName), "Parameter 'resource' should not be null or empty.");
-        Preconditions.checkArgument(StringUtils.isNoneBlank(name), "Parameter 'name' should not be null or empty.");
+        Preconditions.checkArgument(StringUtils.isNotBlank(resourceName), "Parameter 'resource' should not be null or empty.");
+        Preconditions.checkArgument(StringUtils.isNotBlank(name), "Parameter 'name' should not be null or empty.");
+        Preconditions.checkArgument(this.schemas.containsKey(resourceName), String.format("Cannot find resource: %s.", resourceName));
+        final JsonNode schema = this.schemas.get(resourceName);
+        Preconditions.checkArgument(schema.has("properties"), String.format("Cannot find properties in schema for resource: %s.", resourceName));
+        Preconditions.checkArgument(schema.get("properties").has(name),
+                String.format("Cannot find property %s in schema for resource: %s.", name, resourceName));
+        Preconditions.checkArgument(schema.get("properties").get(name).has("type"),
+                String.format("Cannot find property %s in schema for resource: %s.", name, resourceName));
         try {
-            final JsonNode schema = this.schemas.get(resourceName);
             final String type = schema.get("properties").get(name).get("type").asText();
             if (StringUtils.isBlank(type)) {
                 return "Invalid schema configuration for property " + name;
