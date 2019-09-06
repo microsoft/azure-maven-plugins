@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.auth;
 
+import com.google.gson.JsonSyntaxException;
 import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
@@ -29,7 +30,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class AzureAuthHelper {
@@ -220,9 +223,8 @@ public class AzureAuthHelper {
      * @param credentials the azure credential
      * @param env the azure environment
      * @return the azure token credential can be used in Azure SDK.
-     * @throws IOException when there are some IO errors.
      */
-    public static AzureTokenCredentials getMavenAzureLoginCredentials(AzureCredential credentials, AzureEnvironment env) throws IOException {
+    public static AzureTokenCredentials getMavenAzureLoginCredentials(AzureCredential credentials, AzureEnvironment env) {
         final AzureTokenCredentials azureTokenCredentials = new AzureTokenCredentials(env, null) {
             @Override
             public String getToken(String resource) throws IOException {
@@ -294,6 +296,20 @@ public class AzureAuthHelper {
 
             if (azureProfile.exists() && accessTokens.exists()) {
                 try {
+                    // see code at https://github.com/Azure/autorest-clientruntime-for-java
+                    // /blob/a55f87f3cc3a68742a2ac94c031c6d715965a9c2/azure-client-authentication
+                    // /src/main/java/com/microsoft/azure/credentials/AzureCliCredentials.java#L48
+                    // AzureCliCredentials.create will block using  System.in.read() if user has logout using `az logout`
+                    // here we must check these two json files for empty
+                    final List tokens = JsonUtils.fromJson(FileUtils.readFileToString(accessTokens, "utf8"), List.class);
+                    if (tokens.isEmpty()) {
+                        return null;
+                    }
+                    final Wrapper wrapper = JsonUtils.fromJson(FileUtils.readFileToString(azureProfile, "utf8"), Wrapper.class);
+                    if (wrapper.subscriptions == null || wrapper.subscriptions.isEmpty()) {
+                        return null;
+                    }
+
                     final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create(azureProfile, accessTokens);
                     if (azureCliCredentials.clientId() != null) {
                         return azureCliCredentials;
@@ -301,7 +317,7 @@ public class AzureAuthHelper {
                         return AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
                     }
 
-                } catch (IOException ex) {
+                } catch (JsonSyntaxException | IOException ex) {
                     // ignore
                 }
             }
@@ -312,6 +328,10 @@ public class AzureAuthHelper {
 
     static boolean isInCloudShell() {
         return System.getenv(Constants.CLOUD_SHELL_ENV_KEY) != null;
+    }
+
+    static class Wrapper {
+        List<Map> subscriptions;
     }
 
     private AzureAuthHelper() {

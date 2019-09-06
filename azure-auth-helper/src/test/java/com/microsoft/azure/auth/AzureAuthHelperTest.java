@@ -12,13 +12,16 @@ import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureCliCredentials;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
@@ -36,13 +39,23 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AzureLoginHelper.class})
 public class AzureAuthHelperTest {
+    private File tempDirectory;
+
+    @Before
+    public void setup() throws IOException {
+        tempDirectory = Files.createTempDirectory("azure-auth-helper-test").toFile();
+        // avoid write test data to the actual file: azure-secret.json
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, tempDirectory.getAbsolutePath());
+    }
+
     @After
-    public void afterEachTestMethod() {
+    public void afterEachTestMethod() throws IOException {
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, null);
+        FileUtils.deleteDirectory(tempDirectory);
     }
 
     @Test
-    public void testoAuthLogin() throws Exception {
+    public void testOAuthLogin() throws Exception {
         final AzureEnvironment env = AzureEnvironment.AZURE;
         final AzureCredential credExpected = AzureCredential.fromAuthenticationResult(TestHelper.createAuthenticationResult());
         mockStatic(AzureLoginHelper.class);
@@ -139,7 +152,8 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void testGetAzureSecretFile() throws Exception {
+    public void testGetAzureSecretFile() {
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, null);
         final File azureSecretFile = AzureAuthHelper.getAzureSecretFile();
         assertEquals(Paths.get(System.getProperty("user.home"), ".azure", "azure-secret.json").toString(), azureSecretFile.getAbsolutePath());
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "test_dir");
@@ -147,7 +161,8 @@ public class AzureAuthHelperTest {
     }
 
     @Test
-    public void testGetAzureConfigFolder() throws Exception {
+    public void testGetAzureConfigFolder() {
+        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, null);
         final File azureConfigFolder = AzureAuthHelper.getAzureConfigFolder();
         assertEquals(Paths.get(System.getProperty("user.home"), ".azure").toString(), azureConfigFolder.getAbsolutePath());
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "test_dir");
@@ -186,7 +201,6 @@ public class AzureAuthHelperTest {
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
         assertTrue(AzureAuthHelper.existsAzureSecretFile());
         final AzureCredential cred = AzureAuthHelper.readAzureCredentials();
-        final File tempDirectory = Files.createTempDirectory("azure-auth-helper-test").toFile();
         final File tempFile = new File(tempDirectory, "azure-secret.json");
         AzureAuthHelper.writeAzureCredentials(cred, tempFile);
         final AzureCredential cred2 = AzureAuthHelper.readAzureCredentials(tempFile);
@@ -200,8 +214,6 @@ public class AzureAuthHelperTest {
         assertTrue(AzureAuthHelper.existsAzureSecretFile());
         AzureAuthHelper.deleteAzureSecretFile();
         assertFalse(AzureAuthHelper.existsAzureSecretFile());
-        tempDirectory.delete();
-
         assertFalse(AzureAuthHelper.deleteAzureSecretFile());
     }
 
