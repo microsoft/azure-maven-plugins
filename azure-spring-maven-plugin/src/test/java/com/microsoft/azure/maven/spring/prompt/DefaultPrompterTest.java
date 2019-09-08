@@ -135,7 +135,7 @@ public class DefaultPrompterTest {
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
                 "You have select no entities", integers, t -> t.toString(), false,
                 "to select none", Collections.emptyList());
-        assertEquals("0,1,2,3,4,5,6,7,8,9", TestHelper.joinIntegers(selected));
+        assertEquals("2,3,4,5,6,7,8,9,0,1", TestHelper.joinIntegers(selected));
 
         when(reader.readLine()).thenReturn("bad value").thenReturn("100").thenReturn("");
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
