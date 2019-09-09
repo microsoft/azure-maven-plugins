@@ -16,7 +16,7 @@ import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.credentials.AzureCliCredentials;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
-import com.microsoft.azure.maven.utils.JsonUtils;
+import com.microsoft.azure.maven.common.utils.JsonUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwt;

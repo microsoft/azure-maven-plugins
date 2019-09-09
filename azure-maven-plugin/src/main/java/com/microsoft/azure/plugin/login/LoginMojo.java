@@ -14,7 +14,7 @@ import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.management.resources.Subscription;
-import com.microsoft.azure.maven.utils.TextUtils;
+import com.microsoft.azure.maven.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;

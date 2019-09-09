@@ -13,7 +13,7 @@ import com.microsoft.azure.auth.AzureCredential;
 import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.maven.telemetry.AppInsightHelper;
+import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;

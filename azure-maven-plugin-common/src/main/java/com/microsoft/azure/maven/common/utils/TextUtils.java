@@ -4,9 +4,9 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.utils;
+package com.microsoft.azure.maven.common.utils;
 
-import com.nimbusds.oauth2.sdk.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 

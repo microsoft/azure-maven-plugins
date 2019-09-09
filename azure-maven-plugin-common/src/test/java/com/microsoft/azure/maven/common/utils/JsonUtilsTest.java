@@ -4,9 +4,10 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.utils;
+package com.microsoft.azure.maven.common.utils;
 
 import org.junit.Test;
+
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
