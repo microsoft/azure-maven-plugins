@@ -45,7 +45,7 @@ public class SchemaValidator {
         Preconditions.checkArgument(schema.get("properties").has(name),
                 String.format("Cannot find property %s in schema for resource: %s.", name, resourceName));
         Preconditions.checkArgument(schema.get("properties").get(name).has("type"),
-                String.format("Cannot find property %s in schema for resource: %s.", name, resourceName));
+                String.format("Cannot find 'type' in schema for resource: '%s.%s'.", resourceName, name));
         try {
             final String type = schema.get("properties").get(name).get("type").asText();
             if (StringUtils.isBlank(type)) {
