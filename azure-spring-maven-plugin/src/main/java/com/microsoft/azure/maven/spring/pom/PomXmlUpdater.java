@@ -136,9 +136,6 @@ public class PomXmlUpdater {
     }
 
     static class CustomSAXContentHandler extends SAXContentHandler {
-
-        private Locator locator;
-
         // this is already in SAXContentHandler, but private
         private DocumentFactory documentFactory;
 
@@ -150,15 +147,10 @@ public class PomXmlUpdater {
         @Override
         public void setDocumentLocator(Locator documentLocator) {
             super.setDocumentLocator(documentLocator);
-            this.locator = documentLocator;
             if (documentFactory instanceof LocatorAwareDocumentFactory) {
                 ((LocatorAwareDocumentFactory) documentFactory).setLocator(documentLocator);
             }
 
-        }
-
-        public Locator getLocator() {
-            return locator;
         }
     }
 
