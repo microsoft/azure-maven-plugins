@@ -68,14 +68,24 @@ public class PomXmlUpdater {
             springPluginNode = createMavenSpringPluginNode(pluginsNode);
         }
 
-        final Element configurationNode = createToPath(springPluginNode, "configuration");
-        app.applyToDom4j(configurationNode);
-        final Element deployNode = createToPath(configurationNode, "deployment");
-        deploy.applyToDom4j(deployNode);
-        ResourcesUtils.applyDefaultResourcesToDom4j(deployNode);
+        Element newNode;
+        if (app != null || deploy != null) {
+            final Element configurationNode = createToPath(springPluginNode, "configuration");
+            if (app != null) {
+                app.applyToDom4j(configurationNode);
+            }
+            if (deploy != null) {
+                final Element deployNode = createToPath(configurationNode, "deployment");
+                deploy.applyToDom4j(deployNode);
+                ResourcesUtils.applyDefaultResourcesToDom4j(deployNode);
+            }
+            // use configurationNode as initial value since we want to format configuration node if it exists.
+            newNode = configurationNode;
+        } else {
+            newNode = springPluginNode;
+        }
+
         // newly created nodes are not LocationAwareElement
-        // use configurationNode as initial value since we want to format configuration node if it exists.
-        Element newNode = configurationNode;
         while (!(newNode.getParent() instanceof LocationAwareElement)) {
             newNode = newNode.getParent();
         }

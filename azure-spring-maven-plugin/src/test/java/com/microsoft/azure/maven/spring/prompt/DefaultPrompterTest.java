@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.maven.spring.prompt;
 
+import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.spring.TestHelper;
-import com.microsoft.azure.maven.spring.utils.SneakyThrowUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Before;

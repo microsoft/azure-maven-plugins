@@ -12,6 +12,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppClusterResourceInner;
 import com.microsoft.azure.management.resources.Subscription;
+import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.common.utils.TextUtils;
 import com.microsoft.azure.maven.spring.configuration.AppSettings;
 import com.microsoft.azure.maven.spring.configuration.DeploymentSettings;
@@ -20,7 +21,6 @@ import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.pom.PomXmlUpdater;
 import com.microsoft.azure.maven.spring.prompt.PromptWrapper;
 import com.microsoft.azure.maven.spring.utils.MavenUtils;
-import com.microsoft.azure.maven.spring.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
@@ -235,15 +235,21 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     private Integer saveConfigurationToPom() {
         this.appSettings.setSubscriptionId(this.subscriptionId);
-        for (final MavenProject proj : targetProjects) {
-            if (this.parentMode) {
-                this.appSettings.setPublic((publicProjects != null && publicProjects.contains(proj)) ? "true" : "false");
-            }
-            try {
+        try {
+            for (final MavenProject proj : targetProjects) {
+
+                if (this.parentMode) {
+                    this.appSettings.setPublic((publicProjects != null && publicProjects.contains(proj)) ? "true" : "false");
+                }
                 saveConfigurationToProject(proj);
-            } catch (DocumentException | IOException e) {
-                return SneakyThrowUtils.sneakyThrow(e);
+
             }
+            // add plugin to parent pom
+            if (this.parentMode) {
+                new PomXmlUpdater(this.project, plugin).updateSettings(null, null);
+            }
+        } catch (DocumentException | IOException e) {
+            return SneakyThrowUtils.sneakyThrow(e);
         }
         return targetProjects.size();
     }
