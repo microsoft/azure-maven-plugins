@@ -9,9 +9,6 @@ package com.microsoft.azure.maven.function;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.function.bindings.BindingEnum;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
@@ -21,7 +18,6 @@ import com.microsoft.azure.maven.function.handlers.CommandHandler;
 import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl;
-import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -29,7 +25,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -40,7 +35,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 
 /**
@@ -66,18 +60,15 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String COPY_JARS = "Step 6 of 7: Copying JARs to staging directory";
     public static final String COPY_SUCCESS = "Copied successfully.";
     public static final String INSTALL_EXTENSIONS = "Step 7 of 7: Installing function extensions if needed";
-    public static final String SKIP_INSTALL_EXTENSIONS_HTTP = "Skip install Function extension for HTTP Trigger Functions";
+    public static final String SKIP_INSTALL_EXTENSIONS = "Skip install Function extension for HTTP Trigger Functions";
     public static final String INSTALL_EXTENSIONS_FINISH = "Function extension installation done.";
     public static final String BUILD_SUCCESS = "Successfully built Azure Functions.";
 
     public static final String FUNCTION_JSON = "function.json";
     public static final String HOST_JSON = "host.json";
-    public static final String EXTENSION_BUNDLE = "extensionBundle";
 
     private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION =
         {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
-    public static final String EXTENSION_BUNDLE_ID = "Microsoft.Azure.Functions.ExtensionBundle";
-    public static final String SKIP_INSTALL_EXTENSIONS_BUNDLE = "Extension bundle specified, skip install extension";
     //region Entry Point
 
     @Override
@@ -296,10 +287,11 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void installExtension(final FunctionCoreToolsHandler handler,
                                     Set<BindingEnum> bindingEnums) throws Exception {
-        info(INSTALL_EXTENSIONS);
         if (!isInstallingExtensionNeeded(bindingEnums)) {
+            info(SKIP_INSTALL_EXTENSIONS);
             return;
         }
+        info(INSTALL_EXTENSIONS);
         handler.installExtension();
         info(INSTALL_EXTENSIONS_FINISH);
     }
@@ -312,32 +304,8 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected boolean isInstallingExtensionNeeded(Set<BindingEnum> bindingTypes) {
-        final JsonObject hostJson = readHostJson();
-        final JsonObject extensionBundle = hostJson == null ? null : hostJson.getAsJsonObject(EXTENSION_BUNDLE);
-        if (extensionBundle != null && extensionBundle.has("id") &&
-                StringUtils.equalsIgnoreCase(extensionBundle.get("id").getAsString(), EXTENSION_BUNDLE_ID)) {
-            getLog().info(SKIP_INSTALL_EXTENSIONS_BUNDLE);
-            return false;
-        }
-        final boolean isNonHttpTriggersExist = bindingTypes.stream().anyMatch(binding ->
+        return bindingTypes.stream().anyMatch(binding ->
                 !Arrays.asList(FUNCTION_WITHOUT_FUNCTION_EXTENSION).contains(binding));
-        if (!isNonHttpTriggersExist) {
-            getLog().info(SKIP_INSTALL_EXTENSIONS_HTTP);
-            return false;
-        }
-        return true;
-    }
-
-    protected JsonObject readHostJson() {
-        final JsonParser parser = new JsonParser();
-        final File hostJson = new File(project.getBasedir(), HOST_JSON);
-        try (final FileInputStream fis = new FileInputStream(hostJson);
-             final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
-            final String jsonRaw = scanner.useDelimiter("\\Z").next();
-            return parser.parse(jsonRaw).getAsJsonObject();
-        } catch (IOException e) {
-            return null;
-        }
     }
     // end region
 }

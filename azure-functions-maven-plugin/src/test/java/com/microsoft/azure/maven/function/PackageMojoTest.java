@@ -47,7 +47,6 @@ public class PackageMojoTest extends MojoTestBase {
         doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(mock(MavenProject.class)).when(mojoSpy).getProject();
         doReturn(mock(MavenSession.class)).when(mojoSpy).getSession();
-        doReturn(false).when(mojoSpy).isInstallingExtensionNeeded(any());
         doReturn(mock(MavenResourcesFiltering.class)).when(mojoSpy).getMavenResourcesFiltering();
 
         mojoSpy.doExecute();
