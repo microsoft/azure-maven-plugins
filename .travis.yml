@@ -5,7 +5,7 @@ jdk:
 
 branches:
   only:
-    - feature-spring
+    - develop
 
 addons:
   apt:
