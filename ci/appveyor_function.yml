@@ -16,7 +16,7 @@ install:
   - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
 
 build_script:
-  - cmd: mvn clean install && mvn -f azure-functions-maven-plugin/pom.xml clean verify -P it
+  - cmd: git clone %SDK_REPO% && mvnw clean install -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml && mvn clean install && mvn -f azure-functions-maven-plugin/pom.xml clean verify -P it
 
 on_failure:
   - ps: |
