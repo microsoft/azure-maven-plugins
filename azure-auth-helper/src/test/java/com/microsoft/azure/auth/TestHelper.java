@@ -18,7 +18,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class TestHelper {
+class TestHelper {
     private static final String SAMPLE_AUTHENTICATION_JSON = "{\n" +
             "    \"accessTokenType\": \"Bearer\",\n" +
             "    \"idToken\": \"eyJ0eXAi...iOiIxLjAifQ.\",\n" +

@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring.prompt;
+package com.microsoft.azure.maven.common.prompt;
 
 import com.microsoft.azure.maven.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
