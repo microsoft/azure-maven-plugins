@@ -31,7 +31,7 @@ $functionCLIZipPath = $functionCLIPath +".zip"
 # Download Functions Core Tools
 cd $base
 git clone $Env:SDK_REPO
-mvn clean install -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml
+mvn clean install -B -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml
 RemoveFileIfExist $functionCLIZipPath
 RemoveFolderIfExist $functionCLIPath
 DownloadFileFromUrl $Env:FUNCTIONCLI_URL $functionCLIZipPath
@@ -39,7 +39,7 @@ Expand-Archive $functionCLIZipPath -DestinationPath $functionCLIPath
 $Env:Path = $Env:Path + ";$functionCLIPath"
 
 # maven install function maven plguin
-mvn clean install
+mvn clean install -B
 
 # Generate function project through archetype
 $testProjectBaseFolder = ".\testprojects"
