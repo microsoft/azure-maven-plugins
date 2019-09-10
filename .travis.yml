@@ -16,6 +16,8 @@ addons:
       
 dist: trusty
 
+dist: trusty
+
 install:
   - nvm install lts/*
 
