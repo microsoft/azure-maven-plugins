@@ -4,9 +4,9 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring.prompt;
+package com.microsoft.azure.maven.common.prompt;
 
-public class InputValidationResult<T> {
+public class InputValidateResult<T> {
     private T obj;
     private String errorMessage;
 
@@ -18,14 +18,14 @@ public class InputValidationResult<T> {
         return errorMessage;
     }
 
-    public static <T> InputValidationResult<T> wrap(T obj) {
-        final InputValidationResult<T> res = new InputValidationResult<>();
+    public static <T> InputValidateResult<T> wrap(T obj) {
+        final InputValidateResult<T> res = new InputValidateResult<>();
         res.obj = obj;
         return res;
     }
 
-    public static <T> InputValidationResult<T> error(String errorMessage) {
-        final InputValidationResult<T> res = new InputValidationResult<>();
+    public static <T> InputValidateResult<T> error(String errorMessage) {
+        final InputValidateResult<T> res = new InputValidateResult<>();
         res.errorMessage = errorMessage;
         return res;
     }

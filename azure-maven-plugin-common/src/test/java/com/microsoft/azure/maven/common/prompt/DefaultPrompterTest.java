@@ -4,10 +4,10 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring.prompt;
+package com.microsoft.azure.maven.common.prompt;
 
-import com.microsoft.azure.maven.spring.TestHelper;
-import com.microsoft.azure.maven.spring.utils.SneakyThrowUtils;
+import com.microsoft.azure.maven.common.TestHelper;
+import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Before;
@@ -54,9 +54,9 @@ public class DefaultPrompterTest {
                 } catch (IOException e) {
                     SneakyThrowUtils.sneakyThrow(e);
                 }
-                return InputValidationResult.error("cannot input bar");
+                return InputValidateResult.error("cannot input bar");
             }
-            return InputValidationResult.wrap(input.trim());
+            return InputValidateResult.wrap(input.trim());
         }, true);
         assertEquals("10", result);
 
@@ -68,7 +68,7 @@ public class DefaultPrompterTest {
         assertEquals("foo", result);
 
         when(reader.readLine()).thenReturn("").thenReturn("").thenReturn("a");
-        result = prompter.promoteString("Please input a string", null, InputValidationResult::wrap, true);
+        result = prompter.promoteString("Please input a string", null, InputValidateResult::wrap, true);
         assertEquals("a", result);
     }
 
@@ -143,14 +143,60 @@ public class DefaultPrompterTest {
                 "to select none", Collections.emptyList());
         assertTrue(selected.isEmpty());
 
+        when(reader.readLine()).thenReturn("");
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
-                "You have select no entities", Collections.singletonList(1), t -> t.toString(), false,
+                "You have select no entities", Collections.singletonList(1), t -> t.toString(), true,
                 "to select none", Collections.emptyList());
-        assertEquals("1", TestHelper.joinIntegers(selected));
+        assertTrue(selected.isEmpty());
 
         when(reader.readLine()).thenReturn("");
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
-        "You have select no entities", integers, t -> t.toString(), false,
+        "You have select no entities", integers, t -> t.toString(), true,
+        "to select none", Arrays.asList(4, 5));
+        assertEquals("4,5", TestHelper.joinIntegers(selected));
+    }
+
+    @Test
+    public void testPromoteMultipleEntitiesAllowEmpty() throws Exception {
+        when(reader.readLine()).thenReturn("1").thenReturn("1-2").thenReturn("1-2,3-5").thenReturn("3-1000000,1-2,3-5");;
+        final List<Integer> integers = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            integers.add(i);
+        }
+        List<Integer> selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+                "You have select no entities", integers, t -> t.toString(), true,
+                "to select none", Collections.emptyList());
+
+        assertEquals("0", TestHelper.joinIntegers(selected));
+        selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+                "You have select no entities", integers, t -> t.toString(), true,
+                "to select none", Collections.emptyList());
+        assertEquals("0,1", TestHelper.joinIntegers(selected));
+        selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+                "You have select no entities", integers, t -> t.toString(), true,
+                "to select none", Collections.emptyList());
+        assertEquals("0,1,2,3,4", TestHelper.joinIntegers(selected));
+
+        selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+                "You have select no entities", integers, t -> t.toString(), true,
+                "to select none", Collections.emptyList());
+        assertEquals("2,3,4,5,6,7,8,9,0,1", TestHelper.joinIntegers(selected));
+
+        when(reader.readLine()).thenReturn("bad value").thenReturn("100").thenReturn("");
+        selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+                "You have select no entities", integers, t -> t.toString(), true,
+                "to select none", Collections.emptyList());
+        assertTrue(selected.isEmpty());
+
+        when(reader.readLine()).thenReturn("");
+        selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+                "You have select no entities", Collections.singletonList(1), t -> t.toString(), true,
+                "to select none", Collections.emptyList());
+        assertTrue(selected.isEmpty());
+
+        when(reader.readLine()).thenReturn("");
+        selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+        "You have select no entities", integers, t -> t.toString(), true,
         "to select none", Arrays.asList(4, 5));
         assertEquals("4,5", TestHelper.joinIntegers(selected));
     }

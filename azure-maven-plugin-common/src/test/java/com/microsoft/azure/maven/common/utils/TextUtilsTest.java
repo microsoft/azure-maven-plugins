@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 public class TextUtilsTest {
     @Before
@@ -50,4 +51,48 @@ public class TextUtilsTest {
         assertEquals("  ", TextUtils.applyColorToText("  ", Color.MAGENTA));
         assertNull(TextUtils.applyColorToText(null, Color.MAGENTA));
     }
+
+    @Test
+    public void testSplitLines() {
+        final String[] lines = TextUtils.splitLines("foo \n bar \n baz");
+        assertEquals(3, lines.length);
+        assertEquals("foo ", lines[0]);
+        assertEquals(" bar ", lines[1]);
+        assertEquals(" baz", lines[2]);
+    }
+
+    @Test
+    public void testSplitLinesCRLF() {
+        final String[] lines = TextUtils.splitLines("foo \r\n bar \r\n baz");
+        assertEquals(3, lines.length);
+        assertEquals("foo ", lines[0]);
+        assertEquals(" bar ", lines[1]);
+        assertEquals(" baz", lines[2]);
+    }
+
+    @Test
+    public void testSplitLinesMixtureCRLF() {
+        final String[] lines = TextUtils.splitLines("foo \n bar \r\n baz");
+        assertEquals(3, lines.length);
+        assertEquals("foo ", lines[0]);
+        assertEquals(" bar ", lines[1]);
+        assertEquals(" baz", lines[2]);
+    }
+
+    @Test
+    public void testSplitLinesNull() {
+        try {
+            TextUtils.splitLines(null);
+            fail("Should throw NPE");
+        } catch (NullPointerException ex) {
+            // expected
+        }
+    }
+
+    @Test
+    public void testSplitLinesEmpty() {
+        assertEquals(1, TextUtils.splitLines("").length);
+        assertEquals(1, TextUtils.splitLines("   ").length);
+    }
+
 }

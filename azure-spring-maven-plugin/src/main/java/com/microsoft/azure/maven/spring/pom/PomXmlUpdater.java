@@ -6,9 +6,10 @@
 
 package com.microsoft.azure.maven.spring.pom;
 
+import com.microsoft.azure.maven.common.utils.IndentUtil;
+import com.microsoft.azure.maven.common.utils.TextUtils;
 import com.microsoft.azure.maven.spring.configuration.AppSettings;
 import com.microsoft.azure.maven.spring.configuration.DeploymentSettings;
-import com.microsoft.azure.maven.spring.utils.IndentUtil;
 import com.microsoft.azure.maven.spring.utils.ResourcesUtils;
 import com.microsoft.azure.maven.spring.utils.XmlUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -68,14 +69,24 @@ public class PomXmlUpdater {
             springPluginNode = createMavenSpringPluginNode(pluginsNode);
         }
 
-        final Element configurationNode = createToPath(springPluginNode, "configuration");
-        app.applyToDom4j(configurationNode);
-        final Element deployNode = createToPath(configurationNode, "deployment");
-        deploy.applyToDom4j(deployNode);
-        ResourcesUtils.applyDefaultResourcesToDom4j(deployNode);
+        Element newNode;
+        if (app != null || deploy != null) {
+            final Element configurationNode = createToPath(springPluginNode, "configuration");
+            if (app != null) {
+                app.applyToDom4j(configurationNode);
+            }
+            if (deploy != null) {
+                final Element deployNode = createToPath(configurationNode, "deployment");
+                deploy.applyToDom4j(deployNode);
+                ResourcesUtils.applyDefaultResourcesToDom4j(deployNode);
+            }
+            // use configurationNode as initial value since we want to format configuration node if it exists.
+            newNode = configurationNode;
+        } else {
+            newNode = springPluginNode;
+        }
+
         // newly created nodes are not LocationAwareElement
-        // use configurationNode as initial value since we want to format configuration node if it exists.
-        Element newNode = configurationNode;
         while (!(newNode.getParent() instanceof LocationAwareElement)) {
             newNode = newNode.getParent();
         }
@@ -83,7 +94,7 @@ public class PomXmlUpdater {
     }
 
     private static String formatElement(String originalXml, LocationAwareElement parent, Element newNode) {
-        final String[] originXmlLines = IndentUtil.splitLines(originalXml);
+        final String[] originXmlLines = TextUtils.splitLines(originalXml);
         final String baseIndent = IndentUtil.calcXmlIndent(originXmlLines, parent.getLineNumber() - 1,
                 parent.getColumnNumber() - 2);
         final String placeHolder = String.format("@PLACEHOLDER_RANDOM_%s@", RandomUtils.nextLong());
@@ -95,7 +106,7 @@ public class PomXmlUpdater {
         XmlUtils.trimTextBeforeEnd(parent, placeHolderNode);
         final String xmlWithPlaceholder = parent.getDocument().asXML();
 
-        final String[] newXmlLines = IndentUtil.splitLines(XmlUtils.prettyPrintElementNoNamespace(newNode));
+        final String[] newXmlLines = TextUtils.splitLines(XmlUtils.prettyPrintElementNoNamespace(newNode));
         final String replacement = Arrays.stream(newXmlLines).map(t -> baseIndent + "    " + t).collect(Collectors.joining("\n")) + "\n" + baseIndent;
         return xmlWithPlaceholder.replace(placeHolder, replacement);
     }

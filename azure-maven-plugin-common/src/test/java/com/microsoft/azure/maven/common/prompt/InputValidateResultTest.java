@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring.prompt;
+package com.microsoft.azure.maven.common.prompt;
 
 import org.junit.Test;
 
@@ -13,11 +13,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
-public class InputValidationResultTest {
+public class InputValidateResultTest {
     @Test
     public void testWrap() {
         final Object obj = new Object();
-        final InputValidationResult<Object> wrapper = InputValidationResult.wrap(obj);
+        final InputValidateResult<Object> wrapper = InputValidateResult.wrap(obj);
         assertNotNull(wrapper);
         assertSame(obj, wrapper.getObj());
         assertNull(wrapper.getErrorMessage());
@@ -25,7 +25,7 @@ public class InputValidationResultTest {
 
     @Test
     public void testError() {
-        final InputValidationResult<Object> wrapper = InputValidationResult.error("message");
+        final InputValidateResult<Object> wrapper = InputValidateResult.error("message");
         assertNotNull(wrapper);
         assertEquals("message", wrapper.getErrorMessage());
         assertNull(wrapper.getObj());

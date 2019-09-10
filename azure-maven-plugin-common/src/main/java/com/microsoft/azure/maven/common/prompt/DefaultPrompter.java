@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring.prompt;
+package com.microsoft.azure.maven.common.prompt;
 
 import com.microsoft.azure.maven.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,20 +33,20 @@ public class DefaultPrompter implements IPrompter {
 
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-    public String promoteString(String message, String defaultValue, Function<String, InputValidationResult<String>> verify, boolean isRequired)
+    public String promoteString(String message, String defaultValue, Function<String, InputValidateResult<String>> verify, boolean isRequired)
             throws IOException {
         final boolean hasDefaultValue = StringUtils.isNotBlank(defaultValue);
         System.out.print(message);
         System.out.flush();
         return loopInput(defaultValue, hasDefaultValue, isRequired, "", message, input -> {
             if (!isRequired && StringUtils.equals(EMPTY_REPLACEMENT, input.trim())) {
-                return InputValidationResult.wrap("");
+                return InputValidateResult.wrap("");
             }
-            final InputValidationResult<String> result = verify.apply(input);
+            final InputValidateResult<String> result = verify.apply(input);
             if (result.getErrorMessage() != null) {
-                return InputValidationResult.error(result.getErrorMessage());
+                return InputValidateResult.error(result.getErrorMessage());
             } else {
-                return InputValidationResult.wrap(result.getObj());
+                return InputValidateResult.wrap(result.getObj());
             }
         });
     }
@@ -58,12 +58,12 @@ public class DefaultPrompter implements IPrompter {
 
         return loopInput(defaultValue, hasDefaultValue, isRequired, "", message, input -> {
             if (input.equalsIgnoreCase("Y")) {
-                return InputValidationResult.wrap(Boolean.TRUE);
+                return InputValidateResult.wrap(Boolean.TRUE);
             }
             if (input.equalsIgnoreCase("N")) {
-                return InputValidationResult.wrap(Boolean.FALSE);
+                return InputValidateResult.wrap(Boolean.FALSE);
             }
-            return InputValidationResult.error(String.format("Invalid input (%s).", input));
+            return InputValidateResult.error(String.format("Invalid input (%s).", input));
         });
     }
 
@@ -127,17 +127,17 @@ public class DefaultPrompter implements IPrompter {
         System.out.flush();
 
         return loopInput(defaultEntity, hasDefaultValue, isRequired, null, promoteMessage, input -> {
-            final InputValidationResult<Integer> selectIndex = validateUserInputAsInteger(input, entities.size(),
+            final InputValidateResult<Integer> selectIndex = validateUserInputAsInteger(input, entities.size(),
                     String.format("You have input a wrong value %s.", TextUtils.red(input)));
             if (selectIndex.getErrorMessage() == null) {
-                return InputValidationResult.wrap(entities.get(selectIndex.getObj() - 1));
+                return InputValidateResult.wrap(entities.get(selectIndex.getObj() - 1));
             }
-            return InputValidationResult.error(selectIndex.getErrorMessage());
+            return InputValidateResult.error(selectIndex.getErrorMessage());
         });
     }
 
     private <T> T loopInput(T defaultValue, boolean hasDefaultValue, boolean isRequired, String emptyPromoteMessage, String promoteMessage,
-            Function<String, InputValidationResult<T>> handleInput) throws IOException {
+            Function<String, InputValidateResult<T>> handleInput) throws IOException {
         while (true) {
             final String input = reader.readLine();
             if (StringUtils.isBlank(input)) {
@@ -146,7 +146,7 @@ public class DefaultPrompter implements IPrompter {
                 }
                 System.out.print(emptyPromoteMessage);
             } else {
-                final InputValidationResult<T> res = handleInput.apply(input);
+                final InputValidateResult<T> res = handleInput.apply(input);
                 if (res.getErrorMessage() != null) {
                     System.out.println(TextUtils.yellow(res.getErrorMessage()));
                 } else {
@@ -158,20 +158,20 @@ public class DefaultPrompter implements IPrompter {
         }
     }
 
-    private InputValidationResult<Integer> validateUserInputAsInteger(String input, int maxValue, String message) {
+    private InputValidateResult<Integer> validateUserInputAsInteger(String input, int maxValue, String message) {
         if (!NumberUtils.isDigits(input)) {
-            return InputValidationResult.error(message);
+            return InputValidateResult.error(message);
         }
         try {
             final int value = Integer.parseInt(input);
             if (value >= 1 && value <= maxValue) {
-                return InputValidationResult.wrap(value);
+                return InputValidateResult.wrap(value);
             }
         } catch (NumberFormatException ex) {
             // ignore since last statement is error
         }
 
-        return InputValidationResult.error(message);
+        return InputValidateResult.error(message);
     }
 
     public void close() {

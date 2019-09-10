@@ -36,7 +36,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-public class TestHelper {
+class TestHelper {
     private static final String SAMPLE_AUTHENTICATION_JSON = "{\n" +
             "    \"accessTokenType\": \"Bearer\",\n" +
             "    \"idToken\": \"eyJ0eXAi...iOiIxLjAifQ.\",\n" +

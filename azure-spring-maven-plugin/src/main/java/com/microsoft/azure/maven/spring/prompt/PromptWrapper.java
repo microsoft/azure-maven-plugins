@@ -6,12 +6,20 @@
 
 package com.microsoft.azure.maven.spring.prompt;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.fge.jackson.JsonLoader;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.maven.common.prompt.DefaultPrompter;
+import com.microsoft.azure.maven.common.prompt.IPrompter;
+import com.microsoft.azure.maven.common.prompt.InputValidateResult;
+import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.common.utils.TextUtils;
+import com.microsoft.azure.maven.common.validation.SchemaValidator;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.utils.TemplateUtils;
-import com.microsoft.azure.maven.spring.validation.SchemaValidator;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
@@ -22,9 +30,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -41,20 +51,39 @@ public class PromptWrapper {
         this.log = log;
     }
 
-    public void initialize() throws IOException {
+    public void initialize() throws IOException, InvalidConfigurationException, JsonProcessingException {
         prompt = new DefaultPrompter();
         validator = new SchemaValidator();
         templates = new HashMap<>();
         commonVariables = new HashMap<>();
         final Yaml yaml = new Yaml();
+        final Set<String> resourceNames = new HashSet<>();
         try (final InputStream inputStream = this.getClass().getResourceAsStream("/MessageTemplates.yaml")) {
             final Iterable<Object> rules = yaml.loadAll(inputStream);
 
             for (final Object rule : rules) {
                 final Map<String, Object> map = (Map<String, Object>) rule;
                 templates.put((String) map.get("id"), map);
+                if (map.containsKey("resource")) {
+                    resourceNames.add((String) map.get("resource"));
+                }
             }
         }
+        for (final String resourceName : resourceNames) {
+            final ObjectNode resouceSchema = (ObjectNode) JsonLoader.fromResource("/schema/" + resourceName + ".json");
+            if (!resouceSchema.has("properties")) {
+                throw new InvalidConfigurationException(String.format("Bad schema for %s: missing properties field.", resourceName));
+            }
+            final ObjectNode propertiesNode = (ObjectNode) resouceSchema.get("properties");
+            IteratorUtils.forEach(propertiesNode.fields(), prop -> {
+                try {
+                    this.validator.collectSingleProperty(resourceName, prop.getKey(), prop.getValue());
+                } catch (JsonProcessingException e) {
+                    SneakyThrowUtils.sneakyThrow(e);
+                }
+            });
+        }
+
     }
 
     public void putCommonVariable(String key, Object obj) {
@@ -82,10 +111,10 @@ public class PromptWrapper {
                 return options.get(0);
             }
             if (!this.prompt.promoteYesNo(TemplateUtils.evalText("promote.one", variables),
-                    /* if only one options is available,
-                       when it is required, select it by default*/
-                    isRequired ,
-                    isRequired)) {
+                    /*
+                     * if only one options is available, when it is required, select it by default
+                     */
+                    isRequired, isRequired)) {
                 if (isRequired) {
                     throw new SpringConfigurationException(TemplateUtils.evalText("message.select_none", variables));
                 }
@@ -134,9 +163,8 @@ public class PromptWrapper {
             }
         }
         final List<T> selectedEntities = prompt.promoteMultipleEntities(TemplateUtils.evalText("promote.header", variables),
-                TemplateUtils.evalText("promote.many", variables),
-                TemplateUtils.evalText("promote.header", variables), options, getNameFunc, allowEmpty,
-                defaultSelected ? "to select ALL" : "to select NONE", defaultSelected ? options : Collections.emptyList());
+                TemplateUtils.evalText("promote.many", variables), TemplateUtils.evalText("promote.header", variables), options, getNameFunc,
+                allowEmpty, defaultSelected ? "to select ALL" : "to select NONE", defaultSelected ? options : Collections.emptyList());
         if (selectedEntities.isEmpty()) {
             final String warningMessage = TemplateUtils.evalText("message.select_none", variables);
             if (StringUtils.isNotBlank(warningMessage)) {
@@ -146,7 +174,8 @@ public class PromptWrapper {
         return selectedEntities;
     }
 
-    public String handle(String templateId, boolean autoApplyDefault) throws InvalidConfigurationException, IOException, ExpressionEvaluationException {
+    public String handle(String templateId, boolean autoApplyDefault)
+            throws InvalidConfigurationException, IOException, ExpressionEvaluationException {
         return handle(templateId, autoApplyDefault, null);
     }
 
@@ -173,12 +202,12 @@ public class PromptWrapper {
 
         if (cliParameter != null) {
             // valid against the property from cli parameter, if it passes, then we skip the configuration
-            final String errorMessage = validator.validateSchema(resourceName, propertyName, cliParameter.toString());
+            final String errorMessage = validator.validateSingleProperty(resourceName, propertyName, cliParameter.toString());
             if (errorMessage == null) {
                 return cliParameter.toString();
             }
-            System.out.println(TextUtils
-                    .yellow(String.format("Input validation failure for %s[%s]: %s", propertyName, cliParameter.toString(), errorMessage)));
+            System.out.println(
+                    TextUtils.yellow(String.format("Input validation failure for %s[%s]: %s", propertyName, cliParameter.toString(), errorMessage)));
         }
 
         if (autoApplyDefault) {
@@ -202,14 +231,14 @@ public class PromptWrapper {
             try {
                 value = evaluateMavenExpression(input);
                 if (value == null) {
-                    return InputValidationResult.error(String.format("Cannot evaluate maven expression: %s", input));
+                    return InputValidateResult.error(String.format("Cannot evaluate maven expression: %s", input));
                 }
             } catch (ExpressionEvaluationException e) {
-                return InputValidationResult.error(e.getMessage());
+                return InputValidateResult.error(e.getMessage());
             }
 
-            final String errorMessage = validator.validateSchema(resourceName, propertyName, value);
-            return errorMessage == null ? InputValidationResult.wrap(input) : InputValidationResult.error(errorMessage);
+            final String errorMessage = validator.validateSingleProperty(resourceName, propertyName, value);
+            return errorMessage == null ? InputValidateResult.wrap(input) : InputValidateResult.error(errorMessage);
 
         }, TemplateUtils.evalBoolean("required", variables));
 
@@ -225,10 +254,8 @@ public class PromptWrapper {
             }
         }
 
-        final Boolean userConfirm = prompt.promoteYesNo(
-                TemplateUtils.evalText("promote.footer", variables),
-                TemplateUtils.evalBoolean("default", variables),
-                TemplateUtils.evalBoolean("required", variables));
+        final Boolean userConfirm = prompt.promoteYesNo(TemplateUtils.evalText("promote.footer", variables),
+                TemplateUtils.evalBoolean("default", variables), TemplateUtils.evalBoolean("required", variables));
         if (userConfirm == null || !userConfirm) {
             log.info(TemplateUtils.evalText("message.skip", variables));
             return;

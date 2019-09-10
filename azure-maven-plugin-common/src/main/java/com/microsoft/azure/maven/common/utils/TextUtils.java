@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.common.utils;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
@@ -32,6 +33,11 @@ public class TextUtils {
 
     public static String red(String message) {
         return applyColorToText(message, Color.RED);
+    }
+
+    public static String[] splitLines(String text) {
+        Preconditions.checkNotNull(text, "The parameter 'text' cannot be null");
+        return text.split("\\r?\\n");
     }
 
     private TextUtils() {

@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring.utils;
+package com.microsoft.azure.maven.common.utils;
 
 import org.junit.Test;
 

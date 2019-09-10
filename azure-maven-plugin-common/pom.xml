@@ -30,6 +30,7 @@
 		<jaxb.version>2.3.2</jaxb.version>
 		<surefire.version>2.22.0</surefire.version>
 		<jacoco.version>0.8.4</jacoco.version>
+		<powermock.version>2.0.2</powermock.version>
 	</properties>
 
 	<licenses>
@@ -74,6 +75,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+			<version>4.4</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.6</version>
@@ -115,6 +121,23 @@
 			<artifactId>jansi</artifactId>
 			<version>${jansi.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.java-json-tools</groupId>
+			<artifactId>json-schema-validator</artifactId>
+			<version>2.2.10</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>28.1-jre</version>
+		</dependency>
+
 		<!-- TEST -->
 		<dependency>
 			<groupId>commons-codec</groupId>
@@ -135,6 +158,18 @@
 			<classifier>runtime</classifier>
 			<scope>test</scope>
 		</dependency>
+		 <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 
 	<build>

@@ -10,11 +10,11 @@ import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.D
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceStatus;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
+import com.microsoft.azure.maven.common.prompt.DefaultPrompter;
+import com.microsoft.azure.maven.common.prompt.IPrompter;
 import com.microsoft.azure.maven.common.utils.TextUtils;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
-import com.microsoft.azure.maven.spring.prompt.DefaultPrompter;
-import com.microsoft.azure.maven.spring.prompt.IPrompter;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
 import com.microsoft.azure.maven.spring.utils.MavenUtils;
