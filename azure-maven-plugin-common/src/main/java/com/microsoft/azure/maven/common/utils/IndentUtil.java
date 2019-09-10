@@ -4,18 +4,13 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring.utils;
+package com.microsoft.azure.maven.common.utils;
 
-import org.parboiled.common.Preconditions;
+import com.google.common.base.Preconditions;
 
 public class IndentUtil {
-    public static String[] splitLines(String text) {
-        Preconditions.checkArgNotNull(text, "text");
-        return text.split("\\r?\\n");
-    }
-
     public static String calcXmlIndent(String[] lines, int row, int column) {
-        Preconditions.checkArgNotNull(lines, "lines");
+        Preconditions.checkNotNull(lines, "The parameter 'lines' cannot be null");
         Preconditions.checkArgument(lines.length > row && row >= 0, "The parameter 'row' overflows.");
         final String line = lines[row];
         Preconditions.checkArgument(line != null, "Encounter null on row: " + row);

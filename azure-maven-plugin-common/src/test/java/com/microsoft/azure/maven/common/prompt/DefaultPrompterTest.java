@@ -54,9 +54,9 @@ public class DefaultPrompterTest {
                 } catch (IOException e) {
                     SneakyThrowUtils.sneakyThrow(e);
                 }
-                return InputValidationResult.error("cannot input bar");
+                return InputValidateResult.error("cannot input bar");
             }
-            return InputValidationResult.wrap(input.trim());
+            return InputValidateResult.wrap(input.trim());
         }, true);
         assertEquals("10", result);
 
@@ -68,7 +68,7 @@ public class DefaultPrompterTest {
         assertEquals("foo", result);
 
         when(reader.readLine()).thenReturn("").thenReturn("").thenReturn("a");
-        result = prompter.promoteString("Please input a string", null, InputValidationResult::wrap, true);
+        result = prompter.promoteString("Please input a string", null, InputValidateResult::wrap, true);
         assertEquals("a", result);
     }
 

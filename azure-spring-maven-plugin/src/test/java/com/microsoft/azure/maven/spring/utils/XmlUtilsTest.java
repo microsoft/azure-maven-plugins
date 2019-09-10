@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.maven.spring.utils;
 
+import com.microsoft.azure.maven.common.utils.TextUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Namespace;
@@ -34,7 +35,7 @@ public class XmlUtilsTest {
 
     @Test
     public void testPrettyPrintElementNoNamespace() throws Exception {
-        final String[] lines = IndentUtil.splitLines(XmlUtils.prettyPrintElementNoNamespace(propertiesNode));
+        final String[] lines = TextUtils.splitLines(XmlUtils.prettyPrintElementNoNamespace(propertiesNode));
         assertEquals(5, lines.length);
         assertEquals("<properties>", lines[0]);
         assertEquals("    <maven.compiler.source>1.8</maven.compiler.source>", lines[1]);
@@ -51,7 +52,7 @@ public class XmlUtilsTest {
     @Test
     public void testAddDomWithKeyValue() {
         XmlUtils.addDomWithKeyValue(propertiesNode, "foo", "bar");
-        final String[] lines = IndentUtil.splitLines(XmlUtils.prettyPrintElementNoNamespace(propertiesNode));
+        final String[] lines = TextUtils.splitLines(XmlUtils.prettyPrintElementNoNamespace(propertiesNode));
         assertEquals(6, lines.length);
         assertEquals("    <foo>bar</foo>", lines[4]);
     }
@@ -59,7 +60,7 @@ public class XmlUtilsTest {
     @Test
     public void testAddDomWithKeyValueList() {
         XmlUtils.addDomWithValueList(propertiesNode, "foo", "list", Arrays.asList("bar1", "bar2"));
-        final String[] lines = IndentUtil.splitLines(XmlUtils.prettyPrintElementNoNamespace(propertiesNode));
+        final String[] lines = TextUtils.splitLines(XmlUtils.prettyPrintElementNoNamespace(propertiesNode));
         assertEquals(9, lines.length);
         assertEquals("    <foo>", lines[4]);
         assertEquals("        <list>bar1</list>", lines[5]);

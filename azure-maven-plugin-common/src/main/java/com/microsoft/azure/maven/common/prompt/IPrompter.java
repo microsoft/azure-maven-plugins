@@ -23,7 +23,7 @@ public interface IPrompter extends Closeable {
      * @return the text value user has input
      * @throws IOException when there are any IO errors.
      */
-    String promoteString(String message, String defaultValue, Function<String, InputValidationResult<String>> verify, boolean isRequired) throws IOException;
+    String promoteString(String message, String defaultValue, Function<String, InputValidateResult<String>> verify, boolean isRequired) throws IOException;
 
 
 

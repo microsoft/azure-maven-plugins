@@ -12,7 +12,7 @@ import com.github.fge.jackson.JsonLoader;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.maven.common.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.common.prompt.IPrompter;
-import com.microsoft.azure.maven.common.prompt.InputValidationResult;
+import com.microsoft.azure.maven.common.prompt.InputValidateResult;
 import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.common.utils.TextUtils;
 import com.microsoft.azure.maven.common.validation.SchemaValidator;
@@ -231,14 +231,14 @@ public class PromptWrapper {
             try {
                 value = evaluateMavenExpression(input);
                 if (value == null) {
-                    return InputValidationResult.error(String.format("Cannot evaluate maven expression: %s", input));
+                    return InputValidateResult.error(String.format("Cannot evaluate maven expression: %s", input));
                 }
             } catch (ExpressionEvaluationException e) {
-                return InputValidationResult.error(e.getMessage());
+                return InputValidateResult.error(e.getMessage());
             }
 
             final String errorMessage = validator.validateSingleProperty(resourceName, propertyName, value);
-            return errorMessage == null ? InputValidationResult.wrap(input) : InputValidationResult.error(errorMessage);
+            return errorMessage == null ? InputValidateResult.wrap(input) : InputValidateResult.error(errorMessage);
 
         }, TemplateUtils.evalBoolean("required", variables));
 
