@@ -28,14 +28,13 @@
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <codehaus.plexus-utils>3.0.20</codehaus.plexus-utils>
         <azure.version>1.24.1</azure.version>
-        <azure.ai.version>2.5.0-BETA.2</azure.ai.version>
+        <azure.ai.version>2.5.0-BETA.5</azure.ai.version>
         <common-net.version>3.6</common-net.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
         <powermock.version>2.0.2</powermock.version>
         <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
-        <jansi.version>1.17.1</jansi.version>
     </properties>
 
     <licenses>
@@ -74,11 +73,6 @@
     </profiles>
 
     <dependencies>
-        <dependency>
-            <groupId>org.fusesource.jansi</groupId>
-            <artifactId>jansi</artifactId>
-            <version>${jansi.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
