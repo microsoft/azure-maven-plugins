@@ -4,9 +4,9 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.telemetry;
+package com.microsoft.azure.maven.common.telemetry;
 
-public class Constants {
+public class TelemetryConstants {
     public static final String TELEMETRY_KEY_INSTALLATIONID = "installationId";
     public static final String TELEMETRY_KEY_SESSION_ID = "sessionId";
     public static final String TELEMETRY_KEY_PLUGIN_NAME = "pluginName";

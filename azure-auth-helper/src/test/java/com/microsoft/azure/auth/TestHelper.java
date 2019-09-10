@@ -7,7 +7,7 @@
 package com.microsoft.azure.auth;
 
 import com.microsoft.aad.adal4j.AuthenticationResult;
-import com.microsoft.azure.maven.utils.JsonUtils;
+import com.microsoft.azure.maven.common.utils.JsonUtils;
 import org.apache.commons.lang3.SystemUtils;
 
 import java.lang.reflect.Field;

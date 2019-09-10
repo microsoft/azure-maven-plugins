@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.validation;
+package com.microsoft.azure.maven.common;
 
 public class ConfigurationProblem {
 

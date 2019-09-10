@@ -7,11 +7,11 @@
 package com.microsoft.azure.maven.spring.prompt;
 
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.maven.common.utils.TextUtils;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.utils.TemplateUtils;
 import com.microsoft.azure.maven.spring.validation.SchemaValidator;
-import com.microsoft.azure.maven.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;

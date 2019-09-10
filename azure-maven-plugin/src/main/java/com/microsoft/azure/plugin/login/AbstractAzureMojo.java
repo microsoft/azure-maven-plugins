@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.plugin.login;
 
-import com.microsoft.azure.maven.telemetry.AppInsightHelper;
-import com.microsoft.azure.maven.telemetry.MojoStatus;
+import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
+import com.microsoft.azure.maven.common.telemetry.MojoStatus;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -17,16 +17,16 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_DURATION;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_CODE;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_MESSAGE;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_ERROR_TYPE;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_PLUGIN_NAME;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_PLUGIN_VERSION;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_ERROR_CODE_FAILURE;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_ERROR_CODE_SUCCESS;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_SYSTEM_ERROR;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_VALUE_USER_ERROR;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_KEY_DURATION;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_KEY_ERROR_CODE;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_KEY_ERROR_MESSAGE;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_KEY_ERROR_TYPE;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_KEY_PLUGIN_NAME;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_KEY_PLUGIN_VERSION;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_FAILURE;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_SUCCESS;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_VALUE_SYSTEM_ERROR;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_VALUE_USER_ERROR;
 
 public abstract class AbstractAzureMojo extends AbstractMojo {
 

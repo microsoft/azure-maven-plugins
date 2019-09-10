@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.telemetry;
+package com.microsoft.azure.maven.common.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
@@ -13,9 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_EVENT_TELEMETRY_NOT_ALLOWED;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_INSTALLATIONID;
-import static com.microsoft.azure.maven.telemetry.Constants.TELEMETRY_KEY_SESSION_ID;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_EVENT_TELEMETRY_NOT_ALLOWED;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_KEY_INSTALLATIONID;
+import static com.microsoft.azure.maven.common.telemetry.TelemetryConstants.TELEMETRY_KEY_SESSION_ID;
 
 public enum AppInsightHelper implements TelemetryProxy {
     INSTANCE;

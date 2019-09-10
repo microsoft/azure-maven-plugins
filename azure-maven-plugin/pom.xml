@@ -25,7 +25,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.version>3.5</maven.version>
         <junit.version>4.12</junit.version>
-        <azure.maven-plugin-lib.version>1.2.11-SNAPSHOT</azure.maven-plugin-lib.version>
         <version.slf4j>1.7.25</version.slf4j>
         <version.maven-core>3.5.0</version.maven-core>
         <version.maven-plugin-annotations>3.5</version.maven-plugin-annotations>
@@ -95,11 +94,6 @@
     </profiles>
 
     <dependencies>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-maven-plugin-lib</artifactId>
-            <version>${azure.maven-plugin-lib.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-auth-helper</artifactId>

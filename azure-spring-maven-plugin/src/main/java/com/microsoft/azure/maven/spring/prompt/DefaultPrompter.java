@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.spring.prompt;
 
-import com.microsoft.azure.maven.utils.TextUtils;
+import com.microsoft.azure.maven.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 

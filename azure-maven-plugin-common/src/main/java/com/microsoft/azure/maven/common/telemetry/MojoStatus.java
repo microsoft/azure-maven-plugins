@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.telemetry;
+package com.microsoft.azure.maven.common.telemetry;
 
 public enum MojoStatus {
     Start,
