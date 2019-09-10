@@ -53,10 +53,10 @@ public class AppSettings extends BaseSettings {
     @Override
     protected Map<String, Object> getProperties() {
         return MapUtils.putAll(new LinkedHashMap<>(), new Map.Entry[] {
-            new DefaultMapEntry("subscriptionId", this.subscriptionId),
-            new DefaultMapEntry("clusterName", this.clusterName),
-            new DefaultMapEntry("appName", this.appName),
-            new DefaultMapEntry("isPublic", this.isPublic)
+            new DefaultMapEntry<>("subscriptionId", this.subscriptionId),
+            new DefaultMapEntry<>("clusterName", this.clusterName),
+            new DefaultMapEntry<>("appName", this.appName),
+            new DefaultMapEntry<>("isPublic", this.isPublic)
         });
     }
 

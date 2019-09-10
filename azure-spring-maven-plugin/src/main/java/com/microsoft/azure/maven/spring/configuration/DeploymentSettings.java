@@ -75,11 +75,11 @@ public class DeploymentSettings extends BaseSettings {
     @Override
     protected Map<String, Object> getProperties() {
         return MapUtils.putAll(new LinkedHashMap<>(), new Map.Entry[] {
-            new DefaultMapEntry("cpu", this.cpu),
-            new DefaultMapEntry("memoryInGB", this.memoryInGB),
-            new DefaultMapEntry("instanceCount", this.instanceCount),
-            new DefaultMapEntry("jvmOptions", this.jvmOptions),
-            new DefaultMapEntry("runtimeVersion", this.runtimeVersion),
+            new DefaultMapEntry<>("cpu", this.cpu),
+            new DefaultMapEntry<>("memoryInGB", this.memoryInGB),
+            new DefaultMapEntry<>("instanceCount", this.instanceCount),
+            new DefaultMapEntry<>("jvmOptions", this.jvmOptions),
+            new DefaultMapEntry<>("runtimeVersion", this.runtimeVersion),
         });
     }
 }
