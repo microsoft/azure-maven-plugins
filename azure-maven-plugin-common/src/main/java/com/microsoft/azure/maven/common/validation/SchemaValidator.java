@@ -41,17 +41,6 @@ public class SchemaValidator {
         validator = JsonSchemaFactory.byDefault().getValidator();
     }
 
-    public void collectSchemaForObject(String resource, JsonNode schema) throws JsonProcessingException {
-        Preconditions.checkArgument(StringUtils.isNotBlank(resource), "Parameter 'resource' should not be null or empty.");
-        Preconditions.checkArgument(!schemaMap.containsKey(resource),
-                String.format("Resource '%s' already exists.", resource));
-        Preconditions.checkNotNull(schema, "Parameter 'resource' should not be null.");
-
-        schemas.put(resource, schema);
-        schemaMap.put(resource, mapper.treeToValue(schema, Map.class));
-
-    }
-
     public void collectSingleProperty(String resource, String property, JsonNode schema) throws JsonProcessingException {
         Preconditions.checkArgument(StringUtils.isNotBlank(resource), "Parameter 'resource' should not be null or empty.");
         Preconditions.checkArgument(StringUtils.isNotBlank(property), "Parameter 'property' should not be null or empty.");
@@ -62,42 +51,13 @@ public class SchemaValidator {
         schemaMap.put(combineToKey(resource, property), mapper.treeToValue(schema, Map.class));
     }
 
-    public Map<String, Object> getSchemaMapForObject(String resource) {
-        Preconditions.checkArgument(StringUtils.isNotBlank(resource), "Parameter 'resource' should not be null or empty.");
-        Preconditions.checkArgument(schemaMap.containsKey(resource),
-                String.format("Schema for '%s' cannot be found.", resource));
-        return schemaMap.get(resource);
-    }
-
     public Map<String, Object> getSchemaMap(String resource, String property) {
-        Preconditions.checkArgument(StringUtils.isNotBlank(resource), "Parameter 'resource' should not be null or empty.");
-        Preconditions.checkArgument(StringUtils.isNotBlank(property), "Parameter 'property' should not be null or empty.");
-        Preconditions.checkArgument(schemaMap.containsKey(combineToKey(resource, property)),
-                String.format("Property '%s' cannot be found.", combineToKey(resource, property)));
-
+        checkExistSchema(resource, property);
         return schemaMap.get(combineToKey(resource, property));
     }
 
-    public String validateObject(String resource, JsonNode value) {
-        Preconditions.checkArgument(StringUtils.isNotBlank(resource), "Parameter 'resource' should not be null or empty.");
-        Preconditions.checkArgument(schemaMap.containsKey(resource),
-                String.format("Schema for '%s' cannot be found.", resource));
-
-        final JsonNode schema = this.schemas.get(resource);
-        try {
-            final ProcessingReport reports = validator.validate(schema, value);
-            return formatValidationResults(reports);
-        } catch (IllegalArgumentException | ProcessingException e) {
-            return e.getMessage();
-        }
-
-    }
-
     public String validateSingleProperty(String resource, String property, String value) {
-        Preconditions.checkArgument(StringUtils.isNotBlank(resource), "Parameter 'resource' should not be null or empty.");
-        Preconditions.checkArgument(StringUtils.isNotBlank(property), "Parameter 'property' should not be null or empty.");
-        Preconditions.checkArgument(schemas.containsKey(combineToKey(resource, property)),
-                String.format("Property '%s' cannot be found.", combineToKey(resource, property)));
+        checkExistSchema(resource, property);
         final JsonNode schema = this.schemas.get(combineToKey(resource, property));
         final String type = (String) schemaMap.get(combineToKey(resource, property)).get("type");
         try {
@@ -108,7 +68,14 @@ public class SchemaValidator {
         }
     }
 
-    private String combineToKey(String resource, String property) {
+    private void checkExistSchema(String resource, String property) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(resource), "Parameter 'resource' should not be null or empty.");
+        Preconditions.checkArgument(StringUtils.isNotBlank(property), "Parameter 'property' should not be null or empty.");
+        Preconditions.checkArgument(schemaMap.containsKey(combineToKey(resource, property)),
+                String.format("Property '%s' cannot be found.", combineToKey(resource, property)));
+    }
+
+    private static  String combineToKey(String resource, String property) {
         return resource + "::" + property;
     }
 
@@ -151,7 +118,7 @@ public class SchemaValidator {
         if (errors.size() == 1) {
             return errors.get(0);
         }
-        return String.format("The input violates the validation rules:\n %s", errors.stream().collect(Collectors.joining("\n")));
+        return String.format("The input violates the validation rules:\n %s", String.join("\n", errors));
     }
 
 }

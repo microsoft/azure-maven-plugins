@@ -11,7 +11,7 @@ public class ConfigurationProblem {
     /**
      * The different severity levels for a problem, in decreasing order.
      */
-    public static enum Severity {
+    public enum Severity {
         ERROR,
         WARNING
     }

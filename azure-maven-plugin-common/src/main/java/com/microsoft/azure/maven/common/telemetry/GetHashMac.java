@@ -61,7 +61,7 @@ public class GetHashMac {
     }
 
     private static String getRawMac() {
-        String ret = null;
+        StringBuilder ret = null;
         try {
             final String os = System.getProperty("os.name").toLowerCase();
             String[] command = {"ifconfig", "-a"};
@@ -76,7 +76,7 @@ public class GetHashMac {
                  final BufferedReader br = new BufferedReader(inputStreamReader)) {
                 String tmp;
                 while ((tmp = br.readLine()) != null) {
-                    ret += tmp;
+                    ret.append(tmp);
                 }
             }
             if (process.waitFor() != 0) {
@@ -86,7 +86,7 @@ public class GetHashMac {
             return getRawMacWithNetworkInterface();
         }
 
-        return ret;
+        return ret.toString();
     }
 
     private static String getRawMacWithNetworkInterface() {
@@ -124,15 +124,13 @@ public class GetHashMac {
             final byte[] bytes = mac.getBytes("UTF-8");
             md.update(bytes);
             final byte[] bytesAfterDigest = md.digest();
-            final StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < bytesAfterDigest.length; i++) {
-                sb.append(Integer.toString((bytesAfterDigest[i] & 0xff) + 0x100, 16).substring(1));
+            final StringBuilder sb = new StringBuilder();
+            for (final byte b : bytesAfterDigest) {
+                sb.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
             }
 
             ret = sb.toString();
-        } catch (NoSuchAlgorithmException ex) {
-            return null;
-        } catch (UnsupportedEncodingException ex) {
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
             return null;
         }
 
