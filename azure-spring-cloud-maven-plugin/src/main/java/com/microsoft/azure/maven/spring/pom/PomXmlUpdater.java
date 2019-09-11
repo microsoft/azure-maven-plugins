@@ -111,7 +111,7 @@ public class PomXmlUpdater {
         return xmlWithPlaceholder.replace(placeHolder, replacement);
     }
 
-    private Element createMavenSpringPluginNode(Element pluginsRootNode) throws IOException {
+    private Element createMavenSpringPluginNode(Element pluginsRootNode) {
         final Element result = new DOMElement("plugin");
         XmlUtils.addDomWithKeyValue(result, "groupId", this.plugin.getGroupId());
         XmlUtils.addDomWithKeyValue(result, "artifactId", this.plugin.getArtifactId());
