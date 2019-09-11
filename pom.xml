@@ -53,6 +53,6 @@
         <module>azure-functions-maven-plugin</module>
         <module>azure-sfmesh-maven-plugin</module>
         <module>azure-maven-plugin</module>
-        <module>azure-spring-maven-plugin</module>
+        <module>azure-spring-cloud-maven-plugin</module>
     </modules>
 </project>
