@@ -23,11 +23,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -45,7 +43,6 @@ public class Utils {
 
     private static final String POM = "pom";
     private static final String JAR = "jar";
-    private static final String DATE_FORMAT = "yyyyMMddHHmmss";
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
     private static final Pattern MEMORY_PATTERN = Pattern.compile(MEMORY_REGEX);
     private static final String[] ARTIFACT_EXTENSIONS = {"jar"};
@@ -98,10 +95,6 @@ public class Utils {
             default:
                 throw new MojoExecutionException("Unknown memory unit");
         }
-    }
-
-    public static String generateTimestamp() {
-        return new SimpleDateFormat(DATE_FORMAT).format(new Date());
     }
 
     public static File getArtifactFromTargetFolder(MavenProject project) throws MojoExecutionException {
