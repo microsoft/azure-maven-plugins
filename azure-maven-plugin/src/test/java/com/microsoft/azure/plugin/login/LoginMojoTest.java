@@ -16,7 +16,9 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.testing.AbstractMojoTestCase;
+import org.apache.maven.plugin.testing.MojoRule;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -25,6 +27,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.nio.file.Files;
 
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
@@ -37,26 +42,25 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AzureAuthHelper.class, AppInsightHelper.class, TelemetryClient.class, LoginMojo.class, Azure.class })
-public class LoginMojoTest extends AbstractMojoTestCase {
+public class LoginMojoTest {
+    @Rule
+    private MojoRule rule = new MojoRule();
+
     private LoginMojo mojo;
 
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
 
         TestHelper.mockAppInsightHelper();
 
         final File pom = new File(this.getClass().getResource("/maven/projects/simple/pom.xml").getFile());
         assertNotNull(pom);
         assertTrue(pom.exists());
-        mojo = (LoginMojo) this.lookupMojo("login", pom);
-        final MojoExecution execution = newMojoExecution("login");
+        mojo = (LoginMojo) rule.lookupMojo("login", pom);
+        final MojoExecution execution = rule.newMojoExecution("login");
         assertNotNull(mojo);
         mojo.plugin = execution.getMojoDescriptor().getPluginDescriptor();
 
-    }
-
-    public void tearDown() throws Exception {
-        super.tearDown();
     }
 
     @Test

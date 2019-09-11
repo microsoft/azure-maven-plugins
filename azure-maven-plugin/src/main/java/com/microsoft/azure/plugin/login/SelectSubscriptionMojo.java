@@ -27,7 +27,7 @@ import java.util.Scanner;
 /**
  * Goal to switch among multiple azure subscriptions.
  */
-@Mojo(name = "select-subscription", inheritByDefault = true, aggregator = true)
+@Mojo(name = "select-subscription", aggregator = true)
 public class SelectSubscriptionMojo extends AbstractAzureMojo {
 
     /**
@@ -92,9 +92,9 @@ public class SelectSubscriptionMojo extends AbstractAzureMojo {
                 }
 
                 final Scanner scanner = getScanner();
-                int userSelected = -1;
+                int userSelected;
                 while (true) {
-                    System.out.printf("Enter index value for subscription id: ");
+                    System.out.print("Enter index value for subscription id: ");
                     System.out.flush();
                     final String input = scanner.nextLine();
                     try {
@@ -108,9 +108,7 @@ public class SelectSubscriptionMojo extends AbstractAzureMojo {
                     // Reaching here means invalid input
                     System.err.println("Wong value selected: " + input);
                 }
-                if (userSelected >= 1) {
-                    selectSubscription = subscriptions.get(userSelected - 1);
-                }
+                selectSubscription = subscriptions.get(userSelected - 1);
 
             }
 
