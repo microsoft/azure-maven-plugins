@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class SchemaValidator {
 
@@ -75,7 +74,7 @@ public class SchemaValidator {
                 String.format("Property '%s' cannot be found.", combineToKey(resource, property)));
     }
 
-    private static  String combineToKey(String resource, String property) {
+    private static String combineToKey(String resource, String property) {
         return resource + "::" + property;
     }
 
