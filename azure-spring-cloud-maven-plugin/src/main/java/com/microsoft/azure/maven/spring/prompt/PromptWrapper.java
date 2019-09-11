@@ -51,7 +51,7 @@ public class PromptWrapper {
         this.log = log;
     }
 
-    public void initialize() throws IOException, InvalidConfigurationException, JsonProcessingException {
+    public void initialize() throws IOException, InvalidConfigurationException {
         prompt = new DefaultPrompter();
         validator = new SchemaValidator();
         templates = new HashMap<>();
@@ -175,12 +175,12 @@ public class PromptWrapper {
     }
 
     public String handle(String templateId, boolean autoApplyDefault)
-            throws InvalidConfigurationException, IOException, ExpressionEvaluationException {
+            throws InvalidConfigurationException, IOException {
         return handle(templateId, autoApplyDefault, null);
     }
 
     public String handle(String templateId, boolean autoApplyDefault, Object cliParameter)
-            throws InvalidConfigurationException, IOException, ExpressionEvaluationException {
+            throws InvalidConfigurationException, IOException {
         final Map<String, Object> variables = createVariableTables(templateId);
         final String resourceName = (String) variables.get("resource");
 
@@ -225,11 +225,11 @@ public class PromptWrapper {
                         String.format("Default value '%s' cannot be applied to %s due to error: %s", defaultObjectStr, propertyName, errorMessage));
             }
 
-            return defaultObjectStr;
+            return null;
         }
 
         final String promoteMessage = TemplateUtils.evalText("promote", variables);
-        final String inputAfterValidate = prompt.promoteString(promoteMessage, Objects.toString(defaultObj, null), input -> {
+        return prompt.promoteString(promoteMessage, Objects.toString(defaultObj, null), input -> {
             if ("boolean".equals(type)) {
                 // convert user input from y to true and N to false
                 if (input.equalsIgnoreCase("Y")) {
@@ -253,8 +253,6 @@ public class PromptWrapper {
             return errorMessage == null ? InputValidateResult.wrap(input) : InputValidateResult.error(errorMessage);
 
         }, TemplateUtils.evalBoolean("required", variables));
-
-        return inputAfterValidate;
     }
 
     public void confirmChanges(Map<String, String> changesToConfirm, Supplier<Integer> confirmedAction) throws IOException {

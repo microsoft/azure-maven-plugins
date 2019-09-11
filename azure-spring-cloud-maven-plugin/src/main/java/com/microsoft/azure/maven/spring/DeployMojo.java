@@ -121,7 +121,7 @@ public class DeployMojo extends AbstractSpringMojo {
                     url = springAppClient.getApplicationUrl();
                 }
                 return url;
-            }, String.format("Getting the public url", springAppClient.getApp()), GET_URL_TIMEOUT);
+            }, "Getting the public url", GET_URL_TIMEOUT);
         }
         if (StringUtils.isEmpty(publicUrl)) {
             final String message = noWait ? GET_APP_URL_FAIL :

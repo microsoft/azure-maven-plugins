@@ -24,14 +24,12 @@ import com.microsoft.azure.maven.spring.utils.MavenUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.atteo.evo.inflector.English;
-import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluator;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.dom4j.DocumentException;
@@ -49,7 +47,7 @@ import java.util.stream.Collectors;
 /**
  * The Mojo for 'config' goal.
  */
-@Mojo(name = "config", requiresProject = true, requiresDirectInvocation = true, aggregator = true)
+@Mojo(name = "config", requiresDirectInvocation = true, aggregator = true)
 public class ConfigMojo extends AbstractSpringMojo {
     private static final String DEPLOYMENT_TAG = "deployment";
     private static final List<String> APP_PROPERTIES = Arrays.asList("subscriptionId", "appName", "isPublic", "runtimeVersion");
@@ -105,7 +103,7 @@ public class ConfigMojo extends AbstractSpringMojo {
     private boolean advancedOptions;
 
     @Override
-    protected void doExecute() throws MojoExecutionException, MojoFailureException {
+    protected void doExecute() throws MojoFailureException {
         if (!settings.isInteractiveMode()) {
             throw new UnsupportedOperationException("The goal 'config' must be run at interactive mode.");
         }
@@ -141,7 +139,7 @@ public class ConfigMojo extends AbstractSpringMojo {
             selectAppCluster();
             configCommon();
             confirmAndSave();
-        } catch (IOException | InvalidConfigurationException | SpringConfigurationException | ExpressionEvaluationException | DocumentException |
+        } catch (IOException | InvalidConfigurationException | SpringConfigurationException |
                 UnsupportedOperationException e) {
             throw new MojoFailureException(e.getMessage());
         } finally {
@@ -156,7 +154,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         }
     }
 
-    private void configCommon() throws IOException, ExpressionEvaluationException, NoResourcesAvailableException, InvalidConfigurationException {
+    private void configCommon() throws IOException, NoResourcesAvailableException, InvalidConfigurationException {
         configureAppName();
         configurePublic();
         configureInstanceCount();
@@ -165,7 +163,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         configureJvmOptions();
     }
 
-    private void selectProjects() throws MojoFailureException, IOException, NoResourcesAvailableException {
+    private void selectProjects() throws IOException, NoResourcesAvailableException {
         if (this.parentMode) {
             final List<MavenProject> allProjects = session.getAllProjects().stream().filter(Utils::isJarPackagingProject)
                     .collect(Collectors.toList());
@@ -198,19 +196,19 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     }
 
-    private void configureJvmOptions() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
+    private void configureJvmOptions() throws IOException, InvalidConfigurationException {
         this.deploymentSettings.setJvmOptions(this.wrapper.handle("configure-jvm-options", autoUseDefault()));
     }
 
-    private void configureCpu() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
+    private void configureCpu() throws IOException, InvalidConfigurationException {
         this.deploymentSettings.setCpu(this.wrapper.handle("configure-cpu", autoUseDefault()));
     }
 
-    private void configureMemory() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
+    private void configureMemory() throws IOException, InvalidConfigurationException {
         this.deploymentSettings.setMemoryInGB(this.wrapper.handle("configure-memory", autoUseDefault()));
     }
 
-    private void configureInstanceCount() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
+    private void configureInstanceCount() throws IOException, InvalidConfigurationException {
         this.deploymentSettings.setInstanceCount(this.wrapper.handle("configure-instance-count", autoUseDefault()));
     }
 
@@ -218,7 +216,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         return !advancedOptions || parentMode;
     }
 
-    private void confirmAndSave() throws DocumentException, IOException {
+    private void confirmAndSave() throws IOException {
         final Map<String, String> changesToConfirm = new LinkedHashMap<>();
         changesToConfirm.put("Subscription id", this.subscriptionId);
         changesToConfirm.put("Service name", this.appSettings.getClusterName());
@@ -226,11 +224,11 @@ public class ConfigMojo extends AbstractSpringMojo {
         if (this.parentMode) {
             if (this.publicProjects != null && this.publicProjects.size() > 0) {
                 changesToConfirm.put("Public " + English.plural("app", this.publicProjects.size()),
-                        publicProjects.stream().map(t -> t.getName()).collect(Collectors.joining(", ")));
+                        publicProjects.stream().map(MavenProject::getName).collect(Collectors.joining(",")));
             }
 
             changesToConfirm.put("App " + English.plural("name", this.appNameByProject.size()),
-                        appNameByProject.values().stream().collect(Collectors.joining(", ")));
+                        String.join(",", appNameByProject.values()));
 
             this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
         } else {
@@ -269,7 +267,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         new PomXmlUpdater(proj, plugin).updateSettings(this.appSettings, this.deploymentSettings);
     }
 
-    private void configurePublic() throws IOException, NoResourcesAvailableException, ExpressionEvaluationException, InvalidConfigurationException {
+    private void configurePublic() throws IOException, NoResourcesAvailableException, InvalidConfigurationException {
         if (this.parentMode) {
             publicProjects = this.wrapper.handleMultipleCase("configure-public-list", targetProjects, MavenProject::getName);
         } else {
@@ -278,7 +276,7 @@ public class ConfigMojo extends AbstractSpringMojo {
 
     }
 
-    private void configureAppName() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
+    private void configureAppName() throws IOException, InvalidConfigurationException {
         if (StringUtils.isNotBlank(appName) && this.parentMode) {
             throw new UnsupportedOperationException("Cannot specify appName in parent mode.");
         }
@@ -299,12 +297,12 @@ public class ConfigMojo extends AbstractSpringMojo {
                 throw new InvalidConfigurationException(String.format("Cannot apply default appName due to duplicate: %s", duplicateAppNames));
             }
         } else {
-            this.appSettings.setAppName(this.wrapper.handle("configure-app-name", this.parentMode, this.appName));
+            this.appSettings.setAppName(this.wrapper.handle("configure-app-name", true, this.appName));
         }
 
     }
 
-    private void selectAppCluster() throws IOException, NoResourcesAvailableException, MojoFailureException, SpringConfigurationException {
+    private void selectAppCluster() throws IOException, SpringConfigurationException {
         final List<AppClusterResourceInner> clusters = getSpringServiceClient().getAvailableClusters();
 
         this.wrapper.putCommonVariable("clusters", clusters);
@@ -326,7 +324,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         }
     }
 
-    private void selectSubscription() throws InvalidConfigurationException, IOException, SpringConfigurationException {
+    private void selectSubscription() throws IOException, SpringConfigurationException {
         // TODO: getAzureTokenCredentials will check auth for null, but maven will always map a default AuthConfiguration
         azure = Azure.configure().authenticate(azureTokenCredentials);
         if (StringUtils.isBlank(subscriptionId)) {
@@ -335,7 +333,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         }
     }
 
-    private String promptSubscription() throws IOException, NoResourcesAvailableException, SpringConfigurationException {
+    private String promptSubscription() throws IOException, SpringConfigurationException {
         final PagedList<Subscription> subscriptions = azure.subscriptions().list();
         this.wrapper.putCommonVariable("subscriptions", subscriptions);
         final Subscription select = this.wrapper.handleSelectOne("select-subscriptions", subscriptions, null,
