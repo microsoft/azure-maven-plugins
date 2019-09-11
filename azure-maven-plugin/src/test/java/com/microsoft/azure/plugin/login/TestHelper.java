@@ -23,7 +23,6 @@ import org.mockito.ArgumentMatchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.reflect.Whitebox;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -74,7 +73,7 @@ class TestHelper {
         final PagedList<Subscription> list = new PagedList<Subscription>() {
 
             @Override
-            public Page<Subscription> nextPage(String nextPageLink) throws RestException, IOException {
+            public Page<Subscription> nextPage(String nextPageLink) throws RestException {
                 return null;
             }
         };
@@ -96,7 +95,7 @@ class TestHelper {
         final PagedList<Subscription> list = new PagedList<Subscription>() {
 
             @Override
-            public Page<Subscription> nextPage(String nextPageLink) throws RestException, IOException {
+            public Page<Subscription> nextPage(String nextPageLink) throws RestException {
                 return null;
             }
         };
@@ -114,7 +113,7 @@ class TestHelper {
         final PagedList<Subscription> list = new PagedList<Subscription>() {
 
             @Override
-            public Page<Subscription> nextPage(String nextPageLink) throws RestException, IOException {
+            public Page<Subscription> nextPage(String nextPageLink) throws RestException {
                 return null;
             }
         };

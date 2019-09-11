@@ -18,7 +18,9 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.testing.AbstractMojoTestCase;
+import org.apache.maven.plugin.testing.MojoRule;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -30,6 +32,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Scanner;
 
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -41,24 +47,23 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AzureAuthHelper.class, AppInsightHelper.class, TelemetryClient.class, SelectSubscriptionMojo.class, Azure.class, Scanner.class })
-public class SelectSubscriptionMojoTest extends AbstractMojoTestCase {
+public class SelectSubscriptionMojoTest {
+    @Rule
+    private MojoRule rule = new MojoRule();
+
     private SelectSubscriptionMojo mojo;
 
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
         TestHelper.mockAppInsightHelper();
 
         final File pom = new File(this.getClass().getResource("/maven/projects/simple/pom.xml").getFile());
         assertNotNull(pom);
         assertTrue(pom.exists());
-        mojo = (SelectSubscriptionMojo) this.lookupMojo("select-subscription", pom);
-        final MojoExecution execution = newMojoExecution("select-subscription");
+        mojo = (SelectSubscriptionMojo) rule.lookupMojo("select-subscription", pom);
+        final MojoExecution execution = rule.newMojoExecution("select-subscription");
         assertNotNull(mojo);
         mojo.plugin = execution.getMojoDescriptor().getPluginDescriptor();
-    }
-
-    public void tearDown() throws Exception {
-        super.tearDown();
     }
 
     @Test

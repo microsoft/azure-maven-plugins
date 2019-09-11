@@ -34,19 +34,19 @@ import static com.microsoft.azure.plugin.login.Constant.TELEMETRY_VALUE_AUTH_MET
 /**
  * Goal to login to azure.
  */
-@Mojo(name = "login", inheritByDefault = true, aggregator = true)
+@Mojo(name = "login", aggregator = true)
 public class LoginMojo extends AbstractAzureMojo {
 
     @Parameter(property = "devicelogin")
-    public boolean devicelogin;
+    protected boolean devicelogin;
 
     @Parameter(property = "environment")
-    public String environment;
+    protected String environment;
 
     @Override
     public void doExecute() throws MojoFailureException {
         final AzureEnvironment env = AzureAuthHelper.getAzureEnvironment(environment);
-        AzureCredential newAzureCredential = null;
+        AzureCredential newAzureCredential;
 
         try {
             String previousSubscriptionId = null;
