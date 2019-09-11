@@ -19,6 +19,7 @@ import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.testing.MojoRule;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +53,7 @@ public class SelectSubscriptionMojoTest {
 
     private SelectSubscriptionMojo mojo;
 
+    @Before
     public void setUp() throws Exception {
         TestHelper.mockAppInsightHelper();
 
