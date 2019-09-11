@@ -70,11 +70,11 @@ public class PromptWrapper {
             }
         }
         for (final String resourceName : resourceNames) {
-            final ObjectNode resouceSchema = (ObjectNode) JsonLoader.fromResource("/schema/" + resourceName + ".json");
-            if (!resouceSchema.has("properties")) {
+            final ObjectNode resourceSchema = (ObjectNode) JsonLoader.fromResource("/schema/" + resourceName + ".json");
+            if (!resourceSchema.has("properties")) {
                 throw new InvalidConfigurationException(String.format("Bad schema for %s: missing properties field.", resourceName));
             }
-            final ObjectNode propertiesNode = (ObjectNode) resouceSchema.get("properties");
+            final ObjectNode propertiesNode = (ObjectNode) resourceSchema.get("properties");
             IteratorUtils.forEach(propertiesNode.fields(), prop -> {
                 try {
                     this.validator.collectSingleProperty(resourceName, prop.getKey(), prop.getValue());
@@ -194,10 +194,14 @@ public class PromptWrapper {
         final Map<String, Object> schema = validator.getSchemaMap(resourceName, propertyName);
         variables.put("schema", schema);
         Object defaultObj = variables.get("default");
-        if (defaultObj == null) {
-            defaultObj = schema.get("default");
+        if (defaultObj instanceof String) {
+            defaultObj = TemplateUtils.evalPlainText("default", variables);
+        } else {
+            if (defaultObj == null) {
+                defaultObj = schema.get("default");
+            }
         }
-
+        final String defaultObjectStr = Objects.toString(defaultObj, null);
         final String type = (String) schema.get("type");
 
         if (cliParameter != null) {
@@ -207,15 +211,23 @@ public class PromptWrapper {
                 return cliParameter.toString();
             }
             System.out.println(
-                    TextUtils.yellow(String.format("Input validation failure for %s[%s]: %s", propertyName, cliParameter.toString(), errorMessage)));
+                    TextUtils.yellow(String.format("Validation failure for %s[%s]: %s", propertyName, cliParameter.toString(), errorMessage)));
         }
 
         if (autoApplyDefault) {
-            return Objects.toString(defaultObj, null);
+            if (defaultObj != null) {
+                // we need to check default value
+                final String errorMessage = validator.validateSingleProperty(resourceName, propertyName, defaultObjectStr);
+                if (errorMessage == null) {
+                    return defaultObjectStr;
+                }
+                throw new InvalidConfigurationException(
+                        String.format("Default value '%s' cannot be applied to %s due to error: %s", defaultObjectStr, propertyName, errorMessage));
+            }
+
+            return defaultObjectStr;
         }
-        if (defaultObj instanceof String && ((String) defaultObj).contains("${")) {
-            variables.put("evaluatedDefault", expressionEvaluator.evaluate((String) defaultObj));
-        }
+
         final String promoteMessage = TemplateUtils.evalText("promote", variables);
         final String inputAfterValidate = prompt.promoteString(promoteMessage, Objects.toString(defaultObj, null), input -> {
             if ("boolean".equals(type)) {

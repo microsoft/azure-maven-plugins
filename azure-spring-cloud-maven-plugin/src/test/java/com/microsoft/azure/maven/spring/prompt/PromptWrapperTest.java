@@ -81,13 +81,13 @@ public class PromptWrapperTest {
         assertEquals("xyz", result);
 
         when(reader.readLine()).thenReturn("${expr}");
-        when(mockEval.evaluate("${expr}")).thenReturn("evalutedname");
+        when(mockEval.evaluate("${expr}")).thenReturn("evaluated");
         result = wrapper.handle("testId1", false);
         assertEquals("${expr}", result);
 
         when(reader.readLine()).thenReturn("${expr1}").thenReturn("${expr").thenReturn("${expr}");
-        when(mockEval.evaluate("${expr}")).thenReturn("evalutedname");
-        when(mockEval.evaluate("${expr1}")).thenReturn("badappname~!!");
+        when(mockEval.evaluate("${expr}")).thenReturn("evaluated");
+        when(mockEval.evaluate("${expr1}")).thenReturn("evaluated~!!");
         when(mockEval.evaluate("${expr")).thenThrow(new ExpressionEvaluationException("bad expr"));
 
         result = wrapper.handle("testId1", false);
@@ -95,11 +95,11 @@ public class PromptWrapperTest {
     }
 
     @Test
-    public void testEvaluteDefault() throws Exception {
+    public void testEvaluateDefault() throws Exception {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
                 new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
-                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{evaluatedDefault}}***):"),
+                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
                     new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "${public}"),
                     new DefaultMapEntry<>("property", "isPublic"), new DefaultMapEntry<>("required", true), });
         templates.put("testId1", map);
@@ -225,7 +225,7 @@ public class PromptWrapperTest {
         map.put("message", Collections.singletonMap("empty_options", "Option is empty"));
         try {
             wrapper.handleSelectOne("testId1", Collections.emptyList(), null, String::toString);
-            fail("Should report error when requried resources are not available.");
+            fail("Should report error when required resources are not available.");
         } catch (NoResourcesAvailableException ex) {
             // expected
         }
@@ -258,7 +258,7 @@ public class PromptWrapperTest {
         map.put("message", Collections.singletonMap("empty_options", "Option is empty"));
         try {
             wrapper.handleMultipleCase("testId1", Collections.emptyList(), String::toString);
-            fail("Should report error when requried resources are not available.");
+            fail("Should report error when required resources are not available.");
         } catch (NoResourcesAvailableException ex) {
             // expected
         }
