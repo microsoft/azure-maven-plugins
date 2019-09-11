@@ -297,7 +297,7 @@ public class ConfigMojo extends AbstractSpringMojo {
                 throw new InvalidConfigurationException(String.format("Cannot apply default appName due to duplicate: %s", duplicateAppNames));
             }
         } else {
-            this.appSettings.setAppName(this.wrapper.handle("configure-app-name", true, this.appName));
+            this.appSettings.setAppName(this.wrapper.handle("configure-app-name", false, this.appName));
         }
 
     }
