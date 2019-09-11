@@ -39,9 +39,11 @@ import org.dom4j.DocumentException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -69,6 +71,11 @@ public class ConfigMojo extends AbstractSpringMojo {
      * The list of all public projects specified by user.
      */
     private List<MavenProject> publicProjects;
+
+    /**
+     * The map of project to the default appName.
+     */
+    private Map<MavenProject, String> appNameByProject;
 
     /**
      * The azure client for get list of subscriptions.
@@ -220,6 +227,8 @@ public class ConfigMojo extends AbstractSpringMojo {
             if (this.publicProjects != null && this.publicProjects.size() > 0) {
                 changesToConfirm.put("Public " + English.plural("app", this.publicProjects.size()),
                         publicProjects.stream().map(t -> t.getName()).collect(Collectors.joining(", ")));
+                changesToConfirm.put("App " + English.plural("name", this.appNameByProject.size()),
+                        appNameByProject.values().stream().collect(Collectors.joining(", ")));
             }
             this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
         } else {
@@ -239,10 +248,10 @@ public class ConfigMojo extends AbstractSpringMojo {
             for (final MavenProject proj : targetProjects) {
 
                 if (this.parentMode) {
+                    this.appSettings.setAppName(this.appNameByProject.get(proj));
                     this.appSettings.setPublic((publicProjects != null && publicProjects.contains(proj)) ? "true" : "false");
                 }
                 saveConfigurationToProject(proj);
-
             }
             // add plugin to parent pom
             if (this.parentMode) {
@@ -268,12 +277,29 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private void configureAppName() throws IOException, ExpressionEvaluationException, InvalidConfigurationException {
-        if (StringUtils.isNotBlank(appName)) {
-            if (this.parentMode) {
-                throw new UnsupportedOperationException("Cannot specify appName in parent mode.");
-            }
+        if (StringUtils.isNotBlank(appName) && this.parentMode) {
+            throw new UnsupportedOperationException("Cannot specify appName in parent mode.");
         }
-        this.appSettings.setAppName(this.wrapper.handle("configure-app-name", this.parentMode, this.appName));
+        if (this.parentMode) {
+            appNameByProject = new HashMap<>();
+            for (final MavenProject proj : targetProjects) {
+                this.wrapper.putCommonVariable("project", proj);
+                this.appNameByProject.put(proj, this.wrapper.handle("configure-app-name", this.parentMode, this.appName));
+            }
+            // reset back of variable project
+            this.wrapper.putCommonVariable("project", this.project);
+            // handle duplicate app name
+            final String duplicateAppNames = this.appNameByProject.values().stream()
+                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())).entrySet().stream().filter(t -> t.getValue() > 1)
+                    .map(Map.Entry::getKey).collect(Collectors.joining(","));
+
+            if (StringUtils.isNotBlank(duplicateAppNames)) {
+                throw new InvalidConfigurationException(String.format("Cannot apply default appName due to duplicate: %s", duplicateAppNames));
+            }
+        } else {
+            this.appSettings.setAppName(this.wrapper.handle("configure-app-name", this.parentMode, this.appName));
+        }
+
     }
 
     private void selectAppCluster() throws IOException, NoResourcesAvailableException, MojoFailureException, SpringConfigurationException {

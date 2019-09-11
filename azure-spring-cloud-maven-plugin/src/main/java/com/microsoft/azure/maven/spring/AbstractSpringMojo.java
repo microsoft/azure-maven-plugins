@@ -22,6 +22,7 @@ import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.common.telemetry.MojoStatus;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
+import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParser;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParserFactory;
@@ -207,7 +208,9 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
 
     protected void handleException(Exception exception) {
         final boolean isUserError = exception instanceof IllegalArgumentException ||
-                exception instanceof SpringConfigurationException || exception instanceof InvalidConfigurationException;
+                exception instanceof SpringConfigurationException ||
+                exception instanceof InvalidConfigurationException ||
+                exception instanceof NoResourcesAvailableException;
         telemetries.put(TELEMETRY_KEY_ERROR_CODE, TELEMETRY_VALUE_ERROR_CODE_FAILURE);
         telemetries.put(TELEMETRY_KEY_ERROR_TYPE, isUserError ? TELEMETRY_VALUE_USER_ERROR : TELEMETRY_VALUE_SYSTEM_ERROR);
         telemetries.put(TELEMETRY_KEY_ERROR_MESSAGE, exception.getMessage());
