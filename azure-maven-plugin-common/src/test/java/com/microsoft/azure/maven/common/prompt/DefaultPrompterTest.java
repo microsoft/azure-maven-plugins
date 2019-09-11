@@ -113,7 +113,7 @@ public class DefaultPrompterTest {
 
     @Test
     public void testPromoteMultipleEntities() throws Exception {
-        when(reader.readLine()).thenReturn("1").thenReturn("1-2").thenReturn("1-2,3-5").thenReturn("3-1000000,1-2,3-5");;
+        when(reader.readLine()).thenReturn("1").thenReturn("1-2").thenReturn("1-2,3-5").thenReturn("3-1000000,1-2,3-5");
         final List<Integer> integers = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             integers.add(i);
@@ -158,7 +158,7 @@ public class DefaultPrompterTest {
 
     @Test
     public void testPromoteMultipleEntitiesAllowEmpty() throws Exception {
-        when(reader.readLine()).thenReturn("1").thenReturn("1-2").thenReturn("1-2,3-5").thenReturn("3-1000000,1-2,3-5");;
+        when(reader.readLine()).thenReturn("1").thenReturn("1-2").thenReturn("1-2,3-5").thenReturn("3-1000000,1-2,3-5");
         final List<Integer> integers = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             integers.add(i);
