@@ -227,9 +227,11 @@ public class ConfigMojo extends AbstractSpringMojo {
             if (this.publicProjects != null && this.publicProjects.size() > 0) {
                 changesToConfirm.put("Public " + English.plural("app", this.publicProjects.size()),
                         publicProjects.stream().map(t -> t.getName()).collect(Collectors.joining(", ")));
-                changesToConfirm.put("App " + English.plural("name", this.appNameByProject.size()),
-                        appNameByProject.values().stream().collect(Collectors.joining(", ")));
             }
+
+            changesToConfirm.put("App " + English.plural("name", this.appNameByProject.size()),
+                        appNameByProject.values().stream().collect(Collectors.joining(", ")));
+
             this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
         } else {
             changesToConfirm.put("App name", this.appSettings.getAppName());
