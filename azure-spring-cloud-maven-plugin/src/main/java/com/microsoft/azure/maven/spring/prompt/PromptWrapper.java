@@ -186,10 +186,10 @@ public class PromptWrapper {
 
         final String propertyName = (String) variables.get("property");
         if (StringUtils.isBlank(propertyName)) {
-            throw new InvalidConfigurationException("Cannot find propertyName in template: " + templateId);
+            throw new InvalidConfigurationException("Cannot find property in template: " + templateId);
         }
         if (StringUtils.isBlank(resourceName)) {
-            throw new InvalidConfigurationException("Cannot find schema for property " + propertyName);
+            throw new InvalidConfigurationException("Cannot find resource in template: " + templateId);
         }
         final Map<String, Object> schema = validator.getSchemaMap(resourceName, propertyName);
         variables.put("schema", schema);

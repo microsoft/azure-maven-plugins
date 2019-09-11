@@ -5,18 +5,26 @@
  */
 package com.microsoft.azure.maven.spring.prompt;
 
+import com.microsoft.azure.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.maven.common.prompt.IPrompter;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
+import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluator;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -194,6 +202,54 @@ public class PromptWrapperTest {
     }
 
     @Test
+    public void testHandleBadConfiguration() throws Exception {
+        final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
+        final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
+                new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
+                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
+                    new DefaultMapEntry<>("default", "false"),
+                    new DefaultMapEntry<>("required", false), });
+        templates.put("testId1", map);
+
+        map.put("property", "");
+
+        try {
+            wrapper.handle("testId1", true, "foo");
+            fail("Should throw InvalidConfigurationException");
+        } catch (InvalidConfigurationException ex) {
+            // expected
+        }
+
+        map.put("property", "appName");
+
+        try {
+            wrapper.handle("testId1", true, "foo");
+            fail("Should throw InvalidConfigurationException");
+        } catch (InvalidConfigurationException ex) {
+            // expected
+        }
+
+        try {
+            wrapper.handle("testId1", true, "foo");
+            fail("Should throw InvalidConfigurationException");
+        } catch (InvalidConfigurationException ex) {
+            // expected
+        }
+
+        map.put("resource", "");
+        try {
+            wrapper.handle("testId1", true, "foo");
+            fail("Should throw InvalidConfigurationException");
+        } catch (InvalidConfigurationException ex) {
+            // expected
+        }
+
+        map.put("resource", "App");
+
+        wrapper.handle("testId1", true, "foo");
+    }
+
+    @Test
     public void testHandleSelectOne() throws Exception {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
@@ -238,6 +294,31 @@ public class PromptWrapperTest {
     }
 
     @Test
+    public void testHandleSelectOnePromoteYesNo() throws Exception {
+        final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
+        final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
+                new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
+                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "false"),
+                    new DefaultMapEntry<>("property", "isPublic"), new DefaultMapEntry<>("required", false), });
+        templates.put("testId1", map);
+        when(reader.readLine()).thenReturn("Y").thenReturn("N");
+        String result = wrapper.handleSelectOne("testId1", Collections.singletonList("foo"), null, String::toString);
+        assertEquals("foo", result);
+        result = wrapper.handleSelectOne("testId1", Collections.singletonList("foo"), null, String::toString);
+        assertNull(result);
+        map.put("required", true);
+
+        try {
+            wrapper.handleSelectOne("testId1", Collections.singletonList("foo"), null, String::toString);
+            fail("Should throw SpringConfigurationException.");
+        } catch (SpringConfigurationException ex) {
+            // expected
+        }
+
+    }
+
+    @Test
     public void testHandleSelectMany() throws Exception {
         final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
         final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
@@ -265,5 +346,119 @@ public class PromptWrapperTest {
 
         map.put("allow_empty", true);
         assertTrue(wrapper.handleMultipleCase("testId1", Collections.emptyList(), String::toString).isEmpty());
+    }
+
+    @Test
+    public void testPromoteYesNoForOneOption() throws Exception {
+        final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
+        final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
+                new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
+                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "false"),
+                    new DefaultMapEntry<>("property", "isPublic"), new DefaultMapEntry<>("required", true), });
+        templates.put("testId1", map);
+        when(reader.readLine()).thenReturn("Y");
+        List<String> result = wrapper.handleMultipleCase("testId1", Collections.singletonList("foo"), String::toString);
+        assertEquals("foo", StringUtils.join(result.toArray(), ','));
+
+        when(reader.readLine()).thenReturn("N");
+        result = wrapper.handleMultipleCase("testId1", Collections.singletonList("foo"), String::toString);
+        assertTrue(result.isEmpty());
+
+        when(reader.readLine()).thenReturn("");
+
+        map.put("auto_select", true);
+        map.put("default_selected", false);
+        result = wrapper.handleMultipleCase("testId1", Collections.singletonList("foo"), String::toString);
+        assertEquals("foo", StringUtils.join(result.toArray(), ','));
+
+        map.put("auto_select", false);
+        map.put("default_selected", true);
+        result = wrapper.handleMultipleCase("testId1", Collections.singletonList("foo"), String::toString);
+        assertEquals("foo", StringUtils.join(result.toArray(), ','));
+
+        map.put("default_selected", false);
+        map.put("allow_empty", true);
+        when(reader.readLine()).thenReturn("10-10000");
+        result = wrapper.handleMultipleCase("testId1", Arrays.asList("foo", "bar"), String::toString);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void testMavenEvaluationError() throws Exception {
+        final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
+        final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
+                new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
+                    new DefaultMapEntry<>("promote", "Input the {{global_property1}} value(***{{default}}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "defaultValueForUnitTest"),
+                    new DefaultMapEntry<>("property", "appName"), new DefaultMapEntry<>("required", true), });
+        templates.put("testId1", map);
+        wrapper.putCommonVariable("global_property1", "value1");
+        when(mockEval.evaluate("${expr}")).thenReturn(null);
+        when(reader.readLine()).thenReturn("${expr}").thenReturn("abc");
+        final String result = wrapper.handle("testId1", false);
+        assertEquals("abc", result);
+    }
+
+    @Test
+    public void testConfirmChanges() throws Exception {
+        final Map<String, String> changesToConfirm = MapUtils.putAll(new LinkedHashMap<>(),
+                new Map.Entry[] { new DefaultMapEntry<>("foo", "bar"),
+                    new DefaultMapEntry<>("count", "1"),
+                    new DefaultMapEntry<>("blank", ""),
+                    new DefaultMapEntry<>("update", "true"), });
+        final List<MavenProject> projects = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            final MavenProject proj = mock(MavenProject.class);
+            Mockito.when(proj.getFile()).thenReturn(new File("test" + (i + 1)));
+            projects.add(proj);
+        }
+        when(reader.readLine()).thenReturn("");
+        wrapper.putCommonVariable("projects", projects);
+        wrapper.confirmChanges(changesToConfirm, () -> 10);
+        wrapper.confirmChanges(changesToConfirm, () -> null);
+        wrapper.confirmChanges(changesToConfirm, () -> 1);
+        when(reader.readLine()).thenReturn("N");
+        wrapper.confirmChanges(changesToConfirm, () -> {
+            throw new RuntimeException("This function will never be called.");
+        });
+    }
+
+    @Test
+    public void testValidateDefaultValue() throws Exception {
+        final Map<String, Map<String, Object>> templates = (Map<String, Map<String, Object>>) FieldUtils.readField(wrapper, "templates", true);
+        final Map<String, Object> map = MapUtils.putAll(new LinkedHashMap<>(),
+                new Map.Entry[] { new DefaultMapEntry<>("id", "testId1"),
+                    new DefaultMapEntry<>("promote", "Input the value(***{{default}}***):"),
+                    new DefaultMapEntry<>("resource", "App"), new DefaultMapEntry<>("default", "!@#*$(*~"),
+                    new DefaultMapEntry<>("property", "appName"), new DefaultMapEntry<>("required", true), });
+        wrapper.putCommonVariable("global_property1", "Value1");
+        templates.put("testId1", map);
+        try {
+            wrapper.handle("testId1", true);
+            fail("Should throw exception when default value cannot pass validation.");
+        } catch (InvalidConfigurationException ex) {
+            // expected
+        }
+        map.put("default", "{{global_property1|lower}}");
+        assertEquals("value1", wrapper.handle("testId1", true));
+
+        map.put("default", null);
+        assertNull(wrapper.handle("testId1", true));
+    }
+
+    @Test
+    public void testClose() throws Exception {
+        final IPrompter prompt = mock(IPrompter.class);
+        Mockito.doThrow(IOException.class).when(prompt).close();
+        FieldUtils.writeField(wrapper, "prompt", prompt, true);
+        try {
+            wrapper.close();
+            fail("Should throw IOException");
+        } catch (IOException ex) {
+            // expected
+        }
+        Mockito.verify(prompt);
+        prompt.close();
     }
 }

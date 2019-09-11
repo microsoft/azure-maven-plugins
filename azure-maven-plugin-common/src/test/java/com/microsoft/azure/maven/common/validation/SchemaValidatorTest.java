@@ -7,17 +7,20 @@
 package com.microsoft.azure.maven.common.validation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jackson.JsonLoader;
 import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class SchemaValidatorTest {
@@ -48,6 +51,16 @@ public class SchemaValidatorTest {
             }
         });
 
+    }
+
+    @Test
+    public void testDuplicateAdd() throws IOException {
+        try {
+            this.validator.collectSingleProperty("Deployment", "cpu", Mockito.mock(JsonNode.class));
+            fail("should throw IAE");
+        } catch (IllegalArgumentException ex) {
+            //expected
+        }
     }
 
     @Test
@@ -90,19 +103,31 @@ public class SchemaValidatorTest {
     }
 
     @Test
+    public void testTypeNotSupported() throws Exception {
+        final String err = validator.validateSingleProperty("Deployment", "testProperties", "foo");
+        assertTrue(err.contains("Type 'array' is not supported in schema validation."));
+    }
+
+    @Test
+    public void testMoreThanOneViolations() throws Exception {
+        final String err = validator.validateSingleProperty("App", "appName", "_thisisaverylonglonglonglonglongtext");
+        assertTrue(err.contains("The input violates the validation rules"));
+    }
+
+    @Test
     public void testException() throws Exception {
 
         validator.getSchemaMap("App", "appName");
         validator.getSchemaMap("Deployment", "deploymentName");
         try {
             validator.validateSingleProperty("App", "foo", "foo");
-            fail("Shoudl throw IAE");
+            fail("Should throw IAE");
         } catch (IllegalArgumentException ex) {
             // expected
         }
         try {
             validator.validateSingleProperty("Foo", "foo", "foo");
-            fail("Shoudl throw IAE");
+            fail("Should throw IAE");
         } catch (IllegalArgumentException ex) {
             // expected
         }
