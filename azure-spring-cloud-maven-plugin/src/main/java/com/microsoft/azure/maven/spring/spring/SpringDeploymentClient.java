@@ -53,10 +53,8 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         final DeploymentSettings deploymentSettings = deploymentProperties.deploymentSettings() == null ?
                 new DeploymentSettings() : deploymentProperties.deploymentSettings();
         // Update persistent disk configuration
-        final PersistentDisk previousPersistentDisk = deploymentSettings.persistentDisk() == null ?
-                new PersistentDisk() : deploymentSettings.persistentDisk();
         final PersistentDisk persistentDisk = deploymentConfiguration.isEnablePersistentStorage() ?
-                previousPersistentDisk.withSizeInGb(DEFAULT_PERSISTENT_DISK_SIZE) : null;
+                getPersistentDiskOrDefault(deploymentSettings) : null;
 
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
                 .withInstanceCount(deploymentConfiguration.getInstanceCount())
@@ -103,5 +101,10 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         super(springAppClient);
         this.appName = springAppClient.appName;
         this.deploymentName = deploymentName;
+    }
+
+    private PersistentDisk getPersistentDiskOrDefault(DeploymentSettings deploymentSettings) {
+        return deploymentSettings.persistentDisk() == null ?
+                new PersistentDisk().withSizeInGb(DEFAULT_PERSISTENT_DISK_SIZE) : deploymentSettings.persistentDisk();
     }
 }
