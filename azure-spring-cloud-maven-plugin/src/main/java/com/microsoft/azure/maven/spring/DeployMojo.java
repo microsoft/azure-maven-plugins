@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.spring;
 
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentInstance;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceStatus;
+import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.PersistentDisk;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.common.prompt.DefaultPrompter;
@@ -58,6 +59,7 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final String STATUS_CREATE_OR_UPDATE_APP_DONE = "Successfully created/updated the app.";
     protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT = "Creating/Updating the deployment...";
     protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE = "Successfully created/updated the deployment.";
+    protected static final String DEPLOYMENT_STORAGE_STATUS = "Persistent storage path : %s, size : %s GB.";
     protected static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
     protected static final String STATUS_UPLOADING_ARTIFACTS_DONE = "Successfully uploaded the artifacts.";
     protected static final String CONFIRM_PROMPT_START = "`azure-spring:deploy` will perform the following tasks";
@@ -98,12 +100,17 @@ public class DeployMojo extends AbstractSpringMojo {
         // Create or update deployment
         final boolean createNewDeployment = deploymentClient.getDeployment() == null;
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT);
-        deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
+        final DeploymentResourceInner deploymentResourceInner =
+                deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
+        final PersistentDisk persistentDisk = deploymentResourceInner.properties().deploymentSettings().persistentDisk();
+        // Active deployment if no existing active deployment
         if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName()) && createNewDeployment) {
-            // Active deployment if no existing active deployment
             springAppClient.activateDeployment(deploymentClient.getDeploymentName(), configuration);
         }
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE);
+        if (persistentDisk != null) {
+            getLog().info(String.format(DEPLOYMENT_STORAGE_STATUS, persistentDisk.mountPath(), persistentDisk.sizeInGb()));
+        }
         // Showing deployment status and public url
         getDeploymentStatus(deploymentClient);
         getPublicUrl(springAppClient);
