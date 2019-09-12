@@ -87,6 +87,15 @@ public class DefaultPrompterTest {
     }
 
     @Test
+    public void testPromoteStringEmpty() throws Exception {
+        when(reader.readLine()).thenReturn(":");
+        final String result = prompter.promoteString("Please input a string", "foo", input -> {
+            throw new RuntimeException();
+        }, false);
+        assertEquals("", result);
+    }
+
+    @Test
     public void testPromoteYesNo() throws Exception {
         when(reader.readLine()).thenReturn("Y").thenReturn("y").thenReturn("n");
         Boolean result = prompter.promoteYesNo("Do you want to continue(y/n)", null, true);
@@ -109,6 +118,14 @@ public class DefaultPrompterTest {
         result = prompter.promoteYesNo("Do you want to continue(Y/n)", false, false);
         assertNotNull(result);
         assertFalse(result);
+    }
+
+    @Test
+    public void testPromoteYesNoBadInput() throws Exception {
+        when(reader.readLine()).thenReturn("foo").thenReturn("bar").thenReturn("Y");
+        final Boolean result = prompter.promoteYesNo("Do you want to continue(Y/n)", null, true);
+        assertNotNull(result);
+        assertTrue(result);
     }
 
     @Test
@@ -202,8 +219,40 @@ public class DefaultPrompterTest {
     }
 
     @Test
+    public void testPromoteMultipleEntitiesOnlyOne() throws Exception {
+        final List<Integer> selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+                "You have select no entities", Collections.singletonList(100), t -> t.toString(), false,
+                "to select none", Collections.emptyList());
+        assertEquals("100", TestHelper.joinIntegers(selected));
+    }
+
+    @Test
+    public void testPromoteMultipleEntitiesNotAllowEmptyNoDefaultValue() throws Exception {
+        when(reader.readLine()).thenReturn("1000-11111").thenReturn("10001111111111111111111111111").thenReturn("2");;
+        final List<Integer> selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+                "You have select no entities", Arrays.asList(98, 99, 100), t -> t.toString(), false,
+                "to select none", Collections.emptyList());
+        assertEquals("99", TestHelper.joinIntegers(selected));
+    }
+
+    @Test
+    public void testPromoteMultipleEntitiesSelectNone() throws Exception {
+        when(reader.readLine()).thenReturn("");
+        List<Integer> selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+                "You have select no entities", Collections.singletonList(100), t -> t.toString(), true,
+                "to select none", Collections.emptyList());
+        assertEquals(0, selected.size());
+
+        when(reader.readLine()).thenReturn("100000000000000").thenReturn("1");
+        selected = prompter.promoteMultipleEntities("This is header", "Please input range",
+                "You have select no entities", Collections.singletonList(100), t -> t.toString(), true,
+                "to select none", Collections.emptyList());
+        assertEquals("100", TestHelper.joinIntegers(selected));
+    }
+
+    @Test
     public void testPromoteSingle() throws Exception {
-        when(reader.readLine()).thenReturn("1").thenReturn("2").thenReturn("");
+        when(reader.readLine()).thenReturn("1").thenReturn("10001111111111111111111111111").thenReturn("1000").thenReturn("2").thenReturn("");
         final List<Integer> integers = new ArrayList<>();
         for (int i = 1; i <= 3; i++) {
             integers.add(i);

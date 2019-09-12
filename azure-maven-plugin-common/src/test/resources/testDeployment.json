@@ -32,6 +32,9 @@
     },
     "jvmOptions": {
       "type": "string"
+    },
+    "testProperties": {
+      "type": "array"
     }
   }
 }

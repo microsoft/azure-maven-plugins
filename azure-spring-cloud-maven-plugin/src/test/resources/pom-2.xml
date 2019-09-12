@@ -25,7 +25,7 @@
             <plugins>
                 <plugin>
                     <groupId>com.microsoft.azure</groupId>
-                    <artifactId>azure-spring-maven-plugin</artifactId>
+                    <artifactId>azure-spring-cloud-maven-plugin</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
                     <configuration>
                         <subscriptionId>685ba005-af8d-4b04-8f16-a7bf38b2eb5a</subscriptionId>
