@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.spring.configuration;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 public class SpringConfiguration {
 
     private Boolean isPublic;
@@ -17,7 +19,7 @@ public class SpringConfiguration {
     private Deployment deployment;
 
     public Boolean isPublic() {
-        return isPublic;
+        return BooleanUtils.isTrue(isPublic);
     }
 
     public String getSubscriptionId() {
