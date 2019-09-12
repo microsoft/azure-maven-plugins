@@ -229,13 +229,6 @@ public class PromptWrapperTest {
             // expected
         }
 
-        try {
-            wrapper.handle("testId1", true, "foo");
-            fail("Should throw InvalidConfigurationException");
-        } catch (InvalidConfigurationException ex) {
-            // expected
-        }
-
         map.put("resource", "");
         try {
             wrapper.handle("testId1", true, "foo");
