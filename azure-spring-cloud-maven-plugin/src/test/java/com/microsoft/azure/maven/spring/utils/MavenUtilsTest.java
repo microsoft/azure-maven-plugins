@@ -26,7 +26,7 @@ public class MavenUtilsTest {
         final Model model = TestHelper.readMavenModel(pom);
         final MavenProject project = Mockito.mock(MavenProject.class);
         Mockito.when(project.getModel()).thenReturn(model);
-        final Xpp3Dom config = MavenUtils.getPluginConfiguration(project, "com.microsoft.azure:azure-spring-maven-plugin");
+        final Xpp3Dom config = MavenUtils.getPluginConfiguration(project, "com.microsoft.azure:azure-spring-cloud-maven-plugin");
         assertNotNull(config);
         assertNotNull(config.getChild("public"));
         assertEquals("true", config.getChild("public").getValue());
@@ -40,7 +40,7 @@ public class MavenUtilsTest {
         final Model model = TestHelper.readMavenModel(pom);
         final MavenProject project = Mockito.mock(MavenProject.class);
         Mockito.when(project.getModel()).thenReturn(model);
-        final Xpp3Dom config = MavenUtils.getPluginConfiguration(project, "com.microsoft.azure:azure-spring-maven-plugin");
+        final Xpp3Dom config = MavenUtils.getPluginConfiguration(project, "com.microsoft.azure:azure-spring-cloud-maven-plugin");
         assertNotNull(config);
         assertNotNull(config.getChild("public"));
         assertEquals("false", config.getChild("public").getValue());
@@ -54,7 +54,7 @@ public class MavenUtilsTest {
         final Model model = TestHelper.readMavenModel(pom);
         final MavenProject project = Mockito.mock(MavenProject.class);
         Mockito.when(project.getModel()).thenReturn(model);
-        final Xpp3Dom config = MavenUtils.getPluginConfiguration(project, "com.microsoft.azure:azure-spring-maven-plugin");
+        final Xpp3Dom config = MavenUtils.getPluginConfiguration(project, "com.microsoft.azure:azure-spring-cloud-maven-plugin");
         assertNull(config);
     }
 }

@@ -29,13 +29,8 @@
 				<artifactId>azure-spring-cloud-maven-plugin</artifactId>
 				<version>0.0.1-SNAPSHOT</version>
 				<configuration>
-					<subscriptionId>685ba005-af8d-4b04-8f16-a7bf38b2eb5a</subscriptionId>
-					<appName>helloworld</appName>
-					<public>true</public>
-					<deployment>
-						<cpu>1</cpu>
-						<memoryInGB>4</memoryInGB>
-					</deployment>
+					<subscriptionId>xxxxx</subscriptionId>
+					<clusterName>test</clusterName>
 				</configuration>
 			</plugin>
 		</plugins>

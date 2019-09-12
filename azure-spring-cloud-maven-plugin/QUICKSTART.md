@@ -31,7 +31,7 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
     mvn clean package -DskipTests
     ```
 
-1. Generate configuration by run `mvn com.microsoft.azure:azure-spring-maven-plugin:0.0.1-SNAPSHOT:config`
+1. Generate configuration by run `mvn com.microsoft.azure:azure-spring-cloud-maven-plugin:0.0.1-SNAPSHOT:config`
 
     1. Select module `gateway`,`auth-service` and `account-service`
 
@@ -48,7 +48,7 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
 1. Deploy the above apps with the following command
 
     ``` 
-    mvn com.microsoft.azure:azure-spring-maven-plugin:0.0.1-SNAPSHOT:deploy
+    mvn com.microsoft.azure:azure-spring-cloud-maven-plugin:0.0.1-SNAPSHOT:deploy
     ```
     
 1. You may access Piggy Metrics with the url printed in above command
