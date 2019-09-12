@@ -17,8 +17,8 @@ public class Deployment {
     private Integer instanceCount;
     private String deploymentName;
     private String jvmOptions;
+    private Boolean enablePersistentStorage;
     private Map<String, String> environment;
-    private List<Volume> volumes;
     private List<Resource> resources;
 
     public Integer getCpu() {
@@ -45,12 +45,8 @@ public class Deployment {
         return resources;
     }
 
-    public Volume getPersistentDisk() {
-        return volumes == null ? null : volumes.stream().filter(Volume::isPersist).findFirst().orElse(null);
-    }
-
-    public Volume getTemporaryDisk() {
-        return volumes == null ? null : volumes.stream().filter(volume -> !volume.isPersist()).findFirst().orElse(null);
+    public Boolean isEnablePersistentStorage() {
+        return enablePersistentStorage;
     }
 
     public Deployment withCpu(Integer cpu) {
@@ -83,13 +79,13 @@ public class Deployment {
         return this;
     }
 
-    public Deployment withVolumes(List<Volume> volumes) {
-        this.volumes = volumes;
+    public Deployment withResources(List<Resource> resources) {
+        this.resources = resources;
         return this;
     }
 
-    public Deployment withResources(List<Resource> resources) {
-        this.resources = resources;
+    public Deployment withEnablePersistentStorage(Boolean enablePersistentStorage) {
+        this.enablePersistentStorage = enablePersistentStorage;
         return this;
     }
 

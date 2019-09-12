@@ -10,10 +10,8 @@ import com.microsoft.azure.maven.spring.utils.ResourcesUtils;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 public class DeploymentTest {
     @Test
@@ -59,35 +57,11 @@ public class DeploymentTest {
     }
 
     @Test
-    public void testWithVolumes() {
-        final Deployment deploy = new Deployment();
-        final Volume volume = new Volume();
-        volume.withPersist(false);
-        volume.withPath("/home/shared");
-        volume.withSize("10G");
-        final List<Volume> volumes = Collections.singletonList(volume);
-        deploy.withVolumes(volumes);
-        assertEquals(volumes.get(0), deploy.getTemporaryDisk());
-        assertNull(deploy.getPersistentDisk());
-
-        volume.withPersist(true);
-        assertEquals(volumes.get(0), deploy.getPersistentDisk());
-        assertNull(deploy.getTemporaryDisk());
-    }
-
-    @Test
     public void testWithResources() {
         final Deployment deploy = new Deployment();
 
         deploy.withResources(ResourcesUtils.getDefaultResources());
         assertEquals(1, deploy.getResources().size());
         assertEquals("*.jar", deploy.getResources().get(0).getIncludes().get(0));
-    }
-
-    @Test
-    public void testNullVolumes() {
-        final Deployment deploy = new Deployment();
-        assertNull(deploy.getPersistentDisk());
-        assertNull(deploy.getTemporaryDisk());
     }
 }
