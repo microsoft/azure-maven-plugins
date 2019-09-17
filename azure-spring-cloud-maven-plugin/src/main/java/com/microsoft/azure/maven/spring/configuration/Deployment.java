@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.spring.configuration;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.maven.model.Resource;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public class Deployment {
     }
 
     public Boolean isEnablePersistentStorage() {
-        return enablePersistentStorage;
+        return BooleanUtils.isTrue(enablePersistentStorage);
     }
 
     public Deployment withCpu(Integer cpu) {
