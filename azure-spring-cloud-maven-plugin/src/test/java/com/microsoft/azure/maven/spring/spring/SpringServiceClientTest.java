@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.spring.spring;
 
 import com.microsoft.azure.credentials.AzureTokenCredentials;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppClusterResourceInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ServiceResourceInner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,9 +46,9 @@ public class SpringServiceClientTest {
 
     @Test
     public void getClusterByName() {
-        final AppClusterResourceInner mockCluster = mock(AppClusterResourceInner.class);
+        final ServiceResourceInner mockCluster = mock(ServiceResourceInner.class);
         doReturn("existCluster").when(mockCluster).name();
-        final List<AppClusterResourceInner> mockClusterList = new ArrayList<>();
+        final List<ServiceResourceInner> mockClusterList = new ArrayList<>();
         mockClusterList.add(mockCluster);
 
         doReturn(mockClusterList).when(spyClient).getAvailableClusters();
@@ -64,7 +64,7 @@ public class SpringServiceClientTest {
 
     @Test
     public void getResourceGroupByCluster() {
-        final AppClusterResourceInner mockCluster = mock(AppClusterResourceInner.class);
+        final ServiceResourceInner mockCluster = mock(ServiceResourceInner.class);
         doReturn("/resourceGroups/test").when(mockCluster).id();
 
         doReturn(mockCluster).when(spyClient).getClusterByName(any());

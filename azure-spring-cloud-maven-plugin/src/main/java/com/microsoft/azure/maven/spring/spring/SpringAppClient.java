@@ -7,10 +7,11 @@
 package com.microsoft.azure.maven.spring.spring;
 
 import com.microsoft.azure.PagedList;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.AppResourceProperties;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppResourceInner;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.AppResourceProperties;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.PersistentDisk;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.AppResourceInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.DeploymentResourceInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class SpringAppClient extends AbstractSpringClient {
 
     public static final String DEFAULT_DEPLOYMENT_NAME = "init";
+    public static final int DEFAULT_PERSISTENT_DISK_SIZE = 50;
 
     protected String appName;
 
@@ -52,6 +54,9 @@ public class SpringAppClient extends AbstractSpringClient {
         final AppResourceInner appResource = getApp();
         final AppResourceProperties appResourceProperties = appResource == null ?
                 new AppResourceProperties() : appResource.properties();
+        final PersistentDisk persistentDisk = isEnablePersistentStorage(configuration) ?
+                getPersistentDiskOrDefault(appResourceProperties) : null;
+        appResourceProperties.withPersistentDisk(persistentDisk);
         if (appResource == null) {
             return springManager.apps().inner()
                     .createOrUpdate(resourceGroup, clusterName, appName, appResourceProperties);
@@ -121,5 +126,14 @@ public class SpringAppClient extends AbstractSpringClient {
 
     public String getAppName() {
         return appName;
+    }
+
+    private boolean isEnablePersistentStorage(SpringConfiguration configuration) {
+        return configuration != null && configuration.getDeployment() != null && configuration.getDeployment().isEnablePersistentStorage();
+    }
+
+    private PersistentDisk getPersistentDiskOrDefault(AppResourceProperties appResourceProperties) {
+        return appResourceProperties.persistentDisk() == null ?
+                new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE) : appResourceProperties.persistentDisk();
     }
 }

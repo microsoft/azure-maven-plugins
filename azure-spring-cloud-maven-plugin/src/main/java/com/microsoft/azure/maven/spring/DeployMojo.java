@@ -6,11 +6,12 @@
 
 package com.microsoft.azure.maven.spring;
 
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentInstance;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceStatus;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.PersistentDisk;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentInstance;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentResourceStatus;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.PersistentDisk;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.AppResourceInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.DeploymentResourceInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.common.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.common.prompt.IPrompter;
 import com.microsoft.azure.maven.common.utils.TextUtils;
@@ -89,7 +90,11 @@ public class DeployMojo extends AbstractSpringMojo {
         traceTelemetry(springAppClient, deploymentClient, configuration);
         // Create or update new App
         getLog().info(STATUS_CREATE_OR_UPDATE_APP);
-        springAppClient.createOrUpdateApp(configuration);
+        final AppResourceInner appResourceInner = springAppClient.createOrUpdateApp(configuration);
+        final PersistentDisk persistentDisk = appResourceInner.properties().persistentDisk();
+        if (persistentDisk != null) {
+            getLog().info(String.format(DEPLOYMENT_STORAGE_STATUS, persistentDisk.mountPath(), persistentDisk.sizeInGB()));
+        }
         getLog().info(STATUS_CREATE_OR_UPDATE_APP_DONE);
         // Upload artifact
         getLog().info(STATUS_UPLOADING_ARTIFACTS);
@@ -102,15 +107,11 @@ public class DeployMojo extends AbstractSpringMojo {
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT);
         final DeploymentResourceInner deploymentResourceInner =
                 deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
-        final PersistentDisk persistentDisk = deploymentResourceInner.properties().deploymentSettings().persistentDisk();
         // Active deployment if no existing active deployment
         if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName()) && createNewDeployment) {
             springAppClient.activateDeployment(deploymentClient.getDeploymentName(), configuration);
         }
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE);
-        if (persistentDisk != null) {
-            getLog().info(String.format(DEPLOYMENT_STORAGE_STATUS, persistentDisk.mountPath(), persistentDisk.sizeInGb()));
-        }
         // Showing deployment status and public url
         getDeploymentStatus(deploymentClient);
         getPublicUrl(springAppClient);
@@ -170,7 +171,7 @@ public class DeployMojo extends AbstractSpringMojo {
             return false;
         }
         return !deploymentResource.properties().instances().stream()
-                .anyMatch(instance -> instance.status().equalsIgnoreCase("waiting"));
+                .anyMatch(instance -> instance.status().equalsIgnoreCase("waiting") || instance.status().equalsIgnoreCase("pending"));
     }
 
     protected boolean shouldSkipConfirm() {
