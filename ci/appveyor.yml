@@ -16,5 +16,5 @@ install:
   - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
 
 build_script:
-  - cmd: git clone %SDK_REPO% && mvnw clean install -B -f azure-appplatform-sdk/resource-manager/v2019_05_01_preview/pom.xml && mvnw.cmd -B clean install
+  - cmd: git clone %SPRING_SDK_REPO% && mvnw clean install -B -f azure-appplatform-sdk/resource-manager/v2019_05_01_preview/pom.xml && mvnw.cmd -B clean install
   
