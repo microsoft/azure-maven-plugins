@@ -10,7 +10,6 @@ import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.zeroturnaround.zip.ZipUtil;
 
@@ -29,7 +28,7 @@ import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandler
 public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
     private static final String ALWAYS_DEPLOY_PROPERTY = "alwaysDeploy";
-    public static final String DEFAULT_LINUX_JAR_NAME = "app.jar";
+    public static final String DEFAULT_JAVA_SE_JAR_NAME = "app.jar";
     public static final String RENAMING_MESSAGE = "Renaming %s to %s";
 
     private RuntimeSetting runtimeSetting;
@@ -210,22 +209,24 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         if (artifact == null) {
             return;
         }
-        switch (runtimeSetting.getOsEnum()) {
-            case Windows:
-                // Windows: Generate web.config to staging folder
-                try {
-                    WebAppUtils.generateWebConfigFile(target, artifact.getName(), stagingDirectoryPath, log);
-                } catch (IOException e) {
-                    throw new MojoExecutionException("Failed to generate web.config file");
-                }
-                break;
-            case Linux:
-                // Linux: Rename project artifact to app.jar
-                log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_LINUX_JAR_NAME));
-                artifact.renameTo(new File(artifact.getParent(), DEFAULT_LINUX_JAR_NAME));
-                break;
-            default:
-                return;
-        }
+        log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_JAVA_SE_JAR_NAME));
+        artifact.renameTo(new File(artifact.getParent(), DEFAULT_JAVA_SE_JAR_NAME));
+//        switch (runtimeSetting.getOsEnum()) {
+//            case Windows:
+//                // Windows: Generate web.config to staging folder
+//                try {
+//                    WebAppUtils.generateWebConfigFile(target, artifact.getName(), stagingDirectoryPath, log);
+//                } catch (IOException e) {
+//                    throw new MojoExecutionException("Failed to generate web.config file");
+//                }
+//                break;
+//            case Linux:
+//                // Linux: Rename project artifact to app.jar
+//                log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_JAVA_SE_JAR_NAME));
+//                artifact.renameTo(new File(artifact.getParent(), DEFAULT_JAVA_SE_JAR_NAME));
+//                break;
+//            default:
+//                return;
+//        }
     }
 }
