@@ -23,8 +23,9 @@ import java.util.stream.Collectors;
 
 public class SpringAppClient extends AbstractSpringClient {
 
-    protected static final String DEFAULT_DEPLOYMENT_NAME = "default";
     protected static final int DEFAULT_PERSISTENT_DISK_SIZE = 50;
+    protected static final String DEFAULT_DEPLOYMENT_NAME = "default";
+    protected static final String DEFAULT_PERSISTENT_DISK_MOUNT_PATH = "/persistent";
 
     protected String appName;
 
@@ -133,7 +134,7 @@ public class SpringAppClient extends AbstractSpringClient {
     }
 
     private static PersistentDisk getPersistentDiskOrDefault(AppResourceProperties appResourceProperties) {
-        return appResourceProperties.persistentDisk() == null ?
-                new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE) : appResourceProperties.persistentDisk();
+        return appResourceProperties.persistentDisk() != null ? appResourceProperties.persistentDisk() :
+                new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE).withMountPath(DEFAULT_PERSISTENT_DISK_MOUNT_PATH);
     }
 }
