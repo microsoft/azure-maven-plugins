@@ -123,7 +123,6 @@ public class ConfigMojoTest {
     @Test
     public void testNonInteractiveMode() throws Exception {
         when(settings.isInteractiveMode()).thenReturn(false);
-        mojo.dogFood = false;
         mojo.isTelemetryAllowed = false;
         try {
             mojo.execute();
@@ -137,7 +136,6 @@ public class ConfigMojoTest {
     @Test
     public void testQuitNonJarProject() throws Exception {
         when(project.getPackaging()).thenReturn("war");
-        mojo.dogFood = false;
         mojo.isTelemetryAllowed = false;
         try {
             mojo.execute();
@@ -153,7 +151,6 @@ public class ConfigMojoTest {
         final File pom = new File(this.getClass().getResource("/configured.xml").getFile());
         model = TestHelper.readMavenModel(pom);
         Mockito.when(project.getModel()).thenReturn(model);
-        mojo.dogFood = false;
         mojo.isTelemetryAllowed = false;
 
         PowerMockito.doThrow(new RuntimeException("unit test")).when(mockLog).warn(contains("is already configured"));
@@ -168,7 +165,6 @@ public class ConfigMojoTest {
     @Test
     public void testAdvancedOptionsInParent() throws Exception {
         when(project.getPackaging()).thenReturn("pom");
-        mojo.dogFood = false;
         FieldUtils.writeField(mojo, "advancedOptions", true, true);
         mojo.isTelemetryAllowed = false;
         try {
@@ -287,7 +283,6 @@ public class ConfigMojoTest {
 
         when(reader.readLine()).thenReturn("1").thenReturn("2").
             thenReturn("$$%#").thenReturn("${evalBad}").thenReturn("${eval}").thenReturn("y").thenReturn("");
-        mojo.dogFood = false;
         mojo.isTelemetryAllowed = false;
         initMockPromptWrapper();
         mojo.execute();
@@ -323,7 +318,6 @@ public class ConfigMojoTest {
 
         when(reader.readLine()).thenReturn("1").thenReturn("2")
             .thenReturn("$$%#").thenReturn("${evalBad}").thenReturn("${eval}").thenReturn("y").thenReturn("2").thenReturn("");
-        mojo.dogFood = false;
         FieldUtils.writeField(mojo, "advancedOptions", true, true);
         mojo.isTelemetryAllowed = false;
         initMockPromptWrapper();
@@ -344,7 +338,6 @@ public class ConfigMojoTest {
         final PluginParameterExpressionEvaluator pluginParameterExpressionEvaluator = mock(PluginParameterExpressionEvaluator.class);
         whenNew(PluginParameterExpressionEvaluator.class).withAnyArguments().thenReturn(pluginParameterExpressionEvaluator);
         when(project.getPackaging()).thenReturn("pom");
-        mojo.dogFood = false;
         mojo.isTelemetryAllowed = false;
         final List<MavenProject> parentChildProjects = TestHelper.prepareParentChildProjects();
         when(session.getAllProjects()).thenReturn(parentChildProjects);

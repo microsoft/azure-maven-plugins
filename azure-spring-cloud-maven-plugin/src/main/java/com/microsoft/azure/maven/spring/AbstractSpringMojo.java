@@ -27,7 +27,6 @@ import com.microsoft.azure.maven.spring.parser.SpringConfigurationParser;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParserFactory;
 import com.microsoft.azure.maven.spring.spring.SpringServiceClient;
 import com.microsoft.azure.maven.spring.utils.MavenUtils;
-import com.microsoft.azure.maven.spring.utils.Utils;
 import com.microsoft.rest.LogLevel;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -117,10 +116,6 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
-    // todo: Remove this parameter before release
-    @Parameter(property = "dogFood", defaultValue = "false")
-    protected Boolean dogFood;
-
     protected AzureTokenCredentials azureTokenCredentials;
 
     protected SpringServiceClient springServiceClient;
@@ -152,11 +147,16 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         initializeAuthConfiguration();
 
         final AuthConfiguration authConfiguration = isAuthConfigurationExist() ? auth : null;
-        this.azureTokenCredentials = dogFood ? Utils.getCredential() : AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
+        this.azureTokenCredentials = AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
         // Use oauth if no existing credentials
         if (azureTokenCredentials == null) {
             final AzureEnvironment environment = AzureEnvironment.AZURE;
-            final AzureCredential azureCredential = AzureAuthHelper.oAuthLogin(environment);
+            AzureCredential azureCredential;
+            try {
+                azureCredential = AzureAuthHelper.oAuthLogin(environment);
+            } catch (DesktopNotSupportedException e) {
+                azureCredential = AzureAuthHelper.deviceLogin(environment);
+            }
             AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
             this.azureTokenCredentials = AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, environment);
         }

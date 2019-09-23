@@ -6,10 +6,6 @@
 
 package com.microsoft.azure.maven.spring.utils;
 
-import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.auth.AzureAuthHelper;
-import com.microsoft.azure.auth.AzureCredential;
-import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.storage.file.CloudFile;
@@ -26,7 +22,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -40,7 +35,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Utils {
-
     private static final String POM = "pom";
     private static final String JAR = "jar";
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
@@ -51,29 +45,6 @@ public class Utils {
             "check the configuration.";
     protected static final String MULTI_ARTIFACT = "Multiple artifacts(%s) could be deployed, please specify " +
             "the target artifact in plugin configurations.";
-
-    public static AzureTokenCredentials getCredential() {
-        final AzureEnvironment dogFoodEnvironment = new AzureEnvironment(new HashMap<String, String>() {{
-                put(AzureEnvironment.Endpoint.MANAGEMENT.toString(), "https://management.core.windows.net/");
-                put(AzureEnvironment.Endpoint.RESOURCE_MANAGER.toString(), "https://api-dogfood.resources.windows-int.net");
-                put(AzureEnvironment.Endpoint.GALLERY.toString(), "https://current.gallery.azure-test.net/");
-                put(AzureEnvironment.Endpoint.GRAPH.toString(), "https://graph.ppe.windows.net/");
-                put(AzureEnvironment.Endpoint.ACTIVE_DIRECTORY.toString(), "https://login.windows-ppe.net");
-            }});
-        final AzureCredential azureCredential;
-        try {
-            if (AzureAuthHelper.existsAzureSecretFile()) {
-                azureCredential = AzureAuthHelper.readAzureCredentials();
-            } else {
-                azureCredential = AzureAuthHelper.oAuthLogin(dogFoodEnvironment);
-            }
-            AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
-            return AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, dogFoodEnvironment);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     public static int convertSizeStringToNumber(String memory) throws MojoExecutionException {
         final Matcher matcher = MEMORY_PATTERN.matcher(memory);
