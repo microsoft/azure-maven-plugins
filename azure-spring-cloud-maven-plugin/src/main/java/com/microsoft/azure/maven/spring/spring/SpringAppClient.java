@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 public class SpringAppClient extends AbstractSpringClient {
 
-    protected static final String DEFAULT_DEPLOYMENT_NAME = "init";
+    protected static final String DEFAULT_DEPLOYMENT_NAME = "default";
     protected static final int DEFAULT_PERSISTENT_DISK_SIZE = 50;
 
     protected String appName;
