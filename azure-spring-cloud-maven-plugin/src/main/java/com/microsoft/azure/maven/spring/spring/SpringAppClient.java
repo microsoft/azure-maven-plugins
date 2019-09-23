@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 
 public class SpringAppClient extends AbstractSpringClient {
 
-    public static final String DEFAULT_DEPLOYMENT_NAME = "init";
-    public static final int DEFAULT_PERSISTENT_DISK_SIZE = 50;
+    protected static final String DEFAULT_DEPLOYMENT_NAME = "init";
+    protected static final int DEFAULT_PERSISTENT_DISK_SIZE = 50;
 
     protected String appName;
 
@@ -128,7 +128,7 @@ public class SpringAppClient extends AbstractSpringClient {
         return appName;
     }
 
-    private boolean isEnablePersistentStorage(SpringConfiguration configuration) {
+    private static boolean isEnablePersistentStorage(SpringConfiguration configuration) {
         return configuration != null && configuration.getDeployment() != null && configuration.getDeployment().isEnablePersistentStorage();
     }
 
