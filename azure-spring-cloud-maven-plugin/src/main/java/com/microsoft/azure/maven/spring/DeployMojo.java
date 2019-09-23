@@ -51,7 +51,7 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final int GET_URL_TIMEOUT = 60;
     protected static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     protected static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
-    protected static final String PROJECT_NOT_SUPPORT = "`azure-spring:deploy` does not support maven project with " +
+    protected static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
             "packaging %s, only jar is supported";
     protected static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
     protected static final String GET_APP_URL_FAIL = "Fail to get application url";
@@ -63,7 +63,7 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final String DEPLOYMENT_STORAGE_STATUS = "Persistent storage path : %s, size : %s GB.";
     protected static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
     protected static final String STATUS_UPLOADING_ARTIFACTS_DONE = "Successfully uploaded the artifacts.";
-    protected static final String CONFIRM_PROMPT_START = "`azure-spring:deploy` will perform the following tasks";
+    protected static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
     protected static final String CONFIRM_PROMPT_CREATE_NEW_APP = "Create new app [%s]";
     protected static final String CONFIRM_PROMPT_UPDATE_APP = "Update app [%s]";
     protected static final String CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT = "Create new deployment [%s] in app [%s]";
