@@ -132,7 +132,7 @@ public class SpringAppClient extends AbstractSpringClient {
         return configuration != null && configuration.getDeployment() != null && configuration.getDeployment().isEnablePersistentStorage();
     }
 
-    private PersistentDisk getPersistentDiskOrDefault(AppResourceProperties appResourceProperties) {
+    private static PersistentDisk getPersistentDiskOrDefault(AppResourceProperties appResourceProperties) {
         return appResourceProperties.persistentDisk() == null ?
                 new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE) : appResourceProperties.persistentDisk();
     }
