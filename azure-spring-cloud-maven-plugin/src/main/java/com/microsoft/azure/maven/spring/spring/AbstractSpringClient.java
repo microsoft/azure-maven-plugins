@@ -6,14 +6,14 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.Microservices4SpringManager;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.AppPlatformManager;
 
 public abstract class AbstractSpringClient {
     protected String subscriptionId;
     protected String resourceGroup;
     protected String clusterName;
     protected SpringServiceClient springServiceClient;
-    protected Microservices4SpringManager springManager;
+    protected AppPlatformManager springManager;
 
 
     public abstract static class Builder<T extends Builder<T>> {

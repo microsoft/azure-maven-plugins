@@ -12,7 +12,7 @@ import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppClusterResourceInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ServiceResourceInner;
 import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.spring.configuration.AppSettings;
 import com.microsoft.azure.maven.spring.configuration.DeploymentSettings;
@@ -59,7 +59,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AzureAuthHelper.class, AppInsightHelper.class, TelemetryClient.class, ConfigMojo.class, AbstractSpringMojo.class, Azure.class,
-        AppClusterResourceInner.class, ProxyResource.class, SpringServiceClient.class, PomXmlUpdater.class})
+        ServiceResourceInner.class, ProxyResource.class, SpringServiceClient.class, PomXmlUpdater.class})
 public class ConfigMojoTest {
     @Rule
     private MojoRule rule = new MojoRule();
@@ -203,7 +203,7 @@ public class ConfigMojoTest {
         initializeParentChildModel();
 
         final SpringServiceClient mockServiceClient = mock(SpringServiceClient.class);
-        final List<AppClusterResourceInner> serviceList = TestHelper.createServiceList();
+        final List<ServiceResourceInner> serviceList = TestHelper.createServiceList();
         when(mockServiceClient.getAvailableClusters()).thenReturn(serviceList);
         whenNew(SpringServiceClient.class).withAnyArguments().thenReturn(mockServiceClient);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(0));
@@ -216,11 +216,11 @@ public class ConfigMojoTest {
     }
 
     @Test
-    public void testAccepDefault() throws Exception {
+    public void testAcceptDefault() throws Exception {
         initializeParentChildModel();
 
         final SpringServiceClient mockServiceClient = mock(SpringServiceClient.class);
-        final List<AppClusterResourceInner> serviceList = TestHelper.createServiceList();
+        final List<ServiceResourceInner> serviceList = TestHelper.createServiceList();
         when(mockServiceClient.getAvailableClusters()).thenReturn(serviceList);
         whenNew(SpringServiceClient.class).withAnyArguments().thenReturn(mockServiceClient);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
@@ -242,7 +242,7 @@ public class ConfigMojoTest {
         initializeParentChildModel();
 
         final SpringServiceClient mockServiceClient = mock(SpringServiceClient.class);
-        final List<AppClusterResourceInner> serviceList = TestHelper.createServiceList();
+        final List<ServiceResourceInner> serviceList = TestHelper.createServiceList();
         when(mockServiceClient.getAvailableClusters()).thenReturn(serviceList);
         whenNew(SpringServiceClient.class).withAnyArguments().thenReturn(mockServiceClient);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
@@ -272,7 +272,7 @@ public class ConfigMojoTest {
         mojo.project = TestHelper.createChildProject("service");
 
         final SpringServiceClient mockServiceClient = mock(SpringServiceClient.class);
-        final List<AppClusterResourceInner> serviceList = TestHelper.createServiceList();
+        final List<ServiceResourceInner> serviceList = TestHelper.createServiceList();
         when(mockServiceClient.getAvailableClusters()).thenReturn(serviceList);
         whenNew(SpringServiceClient.class).withAnyArguments().thenReturn(mockServiceClient);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
@@ -284,7 +284,7 @@ public class ConfigMojoTest {
         when(reader.readLine()).thenReturn("1").thenReturn("2").
             thenReturn("$$%#").thenReturn("${evalBad}").thenReturn("${eval}").thenReturn("y").thenReturn("");
         mojo.isTelemetryAllowed = false;
-        initMockPromotWrapper();
+        initMockPromptWrapper();
         mojo.execute();
         final AppSettings app = (AppSettings) FieldUtils.readField(mojo, "appSettings", true);
         final DeploymentSettings deploy = (DeploymentSettings) FieldUtils.readField(mojo, "deploymentSettings", true);
@@ -307,7 +307,7 @@ public class ConfigMojoTest {
         mojo.project = TestHelper.createChildProject("service");
 
         final SpringServiceClient mockServiceClient = mock(SpringServiceClient.class);
-        final List<AppClusterResourceInner> serviceList = TestHelper.createServiceList();
+        final List<ServiceResourceInner> serviceList = TestHelper.createServiceList();
         when(mockServiceClient.getAvailableClusters()).thenReturn(serviceList);
         whenNew(SpringServiceClient.class).withAnyArguments().thenReturn(mockServiceClient);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
@@ -320,7 +320,7 @@ public class ConfigMojoTest {
             .thenReturn("$$%#").thenReturn("${evalBad}").thenReturn("${eval}").thenReturn("y").thenReturn("2").thenReturn("");
         FieldUtils.writeField(mojo, "advancedOptions", true, true);
         mojo.isTelemetryAllowed = false;
-        initMockPromotWrapper();
+        initMockPromptWrapper();
         mojo.execute();
         final AppSettings app = (AppSettings) FieldUtils.readField(mojo, "appSettings", true);
         final DeploymentSettings deploy = (DeploymentSettings) FieldUtils.readField(mojo, "deploymentSettings", true);
@@ -341,7 +341,7 @@ public class ConfigMojoTest {
         mojo.isTelemetryAllowed = false;
         final List<MavenProject> parentChildProjects = TestHelper.prepareParentChildProjects();
         when(session.getAllProjects()).thenReturn(parentChildProjects);
-        initMockPromotWrapper();
+        initMockPromptWrapper();
     }
 
     /**
@@ -350,7 +350,7 @@ public class ConfigMojoTest {
      * @throws IllegalAccessException
      * @throws Exception
      */
-    private void initMockPromotWrapper() throws IOException, InvalidConfigurationException, IllegalAccessException, Exception {
+    private void initMockPromptWrapper() throws IOException, InvalidConfigurationException, IllegalAccessException, Exception {
         final PromptWrapper wrapper = new PromptWrapper(mockEval, mockLog) {
             private boolean initialized = false;
             public void initialize() throws IOException, InvalidConfigurationException {

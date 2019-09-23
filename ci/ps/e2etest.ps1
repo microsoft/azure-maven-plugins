@@ -30,8 +30,8 @@ $functionCLIZipPath = $functionCLIPath +".zip"
 
 # Download Functions Core Tools
 cd $base
-git clone $Env:SDK_REPO
-mvn clean install -B -f azure-spring-cloud-sdk/resource-manager/v2019_05_01_preview/pom.xml
+git clone $Env:SPRING_SDK_REPO
+mvn clean install -B -f azure-appplatform-sdk/resource-manager/v2019_05_01_preview/pom.xml
 RemoveFileIfExist $functionCLIZipPath
 RemoveFolderIfExist $functionCLIPath
 DownloadFileFromUrl $Env:FUNCTIONCLI_URL $functionCLIZipPath

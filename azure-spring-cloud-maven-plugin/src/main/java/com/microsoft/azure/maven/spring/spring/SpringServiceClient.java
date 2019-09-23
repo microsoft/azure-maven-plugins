@@ -8,8 +8,8 @@ package com.microsoft.azure.maven.spring.spring;
 
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppClusterResourceInner;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.Microservices4SpringManager;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.AppPlatformManager;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ServiceResourceInner;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.lang3.ArrayUtils;
@@ -24,7 +24,7 @@ public class SpringServiceClient {
     protected static final String NO_CLUSTER = "No cluster named %s found in subscription %s";
 
     private String subscriptionId;
-    private Microservices4SpringManager springManager;
+    private AppPlatformManager springManager;
 
     public SpringServiceClient(AzureTokenCredentials azureTokenCredentials, String subscriptionId) {
         this(azureTokenCredentials, subscriptionId, LogLevel.NONE);
@@ -33,19 +33,9 @@ public class SpringServiceClient {
     public SpringServiceClient(AzureTokenCredentials azureTokenCredentials, String subscriptionId, LogLevel logLevel) {
         subscriptionId = StringUtils.isEmpty(subscriptionId) ? azureTokenCredentials.defaultSubscriptionId() : subscriptionId;
         this.subscriptionId = subscriptionId;
-        this.springManager = Microservices4SpringManager.configure()
+        this.springManager = AppPlatformManager.configure()
                 .withLogLevel(logLevel)
                 .authenticate(azureTokenCredentials, subscriptionId);
-    }
-
-    public SpringDeploymentClient newSpringDeploymentClient(String subscriptionId, String cluster, String app, String deployment) {
-        final SpringDeploymentClient.Builder builder = new SpringDeploymentClient.Builder();
-        return builder.withSubscriptionId(subscriptionId)
-                .withSpringServiceClient(this)
-                .withClusterName(cluster)
-                .withAppName(app)
-                .withDeploymentName(deployment)
-                .build();
     }
 
     public SpringAppClient newSpringAppClient(String subscriptionId, String cluster, String app) {
@@ -61,22 +51,21 @@ public class SpringServiceClient {
         return newSpringAppClient(configuration.getSubscriptionId(), configuration.getClusterName(), configuration.getAppName());
     }
 
-    public List<AppClusterResourceInner> getAvailableClusters() {
-        final PagedList<AppClusterResourceInner> clusterList = getSpringManager().appClusters()
-                .inner().list();
+    public List<ServiceResourceInner> getAvailableClusters() {
+        final PagedList<ServiceResourceInner> clusterList = getSpringManager().inner().services().list();
         clusterList.loadAll();
         return new ArrayList<>(clusterList);
     }
 
-    public AppClusterResourceInner getClusterByName(String cluster) {
-        final List<AppClusterResourceInner> clusterList = getAvailableClusters();
+    public ServiceResourceInner getClusterByName(String cluster) {
+        final List<ServiceResourceInner> clusterList = getAvailableClusters();
         return clusterList.stream().filter(appClusterResourceInner -> appClusterResourceInner.name().equals(cluster))
                 .findFirst()
                 .orElseThrow(() -> new InvalidParameterException(String.format(NO_CLUSTER, cluster, subscriptionId)));
     }
 
     public String getResourceGroupByCluster(String clusterName) {
-        final AppClusterResourceInner cluster = getClusterByName(clusterName);
+        final ServiceResourceInner cluster = getClusterByName(clusterName);
         final String[] attributes = cluster.id().split("/");
         return attributes[ArrayUtils.indexOf(attributes, "resourceGroups") + 1];
     }
@@ -85,7 +74,7 @@ public class SpringServiceClient {
         return subscriptionId;
     }
 
-    public Microservices4SpringManager getSpringManager() {
+    public AppPlatformManager getSpringManager() {
         return springManager;
     }
 }

@@ -6,19 +6,17 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentResourceProperties;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.DeploymentSettings;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.PersistentDisk;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.RuntimeVersion;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.UserSourceInfo;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.UserSourceType;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.DeploymentResourceInner;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentResourceProperties;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentSettings;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.RuntimeVersion;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.UserSourceInfo;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.UserSourceType;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.DeploymentResourceInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class SpringDeploymentClient extends AbstractSpringClient {
-    public static final int DEFAULT_PERSISTENT_DISK_SIZE = 50;
     protected String appName;
     protected String deploymentName;
 
@@ -52,15 +50,11 @@ public class SpringDeploymentClient extends AbstractSpringClient {
 
         final DeploymentSettings deploymentSettings = deploymentProperties.deploymentSettings() == null ?
                 new DeploymentSettings() : deploymentProperties.deploymentSettings();
-        // Update persistent disk configuration
-        final PersistentDisk persistentDisk = deploymentConfiguration.isEnablePersistentStorage() ?
-                getPersistentDiskOrDefault(deploymentSettings) : null;
 
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
                 .withInstanceCount(deploymentConfiguration.getInstanceCount())
                 .withJvmOptions(deploymentConfiguration.getJvmOptions())
                 .withMemoryInGb(deploymentConfiguration.getMemoryInGB())
-                .withPersistentDisk(persistentDisk)
                 // Now we support java 8 only
                 .withRuntimeVersion(RuntimeVersion.JAVA_8)
                 .withEnvironmentVariables(deploymentConfiguration.getEnvironment());
@@ -103,8 +97,4 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         this.deploymentName = deploymentName;
     }
 
-    private PersistentDisk getPersistentDiskOrDefault(DeploymentSettings deploymentSettings) {
-        return deploymentSettings.persistentDisk() == null ?
-                new PersistentDisk().withSizeInGb(DEFAULT_PERSISTENT_DISK_SIZE) : deploymentSettings.persistentDisk();
-    }
 }

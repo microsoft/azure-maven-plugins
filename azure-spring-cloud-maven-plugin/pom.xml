@@ -101,9 +101,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.microsoft.azure.microservices4spring.v2019_05_01_preview</groupId>
-            <artifactId>azure-mgmt-microservices4spring</artifactId>
-            <version>1.0.0-beta</version>
+            <groupId>com.microsoft.azure.appplatform.v2019_05_01_preview</groupId>
+            <artifactId>azure-mgmt-appplatform</artifactId>
+            <version>1.0.0-beta-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.microsoft.azure</groupId>
