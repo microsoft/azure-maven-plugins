@@ -15,6 +15,11 @@ public class TelemetryConstants {
     public static final String TELEMETRY_KEY_JVM_OPTIONS = "jvmOptions";
     public static final String TELEMETRY_KEY_WITHIN_PARENT_POM = "isExecutedWithinParentPom";
 
+    /**
+     *  Whether user modify their pom file with azure-spring:config
+     */
+    public static final String TELEMETRY_KEY_POM_FILE_MODIFIED = "isPomFileModified";
+
     public static final String TELEMETRY_KEY_AUTH_METHOD = "authMethod";
     public static final String TELEMETRY_KEY_IS_SERVICE_PRINCIPAL = "isServicePrincipal";
     public static final String TELEMETRY_KEY_IS_KEY_ENCRYPTED = "isKeyEncrypted";
@@ -26,7 +31,6 @@ public class TelemetryConstants {
     public static final String TELEMETRY_VALUE_AUTH_MAVEN_SERVER = "Maven Server";
     public static final String TELEMETRY_VALUE_AUTH_AZURE_MAVEN_PLUGIN = "Azure Maven Plugin";
     public static final String TELEMETRY_VALUE_AUTH_AZURE_CLI = "Azure CLI";
-
     public static final String TELEMETRY_KEY_INSTALLATIONID = "installationId";
     public static final String TELEMETRY_KEY_SESSION_ID = "sessionId";
     public static final String TELEMETRY_KEY_PLUGIN_NAME = "pluginName";
