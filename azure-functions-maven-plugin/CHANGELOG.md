@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.3.4](#134)
   - [1.3.3](#133)
   - [1.3.2](#132)
   - [1.3.1](#131)
@@ -8,6 +9,9 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
+
+## 1.3.4
+- Skip `func extensions install` when using extension bundles [#609](https://github.com/microsoft/azure-maven-plugins/issues/609)
 
 ## 1.3.3
 - Set `FUNCTIONS_WORKER_RUNTIME` to `java` by default.[#400](https://github.com/microsoft/azure-maven-plugins/issues/400)
