@@ -28,7 +28,7 @@
         <commons.lang3.version>3.9</commons.lang3.version>
         <jetty.server.version>9.4.20.v20190813</jetty.server.version>
         <jsonwebtoken.jjwt.version>0.9.1</jsonwebtoken.jjwt.version>
-        <maven.version>3.5.0</maven.version>
+        <maven.version>3.3.3</maven.version>
         <mockito.version>2.28.2</mockito.version>
         <powermock.version>2.0.2</powermock.version>
         <surefire.version>2.22.0</surefire.version>
@@ -201,7 +201,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5</version>
+                <version>3.3</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>

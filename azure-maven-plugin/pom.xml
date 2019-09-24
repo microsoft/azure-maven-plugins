@@ -23,12 +23,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.version>3.5</maven.version>
+        <maven.version>3.3.3</maven.version>
         <junit.version>4.12</junit.version>
         <version.slf4j>1.7.25</version.slf4j>
-        <version.maven-core>3.5.0</version.maven-core>
-        <version.maven-plugin-annotations>3.5</version.maven-plugin-annotations>
-        <version.maven-plugin-plugin>3.5</version.maven-plugin-plugin>
+        <version.maven-core>3.3.3</version.maven-core>
+        <version.maven-plugin-annotations>3.3</version.maven-plugin-annotations>
+        <version.maven-plugin-plugin>3.3</version.maven-plugin-plugin>
         <version.maven-plugin-testing-harness>3.3.0</version.maven-plugin-testing-harness>
         <powermock.version>2.0.2</powermock.version>
         <surefire.version>2.22.0</surefire.version>
@@ -108,7 +108,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>3.5.0</version>
+            <version>3.3.3</version>
         </dependency>
 
         <dependency>
@@ -279,7 +279,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>${maven.version}</version>
+                <version>3.6.0</version>
                 <configuration>
                     <goalPrefix>azure</goalPrefix>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
