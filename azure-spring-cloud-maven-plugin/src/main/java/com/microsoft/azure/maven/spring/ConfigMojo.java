@@ -44,6 +44,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_POM_FILE_MODIFIED;
+
 /**
  * The Mojo for 'config' goal.
  */
@@ -243,6 +245,7 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private Integer saveConfigurationToPom() {
+        telemetries.put(TELEMETRY_KEY_POM_FILE_MODIFIED, String.valueOf(true));
         this.appSettings.setSubscriptionId(this.subscriptionId);
         try {
             for (final MavenProject proj : targetProjects) {
