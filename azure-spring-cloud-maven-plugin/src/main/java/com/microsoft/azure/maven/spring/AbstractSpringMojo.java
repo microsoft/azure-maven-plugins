@@ -131,8 +131,6 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         } catch (Exception e) {
             handleException(e);
             throw new MojoFailureException(e.getMessage(), e);
-        } finally {
-            AppInsightHelper.INSTANCE.close();
         }
     }
 
