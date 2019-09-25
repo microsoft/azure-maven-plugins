@@ -59,7 +59,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"javax.net.ssl.*","javax.security.*"})
+@PowerMockIgnore({"javax.net.ssl.*", "javax.security.*"})
 @PrepareForTest({ AzureAuthHelper.class, AppInsightHelper.class, TelemetryClient.class, ConfigMojo.class, AbstractSpringMojo.class, Azure.class,
         ServiceResourceInner.class, ProxyResource.class, SpringServiceClient.class, PomXmlUpdater.class})
 public class ConfigMojoTest {
