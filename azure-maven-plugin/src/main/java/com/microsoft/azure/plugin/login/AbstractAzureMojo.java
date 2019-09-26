@@ -49,8 +49,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         } catch (Exception e) {
             handleException(e);
             throw e;
-        } finally {
-            AppInsightHelper.INSTANCE.close();
         }
     }
 

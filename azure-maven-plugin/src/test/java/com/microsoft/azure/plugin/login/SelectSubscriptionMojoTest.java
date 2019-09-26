@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -46,6 +47,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"javax.net.ssl.*", "javax.security.*"})
 @PrepareForTest({ AzureAuthHelper.class, AppInsightHelper.class, TelemetryClient.class, SelectSubscriptionMojo.class, Azure.class, Scanner.class })
 public class SelectSubscriptionMojoTest {
     @Rule
