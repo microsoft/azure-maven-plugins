@@ -301,8 +301,14 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     public SpringServiceClient getSpringServiceClient() {
         if (springServiceClient == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-            springServiceClient = new SpringServiceClient(azureTokenCredentials, subscriptionId, logLevel);
+            springServiceClient = new SpringServiceClient(azureTokenCredentials, subscriptionId, getUserAgent(), logLevel);
         }
         return springServiceClient;
+    }
+
+    public String getUserAgent() {
+        return isTelemetryAllowed ? String.format("%s/%s installationId:%s sessionId:%s", plugin.getArtifactId(), plugin.getVersion(),
+                AppInsightHelper.INSTANCE.getInstallationId(), AppInsightHelper.INSTANCE.getSessionId())
+                : String.format("%s/%s", plugin.getArtifactId(), plugin.getVersion());
     }
 }
