@@ -50,7 +50,7 @@ Maven | 3.0 or above
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <!-- check Maven Central for the latest version -->
-                <version>1.6.0</version>
+                <version>1.7.0</version>
                 <configuration>
                     <schemaVersion>v2</schemaVersion>
                     <resourceGroup>${RESOURCEGROUP_NAME}</resourceGroup>
@@ -106,9 +106,9 @@ Maven | 3.0 or above
     Property | Required | Description | Version
     ---|---|---|---
     `<schemaVersion>` | false | Specify the version of the configuration schema. Supported values are: `v1`, `v2`. | 1.5.2
-    [`<region>`](#region) | true | Specifies the region where your Web App will be hosted; the default value is **westus**. All valid regions at [Supported Regions](#region) section. | 0.1.0+
     `<resourceGroup>` | true | Azure Resource Group for your Web App. | 0.1.0+
     `<appName>` | true | The name of your Web App. | 0.1.0+
+    [`<region>`](#region) | false | Specifies the region where your Web App will be hosted; the default value is **westeurope**. All valid regions at [Supported Regions](#region) section. | 0.1.0+
     [`<pricingTier>`](#pricingtier) | false | The pricing tier for your Web App. The default value is **P1V2**.| 0.1.0+
     `<deploymentSlot>` | false | The deployment slot to deploy your application. You could find detail samples for deployment slot at [here](../docs/web-app-samples.md).| 1.3.0+
     `<appServicePlanResourceGroup>` | false | The resource group of the existing App Service Plan. If not specified, the value defined in `<resourceGroup>` will be used by default. | 1.0.0+
