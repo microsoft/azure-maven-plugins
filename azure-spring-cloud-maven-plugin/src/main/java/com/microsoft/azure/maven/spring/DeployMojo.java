@@ -47,8 +47,8 @@ public class DeployMojo extends AbstractSpringMojo {
     @Parameter(property = "prompt")
     private boolean prompt;
 
-    protected static final int GET_STATUS_TIMEOUT = 30;
     protected static final int GET_URL_TIMEOUT = 60;
+    protected static final int GET_STATUS_TIMEOUT = 120;
     protected static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     protected static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     protected static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
@@ -113,11 +113,11 @@ public class DeployMojo extends AbstractSpringMojo {
         }
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE);
         // Showing deployment status and public url
-        getDeploymentStatus(deploymentClient);
-        getPublicUrl(springAppClient);
+        showDeploymentStatus(deploymentClient);
+        showPublicUrl(springAppClient);
     }
 
-    protected void getPublicUrl(SpringAppClient springAppClient) {
+    protected void showPublicUrl(SpringAppClient springAppClient) {
         if (!springAppClient.isPublic()) {
             return;
         }
@@ -140,7 +140,7 @@ public class DeployMojo extends AbstractSpringMojo {
         }
     }
 
-    protected void getDeploymentStatus(SpringDeploymentClient springDeploymentClient) {
+    protected void showDeploymentStatus(SpringDeploymentClient springDeploymentClient) {
         DeploymentResourceInner deploymentResource = null;
         if (!noWait) {
             deploymentResource = Utils.executeCallableWithPrompt(() -> {
@@ -155,10 +155,10 @@ public class DeployMojo extends AbstractSpringMojo {
         if (deploymentResource == null) {
             deploymentResource = springDeploymentClient.getDeployment();
         }
-        showDeploymentStatus(deploymentResource);
+        printDeploymentStatus(deploymentResource);
     }
 
-    protected void showDeploymentStatus(DeploymentResourceInner deploymentResource) {
+    protected void printDeploymentStatus(DeploymentResourceInner deploymentResource) {
         System.out.println(String.format("Deployment Status: %s", deploymentResource.properties().status()));
         for (final DeploymentInstance instance : deploymentResource.properties().instances()) {
             System.out.println(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s", instance.name(), instance.status()
@@ -170,8 +170,13 @@ public class DeployMojo extends AbstractSpringMojo {
         if (deploymentResource.properties().status() == DeploymentResourceStatus.PROCESSING) {
             return false;
         }
-        return !deploymentResource.properties().instances().stream()
-                .anyMatch(instance -> instance.status().equalsIgnoreCase("waiting") || instance.status().equalsIgnoreCase("pending"));
+        final String finalDiscoverStatus = deploymentResource.properties().active() ? "UP" : "OUT_OF_SERVICE";
+        final List<DeploymentInstance> instanceList = deploymentResource.properties().instances();
+        final boolean instanceStatus = !instanceList.stream().anyMatch(instance ->
+                instance.status().equalsIgnoreCase("waiting") || instance.status().equalsIgnoreCase("pending"));
+        final boolean discoverStatus = instanceList.stream().allMatch(instance ->
+                instance.discoveryStatus().equalsIgnoreCase(finalDiscoverStatus));
+        return instanceStatus && discoverStatus;
     }
 
     protected boolean shouldSkipConfirm() {
