@@ -10,12 +10,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.microsoft.applicationinsights.core.dependencies.apachecommons.io.FileUtils;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -50,7 +50,7 @@ class AzureServicePrincipleAuthHelper {
      *
      * @return Authenticated object if Azure CLI 2.0 is logged with Service Principal.
      * @throws InvalidConfigurationException where there are some configuration errors
-     * @throws IOException where there read some read error when reading the file
+     * @throws IOException                   where there read some read error when reading the file
      */
     static AzureTokenCredentials getCredentialFromAzureCliWithServicePrincipal() throws InvalidConfigurationException, IOException {
         final JsonObject subscription = getDefaultSubscriptionObject();
@@ -64,13 +64,21 @@ class AzureServicePrincipleAuthHelper {
         }
         for (final JsonElement token : tokens) {
             final JsonObject tokenObject = (JsonObject) token;
-            if (tokenObject.has("servicePrincipalId") && tokenObject.get("servicePrincipalId").getAsString().equals(servicePrincipalName)) {
-                final String tenantId = tokenObject.get("servicePrincipalTenant").getAsString();
-                final String key = tokenObject.get("accessToken").getAsString();
-
-                final String env = subscription.get("environmentName") != null ? subscription.get("environmentName").getAsString() : null;
-                return new ApplicationTokenCredentials(servicePrincipalName, tenantId, key, AzureAuthHelper.getAzureEnvironment(env))
-                        .withDefaultSubscriptionId(subscription.get("id").getAsString());
+            if (servicePrincipalName.equals(getStringFromJsonObject(tokenObject, "servicePrincipalId"))) {
+                final String tenantId = getStringFromJsonObject(tokenObject, "servicePrincipalTenant");
+                final String key = getStringFromJsonObject(tokenObject, "accessToken");
+                final String certificateFile = getStringFromJsonObject(tokenObject, "certificateFile");
+                final String env = getStringFromJsonObject(subscription, "environmentName");
+                final String subscriptionId = getStringFromJsonObject(subscription, "id");
+                if (StringUtils.isNotBlank(key)) {
+                    return new ApplicationTokenCredentials(servicePrincipalName, tenantId, key, AzureAuthHelper.getAzureEnvironment(env))
+                            .withDefaultSubscriptionId(subscriptionId);
+                }
+                if (StringUtils.isNotBlank(certificateFile) && new File(certificateFile).exists()) {
+                    return new ApplicationTokenCredentials(servicePrincipalName, tenantId,
+                        FileUtils.readFileToByteArray(new File(certificateFile)), null, AzureAuthHelper.getAzureEnvironment(env))
+                            .withDefaultSubscriptionId(subscriptionId);
+                }
             }
         }
         return null;
@@ -105,6 +113,13 @@ class AzureServicePrincipleAuthHelper {
         final File azureTokenFile = new File(AzureAuthHelper.getAzureConfigFolder(), Constants.AZURE_TOKEN_NAME);
         final String tokenJsonContent = FileUtils.readFileToString(azureTokenFile, Constants.UTF8);
         return (new Gson()).fromJson(tokenJsonContent, JsonArray.class);
+    }
+
+    private static String getStringFromJsonObject(JsonObject obj, String property) {
+        if (obj == null || property == null || !obj.has(property)) {
+            return null;
+        }
+        return obj.get(property).getAsString();
     }
 
     private AzureServicePrincipleAuthHelper() {
