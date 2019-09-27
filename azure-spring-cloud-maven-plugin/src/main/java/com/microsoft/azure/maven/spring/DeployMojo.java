@@ -49,7 +49,7 @@ public class DeployMojo extends AbstractSpringMojo {
     private boolean prompt;
 
     protected static final int GET_URL_TIMEOUT = 60;
-    protected static final int GET_STATUS_TIMEOUT = 10;
+    protected static final int GET_STATUS_TIMEOUT = 180;
     protected static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     protected static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     protected static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
@@ -57,8 +57,8 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
     protected static final String GET_APP_URL_FAIL = "Fail to get application url";
     protected static final String GET_APP_URL_FAIL_WITH_TIMEOUT = "Fail to get application url in %d s";
-    protected static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Spring Cloud Service fail to start up in %d seconds, " +
-            "please check the status in portal.";
+    protected static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeed but the app is still starting " +
+            "after %d seconds, you can check app status from Azure Portal.";
     protected static final String STATUS_CREATE_OR_UPDATE_APP = "Creating/Updating the app...";
     protected static final String STATUS_CREATE_OR_UPDATE_APP_DONE = "Successfully created/updated the app.";
     protected static final String STATUS_CREATE_OR_UPDATE_DEPLOYMENT = "Creating/Updating the deployment...";
