@@ -58,12 +58,14 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_INSTANCE_COUNT;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_KEY_ENCRYPTED;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_SERVICE_PRINCIPAL;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JAVA_VERSION;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JVM_OPTIONS;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_MEMORY;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PLUGIN_NAME;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PLUGIN_VERSION;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PUBLIC;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_RUNTIME_VERSION;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_SUBSCRIPTION_ID;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_WITHIN_PARENT_POM;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_AUTH_POM_CONFIGURATION;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_FAILURE;
@@ -220,9 +222,11 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected void tracePluginInformation() {
+        final String javaVersion = String.format("%s %s", System.getProperty("java.vendor"), System.getProperty("java.version"));
         telemetries.put(TELEMETRY_KEY_PLUGIN_NAME, plugin.getArtifactId());
         telemetries.put(TELEMETRY_KEY_PLUGIN_VERSION, plugin.getVersion());
         telemetries.put(TELEMETRY_KEY_WITHIN_PARENT_POM, String.valueOf(project.getPackaging().equalsIgnoreCase("pom")));
+        telemetries.put(TELEMETRY_KEY_JAVA_VERSION, javaVersion);
     }
 
     protected void traceConfiguration(SpringConfiguration configuration) {
@@ -233,6 +237,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getInstanceCount()));
         telemetries.put(TELEMETRY_KEY_JVM_OPTIONS,
                 String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmOptions())));
+        telemetries.put(TELEMETRY_KEY_SUBSCRIPTION_ID, configuration.getSubscriptionId());
     }
 
     protected void traceAuth() {
