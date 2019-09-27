@@ -117,7 +117,7 @@ public class DeployMojo extends AbstractSpringMojo {
         showPublicUrl(springAppClient);
     }
 
-    protected void showPublicUrl(SpringAppClient springAppClient) {
+    protected void showPublicUrl(SpringAppClient springAppClient) throws MojoExecutionException {
         if (!springAppClient.isPublic()) {
             return;
         }
@@ -140,7 +140,7 @@ public class DeployMojo extends AbstractSpringMojo {
         }
     }
 
-    protected void showDeploymentStatus(SpringDeploymentClient springDeploymentClient) {
+    protected void showDeploymentStatus(SpringDeploymentClient springDeploymentClient) throws MojoExecutionException {
         DeploymentResourceInner deploymentResource = null;
         if (!noWait) {
             deploymentResource = Utils.executeCallableWithPrompt(() -> {

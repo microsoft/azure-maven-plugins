@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
@@ -107,15 +108,17 @@ public class Utils {
         }
     }
 
-    public static <T> T executeCallableWithPrompt(Callable<T> callable, String prompt, int timeOutInSeconds) {
+    public static <T> T executeCallableWithPrompt(Callable<T> callable, String prompt, int timeOutInSeconds) throws MojoExecutionException {
         final ExecutorService executorService = Executors.newFixedThreadPool(2);
         final Future<T> future = executorService.submit(callable);
         final Future<T> wrappedFuture = executorService.submit(getWrappedCallable(prompt, future));
         try {
             return wrappedFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
-        } catch (Exception e) {
+        } catch (TimeoutException e) {
             wrappedFuture.cancel(true);
             return null;
+        } catch (Exception e) {
+            throw new MojoExecutionException(e.getMessage(), e);
         } finally {
             executorService.shutdown();
         }
