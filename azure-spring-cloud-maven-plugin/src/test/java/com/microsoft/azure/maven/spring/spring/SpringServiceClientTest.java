@@ -40,7 +40,7 @@ public class SpringServiceClientTest {
             public String getToken(String s) throws IOException {
                 return null;
             }
-        }, "subscriptionId");
+        }, "subscriptionId", "userAgent");
         spyClient = spy(springServiceClient);
     }
 
