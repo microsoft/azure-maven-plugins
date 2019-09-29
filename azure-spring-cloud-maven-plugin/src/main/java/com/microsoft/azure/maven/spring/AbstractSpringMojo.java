@@ -139,13 +139,10 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     protected void initExecution() throws MojoFailureException, InvalidConfigurationException, IOException, DesktopNotSupportedException,
             ExecutionException, AzureLoginFailureException, InterruptedException {
         // Init telemetries
-        timeStart = System.currentTimeMillis();
-        telemetries = new HashMap<>();
-        if (!isTelemetryAllowed) {
-            AppInsightHelper.INSTANCE.disable();
-        }
-        initializeAuthConfiguration();
+        initTelemetry();
+        trackMojoExecution(MojoStatus.Start);
 
+        initializeAuthConfiguration();
         final AuthConfiguration authConfiguration = isAuthConfigurationExist() ? auth : null;
         this.azureTokenCredentials = AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
         // Use oauth if no existing credentials
@@ -160,9 +157,6 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
             AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
             this.azureTokenCredentials = AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, environment);
         }
-
-        tracePluginInformation();
-        trackMojoExecution(MojoStatus.Start);
     }
 
     protected void initializeAuthConfiguration() throws MojoFailureException {
@@ -197,6 +191,15 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         }
         final Xpp3Dom authDom = pluginDom.getChild("auth");
         return authDom != null && authDom.getChildren().length > 0;
+    }
+
+    protected void initTelemetry(){
+        timeStart = System.currentTimeMillis();
+        telemetries = new HashMap<>();
+        if (!isTelemetryAllowed) {
+            AppInsightHelper.INSTANCE.disable();
+        }
+        tracePluginInformation();
     }
 
     protected void handleSuccess() {
