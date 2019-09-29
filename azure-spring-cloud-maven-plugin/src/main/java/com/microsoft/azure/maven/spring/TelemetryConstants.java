@@ -14,6 +14,8 @@ public class TelemetryConstants {
     public static final String TELEMETRY_KEY_INSTANCE_COUNT = "instanceCount";
     public static final String TELEMETRY_KEY_JVM_OPTIONS = "jvmOptions";
     public static final String TELEMETRY_KEY_WITHIN_PARENT_POM = "isExecutedWithinParentPom";
+    public static final String TELEMETRY_KEY_SUBSCRIPTION_ID = "subscriptionId";
+    public static final String TELEMETRY_KEY_JAVA_VERSION = "javaVersion";
 
     /**
      *  Whether user modify their pom file with azure-spring:config
