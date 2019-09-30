@@ -26,15 +26,16 @@ public class SpringServiceClient {
     private String subscriptionId;
     private AppPlatformManager springManager;
 
-    public SpringServiceClient(AzureTokenCredentials azureTokenCredentials, String subscriptionId) {
-        this(azureTokenCredentials, subscriptionId, LogLevel.NONE);
+    public SpringServiceClient(AzureTokenCredentials azureTokenCredentials, String subscriptionId, String userAgent) {
+        this(azureTokenCredentials, subscriptionId, userAgent, LogLevel.NONE);
     }
 
-    public SpringServiceClient(AzureTokenCredentials azureTokenCredentials, String subscriptionId, LogLevel logLevel) {
+    public SpringServiceClient(AzureTokenCredentials azureTokenCredentials, String subscriptionId, String userAgent, LogLevel logLevel) {
         subscriptionId = StringUtils.isEmpty(subscriptionId) ? azureTokenCredentials.defaultSubscriptionId() : subscriptionId;
         this.subscriptionId = subscriptionId;
         this.springManager = AppPlatformManager.configure()
                 .withLogLevel(logLevel)
+                .withUserAgent(userAgent)
                 .authenticate(azureTokenCredentials, subscriptionId);
     }
 
