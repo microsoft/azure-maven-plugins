@@ -244,7 +244,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (azure == null) {
             if (this.authentication != null && (this.authentication.getFile() != null || StringUtils.isNotBlank(authentication.getServerId()))) {
                 // TODO: remove the old way of authentication
-                getLog().warn("You are using an old way of authentication which will be deprecated in next versions, please change your configurations.");
+                getLog().warn("You are using an old way of authentication which will be deprecated in future versions, please change your configurations.");
                 azure = new AzureAuthHelperLegacy(this).getAzureClient();
             } else {
                 initAuth();
