@@ -7,16 +7,23 @@
 package com.microsoft.azure.maven;
 
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
+import com.microsoft.azure.auth.MavenSettingHelper;
+import com.microsoft.azure.auth.exception.AzureLoginFailureException;
+import com.microsoft.azure.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.auth.exception.MavenDecryptException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.auth.AzureAuthHelper;
+import com.microsoft.azure.maven.auth.AzureAuthHelperLegacy;
+import com.microsoft.azure.maven.auth.AzureClientFactory;
+import com.microsoft.azure.maven.common.ConfigurationProblem;
+import com.microsoft.azure.maven.common.ConfigurationProblem.Severity;
+import com.microsoft.azure.maven.common.utils.MavenUtils;
 import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.GetHashMac;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
-
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -25,19 +32,25 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 /**
  * Base abstract class for all Azure Mojos.
@@ -141,7 +154,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Parameter(property = "httpProxyPort", defaultValue = "80")
     protected int httpProxyPort;
 
-    private AzureAuthHelper azureAuthHelper = new AzureAuthHelper(this);
+    @Parameter(property = "auth")
+    protected com.microsoft.azure.auth.configuration.AuthConfiguration auth;
+
+    @Component
+    protected SettingsDecrypter settingsDecrypter;
 
     private Azure azure;
 
@@ -150,6 +167,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     private String sessionId = UUID.randomUUID().toString();
 
     private String installationId = GetHashMac.getHashMac();
+
+    private boolean authInitialized = false;
 
     //endregion
 
@@ -223,7 +242,18 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     public Azure getAzureClient() throws AzureAuthFailureException {
         if (azure == null) {
-            azure = azureAuthHelper.getAzureClient();
+            if (this.authentication != null && (this.authentication.getFile() != null || StringUtils.isNotBlank(authentication.getServerId()))) {
+                // TODO: remove the old way of authentication
+                getLog().warn("You are using an old way of authentication which will be deprecated in next versions, please change your configurations.");
+                azure = new AzureAuthHelperLegacy(this).getAzureClient();
+            } else {
+                initAuth();
+                try {
+                    azure = AzureClientFactory.getAzureClient(isAuthConfigurationExist() ? this.auth : null, this.subscriptionId);
+                } catch (InvalidConfigurationException | IOException | AzureLoginFailureException | InterruptedException | ExecutionException e) {
+                    throw new AzureAuthFailureException(e.getMessage());
+                }
+            }
             if (azure == null) {
                 getTelemetryProxy().trackEvent(INIT_FAILURE);
                 throw new AzureAuthFailureException(AZURE_INIT_FAIL);
@@ -250,7 +280,49 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
+    protected void initAuth() throws AzureAuthFailureException {
+        initializeAuthConfiguration();
+    }
+
     //endregion
+
+    protected void initializeAuthConfiguration() throws AzureAuthFailureException {
+        if (authInitialized) {
+            return;
+        }
+        authInitialized = true;
+        if (!isAuthConfigurationExist()) {
+            return;
+        }
+        if (StringUtils.isNotBlank(auth.getServerId())) {
+            if (this.settings.getServer(auth.getServerId()) != null) {
+                try {
+                    auth = MavenSettingHelper.getAuthConfigurationFromServer(session, settingsDecrypter, auth.getServerId());
+                } catch (MavenDecryptException e) {
+                    throw new AzureAuthFailureException(e.getMessage());
+                }
+            } else {
+                throw new AzureAuthFailureException(String.format("Unable to get server('%s') from settings.xml.", auth.getServerId()));
+            }
+        }
+
+        final List<ConfigurationProblem> problems = auth.validate();
+        if (problems.stream().anyMatch(problem -> problem.getSeverity() == Severity.ERROR)) {
+            throw new AzureAuthFailureException(String.format("Unable to validate auth configuration due to the following errors: %s",
+                    problems.stream().map(ConfigurationProblem::getErrorMessage).collect(Collectors.joining("\n"))));
+        }
+
+    }
+
+    protected boolean isAuthConfigurationExist() {
+        final String pluginKey = plugin.getPluginLookupKey();
+        final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
+        if (pluginDom == null) {
+            return false;
+        }
+        final Xpp3Dom authDom = pluginDom.getChild("auth");
+        return authDom != null && authDom.getChildren().length > 0;
+    }
 
     //region Telemetry Configuration Interface
 

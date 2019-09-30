@@ -4,8 +4,9 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring.utils;
+package com.microsoft.azure.maven.common.utils;
 
+import com.microsoft.azure.maven.common.utils.MavenUtils;
 import com.microsoft.azure.maven.spring.TestHelper;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;

@@ -14,12 +14,12 @@ import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementa
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.common.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.common.prompt.IPrompter;
+import com.microsoft.azure.maven.common.utils.MavenUtils;
 import com.microsoft.azure.maven.common.utils.TextUtils;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
-import com.microsoft.azure.maven.spring.utils.MavenUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.maven.plugin.MojoExecutionException;
