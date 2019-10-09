@@ -4,9 +4,9 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.spring.utils;
+package com.microsoft.azure.maven.common.utils;
 
-import com.microsoft.azure.maven.spring.TestHelper;
+import com.microsoft.azure.maven.common.TestHelper;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;

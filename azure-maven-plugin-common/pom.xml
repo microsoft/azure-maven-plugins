@@ -24,6 +24,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.version>3.3.3</maven.version>
 		<junit.version>4.12</junit.version>
 		<jansi.version>1.17.1</jansi.version>
 		<azure.ai.version>2.5.0-BETA.5</azure.ai.version>
@@ -74,6 +75,12 @@
 	</profiles>
 
 	<dependencies>
+	    <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+            <version>${maven.version}</version>
+            <scope>provided</scope>
+        </dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
