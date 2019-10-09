@@ -30,9 +30,27 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
     cd PiggyMetrics
     mvn clean package -DskipTests
     ```
-
-1. Generate configuration by run `mvn com.microsoft.azure:azure-spring-cloud-maven-plugin:0.1.0-SNAPSHOT:config`
-
+1. Add the following configurations in your pom.xml or setting.xml to access plugin snapshot.
+    ```
+    <pluginRepositories>
+      <pluginRepository>
+        <id>maven.snapshots</id>
+        <name>Maven Central Snapshot Repository</name>
+        <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        <releases>
+          <enabled>false</enabled>
+        </releases>
+        <snapshots>
+          <enabled>true</enabled>
+        </snapshots>
+      </pluginRepository>
+    </pluginRepositories>
+    ```
+    
+1. Generate configuration by running the below command.
+    ```
+    mvn com.microsoft.azure:azure-spring-cloud-maven-plugin:0.1.0-SNAPSHOT:config
+    ```
     1. Select module `gateway`,`auth-service` and `account-service`
 
         ![](./img/SelectChildModules.png)
@@ -52,10 +70,3 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
     ```
     
 1. You may access Piggy Metrics with the url printed in above command
-
-### Next Steps
-
-Learn more about Azure Managed Service for Spring Cloud by reading below links.
-- [HOW-TO guide of using Azure Managed Service for Spring Cloud](./docs/how-to.md)
-- [Developer Guide](./docs/dev-guide.md)
-- [FAQ](./docs/faq.md)
