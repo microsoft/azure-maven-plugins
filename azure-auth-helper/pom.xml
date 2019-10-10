@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.microsoft.azure</groupId>
@@ -19,7 +17,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <azure.version>1.23.0</azure.version>
-        <azure.ai.version>2.2.1</azure.ai.version>
+        <azure.ai.version>2.5.1-BETA</azure.ai.version>
         <azure.client.authentication.version>1.6.12</azure.client.authentication.version>
         <commons.collections4.version>4.4</commons.collections4.version>
         <commons.io.version>2.6</commons.io.version>
