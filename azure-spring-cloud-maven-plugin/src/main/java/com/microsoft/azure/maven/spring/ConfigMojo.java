@@ -10,8 +10,9 @@ import com.microsoft.azure.PagedList;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
-import com.microsoft.azure.management.microservices4spring.v2019_05_01_preview.implementation.AppClusterResourceInner;
+import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ServiceResourceInner;
 import com.microsoft.azure.management.resources.Subscription;
+import com.microsoft.azure.maven.common.utils.MavenUtils;
 import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.common.utils.TextUtils;
 import com.microsoft.azure.maven.spring.configuration.AppSettings;
@@ -20,7 +21,6 @@ import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.pom.PomXmlUpdater;
 import com.microsoft.azure.maven.spring.prompt.PromptWrapper;
-import com.microsoft.azure.maven.spring.utils.MavenUtils;
 import com.microsoft.azure.maven.spring.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_POM_FILE_MODIFIED;
 
 /**
  * The Mojo for 'config' goal.
@@ -243,6 +245,7 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private Integer saveConfigurationToPom() {
+        telemetries.put(TELEMETRY_KEY_POM_FILE_MODIFIED, String.valueOf(true));
         this.appSettings.setSubscriptionId(this.subscriptionId);
         try {
             for (final MavenProject proj : targetProjects) {
@@ -303,11 +306,11 @@ public class ConfigMojo extends AbstractSpringMojo {
     }
 
     private void selectAppCluster() throws IOException, SpringConfigurationException {
-        final List<AppClusterResourceInner> clusters = getSpringServiceClient().getAvailableClusters();
+        final List<ServiceResourceInner> clusters = getSpringServiceClient().getAvailableClusters();
 
         this.wrapper.putCommonVariable("clusters", clusters);
         if (StringUtils.isNotBlank(clusterName)) {
-            final AppClusterResourceInner clusterByName = clusters.stream().filter(t -> StringUtils.equals(this.clusterName, t.name())).findFirst()
+            final ServiceResourceInner clusterByName = clusters.stream().filter(t -> StringUtils.equals(this.clusterName, t.name())).findFirst()
                     .orElse(null);
             if (clusterByName != null) {
 
@@ -317,7 +320,7 @@ public class ConfigMojo extends AbstractSpringMojo {
             getLog().warn(String.format("Cannot find Azure Spring Cloud Service with name: %s.", TextUtils.yellow(this.clusterName)));
         }
 
-        final AppClusterResourceInner targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, AppClusterResourceInner::name);
+        final ServiceResourceInner targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, ServiceResourceInner::name);
         if (targetAppCluster != null) {
             this.appSettings.setClusterName(targetAppCluster.name());
             getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.name())));

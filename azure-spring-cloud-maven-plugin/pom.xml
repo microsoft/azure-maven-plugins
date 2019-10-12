@@ -28,13 +28,23 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.version>3.5.0</maven.version>
+        <maven.version>3.3.3</maven.version>
         <junit.version>4.12</junit.version>
         <powermock.version>2.0.2</powermock.version>
         <azure.maven-plugin-common.version>0.1.0-SNAPSHOT</azure.maven-plugin-common.version>
         <mockito.version>2.28.2</mockito.version>
         <jacoco.version>0.8.4</jacoco.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>nexus-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -101,9 +111,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.microsoft.azure.microservices4spring.v2019_05_01_preview</groupId>
-            <artifactId>azure-mgmt-microservices4spring</artifactId>
-            <version>1.0.0-beta</version>
+            <groupId>com.microsoft.azure.appplatform.v2019_05_01_preview</groupId>
+            <artifactId>azure-mgmt-appplatform</artifactId>
+            <version>1.0.0-beta-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.microsoft.azure</groupId>
@@ -138,7 +148,7 @@
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>3.6.0</version>
+            <version>3.3</version>
             <scope>provided</scope>
         </dependency>
         <!-- TEST -->
@@ -198,7 +208,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.3</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -248,7 +258,39 @@
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <show>private</show>
+                    <failOnError>false</failOnError>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <additionalparam>${javadoc.opts}</additionalparam>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -290,6 +332,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
+                <version>3.6.0</version>
                 <configuration>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>
@@ -312,6 +355,15 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>doclint-java8-disable</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+                <javadoc.opts>-Xdoclint:none</javadoc.opts>
+            </properties>
+        </profile>
         <profile>
             <id>dev</id>
             <activation>

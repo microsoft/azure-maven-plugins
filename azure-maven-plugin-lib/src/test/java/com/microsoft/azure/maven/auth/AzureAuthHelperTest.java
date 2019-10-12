@@ -27,11 +27,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.io.IOException;
 
-import static com.microsoft.azure.maven.auth.AzureAuthHelper.CERTIFICATE;
-import static com.microsoft.azure.maven.auth.AzureAuthHelper.CERTIFICATE_PASSWORD;
-import static com.microsoft.azure.maven.auth.AzureAuthHelper.CLIENT_ID;
-import static com.microsoft.azure.maven.auth.AzureAuthHelper.KEY;
-import static com.microsoft.azure.maven.auth.AzureAuthHelper.TENANT_ID;
+import static com.microsoft.azure.maven.auth.AzureAuthHelperLegacy.CERTIFICATE;
+import static com.microsoft.azure.maven.auth.AzureAuthHelperLegacy.CERTIFICATE_PASSWORD;
+import static com.microsoft.azure.maven.auth.AzureAuthHelperLegacy.CLIENT_ID;
+import static com.microsoft.azure.maven.auth.AzureAuthHelperLegacy.KEY;
+import static com.microsoft.azure.maven.auth.AzureAuthHelperLegacy.TENANT_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -49,7 +49,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({System.class, AzureAuthHelper.class})
+@PrepareForTest({System.class, AzureAuthHelperLegacy.class})
 public class AzureAuthHelperTest {
     @Mock
     AbstractAzureMojo mojo;
@@ -104,7 +104,7 @@ public class AzureAuthHelperTest {
     public void testConstructor() throws Exception {
         NullPointerException exception = null;
         try {
-            new AzureAuthHelper(null);
+            new AzureAuthHelperLegacy(null);
         } catch (NullPointerException npe) {
             exception = npe;
         }
@@ -114,8 +114,8 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetAzureClient() throws Exception {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
-        final AzureAuthHelper helperSpy = spy(helper);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
+        final AzureAuthHelperLegacy helperSpy = spy(helper);
 
         // authObj is null
         doReturn(null).when(helperSpy).getAuthObj();
@@ -133,8 +133,8 @@ public class AzureAuthHelperTest {
 
         // <subscriptionId> is null
         when(mojo.getSubscriptionId()).thenReturn(null);
-        PowerMockito.mockStatic(AzureAuthHelper.class);
-        PowerMockito.doReturn(false).when(AzureAuthHelper.class, "isInCloudShell");
+        PowerMockito.mockStatic(AzureAuthHelperLegacy.class);
+        PowerMockito.doReturn(false).when(AzureAuthHelperLegacy.class, "isInCloudShell");
         helperSpy.getAzureClient();
         verify(authenticated, never()).withSubscription(any(String.class));
         verify(authenticated, times(1)).withDefaultSubscription();
@@ -142,12 +142,12 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetAzureClientInCloudShell() throws Exception {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
-        final AzureAuthHelper helperSpy = PowerMockito.spy(helper);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
+        final AzureAuthHelperLegacy helperSpy = PowerMockito.spy(helper);
 
-        PowerMockito.mockStatic(AzureAuthHelper.class);
-        PowerMockito.doReturn(true).when(AzureAuthHelper.class, "isInCloudShell");
-        PowerMockito.doReturn("TestSubscription").when(AzureAuthHelper.class, "getSubscriptionOfCloudShell");
+        PowerMockito.mockStatic(AzureAuthHelperLegacy.class);
+        PowerMockito.doReturn(true).when(AzureAuthHelperLegacy.class, "isInCloudShell");
+        PowerMockito.doReturn("TestSubscription").when(AzureAuthHelperLegacy.class, "getSubscriptionOfCloudShell");
         PowerMockito.doReturn(authenticated).when(helperSpy).getAuthObj();
 
         helperSpy.getAzureClient();
@@ -157,7 +157,7 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetLogLevel() {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
 
         when(log.isDebugEnabled()).thenReturn(false);
         assertSame(LogLevel.NONE, helper.getLogLevel());
@@ -168,7 +168,7 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetAzureEnvironment() {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
         assertEquals(AzureEnvironment.AZURE, helper.getAzureEnvironment(null));
         assertEquals(AzureEnvironment.AZURE, helper.getAzureEnvironment(""));
         assertEquals(AzureEnvironment.AZURE, helper.getAzureEnvironment("default"));
@@ -182,14 +182,14 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testAzureConfigure() {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
         assertTrue(helper.azureConfigure() instanceof Azure.Configurable);
     }
 
     @Test
     public void testGetAuthObjWithAzureCli() {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
-        final AzureAuthHelper helperSpy = spy(helper);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
+        final AzureAuthHelperLegacy helperSpy = spy(helper);
         doReturn(authenticated).when(helperSpy).getAuthObjFromAzureCli();
 
         assertSame(authenticated, helperSpy.getAuthObj());
@@ -200,8 +200,8 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetAuthObjWithServerId() {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
-        final AzureAuthHelper helperSpy = spy(helper);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
+        final AzureAuthHelperLegacy helperSpy = spy(helper);
         when(mojo.getAuthenticationSetting()).thenReturn(authentication);
         doReturn(authenticated).when(helperSpy).getAuthObjFromServerId(null, null);
 
@@ -213,8 +213,8 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetAuthObjWithFile() {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
-        final AzureAuthHelper helperSpy = spy(helper);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
+        final AzureAuthHelperLegacy helperSpy = spy(helper);
         when(mojo.getAuthenticationSetting()).thenReturn(authentication);
         doReturn(authenticated).when(helperSpy).getAuthObjFromFile(any(File.class));
         when(authentication.getFile()).thenReturn(mock(File.class));
@@ -227,7 +227,7 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetAuthObjFromServerId() {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
 
         /**
          * serverId is null
@@ -246,7 +246,7 @@ public class AzureAuthHelperTest {
         clearInvocations(mojo);
 
         // Setup
-        final AzureAuthHelper helperSpy = spy(helper);
+        final AzureAuthHelperLegacy helperSpy = spy(helper);
         when(settings.getServer(any(String.class))).thenReturn(server);
 
         auth = helper.getAuthObjFromServerId(settings, "serverId");
@@ -269,7 +269,7 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetAuthObjFromFile() throws Exception {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
 
         /**
          * authFile is null
@@ -290,7 +290,7 @@ public class AzureAuthHelperTest {
         clearInvocations(mojo);
 
         // Setup
-        final AzureAuthHelper helperSpy = spy(helper);
+        final AzureAuthHelperLegacy helperSpy = spy(helper);
 
         /**
          * read authFile exception
@@ -315,7 +315,7 @@ public class AzureAuthHelperTest {
 
     @Test
     public void testGetAppTokenCredentialsFromServer() {
-        final AzureAuthHelper helper = new AzureAuthHelper(mojo);
+        final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
         /**
          * server is not configured
          */

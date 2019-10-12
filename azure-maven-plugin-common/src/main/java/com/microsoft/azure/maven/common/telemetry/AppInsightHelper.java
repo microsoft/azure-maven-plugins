@@ -29,6 +29,7 @@ public enum AppInsightHelper implements TelemetryProxy {
         sessionId = UUID.randomUUID().toString();
         defaultProperties.put(TELEMETRY_KEY_SESSION_ID, sessionId);
         defaultProperties.put(TELEMETRY_KEY_INSTALLATIONID, GetHashMac.getHashMac());
+        initTelemetryHttpClient();
     }
 
     public void enable() {
@@ -61,14 +62,12 @@ public enum AppInsightHelper implements TelemetryProxy {
     // into endless loop when close, we need to call it in main thread.
     // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
     // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
-    public void close(){
+    public void initTelemetryHttpClient() {
         try {
-            // Sleep to wait ai sdk flush telemetries
-            Thread.sleep(2 * 1000);
-        } catch (InterruptedException e) {
+            ApacheSenderFactory.INSTANCE.create().getHttpClient();
+        } catch (Exception e) {
             // swallow this exception
         }
-        ApacheSenderFactory.INSTANCE.create().close();
     }
 
     public String getSessionId() {

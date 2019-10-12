@@ -20,14 +20,13 @@ import com.microsoft.azure.maven.common.ConfigurationProblem;
 import com.microsoft.azure.maven.common.ConfigurationProblem.Severity;
 import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.common.telemetry.MojoStatus;
+import com.microsoft.azure.maven.common.utils.MavenUtils;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParser;
 import com.microsoft.azure.maven.spring.parser.SpringConfigurationParserFactory;
 import com.microsoft.azure.maven.spring.spring.SpringServiceClient;
-import com.microsoft.azure.maven.spring.utils.MavenUtils;
-import com.microsoft.azure.maven.spring.utils.Utils;
 import com.microsoft.rest.LogLevel;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -59,12 +58,14 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_INSTANCE_COUNT;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_KEY_ENCRYPTED;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_SERVICE_PRINCIPAL;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JAVA_VERSION;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_JVM_OPTIONS;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_MEMORY;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PLUGIN_NAME;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PLUGIN_VERSION;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_PUBLIC;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_RUNTIME_VERSION;
+import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_SUBSCRIPTION_ID;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_WITHIN_PARENT_POM;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_AUTH_POM_CONFIGURATION;
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_FAILURE;
@@ -117,10 +118,6 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
-    // todo: Remove this parameter before release
-    @Parameter(property = "dogFood", defaultValue = "false")
-    protected Boolean dogFood;
-
     protected AzureTokenCredentials azureTokenCredentials;
 
     protected SpringServiceClient springServiceClient;
@@ -136,33 +133,30 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         } catch (Exception e) {
             handleException(e);
             throw new MojoFailureException(e.getMessage(), e);
-        } finally {
-            AppInsightHelper.INSTANCE.close();
         }
     }
 
     protected void initExecution() throws MojoFailureException, InvalidConfigurationException, IOException, DesktopNotSupportedException,
             ExecutionException, AzureLoginFailureException, InterruptedException {
         // Init telemetries
-        timeStart = System.currentTimeMillis();
-        telemetries = new HashMap<>();
-        if (!isTelemetryAllowed) {
-            AppInsightHelper.INSTANCE.disable();
-        }
-        initializeAuthConfiguration();
+        initTelemetry();
+        trackMojoExecution(MojoStatus.Start);
 
+        initializeAuthConfiguration();
         final AuthConfiguration authConfiguration = isAuthConfigurationExist() ? auth : null;
-        this.azureTokenCredentials = dogFood ? Utils.getCredential() : AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
+        this.azureTokenCredentials = AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
         // Use oauth if no existing credentials
         if (azureTokenCredentials == null) {
             final AzureEnvironment environment = AzureEnvironment.AZURE;
-            final AzureCredential azureCredential = AzureAuthHelper.oAuthLogin(environment);
+            AzureCredential azureCredential;
+            try {
+                azureCredential = AzureAuthHelper.oAuthLogin(environment);
+            } catch (DesktopNotSupportedException e) {
+                azureCredential = AzureAuthHelper.deviceLogin(environment);
+            }
             AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
             this.azureTokenCredentials = AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, environment);
         }
-
-        tracePluginInformation();
-        trackMojoExecution(MojoStatus.Start);
     }
 
     protected void initializeAuthConfiguration() throws MojoFailureException {
@@ -199,6 +193,15 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         return authDom != null && authDom.getChildren().length > 0;
     }
 
+    protected void initTelemetry(){
+        timeStart = System.currentTimeMillis();
+        telemetries = new HashMap<>();
+        if (!isTelemetryAllowed) {
+            AppInsightHelper.INSTANCE.disable();
+        }
+        tracePluginInformation();
+    }
+
     protected void handleSuccess() {
         telemetries.put(TELEMETRY_KEY_ERROR_CODE, TELEMETRY_VALUE_ERROR_CODE_SUCCESS);
         telemetries.put(TELEMETRY_KEY_DURATION, String.valueOf(System.currentTimeMillis() - timeStart));
@@ -222,9 +225,11 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     }
 
     protected void tracePluginInformation() {
+        final String javaVersion = String.format("%s %s", System.getProperty("java.vendor"), System.getProperty("java.version"));
         telemetries.put(TELEMETRY_KEY_PLUGIN_NAME, plugin.getArtifactId());
         telemetries.put(TELEMETRY_KEY_PLUGIN_VERSION, plugin.getVersion());
         telemetries.put(TELEMETRY_KEY_WITHIN_PARENT_POM, String.valueOf(project.getPackaging().equalsIgnoreCase("pom")));
+        telemetries.put(TELEMETRY_KEY_JAVA_VERSION, javaVersion);
     }
 
     protected void traceConfiguration(SpringConfiguration configuration) {
@@ -235,6 +240,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getInstanceCount()));
         telemetries.put(TELEMETRY_KEY_JVM_OPTIONS,
                 String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmOptions())));
+        telemetries.put(TELEMETRY_KEY_SUBSCRIPTION_ID, configuration.getSubscriptionId());
     }
 
     protected void traceAuth() {
@@ -298,8 +304,14 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     public SpringServiceClient getSpringServiceClient() {
         if (springServiceClient == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-            springServiceClient = new SpringServiceClient(azureTokenCredentials, subscriptionId, logLevel);
+            springServiceClient = new SpringServiceClient(azureTokenCredentials, subscriptionId, getUserAgent(), logLevel);
         }
         return springServiceClient;
+    }
+
+    public String getUserAgent() {
+        return isTelemetryAllowed ? String.format("%s/%s installationId:%s sessionId:%s", plugin.getArtifactId(), plugin.getVersion(),
+                AppInsightHelper.INSTANCE.getInstallationId(), AppInsightHelper.INSTANCE.getSessionId())
+                : String.format("%s/%s", plugin.getArtifactId(), plugin.getVersion());
     }
 }

@@ -40,7 +40,7 @@ import static com.microsoft.azure.maven.Utils.assureServerExist;
 /**
  * Helper class to authenticate with Azure
  */
-public class AzureAuthHelper {
+public class AzureAuthHelperLegacy {
     public static final String CLIENT_ID = "client";
     public static final String TENANT_ID = "tenant";
     public static final String KEY = "key";
@@ -83,7 +83,7 @@ public class AzureAuthHelper {
      *
      * @param config
      */
-    public AzureAuthHelper(final AuthConfiguration config) {
+    public AzureAuthHelperLegacy(final AuthConfiguration config) {
         if (config == null) {
             throw new NullPointerException();
         }
@@ -349,7 +349,11 @@ public class AzureAuthHelper {
         return null;
     }
 
-    private static String getSubscriptionOfCloudShell() throws IOException {
+    public static boolean isInCloudShell() {
+        return System.getenv(CLOUD_SHELL_ENV_KEY) != null;
+    }
+
+    public static String getSubscriptionOfCloudShell() throws IOException {
         final JsonObject subscription = getDefaultSubscriptionObject();
         return subscription == null ? null : subscription.getAsJsonPrimitive("id").getAsString();
     }
@@ -380,9 +384,5 @@ public class AzureAuthHelper {
             final String jsonProfile = scanner.useDelimiter("\\Z").next();
             return (new Gson()).fromJson(jsonProfile, JsonArray.class);
         }
-    }
-
-    private static boolean isInCloudShell() {
-        return System.getenv(CLOUD_SHELL_ENV_KEY) != null;
     }
 }
