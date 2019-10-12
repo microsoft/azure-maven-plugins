@@ -25,10 +25,11 @@ public class RuntimeSetting {
     protected String serverId;
     protected String registryUrl;
 
+    public static final String JAVA_11_STRING = "java 11";
     public static final String RUNTIME_CONFIG_REFERENCE = "https://aka.ms/maven_webapp_runtime";
 
     static {
-        WebContainer.fromString("java 11"); // Add Java 11 Enum as Fluent SDK had not added it yet
+        WebContainer.fromString(JAVA_11_STRING); // Add Java 11 Enum as Fluent SDK had not added it yet
     }
 
     public String getOs() {

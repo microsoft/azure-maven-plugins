@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
+import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.DEFAULT_APP_SERVICE_JAR_NAME;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.areAllWarFiles;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getArtifactsRecursively;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getContextPathFromFileName;
@@ -29,7 +30,7 @@ import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandler
 public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
     private static final String ALWAYS_DEPLOY_PROPERTY = "alwaysDeploy";
-    public static final String DEFAULT_JAVA_SE_JAR_NAME = "app.jar";
+
     public static final String RENAMING_MESSAGE = "Renaming %s to %s";
 
     private RuntimeSetting runtimeSetting;
@@ -210,7 +211,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         if (artifact == null) {
             return;
         }
-        log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_JAVA_SE_JAR_NAME));
-        artifact.renameTo(new File(artifact.getParent(), DEFAULT_JAVA_SE_JAR_NAME));
+        log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_APP_SERVICE_JAR_NAME));
+        artifact.renameTo(new File(artifact.getParent(), DEFAULT_APP_SERVICE_JAR_NAME));
     }
 }

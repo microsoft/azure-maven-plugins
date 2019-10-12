@@ -9,13 +9,14 @@ package com.microsoft.azure.maven.webapp.handlers.artifact;
 import com.google.common.io.Files;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+
+import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.DEFAULT_APP_SERVICE_JAR_NAME;
 
 /**
  * Artifact handler for deploying a JAR, self-contained, Java application (e.g.
@@ -29,8 +30,6 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
     public static final String FIND_JAR_FILE_FAIL = "Failed to find the jar file: '%s'";
-
-    public static final String DEFAULT_LINUX_JAR_NAME = "app.jar";
 
     public static class Builder extends ZIPArtifactHandlerImpl.Builder {
         private String jarFile;
@@ -85,7 +84,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
     protected void prepareDeploymentFiles(File jar) throws IOException {
         final File parent = new File(stagingDirectoryPath);
         parent.mkdirs();
-        Files.copy(jar, new File(parent, DEFAULT_LINUX_JAR_NAME));
+        Files.copy(jar, new File(parent, DEFAULT_APP_SERVICE_JAR_NAME));
     }
 
     protected File getJarFile() {

@@ -19,6 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ArtifactHandlerUtils {
+
+    public static final String DEFAULT_APP_SERVICE_JAR_NAME = "app.jar";
+
     /**
      * Interfaces WebApp && DeploymentSlot define their own warDeploy API separately.
      * Ideally, it should be defined in their base interface WebAppBase.
