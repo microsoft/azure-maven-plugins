@@ -77,21 +77,15 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
         final File jar = getJarFile();
         assureJarFileExisted(jar);
 
-        prepareDeploymentFiles(deployTarget, jar);
+        prepareDeploymentFiles(jar);
 
         super.publish(deployTarget);
     }
 
-    protected void prepareDeploymentFiles(DeployTarget deployTarget, File jar) throws IOException {
+    protected void prepareDeploymentFiles(File jar) throws IOException {
         final File parent = new File(stagingDirectoryPath);
         parent.mkdirs();
-
-        if (StringUtils.isNotEmpty(linuxRuntime)) {
-            Files.copy(jar, new File(parent, DEFAULT_LINUX_JAR_NAME));
-        } else {
-            Files.copy(jar, new File(parent, jar.getName()));
-            WebAppUtils.generateWebConfigFile(deployTarget, jar.getName(), stagingDirectoryPath, log);
-        }
+        Files.copy(jar, new File(parent, DEFAULT_LINUX_JAR_NAME));
     }
 
     protected File getJarFile() {

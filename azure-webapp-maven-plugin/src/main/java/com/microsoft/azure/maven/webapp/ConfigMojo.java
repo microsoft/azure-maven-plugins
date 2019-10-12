@@ -323,14 +323,14 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return result;
     }
 
-    private static WebContainer getJavaSEWebContainer(JavaVersion javaVersion) {
+    private static WebContainer getJavaSEWebContainer(JavaVersion javaVersion) throws MojoFailureException {
         final String version = javaVersion.toString();
         if (StringUtils.startsWith(version, JAVA_1_8)) {
             return WebContainer.JAVA_8;
         } else if (StringUtils.startsWith(version, JAVA_11)) {
             return WebContainer.fromString(JAVA_11_STRING);
         } else {
-            return null;
+            throw new MojoFailureException(String.format("Java SE environment is not supported in %s", javaVersion.toString()));
         }
     }
 
