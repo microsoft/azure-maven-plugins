@@ -13,6 +13,8 @@ import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
+import static com.microsoft.azure.maven.webapp.ConfigMojo.JAVA_11_STRING;
+
 /**
  * Runtime Setting
  */
@@ -25,7 +27,6 @@ public class RuntimeSetting {
     protected String serverId;
     protected String registryUrl;
 
-    public static final String JAVA_11_STRING = "java 11";
     public static final String RUNTIME_CONFIG_REFERENCE = "https://aka.ms/maven_webapp_runtime";
 
     static {
