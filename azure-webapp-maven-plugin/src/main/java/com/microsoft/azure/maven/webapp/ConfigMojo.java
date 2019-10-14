@@ -22,10 +22,10 @@ import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,6 +52,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
         "webapp.";
     public static final String CONFIGURATION_NO_RUNTIME = "No runtime configuration, skip it.";
     public static final String SAVING_TO_POM = "Saving configuration to pom.";
+    public static final String JAVA_1_8 = "1.8";
+    public static final String JAVA_11 = "11";
+    public static final String JAVA_11_STRING = "java 11";
 
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
@@ -271,18 +274,17 @@ public class ConfigMojo extends AbstractWebAppMojo {
                                                                          WebAppConfiguration configuration)
         throws MojoFailureException {
         final String defaultJavaVersion = configuration.getJavaVersionOrDefault();
-        final String javaVersion = queryer.assureInputFromUser("javaVersion",
+        final String javaVersionInput = queryer.assureInputFromUser("javaVersion",
             defaultJavaVersion, getAvailableJavaVersion(), null);
+        final JavaVersion javaVersion =  JavaVersion.fromString(javaVersionInput);
         // For project which package is jar, use java se runtime
         if (isJarProject()) {
-            return builder.javaVersion(JavaVersion.fromString(javaVersion))
-                    .webContainer(WebAppConfiguration.DEFAULT_WINDOWS_WEB_CONTAINER);
+            return builder.javaVersion(javaVersion).webContainer(getJavaSEWebContainer(javaVersion));
         }
         final String defaultWebContainer = configuration.getWebContainerOrDefault();
-        final String webContainer = queryer.assureInputFromUser("webContainer",
+        final String webContainerInput = queryer.assureInputFromUser("webContainer",
             defaultWebContainer, getAvailableWebContainer(), null);
-        return builder.javaVersion(JavaVersion.fromString(javaVersion))
-            .webContainer(WebContainer.fromString(webContainer));
+        return builder.javaVersion(javaVersion).webContainer(WebContainer.fromString(webContainerInput));
     }
 
     private WebAppConfiguration.Builder getRuntimeConfigurationOfDocker(WebAppConfiguration.Builder builder,
@@ -313,10 +315,23 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static List<String> getAvailableWebContainer() {
         final List<String> result = new ArrayList<>();
         for (final WebContainer webContainer : WebContainer.values()) {
-            result.add(webContainer.toString());
+            if (!StringUtils.containsIgnoreCase(webContainer.toString(), "java")) {
+                result.add(webContainer.toString());
+            }
         }
         Collections.sort(result);
         return result;
+    }
+
+    private static WebContainer getJavaSEWebContainer(JavaVersion javaVersion) throws MojoFailureException {
+        final String version = javaVersion.toString();
+        if (StringUtils.startsWith(version, JAVA_1_8)) {
+            return WebContainer.JAVA_8;
+        } else if (StringUtils.startsWith(version, JAVA_11)) {
+            return WebContainer.fromString(JAVA_11_STRING);
+        } else {
+            throw new MojoFailureException(String.format("Java SE environment is not supported in %s", javaVersion.toString()));
+        }
     }
 
     private static List<String> getAvailablePricingTierList(OperatingSystemEnum operatingSystem) {

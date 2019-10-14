@@ -13,6 +13,8 @@ import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
+import static com.microsoft.azure.maven.webapp.ConfigMojo.JAVA_11_STRING;
+
 /**
  * Runtime Setting
  */
@@ -26,6 +28,10 @@ public class RuntimeSetting {
     protected String registryUrl;
 
     public static final String RUNTIME_CONFIG_REFERENCE = "https://aka.ms/maven_webapp_runtime";
+
+    static {
+        WebContainer.fromString(JAVA_11_STRING); // Add Java 11 Enum as Fluent SDK had not added it yet
+    }
 
     public String getOs() {
         return this.os;
