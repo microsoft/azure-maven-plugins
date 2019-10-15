@@ -14,8 +14,6 @@ install:
   - cmd: SET PATH=%JAVA_HOME%\bin;%PATH%
 
 build_script:
-  - cmd: git clone %SPRING_SDK_REPO% && mvnw clean install -B -f azure-appplatform-sdk/resource-manager/v2019_05_01_preview/pom.xml && mvnw -B clean verify && mvnw cobertura:cobertura
+  - cmd: mvnw -B clean verify && mvnw cobertura:cobertura
   - sh: |
-          git clone SPRING_SDK_REPO
-          ./mvnw clean install -f azure-appplatform-sdk/resource-manager/v2019_05_01_preview/pom.xml
           ./mvnw clean verify
