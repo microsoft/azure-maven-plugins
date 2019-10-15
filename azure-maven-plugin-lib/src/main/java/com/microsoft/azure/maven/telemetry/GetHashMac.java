@@ -43,29 +43,35 @@ public class GetHashMac {
     public static final String[] INVALIDATE_MAC_ADDRESS = {"00:00:00:00:00:00", "ff:ff:ff:ff:ff:ff", "ac:de:48:00:11:22"};
 
     public static String getHashMac() {
-        final String rawMac = getRawMac();
-        if (!isValidRawMac(rawMac)) {
-            return null;
-        }
+        String ret = null;
+        String rawMac = getRawMac();
+        rawMac = isValidRawMac(rawMac) ? rawMac : getRawMacWithNetworkInterface();
 
-        final Pattern patternZero = Pattern.compile(MAC_REGEX_ZERO);
-        final Matcher matcher = MAC_PATTERN.matcher(rawMac);
-        String mac = "";
-        while (matcher.find()) {
-            mac = matcher.group(0);
-            if (!patternZero.matcher(mac).matches()) {
-                break;
+        if (isValidRawMac(rawMac)) {
+            final Matcher matcher = MAC_PATTERN.matcher(rawMac);
+            String mac = "";
+            while (matcher.find()) {
+                mac = matcher.group(0);
+                if (isValidMac(mac)) {
+                    break;
+                }
             }
+            ret = hash(mac);
         }
 
-        return hash(mac);
+        return ret;
     }
 
-    private static boolean isValidRawMac(String mac) {
-        final boolean isMacAddress = StringUtils.isNotEmpty(mac) && MAC_PATTERN.matcher(mac).find();
+    private static boolean isValidMac(String mac) {
+        final String fixedMac = mac.replaceAll("-", ":");
+        final boolean isMacAddress = StringUtils.isNotEmpty(fixedMac) && MAC_PATTERN.matcher(fixedMac).find();
         final boolean isValidateMacAddress = !Arrays.stream(INVALIDATE_MAC_ADDRESS)
-                .anyMatch(invalidateMacAddress -> StringUtils.equalsIgnoreCase(mac, invalidateMacAddress));
+                .anyMatch(invalidateMacAddress -> StringUtils.equalsIgnoreCase(fixedMac, invalidateMacAddress));
         return isMacAddress && isValidateMacAddress;
+    }
+
+    private static boolean isValidRawMac(String raw) {
+        return StringUtils.isNotEmpty(raw) && MAC_PATTERN.matcher(raw).find();
     }
 
     private static String getRawMac() {
@@ -88,7 +94,7 @@ public class GetHashMac {
                 throw new IOException("Command execute fail.");
             }
         } catch (IOException | InterruptedException ex) {
-            return getRawMacWithNetworkInterface();
+            return null;
         }
 
         return ret.toString();
