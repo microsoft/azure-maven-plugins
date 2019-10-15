@@ -54,7 +54,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
                 .withInstanceCount(deploymentConfiguration.getInstanceCount())
                 .withJvmOptions(deploymentConfiguration.getJvmOptions())
-                .withMemoryInGb(deploymentConfiguration.getMemoryInGB())
+                .withMemoryInGB(deploymentConfiguration.getMemoryInGB())
                 // Now we support java 8 only
                 .withRuntimeVersion(RuntimeVersion.JAVA_8)
                 .withEnvironmentVariables(deploymentConfiguration.getEnvironment());
