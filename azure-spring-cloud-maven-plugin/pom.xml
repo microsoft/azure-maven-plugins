@@ -36,16 +36,6 @@
         <jacoco.version>0.8.4</jacoco.version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>nexus-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>org.dom4j</groupId>
@@ -113,7 +103,7 @@
         <dependency>
             <groupId>com.microsoft.azure.appplatform.v2019_05_01_preview</groupId>
             <artifactId>azure-mgmt-appplatform</artifactId>
-            <version>1.0.0-beta-SNAPSHOT</version>
+            <version>1.0.0-beta</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.microsoft.azure</groupId>
