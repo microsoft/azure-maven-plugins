@@ -25,6 +25,7 @@ import java.net.SocketException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -36,6 +37,10 @@ public class GetHashMac {
     private static final String MAC_REGEX = "([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}";
     private static final String MAC_REGEX_ZERO = "([0]{2}[:-]){5}[0]{2}";
     private static final Pattern MAC_PATTERN = Pattern.compile(MAC_REGEX);
+
+    public static final String[] UNIX_COMMAND = {"/sbin/ifconfig -a || /sbin/ip link"};
+    public static final String[] WINDOWS_COMMAND = {"getmac"};
+    public static final String[] INVALIDATE_MAC_ADDRESS = {"00:00:00:00:00:00", "ff:ff:ff:ff:ff:ff", "ac:de:48:00:11:22"};
 
     public static String getHashMac() {
         final String rawMac = getRawMac();
@@ -57,18 +62,18 @@ public class GetHashMac {
     }
 
     private static boolean isValidRawMac(String mac) {
-        return StringUtils.isNotEmpty(mac) && MAC_PATTERN.matcher(mac).find();
+        final boolean isMacAddress = StringUtils.isNotEmpty(mac) && MAC_PATTERN.matcher(mac).find();
+        final boolean isValidateMacAddress = !Arrays.stream(INVALIDATE_MAC_ADDRESS)
+                .anyMatch(invalidateMacAddress -> StringUtils.equalsIgnoreCase(mac, invalidateMacAddress));
+        return isMacAddress && isValidateMacAddress;
     }
 
     private static String getRawMac() {
         final StringBuilder ret = new StringBuilder();
         try {
             final String os = System.getProperty("os.name").toLowerCase();
-            String[] command = {"ifconfig", "-a"};
-            if (os != null && !os.isEmpty() && os.startsWith("win")) {
-                command = new String[]{"getmac"};
-            }
-
+            final String[] command = StringUtils.startsWithIgnoreCase(os, "win") ?
+                    WINDOWS_COMMAND : UNIX_COMMAND;
             final ProcessBuilder builder = new ProcessBuilder(command);
             final Process process = builder.start();
             try (final InputStream inputStream = process.getInputStream();
