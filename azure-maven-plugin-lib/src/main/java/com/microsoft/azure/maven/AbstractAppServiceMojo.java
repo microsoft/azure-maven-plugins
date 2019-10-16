@@ -10,12 +10,14 @@ import com.microsoft.azure.maven.appservice.DeploymentType;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 /**
  * Base abstract class for all Azure App Service Mojos.
@@ -72,6 +74,8 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     @Parameter(property = "appServicePlanName")
     protected String appServicePlanName;
 
+    protected String stagingDirectoryPath;
+
     /**
      * Application settings of App Service, in the form of name-value pairs.
      * <pre>
@@ -117,10 +121,17 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     }
 
     public String getDeploymentStagingDirectoryPath() {
-        final String outputFolder = this.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
-        return Paths.get(
-            this.getBuildDirectoryAbsolutePath(),
-            outputFolder, this.getAppName()
-        ).toString();
+        if (StringUtils.isEmpty(stagingDirectoryPath)) {
+            synchronized (this) {
+                if (StringUtils.isEmpty(stagingDirectoryPath)) {
+                    final String outputFolder = this.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
+                    stagingDirectoryPath = Paths.get(
+                            this.getBuildDirectoryAbsolutePath(),
+                            outputFolder, String.format("%s-%s", this.getAppName(), UUID.randomUUID().toString())
+                    ).toString();
+                }
+            }
+        }
+        return stagingDirectoryPath;
     }
 }

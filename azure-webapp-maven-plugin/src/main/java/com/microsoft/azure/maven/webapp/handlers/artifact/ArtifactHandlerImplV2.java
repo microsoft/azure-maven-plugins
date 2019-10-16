@@ -32,6 +32,8 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final String ALWAYS_DEPLOY_PROPERTY = "alwaysDeploy";
 
     public static final String RENAMING_MESSAGE = "Renaming %s to %s";
+    public static final String RENAMING_FAILED_MESSAGE = "Failed to rename artifact to %s";
+
 
     private RuntimeSetting runtimeSetting;
 
@@ -212,6 +214,9 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             return;
         }
         log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_APP_SERVICE_JAR_NAME));
-        artifact.renameTo(new File(artifact.getParent(), DEFAULT_APP_SERVICE_JAR_NAME));
+        final File renamedArtifact = new File(artifact.getParent(), DEFAULT_APP_SERVICE_JAR_NAME);
+        if (!artifact.renameTo(renamedArtifact)) {
+            log.warn(String.format(RENAMING_FAILED_MESSAGE, DEFAULT_APP_SERVICE_JAR_NAME));
+        }
     }
 }
