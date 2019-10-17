@@ -40,9 +40,9 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final String RENAMING_MESSAGE = "Renaming %s to %s";
     private static final String RENAMING_FAILED_MESSAGE = "Failed to rename artifact to %s, which is required in Java SE environment, " +
             "refer to https://docs.microsoft.com/en-us/azure/app-service/containers/configure-language-java#set-java-runtime-options for details.";
-    public static final String NO_EXECUTABLE_JAR = "No executable jar found in target folder according to resource filter specified in <resources>, " +
+    private static final String NO_EXECUTABLE_JAR = "No executable jar found in target folder according to resource filter specified in <resources>, " +
             "please make sure the resource filter is correct and you have built the jar.";
-    public static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
+    private static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
 
     private RuntimeSetting runtimeSetting;
@@ -222,10 +222,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
 
-    private boolean existsWebConfig(final List<File> artifacts) {
-        return artifacts.stream().anyMatch(file -> StringUtils.equals(file.getName(), WEB_CONFIG));
-    }
-
     private File getProjectJarArtifact(final List<File> artifacts) throws MojoExecutionException {
         final String fileName = String.format("%s.%s", project.getBuild().getFinalName(), project.getPackaging());
         final List<File> executableArtifacts =  artifacts.stream()
@@ -240,7 +236,11 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         return finalArtifact == null ? executableArtifacts.get(0) : finalArtifact;
     }
 
-    public static boolean isExecutableJar(File file) {
+    private static boolean existsWebConfig(final List<File> artifacts) {
+        return artifacts.stream().anyMatch(file -> StringUtils.equals(file.getName(), WEB_CONFIG));
+    }
+
+    private static boolean isExecutableJar(File file) {
         try (final FileInputStream fileInputStream = new FileInputStream(file);
              final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
             final Manifest manifest = jarInputStream.getManifest();
