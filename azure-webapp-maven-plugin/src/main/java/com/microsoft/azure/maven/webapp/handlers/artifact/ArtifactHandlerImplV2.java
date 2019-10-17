@@ -12,12 +12,18 @@ import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.codehaus.plexus.util.FileUtils;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.DEFAULT_APP_SERVICE_JAR_NAME;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.areAllWarFiles;
@@ -31,8 +37,13 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
     private static final String ALWAYS_DEPLOY_PROPERTY = "alwaysDeploy";
 
-    public static final String RENAMING_MESSAGE = "Renaming %s to %s";
-    public static final String RENAMING_FAILED_MESSAGE = "Failed to rename artifact to %s";
+    private static final String WEB_CONFIG = "web.config";
+    private static final String RENAMING_MESSAGE = "Renaming %s to %s";
+    private static final String RENAMING_FAILED_MESSAGE = "Failed to rename artifact to %s, which is required in Java SE environment, " +
+            "please refer https://docs.microsoft.com/en-us/azure/app-service/containers/configure-language-java#set-java-runtime-options for more information.";
+    public static final String NO_EXECUTABLE_JAR = "No executable jar found in <resources>, please check the configuration";
+    public static final String MULTI_FINAL_NAME_JARS = "Multi executable jars with final name %s found in <resources>, please check the configuration";
+    public static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
 
     private RuntimeSetting runtimeSetting;
@@ -194,29 +205,51 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         return false;
     }
 
-    private File getProjectJarArtifact(final List<File> artifacts) {
-        final String finalName = project.getBuild().getFinalName();
-        final String fileName = String.format("%s.%s", finalName, project.getPackaging());
-        for (final File file : artifacts) {
-            if (file.getName().equals(fileName)) {
-                return file;
-            }
-        }
-        return null;
-    }
-
     /**
-     * Rename project jar to app.jar javase app service
+     * Rename project jar to app.jar for java se app service
      */
-    private void prepareJavaSERuntime(final List<File> artifacts) {
-        final File artifact = getProjectJarArtifact(artifacts);
-        if (artifact == null) {
+    private void prepareJavaSERuntime(final List<File> artifacts) throws MojoExecutionException {
+        if (isWebConfigExists(artifacts)) {
             return;
         }
-        log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_APP_SERVICE_JAR_NAME));
+        final File artifact = getProjectJarArtifact(artifacts);
         final File renamedArtifact = new File(artifact.getParent(), DEFAULT_APP_SERVICE_JAR_NAME);
-        if (!artifact.renameTo(renamedArtifact)) {
-            log.warn(String.format(RENAMING_FAILED_MESSAGE, DEFAULT_APP_SERVICE_JAR_NAME));
+        try {
+            log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_APP_SERVICE_JAR_NAME));
+            FileUtils.rename(artifact, renamedArtifact);
+        } catch (IOException e) {
+            throw new MojoExecutionException(String.format(RENAMING_FAILED_MESSAGE, DEFAULT_APP_SERVICE_JAR_NAME));
+        }
+    }
+
+
+    private boolean isWebConfigExists(final List<File> artifacts) {
+        return artifacts.stream().anyMatch(file -> StringUtils.equals(file.getName(), WEB_CONFIG));
+    }
+
+    private File getProjectJarArtifact(final List<File> artifacts) throws MojoExecutionException {
+        final String fileName = String.format("%s.%s", project.getBuild().getFinalName(), project.getPackaging());
+        final List<File> executableArtifacts =  artifacts.stream()
+                .filter(file->isExecutableJar(file)).collect(Collectors.toList());
+        final List<File> finalArtifact = executableArtifacts.stream()
+                .filter(file->StringUtils.equals(fileName, file.getName())).collect(Collectors.toList());
+        if (executableArtifacts.size() == 0) {
+            throw new MojoExecutionException(NO_EXECUTABLE_JAR);
+        } else if (finalArtifact.size() > 1) {
+            throw new MojoExecutionException(String.format(MULTI_FINAL_NAME_JARS, fileName));
+        } else if (finalArtifact.size() == 0 && executableArtifacts.size() > 1) {
+            throw new MojoExecutionException(MULTI_EXECUTABLE_JARS);
+        }
+        return finalArtifact.size() > 0 ? finalArtifact.get(0) : executableArtifacts.get(0);
+    }
+
+    public static boolean isExecutableJar(File file) {
+        try (final FileInputStream fileInputStream = new FileInputStream(file);
+             final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
+            final Manifest manifest = jarInputStream.getManifest();
+            return manifest != null && manifest.getMainAttributes().getValue("Main-Class") != null;
+        } catch (IOException e) {
+            return false;
         }
     }
 }
