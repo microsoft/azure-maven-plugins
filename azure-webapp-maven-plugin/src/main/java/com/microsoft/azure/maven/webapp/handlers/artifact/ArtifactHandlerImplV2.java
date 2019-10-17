@@ -23,11 +23,10 @@ import java.util.Scanner;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.DEFAULT_APP_SERVICE_JAR_NAME;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.areAllWarFiles;
-import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getArtifactsRecursively;
+import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getArtifacts;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getContextPathFromFileName;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getRealWarDeployExecutor;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.hasWarFiles;
@@ -42,7 +41,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final String RENAMING_FAILED_MESSAGE = "Failed to rename artifact to %s, which is required in Java SE environment, " +
             "please refer https://docs.microsoft.com/en-us/azure/app-service/containers/configure-language-java#set-java-runtime-options for more information.";
     public static final String NO_EXECUTABLE_JAR = "No executable jar found in <resources>, please check the configuration";
-    public static final String MULTI_FINAL_NAME_JARS = "Multi executable jars with final name %s found in <resources>, please check the configuration";
     public static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
 
@@ -137,7 +135,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     protected List<File> getAllArtifacts(final String stagingDirectoryPath) {
         final File stagingDirectory = new File(stagingDirectoryPath);
-        return getArtifactsRecursively(stagingDirectory);
+        return getArtifacts(stagingDirectory);
     }
 
     protected void copyArtifactsToStagingDirectory() throws IOException, MojoExecutionException {
@@ -231,16 +229,14 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final String fileName = String.format("%s.%s", project.getBuild().getFinalName(), project.getPackaging());
         final List<File> executableArtifacts =  artifacts.stream()
                 .filter(file->isExecutableJar(file)).collect(Collectors.toList());
-        final List<File> finalArtifact = executableArtifacts.stream()
-                .filter(file->StringUtils.equals(fileName, file.getName())).collect(Collectors.toList());
+        final File finalArtifact = executableArtifacts.stream()
+                .filter(file->StringUtils.equals(fileName, file.getName())).findFirst().orElse(null);
         if (executableArtifacts.size() == 0) {
             throw new MojoExecutionException(NO_EXECUTABLE_JAR);
-        } else if (finalArtifact.size() > 1) {
-            throw new MojoExecutionException(String.format(MULTI_FINAL_NAME_JARS, fileName));
-        } else if (finalArtifact.size() == 0 && executableArtifacts.size() > 1) {
+        } else if (finalArtifact == null && executableArtifacts.size() > 1) {
             throw new MojoExecutionException(MULTI_EXECUTABLE_JARS);
         }
-        return finalArtifact.size() > 0 ? finalArtifact.get(0) : executableArtifacts.get(0);
+        return finalArtifact == null ? executableArtifacts.get(0) : finalArtifact;
     }
 
     public static boolean isExecutableJar(File file) {
