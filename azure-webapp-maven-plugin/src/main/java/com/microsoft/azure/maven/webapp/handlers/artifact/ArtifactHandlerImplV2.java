@@ -39,8 +39,9 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final String WEB_CONFIG = "web.config";
     private static final String RENAMING_MESSAGE = "Renaming %s to %s";
     private static final String RENAMING_FAILED_MESSAGE = "Failed to rename artifact to %s, which is required in Java SE environment, " +
-            "please refer https://docs.microsoft.com/en-us/azure/app-service/containers/configure-language-java#set-java-runtime-options for more information.";
-    public static final String NO_EXECUTABLE_JAR = "No executable jar found in <resources>, please check the configuration";
+            "refer to https://docs.microsoft.com/en-us/azure/app-service/containers/configure-language-java#set-java-runtime-options for details.";
+    public static final String NO_EXECUTABLE_JAR = "No executable jar found in target folder according to resource filter specified in <resources>, " +
+            "please make sure the resource filter is correct and you have built the jar.";
     public static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
 
@@ -207,7 +208,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
      * Rename project jar to app.jar for java se app service
      */
     private void prepareJavaSERuntime(final List<File> artifacts) throws MojoExecutionException {
-        if (isWebConfigExists(artifacts)) {
+        if (existsWebConfig(artifacts)) {
             return;
         }
         final File artifact = getProjectJarArtifact(artifacts);
@@ -221,7 +222,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
 
-    private boolean isWebConfigExists(final List<File> artifacts) {
+    private boolean existsWebConfig(final List<File> artifacts) {
         return artifacts.stream().anyMatch(file -> StringUtils.equals(file.getName(), WEB_CONFIG));
     }
 
