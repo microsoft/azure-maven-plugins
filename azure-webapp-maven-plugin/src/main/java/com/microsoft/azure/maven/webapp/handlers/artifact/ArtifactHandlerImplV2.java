@@ -185,12 +185,12 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     protected boolean isJavaSERuntime() {
         final boolean isJarProject = project != null && StringUtils.equalsIgnoreCase(project.getPackaging(), "jar");
-        if (runtimeSetting == null || runtimeSetting.isEmpty()) {
+        if (runtimeSetting == null || runtimeSetting.isEmpty() || isJarProject) {
             return isJarProject;
         }
         final String webContainer = runtimeSetting.getOsEnum() == OperatingSystemEnum.Windows ?
                 runtimeSetting.getWebContainer().toString() : runtimeSetting.getLinuxRuntime().stack();
-        return StringUtils.containsIgnoreCase(webContainer, "java") && isJarProject;
+        return StringUtils.containsIgnoreCase(webContainer, "java");
     }
 
     private File getProjectJarArtifact(final List<File> artifacts) {
