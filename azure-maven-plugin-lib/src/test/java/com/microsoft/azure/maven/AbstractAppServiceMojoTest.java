@@ -6,13 +6,14 @@
 
 package com.microsoft.azure.maven;
 
-import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertTrue;
+import java.nio.file.Paths;
+
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
@@ -37,9 +38,9 @@ public class AbstractAppServiceMojoTest {
         doReturn(buildDirectoryAbsolutePath).when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(appName).when(mojoSpy).getAppName();
 
-        final String stagingDirectoryPath = mojoSpy.getDeploymentStagingDirectoryPath();
-        assertTrue(StringUtils.contains(stagingDirectoryPath, buildDirectoryAbsolutePath));
-        assertTrue(StringUtils.contains(stagingDirectoryPath, "azure-functions"));
-        assertTrue(StringUtils.contains(stagingDirectoryPath, appName));
+        assertEquals(
+            mojoSpy.getDeploymentStagingDirectoryPath(),
+            Paths.get(buildDirectoryAbsolutePath, "azure-functions", appName).toString()
+        );
     }
 }

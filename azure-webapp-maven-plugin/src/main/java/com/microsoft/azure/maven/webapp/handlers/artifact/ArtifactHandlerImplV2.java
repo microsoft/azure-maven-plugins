@@ -40,7 +40,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final String RENAMING_MESSAGE = "Renaming %s to %s";
     private static final String RENAMING_FAILED_MESSAGE = "Failed to rename artifact to %s, which is required in Java SE environment, " +
             "refer to https://docs.microsoft.com/en-us/azure/app-service/containers/configure-language-java#set-java-runtime-options for details.";
-    private static final String NO_EXECUTABLE_JAR = "No executable jar found in target folder according to resource filter specified in <resources>, " +
+    private static final String NO_EXECUTABLE_JAR = "No executable jar found in target folder according to resource filter '%s', " +
             "please make sure the resource filter is correct and you have built the jar.";
     private static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
@@ -152,17 +152,16 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final File stagingDirectory = new File(stagingDirectoryPath);
         final File zipFile = new File(stagingDirectoryPath + ".zip");
         ZipUtil.pack(stagingDirectory, zipFile);
+        try {
+            FileUtils.forceDeleteOnExit(zipFile);
+        } catch (IOException e) {
+            // swallow this exception for it will not block deployment
+        }
         log.info(String.format("Deploying the zip package %s...", zipFile.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
-        final Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                target.zipDeploy(zipFile);
-            }
-        };
-        final boolean deploySuccess = performActionWithRetry(runnable, MAX_RETRY_TIMES, log);
+        final boolean deploySuccess = performActionWithRetry(() -> target.zipDeploy(zipFile), MAX_RETRY_TIMES, log);
         if (!deploySuccess) {
             throw new MojoExecutionException(
                     String.format("The zip deploy failed after %d times of retry.", MAX_RETRY_TIMES + 1));
@@ -224,16 +223,20 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     private File getProjectJarArtifact(final List<File> artifacts) throws MojoExecutionException {
         final String fileName = String.format("%s.%s", project.getBuild().getFinalName(), project.getPackaging());
-        final List<File> executableArtifacts =  artifacts.stream()
-                .filter(file->isExecutableJar(file)).collect(Collectors.toList());
+        final List<File> executableArtifacts = artifacts.stream()
+                .filter(file -> isExecutableJar(file)).collect(Collectors.toList());
         final File finalArtifact = executableArtifacts.stream()
-                .filter(file->StringUtils.equals(fileName, file.getName())).findFirst().orElse(null);
+                .filter(file -> StringUtils.equals(fileName, file.getName())).findFirst().orElse(null);
         if (executableArtifacts.size() == 0) {
-            throw new MojoExecutionException(NO_EXECUTABLE_JAR);
+            throw new MojoExecutionException(String.format(NO_EXECUTABLE_JAR, getResourceConfiguration()));
         } else if (finalArtifact == null && executableArtifacts.size() > 1) {
             throw new MojoExecutionException(MULTI_EXECUTABLE_JARS);
         }
         return finalArtifact == null ? executableArtifacts.get(0) : finalArtifact;
+    }
+
+    private String getResourceConfiguration() {
+        return resources.stream().map(resource -> resource.toString()).collect(Collectors.joining(","));
     }
 
     private static boolean existsWebConfig(final List<File> artifacts) {
