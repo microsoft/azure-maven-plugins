@@ -183,13 +183,14 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         }
     }
 
-    private boolean isJavaSERuntime() {
-        if (runtimeSetting != null) {
-            final String webContainer = runtimeSetting.getOsEnum() == OperatingSystemEnum.Windows ?
-                    runtimeSetting.getWebContainer().toString() : runtimeSetting.getLinuxRuntime().stack();
-            return StringUtils.containsIgnoreCase(webContainer, "java");
+    protected boolean isJavaSERuntime() {
+        final boolean isJarProject = project != null && StringUtils.equalsIgnoreCase(project.getPackaging(), "jar");
+        if (runtimeSetting == null || runtimeSetting.isEmpty()) {
+            return isJarProject;
         }
-        return false;
+        final String webContainer = runtimeSetting.getOsEnum() == OperatingSystemEnum.Windows ?
+                runtimeSetting.getWebContainer().toString() : runtimeSetting.getLinuxRuntime().stack();
+        return StringUtils.containsIgnoreCase(webContainer, "java") && isJarProject;
     }
 
     private File getProjectJarArtifact(final List<File> artifacts) {

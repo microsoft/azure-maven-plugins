@@ -6,15 +6,20 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
+import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
+import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -189,13 +196,53 @@ public class ArtifactHandlerImplV2Test {
         doNothing().when(log).info(anyString());
         final Deployment deployment = mock(Deployment.class);
         doReturn(deployment).when(mojo).getDeployment();
-
         buildHandler();
+        doReturn(false).when(handlerSpy).isJavaSERuntime();
         handlerSpy.publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
 
         verify(mojo, times(1)).getLog();
+        verify(handlerSpy,times(1)).isJavaSERuntime();
         verify(handlerSpy, times(1)).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
         verifyNoMoreInteractions(handlerSpy);
+    }
+
+    @Test
+    public void isJavaSERuntime() {
+        final MavenProject mavenProject = mock(MavenProject.class);
+        final RuntimeSetting runtimeSetting = mock(RuntimeSetting.class);
+        handler = new ArtifactHandlerImplV2.Builder()
+                .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
+                .log(mojo.getLog())
+                .project(mavenProject)
+                .runtime(runtimeSetting)
+                .build();
+        handlerSpy = spy(handler);
+        // No runtime setting, just check project packaging
+        doReturn("war").when(mavenProject).getPackaging();
+        doReturn(true).when(runtimeSetting).isEmpty();
+        assertFalse(handlerSpy.isJavaSERuntime());
+
+        doReturn("jar").when(mavenProject).getPackaging();
+        doReturn(true).when(runtimeSetting).isEmpty();
+        assertTrue(handlerSpy.isJavaSERuntime());
+        // Check windows java se runtime
+        doReturn(false).when(runtimeSetting).isEmpty();
+
+        doReturn(OperatingSystemEnum.Windows).when(runtimeSetting).getOsEnum();
+        doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(runtimeSetting).getWebContainer();
+        assertFalse(handlerSpy.isJavaSERuntime());
+
+        doReturn(OperatingSystemEnum.Windows).when(runtimeSetting).getOsEnum();
+        doReturn(WebContainer.fromString("java 8")).when(runtimeSetting).getWebContainer();
+        assertTrue(handlerSpy.isJavaSERuntime());
+        // Check linux java se runtime
+        doReturn(OperatingSystemEnum.Linux).when(runtimeSetting).getOsEnum();
+        doReturn(RuntimeStack.TOMCAT_8_5_JRE8).when(runtimeSetting).getLinuxRuntime();
+        assertFalse(handlerSpy.isJavaSERuntime());
+
+        doReturn(OperatingSystemEnum.Linux).when(runtimeSetting).getOsEnum();
+        doReturn(RuntimeStack.JAVA_8_JRE8).when(runtimeSetting).getLinuxRuntime();
+        assertTrue(handlerSpy.isJavaSERuntime());
     }
 
     @Test
