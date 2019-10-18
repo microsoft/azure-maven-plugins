@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -217,6 +218,12 @@ public class ArtifactHandlerImplV2Test {
                 .runtime(runtimeSetting)
                 .build();
         handlerSpy = spy(handler);
+
+        doReturn(false).when(runtimeSetting).isEmpty();
+        doReturn(OperatingSystemEnum.Windows).when(runtimeSetting).getOsEnum();
+        doReturn(WebContainer.fromString("java 8")).when(runtimeSetting).getWebContainer();
+        assertTrue(handlerSpy.isJavaSERuntime());
+
         // No runtime setting, just check project packaging
         doReturn("war").when(mavenProject).getPackaging();
         doReturn(true).when(runtimeSetting).isEmpty();
@@ -225,24 +232,16 @@ public class ArtifactHandlerImplV2Test {
         doReturn("jar").when(mavenProject).getPackaging();
         doReturn(true).when(runtimeSetting).isEmpty();
         assertTrue(handlerSpy.isJavaSERuntime());
-        // Check windows java se runtime
+
+
+        // Project with jar packaging will always be regarded as java se project
+        Mockito.reset(runtimeSetting);
         doReturn(false).when(runtimeSetting).isEmpty();
-
-        doReturn(OperatingSystemEnum.Windows).when(runtimeSetting).getOsEnum();
-        doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(runtimeSetting).getWebContainer();
-        assertFalse(handlerSpy.isJavaSERuntime());
-
-        doReturn(OperatingSystemEnum.Windows).when(runtimeSetting).getOsEnum();
-        doReturn(WebContainer.fromString("java 8")).when(runtimeSetting).getWebContainer();
+        doReturn("jar").when(mavenProject).getPackaging();
         assertTrue(handlerSpy.isJavaSERuntime());
-        // Check linux java se runtime
-        doReturn(OperatingSystemEnum.Linux).when(runtimeSetting).getOsEnum();
-        doReturn(RuntimeStack.TOMCAT_8_5_JRE8).when(runtimeSetting).getLinuxRuntime();
-        assertFalse(handlerSpy.isJavaSERuntime());
-
-        doReturn(OperatingSystemEnum.Linux).when(runtimeSetting).getOsEnum();
-        doReturn(RuntimeStack.JAVA_8_JRE8).when(runtimeSetting).getLinuxRuntime();
-        assertTrue(handlerSpy.isJavaSERuntime());
+        verify(runtimeSetting, times(0)).getOsEnum();
+        verify(runtimeSetting, times(0)).getWebContainer();
+        verify(runtimeSetting, times(0)).getLinuxRuntime();
     }
 
     @Test
