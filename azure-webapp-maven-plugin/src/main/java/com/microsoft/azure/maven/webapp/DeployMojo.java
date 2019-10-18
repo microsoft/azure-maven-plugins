@@ -15,6 +15,7 @@ import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -148,6 +149,9 @@ public class DeployMojo extends AbstractWebAppMojo {
                 isAppStopped = false;
 
                 info(START_APP_DONE);
+            }
+            if (stagingDirectory != null) {
+                FileUtils.forceDeleteOnExit(stagingDirectory);
             }
         }
     }

@@ -28,11 +28,14 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 /**
  * Base abstract class for Web App Mojos.
@@ -226,6 +229,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     private WebAppConfiguration webAppConfiguration;
 
+    protected File stagingDirectory;
+
     //endregion
 
     //region Getter
@@ -413,5 +418,25 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return map;
     }
 
+    @Override
+    public String getDeploymentStagingDirectoryPath() {
+        if (stagingDirectory == null) {
+            synchronized (this) {
+                if (stagingDirectory == null) {
+                    final String outputFolder = this.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
+                    final String stagingDirectoryPath  = Paths.get(
+                            this.getBuildDirectoryAbsolutePath(),
+                            outputFolder, String.format("%s-%s", this.getAppName(), UUID.randomUUID().toString())
+                    ).toString();
+                    stagingDirectory = new File(stagingDirectoryPath);
+                    // If staging directory doesn't exist, create one and delete it on exit
+                    if (!stagingDirectory.exists()) {
+                        stagingDirectory.mkdirs();
+                    }
+                }
+            }
+        }
+        return stagingDirectory.getPath();
+    }
     //endregion
 }
