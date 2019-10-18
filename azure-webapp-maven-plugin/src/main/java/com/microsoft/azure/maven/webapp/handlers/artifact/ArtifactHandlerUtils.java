@@ -16,7 +16,9 @@ import org.codehaus.plexus.util.StringUtils;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ArtifactHandlerUtils {
 
@@ -79,19 +81,9 @@ public class ArtifactHandlerUtils {
         return Paths.get(stagingDirectoryPath).relativize(Paths.get(filePath).getParent()).toString();
     }
 
-    public static List<File> getArtifactsRecursively(final File directory) {
-        final List<File> files = new ArrayList<File>();
-        if (directory.isDirectory()) {
-            final File[] subDirectories = directory.listFiles();
-            if (subDirectories != null) {
-                for (final File f : subDirectories) {
-                    files.addAll(getArtifactsRecursively(f));
-                }
-            }
-        } else {
-            files.add(directory);
-        }
-        return files;
+    public static List<File> getArtifacts(final File directory) {
+        final File[] files = directory.listFiles();
+        return Arrays.stream(files).filter(File::isFile).collect(Collectors.toList());
     }
 
     public static boolean areAllWarFiles(final List<File> allArtifacts) {
