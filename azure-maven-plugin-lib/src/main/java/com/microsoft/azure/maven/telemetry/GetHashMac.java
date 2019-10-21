@@ -35,7 +35,6 @@ import java.util.regex.Pattern;
 public class GetHashMac {
 
     private static final String MAC_REGEX = "([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}";
-    private static final String MAC_REGEX_ZERO = "([0]{2}[:-]){5}[0]{2}";
     private static final Pattern MAC_PATTERN = Pattern.compile(MAC_REGEX);
 
     public static final String[] UNIX_COMMAND = {"/sbin/ifconfig -a || /sbin/ip link"};
@@ -135,15 +134,13 @@ public class GetHashMac {
             final byte[] bytes = mac.getBytes("UTF-8");
             md.update(bytes);
             final byte[] bytesAfterDigest = md.digest();
-            final StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < bytesAfterDigest.length; i++) {
-                sb.append(Integer.toString((bytesAfterDigest[i] & 0xff) + 0x100, 16).substring(1));
+            final StringBuilder sb = new StringBuilder();
+            for (final byte b : bytesAfterDigest) {
+                sb.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
             }
 
             ret = sb.toString();
-        } catch (NoSuchAlgorithmException ex) {
-            return null;
-        } catch (UnsupportedEncodingException ex) {
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
             return null;
         }
 
