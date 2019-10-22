@@ -10,9 +10,9 @@ import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.FileUtils;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
@@ -150,13 +150,8 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             prepareJavaSERuntime(getAllArtifacts(stagingDirectoryPath));
         }
         final File stagingDirectory = new File(stagingDirectoryPath);
-        final File zipFile = new File(stagingDirectoryPath + ".zip");
+        final File zipFile = Utils.createTempFile(stagingDirectory.getName(), ".zip");
         ZipUtil.pack(stagingDirectory, zipFile);
-        try {
-            FileUtils.forceDeleteOnExit(zipFile);
-        } catch (IOException e) {
-            // swallow this exception for it will not block deployment
-        }
         log.info(String.format("Deploying the zip package %s...", zipFile.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.

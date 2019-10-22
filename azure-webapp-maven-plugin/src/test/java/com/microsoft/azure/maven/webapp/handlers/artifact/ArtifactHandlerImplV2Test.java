@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
-import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
@@ -37,6 +36,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -189,8 +189,7 @@ public class ArtifactHandlerImplV2Test {
         final DeployTarget target = mock(DeployTarget.class);
         final File zipTestDirectory = new File("src/test/resources/artifacthandlerv2");
         final String stagingDirectoryPath = zipTestDirectory.getAbsolutePath();
-        final File zipFile = new File(stagingDirectoryPath + ".zip");
-        doNothing().when(target).zipDeploy(zipFile);
+        doNothing().when(target).zipDeploy(any());
 
         final Log log = mock(Log.class);
         doReturn(log).when(mojo).getLog();
