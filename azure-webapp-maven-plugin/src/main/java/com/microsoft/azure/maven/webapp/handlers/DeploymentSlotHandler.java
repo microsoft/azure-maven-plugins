@@ -30,7 +30,6 @@ public class DeploymentSlotHandler {
         "Creating a new deployment slot and copying configuration from parent...";
     private static final String COPY_CONFIGURATION_FROM_SLOT =
         "Creating a new deployment slot and copying configuration from slot '%s'...";
-    private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created deployment slot.";
     private static final String UNKNOWN_CONFIGURATION_SOURCE =
         "Unknown <configurationSource> value for creating deployment slot. " +
             "Please use 'NEW', 'PARENT' or specify an existing slot.";
@@ -81,8 +80,6 @@ public class DeploymentSlotHandler {
             default:
                 throw new MojoExecutionException(UNKNOWN_CONFIGURATION_SOURCE);
         }
-
-        this.mojo.getLog().info(CREATE_DEPLOYMENT_SLOT_DONE);
     }
 
     protected void assureValidSlotSetting(final DeploymentSlotSetting slotSetting) throws MojoExecutionException {
