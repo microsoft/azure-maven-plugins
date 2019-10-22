@@ -37,9 +37,9 @@ public class GetHashMac {
     private static final String MAC_REGEX = "([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}";
     private static final Pattern MAC_PATTERN = Pattern.compile(MAC_REGEX);
 
-    public static final String[] UNIX_COMMAND = {"/sbin/ifconfig -a || /sbin/ip link"};
-    public static final String[] WINDOWS_COMMAND = {"getmac"};
-    public static final String[] INVALIDATE_MAC_ADDRESS = {"00:00:00:00:00:00", "ff:ff:ff:ff:ff:ff", "ac:de:48:00:11:22"};
+    private static final String[] UNIX_COMMAND = {"/sbin/ifconfig -a || /sbin/ip link"};
+    private static final String[] WINDOWS_COMMAND = {"getmac"};
+    private static final String[] INVALID_MAC_ADDRESS = {"00:00:00:00:00:00", "ff:ff:ff:ff:ff:ff", "ac:de:48:00:11:22"};
 
     public static String getHashMac() {
         String ret = null;
@@ -62,11 +62,14 @@ public class GetHashMac {
     }
 
     private static boolean isValidMac(String mac) {
+        if (StringUtils.isEmpty(mac)) {
+            return false;
+        }
         final String fixedMac = mac.replaceAll("-", ":");
         final boolean isMacAddress = StringUtils.isNotEmpty(fixedMac) && MAC_PATTERN.matcher(fixedMac).find();
-        final boolean isValidateMacAddress = !Arrays.stream(INVALIDATE_MAC_ADDRESS)
-                .anyMatch(invalidateMacAddress -> StringUtils.equalsIgnoreCase(fixedMac, invalidateMacAddress));
-        return isMacAddress && isValidateMacAddress;
+        final boolean isValidMacAddress = !Arrays.stream(INVALID_MAC_ADDRESS)
+                .anyMatch(invalidMacAddress -> StringUtils.equalsIgnoreCase(fixedMac, invalidMacAddress));
+        return isMacAddress && isValidMacAddress;
     }
 
     private static boolean isValidRawMac(String raw) {
@@ -124,7 +127,7 @@ public class GetHashMac {
     }
 
     private static String hash(String mac) {
-        if (mac == null || mac.isEmpty()) {
+        if (StringUtils.isEmpty(mac)) {
             return null;
         }
 
