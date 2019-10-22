@@ -213,11 +213,11 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         }
         final File artifact = getProjectJarArtifact(artifacts);
         final File renamedArtifact = new File(artifact.getParent(), DEFAULT_APP_SERVICE_JAR_NAME);
-        try {
+        if (!StringUtils.equals(artifact.getName(), DEFAULT_APP_SERVICE_JAR_NAME)) {
             log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_APP_SERVICE_JAR_NAME));
-            FileUtils.rename(artifact, renamedArtifact);
-        } catch (IOException e) {
-            throw new MojoExecutionException(String.format(RENAMING_FAILED_MESSAGE, DEFAULT_APP_SERVICE_JAR_NAME));
+            if (!artifact.renameTo(renamedArtifact)) {
+                throw new MojoExecutionException(String.format(RENAMING_FAILED_MESSAGE, DEFAULT_APP_SERVICE_JAR_NAME));
+            }
         }
     }
 
