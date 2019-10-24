@@ -25,6 +25,7 @@ import java.net.SocketException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -34,41 +35,53 @@ import java.util.regex.Pattern;
 public class GetHashMac {
 
     private static final String MAC_REGEX = "([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}";
-    private static final String MAC_REGEX_ZERO = "([0]{2}[:-]){5}[0]{2}";
     private static final Pattern MAC_PATTERN = Pattern.compile(MAC_REGEX);
 
+    private static final String[] UNIX_COMMAND = {"/sbin/ifconfig -a || /sbin/ip link"};
+    private static final String[] WINDOWS_COMMAND = {"getmac"};
+    private static final String[] INVALID_MAC_ADDRESS = {"00:00:00:00:00:00", "ff:ff:ff:ff:ff:ff", "ac:de:48:00:11:22"};
+
     public static String getHashMac() {
-        final String rawMac = getRawMac();
-        if (!isValidRawMac(rawMac)) {
-            return null;
-        }
+        String ret = null;
+        String rawMac = getRawMac();
+        rawMac = isValidRawMac(rawMac) ? rawMac : getRawMacWithNetworkInterface();
 
-        final Pattern patternZero = Pattern.compile(MAC_REGEX_ZERO);
-        final Matcher matcher = MAC_PATTERN.matcher(rawMac);
-        String mac = "";
-        while (matcher.find()) {
-            mac = matcher.group(0);
-            if (!patternZero.matcher(mac).matches()) {
-                break;
+        if (isValidRawMac(rawMac)) {
+            final Matcher matcher = MAC_PATTERN.matcher(rawMac);
+            String mac = "";
+            while (matcher.find()) {
+                mac = matcher.group(0);
+                if (isValidMac(mac)) {
+                    break;
+                }
             }
+            ret = hash(mac);
         }
 
-        return hash(mac);
+        return ret;
     }
 
-    private static boolean isValidRawMac(String mac) {
-        return StringUtils.isNotEmpty(mac) && MAC_PATTERN.matcher(mac).find();
+    private static boolean isValidMac(String mac) {
+        if (StringUtils.isEmpty(mac)) {
+            return false;
+        }
+        final String fixedMac = mac.replaceAll("-", ":");
+        final boolean isMacAddress = StringUtils.isNotEmpty(fixedMac) && MAC_PATTERN.matcher(fixedMac).find();
+        final boolean isValidMacAddress = !Arrays.stream(INVALID_MAC_ADDRESS)
+                .anyMatch(invalidMacAddress -> StringUtils.equalsIgnoreCase(fixedMac, invalidMacAddress));
+        return isMacAddress && isValidMacAddress;
+    }
+
+    private static boolean isValidRawMac(String raw) {
+        return StringUtils.isNotEmpty(raw) && MAC_PATTERN.matcher(raw).find();
     }
 
     private static String getRawMac() {
         final StringBuilder ret = new StringBuilder();
         try {
             final String os = System.getProperty("os.name").toLowerCase();
-            String[] command = {"ifconfig", "-a"};
-            if (os != null && !os.isEmpty() && os.startsWith("win")) {
-                command = new String[]{"getmac"};
-            }
-
+            final String[] command = StringUtils.startsWithIgnoreCase(os, "win") ?
+                    WINDOWS_COMMAND : UNIX_COMMAND;
             final ProcessBuilder builder = new ProcessBuilder(command);
             final Process process = builder.start();
             try (final InputStream inputStream = process.getInputStream();
@@ -83,7 +96,7 @@ public class GetHashMac {
                 throw new IOException("Command execute fail.");
             }
         } catch (IOException | InterruptedException ex) {
-            return getRawMacWithNetworkInterface();
+            return null;
         }
 
         return ret.toString();
@@ -114,7 +127,7 @@ public class GetHashMac {
     }
 
     private static String hash(String mac) {
-        if (mac == null || mac.isEmpty()) {
+        if (StringUtils.isEmpty(mac)) {
             return null;
         }
 
