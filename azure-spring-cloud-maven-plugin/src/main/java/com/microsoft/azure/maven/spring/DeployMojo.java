@@ -33,6 +33,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_DEPLOYMENT;
@@ -73,6 +74,9 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final String CONFIRM_PROMPT_UPDATE_DEPLOYMENT = "Update deployment [%s] in app [%s]";
     protected static final String CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT = "Set [%s] as the active deployment of app [%s]";
     protected static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
+
+    protected static final List<DeploymentResourceStatus> DEPLOYMENT_PROCESSING_STATUS =
+            Arrays.asList(DeploymentResourceStatus.COMPILING, DeploymentResourceStatus.ALLOCATING, DeploymentResourceStatus.UPGRADING);
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException {
@@ -171,7 +175,8 @@ public class DeployMojo extends AbstractSpringMojo {
     }
 
     protected boolean isDeploymentDone(DeploymentResourceInner deploymentResource) {
-        if (deploymentResource.properties().status() == DeploymentResourceStatus.PROCESSING) {
+        final DeploymentResourceStatus deploymentResourceStatus = deploymentResource.properties().status();
+        if (DEPLOYMENT_PROCESSING_STATUS.contains(deploymentResourceStatus)) {
             return false;
         }
         final String finalDiscoverStatus = BooleanUtils.isTrue(deploymentResource.properties().active()) ? "UP" : "OUT_OF_SERVICE";
