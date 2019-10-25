@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>azure-maven-plugin-lib</artifactId>
-    <version>1.2.11-SNAPSHOT</version>
+    <version>1.2.11</version>
     <packaging>jar</packaging>
     <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
@@ -35,7 +35,7 @@
         <powermock.version>2.0.2</powermock.version>
         <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
-        <azure.auth.helper.version>0.1.0-SNAPSHOT</azure.auth.helper.version>
+        <azure.auth.helper.version>0.1.0</azure.auth.helper.version>
     </properties>
 
     <licenses>
