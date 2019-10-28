@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure App Service" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.8.0](#180)
   - [1.7.0](#170)
   - [1.6.0](#160)
   - [1.5.4](#154)
@@ -14,6 +15,15 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.2.0](#120)
   - [1.1.0](#110)
   - [1.0.0](#100)
+
+## 1.8.0
+- Support OAuth and Device Login support to auth with Azure.[PR#843](https://github.com/microsoft/azure-maven-plugins/pull/843)
+- Support native Windows Java SE app service.[PR#850](https://github.com/microsoft/azure-maven-plugins/pull/850)
+- `config` will skip unsupported value according to project configuration.[PR#850](https://github.com/microsoft/azure-maven-plugins/pull/850)
+- Fix: `config` does not support lowercase characters.[#745](https://github.com/microsoft/azure-maven-plugins/issues/745)
+- Fix: Plugin will always modify `pom.xml` in project folder.[#757](https://github.com/microsoft/azure-maven-plugins/issues/757)
+- Fix: Fail to rename windows java se artifact to `app.jar`.[PR#865](https://github.com/microsoft/azure-maven-plugins/pull/865)
+- Fix: Plugin did not clean staging folder after deployment.[#869](https://github.com/microsoft/azure-maven-plugins/issues/869)
 
 ## 1.7.0
 - Support customize java options for Windows Java SE app service.[#640](https://github.com/microsoft/azure-maven-plugins/issues/640)
