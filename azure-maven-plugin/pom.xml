@@ -10,7 +10,7 @@
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
     <artifactId>azure-maven-plugin</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>Azure Plugin</name>
     <packaging>maven-plugin</packaging>
     <description>Azure Authentication library for java</description>
