@@ -1,11 +1,11 @@
 # Azure Spring Cloud Maven Plugin Quick Start
 
-Azure Spring Cloud Maven Plugin is intended to help you easily create and update Azure Spring Cloud Services.
- With this tooling, you could run the deploy jobs automatically with pre defined configuration.
+Azure Spring Cloud Maven Plugin helps you easily create and update Azure Spring Cloud Services.
+ This plugin enables clean integration between CI/CD pipelines and the Azure Spring Cloud Service.
 
 > NOTE:
 >
-> More features will be coming after the initial Private Preview announcement.
+> Look out for more features after the initial Private Preview announcement.
 
 ### Prerequisite
 
