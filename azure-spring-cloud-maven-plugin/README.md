@@ -179,7 +179,7 @@ Here are a sample configuration:
  > Note: <br> - if the ASC does not exist, this goal will fail with error messages.
  >       <br> - if you have not yet built the jar by `package` goal, this goal will fail with error messages.
  >       <br> - if this jar in *target* folder is not executable-jar , this goal will fail with error messages.
- >       <br> -	This goal require you to login using any way described in Authentication Methods section, if you have no configuration in \<auth> section, this goal will check if you have ever logged in with “azure:login” goal,  and if not, if will then check if you have ever logged in through azure cli, if not, it will execute “azure:login” goal and then continue the deploy process.
+ >       <br> - This goal requires you to login using any way described in Authentication Methods section, if you have no configuration in \<auth> section, this goal will check if you have ever logged in with “azure:login” goal,  and if not, if will then check if you have ever logged in through azure cli, if not, it will execute “azure:login” goal and then continue the deploy process.
 
 
 #### Multi-jar behavior
