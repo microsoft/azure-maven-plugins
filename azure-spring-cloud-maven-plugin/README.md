@@ -13,6 +13,8 @@
   - [Goals](#goals)
     - [`azure-spring-cloud:config`](#azure-spring-config)
     - [`azure-spring-cloud:deploy`](#azure-spring-deploy)
+  - [Feedback and Questions](#feedback-and-questions)
+  - [Data and Telemetry](#data-and-telemetry)
 
 ## Overview
 
@@ -33,7 +35,7 @@ This Azure Spring Cloud Maven plug-in helps developer configure and deploy micro
 Tool | Required Version
 ---|---
 JDK | 1.8 
-Maven | 3.5.x
+Maven | 3.x.x
 
 <a name="azure-spring-service-provisioning"></a>
 ### Provision a service instance on the Azure portal
@@ -112,7 +114,7 @@ All the settings will be validated before writing to the `pom.xml`, you should g
 
 <a name="azure-spring-deploy"></a>
 ### `azure-spring-cloud:deploy`
-- This goal triggers a deploy in Azure Spring Cloud. Before you execute *deploy* goal, you need to have the spring cluster created. This goal will create the app if the app doesn't exist(the default app name is the *artifactId* in *pom.xml*), upload the jar at *target* folder and update all the configuration in app and deployment. It will start the app if it is previously stopped. If the same jar is already deployed, only the configuration will be updated(it may not be implemented in version 0.1.0, but will be supported in later versions). This goal will quit until the deployment enters the final state: **Succeeded** or **Failed**. If the app is public and deployed successfully, this goal will print an endpoint of this app before exit. 
+- This goal triggers a deploy in Azure Spring Cloud. Before you execute *deploy* goal, you need to have the spring cluster created. This goal will create the app if the app doesn't exist(the default app name is the *artifactId* in *pom.xml*), upload the jar at *target* folder and update all the configuration in app and deployment. It will start the app if it is previously stopped. If the same jar is already deployed, only the configuration will be updated(it may not be implemented in version 1.0.0, but will be supported in later versions). This goal will quit until the deployment enters the final state: **Succeeded** or **Failed**. If the app is public and deployed successfully, this goal will print an endpoint of this app before exit. 
 
 App level Property | Required | Description
 ---|---|---
@@ -130,7 +132,7 @@ memoryInGB|  false| int | memory in GB
 jvmOptions|  false| string | jvm options
 instanceCount|  false| int | instance count
 environment|  false| key-value | environment variables
-volumes|  false| array of Volume | mounted disks, maximum of two mounting disks(one for persistent disk, another for temporary disk)
+enablePersistentStorage | false | boolean | whether or not to mount a persistent storage to `/persistent` folder(volume quota of 50 GB)
 resources | true | array of Resource | specifies where the resources are to be deployed.
 
 Resource level Property | Description
@@ -145,12 +147,13 @@ Here are a sample configuration:
 ```xml
 <groupId>com.microsoft.azure</groupId>
 <artifactId>azure-spring-maven-plugin</artifactId>
-<version>0.1.0</version>
+<version>1.0.0</version>
 <configuration>
-    <subscriptionId>685ba005-af8d-4b04-8f16-a7bf38b2eb5a</subscriptionId>
+    <subscriptionId>00000000-0000-0000-0000-000000000000</subscriptionId>
     <clusterName>testCluster1</clusterName>
     <appName>helloworld</appName>
     <isPublic>true</isPublic>>
+    <enablePersistentStorage>false<enablePersistentStorage>
     <deployment>
         <cpu>1</cpu>
         <memoryInGB>4</memoryInGB>
@@ -160,18 +163,6 @@ Here are a sample configuration:
         <environment>
             <foo>bar</foo>
         </environment>
-        <volumes>
-            <volume>
-                <path>/var/job-result-data</path>
-                <size>10G</size>
-                <persist>true</persist>
-            </volume>
-            <volume>
-                <path>/var/log/my-app-logs</path>
-                <size>10G</size>
-                <persist>true</persist>
-            </volume>
-        </volumes>
         <resources>
             <resource>
             <directory>${project.basedir}/target</directory>
@@ -198,3 +189,11 @@ Here are a sample configuration:
 - If executed in child folder
     - Only deploy that project.
 
+## FeedBack and Questions
+If you encounter any bugs with the maven plugins, please file an issue in the [Issues](https://github.com/microsoft/azure-maven-plugins/issues) section of our GitHub repo.
+
+## Data and Telemetry
+This project collects usage data and sends it to Microsoft to help improve our products and services.
+Read Microsoft's [privacy statement](https://privacy.microsoft.com/en-us/privacystatement) to learn more.
+If you would like to opt out of sending telemetry data to Microsoft, you can set `allowTelemetry` to false in the plugin configuration.
+Please read our [documents](https://aka.ms/azure-maven-config) to find more details.

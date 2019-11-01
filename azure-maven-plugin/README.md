@@ -21,7 +21,7 @@ Azure Maven plugin provides basic functions for all Azure maven plugins, eg: log
 Tool | Required Version
 ---|---
 JDK | 1.8 
-Maven | 3.5.x
+Maven | 3.x.x
 
 <a name="goals"></a>
 ## Goals
