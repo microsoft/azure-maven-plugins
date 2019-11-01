@@ -11,9 +11,6 @@
   - [Configure Your Applications](#configuration)
   - [Deploy to Azure](#deploy)
   - [Goals](#goals)
-    - [`azure:login`](#azure-login)
-    - [`azure:select-subscription`](#azure-select-subscription)
-    - [`azure:logout`](#azure-logout)
     - [`azure-spring-cloud:config`](#azure-spring-config)
     - [`azure-spring-cloud:deploy`](#azure-spring-deploy)
 
