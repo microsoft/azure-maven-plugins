@@ -82,7 +82,7 @@ Deploy an App to Azure Spring Cloud is easy, you can run `mvn azure-spring-cloud
 
 With **advanced** mode by executing `mvn azure-spring-cloud:config -DadvancedOptions`, you will be promoted with some additional steps:
 
-* provide the following parameters (press ENTER to keep current value unchanged):
+* provide the following parameters (press ENTER to use default value):
     * instanceCount
     * cpu
     * memoryInGB
