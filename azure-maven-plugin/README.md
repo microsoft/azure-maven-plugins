@@ -4,7 +4,6 @@
   - [Overview](#overview)
     - [AzureMaven Plugin](#azure-login-overview)
   - [Prerequisites](#prerequisites)
-  - [Authentication](#authentication)
   - [Goals](#goals)
     - [`azure:login`](#azure-login)
     - [`azure:select-subscription`](#azure-select-subscription)
