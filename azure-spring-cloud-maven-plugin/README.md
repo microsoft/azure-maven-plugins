@@ -72,7 +72,7 @@ Deploy an App to Azure Spring Cloud is easy, you can run `mvn azure-spring-cloud
 
 <a name="azure-spring-config"></a>
 ### `azure-spring-cloud:config`
-- This goal will set up the plugin configuration used in `azure-spring-cloud:deploy` through a step by step wizard. It will require you to login using any way described in [Authentication Methods](#Authentication) section. You will proceed with the following steps, after you have finished these steps, the configuration for *azure-spring-maven-plugin*  will be filled with values you selected during the wizard, then you can execute `azure-spring-cloud:deploy`. With **default** mode, you will be promoted with the following steps:
+- This goal will set up the plugin configuration used in `azure-spring-cloud:deploy` through a step by step wizard. It will require you to login using any way described in [Authentication Methods](#Authentication) section. You will proceed with the following steps, after you have finished these steps, the configuration for *azure-spring-cloud-maven-plugin*  will be filled with values you selected during the wizard, then you can execute `azure-spring-cloud:deploy`. With **default** mode, you will be promoted with the following steps:
 
 - select or confirm default subscription: **subscriptionId** (if there is only one subscription available in your account, the **subscriptionId** will be set automatically)
 - select or confirm Azure Spring Cloud: **clusterName**(if there is only one cluster available in your subscription, the **clusterName** will be set automatically)
@@ -92,8 +92,8 @@ All the settings will be validated before writing to the `pom.xml`, you should g
 
  > Note:  <br> - the pom.xml will be modified by this goal if you select *yes* in last step(by default is **yes**).
  >        <br> - if you have no cluster created, this goal will fail with error messages.
- >        <br> - if you don't have *azure-spring-maven-plugin* in  **\<build>\<plugins>** section, a new *azure-spring-maven-plugin* section will be added to the existing *pom.xml* with configuration collected. 
- >        <br> - if you have already existing properties configured in **azure-spring-maven-plugin**, the *config* goal will exit without errors(this means you cannot **config** twice for the same project unless you delete the configuration manually), the **\<auth>** section in **\<configuration>** is not considered as spring configuration.
+ >        <br> - if you don't have *azure-spring-cloud-maven-plugin* in  **\<build>\<plugins>** section, a new *azure-spring-maven-cloud-plugin* section will be added to the existing *pom.xml* with configuration collected. 
+ >        <br> - if you have already existing properties configured in **azure-spring-cloud-maven-plugin**, the *config* goal will exit without errors(this means you cannot **config** twice for the same project unless you delete the configuration manually), the **\<auth>** section in **\<configuration>** is not considered as spring configuration.
  >        <br> The properties not asked in the steps will be filled with default values.
  >        <br> It is OK to have no **\<auth>** section, in this case, this goal will seek credentials from `azure-secret.json`, *azure cli token* and cloud shell token(MSI Credential). If none of above ways fails, this goal will trigger an `azure:login` goal to get the credential. If this project has an **\<auth>** section, this goal will only get credentials from configuration from **\<auth>** section, if there are any errors during getting credentials, this goal will fail.
 
@@ -146,7 +146,7 @@ Here are a sample configuration:
 
 ```xml
 <groupId>com.microsoft.azure</groupId>
-<artifactId>azure-spring-maven-plugin</artifactId>
+<artifactId>azure-spring-cloud-maven-plugin</artifactId>
 <version>1.0.0</version>
 <configuration>
     <subscriptionId>00000000-0000-0000-0000-000000000000</subscriptionId>
