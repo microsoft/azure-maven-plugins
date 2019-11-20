@@ -6,16 +6,16 @@
 
 package com.microsoft.azure.maven.function.handlers.artifact;
 
-import static com.microsoft.azure.maven.function.Constants.APP_SETTING_WEBSITE_RUN_FROM_PACKAGE;
-
-import java.io.File;
-import java.time.Period;
-
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
+
+import java.io.File;
+import java.time.Period;
+
+import static com.microsoft.azure.maven.function.Constants.APP_SETTING_WEBSITE_RUN_FROM_PACKAGE;
 
 /**
  * RunFromBlobArtifactHandlerImpl

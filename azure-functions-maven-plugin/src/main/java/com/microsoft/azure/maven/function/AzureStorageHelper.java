@@ -52,9 +52,9 @@ public class AzureStorageHelper {
         final SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
         policy.setPermissions(EnumSet.of(SharedAccessBlobPermissions.READ));
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime sasStartTime = now.minusMinutes(SAS_START_RESERVE_MINUTE);
-        LocalDateTime sasExpireTime = now.plus(period);
+        final LocalDateTime now = LocalDateTime.now();
+        final LocalDateTime sasStartTime = now.minusMinutes(SAS_START_RESERVE_MINUTE);
+        final LocalDateTime sasExpireTime = now.plus(period);
         policy.setSharedAccessStartTime(DateUtils.convertLocalDateTimeToDate(sasStartTime));
         policy.setSharedAccessExpiryTime(DateUtils.convertLocalDateTimeToDate(sasExpireTime));
 
