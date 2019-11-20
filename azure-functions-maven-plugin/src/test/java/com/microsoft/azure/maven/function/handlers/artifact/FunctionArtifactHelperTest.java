@@ -36,7 +36,7 @@ public class FunctionArtifactHelperTest {
         doReturn(storageSetting).when(mapSettings).get(anyString());
         doReturn(storageConnection).when(storageSetting).value();
         final Log log = mock(Log.class);
-        final CloudStorageAccount storageAccount = FunctionArtifactHelper.getCloudStorageAccount(deployTarget, log);
+        final CloudStorageAccount storageAccount = FunctionArtifactHelper.getCloudStorageAccount(deployTarget);
         assertNotNull(storageAccount);
     }
 
@@ -50,7 +50,7 @@ public class FunctionArtifactHelperTest {
         final Log log = mock(Log.class);
         String exceptionMessage = null;
         try {
-            FunctionArtifactHelper.getCloudStorageAccount(deployTarget, log);
+            FunctionArtifactHelper.getCloudStorageAccount(deployTarget);
         } catch (Exception e) {
             exceptionMessage = e.getMessage();
         } finally {
@@ -63,7 +63,7 @@ public class FunctionArtifactHelperTest {
         String exceptionMessage = null;
         final Log log = mock(Log.class);
         try {
-            FunctionArtifactHelper.createZipPackage("", log);
+            FunctionArtifactHelper.createFunctionArtifact("");
         } catch (Exception e) {
             exceptionMessage = e.getMessage();
         } finally {

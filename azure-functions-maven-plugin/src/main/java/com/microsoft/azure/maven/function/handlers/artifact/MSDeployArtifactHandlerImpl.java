@@ -61,7 +61,7 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
     public void publish(final DeployTarget target) throws Exception {
         final File zipPackage = createZipPackage();
 
-        final CloudStorageAccount storageAccount = FunctionArtifactHelper.getCloudStorageAccount(target, log);
+        final CloudStorageAccount storageAccount = FunctionArtifactHelper.getCloudStorageAccount(target);
 
         final String blobName = getBlobName();
 
@@ -91,7 +91,7 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
     protected File createZipPackage() throws Exception {
         logInfo("");
         logInfo(CREATE_ZIP_START);
-        final File zipPackage = FunctionArtifactHelper.createZipPackage(stagingDirectoryPath, log);
+        final File zipPackage = FunctionArtifactHelper.createFunctionArtifact(stagingDirectoryPath);
         logInfo(CREATE_ZIP_DONE + stagingDirectoryPath.concat(Constants.ZIP_EXT));
         return zipPackage;
     }

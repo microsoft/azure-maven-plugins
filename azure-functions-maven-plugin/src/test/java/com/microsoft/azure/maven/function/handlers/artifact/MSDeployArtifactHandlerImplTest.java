@@ -80,7 +80,7 @@ public class MSDeployArtifactHandlerImplTest {
         buildHandler();
 
         PowerMockito.mockStatic(FunctionArtifactHelper.class);
-        when(FunctionArtifactHelper.getCloudStorageAccount(any(), any())).thenReturn(null);
+        when(FunctionArtifactHelper.getCloudStorageAccount(any())).thenReturn(null);
         doReturn("").when(handlerSpy).uploadPackageToAzureStorage(file, null, "");
         doReturn("").when(handlerSpy).getBlobName();
         doReturn(mapSettings).when(deployTarget).getAppSettings();

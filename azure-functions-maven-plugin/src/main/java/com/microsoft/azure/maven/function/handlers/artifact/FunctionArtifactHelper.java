@@ -24,28 +24,23 @@ public class FunctionArtifactHelper {
 
     private static final String STAGE_DIR_NOT_FOUND = "Azure Functions stage directory not found. " +
             "Please run 'mvn package azure-functions:package' first.";
-    private static final String REMOVE_LOCAL_SETTINGS = "Remove local.settings.json from ZIP package.";
-    private static final String UNSUPPORTED_DEPLOYMENT_TARGET = "Unsupported deployment target, only function is supported";
     private static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found.";
-    private static final String INTERNAL_STORAGE_CONNECTION_STRING = "Azure Function App's Storage Connection String: ";
 
-    public static File createZipPackage(final String stagingDirectoryPath, final Log log) throws Exception {
+    public static File createFunctionArtifact(final String stagingDirectoryPath) throws Exception {
         final File stageDirectory = new File(stagingDirectoryPath);
         final File zipPackage = new File(stagingDirectoryPath.concat(Constants.ZIP_EXT));
 
         if (!stageDirectory.exists()) {
-            log.error(STAGE_DIR_NOT_FOUND);
             throw new Exception(STAGE_DIR_NOT_FOUND);
         }
 
         ZipUtil.pack(stageDirectory, zipPackage);
-        log.debug(REMOVE_LOCAL_SETTINGS);
         ZipUtil.removeEntry(zipPackage, LOCAL_SETTINGS_FILE);
 
         return zipPackage;
     }
 
-    public static CloudStorageAccount getCloudStorageAccount(final DeployTarget target, final Log log) throws Exception {
+    public static CloudStorageAccount getCloudStorageAccount(final DeployTarget target) throws Exception {
         final Map<String, AppSetting> settingsMap = target.getAppSettings();
 
         if (settingsMap != null) {
@@ -53,12 +48,10 @@ public class FunctionArtifactHelper {
             if (setting != null) {
                 final String value = setting.value();
                 if (StringUtils.isNotEmpty(value)) {
-                    log.debug(INTERNAL_STORAGE_CONNECTION_STRING + value);
                     return CloudStorageAccount.parse(value);
                 }
             }
         }
-        log.error(INTERNAL_STORAGE_NOT_FOUND);
         throw new Exception(INTERNAL_STORAGE_NOT_FOUND);
     }
 }
