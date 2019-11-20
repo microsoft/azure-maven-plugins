@@ -10,7 +10,6 @@ import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.storage.CloudStorageAccount;
-import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 
 import java.util.Map;
@@ -35,7 +34,6 @@ public class FunctionArtifactHelperTest {
         doReturn(mapSettings).when(deployTarget).getAppSettings();
         doReturn(storageSetting).when(mapSettings).get(anyString());
         doReturn(storageConnection).when(storageSetting).value();
-        final Log log = mock(Log.class);
         final CloudStorageAccount storageAccount = FunctionArtifactHelper.getCloudStorageAccount(deployTarget);
         assertNotNull(storageAccount);
     }
@@ -47,7 +45,6 @@ public class FunctionArtifactHelperTest {
         final Map appSettings = mock(Map.class);
         doReturn(appSettings).when(app).getAppSettings();
         doReturn(null).when(appSettings).get(anyString());
-        final Log log = mock(Log.class);
         String exceptionMessage = null;
         try {
             FunctionArtifactHelper.getCloudStorageAccount(deployTarget);
@@ -61,13 +58,12 @@ public class FunctionArtifactHelperTest {
     @Test
     public void testCreateZipPackageWithException() {
         String exceptionMessage = null;
-        final Log log = mock(Log.class);
         try {
             FunctionArtifactHelper.createFunctionArtifact("");
         } catch (Exception e) {
             exceptionMessage = e.getMessage();
         } finally {
-            assertEquals("Azure Functions stage directory not found. Please run 'mvn package" +
+            assertEquals("Azure Functions stage directory not found. Please run 'mvn clean" +
                     " azure-functions:package' first.", exceptionMessage);
         }
     }
