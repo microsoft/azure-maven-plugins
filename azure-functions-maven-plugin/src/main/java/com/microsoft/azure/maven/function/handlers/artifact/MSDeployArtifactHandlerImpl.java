@@ -61,7 +61,7 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
     public void publish(final DeployTarget target) throws Exception {
         final File zipPackage = createZipPackage();
 
-        final CloudStorageAccount storageAccount = FunctionArtifactHelper.getCloudStorageAccount(target,log);
+        final CloudStorageAccount storageAccount = FunctionArtifactHelper.getCloudStorageAccount(target, log);
 
         final String blobName = getBlobName();
 
@@ -106,7 +106,7 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
                                                  final String blobName) throws Exception {
         logInfo(UPLOAD_PACKAGE_START);
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
-        DEPLOYMENT_PACKAGE_CONTAINER, blobName);
+                DEPLOYMENT_PACKAGE_CONTAINER, blobName);
         final String packageUri = blob.getUri().toString();
         logInfo(UPLOAD_PACKAGE_DONE + packageUri);
         return packageUri;

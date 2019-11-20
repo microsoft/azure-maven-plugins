@@ -39,7 +39,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({MSDeployArtifactHandlerImpl.class,FunctionArtifactHelper.class })
+@PrepareForTest({MSDeployArtifactHandlerImpl.class, FunctionArtifactHelper.class})
 public class MSDeployArtifactHandlerImplTest {
     @Mock
     AbstractFunctionMojo mojo;
