@@ -37,6 +37,7 @@
         <semver.version>0.9.0</semver.version>
         <surefire.version>2.22.0</surefire.version>
         <jacoco.version>0.8.4</jacoco.version>
+        <powermock.version>2.0.2</powermock.version>
     </properties>
 
     <repositories>
@@ -269,6 +270,18 @@
             <artifactId>org.jacoco.agent</artifactId>
             <version>${jacoco.version}</version>
             <classifier>runtime</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
