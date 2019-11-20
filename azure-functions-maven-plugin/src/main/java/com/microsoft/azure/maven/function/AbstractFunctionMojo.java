@@ -10,6 +10,8 @@ import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.function.configurations.ElasticPremiumPricingTier;
+import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -70,6 +72,9 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.region", defaultValue = "westeurope")
     protected String region;
 
+    @Parameter(property = "functions.runtime")
+    protected RuntimeConfiguration runtime;
+
     //endregion
 
     //region get App Settings
@@ -90,7 +95,12 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     //region Getter
 
     public PricingTier getPricingTier() throws MojoExecutionException {
-        return StringUtils.isEmpty(pricingTier) ? null : AppServiceUtils.getPricingTierFromString(pricingTier);
+        if (StringUtils.isEmpty(pricingTier)) {
+            return null;
+        }
+        final ElasticPremiumPricingTier elasticPremiumPricingTier = ElasticPremiumPricingTier.fromString(pricingTier);
+        return elasticPremiumPricingTier != null ? elasticPremiumPricingTier.toPricingTier()
+                : AppServiceUtils.getPricingTierFromString(pricingTier);
     }
 
     public String getRegion() {
