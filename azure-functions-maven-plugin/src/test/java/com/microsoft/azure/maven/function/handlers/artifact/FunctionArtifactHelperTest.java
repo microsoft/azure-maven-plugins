@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 public class FunctionArtifactHelperTest {
 
     @Test
-    public void getCloudStorageAccount() throws Exception {
+    public void testGetCloudStorageAccount() throws Exception {
         final String storageConnection =
                 "DefaultEndpointsProtocol=https;AccountName=123456;AccountKey=12345678;EndpointSuffix=core.windows.net";
         final Map mapSettings = mock(Map.class);
@@ -41,7 +41,7 @@ public class FunctionArtifactHelperTest {
     }
 
     @Test
-    public void getCloudStorageAccountWithException() {
+    public void testGetCloudStorageAccountWithException() {
         final FunctionApp app = mock(FunctionApp.class);
         final DeployTarget deployTarget = mock(DeployTarget.class);
         final Map appSettings = mock(Map.class);
@@ -59,7 +59,7 @@ public class FunctionArtifactHelperTest {
     }
 
     @Test
-    public void createZipPackageWithException() {
+    public void testCreateZipPackageWithException() {
         String exceptionMessage = null;
         final Log log = mock(Log.class);
         try {
