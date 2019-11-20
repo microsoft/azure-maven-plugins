@@ -23,14 +23,14 @@ import static com.microsoft.azure.maven.function.Constants.LOCAL_SETTINGS_FILE;
 public class FunctionArtifactHelper {
 
     private static final String STAGE_DIR_NOT_FOUND = "Azure Functions stage directory not found. " +
-            "Please run 'mvn package azure-functions:package' first.";
+            "Please run 'mvn clean azure-functions:package' first.";
     private static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found.";
 
     public static File createFunctionArtifact(final String stagingDirectoryPath) throws Exception {
         final File stageDirectory = new File(stagingDirectoryPath);
         final File zipPackage = new File(stagingDirectoryPath.concat(Constants.ZIP_EXT));
 
-        if (!stageDirectory.exists()) {
+        if (!stageDirectory.exists() || !stageDirectory.isDirectory()) {
             throw new Exception(STAGE_DIR_NOT_FOUND);
         }
 
