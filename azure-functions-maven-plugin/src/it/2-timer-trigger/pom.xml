@@ -55,12 +55,6 @@
                     <resourceGroup>${functionResourceGroup}</resourceGroup>
                     <appName>${functionAppName}</appName>
                     <region>${functionAppRegion}</region>
-                    <appSettings>
-                        <property>
-                            <name>FUNCTIONS_EXTENSION_VERSION</name>
-                            <value>beta</value>
-                        </property>
-                    </appSettings>
                 </configuration>
                 <executions>
                     <execution>
