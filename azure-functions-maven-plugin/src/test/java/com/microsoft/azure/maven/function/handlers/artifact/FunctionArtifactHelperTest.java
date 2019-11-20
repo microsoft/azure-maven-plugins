@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.function.handlers.artifact;
 
 import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import org.junit.Test;
@@ -18,8 +19,7 @@ import static com.microsoft.azure.maven.function.Constants.INTERNAL_STORAGE_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 public class FunctionArtifactHelperTest {
 
@@ -56,7 +56,46 @@ public class FunctionArtifactHelperTest {
     }
 
     @Test
-    public void testCreateZipPackageWithException() {
+    public void testUpdateAppSetting() throws Exception {
+        final DeployTarget deployTarget = mock(DeployTarget.class);
+        final FunctionApp functionApp = mock(FunctionApp.class);
+        doReturn(functionApp).when(deployTarget).getApp();
+        final FunctionApp.Update update = mock(FunctionApp.Update.class);
+        doReturn(update).when(functionApp).update();
+        doReturn(update).when(update).withAppSetting(any(), any());
+        doReturn(functionApp).when(update).apply();
+        final String appSettingKey = "KEY";
+        final String appSettingValue = "VALUE";
+        FunctionArtifactHelper.updateAppSetting(deployTarget, appSettingKey, appSettingValue);
+
+        verify(deployTarget, times(1)).getApp();
+        verify(functionApp, times(1)).update();
+        verify(update, times(1)).withAppSetting(appSettingKey, appSettingValue);
+        verify(update, times(1)).apply();
+        verifyNoMoreInteractions(update);
+        verifyNoMoreInteractions(functionApp);
+        verifyNoMoreInteractions(deployTarget);
+    }
+
+    @Test
+    public void testUpdateAppSettingWithException(){
+        final DeployTarget deployTarget = mock(DeployTarget.class);
+        final WebApp webapp = mock(WebApp.class);
+        doReturn(webapp).when(deployTarget).getApp();
+        final String appSettingKey = "KEY";
+        final String appSettingValue = "VALUE";
+        String exceptionMessage = null;
+        try {
+            FunctionArtifactHelper.updateAppSetting(deployTarget, appSettingKey, appSettingValue);
+        } catch (Exception e) {
+            exceptionMessage = e.getMessage();
+        } finally {
+            assertEquals("Unsupported deployment target, only function is supported", exceptionMessage);
+        }
+    }
+
+    @Test
+    public void testCreateFunctionArtifactWithException() {
         String exceptionMessage = null;
         try {
             FunctionArtifactHelper.createFunctionArtifact("");
