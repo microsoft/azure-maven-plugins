@@ -21,7 +21,7 @@ import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
