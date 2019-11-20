@@ -27,7 +27,7 @@ import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
