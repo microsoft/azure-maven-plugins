@@ -32,8 +32,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
             "meet the requirement, change it from %s to java";
     private static final String FUNCTIONS_EXTENSION_VERSION_NAME = "FUNCTIONS_EXTENSION_VERSION";
     private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~2";
-    private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Set default functions extension version";
-    private static final String CHANGE_FUNCTIONS_EXTENSION_VERSION  = "Functions extension version " +
+    private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
             "isn't configured, setting up the default value";
 
     //region Properties
@@ -86,15 +85,16 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Override
     public Map getAppSettings() {
         final Map settings = super.getAppSettings();
-        setDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
+        forceDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
                 FUNCTIONS_WORKER_RUNTIME_VALUE, CHANGE_FUNCTIONS_WORKER_RUNTIME);
         setDefaultAppSetting(settings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
-                FUNCTIONS_EXTENSION_VERSION_VALUE, CHANGE_FUNCTIONS_EXTENSION_VERSION);
+                FUNCTIONS_EXTENSION_VERSION_VALUE);
         return settings;
     }
 
-    private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
-                                      String settingValue, String changeSettingMessage) {
+    private void forceDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
+                                        String settingValue, String changeSettingMessage) {
+
         final String setting = (String) result.get(settingName);
         if (StringUtils.isEmpty(setting)) {
             info(settingIsEmptyMessage);
@@ -102,6 +102,16 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
             warning(String.format(changeSettingMessage, setting));
         }
         result.put(settingName, settingValue);
+    }
+
+    private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
+                                        String settingValue) {
+
+        final String setting = (String) result.get(settingName);
+        if (StringUtils.isEmpty(setting)) {
+            info(settingIsEmptyMessage);
+            result.put(settingName, settingValue);
+        }
     }
     //endregion
 
