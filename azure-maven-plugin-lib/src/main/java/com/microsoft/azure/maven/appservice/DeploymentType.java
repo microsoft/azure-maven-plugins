@@ -19,7 +19,9 @@ public enum DeploymentType {
     AUTO,
     NONE,
     EMPTY,
-    MSDEPLOY;
+    MSDEPLOY,
+    RUN_FROM_ZIP,
+    RUN_FROM_BLOB;
 
     public static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown.";
 
@@ -43,6 +45,10 @@ public enum DeploymentType {
                 return AUTO;
             case "NONE":
                 return NONE;
+            case "RUN_FROM_ZIP":
+                return RUN_FROM_ZIP;
+            case "RUN_FROM_BLOB":
+                return RUN_FROM_BLOB;
             default:
                 throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }

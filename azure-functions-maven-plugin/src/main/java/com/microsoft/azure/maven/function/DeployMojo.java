@@ -14,15 +14,20 @@ import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Ne
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
 import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -174,10 +179,16 @@ public class DeployMojo extends AbstractFunctionMojo {
             case FTP:
                 builder = new FTPArtifactHandlerImpl.Builder();
                 break;
-            case EMPTY:
             case ZIP:
                 builder = new ZIPArtifactHandlerImpl.Builder();
                 break;
+            case RUN_FROM_BLOB:
+                builder = new RunFromBlobArtifactHandlerImpl.Builder();
+                break;
+            case RUN_FROM_ZIP:
+                builder = new RunFromZipArtifactHandlerImpl.Builder();
+                break;
+            case EMPTY:
             default:
                 throw new MojoExecutionException(
                     "The value of <deploymentType> is unknown, supported values are: ftp, zip and msdeploy.");
