@@ -16,14 +16,14 @@ import java.io.File;
 import java.io.FileInputStream;
 
 public class AzureStorageHelper {
-    public static String uploadFileAsBlob(final File fileToUpload, final CloudStorageAccount storageAccount,
+    public static CloudBlockBlob uploadFileAsBlob(final File fileToUpload, final CloudStorageAccount storageAccount,
                                           final String containerName, final String blobName) throws Exception {
         final CloudBlobContainer blobContainer = getBlobContainer(storageAccount, containerName);
         blobContainer.createIfNotExists(BlobContainerPublicAccessType.BLOB, null, null);
 
         final CloudBlockBlob blob = blobContainer.getBlockBlobReference(blobName);
         blob.upload(new FileInputStream(fileToUpload), fileToUpload.length());
-        return blob.getUri().toString();
+        return blob;
     }
 
     public static void deleteBlob(final CloudStorageAccount storageAccount, final String containerName,

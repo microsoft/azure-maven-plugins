@@ -31,6 +31,7 @@ public class Binding {
     static {
         //initialize required attributes, which will be saved to function.json even if it equals to its default value
         requiredAttributeMap.put(BindingEnum.EventHubTrigger, Arrays.asList("cardinality"));
+        requiredAttributeMap.put(BindingEnum.HttpTrigger, Arrays.asList("authLevel"));
     }
 
     public Binding(BindingEnum bindingEnum) {
