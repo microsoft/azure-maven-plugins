@@ -85,15 +85,15 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Override
     public Map getAppSettings() {
         final Map settings = super.getAppSettings();
-        forceDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
+        overrideDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
                 FUNCTIONS_WORKER_RUNTIME_VALUE, CHANGE_FUNCTIONS_WORKER_RUNTIME);
         setDefaultAppSetting(settings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
                 FUNCTIONS_EXTENSION_VERSION_VALUE);
         return settings;
     }
 
-    private void forceDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
-                                        String settingValue, String changeSettingMessage) {
+    private void overrideDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
+                                           String settingValue, String changeSettingMessage) {
 
         final String setting = (String) result.get(settingName);
         if (StringUtils.isEmpty(setting)) {
