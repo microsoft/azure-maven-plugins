@@ -98,7 +98,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         final String setting = (String) result.get(settingName);
         if (StringUtils.isEmpty(setting)) {
             info(settingIsEmptyMessage);
-        } else if (!settingValue.equals(setting)) {
+        } else if (!setting.equals(settingValue)) {
             warning(String.format(changeSettingMessage, setting));
         }
         result.put(settingName, settingValue);
