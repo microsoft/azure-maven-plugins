@@ -22,9 +22,9 @@ import com.microsoft.azure.management.appservice.implementation.AppServiceManage
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.appservice.DeploymentType;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
-import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
-import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.maven.handlers.ArtifactHandler;
+import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
