@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
@@ -227,6 +228,22 @@ public class DeployMojoTest extends MojoTestBase {
         mojo.configureAppSettings(withCreate::withAppSettings, mojo.getAppSettings());
 
         verify(withCreate, times(1)).withAppSettings(anyMap());
+    }
+
+    @Test
+    public void testDefaultAppSettings() throws Exception {
+        Map settings = mojo.getAppSettings();
+        assertEquals("java", (String) settings.get("FUNCTIONS_WORKER_RUNTIME"));
+        assertEquals("~2", (String) settings.get("FUNCTIONS_EXTENSION_VERSION"));
+    }
+
+    @Test
+    public void testCustomAppSettings() throws Exception {
+        final DeployMojo mojoWithSettings = (DeployMojo) getMojoFromPom("/pom-with-settings.xml", "deploy");
+        Map settings = mojoWithSettings.getAppSettings();
+        assertEquals("bar", (String) settings.get("FOO"));
+        assertEquals("java", (String) settings.get("FUNCTIONS_WORKER_RUNTIME"));
+        assertEquals("beta", (String) settings.get("FUNCTIONS_EXTENSION_VERSION"));
     }
 
     @Test
