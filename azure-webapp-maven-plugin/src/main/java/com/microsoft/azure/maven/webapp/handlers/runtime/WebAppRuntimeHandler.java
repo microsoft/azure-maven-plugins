@@ -6,38 +6,21 @@
 
 package com.microsoft.azure.maven.webapp.handlers.runtime;
 
-import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.OperatingSystem;
-import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.handlers.runtime.BaseRuntimeHandler;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.StringUtils;
 
 public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
     protected RuntimeStack runtime;
     protected JavaVersion javaVersion;
     protected WebContainer webContainer;
-    protected String appName;
-    protected String resourceGroup;
-    protected Region region;
-    protected PricingTier pricingTier;
-    protected String servicePlanName;
-    protected String servicePlanResourceGroup;
-    protected Azure azure;
-    protected Settings settings;
-    protected String image;
-    protected String serverId;
-    protected String registryUrl;
-    protected Log log;
 
     public abstract static class Builder<T extends WebAppRuntimeHandler.Builder<T>> extends BaseRuntimeHandler.Builder<T> {
         protected RuntimeStack runtime;
