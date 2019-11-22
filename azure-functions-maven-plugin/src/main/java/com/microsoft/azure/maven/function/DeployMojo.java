@@ -182,10 +182,10 @@ public class DeployMojo extends AbstractFunctionMojo {
             case RUN_FROM_BLOB:
                 builder = new RunFromBlobArtifactHandlerImpl.Builder();
                 break;
+            case EMPTY:
             case RUN_FROM_ZIP:
                 builder = new RunFromZipArtifactHandlerImpl.Builder();
                 break;
-            case EMPTY:
             default:
                 throw new MojoExecutionException(
                     "The value of <deploymentType> is unknown, supported values are: ftp, zip and msdeploy.");
