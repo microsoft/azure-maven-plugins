@@ -8,10 +8,11 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.appservice.DeploymentType;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
-import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
-import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.maven.handlers.ArtifactHandler;
+import com.microsoft.azure.maven.handlers.RuntimeHandler;
+import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
+import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
@@ -20,7 +21,7 @@ import com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.artifact.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.artifact.NONEArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.artifact.WarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.runtime.BaseRuntimeHandler;
+import com.microsoft.azure.maven.webapp.handlers.runtime.WebAppRuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.runtime.LinuxRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.NullRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateDockerHubRuntimeHandlerImpl;
@@ -44,7 +45,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
         if (config.getOs() == null) {
             return new NullRuntimeHandlerImpl();
         }
-        final BaseRuntimeHandler.Builder builder;
+        final WebAppRuntimeHandler.Builder builder;
         switch (config.getOs()) {
             case Windows:
                 builder = new WindowsRuntimeHandlerImpl.Builder().javaVersion(config.getJavaVersion())
@@ -70,10 +71,10 @@ public class HandlerFactoryImpl extends HandlerFactory {
             .build();
     }
 
-    protected BaseRuntimeHandler.Builder getDockerRuntimeHandlerBuilder(final WebAppConfiguration config)
+    protected WebAppRuntimeHandler.Builder getDockerRuntimeHandlerBuilder(final WebAppConfiguration config)
         throws MojoExecutionException {
 
-        final BaseRuntimeHandler.Builder builder;
+        final WebAppRuntimeHandler.Builder builder;
         final DockerImageType imageType = WebAppUtils.getDockerImageType(config.getImage(), config.getServerId(),
             config.getRegistryUrl());
         switch (imageType) {

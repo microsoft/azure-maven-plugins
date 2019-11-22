@@ -15,8 +15,8 @@ import org.apache.maven.settings.Server;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
 
-public class PrivateDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<Builder> {
+public class PrivateDockerHubRuntimeHandlerImpl extends WebAppRuntimeHandler {
+    public static class Builder extends WebAppRuntimeHandler.Builder<Builder> {
         @Override
         protected PrivateDockerHubRuntimeHandlerImpl.Builder self() {
             return this;

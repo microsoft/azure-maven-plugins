@@ -15,14 +15,13 @@ import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.StringUtils;
 
-public abstract class BaseRuntimeHandler implements RuntimeHandler {
+public abstract class WebAppRuntimeHandler extends com.microsoft.azure.maven.handlers.runtime.BaseRuntimeHandler<WebApp> {
     protected RuntimeStack runtime;
     protected JavaVersion javaVersion;
     protected WebContainer webContainer;
@@ -131,7 +130,7 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
             return self();
         }
 
-        public abstract BaseRuntimeHandler build();
+        public abstract WebAppRuntimeHandler build();
 
         protected abstract T self();
 
@@ -154,7 +153,7 @@ public abstract class BaseRuntimeHandler implements RuntimeHandler {
 
     protected abstract OperatingSystem getAppServicePlatform();
 
-    protected BaseRuntimeHandler(Builder<?> builder) {
+    protected WebAppRuntimeHandler(Builder<?> builder) {
         this.runtime = builder.runtime;
         this.javaVersion = builder.javaVersion;
         this.webContainer = builder.webContainer;
