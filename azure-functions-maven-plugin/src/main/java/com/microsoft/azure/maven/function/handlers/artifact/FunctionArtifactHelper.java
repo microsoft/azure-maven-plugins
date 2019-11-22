@@ -43,12 +43,12 @@ public class FunctionArtifactHelper {
         return zipPackage;
     }
 
-    public static void updateAppSetting(final DeployTarget target, final String key, final String value) throws MojoExecutionException {
-        final WebAppBase webAppBase = target.getApp();
-        if (!(webAppBase instanceof FunctionApp)) {
+    public static void updateAppSetting(final DeployTarget deployTarget, final String key, final String value) throws MojoExecutionException {
+        final WebAppBase targetApp = deployTarget.getApp();
+        if (!(targetApp instanceof FunctionApp)) {
             throw new MojoExecutionException(UNSUPPORTED_DEPLOYMENT_TARGET);
         }
-        final FunctionApp functionApp = (FunctionApp) webAppBase;
+        final FunctionApp functionApp = (FunctionApp) targetApp;
         functionApp.update().withAppSetting(key, value).apply();
     }
 
