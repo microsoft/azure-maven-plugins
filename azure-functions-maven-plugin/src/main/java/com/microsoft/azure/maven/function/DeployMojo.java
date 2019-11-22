@@ -16,10 +16,11 @@ import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
-import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
-import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
+import com.microsoft.azure.maven.handlers.ArtifactHandler;
+import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
+import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
@@ -172,7 +173,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 builder = new MSDeployArtifactHandlerImpl.Builder().functionAppName(this.getAppName());
                 break;
             case FTP:
-                builder = new FTPArtifactHandlerImpl.Builder();
+                builder = new RunFromBlobArtifactHandlerImpl.Builder();
                 break;
             case EMPTY:
             case ZIP:
