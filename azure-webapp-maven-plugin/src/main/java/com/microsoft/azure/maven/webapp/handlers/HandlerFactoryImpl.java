@@ -90,7 +90,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
             default:
                 throw new MojoExecutionException("Invalid docker runtime configured.");
         }
-        return builder.image(config.getImage()).serverId(config.getServerId()).registryUrl(config.getRegistryUrl());
+        return (WebAppRuntimeHandler.Builder) builder.image(config.getImage()).serverId(config.getServerId()).registryUrl(config.getRegistryUrl());
     }
 
     @Override

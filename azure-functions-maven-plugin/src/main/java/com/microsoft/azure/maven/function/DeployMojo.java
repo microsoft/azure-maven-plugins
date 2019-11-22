@@ -16,12 +16,14 @@ import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -174,9 +176,15 @@ public class DeployMojo extends AbstractFunctionMojo {
             case FTP:
                 builder = new FTPArtifactHandlerImpl.Builder();
                 break;
-            case EMPTY:
             case ZIP:
                 builder = new ZIPArtifactHandlerImpl.Builder();
+                break;
+            case RUN_FROM_BLOB:
+                builder = new RunFromBlobArtifactHandlerImpl.Builder();
+                break;
+            case EMPTY:
+            case RUN_FROM_ZIP:
+                builder = new RunFromZipArtifactHandlerImpl.Builder();
                 break;
             default:
                 throw new MojoExecutionException(
