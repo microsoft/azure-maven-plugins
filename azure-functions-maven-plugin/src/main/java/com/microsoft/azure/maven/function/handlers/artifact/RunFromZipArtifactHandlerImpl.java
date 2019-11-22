@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.maven.function.handlers.artifact;
 
-import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.IOException;
