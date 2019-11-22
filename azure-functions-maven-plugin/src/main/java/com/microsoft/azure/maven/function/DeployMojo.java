@@ -16,6 +16,7 @@ import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
