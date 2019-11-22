@@ -55,6 +55,7 @@ Maven | 3.0 or above
                     <schemaVersion>v2</schemaVersion>
                     <resourceGroup>${RESOURCEGROUP_NAME}</resourceGroup>
                     <appName>${WEBAPP_NAME}</appName>
+                    <region>${REGION}</region>
                     <runtime>
                         <os>linux</os>
                         <javaVersion>jre8</javaVersion>
