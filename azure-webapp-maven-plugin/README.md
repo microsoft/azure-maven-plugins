@@ -31,10 +31,10 @@ and makes it easier for developers to deploy your applications to following type
 
 Tool | Required Version
 ---|---
-JDK | 1.7 or above
+JDK | 1.8 or above
 Maven | 3.0 or above
 ## Quick Start
-1. Make sure you have already authenticated in Azure. You can use the Azure CLI 2.0 for authentication. More authentication methods can be found [here](../docs/common-configuration.md).
+1. Make sure you have already authenticated in Azure. You can use the Azure CLI 2.0 for authentication. You can either use maven plugin for authentication if you don't plan to install Azure CLI, see [here](../azure-maven-plugin/authentication.md) for all authentication methods.
 
    - Install the Azure CLI 2.0 by following the instructions in the [Install Azure CLI 2.0](https://docs.microsoft.com/cli/azure/install-azure-cli) article.
    - Run the following commands to log into your Azure subscription：
@@ -50,11 +50,12 @@ Maven | 3.0 or above
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <!-- check Maven Central for the latest version -->
-                <version>1.7.0</version>
+                <version>1.8.0</version>
                 <configuration>
                     <schemaVersion>v2</schemaVersion>
                     <resourceGroup>${RESOURCEGROUP_NAME}</resourceGroup>
                     <appName>${WEBAPP_NAME}</appName>
+                    <region>${REGION}</region>
                     <runtime>
                         <os>linux</os>
                         <javaVersion>jre8</javaVersion>

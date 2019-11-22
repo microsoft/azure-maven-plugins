@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.artifacthandler;
+package com.microsoft.azure.maven.handlers.artifact;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.FunctionApp;
@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import java.io.IOException;
 
 import static org.junit.Assert.assertFalse;

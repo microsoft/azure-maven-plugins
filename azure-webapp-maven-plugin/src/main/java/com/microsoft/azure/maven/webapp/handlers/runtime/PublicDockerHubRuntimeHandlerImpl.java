@@ -11,8 +11,8 @@ import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 
-public class PublicDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<PublicDockerHubRuntimeHandlerImpl.Builder> {
+public class PublicDockerHubRuntimeHandlerImpl extends WebAppRuntimeHandler {
+    public static class Builder extends WebAppRuntimeHandler.Builder<PublicDockerHubRuntimeHandlerImpl.Builder> {
         @Override
         protected PublicDockerHubRuntimeHandlerImpl.Builder self() {
             return this;
