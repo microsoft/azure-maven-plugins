@@ -173,7 +173,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 builder = new MSDeployArtifactHandlerImpl.Builder().functionAppName(this.getAppName());
                 break;
             case FTP:
-                builder = new RunFromBlobArtifactHandlerImpl.Builder();
+                builder = new FTPArtifactHandlerImpl.Builder();
                 break;
             case EMPTY:
             case ZIP:

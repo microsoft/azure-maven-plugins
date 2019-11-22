@@ -240,16 +240,16 @@ public class DeployMojoTest extends MojoTestBase {
         assertTrue(handler instanceof MSDeployArtifactHandlerImpl);
     }
 
-//    @Test
-//    public void getFTPArtifactHandler() throws MojoExecutionException {
-//        doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
-//        doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
-//        doReturn(DeploymentType.FTP).when(mojoSpy).getDeploymentType();
-//        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
-//
-//        assertNotNull(handler);
-//        assertTrue(handler instanceof FTPArtifactHandlerImpl);
-//    }
+    @Test
+    public void getFTPArtifactHandler() throws MojoExecutionException {
+        doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
+        doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
+        doReturn(DeploymentType.FTP).when(mojoSpy).getDeploymentType();
+        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
+
+        assertNotNull(handler);
+        assertTrue(handler instanceof FTPArtifactHandlerImpl);
+    }
 
     @Test
     public void getZIPArtifactHandler() throws MojoExecutionException {
