@@ -22,6 +22,7 @@ import static com.microsoft.azure.maven.function.Constants.APP_SETTING_WEBSITE_R
  */
 public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
 
+    public static final int SAS_EXPIRE_DATE_BY_YEAR = 10;
     public static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-run-from-packages";
 
     public static class Builder extends ArtifactHandlerBase.Builder<RunFromBlobArtifactHandlerImpl.Builder> {
@@ -44,9 +45,16 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
     public void publish(DeployTarget deployTarget) throws Exception {
         final File zipPackage = FunctionArtifactHelper.createFunctionArtifact(stagingDirectoryPath);
         final CloudStorageAccount storageAccount = FunctionArtifactHelper.getCloudStorageAccount(deployTarget);
+        final CloudBlockBlob blob = deployArtifactToAzureStorage(deployTarget, zipPackage, storageAccount);
+        final String sasToken = AzureStorageHelper.getSASToken(blob, Period.ofYears(SAS_EXPIRE_DATE_BY_YEAR));
+        FunctionArtifactHelper.updateAppSetting(deployTarget, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, sasToken);
+    }
+
+    private CloudBlockBlob deployArtifactToAzureStorage(DeployTarget deployTarget, File zipPackage, CloudStorageAccount storageAccount) throws Exception {
+        log.info(String.format(DEPLOY_START, deployTarget.getName()));
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, zipPackage.getName());
-        final String sasToken = AzureStorageHelper.getSASToken(blob, Period.ofYears(10));
-        FunctionArtifactHelper.updateAppSetting(deployTarget, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, sasToken);
+        log.info(String.format(DEPLOY_FINISH, blob.getUri().toString()));
+        return blob;
     }
 }
