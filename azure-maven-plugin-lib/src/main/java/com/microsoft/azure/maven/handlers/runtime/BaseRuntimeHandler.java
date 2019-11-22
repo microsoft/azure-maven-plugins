@@ -6,23 +6,128 @@
 
 package com.microsoft.azure.maven.handlers.runtime;
 
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.settings.Settings;
 
-public class BaseRuntimeHandler<T extends WebAppBase> implements RuntimeHandler<T> {
-    @Override
-    public WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
-        return null;
+public abstract class BaseRuntimeHandler<T extends WebAppBase> implements RuntimeHandler<T> {
+
+    protected String appName;
+    protected String resourceGroup;
+    protected Region region;
+    protected PricingTier pricingTier;
+    protected String servicePlanName;
+    protected String servicePlanResourceGroup;
+    protected Azure azure;
+    protected Settings settings;
+    protected String image;
+    protected String serverId;
+    protected String registryUrl;
+    protected Log log;
+
+    public abstract static class Builder<T extends Builder<T>> {
+        protected String appName;
+        protected String resourceGroup;
+        protected Region region;
+        protected PricingTier pricingTier;
+        protected String servicePlanName;
+        protected String servicePlanResourceGroup;
+        protected Azure azure;
+        protected Settings settings;
+        protected String image;
+        protected String serverId;
+        protected String registryUrl;
+        protected Log log;
+
+        public T appName(final String value) {
+            this.appName = value;
+            return self();
+        }
+
+        public T resourceGroup(final String value) {
+            this.resourceGroup = value;
+            return self();
+        }
+
+        public T region(final Region value) {
+            this.region = value;
+            return self();
+        }
+
+        public T pricingTier(final PricingTier value) {
+            this.pricingTier = value;
+            return self();
+        }
+
+        public T servicePlanName(final String value) {
+            this.servicePlanName = value;
+            return self();
+        }
+
+        public T servicePlanResourceGroup(final String value) {
+            this.servicePlanResourceGroup = value;
+            return self();
+        }
+
+        public T azure(final Azure value) {
+            this.azure = value;
+            return self();
+        }
+
+        public T mavenSettings(final Settings value) {
+            this.settings = value;
+            return self();
+        }
+
+        public T log(final Log value) {
+            this.log = value;
+            return self();
+        }
+
+        public T image(final String value) {
+            this.image = value;
+            return self();
+        }
+
+        public T serverId(final String value) {
+            this.serverId = value;
+            return self();
+        }
+
+        public T registryUrl(final String value) {
+            this.registryUrl = value;
+            return self();
+        }
+
+        public abstract BaseRuntimeHandler build();
+
+        protected abstract T self();
+
     }
 
-    @Override
-    public WebAppBase.Update updateAppRuntime(T app) throws Exception {
-        return null;
+    protected BaseRuntimeHandler(Builder<?> builder) {
+        this.appName = builder.appName;
+        this.resourceGroup = builder.resourceGroup;
+        this.region = builder.region;
+        this.pricingTier = builder.pricingTier;
+        this.servicePlanName = builder.servicePlanName;
+        this.servicePlanResourceGroup = builder.servicePlanResourceGroup;
+        this.azure = builder.azure;
+        this.settings = builder.settings;
+        this.image = builder.image;
+        this.serverId = builder.serverId;
+        this.registryUrl = builder.registryUrl;
+        this.log = builder.log;
     }
 
-    @Override
-    public AppServicePlan updateAppServicePlan(T app) throws Exception {
-        return null;
-    }
+    public abstract WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception;
+
+    public abstract WebAppBase.Update updateAppRuntime(T app) throws Exception;
+
+    public abstract AppServicePlan updateAppServicePlan(T app) throws Exception;
 }
