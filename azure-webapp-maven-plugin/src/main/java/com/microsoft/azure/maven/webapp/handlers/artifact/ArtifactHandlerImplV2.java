@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
+import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;

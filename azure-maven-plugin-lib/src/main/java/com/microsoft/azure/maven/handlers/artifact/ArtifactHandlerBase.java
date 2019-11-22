@@ -4,9 +4,10 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.artifacthandler;
+package com.microsoft.azure.maven.handlers.artifact;
 
 import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;

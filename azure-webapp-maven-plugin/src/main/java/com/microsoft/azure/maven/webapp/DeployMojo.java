@@ -11,10 +11,10 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
-import com.microsoft.azure.maven.webapp.handlers.RuntimeHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -66,7 +66,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void createWebApp(final RuntimeHandler runtimeHandler) throws Exception {
         info(WEBAPP_NOT_EXIST);
 
-        final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
+        final WithCreate withCreate = (WithCreate) runtimeHandler.defineAppWithRuntime();
         getFactory().getSettingsHandler(this).processSettings(withCreate);
         withCreate.create();
 
@@ -77,7 +77,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         // Update App Service Plan
         runtimeHandler.updateAppServicePlan(app);
         // Update Web App
-        final Update update = runtimeHandler.updateAppRuntime(app);
+        final Update update = (Update) runtimeHandler.updateAppRuntime(app);
         if (update == null) {
             info(UPDATE_WEBAPP_SKIP);
         } else {
