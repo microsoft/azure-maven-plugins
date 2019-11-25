@@ -105,6 +105,9 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     }
 
     public Map getAppSettings() {
+        if (appSettings == null) {
+            appSettings = new Properties();
+        }
         return appSettings;
     }
 
