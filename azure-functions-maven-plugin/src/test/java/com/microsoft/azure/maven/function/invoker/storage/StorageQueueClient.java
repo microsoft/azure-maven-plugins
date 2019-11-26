@@ -34,7 +34,7 @@ public class StorageQueueClient {
         queue.addMessage(message);
     }
 
-    public String peekNextMessageFrom(String queueName) throws Exception  {
+    public String peekNextMessageFrom(String queueName) throws Exception {
         final CloudQueue queue = queueClient.getQueueReference(queueName);
         final CloudQueueMessage peekedMessage = queue.peekMessage();
         if (peekedMessage != null) {

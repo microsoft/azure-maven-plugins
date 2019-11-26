@@ -11,7 +11,6 @@ import com.microsoft.azure.maven.function.AzureStorageHelper;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.time.Period;
