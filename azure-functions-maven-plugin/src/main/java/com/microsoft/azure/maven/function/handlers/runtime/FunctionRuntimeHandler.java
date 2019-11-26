@@ -49,7 +49,6 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
         return StringUtils.isEmpty(servicePlanResourceGroup) ? resourceGroup : servicePlanResourceGroup;
     }
 
-
     protected ResourceGroup getResourceGroup() {
         return azure.resourceGroups().getByName(resourceGroup);
     }

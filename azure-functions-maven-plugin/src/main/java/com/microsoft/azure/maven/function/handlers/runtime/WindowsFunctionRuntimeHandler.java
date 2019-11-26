@@ -35,7 +35,7 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
         final FunctionApp.DefinitionStages.Blank functionApp = defineFunction();
         FunctionApp.DefinitionStages.WithCreate withCreate;
         if (appServicePlan == null) {
-            FunctionApp.DefinitionStages.NewAppServicePlanWithGroup withRegion = functionApp.withRegion(this.region);
+            final FunctionApp.DefinitionStages.NewAppServicePlanWithGroup withRegion = functionApp.withRegion(this.region);
             if (getResourceGroup() == null) {
                 withCreate = withRegion.withNewResourceGroup(resourceGroup);
             } else {
@@ -47,7 +47,7 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
                 withCreate = withCreate.withNewAppServicePlan(pricingTier);
             }
         } else {
-            FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup withGroup = functionApp.withExistingAppServicePlan(appServicePlan);
+            final FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup withGroup = functionApp.withExistingAppServicePlan(appServicePlan);
             if (getResourceGroup() == null) {
                 withCreate = withGroup.withNewResourceGroup(resourceGroup);
             } else {

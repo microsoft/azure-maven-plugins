@@ -13,7 +13,7 @@ import com.microsoft.azure.management.appservice.WebAppBase;
 
 public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
 
-    public static class Builder extends FunctionRuntimeHandler.Builder<Builder>{
+    public static class Builder extends FunctionRuntimeHandler.Builder<Builder> {
 
         @Override
         public FunctionRuntimeHandler build() {
@@ -34,10 +34,10 @@ public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
     public WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
         final AppServicePlan appServicePlan = getAppServicePlan();
         final FunctionApp.DefinitionStages.Blank functionApp = defineFunction();
-        FunctionApp.DefinitionStages.WithCreate withCreate;
-        FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage;
+        final FunctionApp.DefinitionStages.WithCreate withCreate;
+        final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage;
         if (appServicePlan == null) {
-            FunctionApp.DefinitionStages.NewAppServicePlanWithGroup withRegion = functionApp.withRegion(this.region);
+            final FunctionApp.DefinitionStages.NewAppServicePlanWithGroup withRegion = functionApp.withRegion(this.region);
             if (getResourceGroup() == null) {
                 withCreate = withRegion.withNewResourceGroup(resourceGroup);
             } else {
@@ -49,7 +49,7 @@ public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
                 withDockerContainerImage = withCreate.withNewLinuxAppServicePlan(pricingTier);
             }
         } else {
-            FunctionApp.DefinitionStages.ExistingLinuxPlanWithGroup withGroup = functionApp.withExistingLinuxAppServicePlan(appServicePlan);
+            final FunctionApp.DefinitionStages.ExistingLinuxPlanWithGroup withGroup = functionApp.withExistingLinuxAppServicePlan(appServicePlan);
             if (getResourceGroup() == null) {
                 withDockerContainerImage = withGroup.withNewResourceGroup(resourceGroup);
             } else {
