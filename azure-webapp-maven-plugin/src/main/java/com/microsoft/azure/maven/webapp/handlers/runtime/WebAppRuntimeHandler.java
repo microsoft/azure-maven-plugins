@@ -59,7 +59,7 @@ public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
             app.update().withExistingAppServicePlan(newAppServicePlan).apply();
             return WebAppUtils.updateAppServicePlan(newAppServicePlan, pricingTier, log);
         } else {
-            return WebAppUtils.updateAppServicePlan(appServicePlan, pricingTier, log);
+            return WebAppUtils.updateAppServicePlan(appServicePlan, null, log);
         }
     }
 
