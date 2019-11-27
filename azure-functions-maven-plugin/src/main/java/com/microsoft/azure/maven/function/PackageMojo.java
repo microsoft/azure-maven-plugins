@@ -21,6 +21,7 @@ import com.microsoft.azure.maven.function.handlers.CommandHandler;
 import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.Resource;
@@ -28,6 +29,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -191,7 +193,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected String getScriptFilePath() {
         return new StringBuilder()
                 .append("..")
-                .append(File.separator)
+                .append("/")
                 .append(getFinalName())
                 .append(".jar")
                 .toString();
@@ -250,7 +252,10 @@ public class PackageMojo extends AbstractFunctionMojo {
             throws IOException {
         targetFile.getParentFile().mkdirs();
         targetFile.createNewFile();
-        objectWriter.writeValue(targetFile, object);
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        objectWriter.writeValue(byteArrayOutputStream, object);
+        // Change line of end to LF, refers https://stackoverflow.com/questions/3776923/how-can-i-normalize-the-eol-character-in-java
+        FileUtils.write(targetFile, byteArrayOutputStream.toString().replaceAll("\\r\\n?", "\n"));
     }
 
     protected ObjectWriter getObjectWriter() {
