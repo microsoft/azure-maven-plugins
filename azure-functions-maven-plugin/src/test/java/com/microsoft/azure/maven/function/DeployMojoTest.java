@@ -22,12 +22,12 @@ import com.microsoft.azure.management.appservice.implementation.AppServiceManage
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.appservice.DeploymentType;
-import com.microsoft.azure.maven.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
-import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.maven.handlers.ArtifactHandler;
+import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
+import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
@@ -232,7 +232,7 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void testDefaultAppSettings() throws Exception {
-        Map settings = mojo.getAppSettings();
+        final Map settings = mojo.getAppSettings();
         assertEquals("java", (String) settings.get("FUNCTIONS_WORKER_RUNTIME"));
         assertEquals("~2", (String) settings.get("FUNCTIONS_EXTENSION_VERSION"));
     }
@@ -240,7 +240,7 @@ public class DeployMojoTest extends MojoTestBase {
     @Test
     public void testCustomAppSettings() throws Exception {
         final DeployMojo mojoWithSettings = (DeployMojo) getMojoFromPom("/pom-with-settings.xml", "deploy");
-        Map settings = mojoWithSettings.getAppSettings();
+        final Map settings = mojoWithSettings.getAppSettings();
         assertEquals("bar", (String) settings.get("FOO"));
         assertEquals("java", (String) settings.get("FUNCTIONS_WORKER_RUNTIME"));
         assertEquals("beta", (String) settings.get("FUNCTIONS_EXTENSION_VERSION"));
