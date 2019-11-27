@@ -17,7 +17,7 @@ import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.handlers.artifact.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.artifact.WarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.LinuxRuntimeHandlerImpl;

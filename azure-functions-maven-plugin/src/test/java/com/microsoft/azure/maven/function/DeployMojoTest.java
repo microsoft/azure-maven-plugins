@@ -7,7 +7,6 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.AppServicePlans;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
@@ -17,7 +16,6 @@ import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionApps;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
@@ -25,6 +23,8 @@ import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.runtime.FunctionRuntimeHandler;
+import com.microsoft.azure.maven.function.handlers.runtime.WindowsFunctionRuntimeHandler;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
@@ -50,7 +50,6 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -92,12 +91,14 @@ public class DeployMojoTest extends MojoTestBase {
         doCallRealMethod().when(mojoSpy).createOrUpdateFunctionApp();
         doCallRealMethod().when(mojoSpy).getAppName();
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
-        doNothing().when(mojoSpy).updateFunctionApp(app);
+        final FunctionRuntimeHandler functionRuntimeHandler = mock(FunctionRuntimeHandler.class);
+        doReturn(functionRuntimeHandler).when(mojoSpy).getFunctionRuntimeHandler();
+        doNothing().when(mojoSpy).updateFunctionApp(app, functionRuntimeHandler);
 
         mojoSpy.doExecute();
         verify(mojoSpy, times(1)).createOrUpdateFunctionApp();
         verify(mojoSpy, times(1)).doExecute();
-        verify(mojoSpy, times(1)).updateFunctionApp(any(FunctionApp.class));
+        verify(mojoSpy, times(1)).updateFunctionApp(any(FunctionApp.class), any(FunctionRuntimeHandler.class));
         verify(handler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(handler);
     }
@@ -105,11 +106,13 @@ public class DeployMojoTest extends MojoTestBase {
     @Test
     public void createFunctionAppIfNotExist() throws Exception {
         doReturn(null).when(mojoSpy).getFunctionApp();
-        doNothing().when(mojoSpy).createFunctionApp();
+        final FunctionRuntimeHandler functionRuntimeHandler = mock(FunctionRuntimeHandler.class);
+        doReturn(functionRuntimeHandler).when(mojoSpy).getFunctionRuntimeHandler();
+        doNothing().when(mojoSpy).createFunctionApp(functionRuntimeHandler);
 
         mojoSpy.createOrUpdateFunctionApp();
 
-        verify(mojoSpy).createFunctionApp();
+        verify(mojoSpy).createFunctionApp(functionRuntimeHandler);
     }
 
     @Test
@@ -121,69 +124,11 @@ public class DeployMojoTest extends MojoTestBase {
         doReturn(update).when(app).update();
         doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
         doReturn(JavaVersion.JAVA_8_NEWEST).when(app).javaVersion();
-        mojoSpy.updateFunctionApp(app);
+        final FunctionRuntimeHandler functionRuntimeHandler = mock(WindowsFunctionRuntimeHandler.class);
+        doCallRealMethod().when(functionRuntimeHandler).updateAppRuntime(app);
+        mojoSpy.updateFunctionApp(app, functionRuntimeHandler);
 
         verify(update, times(1)).apply();
-    }
-
-    @Test
-    public void createFunctionAppWithExistingAppServicePlan() throws Exception {
-        final Azure azure = mock(Azure.class);
-        final AppServiceManager appServiceManager = mock(AppServiceManager.class);
-        final AppServicePlans appServicePlans = mock(AppServicePlans.class);
-        final FunctionApps functionApps = mock(FunctionApps.class);
-        final Blank blank = mock(Blank.class);
-        prepareFunctionAppCreation(azure, appServiceManager, appServicePlans, functionApps, blank);
-
-        final AppServicePlan appServicePlan = mock(AppServicePlan.class);
-        doReturn(appServicePlan).when(appServicePlans).getByResourceGroup(anyString(), anyString());
-        final FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup existingAppServicePlanWithGroup =
-                mock(FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup.class);
-        doReturn(existingAppServicePlanWithGroup).when(blank).withExistingAppServicePlan(appServicePlan);
-        final WithCreate withCreate = mock(WithCreate.class);
-        doReturn(withCreate).when(existingAppServicePlanWithGroup).withExistingResourceGroup(anyString());
-        doReturn(true).when(mojoSpy).isResourceGroupExist(anyString());
-        doNothing().when(mojoSpy).configureAppSettings(any(), anyMap());
-        doReturn(null).when(withCreate).create();
-        final WebAppBase.DefinitionStages.WithWebContainer withWebContainer =
-                mock(WebAppBase.DefinitionStages.WithWebContainer.class);
-        doReturn(withWebContainer).when(withCreate).withJavaVersion(any());
-        doReturn(withCreate).when(withWebContainer).withWebContainer(any());
-
-        mojoSpy.createFunctionApp();
-
-        verify(existingAppServicePlanWithGroup).withExistingResourceGroup(anyString());
-        verify(existingAppServicePlanWithGroup, never()).withNewResourceGroup(anyString());
-        verify(mojoSpy).configureAppSettings(any(), anyMap());
-        verify(withCreate).create();
-    }
-
-    @Test
-    public void createFunctionAppWithNewAppServicePlan() throws Exception {
-        final Azure azure = mock(Azure.class);
-        final AppServiceManager appServiceManager = mock(AppServiceManager.class);
-        final AppServicePlans appServicePlans = mock(AppServicePlans.class);
-        final FunctionApps functionApps = mock(FunctionApps.class);
-        final Blank blank = mock(Blank.class);
-        prepareFunctionAppCreation(azure, appServiceManager, appServicePlans, functionApps, blank);
-
-        final NewAppServicePlanWithGroup newAppServicePlanWithGroup = mock(NewAppServicePlanWithGroup.class);
-        doReturn(newAppServicePlanWithGroup).when(blank).withRegion(anyString());
-        final WithCreate withCreate = mock(WithCreate.class);
-        doReturn(withCreate).when(mojoSpy).configureResourceGroup(any(), anyString());
-        doReturn(PricingTier.STANDARD_S1).when(mojoSpy).getPricingTier();
-        doNothing().when(mojoSpy).configurePricingTier(any(), any());
-        final WebAppBase.DefinitionStages.WithWebContainer withWebContainer =
-                mock(WebAppBase.DefinitionStages.WithWebContainer.class);
-        doReturn(withWebContainer).when(withCreate).withJavaVersion(any());
-        doReturn(withCreate).when(withWebContainer).withWebContainer(any());
-        doReturn(null).when(withCreate).create();
-
-        mojoSpy.createFunctionApp();
-
-        verify(mojoSpy).configurePricingTier(any(), any());
-        verify(mojoSpy).configureAppSettings(any(), anyMap());
-        verify(withCreate).create();
     }
 
     @Test

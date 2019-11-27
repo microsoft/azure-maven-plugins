@@ -12,7 +12,6 @@ import com.microsoft.azure.management.resources.ResourceGroup;
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.maven.handlers.runtime.BaseRuntimeHandler;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
-import org.codehaus.plexus.util.StringUtils;
 
 public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<FunctionApp> {
 
@@ -37,16 +36,21 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
         this.runtimeConfiguration = builder.runtimeConfiguration;
     }
 
+    @Override
+    public abstract FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception;
+
+    @Override
+    public abstract FunctionApp.Update updateAppRuntime(FunctionApp app) throws Exception;
+
+    @Override
+    public abstract AppServicePlan updateAppServicePlan(FunctionApp app) throws Exception;
+
     protected FunctionApp.DefinitionStages.Blank defineFunction() {
         return azure.appServices().functionApps().define(appName);
     }
 
     protected AppServicePlan getAppServicePlan() {
         return AppServiceUtils.getAppServicePlan(servicePlanName, azure, resourceGroup, servicePlanResourceGroup);
-    }
-
-    protected String changeAppServicePlan() {
-        return StringUtils.isEmpty(servicePlanResourceGroup) ? resourceGroup : servicePlanResourceGroup;
     }
 
     protected ResourceGroup getResourceGroup() {

@@ -6,25 +6,26 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.runtime.FunctionRuntimeHandler;
+import com.microsoft.azure.maven.function.handlers.runtime.LinuxFunctionRuntimeHandler;
+import com.microsoft.azure.maven.function.handlers.runtime.WindowsFunctionRuntimeHandler;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -83,42 +84,27 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected void createOrUpdateFunctionApp() throws Exception {
         final FunctionApp app = getFunctionApp();
+        final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         if (app == null) {
-            createFunctionApp();
+            createFunctionApp(runtimeHandler);
         } else {
-            updateFunctionApp(app);
+            updateFunctionApp(app, runtimeHandler);
         }
     }
 
-    protected void createFunctionApp() throws Exception {
+    protected void createFunctionApp(FunctionRuntimeHandler runtimeHandler) throws Exception {
         info(FUNCTION_APP_CREATE_START);
-
-        final AppServicePlan plan = AppServiceUtils.getAppServicePlan(this.getAppServicePlanName(),
-            this.getAzureClient(), this.getResourceGroup(), this.getAppServicePlanResourceGroup());
-        final Blank functionApp = getAzureClient().appServices().functionApps().define(appName);
-        final String resGrp = getResourceGroup();
-        final WithCreate withCreate;
-        if (plan == null) {
-            final NewAppServicePlanWithGroup newAppServicePlanWithGroup = functionApp.withRegion(region);
-            withCreate = configureResourceGroup(newAppServicePlanWithGroup, resGrp);
-            configurePricingTier(withCreate, getPricingTier());
-        } else {
-            final ExistingAppServicePlanWithGroup planWithGroup = functionApp.withExistingAppServicePlan(plan);
-            withCreate = isResourceGroupExist(resGrp) ?
-                planWithGroup.withExistingResourceGroup(resGrp) :
-                planWithGroup.withNewResourceGroup(resGrp);
-        }
+        final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
         configureAppSettings(withCreate::withAppSettings, getAppSettings());
         withCreate.withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
-
         info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
 
-    protected void updateFunctionApp(final FunctionApp app) {
+    protected void updateFunctionApp(final FunctionApp app, FunctionRuntimeHandler runtimeHandler) throws Exception {
         info(FUNCTION_APP_UPDATE);
         // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
         app.inner().withTags(null);
-        final Update update = app.update();
+        final Update update = runtimeHandler.updateAppRuntime(app);
         checkHostJavaVersion(app, update); // Check Java Version of Server
         configureAppSettings(update::withAppSettings, getAppSettings());
         update.apply();
@@ -165,6 +151,30 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     //endregion
+
+    protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws MojoExecutionException, AzureAuthFailureException {
+        final FunctionRuntimeHandler.Builder<?> builder;
+        switch (this.getRuntimeOs()) {
+            case Windows:
+                builder = new WindowsFunctionRuntimeHandler.Builder();
+                break;
+            case Linux:
+                builder = new LinuxFunctionRuntimeHandler.Builder();
+                break;
+            default:
+                throw new MojoExecutionException(String.format("Unsupported runtime %s", this.getRuntimeOs()));
+        }
+        return builder.appName(getAppName())
+                .resourceGroup(getResourceGroup())
+                .runtime(getRuntime())
+                .region(Region.fromName(region))
+                .pricingTier(getPricingTier())
+                .servicePlanName(getAppServicePlanName())
+                .servicePlanResourceGroup(getAppServicePlanResourceGroup())
+                .azure(getAzureClient())
+                .log(getLog())
+                .build();
+    }
 
     protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
         final ArtifactHandlerBase.Builder builder;
