@@ -33,28 +33,30 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
     public WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
         final AppServicePlan appServicePlan = getAppServicePlan();
         final FunctionApp.DefinitionStages.Blank functionApp = defineFunction();
-        FunctionApp.DefinitionStages.WithCreate withCreate;
+        FunctionApp.DefinitionStages.WithCreate appWithCreate;
         if (appServicePlan == null) {
-            final FunctionApp.DefinitionStages.NewAppServicePlanWithGroup withRegion = functionApp.withRegion(this.region);
+            final FunctionApp.DefinitionStages.NewAppServicePlanWithGroup appWithNewServicePlan =
+                    functionApp.withRegion(this.region);
             if (getResourceGroup() == null) {
-                withCreate = withRegion.withNewResourceGroup(resourceGroup);
+                appWithCreate = appWithNewServicePlan.withNewResourceGroup(resourceGroup);
             } else {
-                withCreate = withRegion.withExistingResourceGroup(resourceGroup);
+                appWithCreate = appWithNewServicePlan.withExistingResourceGroup(resourceGroup);
             }
             if (pricingTier == null) {
-                withCreate = withCreate.withNewConsumptionPlan();
+                appWithCreate = appWithCreate.withNewConsumptionPlan();
             } else {
-                withCreate = withCreate.withNewAppServicePlan(pricingTier);
+                appWithCreate = appWithCreate.withNewAppServicePlan(pricingTier);
             }
         } else {
-            final FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup withGroup = functionApp.withExistingAppServicePlan(appServicePlan);
+            final FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup appWithExistingServicePlan =
+                    functionApp.withExistingAppServicePlan(appServicePlan);
             if (getResourceGroup() == null) {
-                withCreate = withGroup.withNewResourceGroup(resourceGroup);
+                appWithCreate = appWithExistingServicePlan.withNewResourceGroup(resourceGroup);
             } else {
-                withCreate = withGroup.withExistingResourceGroup(resourceGroup);
+                appWithCreate = appWithExistingServicePlan.withExistingResourceGroup(resourceGroup);
             }
         }
-        return withCreate;
+        return appWithCreate;
     }
 
     @Override
@@ -64,7 +66,7 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
 
     @Override
     public AppServicePlan updateAppServicePlan(FunctionApp app) throws Exception {
-
+        // Todo: update app service plan
         return null;
     }
 }

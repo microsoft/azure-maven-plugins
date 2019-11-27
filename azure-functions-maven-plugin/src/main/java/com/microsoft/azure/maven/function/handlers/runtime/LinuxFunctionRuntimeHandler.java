@@ -37,11 +37,11 @@ public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
         final FunctionApp.DefinitionStages.WithCreate withCreate;
         final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage;
         if (appServicePlan == null) {
-            final FunctionApp.DefinitionStages.NewAppServicePlanWithGroup withRegion = functionApp.withRegion(this.region);
+            final FunctionApp.DefinitionStages.NewAppServicePlanWithGroup appWithNewServicePlan = functionApp.withRegion(this.region);
             if (getResourceGroup() == null) {
-                withCreate = withRegion.withNewResourceGroup(resourceGroup);
+                withCreate = appWithNewServicePlan.withNewResourceGroup(resourceGroup);
             } else {
-                withCreate = withRegion.withExistingResourceGroup(resourceGroup);
+                withCreate = appWithNewServicePlan.withExistingResourceGroup(resourceGroup);
             }
             if (pricingTier == null) {
                 withDockerContainerImage = withCreate.withNewLinuxConsumptionPlan();
@@ -49,11 +49,12 @@ public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
                 withDockerContainerImage = withCreate.withNewLinuxAppServicePlan(pricingTier);
             }
         } else {
-            final FunctionApp.DefinitionStages.ExistingLinuxPlanWithGroup withGroup = functionApp.withExistingLinuxAppServicePlan(appServicePlan);
+            final FunctionApp.DefinitionStages.ExistingLinuxPlanWithGroup appWithExistingServicePlan =
+                    functionApp.withExistingLinuxAppServicePlan(appServicePlan);
             if (getResourceGroup() == null) {
-                withDockerContainerImage = withGroup.withNewResourceGroup(resourceGroup);
+                withDockerContainerImage = appWithExistingServicePlan.withNewResourceGroup(resourceGroup);
             } else {
-                withDockerContainerImage = withGroup.withExistingResourceGroup(resourceGroup);
+                withDockerContainerImage = appWithExistingServicePlan.withExistingResourceGroup(resourceGroup);
             }
         }
         return withDockerContainerImage.withBuiltInImage(FunctionRuntimeStack.JAVA_8);
@@ -66,6 +67,7 @@ public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
 
     @Override
     public AppServicePlan updateAppServicePlan(FunctionApp app) throws Exception {
+        // Todo: update app service plan
         return null;
     }
 }
