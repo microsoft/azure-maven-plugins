@@ -19,7 +19,7 @@ public class NullRuntimeHandlerImpl implements RuntimeHandler<WebApp> {
         "For V2 schema version, please use <runtime>.";
 
     @Override
-    public WithCreate defineAppWithRuntime() throws Exception {
+    public WithCreate defineAppWithRuntime() throws MojoExecutionException {
         throw new MojoExecutionException(NO_RUNTIME_CONFIG);
     }
 
@@ -29,7 +29,7 @@ public class NullRuntimeHandlerImpl implements RuntimeHandler<WebApp> {
     }
 
     @Override
-    public AppServicePlan updateAppServicePlan(final WebApp app) throws Exception {
+    public AppServicePlan updateAppServicePlan(final WebApp app) {
         return null;
     }
 }

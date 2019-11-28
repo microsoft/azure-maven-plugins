@@ -11,6 +11,7 @@ import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.settings.Server;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
@@ -34,7 +35,7 @@ public class PrivateRegistryRuntimeHandlerImpl extends WebAppRuntimeHandler {
     }
 
     @Override
-    public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
+    public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException {
         final Server server = Utils.getServer(settings, serverId);
         assureServerExist(server, serverId);
 
@@ -45,7 +46,7 @@ public class PrivateRegistryRuntimeHandlerImpl extends WebAppRuntimeHandler {
     }
 
     @Override
-    public WebApp.Update updateAppRuntime(final WebApp app) throws Exception {
+    public WebApp.Update updateAppRuntime(final WebApp app) throws MojoExecutionException {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
 

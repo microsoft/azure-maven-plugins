@@ -12,6 +12,7 @@ import com.microsoft.azure.management.resources.ResourceGroup;
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.maven.handlers.runtime.BaseRuntimeHandler;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 
 public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<FunctionApp> {
 
@@ -37,13 +38,13 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
     }
 
     @Override
-    public abstract FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception;
+    public abstract FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException;
 
     @Override
-    public abstract FunctionApp.Update updateAppRuntime(FunctionApp app) throws Exception;
+    public abstract FunctionApp.Update updateAppRuntime(FunctionApp app) throws MojoExecutionException;
 
     @Override
-    public abstract AppServicePlan updateAppServicePlan(FunctionApp app) throws Exception;
+    public abstract AppServicePlan updateAppServicePlan(FunctionApp app) throws MojoExecutionException;
 
     protected FunctionApp.DefinitionStages.Blank defineFunction() {
         return azure.appServices().functionApps().define(appName);
