@@ -62,10 +62,4 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
     public FunctionApp.Update updateAppRuntime(FunctionApp app) {
         return app.update();
     }
-
-    @Override
-    public AppServicePlan updateAppServicePlan(FunctionApp app) {
-        // Todo: update app service plan
-        return null;
-    }
 }

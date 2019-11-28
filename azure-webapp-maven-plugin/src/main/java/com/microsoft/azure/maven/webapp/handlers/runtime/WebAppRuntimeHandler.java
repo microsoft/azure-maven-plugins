@@ -15,7 +15,6 @@ import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.handlers.runtime.BaseRuntimeHandler;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
 
 public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
     protected RuntimeStack runtime;
@@ -48,28 +47,24 @@ public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
 
     }
 
-    @Override
-    public AppServicePlan updateAppServicePlan(final WebApp app) throws MojoExecutionException {
-        final AppServicePlan appServicePlan = WebAppUtils.getAppServicePlanByWebApp(app);
-        // If app's service plan differs from pom, change and update it
-        if ((StringUtils.isNotEmpty(servicePlanName) && !servicePlanName.equals(appServicePlan.name())) ||
-                (StringUtils.isNotEmpty(servicePlanResourceGroup) &&
-                        !servicePlanResourceGroup.equals(appServicePlan.resourceGroupName()))) {
-            final AppServicePlan newAppServicePlan = createOrGetAppServicePlan();
-            app.update().withExistingAppServicePlan(newAppServicePlan).apply();
-            return WebAppUtils.updateAppServicePlan(newAppServicePlan, pricingTier, log);
-        } else {
-            return WebAppUtils.updateAppServicePlan(appServicePlan, pricingTier, log);
-        }
-    }
-
-    protected abstract OperatingSystem getAppServicePlatform();
-
     protected WebAppRuntimeHandler(Builder<?> builder) {
         super(builder);
         this.runtime = builder.runtime;
         this.javaVersion = builder.javaVersion;
         this.webContainer = builder.webContainer;
+    }
+
+    @Override
+    public abstract WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException;
+
+    @Override
+    public abstract WebApp.Update updateAppRuntime(WebApp app) throws MojoExecutionException;
+
+    protected abstract OperatingSystem getAppServicePlatform();
+
+    @Override
+    protected void changeAppServicePlan(WebApp app, AppServicePlan appServicePlan) {
+        app.update().withExistingAppServicePlan(appServicePlan).apply();
     }
 
     protected AppServicePlan createOrGetAppServicePlan() throws MojoExecutionException {

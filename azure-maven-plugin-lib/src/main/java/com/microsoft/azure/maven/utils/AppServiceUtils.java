@@ -10,6 +10,9 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.WebAppBase;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.lang.reflect.Field;
@@ -20,6 +23,8 @@ import java.util.UUID;
 
 public class AppServiceUtils {
 
+    public static final String SERVICE_PLAN_NOT_FOUND = "Failed to get App Service Plan";
+    public static final String UPDATE_APP_SERVICE_PLAN = "Updating app service plan";
     private static final List<PricingTier> pricingTiers = new ArrayList<>();
 
     static {
@@ -80,5 +85,28 @@ public class AppServiceUtils {
             result.remove(PricingTier.PREMIUM_P3);
         }
         return result;
+    }
+
+    public static AppServicePlan getAppServicePlanByAppService(final WebAppBase webApp) {
+        return webApp.manager().appServicePlans().getById(webApp.appServicePlanId());
+    }
+
+    public static AppServicePlan updateAppServicePlan(final AppServicePlan appServicePlan,
+                                                      final PricingTier pricingTier,
+                                                      final Log log) throws MojoExecutionException {
+        if (appServicePlan == null) {
+            throw new MojoExecutionException(SERVICE_PLAN_NOT_FOUND);
+        }
+        log.info(String.format(UPDATE_APP_SERVICE_PLAN));
+        final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
+        // Update pricing tier
+        if (pricingTier != null && !appServicePlan.pricingTier().equals(pricingTier)) {
+            appServicePlanUpdate.withPricingTier(pricingTier);
+        }
+        return appServicePlanUpdate.apply();
+    }
+
+    public static boolean isEqualAppServicePlan(AppServicePlan first, AppServicePlan second) {
+        return first == null ? second == null : second != null && StringUtils.equals(first.id(), second.id());
     }
 }

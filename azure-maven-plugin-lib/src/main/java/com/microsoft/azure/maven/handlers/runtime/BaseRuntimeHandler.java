@@ -12,11 +12,16 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
+import org.codehaus.plexus.util.StringUtils;
 
 public abstract class BaseRuntimeHandler<T extends WebAppBase> implements RuntimeHandler<T> {
+
+    private static final String TARGET_APP_SERVICE_PLAN_DO_NOT_EXIST = "Target app service plan %s was not founded in " +
+            "resource group %s, please check the configuration";
 
     protected String appName;
     protected String resourceGroup;
@@ -130,5 +135,31 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
 
     public abstract WebAppBase.Update updateAppRuntime(T app) throws MojoExecutionException;
 
-    public abstract AppServicePlan updateAppServicePlan(T app) throws MojoExecutionException;
+    protected abstract void changeAppServicePlan(T app, AppServicePlan appServicePlan) throws MojoExecutionException;
+
+    @Override
+    public AppServicePlan updateAppServicePlan(T app) throws MojoExecutionException {
+        final AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlanByAppService(app);
+        final AppServicePlan targetAppServicePlan = getTargetAppServicePlan(app);
+        if (targetAppServicePlan == null) {
+            throw new MojoExecutionException(String.format(TARGET_APP_SERVICE_PLAN_DO_NOT_EXIST, servicePlanName,
+                    AppServiceUtils.getAppServicePlanResourceGroup(resourceGroup, servicePlanResourceGroup)));
+        }
+        if (!AppServiceUtils.isEqualAppServicePlan(appServicePlan, targetAppServicePlan)) {
+            changeAppServicePlan(app, targetAppServicePlan);
+        }
+        return AppServiceUtils.updateAppServicePlan(targetAppServicePlan, pricingTier, log);
+    }
+
+    protected AppServicePlan getAppServicePlan() {
+        return AppServiceUtils.getAppServicePlan(servicePlanName, azure, resourceGroup, servicePlanResourceGroup);
+    }
+
+    protected AppServicePlan getTargetAppServicePlan(T app) {
+        if (StringUtils.isNotEmpty(servicePlanName)) {
+            return getAppServicePlan();
+        } else {
+            return AppServiceUtils.getAppServicePlanByAppService(app);
+        }
+    }
 }

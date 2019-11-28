@@ -33,10 +33,8 @@ public class WebAppUtils {
     public static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
     public static final String CREATE_SERVICE_PLAN = "Creating App Service Plan '%s'...";
     public static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
-    public static final String SERVICE_PLAN_NOT_FOUND = "Failed to get App Service Plan";
     public static final String CONFIGURATION_NOT_APPLICABLE =
             "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
-    public static final String UPDATE_APP_SERVICE_PLAN = "Updating app service plan";
 
     public static void assureLinuxWebApp(final WebApp app) throws MojoExecutionException {
         if (!isLinuxWebApp(app)) {
@@ -121,21 +119,6 @@ public class WebAppUtils {
         return result;
     }
 
-    public static AppServicePlan updateAppServicePlan(final AppServicePlan appServicePlan,
-                                                      final PricingTier pricingTier,
-                                                      final Log log) throws MojoExecutionException {
-        if (appServicePlan == null) {
-            throw new MojoExecutionException(SERVICE_PLAN_NOT_FOUND);
-        }
-        log.info(String.format(UPDATE_APP_SERVICE_PLAN));
-        final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
-        // Update pricing tier
-        if (pricingTier != null && !appServicePlan.pricingTier().equals(pricingTier)) {
-            appServicePlanUpdate.withPricingTier(pricingTier);
-        }
-        return appServicePlanUpdate.apply();
-    }
-
     public static DockerImageType getDockerImageType(final String imageName, final String serverId,
                                                      final String registryUrl) {
         if (StringUtils.isEmpty(imageName)) {
@@ -150,10 +133,6 @@ public class WebAppUtils {
         } else {
             return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
         }
-    }
-
-    public static AppServicePlan getAppServicePlanByWebApp(final WebApp webApp) {
-        return webApp.manager().appServicePlans().getById(webApp.appServicePlanId());
     }
 
     /**
