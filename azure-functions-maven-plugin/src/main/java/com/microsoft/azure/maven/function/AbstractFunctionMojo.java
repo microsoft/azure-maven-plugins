@@ -9,7 +9,6 @@ package com.microsoft.azure.maven.function;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.function.configurations.ElasticPremiumPricingTier;
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
@@ -155,14 +154,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     public RuntimeConfiguration getRuntime() {
         return runtime;
-    }
-
-    public OperatingSystemEnum getRuntimeOs() throws MojoExecutionException {
-        if (runtime == null || runtime.getOs() == null) {
-            return OperatingSystemEnum.Windows;
-        } else {
-            return OperatingSystemEnum.fromString(runtime.getOs());
-        }
     }
 
     @Override

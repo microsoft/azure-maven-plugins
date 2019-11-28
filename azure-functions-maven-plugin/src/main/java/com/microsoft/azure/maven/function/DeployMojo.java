@@ -14,8 +14,10 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
@@ -154,7 +156,8 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws MojoExecutionException, AzureAuthFailureException {
         final FunctionRuntimeHandler.Builder<?> builder;
-        switch (this.getRuntimeOs()) {
+        final OperatingSystemEnum os = this.runtime == null ? RuntimeConfiguration.DEFAULT_OS : runtime.getOperationSystemEnum();
+        switch (os) {
             case Windows:
                 builder = new WindowsFunctionRuntimeHandler.Builder();
                 break;
@@ -162,7 +165,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 builder = new LinuxFunctionRuntimeHandler.Builder();
                 break;
             default:
-                throw new MojoExecutionException(String.format("Unsupported runtime %s", this.getRuntimeOs()));
+                throw new MojoExecutionException(String.format("Unsupported runtime %s", os));
         }
         return builder.appName(getAppName())
                 .resourceGroup(getResourceGroup())
