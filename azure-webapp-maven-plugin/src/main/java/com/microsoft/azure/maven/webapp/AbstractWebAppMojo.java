@@ -69,7 +69,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *     <li>P3V2</li>
      * </ul>
      */
-    @Parameter(property = "webapp.pricingTier", defaultValue = "P1V2")
+    @Parameter(property = "webapp.pricingTier")
     protected String pricingTier;
 
     /**

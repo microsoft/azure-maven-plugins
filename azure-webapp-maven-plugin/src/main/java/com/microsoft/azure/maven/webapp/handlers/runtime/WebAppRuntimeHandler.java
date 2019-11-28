@@ -69,6 +69,10 @@ public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
 
     protected AppServicePlan createOrGetAppServicePlan() throws MojoExecutionException {
         return WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
-                servicePlanResourceGroup, region, pricingTier, log, getAppServicePlatform());
+                servicePlanResourceGroup, region, getPricingTierOrDefault(), log, getAppServicePlatform());
+    }
+
+    protected PricingTier getPricingTierOrDefault(){
+        return pricingTier == null ? WebAppConfiguration.DEFAULT_PRICINGTIER : pricingTier;
     }
 }
