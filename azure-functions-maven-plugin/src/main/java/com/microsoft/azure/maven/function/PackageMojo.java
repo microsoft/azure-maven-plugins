@@ -6,6 +6,9 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.fasterxml.jackson.core.PrettyPrinter;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -21,7 +24,6 @@ import com.microsoft.azure.maven.function.handlers.CommandHandler;
 import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.Resource;
@@ -29,7 +31,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -252,16 +253,15 @@ public class PackageMojo extends AbstractFunctionMojo {
             throws IOException {
         targetFile.getParentFile().mkdirs();
         targetFile.createNewFile();
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        objectWriter.writeValue(byteArrayOutputStream, object);
-        // Change line of end to LF, refers https://stackoverflow.com/questions/3776923/how-can-i-normalize-the-eol-character-in-java
-        FileUtils.write(targetFile, byteArrayOutputStream.toString().replaceAll("\\r\\n?", "\n"));
+        objectWriter.writeValue(targetFile, object);
     }
 
     protected ObjectWriter getObjectWriter() {
+        final DefaultIndenter indenter = DefaultIndenter.SYSTEM_LINEFEED_INSTANCE.withLinefeed("\n");
+        final PrettyPrinter prettyPrinter = (new DefaultPrettyPrinter()).withObjectIndenter(indenter);
         return new ObjectMapper()
                 .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-                .writerWithDefaultPrettyPrinter();
+                .writer(prettyPrinter);
     }
 
     //endregion
