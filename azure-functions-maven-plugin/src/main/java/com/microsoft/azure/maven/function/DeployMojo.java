@@ -7,12 +7,11 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
@@ -31,6 +30,7 @@ import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -84,28 +84,29 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //region Create or update Azure Functions
 
-    protected void createOrUpdateFunctionApp() throws Exception {
+    protected void createOrUpdateFunctionApp() throws AzureAuthFailureException, MojoExecutionException {
         final FunctionApp app = getFunctionApp();
-        final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         if (app == null) {
-            createFunctionApp(runtimeHandler);
+            createFunctionApp();
         } else {
-            updateFunctionApp(app, runtimeHandler);
+            updateFunctionApp(app);
         }
     }
 
-    protected void createFunctionApp(FunctionRuntimeHandler runtimeHandler) throws Exception {
+    protected void createFunctionApp() throws MojoExecutionException, AzureAuthFailureException {
         info(FUNCTION_APP_CREATE_START);
+        final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
         configureAppSettings(withCreate::withAppSettings, getAppSettings());
         withCreate.withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
         info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
 
-    protected void updateFunctionApp(final FunctionApp app, FunctionRuntimeHandler runtimeHandler) throws Exception {
+    protected void updateFunctionApp(final FunctionApp app) throws MojoExecutionException, AzureAuthFailureException {
         info(FUNCTION_APP_UPDATE);
         // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
         app.inner().withTags(null);
+        final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final Update update = runtimeHandler.updateAppRuntime(app);
         checkHostJavaVersion(app, update); // Check Java Version of Server
         configureAppSettings(update::withAppSettings, getAppSettings());
@@ -126,26 +127,6 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected WithCreate configureResourceGroup(final NewAppServicePlanWithGroup newAppServicePlanWithGroup,
-                                                final String resourceGroup) throws Exception {
-        return isResourceGroupExist(resourceGroup) ?
-            newAppServicePlanWithGroup.withExistingResourceGroup(resourceGroup) :
-            newAppServicePlanWithGroup.withNewResourceGroup(resourceGroup);
-    }
-
-    protected boolean isResourceGroupExist(final String resourceGroup) throws Exception {
-        return getAzureClient().resourceGroups().contain(resourceGroup);
-    }
-
-    protected void configurePricingTier(final WithCreate withCreate, final PricingTier pricingTier) {
-        if (pricingTier != null) {
-            // Enable Always On when using app service plan
-            withCreate.withNewAppServicePlan(pricingTier).withWebAppAlwaysOn(true);
-        } else {
-            withCreate.withNewConsumptionPlan();
-        }
-    }
-
     protected void configureAppSettings(final Consumer<Map> withAppSettings, final Map appSettings) {
         if (appSettings != null && !appSettings.isEmpty()) {
             withAppSettings.accept(appSettings);
@@ -156,7 +137,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws MojoExecutionException, AzureAuthFailureException {
         final FunctionRuntimeHandler.Builder<?> builder;
-        final OperatingSystemEnum os = this.runtime == null ? RuntimeConfiguration.DEFAULT_OS : runtime.getOperationSystemEnum();
+        final OperatingSystemEnum os = getOsEnum();
         switch (os) {
             case Windows:
                 builder = new WindowsFunctionRuntimeHandler.Builder();
@@ -177,6 +158,11 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .azure(getAzureClient())
                 .log(getLog())
                 .build();
+    }
+
+    protected OperatingSystemEnum getOsEnum() throws MojoExecutionException {
+        final String os = runtime == null ? null : runtime.getOs();
+        return StringUtils.isEmpty(os) ? RuntimeConfiguration.DEFAULT_OS : Utils.parseOperationSystem(os);
     }
 
     protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {

@@ -257,8 +257,8 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected ObjectWriter getObjectWriter() {
-        final DefaultIndenter indenter = DefaultIndenter.SYSTEM_LINEFEED_INSTANCE.withLinefeed("\n");
-        final PrettyPrinter prettyPrinter = (new DefaultPrettyPrinter()).withObjectIndenter(indenter);
+        final DefaultPrettyPrinter.Indenter indenter = DefaultIndenter.SYSTEM_LINEFEED_INSTANCE.withLinefeed("\n");
+        final PrettyPrinter prettyPrinter = new DefaultPrettyPrinter().withObjectIndenter(indenter);
         return new ObjectMapper()
                 .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
                 .writer(prettyPrinter);

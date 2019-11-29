@@ -11,6 +11,7 @@ import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.queryer.MavenPluginQueryer;
 import com.microsoft.azure.maven.queryer.QueryFactory;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
@@ -236,7 +237,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final OperatingSystemEnum defaultOs = configuration.getOs() == null ? OperatingSystemEnum.Linux :
             configuration.getOs();
         final String os = queryer.assureInputFromUser("OS", defaultOs, null);
-        builder.os(OperatingSystemEnum.fromString(os));
+        builder.os(Utils.parseOperationSystem(os));
 
         switch (os.toLowerCase()) {
             case "linux":
