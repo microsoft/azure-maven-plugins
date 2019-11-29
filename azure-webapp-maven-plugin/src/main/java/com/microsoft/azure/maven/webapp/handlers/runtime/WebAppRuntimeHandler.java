@@ -9,10 +9,12 @@ package com.microsoft.azure.maven.webapp.handlers.runtime;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.OperatingSystem;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.handlers.runtime.BaseRuntimeHandler;
+import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 

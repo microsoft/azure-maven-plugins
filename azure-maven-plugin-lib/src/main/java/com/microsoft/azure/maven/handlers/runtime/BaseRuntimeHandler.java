@@ -140,7 +140,7 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
     @Override
     public AppServicePlan updateAppServicePlan(T app) throws MojoExecutionException {
         final AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlanByAppService(app);
-        final AppServicePlan targetAppServicePlan = getTargetAppServicePlan(app);
+        final AppServicePlan targetAppServicePlan = StringUtils.isNotEmpty(servicePlanName) ? getAppServicePlan() : appServicePlan;
         if (targetAppServicePlan == null) {
             throw new MojoExecutionException(String.format(TARGET_APP_SERVICE_PLAN_DO_NOT_EXIST, servicePlanName,
                     AppServiceUtils.getAppServicePlanResourceGroup(resourceGroup, servicePlanResourceGroup)));
@@ -153,13 +153,5 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
 
     protected AppServicePlan getAppServicePlan() {
         return AppServiceUtils.getAppServicePlan(servicePlanName, azure, resourceGroup, servicePlanResourceGroup);
-    }
-
-    protected AppServicePlan getTargetAppServicePlan(T app) {
-        if (StringUtils.isNotEmpty(servicePlanName)) {
-            return getAppServicePlan();
-        } else {
-            return AppServiceUtils.getAppServicePlanByAppService(app);
-        }
     }
 }
