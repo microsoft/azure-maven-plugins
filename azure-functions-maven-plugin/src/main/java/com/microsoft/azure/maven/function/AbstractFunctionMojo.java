@@ -152,6 +152,10 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return null;
     }
 
+    public RuntimeConfiguration getRuntime() {
+        return runtime;
+    }
+
     @Override
     public void execute() throws MojoExecutionException {
         checkJavaVersion();

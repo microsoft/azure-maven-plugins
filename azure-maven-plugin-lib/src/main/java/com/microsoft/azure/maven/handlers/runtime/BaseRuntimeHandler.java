@@ -12,6 +12,7 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
 
@@ -125,9 +126,9 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         this.log = builder.log;
     }
 
-    public abstract WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception;
+    public abstract WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException;
 
-    public abstract WebAppBase.Update updateAppRuntime(T app) throws Exception;
+    public abstract WebAppBase.Update updateAppRuntime(T app) throws MojoExecutionException;
 
-    public abstract AppServicePlan updateAppServicePlan(T app) throws Exception;
+    public abstract AppServicePlan updateAppServicePlan(T app) throws MojoExecutionException;
 }

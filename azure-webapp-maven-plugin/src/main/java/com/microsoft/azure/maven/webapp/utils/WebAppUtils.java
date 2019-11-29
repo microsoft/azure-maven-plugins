@@ -53,7 +53,7 @@ public class WebAppUtils {
     public static WithDockerContainerImage defineLinuxApp(final String resourceGroup,
                                                           final String appName,
                                                           final Azure azureClient,
-                                                          final AppServicePlan plan) throws Exception {
+                                                          final AppServicePlan plan) throws MojoExecutionException {
         assureLinuxPlan(plan);
 
         final ExistingLinuxPlanWithGroup existingLinuxPlanWithGroup = azureClient.webApps()
@@ -65,7 +65,7 @@ public class WebAppUtils {
 
     public static WithCreate defineWindowsApp(final String resourceGroup,
                                               final String appName,
-                                              final Azure azureClient, final AppServicePlan plan) throws Exception {
+                                              final Azure azureClient, final AppServicePlan plan) throws MojoExecutionException {
         assureWindowsPlan(plan);
 
         final ExistingWindowsPlanWithGroup existingWindowsPlanWithGroup = azureClient.webApps()
