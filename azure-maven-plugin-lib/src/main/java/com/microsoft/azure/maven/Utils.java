@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Utility class
@@ -125,6 +127,23 @@ public final class Utils {
             filtering.filterResources(mavenResourcesExecution);
         } catch (MavenFilteringException ex) {
             throw new IOException("Failed to copy resources", ex);
+        }
+    }
+
+    public static OperatingSystemEnum parseOperationSystem(final String os) throws MojoExecutionException {
+        if (StringUtils.isEmpty(os)) {
+            throw new MojoExecutionException("The value of <os> is empty, please specify it in pom.xml.");
+        }
+        switch (os.toLowerCase(Locale.ENGLISH)) {
+            case "windows":
+                return OperatingSystemEnum.Windows;
+            case "linux":
+                return OperatingSystemEnum.Linux;
+            case "docker":
+                return OperatingSystemEnum.Docker;
+            default:
+                throw new MojoExecutionException("The value of <os> is unknown, supported values are: windows, " +
+                        "linux and docker.");
         }
     }
 }

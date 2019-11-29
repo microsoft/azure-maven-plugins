@@ -49,7 +49,7 @@ public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
     }
 
     @Override
-    public AppServicePlan updateAppServicePlan(final WebApp app) throws Exception {
+    public AppServicePlan updateAppServicePlan(final WebApp app) throws MojoExecutionException {
         final AppServicePlan appServicePlan = WebAppUtils.getAppServicePlanByWebApp(app);
         // If app's service plan differs from pom, change and update it
         if ((StringUtils.isNotEmpty(servicePlanName) && !servicePlanName.equals(appServicePlan.name())) ||

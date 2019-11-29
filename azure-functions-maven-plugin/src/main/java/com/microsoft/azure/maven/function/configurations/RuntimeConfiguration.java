@@ -6,7 +6,12 @@
 
 package com.microsoft.azure.maven.function.configurations;
 
+import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
+
 public class RuntimeConfiguration {
+
+    public static final OperatingSystemEnum DEFAULT_OS = OperatingSystemEnum.Windows;
+
     protected String os;
     protected String image;
     protected String serverId;

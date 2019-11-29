@@ -11,12 +11,13 @@ import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.queryer.MavenPluginQueryer;
 import com.microsoft.azure.maven.queryer.QueryFactory;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
@@ -236,7 +237,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final OperatingSystemEnum defaultOs = configuration.getOs() == null ? OperatingSystemEnum.Linux :
             configuration.getOs();
         final String os = queryer.assureInputFromUser("OS", defaultOs, null);
-        builder.os(OperatingSystemEnum.fromString(os));
+        builder.os(Utils.parseOperationSystem(os));
 
         switch (os.toLowerCase()) {
             case "linux":

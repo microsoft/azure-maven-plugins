@@ -74,7 +74,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
     protected WebAppRuntimeHandler.Builder getDockerRuntimeHandlerBuilder(final WebAppConfiguration config)
         throws MojoExecutionException {
 
-        final WebAppRuntimeHandler.Builder builder;
+        final WebAppRuntimeHandler.Builder<? extends WebAppRuntimeHandler.Builder> builder;
         final DockerImageType imageType = WebAppUtils.getDockerImageType(config.getImage(), config.getServerId(),
             config.getRegistryUrl());
         switch (imageType) {
@@ -90,7 +90,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
             default:
                 throw new MojoExecutionException("Invalid docker runtime configured.");
         }
-        return (WebAppRuntimeHandler.Builder) builder.image(config.getImage()).serverId(config.getServerId()).registryUrl(config.getRegistryUrl());
+        return builder.image(config.getImage()).serverId(config.getServerId()).registryUrl(config.getRegistryUrl());
     }
 
     @Override

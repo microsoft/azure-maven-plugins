@@ -9,7 +9,6 @@ package com.microsoft.azure.maven.function.handlers.runtime;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionRuntimeStack;
-import com.microsoft.azure.management.appservice.WebAppBase;
 
 public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
 
@@ -31,7 +30,7 @@ public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
     }
 
     @Override
-    public WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
+    public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() {
         final AppServicePlan appServicePlan = getAppServicePlan();
         final FunctionApp.DefinitionStages.Blank functionApp = defineFunction();
         final FunctionApp.DefinitionStages.WithCreate withCreate;
@@ -61,12 +60,12 @@ public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
     }
 
     @Override
-    public WebAppBase.Update updateAppRuntime(FunctionApp app) throws Exception {
+    public FunctionApp.Update updateAppRuntime(FunctionApp app) {
         return app.update();
     }
 
     @Override
-    public AppServicePlan updateAppServicePlan(FunctionApp app) throws Exception {
+    public AppServicePlan updateAppServicePlan(FunctionApp app) {
         // Todo: update app service plan
         return null;
     }
