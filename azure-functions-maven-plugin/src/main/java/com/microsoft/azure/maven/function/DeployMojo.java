@@ -93,7 +93,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void createFunctionApp() throws MojoExecutionException, AzureAuthFailureException {
+    protected void createFunctionApp() throws AzureAuthFailureException, MojoExecutionException {
         info(FUNCTION_APP_CREATE_START);
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
@@ -102,7 +102,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
 
-    protected void updateFunctionApp(final FunctionApp app) throws MojoExecutionException, AzureAuthFailureException {
+    protected void updateFunctionApp(final FunctionApp app) throws AzureAuthFailureException, MojoExecutionException {
         info(FUNCTION_APP_UPDATE);
         // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
         app.inner().withTags(null);
@@ -135,7 +135,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //endregion
 
-    protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws MojoExecutionException, AzureAuthFailureException {
+    protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws AzureAuthFailureException, MojoExecutionException {
         final FunctionRuntimeHandler.Builder<?> builder;
         final OperatingSystemEnum os = getOsEnum();
         switch (os) {
