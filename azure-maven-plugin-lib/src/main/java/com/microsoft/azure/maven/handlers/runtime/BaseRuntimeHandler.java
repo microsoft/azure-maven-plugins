@@ -20,7 +20,7 @@ import org.codehaus.plexus.util.StringUtils;
 
 public abstract class BaseRuntimeHandler<T extends WebAppBase> implements RuntimeHandler<T> {
 
-    private static final String TARGET_APP_SERVICE_PLAN_DO_NOT_EXIST = "Target app service plan %s was not founded in " +
+    private static final String TARGET_APP_SERVICE_PLAN_DO_NOT_EXIST = "Target app service plan %s cannot be found in " +
             "resource group %s, please check the configuration";
 
     protected String appName;
