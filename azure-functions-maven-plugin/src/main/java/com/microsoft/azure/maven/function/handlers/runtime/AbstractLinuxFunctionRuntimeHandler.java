@@ -17,30 +17,30 @@ public abstract class AbstractLinuxFunctionRuntimeHandler extends FunctionRuntim
 
     protected FunctionApp.DefinitionStages.WithDockerContainerImage defineLinuxFunction() {
         final AppServicePlan appServicePlan = getAppServicePlan();
-        final FunctionApp.DefinitionStages.Blank functionApp = defineFunction();
-        final FunctionApp.DefinitionStages.WithCreate withCreate;
-        final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage;
+        final FunctionApp.DefinitionStages.Blank blankFunctionApp = defineFunction();
+        final FunctionApp.DefinitionStages.WithDockerContainerImage result;
         if (appServicePlan == null) {
-            final FunctionApp.DefinitionStages.NewAppServicePlanWithGroup appWithNewServicePlan = functionApp.withRegion(this.region);
+            final FunctionApp.DefinitionStages.NewAppServicePlanWithGroup appWithNewServicePlan = blankFunctionApp.withRegion(this.region);
+            final FunctionApp.DefinitionStages.WithCreate withCreate;
             if (getResourceGroup() == null) {
                 withCreate = appWithNewServicePlan.withNewResourceGroup(resourceGroup);
             } else {
                 withCreate = appWithNewServicePlan.withExistingResourceGroup(resourceGroup);
             }
             if (pricingTier == null) {
-                withDockerContainerImage = withCreate.withNewLinuxConsumptionPlan();
+                result = withCreate.withNewLinuxConsumptionPlan();
             } else {
-                withDockerContainerImage = withCreate.withNewLinuxAppServicePlan(pricingTier);
+                result = withCreate.withNewLinuxAppServicePlan(pricingTier);
             }
         } else {
             final FunctionApp.DefinitionStages.ExistingLinuxPlanWithGroup appWithExistingServicePlan =
-                    functionApp.withExistingLinuxAppServicePlan(appServicePlan);
+                    blankFunctionApp.withExistingLinuxAppServicePlan(appServicePlan);
             if (getResourceGroup() == null) {
-                withDockerContainerImage = appWithExistingServicePlan.withNewResourceGroup(resourceGroup);
+                result = appWithExistingServicePlan.withNewResourceGroup(resourceGroup);
             } else {
-                withDockerContainerImage = appWithExistingServicePlan.withExistingResourceGroup(resourceGroup);
+                result = appWithExistingServicePlan.withExistingResourceGroup(resourceGroup);
             }
         }
-        return withDockerContainerImage;
+        return result;
     }
 }
