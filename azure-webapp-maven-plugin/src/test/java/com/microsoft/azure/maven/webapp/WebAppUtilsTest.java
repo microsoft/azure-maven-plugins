@@ -20,7 +20,8 @@ import com.microsoft.azure.management.appservice.implementation.AppServiceManage
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.management.resources.ResourceGroups;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import com.microsoft.azure.maven.appservice.DockerImageType;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -88,18 +89,18 @@ public class WebAppUtilsTest {
 
     @Test
     public void getDockerImageType() {
-        assertEquals(DockerImageType.NONE, WebAppUtils.getDockerImageType("", "", ""));
+        assertEquals(DockerImageType.NONE, AppServiceUtils.getDockerImageType("", "", ""));
 
-        assertEquals(DockerImageType.PUBLIC_DOCKER_HUB, WebAppUtils.getDockerImageType("imageName",
+        assertEquals(DockerImageType.PUBLIC_DOCKER_HUB, AppServiceUtils.getDockerImageType("imageName",
             "", ""));
 
-        assertEquals(DockerImageType.PRIVATE_DOCKER_HUB, WebAppUtils.getDockerImageType("imageName",
+        assertEquals(DockerImageType.PRIVATE_DOCKER_HUB, AppServiceUtils.getDockerImageType("imageName",
             "serverId", ""));
 
-        assertEquals(DockerImageType.PRIVATE_REGISTRY, WebAppUtils.getDockerImageType("imageName",
+        assertEquals(DockerImageType.PRIVATE_REGISTRY, AppServiceUtils.getDockerImageType("imageName",
             "serverId", "https://microsoft.azurecr.io"));
 
-        assertEquals(DockerImageType.UNKNOWN, WebAppUtils.getDockerImageType("imageName", "",
+        assertEquals(DockerImageType.UNKNOWN, AppServiceUtils.getDockerImageType("imageName", "",
             "https://microsoft.azurecr.io"));
     }
 
