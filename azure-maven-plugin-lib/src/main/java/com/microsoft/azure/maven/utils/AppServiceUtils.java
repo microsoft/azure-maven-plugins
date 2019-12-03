@@ -12,9 +12,9 @@ import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.appservice.DockerImageType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -113,12 +113,12 @@ public class AppServiceUtils {
 
     public static DockerImageType getDockerImageType(final String imageName, final String serverId,
                                                      final String registryUrl) {
-        if (org.apache.commons.lang3.StringUtils.isEmpty(imageName)) {
+        if (StringUtils.isEmpty(imageName)) {
             return DockerImageType.NONE;
         }
 
-        final boolean isCustomRegistry = org.apache.commons.lang3.StringUtils.isNotEmpty(registryUrl);
-        final boolean isPrivate = org.apache.commons.lang3.StringUtils.isNotEmpty(serverId);
+        final boolean isCustomRegistry = StringUtils.isNotEmpty(registryUrl);
+        final boolean isPrivate = StringUtils.isNotEmpty(serverId);
 
         if (isCustomRegistry) {
             return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;
