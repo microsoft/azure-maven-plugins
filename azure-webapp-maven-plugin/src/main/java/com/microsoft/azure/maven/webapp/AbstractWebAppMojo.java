@@ -11,16 +11,16 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
-import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import org.apache.maven.model.Resource;
@@ -395,7 +395,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             return map;
         }
         if (webAppConfig.getImage() != null) {
-            final String imageType = WebAppUtils.getDockerImageType(webAppConfig.getImage(),
+            final String imageType = AppServiceUtils.getDockerImageType(webAppConfig.getImage(),
                 webAppConfig.getServerId(), webAppConfig.getRegistryUrl()).toString();
             map.put(DOCKER_IMAGE_TYPE_KEY, imageType);
         } else {

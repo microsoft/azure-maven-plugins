@@ -16,18 +16,11 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.Existin
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
-import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
-import org.apache.commons.io.IOUtils;
+import com.microsoft.azure.maven.appservice.DockerImageType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 public class WebAppUtils {
     public static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
@@ -117,22 +110,6 @@ public class WebAppUtils {
 
         log.info(SERVICE_PLAN_CREATED);
         return result;
-    }
-
-    public static DockerImageType getDockerImageType(final String imageName, final String serverId,
-                                                     final String registryUrl) {
-        if (StringUtils.isEmpty(imageName)) {
-            return DockerImageType.NONE;
-        }
-
-        final boolean isCustomRegistry = StringUtils.isNotEmpty(registryUrl);
-        final boolean isPrivate = StringUtils.isNotEmpty(serverId);
-
-        if (isCustomRegistry) {
-            return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;
-        } else {
-            return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
-        }
     }
 
     /**

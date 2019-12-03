@@ -6,16 +6,19 @@
 
 package com.microsoft.azure.maven.function.handlers.runtime;
 
-import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionRuntimeStack;
 
-public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
+public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHandler {
+
+    // Todo: Will update FunctionRuntimeStack once service team release new docker image
+    // private static final FunctionRuntimeStack JAVA_8_RUNTIME = new FunctionRuntimeStack("java", "~3", "java|8",
+    // "DOCKER|mcr.microsoft.com/azure-functions/java:3.0-preview-java8-appservice");
 
     public static class Builder extends FunctionRuntimeHandler.Builder<Builder> {
 
         @Override
-        public FunctionRuntimeHandler build() {
+        public LinuxFunctionRuntimeHandler build() {
             return new LinuxFunctionRuntimeHandler(self());
         }
 
@@ -23,6 +26,7 @@ public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
         protected Builder self() {
             return this;
         }
+
     }
 
     protected LinuxFunctionRuntimeHandler(Builder builder) {
@@ -31,31 +35,7 @@ public class LinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
 
     @Override
     public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() {
-        final AppServicePlan appServicePlan = getAppServicePlan();
-        final FunctionApp.DefinitionStages.Blank functionApp = defineFunction();
-        final FunctionApp.DefinitionStages.WithCreate withCreate;
-        final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage;
-        if (appServicePlan == null) {
-            final FunctionApp.DefinitionStages.NewAppServicePlanWithGroup appWithNewServicePlan = functionApp.withRegion(this.region);
-            if (getResourceGroup() == null) {
-                withCreate = appWithNewServicePlan.withNewResourceGroup(resourceGroup);
-            } else {
-                withCreate = appWithNewServicePlan.withExistingResourceGroup(resourceGroup);
-            }
-            if (pricingTier == null) {
-                withDockerContainerImage = withCreate.withNewLinuxConsumptionPlan();
-            } else {
-                withDockerContainerImage = withCreate.withNewLinuxAppServicePlan(pricingTier);
-            }
-        } else {
-            final FunctionApp.DefinitionStages.ExistingLinuxPlanWithGroup appWithExistingServicePlan =
-                    functionApp.withExistingLinuxAppServicePlan(appServicePlan);
-            if (getResourceGroup() == null) {
-                withDockerContainerImage = appWithExistingServicePlan.withNewResourceGroup(resourceGroup);
-            } else {
-                withDockerContainerImage = appWithExistingServicePlan.withExistingResourceGroup(resourceGroup);
-            }
-        }
+        final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage = defineLinuxFunction();
         return withDockerContainerImage.withBuiltInImage(FunctionRuntimeStack.JAVA_8);
     }
 

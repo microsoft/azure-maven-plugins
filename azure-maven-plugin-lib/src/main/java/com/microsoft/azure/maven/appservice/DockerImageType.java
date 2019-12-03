@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.configuration;
+package com.microsoft.azure.maven.appservice;
 
 public enum DockerImageType {
     NONE,

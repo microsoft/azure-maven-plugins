@@ -11,6 +11,7 @@ import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
+import com.microsoft.azure.maven.appservice.DockerImageType;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
@@ -108,5 +109,21 @@ public class AppServiceUtils {
 
     public static boolean isEqualAppServicePlan(AppServicePlan first, AppServicePlan second) {
         return first == null ? second == null : second != null && StringUtils.equals(first.id(), second.id());
+    }
+
+    public static DockerImageType getDockerImageType(final String imageName, final String serverId,
+                                                     final String registryUrl) {
+        if (org.apache.commons.lang3.StringUtils.isEmpty(imageName)) {
+            return DockerImageType.NONE;
+        }
+
+        final boolean isCustomRegistry = org.apache.commons.lang3.StringUtils.isNotEmpty(registryUrl);
+        final boolean isPrivate = org.apache.commons.lang3.StringUtils.isNotEmpty(serverId);
+
+        if (isCustomRegistry) {
+            return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;
+        } else {
+            return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
+        }
     }
 }

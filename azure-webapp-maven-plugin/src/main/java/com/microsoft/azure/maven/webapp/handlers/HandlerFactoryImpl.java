@@ -13,9 +13,10 @@ import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
+import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.artifact.JarArtifactHandlerImpl;
@@ -28,7 +29,6 @@ import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateDockerHubRuntime
 import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateRegistryRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.PublicDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.WindowsRuntimeHandlerImpl;
-import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
@@ -75,7 +75,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
         throws MojoExecutionException {
 
         final WebAppRuntimeHandler.Builder<? extends WebAppRuntimeHandler.Builder> builder;
-        final DockerImageType imageType = WebAppUtils.getDockerImageType(config.getImage(), config.getServerId(),
+        final DockerImageType imageType = AppServiceUtils.getDockerImageType(config.getImage(), config.getServerId(),
             config.getRegistryUrl());
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
