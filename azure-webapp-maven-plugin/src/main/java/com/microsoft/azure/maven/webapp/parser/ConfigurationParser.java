@@ -43,8 +43,7 @@ public abstract class ConfigurationParser {
 
     protected PricingTier getPricingTier() throws MojoExecutionException{
         validate(validator.validatePricingTier());
-        final PricingTier pricingTier = AppServiceUtils.getPricingTierFromString(mojo.getPricingTier());
-        return pricingTier == null ? WebAppConfiguration.DEFAULT_PRICINGTIER : pricingTier;
+        return AppServiceUtils.getPricingTierFromString(mojo.getPricingTier());
     }
 
     protected DeploymentSlotSetting getDeploymentSlotSetting() throws MojoExecutionException{
