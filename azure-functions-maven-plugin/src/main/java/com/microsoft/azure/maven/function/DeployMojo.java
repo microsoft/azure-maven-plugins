@@ -17,9 +17,11 @@ import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.maven.function.handlers.artifact.DockerArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
+import com.microsoft.azure.maven.function.handlers.runtime.DockerFunctionRuntimeHandler;
 import com.microsoft.azure.maven.function.handlers.runtime.FunctionRuntimeHandler;
 import com.microsoft.azure.maven.function.handlers.runtime.LinuxFunctionRuntimeHandler;
 import com.microsoft.azure.maven.function.handlers.runtime.WindowsFunctionRuntimeHandler;
@@ -97,7 +99,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         info(FUNCTION_APP_CREATE_START);
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
-        configureAppSettings(withCreate::withAppSettings, getAppSettings());
+        configureAppSettings(withCreate::withAppSettings, getAppSettingsWithDefaultValue());
         withCreate.withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
         info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
@@ -110,7 +112,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         runtimeHandler.updateAppServicePlan(app);
         final Update update = runtimeHandler.updateAppRuntime(app);
         checkHostJavaVersion(app, update); // Check Java Version of Server
-        configureAppSettings(update::withAppSettings, getAppSettings());
+        configureAppSettings(update::withAppSettings, getAppSettingsWithDefaultValue());
         update.apply();
         info(FUNCTION_APP_UPDATE_DONE + getAppName());
     }
@@ -146,6 +148,14 @@ public class DeployMojo extends AbstractFunctionMojo {
             case Linux:
                 builder = new LinuxFunctionRuntimeHandler.Builder();
                 break;
+            case Docker:
+                final RuntimeConfiguration runtime = this.getRuntime();
+                builder = new DockerFunctionRuntimeHandler.Builder()
+                        .image(runtime.getImage())
+                        .serverId(runtime.getServerId())
+                        .registryUrl(runtime.getRegistryUrl())
+                        .functionExtensionVersion(getFunctionExtensionVersion());
+                break;
             default:
                 throw new MojoExecutionException(String.format("Unsupported runtime %s", os));
         }
@@ -157,6 +167,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .servicePlanName(getAppServicePlanName())
                 .servicePlanResourceGroup(getAppServicePlanResourceGroup())
                 .azure(getAzureClient())
+                .mavenSettings(getSettings())
                 .log(getLog())
                 .build();
     }
@@ -167,6 +178,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
+        if (getOsEnum() == OperatingSystemEnum.Docker) {
+            return new DockerArtifactHandler.Builder().log(getLog()).build();
+        }
+
         final ArtifactHandlerBase.Builder builder;
 
         switch (this.getDeploymentType()) {

@@ -31,7 +31,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     private static final String CHANGE_FUNCTIONS_WORKER_RUNTIME = "Function worker runtime doesn't " +
             "meet the requirement, change it from %s to java";
     private static final String FUNCTIONS_EXTENSION_VERSION_NAME = "FUNCTIONS_EXTENSION_VERSION";
-    private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~2";
+    private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
     private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
             "isn't configured, setting up the default value";
 
@@ -82,14 +82,17 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     //endregion
 
     //region get App Settings
-    @Override
-    public Map getAppSettings() {
+    public Map getAppSettingsWithDefaultValue() {
         final Map settings = super.getAppSettings();
         overrideDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
                 FUNCTIONS_WORKER_RUNTIME_VALUE, CHANGE_FUNCTIONS_WORKER_RUNTIME);
         setDefaultAppSetting(settings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
                 FUNCTIONS_EXTENSION_VERSION_VALUE);
         return settings;
+    }
+
+    public String getFunctionExtensionVersion(){
+        return (String) getAppSettingsWithDefaultValue().get(FUNCTIONS_EXTENSION_VERSION_NAME);
     }
 
     private void overrideDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
