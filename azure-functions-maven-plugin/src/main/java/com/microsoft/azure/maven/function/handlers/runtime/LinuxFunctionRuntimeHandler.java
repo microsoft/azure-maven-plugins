@@ -11,8 +11,9 @@ import com.microsoft.azure.management.appservice.FunctionRuntimeStack;
 
 public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHandler {
 
-    private static final FunctionRuntimeStack JAVA_8_RUNTIME = new FunctionRuntimeStack("java", "~3", "java|8",
-            "DOCKER|mcr.microsoft.com/azure-functions/java:3.0-preview-java8-appservice");
+    // Todo: Will update FunctionRuntimeStack once service team release new docker image
+    // private static final FunctionRuntimeStack JAVA_8_RUNTIME = new FunctionRuntimeStack("java", "~3", "java|8",
+    // "DOCKER|mcr.microsoft.com/azure-functions/java:3.0-preview-java8-appservice");
 
     public static class Builder extends FunctionRuntimeHandler.Builder<Builder> {
 
@@ -35,7 +36,7 @@ public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHan
     @Override
     public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() {
         final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage = defineLinuxFunction();
-        return withDockerContainerImage.withBuiltInImage(JAVA_8_RUNTIME);
+        return withDockerContainerImage.withBuiltInImage(FunctionRuntimeStack.JAVA_8);
     }
 
     @Override
