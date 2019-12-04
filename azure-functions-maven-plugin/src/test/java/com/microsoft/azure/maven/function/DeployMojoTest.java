@@ -129,22 +129,22 @@ public class DeployMojoTest extends MojoTestBase {
     public void configureAppSettings() throws Exception {
         final WithCreate withCreate = mock(WithCreate.class);
 
-        mojo.configureAppSettings(withCreate::withAppSettings, mojo.getAppSettings());
+        mojo.configureAppSettings(withCreate::withAppSettings, mojo.getAppSettingsWithDefaultValue());
 
         verify(withCreate, times(1)).withAppSettings(anyMap());
     }
 
     @Test
     public void testDefaultAppSettings() throws Exception {
-        final Map settings = mojo.getAppSettings();
+        final Map settings = mojo.getAppSettingsWithDefaultValue();
         assertEquals("java", (String) settings.get("FUNCTIONS_WORKER_RUNTIME"));
-        assertEquals("~2", (String) settings.get("FUNCTIONS_EXTENSION_VERSION"));
+        assertEquals("~3", (String) settings.get("FUNCTIONS_EXTENSION_VERSION"));
     }
 
     @Test
     public void testCustomAppSettings() throws Exception {
         final DeployMojo mojoWithSettings = (DeployMojo) getMojoFromPom("/pom-with-settings.xml", "deploy");
-        final Map settings = mojoWithSettings.getAppSettings();
+        final Map settings = mojoWithSettings.getAppSettingsWithDefaultValue();
         assertEquals("bar", (String) settings.get("FOO"));
         assertEquals("java", (String) settings.get("FUNCTIONS_WORKER_RUNTIME"));
         assertEquals("beta", (String) settings.get("FUNCTIONS_EXTENSION_VERSION"));

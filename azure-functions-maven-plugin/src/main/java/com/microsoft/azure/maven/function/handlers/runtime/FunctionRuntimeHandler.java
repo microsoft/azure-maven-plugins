@@ -15,11 +15,18 @@ import org.apache.maven.plugin.MojoExecutionException;
 
 public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<FunctionApp> {
 
-    RuntimeConfiguration runtimeConfiguration;
+    protected String functionExtensionVersion;
+    protected RuntimeConfiguration runtimeConfiguration;
 
     public abstract static class Builder<T extends FunctionRuntimeHandler.Builder<T>> extends BaseRuntimeHandler.Builder<T> {
 
-        RuntimeConfiguration runtimeConfiguration;
+        protected String functionExtensionVersion;
+        protected RuntimeConfiguration runtimeConfiguration;
+
+        public T functionExtensionVersion(final String value){
+            this.functionExtensionVersion = value;
+            return self();
+        }
 
         public T runtime(final RuntimeConfiguration value) {
             this.runtimeConfiguration = value;
@@ -33,6 +40,7 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
 
     protected FunctionRuntimeHandler(Builder<?> builder) {
         super(builder);
+        this.functionExtensionVersion = builder.functionExtensionVersion;
         this.runtimeConfiguration = builder.runtimeConfiguration;
     }
 
