@@ -35,7 +35,14 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static com.microsoft.azure.maven.appservice.DeploymentType.DOCKER;
+import static com.microsoft.azure.maven.appservice.DeploymentType.RUN_FROM_BLOB;
+import static com.microsoft.azure.maven.appservice.DeploymentType.RUN_FROM_ZIP;
+import static com.microsoft.azure.maven.appservice.OperatingSystemEnum.Docker;
+import static com.microsoft.azure.maven.appservice.OperatingSystemEnum.Linux;
+import static com.microsoft.azure.maven.appservice.OperatingSystemEnum.Windows;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -186,6 +193,34 @@ public class DeployMojoTest extends MojoTestBase {
     @Test(expected = MojoExecutionException.class)
     public void getArtifactHandlerThrowException() throws Exception {
         getMojoFromPom().getArtifactHandler();
+    }
+
+    @Test
+    public void testGetDeploymentTypeByRuntime() throws MojoExecutionException {
+        // Windows
+        doReturn(Windows).when(mojoSpy).getOsEnum();
+        assertEquals(RUN_FROM_ZIP, mojoSpy.getDeploymentTypeByRuntime());
+        // Linux
+        doReturn(Linux).when(mojoSpy).getOsEnum();
+        doReturn(true).when(mojoSpy).isDedicatedPricingTier();
+        assertEquals(RUN_FROM_ZIP, mojoSpy.getDeploymentTypeByRuntime());
+        doReturn(false).when(mojoSpy).isDedicatedPricingTier();
+        assertEquals(RUN_FROM_BLOB, mojoSpy.getDeploymentTypeByRuntime());
+        // Docker
+        doReturn(Docker).when(mojoSpy).getOsEnum();
+        assertEquals(DOCKER, mojoSpy.getDeploymentTypeByRuntime());
+    }
+
+    @Test
+    public void testIsDedicatedPricingTier(){
+        mojoSpy.pricingTier = "P1V2";
+        assertTrue(mojoSpy.isDedicatedPricingTier());
+        mojoSpy.pricingTier = "B1";
+        assertTrue(mojoSpy.isDedicatedPricingTier());
+        mojoSpy.pricingTier = "EP1";
+        assertFalse(mojoSpy.isDedicatedPricingTier());
+        mojoSpy.pricingTier = null;
+        assertFalse(mojoSpy.isDedicatedPricingTier());
     }
 
     private DeployMojo getMojoFromPom() throws Exception {
