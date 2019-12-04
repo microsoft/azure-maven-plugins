@@ -8,12 +8,12 @@ package com.microsoft.azure.maven.function.handlers.runtime;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
-import org.apache.commons.lang3.StringUtils;
+import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
 
 public abstract class AbstractLinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
 
-    private static final String FUNCTION_RUNTIME_VERSION_3 = "~3";
-    private static final String FUNCTION_EXTENSION_VERSION_NOT_SUPPORTED = "Linux function is not fully supported in current extension version %s, " +
+    private static final FunctionExtensionVersion LINUX_MINIMUM_VERSION = FunctionExtensionVersion.THREE;
+    private static final String FUNCTION_EXTENSION_VERSION_NOT_SUPPORTED = "Linux function is not fully supported in current version %s, " +
             "please set `FUNCTION_EXTENSION_VERSION` to `~3` for better experience";
 
     protected AbstractLinuxFunctionRuntimeHandler(Builder builder) {
@@ -49,9 +49,9 @@ public abstract class AbstractLinuxFunctionRuntimeHandler extends FunctionRuntim
         return result;
     }
 
-    protected void checkFunctionExtensionVersion(){
-        if (!StringUtils.equals(functionExtensionVersion, FUNCTION_RUNTIME_VERSION_3)) {
-            log.warn(String.format(FUNCTION_EXTENSION_VERSION_NOT_SUPPORTED, functionExtensionVersion));
+    protected void checkFunctionExtensionVersion() {
+        if (functionExtensionVersion.getValue() <= LINUX_MINIMUM_VERSION.getValue()) {
+            log.warn(String.format(FUNCTION_EXTENSION_VERSION_NOT_SUPPORTED, functionExtensionVersion.getVersion()));
         }
     }
 }

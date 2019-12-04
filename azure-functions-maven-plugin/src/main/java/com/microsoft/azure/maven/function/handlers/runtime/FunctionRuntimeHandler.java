@@ -9,21 +9,22 @@ package com.microsoft.azure.maven.function.handlers.runtime;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.resources.ResourceGroup;
+import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.maven.handlers.runtime.BaseRuntimeHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 
 public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<FunctionApp> {
 
-    protected String functionExtensionVersion;
+    protected FunctionExtensionVersion functionExtensionVersion;
     protected RuntimeConfiguration runtimeConfiguration;
 
     public abstract static class Builder<T extends FunctionRuntimeHandler.Builder<T>> extends BaseRuntimeHandler.Builder<T> {
 
-        protected String functionExtensionVersion;
+        protected FunctionExtensionVersion functionExtensionVersion;
         protected RuntimeConfiguration runtimeConfiguration;
 
-        public T functionExtensionVersion(final String value){
+        public T functionExtensionVersion(final FunctionExtensionVersion value){
             this.functionExtensionVersion = value;
             return self();
         }

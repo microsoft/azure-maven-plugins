@@ -11,7 +11,9 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.function.configurations.ElasticPremiumPricingTier;
+import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.maven.function.utils.FunctionUtils;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -91,8 +93,9 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return settings;
     }
 
-    public String getFunctionExtensionVersion(){
-        return (String) getAppSettingsWithDefaultValue().get(FUNCTIONS_EXTENSION_VERSION_NAME);
+    public FunctionExtensionVersion getFunctionExtensionVersion() throws MojoExecutionException {
+        final String extensionVersion = (String) getAppSettingsWithDefaultValue().get(FUNCTIONS_EXTENSION_VERSION_NAME);
+        return FunctionUtils.parseFunctionExtensionVersion(extensionVersion);
     }
 
     private void overrideDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
