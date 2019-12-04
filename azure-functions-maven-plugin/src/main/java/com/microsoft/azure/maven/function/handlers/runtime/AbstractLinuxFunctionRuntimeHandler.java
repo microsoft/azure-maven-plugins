@@ -12,7 +12,7 @@ import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersio
 
 public abstract class AbstractLinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
 
-    private static final FunctionExtensionVersion LINUX_MINIMUM_VERSION = FunctionExtensionVersion.THREE;
+    private static final FunctionExtensionVersion LINUX_MINIMUM_VERSION = FunctionExtensionVersion.VERSION_3;
     private static final String FUNCTION_EXTENSION_VERSION_NOT_SUPPORTED = "Linux function is not fully supported in current version %s, " +
             "please set `FUNCTION_EXTENSION_VERSION` to `~3` for better experience";
 

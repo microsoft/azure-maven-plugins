@@ -8,8 +8,8 @@ package com.microsoft.azure.maven.function.configurations;
 
 public enum FunctionExtensionVersion {
 
-    TWO(2, "~2"),
-    THREE(3, "~3"),
+    VERSION_2(2, "~2"),
+    VERSION_3(3, "~3"),
     BETA(Integer.MAX_VALUE, "beta"); // beta refers to latest version
 
     private int value;
