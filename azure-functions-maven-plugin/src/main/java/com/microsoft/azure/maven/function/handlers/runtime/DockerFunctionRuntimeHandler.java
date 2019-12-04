@@ -16,8 +16,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.settings.Server;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
-import static com.microsoft.azure.maven.appservice.DockerImageType.PRIVATE_DOCKER_HUB;
-import static com.microsoft.azure.maven.appservice.DockerImageType.PRIVATE_REGISTRY;
 import static com.microsoft.azure.maven.appservice.DockerImageType.PUBLIC_DOCKER_HUB;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_FUNCTION_APP_EDIT_MODE;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_FUNCTION_APP_EDIT_MODE_VALUE;

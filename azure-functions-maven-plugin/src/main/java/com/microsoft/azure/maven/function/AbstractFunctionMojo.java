@@ -83,7 +83,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     //region get App Settings
     public Map getAppSettingsWithDefaultValue() {
-        final Map settings = super.getAppSettings();
+        final Map settings = getAppSettings();
         overrideDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
                 FUNCTIONS_WORKER_RUNTIME_VALUE, CHANGE_FUNCTIONS_WORKER_RUNTIME);
         setDefaultAppSetting(settings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,

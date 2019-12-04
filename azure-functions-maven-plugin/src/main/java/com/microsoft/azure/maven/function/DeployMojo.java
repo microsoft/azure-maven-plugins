@@ -153,8 +153,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 builder = new DockerFunctionRuntimeHandler.Builder()
                         .image(runtime.getImage())
                         .serverId(runtime.getServerId())
-                        .registryUrl(runtime.getRegistryUrl())
-                        .functionExtensionVersion(getFunctionExtensionVersion());
+                        .registryUrl(runtime.getRegistryUrl());
                 break;
             default:
                 throw new MojoExecutionException(String.format("Unsupported runtime %s", os));
@@ -166,6 +165,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .pricingTier(getPricingTier())
                 .servicePlanName(getAppServicePlanName())
                 .servicePlanResourceGroup(getAppServicePlanResourceGroup())
+                .functionExtensionVersion(getFunctionExtensionVersion())
                 .azure(getAzureClient())
                 .mavenSettings(getSettings())
                 .log(getLog())
