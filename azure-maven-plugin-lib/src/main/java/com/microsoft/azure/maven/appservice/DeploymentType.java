@@ -19,6 +19,7 @@ public enum DeploymentType {
     AUTO,
     NONE,
     EMPTY,
+    DOCKER,
     MSDEPLOY,
     RUN_FROM_ZIP,
     RUN_FROM_BLOB;
