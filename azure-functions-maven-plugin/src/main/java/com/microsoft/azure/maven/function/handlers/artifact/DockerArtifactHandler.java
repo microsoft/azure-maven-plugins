@@ -11,6 +11,8 @@ import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 
 public class DockerArtifactHandler extends ArtifactHandlerBase {
 
+    public static final String SKIP_DOCKER_DEPLOYMENT = "Skip deployment for docker functions";
+
     public static class Builder extends ArtifactHandlerBase.Builder<Builder> {
 
         @Override
@@ -30,7 +32,7 @@ public class DockerArtifactHandler extends ArtifactHandlerBase {
 
     @Override
     public void publish(DeployTarget deployTarget) {
-        log.info("Skip deployment for docker functions");
+        log.info(SKIP_DOCKER_DEPLOYMENT);
         deployTarget.getApp().restart();
     }
 }

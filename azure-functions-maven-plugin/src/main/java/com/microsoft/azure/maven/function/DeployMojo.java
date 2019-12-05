@@ -13,11 +13,11 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
-import com.microsoft.azure.maven.function.handlers.artifact.DockerArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
@@ -29,6 +29,7 @@ import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -36,6 +37,11 @@ import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Map;
 import java.util.function.Consumer;
+
+import static com.microsoft.azure.maven.appservice.DeploymentType.DOCKER;
+import static com.microsoft.azure.maven.appservice.DeploymentType.EMPTY;
+import static com.microsoft.azure.maven.appservice.DeploymentType.RUN_FROM_BLOB;
+import static com.microsoft.azure.maven.appservice.DeploymentType.RUN_FROM_ZIP;
 
 /**
  * Deploy artifacts to target Azure Functions in Azure. If target Azure Functions doesn't exist, it will be created.
@@ -61,6 +67,8 @@ public class DeployMojo extends AbstractFunctionMojo {
         " set it to Java 8";
     public static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
         " meet the requirement of Azure Functions, set it to Java 8";
+    public static final String UNKNOW_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
+            "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
 
     //region Entry Point
     @Override
@@ -178,13 +186,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
-        if (getOsEnum() == OperatingSystemEnum.Docker) {
-            return new DockerArtifactHandler.Builder().log(getLog()).build();
-        }
-
         final ArtifactHandlerBase.Builder builder;
 
-        switch (this.getDeploymentType()) {
+        final DeploymentType deploymentType = getDeploymentType();
+        switch (deploymentType) {
             case MSDEPLOY:
                 builder = new MSDeployArtifactHandlerImpl.Builder().functionAppName(this.getAppName());
                 break;
@@ -202,8 +207,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 builder = new RunFromZipArtifactHandlerImpl.Builder();
                 break;
             default:
-                throw new MojoExecutionException(
-                    "The value of <deploymentType> is unknown, supported values are: ftp, zip and msdeploy.");
+                throw new MojoExecutionException(UNKNOW_DEPLOYMENT_TYPE);
         }
         return builder.project(this.getProject())
             .session(this.getSession())
@@ -213,6 +217,28 @@ public class DeployMojo extends AbstractFunctionMojo {
             .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
             .log(this.getLog())
             .build();
+    }
+
+    @Override
+    public DeploymentType getDeploymentType() throws MojoExecutionException {
+        final DeploymentType deploymentType = super.getDeploymentType();
+        return deploymentType == EMPTY ? getDeploymentTypeByRuntime() : deploymentType;
+    }
+
+    public DeploymentType getDeploymentTypeByRuntime() throws MojoExecutionException {
+        final OperatingSystemEnum operatingSystemEnum = getOsEnum();
+        switch (operatingSystemEnum) {
+            case Docker:
+                return DOCKER;
+            case Linux:
+                return isDedicatedPricingTier() ? RUN_FROM_ZIP : RUN_FROM_BLOB;
+            default:
+                return RUN_FROM_ZIP;
+        }
+    }
+
+    protected boolean isDedicatedPricingTier() {
+        return AppServiceUtils.getPricingTierFromString(pricingTier) != null;
     }
 
     //region Telemetry Configuration Interface
