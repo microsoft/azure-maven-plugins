@@ -50,7 +50,7 @@ public abstract class AbstractLinuxFunctionRuntimeHandler extends FunctionRuntim
     }
 
     protected void checkFunctionExtensionVersion() {
-        if (functionExtensionVersion.getValue() <= LINUX_MINIMUM_VERSION.getValue()) {
+        if (functionExtensionVersion.getValue() < LINUX_MINIMUM_VERSION.getValue()) {
             log.warn(String.format(FUNCTION_EXTENSION_VERSION_NOT_SUPPORTED, functionExtensionVersion.getVersion()));
         }
     }
