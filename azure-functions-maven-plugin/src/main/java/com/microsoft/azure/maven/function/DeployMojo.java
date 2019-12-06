@@ -18,6 +18,7 @@ import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.maven.function.handlers.artifact.DockerArtifactHandler;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
@@ -201,6 +202,9 @@ public class DeployMojo extends AbstractFunctionMojo {
                 break;
             case RUN_FROM_BLOB:
                 builder = new RunFromBlobArtifactHandlerImpl.Builder();
+                break;
+            case DOCKER:
+                builder = new DockerArtifactHandler.Builder();
                 break;
             case EMPTY:
             case RUN_FROM_ZIP:
