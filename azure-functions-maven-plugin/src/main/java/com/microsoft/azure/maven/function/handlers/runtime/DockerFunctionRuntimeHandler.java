@@ -17,11 +17,11 @@ import org.apache.maven.settings.Server;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
 import static com.microsoft.azure.maven.appservice.DockerImageType.PUBLIC_DOCKER_HUB;
+import static com.microsoft.azure.maven.function.Constants.APP_SETTING_DISABLE_WEBSITES_APP_SERVICE_STORAGE;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_FUNCTION_APP_EDIT_MODE;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_FUNCTION_APP_EDIT_MODE_READONLY;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_MACHINEKEY_DECRYPTION_KEY;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE;
-import static com.microsoft.azure.maven.function.Constants.APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE_FALSE;
 
 public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHandler {
 
@@ -69,7 +69,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
         final String decryptionKey = generateDecryptionKey();
         return (FunctionApp.DefinitionStages.WithCreate) result
                 .withAppSetting(APP_SETTING_MACHINEKEY_DECRYPTION_KEY, decryptionKey)
-                .withAppSetting(APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE, APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE_FALSE)
+                .withAppSetting(APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE, APP_SETTING_DISABLE_WEBSITES_APP_SERVICE_STORAGE)
                 .withAppSetting(APP_SETTING_FUNCTION_APP_EDIT_MODE, APP_SETTING_FUNCTION_APP_EDIT_MODE_READONLY);
     }
 
