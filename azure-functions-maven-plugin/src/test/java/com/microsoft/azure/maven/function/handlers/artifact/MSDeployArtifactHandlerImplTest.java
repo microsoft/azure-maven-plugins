@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.function.handlers;
+package com.microsoft.azure.maven.function.handlers.artifact;
 
 import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.management.appservice.FunctionApp;
@@ -20,25 +20,26 @@ import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URI;
 import java.util.Map;
 
-import static com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl.INTERNAL_STORAGE_KEY;
-import static com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl.INTERNAL_STORAGE_NOT_FOUND;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static com.microsoft.azure.maven.function.Constants.INTERNAL_STORAGE_KEY;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -48,6 +49,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({MSDeployArtifactHandlerImpl.class, FunctionArtifactHelper.class})
 public class MSDeployArtifactHandlerImplTest {
     @Mock
     AbstractFunctionMojo mojo;
@@ -86,7 +89,9 @@ public class MSDeployArtifactHandlerImplTest {
         doReturn(mapSettings).when(deployTarget).getAppSettings();
         doReturn(storageSetting).when(mapSettings).get(anyString());
         buildHandler();
-        doReturn(null).when(handlerSpy).getCloudStorageAccount(deployTarget);
+
+        PowerMockito.mockStatic(FunctionArtifactHelper.class);
+        when(FunctionArtifactHelper.getCloudStorageAccount(any())).thenReturn(null);
         doReturn("").when(handlerSpy).uploadPackageToAzureStorage(file, null, "");
         doReturn("").when(handlerSpy).getBlobName();
         doReturn(mapSettings).when(deployTarget).getAppSettings();
@@ -97,7 +102,6 @@ public class MSDeployArtifactHandlerImplTest {
 
         verify(handlerSpy, times(1)).publish(deployTarget);
         verify(handlerSpy, times(1)).createZipPackage();
-        verify(handlerSpy, times(1)).getCloudStorageAccount(deployTarget);
         verify(handlerSpy, times(1)).getBlobName();
         verify(handlerSpy, times(1)).uploadPackageToAzureStorage(file, null, "");
         verify(handlerSpy, times(1)).deployWithPackageUri(eq(deployTarget), eq(""), any(Runnable.class));
@@ -112,41 +116,6 @@ public class MSDeployArtifactHandlerImplTest {
         final File zipPackage = handlerSpy.createZipPackage();
 
         assertTrue(zipPackage.exists());
-    }
-
-    @Test
-    public void getCloudStorageAccount() throws Exception {
-        final String storageConnection =
-                "DefaultEndpointsProtocol=https;AccountName=123456;AccountKey=12345678;EndpointSuffix=core.windows.net";
-        final Map mapSettings = mock(Map.class);
-        final DeployTarget deployTarget = mock(DeployTarget.class);
-        final AppSetting storageSetting = mock(AppSetting.class);
-        mapSettings.put(INTERNAL_STORAGE_KEY, storageSetting);
-        doReturn(mapSettings).when(deployTarget).getAppSettings();
-        doReturn(storageSetting).when(mapSettings).get(anyString());
-        doReturn(storageConnection).when(storageSetting).value();
-        buildHandler();
-        final CloudStorageAccount storageAccount = handler.getCloudStorageAccount(deployTarget);
-        assertNotNull(storageAccount);
-    }
-
-    @Test
-    public void getCloudStorageAccountWithException() throws Exception {
-        final FunctionApp app = mock(FunctionApp.class);
-        final DeployTarget deployTarget = mock(DeployTarget.class);
-        final Map appSettings = mock(Map.class);
-        doReturn(appSettings).when(app).getAppSettings();
-        doReturn(null).when(appSettings).get(anyString());
-
-        String exceptionMessage = null;
-        buildHandler();
-        try {
-            handler.getCloudStorageAccount(deployTarget);
-        } catch (Exception e) {
-            exceptionMessage = e.getMessage();
-        } finally {
-            assertEquals(INTERNAL_STORAGE_NOT_FOUND, exceptionMessage);
-        }
     }
 
     @Test

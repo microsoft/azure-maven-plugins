@@ -11,9 +11,10 @@ import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 
-public class LinuxRuntimeHandlerImpl extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<Builder> {
+public class LinuxRuntimeHandlerImpl extends WebAppRuntimeHandler {
+    public static class Builder extends WebAppRuntimeHandler.Builder<Builder> {
 
         @Override
         protected Builder self() {
@@ -31,14 +32,14 @@ public class LinuxRuntimeHandlerImpl extends BaseRuntimeHandler {
     }
 
     @Override
-    public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
+    public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException {
         final AppServicePlan plan = createOrGetAppServicePlan();
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
             .withBuiltInImage(runtime);
     }
 
     @Override
-    public Update updateAppRuntime(WebApp app) throws Exception {
+    public Update updateAppRuntime(WebApp app) throws MojoExecutionException {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
         return app.update().withBuiltInImage(runtime);

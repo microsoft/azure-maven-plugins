@@ -17,7 +17,6 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.lang.reflect.Method;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -70,7 +69,7 @@ public class PackageMojoTest extends MojoTestBase {
 
         final String finalName = mojoSpy.getScriptFilePath();
 
-        assertEquals(Paths.get("..", "artifact-0.1.0.jar").toString(), finalName);
+        assertEquals("../artifact-0.1.0.jar", finalName);
     }
 
     @Test

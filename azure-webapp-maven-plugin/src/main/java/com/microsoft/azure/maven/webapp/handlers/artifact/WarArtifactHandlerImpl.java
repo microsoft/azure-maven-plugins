@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.google.common.io.Files;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
+import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.StringUtils;
@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 
 /**
  * Artifact handler used to deploy war file. Typically, each artifact handler needs to extends
- * {@link com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase}
+ * {@link ArtifactHandlerBase}
  * WarArtifactHandler is a special case because it does not need staging folder.
  * Thus, the methods shared in ArtifactHandlerBase is not needed here.
  */

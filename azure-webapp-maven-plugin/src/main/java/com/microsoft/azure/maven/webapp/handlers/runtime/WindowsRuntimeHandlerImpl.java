@@ -12,9 +12,10 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 
-public class WindowsRuntimeHandlerImpl extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<WindowsRuntimeHandlerImpl.Builder> {
+public class WindowsRuntimeHandlerImpl extends WebAppRuntimeHandler {
+    public static class Builder extends WebAppRuntimeHandler.Builder<WindowsRuntimeHandlerImpl.Builder> {
         @Override
         protected WindowsRuntimeHandlerImpl.Builder self() {
             return this;
@@ -31,7 +32,7 @@ public class WindowsRuntimeHandlerImpl extends BaseRuntimeHandler {
     }
 
     @Override
-    public WithCreate defineAppWithRuntime() throws Exception {
+    public WithCreate defineAppWithRuntime() throws MojoExecutionException {
         final AppServicePlan plan = createOrGetAppServicePlan();
         final WithCreate withCreate = WebAppUtils.defineWindowsApp(resourceGroup, appName, azure, plan);
         withCreate.withJavaVersion(javaVersion).withWebContainer(webContainer);
@@ -39,7 +40,7 @@ public class WindowsRuntimeHandlerImpl extends BaseRuntimeHandler {
     }
 
     @Override
-    public Update updateAppRuntime(final WebApp app) throws Exception {
+    public Update updateAppRuntime(final WebApp app) throws MojoExecutionException {
         WebAppUtils.assureWindowsWebApp(app);
         WebAppUtils.clearTags(app);
         final Update update = app.update();

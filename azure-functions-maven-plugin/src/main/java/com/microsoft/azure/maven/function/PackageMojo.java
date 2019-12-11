@@ -6,6 +6,9 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.fasterxml.jackson.core.PrettyPrinter;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -191,7 +194,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     protected String getScriptFilePath() {
         return new StringBuilder()
                 .append("..")
-                .append(File.separator)
+                .append("/")
                 .append(getFinalName())
                 .append(".jar")
                 .toString();
@@ -254,9 +257,11 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected ObjectWriter getObjectWriter() {
+        final DefaultPrettyPrinter.Indenter indenter = DefaultIndenter.SYSTEM_LINEFEED_INSTANCE.withLinefeed("\n");
+        final PrettyPrinter prettyPrinter = new DefaultPrettyPrinter().withObjectIndenter(indenter);
         return new ObjectMapper()
                 .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-                .writerWithDefaultPrettyPrinter();
+                .writer(prettyPrinter);
     }
 
     //endregion

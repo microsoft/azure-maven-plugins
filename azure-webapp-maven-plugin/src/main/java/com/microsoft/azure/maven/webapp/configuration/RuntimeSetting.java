@@ -9,6 +9,8 @@ package com.microsoft.azure.maven.webapp.configuration;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -39,7 +41,7 @@ public class RuntimeSetting {
 
     public OperatingSystemEnum getOsEnum() {
         try {
-            return OperatingSystemEnum.fromString(this.os);
+            return Utils.parseOperationSystem(this.os);
         } catch (MojoExecutionException e) {
             return null;
         }

@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.artifacthandler;
+package com.microsoft.azure.maven.handlers.artifact;
 
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
@@ -16,6 +16,7 @@ import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

@@ -10,9 +10,10 @@ import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 
-public class PublicDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
-    public static class Builder extends BaseRuntimeHandler.Builder<PublicDockerHubRuntimeHandlerImpl.Builder> {
+public class PublicDockerHubRuntimeHandlerImpl extends WebAppRuntimeHandler {
+    public static class Builder extends WebAppRuntimeHandler.Builder<PublicDockerHubRuntimeHandlerImpl.Builder> {
         @Override
         protected PublicDockerHubRuntimeHandlerImpl.Builder self() {
             return this;
@@ -29,14 +30,14 @@ public class PublicDockerHubRuntimeHandlerImpl extends BaseRuntimeHandler {
     }
 
     @Override
-    public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws Exception {
+    public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException {
         final AppServicePlan plan = createOrGetAppServicePlan();
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
             .withPublicDockerHubImage(image);
     }
 
     @Override
-    public WebApp.Update updateAppRuntime(final WebApp app) throws Exception {
+    public WebApp.Update updateAppRuntime(final WebApp app) throws MojoExecutionException {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
         return app.update().withPublicDockerHubImage(image);
