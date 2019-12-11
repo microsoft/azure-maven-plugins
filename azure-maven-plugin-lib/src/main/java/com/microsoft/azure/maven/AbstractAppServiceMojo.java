@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.appservice.DeploymentType;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.nio.file.Paths;
@@ -111,7 +111,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         return appSettings;
     }
 
-    public DeploymentType getDeploymentType() throws MojoExecutionException {
+    public DeploymentType getDeploymentType() throws AzureExecutionException {
         return DeploymentType.fromString(deploymentType);
     }
 

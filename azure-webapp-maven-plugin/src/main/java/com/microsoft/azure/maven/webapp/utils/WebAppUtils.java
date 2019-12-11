@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.utils;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
@@ -18,7 +19,6 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDoc
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 public class WebAppUtils {
@@ -28,22 +28,22 @@ public class WebAppUtils {
     public static final String CONFIGURATION_NOT_APPLICABLE =
             "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
 
-    public static void assureLinuxWebApp(final WebApp app) throws MojoExecutionException {
+    public static void assureLinuxWebApp(final WebApp app) throws AzureExecutionException {
         if (!isLinuxWebApp(app)) {
-            throw new MojoExecutionException(String.format(CONFIGURATION_NOT_APPLICABLE, "Windows"));
+            throw new AzureExecutionException(String.format(CONFIGURATION_NOT_APPLICABLE, "Windows"));
         }
     }
 
-    public static void assureWindowsWebApp(final WebApp app) throws MojoExecutionException {
+    public static void assureWindowsWebApp(final WebApp app) throws AzureExecutionException {
         if (isLinuxWebApp(app)) {
-            throw new MojoExecutionException(String.format(CONFIGURATION_NOT_APPLICABLE, "Linux"));
+            throw new AzureExecutionException(String.format(CONFIGURATION_NOT_APPLICABLE, "Linux"));
         }
     }
 
     public static WithDockerContainerImage defineLinuxApp(final String resourceGroup,
                                                           final String appName,
                                                           final Azure azureClient,
-                                                          final AppServicePlan plan) throws MojoExecutionException {
+                                                          final AppServicePlan plan) throws AzureExecutionException {
         assureLinuxPlan(plan);
 
         final ExistingLinuxPlanWithGroup existingLinuxPlanWithGroup = azureClient.webApps()
@@ -55,7 +55,7 @@ public class WebAppUtils {
 
     public static WithCreate defineWindowsApp(final String resourceGroup,
                                               final String appName,
-                                              final Azure azureClient, final AppServicePlan plan) throws MojoExecutionException {
+                                              final Azure azureClient, final AppServicePlan plan) throws AzureExecutionException {
         assureWindowsPlan(plan);
 
         final ExistingWindowsPlanWithGroup existingWindowsPlanWithGroup = azureClient.webApps()
@@ -72,7 +72,7 @@ public class WebAppUtils {
                                                            final Region region,
                                                            final PricingTier pricingTier,
                                                            final Log log,
-                                                           final OperatingSystem os) throws MojoExecutionException {
+                                                           final OperatingSystem os) throws AzureExecutionException {
         final AppServicePlan plan = AppServiceUtils.getAppServicePlan(servicePlanName, azure,
                 resourceGroup, servicePlanResourceGroup);
 
@@ -87,9 +87,9 @@ public class WebAppUtils {
                                                            final Region region,
                                                            final PricingTier pricingTier,
                                                            final Log log,
-                                                           final OperatingSystem os) throws MojoExecutionException {
+                                                           final OperatingSystem os) throws AzureExecutionException {
         if (region == null) {
-            throw new MojoExecutionException("Please config the <region> in pom.xml, " +
+            throw new AzureExecutionException("Please config the <region> in pom.xml, " +
                     "it is required to create a new Azure App Service Plan.");
         }
         servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);
@@ -124,16 +124,16 @@ public class WebAppUtils {
         app.inner().withTags(null);
     }
 
-    private static void assureWindowsPlan(final AppServicePlan plan) throws MojoExecutionException {
+    private static void assureWindowsPlan(final AppServicePlan plan) throws AzureExecutionException {
         if (!plan.operatingSystem().equals(OperatingSystem.WINDOWS)) {
-            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
+            throw new AzureExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
                     plan.name(), OperatingSystem.WINDOWS.name()));
         }
     }
 
-    private static void assureLinuxPlan(final AppServicePlan plan) throws MojoExecutionException {
+    private static void assureLinuxPlan(final AppServicePlan plan) throws AzureExecutionException {
         if (!plan.operatingSystem().equals(OperatingSystem.LINUX)) {
-            throw new MojoExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
+            throw new AzureExecutionException(String.format(SERVICE_PLAN_NOT_APPLICABLE,
                     plan.name(), OperatingSystem.LINUX.name()));
         }
     }

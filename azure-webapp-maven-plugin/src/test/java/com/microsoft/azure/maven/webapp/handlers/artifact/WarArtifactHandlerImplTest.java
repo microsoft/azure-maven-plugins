@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
@@ -13,7 +14,6 @@ import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import org.apache.maven.model.Build;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
@@ -103,7 +103,7 @@ public class WarArtifactHandlerImplTest {
         verify(slotMock, times(1)).warDeploy(file, path);
     }
 
-    @Test(expected = MojoExecutionException.class)
+    @Test(expected = AzureExecutionException.class)
     public void publishFailed() throws Exception {
         final File file = new File("");
         final Log log = mock(Log.class);
@@ -121,7 +121,7 @@ public class WarArtifactHandlerImplTest {
     }
 
     @Test
-    public void publishThrowException() throws MojoExecutionException {
+    public void publishThrowException() throws AzureExecutionException {
         final File file = new File("");
         final WebApp app = mock(WebApp.class);
         final Log log = mock(Log.class);
@@ -134,7 +134,7 @@ public class WarArtifactHandlerImplTest {
 
         try {
             handlerSpy.publish(new WebAppDeployTarget(app));
-        } catch (final MojoExecutionException e) {
+        } catch (final AzureExecutionException e) {
             assertEquals("Failed to deploy war file after 3 times of retry.", e.getMessage());
         }
     }
@@ -190,14 +190,14 @@ public class WarArtifactHandlerImplTest {
         assertEquals(defaultWar.getPath(), Paths.get("warFile.war").toString());
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void assureWarFileExistedWhenFileExtWrong() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void assureWarFileExistedWhenFileExtWrong() throws AzureExecutionException {
         buildHandler();
         handlerSpy.assureWarFileExisted(new File("test.jar"));
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void assureWarFileExistedWhenFileNotExist() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void assureWarFileExistedWhenFileNotExist() throws AzureExecutionException {
         final File fileMock = mock(File.class);
 
         doReturn("test.war").when(fileMock).getName();
@@ -206,8 +206,8 @@ public class WarArtifactHandlerImplTest {
         handlerSpy.assureWarFileExisted(fileMock);
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void assureWarFileExistedWhenIsNotAFile() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void assureWarFileExistedWhenIsNotAFile() throws AzureExecutionException {
         final File fileMock = mock(File.class);
 
         doReturn("test.war").when(fileMock).getName();
@@ -218,7 +218,7 @@ public class WarArtifactHandlerImplTest {
     }
 
     @Test
-    public void assureWarFileExisted() throws MojoExecutionException {
+    public void assureWarFileExisted() throws AzureExecutionException {
         final File file = mock(File.class);
         doReturn("test.war").when(file).getName();
         doReturn(true).when(file).exists();

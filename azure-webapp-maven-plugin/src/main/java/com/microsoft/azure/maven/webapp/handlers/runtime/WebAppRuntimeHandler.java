@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers.runtime;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.OperatingSystem;
@@ -16,7 +17,6 @@ import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.handlers.runtime.BaseRuntimeHandler;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 
 public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
     protected RuntimeStack runtime;
@@ -57,10 +57,10 @@ public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
     }
 
     @Override
-    public abstract WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException;
+    public abstract WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException;
 
     @Override
-    public abstract WebApp.Update updateAppRuntime(WebApp app) throws MojoExecutionException;
+    public abstract WebApp.Update updateAppRuntime(WebApp app) throws AzureExecutionException;
 
     protected abstract OperatingSystem getAppServicePlatform();
 
@@ -69,7 +69,7 @@ public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
         app.update().withExistingAppServicePlan(appServicePlan).apply();
     }
 
-    protected AppServicePlan createOrGetAppServicePlan() throws MojoExecutionException {
+    protected AppServicePlan createOrGetAppServicePlan() throws AzureExecutionException {
         return WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
                 servicePlanResourceGroup, region, getPricingTierOrDefault(), log, getAppServicePlatform());
     }

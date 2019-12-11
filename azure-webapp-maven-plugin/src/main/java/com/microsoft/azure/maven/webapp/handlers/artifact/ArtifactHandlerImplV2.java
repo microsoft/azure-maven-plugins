@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
@@ -13,7 +14,6 @@ import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
@@ -77,7 +77,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
     @Override
-    public void publish(final DeployTarget target) throws MojoExecutionException, IOException {
+    public void publish(final DeployTarget target) throws AzureExecutionException, IOException {
         if (resources == null || resources.size() < 1) {
             log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
             return;
@@ -87,7 +87,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
         if (allArtifacts.size() == 0) {
             final String absolutePath = new File(stagingDirectoryPath).getAbsolutePath();
-            throw new MojoExecutionException(
+            throw new AzureExecutionException(
                     String.format("There is no artifact to deploy in staging directory: '%s'", absolutePath));
         }
 
@@ -139,13 +139,13 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         return getArtifacts(stagingDirectory);
     }
 
-    protected void copyArtifactsToStagingDirectory() throws IOException, MojoExecutionException {
+    protected void copyArtifactsToStagingDirectory() throws IOException, AzureExecutionException {
         prepareResources();
         assureStagingDirectoryNotEmpty();
     }
 
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,
-                                                final String stagingDirectoryPath) throws MojoExecutionException {
+                                                final String stagingDirectoryPath) throws AzureExecutionException {
         if (isJavaSERuntime()) {
             prepareJavaSERuntime(getAllArtifacts(stagingDirectoryPath));
         }
@@ -158,15 +158,15 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
         final boolean deploySuccess = performActionWithRetry(() -> target.zipDeploy(zipFile), MAX_RETRY_TIMES, log);
         if (!deploySuccess) {
-            throw new MojoExecutionException(
+            throw new AzureExecutionException(
                     String.format("The zip deploy failed after %d times of retry.", MAX_RETRY_TIMES + 1));
         }
     }
 
     protected void publishArtifactsViaWarDeploy(final DeployTarget target, final String stagingDirectoryPath,
-                                                final List<File> warArtifacts) throws MojoExecutionException {
+                                                final List<File> warArtifacts) throws AzureExecutionException {
         if (warArtifacts == null || warArtifacts.size() == 0) {
-            throw new MojoExecutionException(
+            throw new AzureExecutionException(
                     String.format("There is no war artifacts to deploy in staging path %s.", stagingDirectoryPath));
         }
         for (final File warArtifact : warArtifacts) {
@@ -176,7 +176,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
     public void publishWarArtifact(final DeployTarget target, final File warArtifact,
-                                   final String contextPath) throws MojoExecutionException {
+                                   final String contextPath) throws AzureExecutionException {
         final Runnable executor = getRealWarDeployExecutor(target, warArtifact, contextPath);
         log.info(String.format("Deploying the war file %s...", warArtifact.getName()));
 
@@ -184,7 +184,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
         final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES, log);
         if (!deploySuccess) {
-            throw new MojoExecutionException(
+            throw new AzureExecutionException(
                     String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES));
         }
     }
@@ -202,7 +202,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     /**
      * Rename project jar to app.jar for java se app service
      */
-    private void prepareJavaSERuntime(final List<File> artifacts) throws MojoExecutionException {
+    private void prepareJavaSERuntime(final List<File> artifacts) throws AzureExecutionException {
         if (existsWebConfig(artifacts)) {
             return;
         }
@@ -211,21 +211,21 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         if (!StringUtils.equals(artifact.getName(), DEFAULT_APP_SERVICE_JAR_NAME)) {
             log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_APP_SERVICE_JAR_NAME));
             if (!artifact.renameTo(renamedArtifact)) {
-                throw new MojoExecutionException(String.format(RENAMING_FAILED_MESSAGE, DEFAULT_APP_SERVICE_JAR_NAME));
+                throw new AzureExecutionException(String.format(RENAMING_FAILED_MESSAGE, DEFAULT_APP_SERVICE_JAR_NAME));
             }
         }
     }
 
-    private File getProjectJarArtifact(final List<File> artifacts) throws MojoExecutionException {
+    private File getProjectJarArtifact(final List<File> artifacts) throws AzureExecutionException {
         final String fileName = String.format("%s.%s", project.getBuild().getFinalName(), project.getPackaging());
         final List<File> executableArtifacts = artifacts.stream()
                 .filter(file -> isExecutableJar(file)).collect(Collectors.toList());
         final File finalArtifact = executableArtifacts.stream()
                 .filter(file -> StringUtils.equals(fileName, file.getName())).findFirst().orElse(null);
         if (executableArtifacts.size() == 0) {
-            throw new MojoExecutionException(String.format(NO_EXECUTABLE_JAR, getResourceConfiguration()));
+            throw new AzureExecutionException(String.format(NO_EXECUTABLE_JAR, getResourceConfiguration()));
         } else if (finalArtifact == null && executableArtifacts.size() > 1) {
-            throw new MojoExecutionException(MULTI_EXECUTABLE_JARS);
+            throw new AzureExecutionException(MULTI_EXECUTABLE_JARS);
         }
         return finalArtifact == null ? executableArtifacts.get(0) : finalArtifact;
     }

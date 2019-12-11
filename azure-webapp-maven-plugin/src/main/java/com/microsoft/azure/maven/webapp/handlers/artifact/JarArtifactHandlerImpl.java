@@ -7,11 +7,11 @@
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.google.common.io.Files;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,7 +73,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
     }
 
     @Override
-    public void publish(DeployTarget deployTarget) throws IOException, MojoExecutionException {
+    public void publish(DeployTarget deployTarget) throws IOException, AzureExecutionException {
         final File jar = getJarFile();
         assureJarFileExisted(jar);
 
@@ -94,13 +94,13 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
         return new File(jarFilePath);
     }
 
-    protected void assureJarFileExisted(File jar) throws MojoExecutionException {
+    protected void assureJarFileExisted(File jar) throws AzureExecutionException {
         if (!Files.getFileExtension(jar.getName()).equalsIgnoreCase("jar")) {
-            throw new MojoExecutionException(FILE_IS_NOT_JAR);
+            throw new AzureExecutionException(FILE_IS_NOT_JAR);
         }
 
         if (!jar.exists() || !jar.isFile()) {
-            throw new MojoExecutionException(String.format(FIND_JAR_FILE_FAIL, jar.getAbsolutePath()));
+            throw new AzureExecutionException(String.format(FIND_JAR_FILE_FAIL, jar.getAbsolutePath()));
         }
     }
 

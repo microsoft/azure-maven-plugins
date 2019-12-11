@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.AppServicePlans;
@@ -23,7 +24,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,10 +56,10 @@ public class WebAppUtilsTest {
 
         // Non-Linux Web App
         doReturn("app").when(siteInner).kind();
-        MojoExecutionException exception = null;
+        AzureExecutionException exception = null;
         try {
             WebAppUtils.assureLinuxWebApp(app);
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             exception = e;
         } finally {
             assertNotNull(exception);
@@ -77,10 +78,10 @@ public class WebAppUtilsTest {
 
         // Linux Web App
         doReturn("app,linux").when(siteInner).kind();
-        MojoExecutionException exception = null;
+        AzureExecutionException exception = null;
         try {
             WebAppUtils.assureWindowsWebApp(app);
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             exception = e;
         } finally {
             assertNotNull(exception);
@@ -104,7 +105,7 @@ public class WebAppUtilsTest {
             "https://microsoft.azurecr.io"));
     }
 
-    @Test(expected = MojoExecutionException.class)
+    @Test(expected = AzureExecutionException.class)
     public void defineLinuxAppWithWindowsPlan() throws Exception {
         final AbstractWebAppMojo mojo = mock(AbstractWebAppMojo.class);
         final AppServicePlan plan = mock(AppServicePlan.class);
@@ -147,7 +148,7 @@ public class WebAppUtilsTest {
         verify(groupMock, times(1)).withNewResourceGroup(resourceGroup);
     }
 
-    @Test(expected = MojoExecutionException.class)
+    @Test(expected = AzureExecutionException.class)
     public void defineWindowsAppWithLinuxPlan() throws Exception {
         final AbstractWebAppMojo mojo = mock(AbstractWebAppMojo.class);
         final AppServicePlan plan = mock(AppServicePlan.class);
@@ -192,7 +193,7 @@ public class WebAppUtilsTest {
     }
 
     @Test
-    public void createOrGetAppServicePlan() throws MojoExecutionException {
+    public void createOrGetAppServicePlan() throws AzureExecutionException {
         final String resourceGroup = "resource-group";
         final String servicePlanResourceGroup = "service-plan-resource-name";
         final String servicePlanName = "service-plan-name";

@@ -7,11 +7,11 @@
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.google.common.io.Files;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -65,7 +65,7 @@ public class WarArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     @Override
-    public void publish(final DeployTarget target) throws MojoExecutionException {
+    public void publish(final DeployTarget target) throws AzureExecutionException {
 
         final File war = getWarFile();
 
@@ -90,7 +90,7 @@ public class WarArtifactHandlerImpl extends ArtifactHandlerBase {
             }
         }
 
-        throw new MojoExecutionException(String.format(DEPLOY_FAILURE, DEFAULT_MAX_RETRY_TIMES));
+        throw new AzureExecutionException(String.format(DEPLOY_FAILURE, DEFAULT_MAX_RETRY_TIMES));
     }
 
     protected String getContextPath() {
@@ -106,13 +106,13 @@ public class WarArtifactHandlerImpl extends ArtifactHandlerBase {
             new File(Paths.get(buildDirectoryAbsolutePath, project.getBuild().getFinalName() + ".war").toString());
     }
 
-    protected void assureWarFileExisted(final File war) throws MojoExecutionException {
+    protected void assureWarFileExisted(final File war) throws AzureExecutionException {
         if (!Files.getFileExtension(war.getName()).equalsIgnoreCase("war")) {
-            throw new MojoExecutionException(FILE_IS_NOT_WAR);
+            throw new AzureExecutionException(FILE_IS_NOT_WAR);
         }
 
         if (!war.exists() || !war.isFile()) {
-            throw new MojoExecutionException(String.format(FIND_WAR_FILE_FAIL, war.getAbsolutePath()));
+            throw new AzureExecutionException(String.format(FIND_WAR_FILE_FAIL, war.getAbsolutePath()));
         }
     }
 }

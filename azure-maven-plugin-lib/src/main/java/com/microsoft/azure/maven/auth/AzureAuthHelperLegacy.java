@@ -11,6 +11,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureCliCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
@@ -20,7 +21,6 @@ import com.microsoft.azure.maven.Utils;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -180,7 +180,7 @@ public class AzureAuthHelperLegacy {
         final Server server = Utils.getServer(settings, serverId);
         try {
             assureServerExist(server, serverId);
-        } catch (MojoExecutionException ex) {
+        } catch (AzureExecutionException ex) {
             getLog().error(ex.getMessage());
             return null;
         }

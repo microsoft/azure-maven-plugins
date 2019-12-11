@@ -6,13 +6,14 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import java.io.IOException;
 
 public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
@@ -40,7 +41,7 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     @Override
-    public void publish(final DeployTarget target) throws IOException, MojoExecutionException {
+    public void publish(final DeployTarget target) throws IOException, AzureExecutionException {
         if (isResourcesPreparationRequired(target)) {
             prepareResources();
         }
@@ -57,7 +58,7 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
         log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
     }
 
-    protected void uploadDirectoryToFTP(DeployTarget target) throws MojoExecutionException {
+    protected void uploadDirectoryToFTP(DeployTarget target) throws AzureExecutionException {
         final FTPUploader uploader = getUploader();
         final PublishingProfile profile = target.getPublishingProfile();
         final String serverUrl = profile.ftpUrl().split("/", 2)[0];

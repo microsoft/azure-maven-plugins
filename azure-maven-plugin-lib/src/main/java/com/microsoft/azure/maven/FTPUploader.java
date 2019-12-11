@@ -6,9 +6,10 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.File;
@@ -52,11 +53,11 @@ public class FTPUploader {
      * @param sourceDirectory
      * @param targetDirectory
      * @param maxRetryCount
-     * @throws MojoExecutionException
+     * @throws AzureExecutionException
      */
     public void uploadDirectoryWithRetries(final String ftpServer, final String username, final String password,
                                            final String sourceDirectory, final String targetDirectory,
-                                           final int maxRetryCount) throws MojoExecutionException {
+                                           final int maxRetryCount) throws AzureExecutionException {
         int retryCount = 0;
         while (retryCount < maxRetryCount) {
             retryCount++;
@@ -69,7 +70,7 @@ public class FTPUploader {
             }
         }
         // Reaching here means all retries failed.
-        throw new MojoExecutionException(String.format(UPLOAD_RETRY_FAILURE, maxRetryCount));
+        throw new AzureExecutionException(String.format(UPLOAD_RETRY_FAILURE, maxRetryCount));
     }
 
     /**

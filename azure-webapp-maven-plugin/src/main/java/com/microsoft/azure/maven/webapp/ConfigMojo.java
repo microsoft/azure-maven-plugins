@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
@@ -25,7 +26,6 @@ import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -84,7 +84,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return configuration == null || schemaVersion.equalsIgnoreCase(SchemaVersion.V2.toString());
     }
 
-    protected void config(WebAppConfiguration configuration) throws MojoFailureException, MojoExecutionException,
+    protected void config(WebAppConfiguration configuration) throws MojoFailureException, AzureExecutionException,
         IOException {
         WebAppConfiguration result = null;
         do {
@@ -98,7 +98,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         pomHandler.updatePluginConfiguration(result, configuration);
     }
 
-    protected boolean confirmConfiguration(WebAppConfiguration configuration) throws MojoExecutionException,
+    protected boolean confirmConfiguration(WebAppConfiguration configuration) throws AzureExecutionException,
         MojoFailureException {
         System.out.println("Please confirm webapp properties");
         System.out.println("AppName : " + configuration.getAppName());
@@ -124,7 +124,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                     System.out.println("RegistryUrl : " + configuration.getRegistryUrl());
                     break;
                 default:
-                    throw new MojoExecutionException("The value of <os> is unknown.");
+                    throw new AzureExecutionException("The value of <os> is unknown.");
             }
         }
         System.out.println("Deploy to slot : " + (configuration.getDeploymentSlotSetting() != null));
@@ -137,12 +137,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return result.equalsIgnoreCase("Y");
     }
 
-    protected WebAppConfiguration initConfig() throws MojoFailureException, MojoExecutionException {
+    protected WebAppConfiguration initConfig() throws MojoFailureException, AzureExecutionException {
         final WebAppConfiguration result = getDefaultConfiguration();
         return getRuntimeConfiguration(result);
     }
 
-    private WebAppConfiguration getDefaultConfiguration() throws MojoExecutionException {
+    private WebAppConfiguration getDefaultConfiguration() throws AzureExecutionException {
         final WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
         final String defaultName = getProject().getArtifactId() + "-" + System.currentTimeMillis();
         final String resourceGroup = defaultName + "-rg";
@@ -159,7 +159,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     protected WebAppConfiguration updateConfiguration(WebAppConfiguration configuration)
-        throws MojoFailureException, MojoExecutionException {
+        throws MojoFailureException, AzureExecutionException {
         final String selection = queryer.assureInputFromUser("selection", null, Arrays.asList(configTypes),
             "Please choose which part to config");
         switch (selection) {
@@ -170,12 +170,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
             case "DeploymentSlot":
                 return getSlotConfiguration(configuration);
             default:
-                throw new MojoExecutionException("Unknow webapp setting");
+                throw new AzureExecutionException("Unknow webapp setting");
         }
     }
 
     private WebAppConfiguration getWebAppConfiguration(WebAppConfiguration configuration)
-        throws MojoFailureException, MojoExecutionException {
+        throws MojoFailureException, AzureExecutionException {
         final WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
 
         final String defaultAppName =
@@ -232,7 +232,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     private WebAppConfiguration getRuntimeConfiguration(WebAppConfiguration configuration)
-        throws MojoFailureException, MojoExecutionException {
+        throws MojoFailureException, AzureExecutionException {
         WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
         warning(CHANGE_OS_WARNING);
         final OperatingSystemEnum defaultOs = configuration.getOs() == null ? OperatingSystemEnum.Linux :
@@ -251,7 +251,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 builder = getRuntimeConfigurationOfDocker(builder, configuration);
                 break;
             default:
-                throw new MojoExecutionException("The value of <os> is unknown.");
+                throw new AzureExecutionException("The value of <os> is unknown.");
         }
         return builder.build();
     }
@@ -360,7 +360,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return getProject().getPackaging().equalsIgnoreCase("jar");
     }
 
-    public WebAppConfiguration getWebAppConfigurationWithoutValidation() throws MojoExecutionException {
+    public WebAppConfiguration getWebAppConfigurationWithoutValidation() throws AzureExecutionException {
         return new V2NoValidationConfigurationParser(this, new V2ConfigurationValidator(this)).getWebAppConfiguration();
     }
 }

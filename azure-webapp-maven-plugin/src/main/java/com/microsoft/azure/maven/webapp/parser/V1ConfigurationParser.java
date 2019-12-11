@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
@@ -18,7 +19,6 @@ import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    public OperatingSystemEnum getOs() throws MojoExecutionException {
+    public OperatingSystemEnum getOs() throws AzureExecutionException {
         validate(validator.validateOs());
         final String linuxRuntime = mojo.getLinuxRuntime();
         final String javaVersion = mojo.getJavaVersion();
@@ -54,7 +54,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected Region getRegion() throws MojoExecutionException {
+    protected Region getRegion() throws AzureExecutionException {
         validate(validator.validateRegion());
         if (StringUtils.isEmpty(mojo.getRegion())) {
             return Region.EUROPE_WEST;
@@ -63,7 +63,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    public RuntimeStack getRuntimeStack() throws MojoExecutionException {
+    public RuntimeStack getRuntimeStack() throws AzureExecutionException {
         validate(validator.validateRuntimeStack());
         final String linuxRuntime = mojo.getLinuxRuntime();
         // JavaSE runtime
@@ -78,11 +78,11 @@ public class V1ConfigurationParser extends ConfigurationParser {
                 return runtimeStack;
             }
         }
-        throw new MojoExecutionException(RUNTIME_NOT_EXIST);
+        throw new AzureExecutionException(RUNTIME_NOT_EXIST);
     }
 
     @Override
-    public String getImage() throws MojoExecutionException {
+    public String getImage() throws AzureExecutionException {
         validate(validator.validateImage());
         final ContainerSetting containerSetting = mojo.getContainerSettings();
         return containerSetting.getImageName();
@@ -112,13 +112,13 @@ public class V1ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    public WebContainer getWebContainer() throws MojoExecutionException {
+    public WebContainer getWebContainer() throws AzureExecutionException {
         validate(validator.validateWebContainer());
         return mojo.getJavaWebContainer();
     }
 
     @Override
-    public JavaVersion getJavaVersion() throws MojoExecutionException {
+    public JavaVersion getJavaVersion() throws AzureExecutionException {
         validate(validator.validateJavaVersion());
         return JavaVersion.fromString(mojo.getJavaVersion());
     }

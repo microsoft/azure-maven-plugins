@@ -6,8 +6,9 @@
 
 package com.microsoft.azure.maven.appservice;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.Locale;
 
@@ -26,7 +27,7 @@ public enum DeploymentType {
 
     public static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown.";
 
-    public static DeploymentType fromString(final String input) throws MojoExecutionException {
+    public static DeploymentType fromString(final String input) throws AzureExecutionException {
         if (StringUtils.isEmpty(input)) {
             return EMPTY;
         }
@@ -51,7 +52,7 @@ public enum DeploymentType {
             case "RUN_FROM_BLOB":
                 return RUN_FROM_BLOB;
             default:
-                throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
+                throw new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
     }
 }

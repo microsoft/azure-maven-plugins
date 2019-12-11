@@ -6,15 +6,15 @@
 
 package com.microsoft.azure.maven.handlers;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.WebAppBase;
-import org.apache.maven.plugin.MojoExecutionException;
 
 public interface RuntimeHandler<T extends WebAppBase> {
 
-    WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException;
+    WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException;
 
-    WebAppBase.Update updateAppRuntime(final T app) throws MojoExecutionException;
+    WebAppBase.Update updateAppRuntime(final T app) throws AzureExecutionException;
 
-    AppServicePlan updateAppServicePlan(final T app) throws MojoExecutionException;
+    AppServicePlan updateAppServicePlan(final T app) throws AzureExecutionException;
 }

@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
@@ -16,7 +17,6 @@ import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -42,7 +42,7 @@ public class V2ConfigurationParserTest {
     }
 
     @Test
-    public void getOs() throws MojoExecutionException {
+    public void getOs() throws AzureExecutionException {
         final RuntimeSetting runtime = mock(RuntimeSetting.class);
         doReturn(runtime).when(mojo).getRuntime();
 
@@ -62,25 +62,25 @@ public class V2ConfigurationParserTest {
         try {
             doReturn(null).when(runtime).getOs();
             parser.getOs();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Pleas configure the <os> of <runtime> in pom.xml.");
         }
 
         try {
             doReturn("unknown-os").when(runtime).getOs();
             parser.getOs();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The value of <os> is not correct, supported values are: windows, " +
                 "linux and docker.");
         }
     }
 
     @Test
-    public void getRegion() throws MojoExecutionException {
+    public void getRegion() throws AzureExecutionException {
         doReturn("unknown-region").when(mojo).getRegion();
         try {
             parser.getRegion();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The value of <region> is not supported, please correct it in pom.xml.");
         }
 
@@ -89,7 +89,7 @@ public class V2ConfigurationParserTest {
     }
 
     @Test
-    public void getRuntimeStack() throws MojoExecutionException {
+    public void getRuntimeStack() throws AzureExecutionException {
         doReturn(null).when(mojo).getRuntime();
         assertNull(parser.getRuntimeStack());
 
@@ -110,11 +110,11 @@ public class V2ConfigurationParserTest {
     }
 
     @Test
-    public void getImage() throws MojoExecutionException {
+    public void getImage() throws AzureExecutionException {
         doReturn(null).when(mojo).getRuntime();
         try {
             parser.getImage();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please configure the <runtime> in pom.xml.");
         }
 
@@ -124,7 +124,7 @@ public class V2ConfigurationParserTest {
 
         try {
             parser.getImage();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please config the <image> of <runtime> in pom.xml.");
         }
 
@@ -153,12 +153,12 @@ public class V2ConfigurationParserTest {
     }
 
     @Test
-    public void getWebContainer() throws MojoExecutionException {
+    public void getWebContainer() throws AzureExecutionException {
         doReturn(null).when(mojo).getRuntime();
 
         try {
             parser.getWebContainer();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Pleas config the <runtime> in pom.xml.");
         }
         final RuntimeSetting runtime = mock(RuntimeSetting.class);
@@ -167,7 +167,7 @@ public class V2ConfigurationParserTest {
         doReturn(null).when(runtime).getWebContainer();
         try {
             parser.getWebContainer();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The configuration <webContainer> in pom.xml is not correct.");
         }
 
@@ -176,12 +176,12 @@ public class V2ConfigurationParserTest {
     }
 
     @Test
-    public void getJavaVersion() throws MojoExecutionException {
+    public void getJavaVersion() throws AzureExecutionException {
         doReturn(null).when(mojo).getRuntime();
 
         try {
             parser.getJavaVersion();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Pleas config the <runtime> in pom.xml.");
         }
         final RuntimeSetting runtime = mock(RuntimeSetting.class);
@@ -189,7 +189,7 @@ public class V2ConfigurationParserTest {
         doReturn(null).when(runtime).getJavaVersion();
         try {
             parser.getJavaVersion();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The configuration <javaVersion> in pom.xml is not correct.");
         }
         doReturn(JavaVersion.JAVA_8_NEWEST).when(runtime).getJavaVersion();

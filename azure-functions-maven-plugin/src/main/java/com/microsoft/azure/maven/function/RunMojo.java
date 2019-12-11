@@ -6,11 +6,11 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.function.handlers.CommandHandler;
 import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -70,7 +70,7 @@ public class RunMojo extends AbstractFunctionMojo {
     protected void checkStageDirectoryExistence() throws Exception {
         final File file = new File(getDeploymentStagingDirectoryPath());
         if (!file.exists() || !file.isDirectory()) {
-            throw new MojoExecutionException(STAGE_DIR_NOT_FOUND);
+            throw new AzureExecutionException(STAGE_DIR_NOT_FOUND);
         }
         info(STAGE_DIR_FOUND + getDeploymentStagingDirectoryPath());
     }

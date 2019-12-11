@@ -6,9 +6,10 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import org.zeroturnaround.zip.ZipUtil;
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     @Override
-    public void publish(DeployTarget target) throws MojoExecutionException, IOException {
+    public void publish(DeployTarget target) throws AzureExecutionException, IOException {
         if (isResourcesPreparationRequired(target)) {
             prepareResources();
         }
@@ -67,7 +68,7 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
             }
         }
 
-        throw new MojoExecutionException(String.format("The zip deploy failed after %d times of retry.", retryCount));
+        throw new AzureExecutionException(String.format("The zip deploy failed after %d times of retry.", retryCount));
     }
 
     protected File getZipFile() {

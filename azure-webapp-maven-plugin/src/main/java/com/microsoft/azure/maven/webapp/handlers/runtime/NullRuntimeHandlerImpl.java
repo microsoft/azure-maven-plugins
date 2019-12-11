@@ -6,12 +6,12 @@
 
 package com.microsoft.azure.maven.webapp.handlers.runtime;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
-import org.apache.maven.plugin.MojoExecutionException;
 
 public class NullRuntimeHandlerImpl implements RuntimeHandler<WebApp> {
     public static final String NO_RUNTIME_CONFIG = "No runtime related configuration is specified in pom.xml. " +
@@ -19,8 +19,8 @@ public class NullRuntimeHandlerImpl implements RuntimeHandler<WebApp> {
         "For V2 schema version, please use <runtime>.";
 
     @Override
-    public WithCreate defineAppWithRuntime() throws MojoExecutionException {
-        throw new MojoExecutionException(NO_RUNTIME_CONFIG);
+    public WithCreate defineAppWithRuntime() throws AzureExecutionException {
+        throw new AzureExecutionException(NO_RUNTIME_CONFIG);
     }
 
     @Override
