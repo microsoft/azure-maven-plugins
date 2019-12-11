@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Locale;
 
 /**
  * Values of &lt;configurationSource&gt; property.

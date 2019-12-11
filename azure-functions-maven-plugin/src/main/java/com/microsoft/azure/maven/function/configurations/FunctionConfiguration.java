@@ -10,10 +10,10 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.microsoft.azure.maven.function.bindings.Binding;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Schema of function.json is at https://github.com/Azure/azure-webjobs-sdk-script/blob/dev/schemas/json/function.json

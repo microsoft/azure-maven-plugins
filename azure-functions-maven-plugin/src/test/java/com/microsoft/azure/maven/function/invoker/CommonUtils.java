@@ -11,12 +11,12 @@ import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.rest.LogLevel;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.lang3.StringUtils;
 
 public class CommonUtils {
     private static final String clientId = System.getenv("CLIENT_ID");

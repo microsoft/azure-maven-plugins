@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.appservice.DeploymentType;
+import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
@@ -16,18 +17,17 @@ import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.artifact.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.artifact.NONEArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.artifact.WarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.runtime.WebAppRuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.runtime.LinuxRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.NullRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateRegistryRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.PublicDockerHubRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.runtime.WebAppRuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.runtime.WindowsRuntimeHandlerImpl;
 
 import org.apache.commons.lang3.StringUtils;

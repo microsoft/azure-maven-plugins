@@ -11,9 +11,9 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 
-import java.util.Arrays;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 
 public class V1ConfigurationValidator extends AbstractConfigurationValidator {
 

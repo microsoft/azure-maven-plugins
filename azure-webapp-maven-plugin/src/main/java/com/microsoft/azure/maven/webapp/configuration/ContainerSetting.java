@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
-import java.net.URL;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.net.URL;
 
 /**
  * Docker container setting class.

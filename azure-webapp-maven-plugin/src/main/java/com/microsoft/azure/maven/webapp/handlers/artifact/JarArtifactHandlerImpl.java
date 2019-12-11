@@ -7,8 +7,9 @@
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.google.common.io.Files;
-import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
