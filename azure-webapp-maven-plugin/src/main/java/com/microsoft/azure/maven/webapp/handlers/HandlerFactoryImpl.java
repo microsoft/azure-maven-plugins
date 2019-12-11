@@ -29,9 +29,10 @@ import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateDockerHubRuntime
 import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateRegistryRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.PublicDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.WindowsRuntimeHandlerImpl;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Locale;
 
@@ -90,7 +91,8 @@ public class HandlerFactoryImpl extends HandlerFactory {
             default:
                 throw new MojoExecutionException("Invalid docker runtime configured.");
         }
-        return builder.image(config.getImage()).serverId(config.getServerId()).registryUrl(config.getRegistryUrl());
+        builder.image(config.getImage()).serverId(config.getServerId()).registryUrl(config.getRegistryUrl());
+        return builder;
     }
 
     @Override

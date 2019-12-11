@@ -16,10 +16,11 @@ import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class AzureClientFactory {
     public static Azure getAzureClient(AuthConfiguration auth, String subscriptionId) throws InvalidConfigurationException, IOException,

@@ -6,10 +6,11 @@
 
 package com.microsoft.azure.maven.webapp.validator;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import org.codehaus.plexus.util.StringUtils;
 
 public abstract class AbstractConfigurationValidator {
 

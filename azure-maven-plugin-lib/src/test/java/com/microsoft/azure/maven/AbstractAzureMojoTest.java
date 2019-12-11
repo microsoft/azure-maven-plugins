@@ -9,13 +9,14 @@ package com.microsoft.azure.maven;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.ReflectionUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

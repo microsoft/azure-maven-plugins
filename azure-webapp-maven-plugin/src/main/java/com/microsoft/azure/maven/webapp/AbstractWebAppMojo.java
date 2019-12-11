@@ -23,10 +23,11 @@ import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.nio.file.Paths;

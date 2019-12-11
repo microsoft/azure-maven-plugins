@@ -20,7 +20,7 @@ public class FunctionUtils {
 
     public static FunctionExtensionVersion parseFunctionExtensionVersion(String version) throws MojoExecutionException {
         return Arrays.stream(FunctionExtensionVersion.values())
-                .filter(versionEnum -> StringUtils.equalsAnyIgnoreCase(versionEnum.getVersion(), version))
+                .filter(versionEnum -> StringUtils.equalsIgnoreCase(versionEnum.getVersion(), version))
                 .findFirst()
                 .orElseThrow(() -> new MojoExecutionException(INVALID_FUNCTION_EXTENSION_VERSION));
     }

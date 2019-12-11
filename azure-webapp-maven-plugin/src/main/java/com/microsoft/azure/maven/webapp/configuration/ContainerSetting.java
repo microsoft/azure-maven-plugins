@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
-import org.codehaus.plexus.util.StringUtils;
-
 import java.net.URL;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Docker container setting class.

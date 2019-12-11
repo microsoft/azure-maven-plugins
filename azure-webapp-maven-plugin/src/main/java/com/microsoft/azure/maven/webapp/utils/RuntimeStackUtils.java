@@ -9,7 +9,7 @@ package com.microsoft.azure.maven.webapp.utils;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
