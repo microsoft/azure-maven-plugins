@@ -6,11 +6,11 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
@@ -93,17 +93,17 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
         this.log = builder.log;
     }
 
-    protected void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
+    protected void assureStagingDirectoryNotEmpty() throws AzureExecutionException {
         final File stagingDirectory = new File(stagingDirectoryPath);
         final File[] files = stagingDirectory.listFiles();
         if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
-            throw new MojoExecutionException(String.format(STAGING_FOLDER_EMPTY, stagingDirectory.getAbsolutePath()));
+            throw new AzureExecutionException(String.format(STAGING_FOLDER_EMPTY, stagingDirectory.getAbsolutePath()));
         }
     }
 
-    protected void prepareResources() throws IOException, MojoExecutionException {
+    protected void prepareResources() throws IOException, AzureExecutionException {
         if (resources == null || resources.isEmpty()) {
-            throw new MojoExecutionException(NO_RESOURCES_CONFIG);
+            throw new AzureExecutionException(NO_RESOURCES_CONFIG);
         }
 
         Utils.copyResources(project, session, filtering, resources, stagingDirectoryPath);

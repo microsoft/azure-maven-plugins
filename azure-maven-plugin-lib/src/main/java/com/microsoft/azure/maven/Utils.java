@@ -6,12 +6,12 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -52,11 +52,11 @@ public final class Utils {
      * Or, the server used for docker hub authentication of runtime configuration.
      * @param server
      * @param serverId
-     * @throws MojoExecutionException
+     * @throws AzureExecutionException
      */
-    public static void assureServerExist(final Server server, final String serverId) throws MojoExecutionException {
+    public static void assureServerExist(final Server server, final String serverId) throws AzureExecutionException {
         if (server == null) {
-            throw new MojoExecutionException(String.format("Server not found in settings.xml. ServerId=%s", serverId));
+            throw new AzureExecutionException(String.format("Server not found in settings.xml. ServerId=%s", serverId));
         }
     }
 
@@ -131,9 +131,9 @@ public final class Utils {
         }
     }
 
-    public static OperatingSystemEnum parseOperationSystem(final String os) throws MojoExecutionException {
+    public static OperatingSystemEnum parseOperationSystem(final String os) throws AzureExecutionException {
         if (StringUtils.isEmpty(os)) {
-            throw new MojoExecutionException("The value of <os> is empty, please specify it in pom.xml.");
+            throw new AzureExecutionException("The value of <os> is empty, please specify it in pom.xml.");
         }
         switch (os.toLowerCase(Locale.ENGLISH)) {
             case "windows":
@@ -143,7 +143,7 @@ public final class Utils {
             case "docker":
                 return OperatingSystemEnum.Docker;
             default:
-                throw new MojoExecutionException("The value of <os> is unknown, supported values are: windows, " +
+                throw new AzureExecutionException("The value of <os> is unknown, supported values are: windows, " +
                         "linux and docker.");
         }
     }

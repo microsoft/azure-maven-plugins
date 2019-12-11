@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
@@ -14,7 +15,7 @@ import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,7 +59,7 @@ public class FTPArtifactHandlerImplTest {
     }
 
     @Test
-    public void publishWebApp() throws IOException, MojoExecutionException {
+    public void publishWebApp() throws IOException, AzureExecutionException {
         final Log log = mock(Log.class);
         doReturn(log).when(mojo).getLog();
         doNothing().when(log).info(anyString());
@@ -82,7 +83,7 @@ public class FTPArtifactHandlerImplTest {
     }
 
     @Test
-    public void publishWebAppDeploymentSlot() throws IOException, MojoExecutionException {
+    public void publishWebAppDeploymentSlot() throws IOException, AzureExecutionException {
         final Log log = mock(Log.class);
         doReturn(log).when(mojo).getLog();
         doNothing().when(log).info(anyString());
@@ -106,7 +107,7 @@ public class FTPArtifactHandlerImplTest {
     }
 
     @Test
-    public void publishFunctionApp() throws IOException, MojoExecutionException {
+    public void publishFunctionApp() throws IOException, AzureExecutionException {
         final Log log = mock(Log.class);
         doReturn(log).when(mojo).getLog();
         doNothing().when(log).info(anyString());

@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.WebAppBase;
@@ -13,7 +14,6 @@ import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.Constants;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
@@ -43,10 +43,10 @@ public class FunctionArtifactHelper {
         return zipPackage;
     }
 
-    public static void updateAppSetting(final DeployTarget deployTarget, final String key, final String value) throws MojoExecutionException {
+    public static void updateAppSetting(final DeployTarget deployTarget, final String key, final String value) throws AzureExecutionException {
         final WebAppBase targetApp = deployTarget.getApp();
         if (!(targetApp instanceof FunctionApp)) {
-            throw new MojoExecutionException(UNSUPPORTED_DEPLOYMENT_TARGET);
+            throw new AzureExecutionException(UNSUPPORTED_DEPLOYMENT_TARGET);
         }
         final FunctionApp functionApp = (FunctionApp) targetApp;
         functionApp.update().withAppSetting(key, value).apply();

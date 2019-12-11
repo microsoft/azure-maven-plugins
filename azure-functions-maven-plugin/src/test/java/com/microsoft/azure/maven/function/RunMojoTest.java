@@ -6,10 +6,11 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.function.handlers.CommandHandler;
 import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -49,7 +50,7 @@ public class RunMojoTest extends MojoTestBase {
         verify(mojoSpy, times(1)).runFunctions(any(CommandHandler.class));
     }
 
-    @Test(expected = MojoExecutionException.class)
+    @Test(expected = AzureExecutionException.class)
     public void checkStageDirectoryExistenceWhenIsNotDirectory() throws Exception {
         final RunMojo mojo = getMojoFromPom();
         final RunMojo mojoSpy = spy(mojo);
@@ -58,7 +59,7 @@ public class RunMojoTest extends MojoTestBase {
         mojoSpy.checkStageDirectoryExistence();
     }
 
-    @Test(expected = MojoExecutionException.class)
+    @Test(expected = AzureExecutionException.class)
     public void checkStageDirectoryExistenceWhenNotExisting() throws Exception {
         final RunMojo mojo = getMojoFromPom();
         final RunMojo mojoSpy = spy(mojo);

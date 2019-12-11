@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
@@ -33,7 +34,6 @@ import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -79,7 +79,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         final FunctionApp app = getFunctionApp();
         if (app == null) {
-            throw new MojoExecutionException(
+            throw new AzureExecutionException(
                 String.format("Failed to get the function app with name: %s", getAppName()));
         }
 
@@ -96,7 +96,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //region Create or update Azure Functions
 
-    protected void createOrUpdateFunctionApp() throws AzureAuthFailureException, MojoExecutionException {
+    protected void createOrUpdateFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
         final FunctionApp app = getFunctionApp();
         if (app == null) {
             createFunctionApp();
@@ -105,7 +105,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void createFunctionApp() throws AzureAuthFailureException, MojoExecutionException {
+    protected void createFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
         info(FUNCTION_APP_CREATE_START);
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
@@ -114,7 +114,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
 
-    protected void updateFunctionApp(final FunctionApp app) throws AzureAuthFailureException, MojoExecutionException {
+    protected void updateFunctionApp(final FunctionApp app) throws AzureAuthFailureException, AzureExecutionException {
         info(FUNCTION_APP_UPDATE);
         // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
         app.inner().withTags(null);
@@ -148,7 +148,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //endregion
 
-    protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws AzureAuthFailureException, MojoExecutionException {
+    protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws AzureAuthFailureException, AzureExecutionException {
         final FunctionRuntimeHandler.Builder<?> builder;
         final OperatingSystemEnum os = getOsEnum();
         switch (os) {
@@ -166,7 +166,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                         .registryUrl(runtime.getRegistryUrl());
                 break;
             default:
-                throw new MojoExecutionException(String.format("Unsupported runtime %s", os));
+                throw new AzureExecutionException(String.format("Unsupported runtime %s", os));
         }
         return builder.appName(getAppName())
                 .resourceGroup(getResourceGroup())
@@ -182,12 +182,12 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .build();
     }
 
-    protected OperatingSystemEnum getOsEnum() throws MojoExecutionException {
+    protected OperatingSystemEnum getOsEnum() throws AzureExecutionException {
         final String os = runtime == null ? null : runtime.getOs();
         return StringUtils.isEmpty(os) ? RuntimeConfiguration.DEFAULT_OS : Utils.parseOperationSystem(os);
     }
 
-    protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
+    protected ArtifactHandler getArtifactHandler() throws AzureExecutionException {
         final ArtifactHandlerBase.Builder builder;
 
         final DeploymentType deploymentType = getDeploymentType();
@@ -212,7 +212,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 builder = new RunFromZipArtifactHandlerImpl.Builder();
                 break;
             default:
-                throw new MojoExecutionException(UNKNOW_DEPLOYMENT_TYPE);
+                throw new AzureExecutionException(UNKNOW_DEPLOYMENT_TYPE);
         }
         return builder.project(this.getProject())
             .session(this.getSession())
@@ -225,12 +225,12 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     @Override
-    public DeploymentType getDeploymentType() throws MojoExecutionException {
+    public DeploymentType getDeploymentType() throws AzureExecutionException {
         final DeploymentType deploymentType = super.getDeploymentType();
         return deploymentType == EMPTY ? getDeploymentTypeByRuntime() : deploymentType;
     }
 
-    public DeploymentType getDeploymentTypeByRuntime() throws MojoExecutionException {
+    public DeploymentType getDeploymentTypeByRuntime() throws AzureExecutionException {
         final OperatingSystemEnum operatingSystemEnum = getOsEnum();
         switch (operatingSystemEnum) {
             case Docker:
@@ -254,7 +254,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
         }
         return map;

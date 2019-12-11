@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.function.utils.DateUtils;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
@@ -16,7 +17,6 @@ import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.SharedAccessBlobPermissions;
 import com.microsoft.azure.storage.blob.SharedAccessBlobPolicy;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,7 +48,7 @@ public class AzureStorageHelper {
         }
     }
 
-    public static String getSASToken(final CloudBlob blob, Period period) throws MojoExecutionException {
+    public static String getSASToken(final CloudBlob blob, Period period) throws AzureExecutionException {
         final SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
         policy.setPermissions(EnumSet.of(SharedAccessBlobPermissions.READ));
 
@@ -63,7 +63,7 @@ public class AzureStorageHelper {
             final String url = blob.getUri().toString();
             return String.format("%s?%s", url, sas);
         } catch (InvalidKeyException | StorageException e) {
-            throw new MojoExecutionException(FAIL_TO_GENERATE_BLOB_SAS_TOKEN, e);
+            throw new AzureExecutionException(FAIL_TO_GENERATE_BLOB_SAS_TOKEN, e);
         }
     }
 

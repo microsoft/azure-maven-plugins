@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.DeploymentSlot.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.DeploymentSlot.DefinitionStages.WithCreate;
@@ -14,7 +15,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,7 +45,7 @@ public class DeploymentSlotHandlerTest {
     }
 
     @Test
-    public void notCreateDeploymentSlotIfExist() throws AzureAuthFailureException, MojoExecutionException {
+    public void notCreateDeploymentSlotIfExist() throws AzureAuthFailureException, AzureExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
         final WebApp app = mock(WebApp.class);
@@ -61,7 +62,7 @@ public class DeploymentSlotHandlerTest {
     }
 
     @Test
-    public void createDeploymentSlotIfNotExist() throws AzureAuthFailureException, MojoExecutionException {
+    public void createDeploymentSlotIfNotExist() throws AzureAuthFailureException, AzureExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final DeploymentSlotSetting slotSetting = mock(DeploymentSlotSetting.class);
         final WebApp app = mock(WebApp.class);
@@ -79,7 +80,7 @@ public class DeploymentSlotHandlerTest {
     }
 
     @Test
-    public void createDeploymentSlotFromParent() throws MojoExecutionException {
+    public void createDeploymentSlotFromParent() throws AzureExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
@@ -98,7 +99,7 @@ public class DeploymentSlotHandlerTest {
     }
 
     @Test
-    public void createDeploymentSlotFromOtherDeploymentSlot() throws MojoExecutionException {
+    public void createDeploymentSlotFromOtherDeploymentSlot() throws AzureExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);
@@ -119,28 +120,28 @@ public class DeploymentSlotHandlerTest {
         verify(withCreate, times(1)).create();
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void createDeploymentSlotFromOtherDeploymentSlotThrowException() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void createDeploymentSlotFromOtherDeploymentSlotThrowException() throws AzureExecutionException {
         final WebApp app = mock(WebApp.class);
 
         handler.createDeploymentSlot(app, "", "otherSlot");
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void assureValidSlotNameThrowException() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void assureValidSlotNameThrowException() throws AzureExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         handlerSpy.assureValidSlotName("@#123");
     }
 
     @Test
-    public void assureValidSlotName() throws MojoExecutionException {
+    public void assureValidSlotName() throws AzureExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         handlerSpy.assureValidSlotName("slot-Name");
         verify(handlerSpy, times(1)).assureValidSlotName("slot-Name");
     }
 
     @Test
-    public void createBreadNewDeploymentSlot() throws MojoExecutionException {
+    public void createBreadNewDeploymentSlot() throws AzureExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
         final Log logMock = mock(Log.class);

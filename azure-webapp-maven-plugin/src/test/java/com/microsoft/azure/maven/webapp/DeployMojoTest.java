@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
@@ -24,7 +25,6 @@ import com.microsoft.azure.maven.webapp.handlers.DeploymentSlotHandler;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.testing.MojoRule;
@@ -106,18 +106,18 @@ public class DeployMojoTest {
             }
 
             @Override
-            public SettingsHandler getSettingsHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+            public SettingsHandler getSettingsHandler(AbstractWebAppMojo mojo) throws AzureExecutionException {
                 return settingsHandler;
             }
 
             @Override
-            public ArtifactHandler getArtifactHandler(AbstractWebAppMojo mojo) throws MojoExecutionException {
+            public ArtifactHandler getArtifactHandler(AbstractWebAppMojo mojo) throws AzureExecutionException {
                 return artifactHandler;
             }
 
             @Override
             public DeploymentSlotHandler getDeploymentSlotHandler(AbstractWebAppMojo mojo)
-                    throws MojoExecutionException {
+                    throws AzureExecutionException {
                 return deploymentSlotHandler;
             }
         });
@@ -150,7 +150,7 @@ public class DeployMojoTest {
         assertFalse(mojo.isStopAppDuringDeployment());
     }
 
-    @Test(expected = MojoExecutionException.class)
+    @Test(expected = AzureExecutionException.class)
     public void getDeploymentTypeThrowException() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
         mojo.getDeploymentType();

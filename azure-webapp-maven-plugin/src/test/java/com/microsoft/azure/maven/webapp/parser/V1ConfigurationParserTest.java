@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
@@ -14,7 +15,7 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +42,7 @@ public class V1ConfigurationParserTest {
     }
 
     @Test
-    public void getOs() throws MojoExecutionException {
+    public void getOs() throws AzureExecutionException {
         assertNull(parser.getOs());
 
         doReturn("1.8").when(mojo).getJavaVersion();
@@ -60,20 +61,20 @@ public class V1ConfigurationParserTest {
         doReturn("1.8").when(mojo).getJavaVersion();
         try {
             parser.getOs();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Conflict settings found. <javaVersion>, <linuxRuntime>" +
                 "and <containerSettings> should not be set at the same time.");
         }
     }
 
     @Test
-    public void getRegion() throws MojoExecutionException {
+    public void getRegion() throws AzureExecutionException {
         assertEquals(Region.EUROPE_WEST, parser.getRegion());
 
         doReturn("unknown-region").when(mojo).getRegion();
         try {
             parser.getRegion();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The value of <region> is not correct, please correct it in pom.xml.");
         }
 
@@ -82,10 +83,10 @@ public class V1ConfigurationParserTest {
     }
 
     @Test
-    public void getRuntimeStack() throws MojoExecutionException {
+    public void getRuntimeStack() throws AzureExecutionException {
         try {
             parser.getRuntimeStack();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please configure the <linuxRuntime> in pom.xml.");
         }
 
@@ -113,17 +114,17 @@ public class V1ConfigurationParserTest {
         doReturn("unknown-value").when(mojo).getLinuxRuntime();
         try {
             parser.getRuntimeStack();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The configuration of <linuxRuntime> in pom.xml is not correct. " +
                 "Please refer https://aka.ms/maven_webapp_runtime_v1 for more information");
         }
     }
 
     @Test
-    public void getImage() throws MojoExecutionException {
+    public void getImage() throws AzureExecutionException {
         try {
             parser.getImage();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please config the <containerSettings> in pom.xml.");
         }
 
@@ -135,7 +136,7 @@ public class V1ConfigurationParserTest {
         doReturn("").when(containerSetting).getImageName();
         try {
             parser.getImage();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please config the <imageName> of <containerSettings> in pom.xml.");
         }
     }
@@ -161,10 +162,10 @@ public class V1ConfigurationParserTest {
     }
 
     @Test
-    public void getWebContainer() throws MojoExecutionException {
+    public void getWebContainer() throws AzureExecutionException {
         try {
             parser.getWebContainer();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The configuration of <javaWebContainer> in pom.xml is not correct.");
         }
 
@@ -173,10 +174,10 @@ public class V1ConfigurationParserTest {
     }
 
     @Test
-    public void getJavaVersion() throws MojoExecutionException {
+    public void getJavaVersion() throws AzureExecutionException {
         try {
             parser.getJavaVersion();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please config the <javaVersion> in pom.xml.");
         }
 

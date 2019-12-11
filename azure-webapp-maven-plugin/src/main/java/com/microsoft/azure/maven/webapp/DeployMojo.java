@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
@@ -16,7 +17,6 @@ import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -54,7 +54,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         final WebApp app = getWebApp();
         if (app == null) {
             if (this.isDeployToDeploymentSlot()) {
-                throw new MojoExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+                throw new AzureExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
             }
             createWebApp(runtimeHandler);
         } else {
@@ -106,7 +106,7 @@ public class DeployMojo extends AbstractWebAppMojo {
                 final String slotName = getDeploymentSlotSetting().getName();
                 final DeploymentSlot slot = getDeploymentSlot(app, slotName);
                 if (slot == null) {
-                    throw new MojoExecutionException(SLOT_SHOULD_EXIST_NOW);
+                    throw new AzureExecutionException(SLOT_SHOULD_EXIST_NOW);
                 }
                 target = new DeploymentSlotDeployTarget(slot);
             } else {

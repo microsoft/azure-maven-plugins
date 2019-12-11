@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlans;
 import com.microsoft.azure.management.appservice.FunctionApp;
@@ -26,7 +27,7 @@ import com.microsoft.azure.maven.function.handlers.runtime.WindowsFunctionRuntim
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
 import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -158,7 +159,7 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void getMSDeployArtifactHandler() throws MojoExecutionException {
+    public void getMSDeployArtifactHandler() throws AzureExecutionException {
         doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
         doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.MSDEPLOY).when(mojoSpy).getDeploymentType();
@@ -169,7 +170,7 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void getFTPArtifactHandler() throws MojoExecutionException {
+    public void getFTPArtifactHandler() throws AzureExecutionException {
         doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
         doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.FTP).when(mojoSpy).getDeploymentType();
@@ -180,7 +181,7 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void getZIPArtifactHandler() throws MojoExecutionException {
+    public void getZIPArtifactHandler() throws AzureExecutionException {
         doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
         doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.ZIP).when(mojoSpy).getDeploymentType();
@@ -190,13 +191,13 @@ public class DeployMojoTest extends MojoTestBase {
         assertTrue(handler instanceof ZIPArtifactHandlerImpl);
     }
 
-    @Test(expected = MojoExecutionException.class)
+    @Test(expected = AzureExecutionException.class)
     public void getArtifactHandlerThrowException() throws Exception {
         getMojoFromPom().getArtifactHandler();
     }
 
     @Test
-    public void testGetDeploymentTypeByRuntime() throws MojoExecutionException {
+    public void testGetDeploymentTypeByRuntime() throws AzureExecutionException {
         // Windows
         doReturn(Windows).when(mojoSpy).getOsEnum();
         assertEquals(RUN_FROM_ZIP, mojoSpy.getDeploymentTypeByRuntime());

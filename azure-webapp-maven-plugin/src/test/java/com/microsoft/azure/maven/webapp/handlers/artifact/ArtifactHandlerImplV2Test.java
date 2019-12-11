@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
@@ -16,7 +17,6 @@ import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
@@ -71,7 +71,7 @@ public class ArtifactHandlerImplV2Test {
     }
 
     @Test
-    public void publishViaWarDeploy() throws IOException, MojoExecutionException {
+    public void publishViaWarDeploy() throws IOException, AzureExecutionException {
         final Deployment deployment = mock(Deployment.class);
         doReturn(deployment).when(mojo).getDeployment();
         final List<Resource> resources = new ArrayList<Resource>();
@@ -106,7 +106,7 @@ public class ArtifactHandlerImplV2Test {
     }
 
     @Test
-    public void publishViaZipDeploy() throws IOException, MojoExecutionException {
+    public void publishViaZipDeploy() throws IOException, AzureExecutionException {
         final Deployment deployment = mock(Deployment.class);
         doReturn(deployment).when(mojo).getDeployment();
         final List<Resource> resources = new ArrayList<Resource>();
@@ -139,7 +139,7 @@ public class ArtifactHandlerImplV2Test {
     }
 
     @Test
-    public void skipPublishWhenDeploymentNotSet() throws IOException, MojoExecutionException {
+    public void skipPublishWhenDeploymentNotSet() throws IOException, AzureExecutionException {
         final Deployment deployment = mock(Deployment.class);
         doReturn(deployment).when(mojo).getDeployment();
         doReturn(Collections.emptyList()).when(deployment).getResources();
@@ -153,8 +153,8 @@ public class ArtifactHandlerImplV2Test {
         verifyNoMoreInteractions(handlerSpy);
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void publishArtifactsViaWarDeployThrowException() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void publishArtifactsViaWarDeployThrowException() throws AzureExecutionException {
         final DeployTarget target = mock(DeployTarget.class);
         final String stagingDirectoryPath = "";
         final List<File> warArtifacts = null;
@@ -165,7 +165,7 @@ public class ArtifactHandlerImplV2Test {
     }
 
     @Test
-    public void publishArtifactsViaWarDeploy() throws MojoExecutionException {
+    public void publishArtifactsViaWarDeploy() throws AzureExecutionException {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new WebAppDeployTarget(app);
         final String stagingDirectory = Paths.get(Paths.get("").toAbsolutePath().toString(),
@@ -185,7 +185,7 @@ public class ArtifactHandlerImplV2Test {
     }
 
     @Test
-    public void publishArtifactsViaZipDeploy() throws MojoExecutionException {
+    public void publishArtifactsViaZipDeploy() throws AzureExecutionException {
         final DeployTarget target = mock(DeployTarget.class);
         final File zipTestDirectory = new File("src/test/resources/artifacthandlerv2");
         final String stagingDirectoryPath = zipTestDirectory.getAbsolutePath();
@@ -243,7 +243,7 @@ public class ArtifactHandlerImplV2Test {
     }
 
     @Test
-    public void publishWarArtifact() throws MojoExecutionException {
+    public void publishWarArtifact() throws AzureExecutionException {
         final WebAppDeployTarget target = mock(WebAppDeployTarget.class);
         final File warArtifact = new File("D:\\temp\\dummypath");
         final String contextPath = "dummy";
@@ -262,8 +262,8 @@ public class ArtifactHandlerImplV2Test {
         verifyNoMoreInteractions(handlerSpy);
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void publishWarArtifactThrowException() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void publishWarArtifactThrowException() throws AzureExecutionException {
         final WebAppDeployTarget target = mock(WebAppDeployTarget.class);
         final File warArtifact = new File("D:\\temp\\dummypath");
         final String contextPath = "dummy";

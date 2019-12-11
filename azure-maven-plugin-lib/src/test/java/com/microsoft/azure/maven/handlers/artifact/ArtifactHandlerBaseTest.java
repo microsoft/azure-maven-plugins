@@ -6,11 +6,11 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Test;
@@ -64,7 +64,7 @@ public class ArtifactHandlerBaseTest {
     }
 
     @Test
-    public void prepareResources() throws IOException, MojoExecutionException {
+    public void prepareResources() throws IOException, AzureExecutionException {
         final List<Resource> resourceList = new ArrayList<>();
         doReturn(mock(MavenProject.class)).when(mojo).getProject();
         doReturn(mock(MavenSession.class)).when(mojo).getSession();
@@ -80,21 +80,21 @@ public class ArtifactHandlerBaseTest {
         verifyNoMoreInteractions(handlerSpy);
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void prepareResourcesThrowException() throws IOException, MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void prepareResourcesThrowException() throws IOException, AzureExecutionException {
         buildHandler();
         handlerSpy.prepareResources();
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void assureStagingDirectoryNotEmptyThrowException() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void assureStagingDirectoryNotEmptyThrowException() throws AzureExecutionException {
         doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
         buildHandler();
         handler.assureStagingDirectoryNotEmpty();
     }
 
     @Test
-    public void assureStagingDirectoryNotEmpty() throws MojoExecutionException {
+    public void assureStagingDirectoryNotEmpty() throws AzureExecutionException {
         buildHandler();
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
 

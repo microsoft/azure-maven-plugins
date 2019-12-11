@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
@@ -16,8 +17,6 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 
-import org.apache.maven.plugin.MojoExecutionException;
-
 public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
 
     public V2NoValidationConfigurationParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
@@ -25,55 +24,55 @@ public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
     }
 
     @Override
-    protected String getAppName() throws MojoExecutionException {
+    protected String getAppName() throws AzureExecutionException {
         return validateConfiguration(validator.validateAppName()) ? super.getAppName() : mojo.getAppName();
     }
 
     @Override
-    protected String getResourceGroup() throws MojoExecutionException {
+    protected String getResourceGroup() throws AzureExecutionException {
         return validateConfiguration(validator.validateResourceGroup()) ?
                 super.getResourceGroup() : mojo.getResourceGroup();
     }
 
     @Override
-    protected PricingTier getPricingTier() throws MojoExecutionException{
+    protected PricingTier getPricingTier() throws AzureExecutionException{
         return validateConfiguration(validator.validatePricingTier()) ?
                 super.getPricingTier() : null;
     }
 
     @Override
-    protected DeploymentSlotSetting getDeploymentSlotSetting() throws MojoExecutionException {
+    protected DeploymentSlotSetting getDeploymentSlotSetting() throws AzureExecutionException {
         return validateConfiguration(validator.validateDeploymentSlot()) ? super.getDeploymentSlotSetting()
                 : mojo.getDeploymentSlotSetting();
     }
 
     @Override
-    protected OperatingSystemEnum getOs() throws MojoExecutionException {
+    protected OperatingSystemEnum getOs() throws AzureExecutionException {
         return validateConfiguration(validator.validateOs()) ? super.getOs() : null;
     }
 
     @Override
-    protected Region getRegion() throws MojoExecutionException {
+    protected Region getRegion() throws AzureExecutionException {
         return validateConfiguration(validator.validateRegion()) ? super.getRegion() : null;
     }
 
     @Override
-    protected RuntimeStack getRuntimeStack() throws MojoExecutionException {
+    protected RuntimeStack getRuntimeStack() throws AzureExecutionException {
         return validateConfiguration(validator.validateRuntimeStack()) ? super.getRuntimeStack() : null;
     }
 
     @Override
-    protected String getImage() throws MojoExecutionException {
+    protected String getImage() throws AzureExecutionException {
         return validateConfiguration(validator.validateImage()) ? super.getImage() : null;
     }
 
     @Override
-    protected JavaVersion getJavaVersion() throws MojoExecutionException {
+    protected JavaVersion getJavaVersion() throws AzureExecutionException {
         return validateConfiguration(validator.validateJavaVersion()) ? super.getJavaVersion() : null;
     }
 
     @Override
-    protected WebContainer getWebContainer() throws MojoExecutionException {
+    protected WebContainer getWebContainer() throws AzureExecutionException {
         return validateConfiguration(validator.validateWebContainer()) ? super.getWebContainer() : null;
     }
 

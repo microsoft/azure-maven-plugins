@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.appservice.DockerImageType;
@@ -31,7 +32,6 @@ import com.microsoft.azure.maven.webapp.handlers.runtime.WebAppRuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.runtime.WindowsRuntimeHandlerImpl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 import java.util.Locale;
@@ -42,7 +42,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
     @Override
     public RuntimeHandler getRuntimeHandler(final WebAppConfiguration config, final Azure azureClient,
-                                            final Log log) throws MojoExecutionException {
+                                            final Log log) throws AzureExecutionException {
         if (config.getOs() == null) {
             return new NullRuntimeHandlerImpl();
         }
@@ -59,7 +59,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 builder = getDockerRuntimeHandlerBuilder(config);
                 break;
             default:
-                throw new MojoExecutionException("Unknown ");
+                throw new AzureExecutionException("Unknown ");
         }
         return builder.appName(config.getAppName())
             .resourceGroup(config.getResourceGroup())
@@ -73,7 +73,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
     }
 
     protected WebAppRuntimeHandler.Builder getDockerRuntimeHandlerBuilder(final WebAppConfiguration config)
-        throws MojoExecutionException {
+        throws AzureExecutionException {
 
         final WebAppRuntimeHandler.Builder<? extends WebAppRuntimeHandler.Builder> builder;
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(config.getImage(), config.getServerId(),
@@ -89,7 +89,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 builder = new PrivateRegistryRuntimeHandlerImpl.Builder().mavenSettings(config.getMavenSettings());
                 break;
             default:
-                throw new MojoExecutionException("Invalid docker runtime configured.");
+                throw new AzureExecutionException("Invalid docker runtime configured.");
         }
         builder.image(config.getImage()).serverId(config.getServerId()).registryUrl(config.getRegistryUrl());
         return builder;
@@ -101,18 +101,18 @@ public class HandlerFactoryImpl extends HandlerFactory {
     }
 
     @Override
-    public ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+    public ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws AzureExecutionException {
         switch (SchemaVersion.fromString(mojo.getSchemaVersion())) {
             case V1:
                 return getV1ArtifactHandler(mojo);
             case V2:
                 return getV2ArtifactHandler(mojo);
             default:
-                throw new MojoExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
+                throw new AzureExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
         }
     }
 
-    protected ArtifactHandler getV1ArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException {
+    protected ArtifactHandler getV1ArtifactHandler(final AbstractWebAppMojo mojo) throws AzureExecutionException {
         final ArtifactHandlerBase.Builder builder;
 
         switch (mojo.getDeploymentType()) {
@@ -138,7 +138,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 builder = getArtifactHandlerBuilderFromPackaging(mojo);
                 break;
             default:
-                throw new MojoExecutionException(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
+                throw new AzureExecutionException(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
         }
         return builder.project(mojo.getProject())
             .session(mojo.getSession())
@@ -163,10 +163,10 @@ public class HandlerFactoryImpl extends HandlerFactory {
     }
 
     protected ArtifactHandlerBase.Builder getArtifactHandlerBuilderFromPackaging(final AbstractWebAppMojo mojo)
-        throws MojoExecutionException {
+        throws AzureExecutionException {
         String packaging = mojo.getProject().getPackaging();
         if (StringUtils.isEmpty(packaging)) {
-            throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
+            throw new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
         packaging = packaging.toLowerCase(Locale.ENGLISH).trim();
         switch (packaging) {
@@ -177,7 +177,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 return new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile())
                     .linuxRuntime(mojo.getLinuxRuntime());
             default:
-                throw new MojoExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
+                throw new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
     }
 

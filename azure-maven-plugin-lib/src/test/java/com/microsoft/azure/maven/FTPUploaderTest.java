@@ -6,8 +6,9 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,14 +46,14 @@ public class FTPUploaderTest {
         final FTPUploader uploaderSpy = spy(ftpUploader);
 
         // Failure
-        MojoExecutionException exception = null;
+        AzureExecutionException exception = null;
         doReturn(false)
                 .when(uploaderSpy)
                 .uploadDirectory(anyString(), anyString(), anyString(), anyString(), anyString());
         try {
             uploaderSpy.uploadDirectoryWithRetries("ftpServer", "username", "password",
                     "sourceDir", "targetDir", 1);
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             exception = e;
         } finally {
             assertNotNull(exception);

@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
@@ -26,7 +27,6 @@ import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
@@ -356,7 +356,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     //endregion
 
-    protected ConfigurationParser getParserBySchemaVersion() throws MojoExecutionException {
+    protected ConfigurationParser getParserBySchemaVersion() throws AzureExecutionException {
         final String version = StringUtils.isEmpty(getSchemaVersion()) ? "v1" : getSchemaVersion();
 
         switch (version.toLowerCase(Locale.ENGLISH)) {
@@ -365,11 +365,11 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             case "v2":
                 return new V2ConfigurationParser(this, new V2ConfigurationValidator(this));
             default:
-                throw new MojoExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
+                throw new AzureExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
         }
     }
 
-    protected WebAppConfiguration getWebAppConfiguration() throws MojoExecutionException {
+    protected WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {
         if (webAppConfiguration == null) {
             webAppConfiguration = getParserBySchemaVersion().getWebAppConfiguration();
         }
@@ -417,7 +417,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
         }
         return map;

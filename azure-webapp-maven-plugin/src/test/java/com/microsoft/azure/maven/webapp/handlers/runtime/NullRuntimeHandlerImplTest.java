@@ -6,8 +6,9 @@
 
 package com.microsoft.azure.maven.webapp.handlers.runtime;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.WebApp;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,10 +29,10 @@ public class NullRuntimeHandlerImplTest {
 
     @Test
     public void defineAppWithRuntime() throws Exception {
-        MojoExecutionException exception = null;
+        AzureExecutionException exception = null;
         try {
             handler.defineAppWithRuntime();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             exception = e;
         } finally {
             assertNotNull(exception);

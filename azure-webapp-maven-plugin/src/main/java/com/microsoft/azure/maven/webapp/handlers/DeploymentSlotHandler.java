@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
@@ -14,7 +15,6 @@ import com.microsoft.azure.maven.webapp.configuration.ConfigurationSourceType;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.regex.Pattern;
 
@@ -43,7 +43,7 @@ public class DeploymentSlotHandler {
         this.mojo = mojo;
     }
 
-    public void createDeploymentSlotIfNotExist() throws MojoExecutionException, AzureAuthFailureException {
+    public void createDeploymentSlotIfNotExist() throws AzureExecutionException, AzureAuthFailureException {
         final DeploymentSlotSetting slotSetting = this.mojo.getDeploymentSlotSetting();
         assureValidSlotSetting(slotSetting);
 
@@ -56,7 +56,7 @@ public class DeploymentSlotHandler {
     }
 
     protected void createDeploymentSlot(final WebApp app, final String slotName,
-                                        final String configurationSource) throws MojoExecutionException {
+                                        final String configurationSource) throws AzureExecutionException {
         assureValidSlotName(slotName);
         final DeploymentSlot.DefinitionStages.Blank definedSlot = app.deploymentSlots().define(slotName);
         final ConfigurationSourceType type = ConfigurationSourceType.fromString(configurationSource);
@@ -73,27 +73,27 @@ public class DeploymentSlotHandler {
             case OTHERS:
                 final DeploymentSlot configurationSourceSlot = this.mojo.getDeploymentSlot(app, configurationSource);
                 if (configurationSourceSlot == null) {
-                    throw new MojoExecutionException(TARGET_CONFIGURATION_SOURCE_SLOT_NOT_EXIST);
+                    throw new AzureExecutionException(TARGET_CONFIGURATION_SOURCE_SLOT_NOT_EXIST);
                 }
                 this.mojo.getLog().info(String.format(COPY_CONFIGURATION_FROM_SLOT, configurationSource));
                 definedSlot.withConfigurationFromDeploymentSlot(configurationSourceSlot).create();
                 break;
             default:
-                throw new MojoExecutionException(UNKNOWN_CONFIGURATION_SOURCE);
+                throw new AzureExecutionException(UNKNOWN_CONFIGURATION_SOURCE);
         }
     }
 
-    protected void assureValidSlotSetting(final DeploymentSlotSetting slotSetting) throws MojoExecutionException {
+    protected void assureValidSlotSetting(final DeploymentSlotSetting slotSetting) throws AzureExecutionException {
         if (slotSetting == null) {
-            throw new MojoExecutionException(INVALID_SLOT_SETTINGS);
+            throw new AzureExecutionException(INVALID_SLOT_SETTINGS);
         }
     }
 
-    protected void assureValidSlotName(final String slotName) throws MojoExecutionException {
+    protected void assureValidSlotName(final String slotName) throws AzureExecutionException {
         final Pattern pattern = Pattern.compile(SLOT_NAME_PATTERN, Pattern.CASE_INSENSITIVE);
 
         if (StringUtils.isEmpty(slotName) || !pattern.matcher(slotName).matches()) {
-            throw new MojoExecutionException(INVALID_SLOT_NAME);
+            throw new AzureExecutionException(INVALID_SLOT_NAME);
         }
     }
 }

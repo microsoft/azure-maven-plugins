@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.handlers.runtime;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.PricingTier;
@@ -15,7 +16,6 @@ import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
 
@@ -132,18 +132,18 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         this.log = builder.log;
     }
 
-    public abstract WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException;
+    public abstract WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException;
 
-    public abstract WebAppBase.Update updateAppRuntime(T app) throws MojoExecutionException;
+    public abstract WebAppBase.Update updateAppRuntime(T app) throws AzureExecutionException;
 
-    protected abstract void changeAppServicePlan(T app, AppServicePlan appServicePlan) throws MojoExecutionException;
+    protected abstract void changeAppServicePlan(T app, AppServicePlan appServicePlan) throws AzureExecutionException;
 
     @Override
-    public AppServicePlan updateAppServicePlan(T app) throws MojoExecutionException {
+    public AppServicePlan updateAppServicePlan(T app) throws AzureExecutionException {
         final AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlanByAppService(app);
         final AppServicePlan targetAppServicePlan = StringUtils.isNotEmpty(servicePlanName) ? getAppServicePlan() : appServicePlan;
         if (targetAppServicePlan == null) {
-            throw new MojoExecutionException(String.format(TARGET_APP_SERVICE_PLAN_DO_NOT_EXIST, servicePlanName,
+            throw new AzureExecutionException(String.format(TARGET_APP_SERVICE_PLAN_DO_NOT_EXIST, servicePlanName,
                     AppServiceUtils.getAppServicePlanResourceGroup(resourceGroup, servicePlanResourceGroup)));
         }
         if (!AppServiceUtils.isEqualAppServicePlan(appServicePlan, targetAppServicePlan)) {

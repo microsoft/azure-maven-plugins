@@ -6,12 +6,13 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,14 +95,14 @@ public class JarArtifactHandlerImplTest {
         assertEquals("test.jar", handlerSpy.getJarFile().getName());
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void assureJarFileExistedWhenFileExtWrong() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void assureJarFileExistedWhenFileExtWrong() throws AzureExecutionException {
         buildHandler();
         handlerSpy.assureJarFileExisted(new File("test.jar"));
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void assureJarFileExistedWhenFileNotExist() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void assureJarFileExistedWhenFileNotExist() throws AzureExecutionException {
         buildHandler();
         final File fileMock = mock(File.class);
 
@@ -110,8 +111,8 @@ public class JarArtifactHandlerImplTest {
         handlerSpy.assureJarFileExisted(fileMock);
     }
 
-    @Test(expected = MojoExecutionException.class)
-    public void assureJarFileExistedWhenIsNotAFile() throws MojoExecutionException {
+    @Test(expected = AzureExecutionException.class)
+    public void assureJarFileExistedWhenIsNotAFile() throws AzureExecutionException {
         final File fileMock = mock(File.class);
 
         doReturn("test.jar").when(fileMock).getName();
@@ -121,7 +122,7 @@ public class JarArtifactHandlerImplTest {
     }
 
     @Test
-    public void assureJarFileExisted() throws MojoExecutionException {
+    public void assureJarFileExisted() throws AzureExecutionException {
         final File file = mock(File.class);
         doReturn("test.jar").when(file).getName();
         doReturn(true).when(file).exists();

@@ -191,14 +191,17 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return mavenResourcesFiltering;
     }
 
+    @Override
     public Settings getSettings() {
         return settings;
     }
 
+    @Override
     public AuthenticationSetting getAuthenticationSetting() {
         return authentication;
     }
 
+    @Override
     public String getSubscriptionId() {
         return subscriptionId;
     }
@@ -227,16 +230,19 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return plugin.getVersion();
     }
 
+    @Override
     public String getUserAgent() {
         return isTelemetryAllowed() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
             INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
             : String.format("%s/%s", getPluginName(), getPluginVersion());
     }
 
+    @Override
     public String getHttpProxyHost() {
         return httpProxyHost;
     }
 
+    @Override
     public int getHttpProxyPort() {
         return httpProxyPort;
     }
@@ -327,6 +333,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     //region Telemetry Configuration Interface
 
+    @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = new HashMap<>();
         map.put(INSTALLATION_ID_KEY, getInstallationId());

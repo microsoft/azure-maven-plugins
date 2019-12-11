@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
@@ -93,7 +94,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return settings;
     }
 
-    public FunctionExtensionVersion getFunctionExtensionVersion() throws MojoExecutionException {
+    public FunctionExtensionVersion getFunctionExtensionVersion() throws AzureExecutionException {
         final String extensionVersion = (String) getAppSettingsWithDefaultValue().get(FUNCTIONS_EXTENSION_VERSION_NAME);
         return FunctionUtils.parseFunctionExtensionVersion(extensionVersion);
     }
@@ -123,7 +124,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     //region Getter
 
-    public PricingTier getPricingTier() throws MojoExecutionException {
+    public PricingTier getPricingTier() throws AzureExecutionException {
         if (StringUtils.isEmpty(pricingTier)) {
             return null;
         }
@@ -168,7 +169,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         super.execute();
     }
 
-    public void checkJavaVersion() throws MojoExecutionException {
+    public void checkJavaVersion() {
         final String javaVersion = System.getProperty("java.version");
         if (!javaVersion.startsWith("1.8")) {
             super.warning(String.format(JDK_VERSION_ERROR, javaVersion));

@@ -6,13 +6,13 @@
 
 package com.microsoft.azure.maven.function.handlers.runtime;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.resources.ResourceGroup;
 import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.maven.handlers.runtime.BaseRuntimeHandler;
-import org.apache.maven.plugin.MojoExecutionException;
 
 public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<FunctionApp> {
 
@@ -46,13 +46,13 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
     }
 
     @Override
-    public abstract FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException;
+    public abstract FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException;
 
     @Override
-    public abstract FunctionApp.Update updateAppRuntime(FunctionApp app) throws MojoExecutionException;
+    public abstract FunctionApp.Update updateAppRuntime(FunctionApp app) throws AzureExecutionException;
 
     @Override
-    protected void changeAppServicePlan(FunctionApp app, AppServicePlan appServicePlan) throws MojoExecutionException {
+    protected void changeAppServicePlan(FunctionApp app, AppServicePlan appServicePlan) throws AzureExecutionException {
         app.update().withExistingAppServicePlan(appServicePlan).apply();
     }
 

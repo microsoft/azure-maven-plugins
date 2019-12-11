@@ -7,12 +7,12 @@
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.google.common.io.Files;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 import java.io.File;
@@ -33,7 +33,7 @@ public class ArtifactHandlerUtils {
      * work around to get the real implementation of warDeploy.
      */
     public static Runnable getRealWarDeployExecutor(final DeployTarget target, final File war, final String path)
-        throws MojoExecutionException {
+        throws AzureExecutionException {
         if (target instanceof WebAppDeployTarget) {
             return new Runnable() {
                 @Override
@@ -51,7 +51,7 @@ public class ArtifactHandlerUtils {
                 }
             };
         }
-        throw new MojoExecutionException(
+        throw new AzureExecutionException(
             "The type of deploy target is unknown, supported types are WebApp and DeploymentSlot.");
     }
 
@@ -71,13 +71,13 @@ public class ArtifactHandlerUtils {
     }
 
     public static String getContextPathFromFileName(final String stagingDirectoryPath,
-                                                    final String filePath) throws MojoExecutionException {
+                                                    final String filePath) throws AzureExecutionException {
         if (StringUtils.isEmpty(stagingDirectoryPath)) {
-            throw new MojoExecutionException(
+            throw new AzureExecutionException(
                 "Can not get the context path because the staging directory path is null or empty. .");
         }
         if (StringUtils.isEmpty(filePath)) {
-            throw new MojoExecutionException("Can not get the context path because the file path is null or empty");
+            throw new AzureExecutionException("Can not get the context path because the file path is null or empty");
         }
         return Paths.get(stagingDirectoryPath).relativize(Paths.get(filePath).getParent()).toString();
     }

@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
@@ -17,7 +18,6 @@ import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +29,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected OperatingSystemEnum getOs() throws MojoExecutionException {
+    protected OperatingSystemEnum getOs() throws AzureExecutionException {
         validate(validator.validateOs());
         final RuntimeSetting runtime = mojo.getRuntime();
         final String os = runtime.getOs();
@@ -49,14 +49,14 @@ public class V2ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected Region getRegion() throws MojoExecutionException {
+    protected Region getRegion() throws AzureExecutionException {
         validate(validator.validateRegion());
         final String region = mojo.getRegion();
         return Region.fromName(region);
     }
 
     @Override
-    protected RuntimeStack getRuntimeStack() throws MojoExecutionException {
+    protected RuntimeStack getRuntimeStack() throws AzureExecutionException {
         validate(validator.validateRuntimeStack());
         final RuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null || runtime.isEmpty()) {
@@ -66,7 +66,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected String getImage() throws MojoExecutionException {
+    protected String getImage() throws AzureExecutionException {
         validate(validator.validateImage());
         final RuntimeSetting runtime = mojo.getRuntime();
         return runtime.getImage();
@@ -96,14 +96,14 @@ public class V2ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected WebContainer getWebContainer() throws MojoExecutionException {
+    protected WebContainer getWebContainer() throws AzureExecutionException {
         validate(validator.validateWebContainer());
         final RuntimeSetting runtime = mojo.getRuntime();
         return runtime.getWebContainer();
     }
 
     @Override
-    protected JavaVersion getJavaVersion() throws MojoExecutionException {
+    protected JavaVersion getJavaVersion() throws AzureExecutionException {
         validate(validator.validateJavaVersion());
         final RuntimeSetting runtime = mojo.getRuntime();
         return runtime.getJavaVersion();

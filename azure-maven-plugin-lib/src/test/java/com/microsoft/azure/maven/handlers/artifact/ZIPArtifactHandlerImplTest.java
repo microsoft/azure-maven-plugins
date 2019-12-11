@@ -6,11 +6,12 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import org.apache.maven.plugin.MojoExecutionException;
+
 import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,7 +55,7 @@ public class ZIPArtifactHandlerImplTest {
     }
 
     @Test
-    public void publish() throws MojoExecutionException, IOException {
+    public void publish() throws AzureExecutionException, IOException {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         final File file = mock(File.class);
@@ -79,7 +80,7 @@ public class ZIPArtifactHandlerImplTest {
     }
 
     @Test
-    public void publishThrowException() throws MojoExecutionException, IOException {
+    public void publishThrowException() throws AzureExecutionException, IOException {
         final Log log = mock(Log.class);
         doReturn(log).when(mojo).getLog();
         doNothing().when(log).info(anyString());
@@ -94,7 +95,7 @@ public class ZIPArtifactHandlerImplTest {
 
         try {
             handlerSpy.publish(target);
-        } catch (final MojoExecutionException e) {
+        } catch (final AzureExecutionException e) {
             assertEquals("The zip deploy failed after 3 times of retry.", e.getMessage());
         }
     }
@@ -107,7 +108,7 @@ public class ZIPArtifactHandlerImplTest {
 
         try {
             handlerSpy.publish(target);
-        } catch (final MojoExecutionException e) {
+        } catch (final AzureExecutionException e) {
             assertEquals("<resources> is empty. Please make sure it is configured in pom.xml.",
                 e.getMessage());
         }

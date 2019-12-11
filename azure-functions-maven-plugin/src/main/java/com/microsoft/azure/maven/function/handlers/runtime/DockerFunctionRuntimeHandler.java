@@ -6,13 +6,13 @@
 
 package com.microsoft.azure.maven.function.handlers.runtime;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.settings.Server;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
@@ -45,7 +45,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
     }
 
     @Override
-    public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws MojoExecutionException {
+    public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
         final Server server = Utils.getServer(settings, serverId);
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
         checkFunctionExtensionVersion();
@@ -64,7 +64,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
                 result = withDockerContainerImage.withPrivateRegistryImage(image, registryUrl).withCredentials(server.getUsername(), server.getPassword());
                 break;
             default:
-                throw new MojoExecutionException(INVALID_DOCKER_RUNTIME);
+                throw new AzureExecutionException(INVALID_DOCKER_RUNTIME);
         }
         final String decryptionKey = generateDecryptionKey();
         return (FunctionApp.DefinitionStages.WithCreate) result
@@ -74,7 +74,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
     }
 
     @Override
-    public FunctionApp.Update updateAppRuntime(FunctionApp app) throws MojoExecutionException {
+    public FunctionApp.Update updateAppRuntime(FunctionApp app) throws AzureExecutionException {
         final Server server = Utils.getServer(settings, serverId);
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
         checkFunctionExtensionVersion();
@@ -89,11 +89,11 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
             case PRIVATE_REGISTRY:
                 return update.withPrivateRegistryImage(image, registryUrl).withCredentials(server.getUsername(), server.getPassword());
             default:
-                throw new MojoExecutionException(INVALID_DOCKER_RUNTIME);
+                throw new AzureExecutionException(INVALID_DOCKER_RUNTIME);
         }
     }
 
-    protected void checkServerConfiguration(DockerImageType imageType, Server server) throws MojoExecutionException {
+    protected void checkServerConfiguration(DockerImageType imageType, Server server) throws AzureExecutionException {
         if (imageType != PUBLIC_DOCKER_HUB) {
             assureServerExist(server, serverId);
         }
