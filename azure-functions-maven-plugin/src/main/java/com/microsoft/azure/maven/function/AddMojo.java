@@ -13,11 +13,12 @@ import com.microsoft.azure.maven.function.template.FunctionSettingTemplate;
 import com.microsoft.azure.maven.function.template.FunctionTemplate;
 import com.microsoft.azure.maven.function.template.FunctionTemplates;
 import com.microsoft.azure.maven.function.template.TemplateResources;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -131,7 +132,7 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void setFunctionName(String functionName) {
-        this.functionName = StringUtils.capitalise(functionName);
+        this.functionName = StringUtils.capitalize(functionName);
     }
 
     protected void setFunctionTemplate(String functionTemplate) {

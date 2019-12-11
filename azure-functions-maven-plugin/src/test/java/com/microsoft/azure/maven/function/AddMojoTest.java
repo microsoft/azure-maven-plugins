@@ -6,10 +6,10 @@
 
 package com.microsoft.azure.maven.function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.ReflectionUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
 
 import java.io.File;
