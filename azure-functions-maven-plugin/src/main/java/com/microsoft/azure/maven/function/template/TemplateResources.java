@@ -8,7 +8,8 @@ package com.microsoft.azure.maven.function.template;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.codehaus.plexus.util.IOUtil;
+
+import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class TemplateResources {
     static {
         try (final InputStream is = TemplateResources.class.getResourceAsStream("/resources.json")) {
             final ObjectMapper mapper = new ObjectMapper();
-            final String resourceJsonStr = IOUtil.toString(is);
+            final String resourceJsonStr = IOUtils.toString(is, "utf8");
             final JsonNode node = mapper.readTree(resourceJsonStr);
             map = mapper.convertValue(node.get("en"), Map.class);
         } catch (Exception e) {
