@@ -11,7 +11,8 @@ import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-import org.codehaus.plexus.util.StringUtils;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 
@@ -84,6 +85,7 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
         return null;
     }
 
+    @Override
     public String validateImage() {
         final RuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null) {

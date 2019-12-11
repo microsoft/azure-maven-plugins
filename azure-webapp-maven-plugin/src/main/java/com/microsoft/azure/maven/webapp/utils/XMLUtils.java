@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.utils;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Element;
 import org.dom4j.Namespace;
 import org.dom4j.Node;

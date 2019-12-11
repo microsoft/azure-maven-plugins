@@ -14,8 +14,9 @@ import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementa
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.utils.Utils;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.util.List;
@@ -37,10 +38,12 @@ public class SpringAppClient extends AbstractSpringClient {
             return self();
         }
 
+        @Override
         public SpringAppClient build() {
             return new SpringAppClient(this);
         }
 
+        @Override
         public Builder self() {
             return this;
         }
@@ -53,14 +56,14 @@ public class SpringAppClient extends AbstractSpringClient {
 
     public AppResourceInner createOrUpdateApp(SpringConfiguration configuration) {
         final AppResourceInner appResource = getApp();
-        final AppResourceProperties appResourceProperties = appResource == null ?
-                new AppResourceProperties() : appResource.properties();
-        final PersistentDisk persistentDisk = isEnablePersistentStorage(configuration) ?
-                getPersistentDiskOrDefault(appResourceProperties) : null;
+        final AppResourceProperties appResourceProperties = appResource == null ? new AppResourceProperties()
+                : appResource.properties();
+        final PersistentDisk persistentDisk = isEnablePersistentStorage(configuration) ? getPersistentDiskOrDefault(appResourceProperties)
+                : null;
         appResourceProperties.withPersistentDisk(persistentDisk);
         if (appResource == null) {
-            return springManager.apps().inner()
-                    .createOrUpdate(resourceGroup, clusterName, appName, appResourceProperties);
+            return springManager.apps().inner().createOrUpdate(resourceGroup, clusterName, appName,
+                    appResourceProperties);
         } else {
             appResourceProperties.withPublicProperty(configuration.isPublic());
             return springManager.apps().inner().update(resourceGroup, clusterName, appName, appResourceProperties);
@@ -80,10 +83,9 @@ public class SpringAppClient extends AbstractSpringClient {
     }
 
     public DeploymentResourceInner getDeploymentByName(String deploymentName) {
-        return springManager.deployments().inner().list(resourceGroup, clusterName, appName)
-                .stream()
-                .filter(deploymentResourceInner -> deploymentResourceInner.name().equals(deploymentName))
-                .findFirst().orElse(null);
+        return springManager.deployments().inner().list(resourceGroup, clusterName, appName).stream()
+                .filter(deploymentResourceInner -> deploymentResourceInner.name().equals(deploymentName)).findFirst()
+                .orElse(null);
     }
 
     public String getActiveDeploymentName() {
@@ -102,13 +104,15 @@ public class SpringAppClient extends AbstractSpringClient {
     }
 
     public ResourceUploadDefinitionInner uploadArtifact(File artifact) throws MojoExecutionException {
-        final ResourceUploadDefinitionInner resourceUploadDefinition = springManager.apps().inner().getResourceUploadUrl(resourceGroup, clusterName, appName);
+        final ResourceUploadDefinitionInner resourceUploadDefinition = springManager.apps().inner()
+                .getResourceUploadUrl(resourceGroup, clusterName, appName);
         Utils.uploadFileToStorage(artifact, resourceUploadDefinition.uploadUrl());
         return resourceUploadDefinition;
     }
 
     public List<DeploymentResourceInner> getDeployments() {
-        final PagedList<DeploymentResourceInner> deployments = springManager.deployments().inner().list(resourceGroup, clusterName, appName);
+        final PagedList<DeploymentResourceInner> deployments = springManager.deployments().inner().list(resourceGroup,
+                clusterName, appName);
         deployments.loadAll();
         return deployments.stream().collect(Collectors.toList());
     }
@@ -134,7 +138,8 @@ public class SpringAppClient extends AbstractSpringClient {
     }
 
     private static PersistentDisk getPersistentDiskOrDefault(AppResourceProperties appResourceProperties) {
-        return appResourceProperties.persistentDisk() != null ? appResourceProperties.persistentDisk() :
-                new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE).withMountPath(DEFAULT_PERSISTENT_DISK_MOUNT_PATH);
+        return appResourceProperties.persistentDisk() != null ? appResourceProperties.persistentDisk()
+                : new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE)
+                        .withMountPath(DEFAULT_PERSISTENT_DISK_MOUNT_PATH);
     }
 }

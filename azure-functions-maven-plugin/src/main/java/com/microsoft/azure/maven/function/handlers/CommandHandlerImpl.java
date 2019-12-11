@@ -106,7 +106,7 @@ public class CommandHandlerImpl implements CommandHandler {
     protected void showErrorIfAny(final InputStream inputStream) throws Exception {
         if (inputStream != null) {
             final String input = IOUtil.toString(inputStream);
-            this.logger.error(org.codehaus.plexus.util.StringUtils.strip(input, "\n"));
+            this.logger.error(StringUtils.strip(input, "\n"));
         }
     }
 }

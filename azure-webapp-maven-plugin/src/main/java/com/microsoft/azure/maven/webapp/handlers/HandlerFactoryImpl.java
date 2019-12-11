@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.appservice.DeploymentType;
+import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
@@ -16,22 +17,22 @@ import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.artifact.JarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.artifact.NONEArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.artifact.WarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.runtime.WebAppRuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.runtime.LinuxRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.NullRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateRegistryRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.PublicDockerHubRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.runtime.WebAppRuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.runtime.WindowsRuntimeHandlerImpl;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Locale;
 
@@ -90,7 +91,8 @@ public class HandlerFactoryImpl extends HandlerFactory {
             default:
                 throw new MojoExecutionException("Invalid docker runtime configured.");
         }
-        return builder.image(config.getImage()).serverId(config.getServerId()).registryUrl(config.getRegistryUrl());
+        builder.image(config.getImage()).serverId(config.getServerId()).registryUrl(config.getRegistryUrl());
+        return builder;
     }
 
     @Override

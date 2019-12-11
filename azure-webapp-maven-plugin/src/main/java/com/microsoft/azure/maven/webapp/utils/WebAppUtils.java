@@ -17,8 +17,7 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCre
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
-import com.microsoft.azure.maven.appservice.DockerImageType;
-import org.apache.commons.lang3.StringUtils;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 

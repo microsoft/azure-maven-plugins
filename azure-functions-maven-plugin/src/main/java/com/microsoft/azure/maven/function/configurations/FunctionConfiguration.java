@@ -9,7 +9,8 @@ package com.microsoft.azure.maven.function.configurations;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.microsoft.azure.maven.function.bindings.Binding;
-import org.codehaus.plexus.util.StringUtils;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -10,12 +10,12 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
+import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
@@ -23,10 +23,11 @@ import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -240,10 +241,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return skip;
     }
 
+    @Override
     public String getResourceGroup() {
         return resourceGroup;
     }
 
+    @Override
     public String getAppName() {
         return appName == null ? "" : appName;
     }
@@ -252,10 +255,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return deploymentSlotSetting;
     }
 
+    @Override
     public String getAppServicePlanResourceGroup() {
         return appServicePlanResourceGroup;
     }
 
+    @Override
     public String getAppServicePlanName() {
         return appServicePlanName;
     }
@@ -424,8 +429,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             synchronized (this) {
                 if (stagingDirectory == null) {
                     final String outputFolder = this.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
-                    final String stagingDirectoryPath  = Paths.get(
-                            this.getBuildDirectoryAbsolutePath(),
+                    final String stagingDirectoryPath = Paths.get(this.getBuildDirectoryAbsolutePath(),
                             outputFolder, String.format("%s-%s", this.getAppName(), UUID.randomUUID().toString())
                     ).toString();
                     stagingDirectory = new File(stagingDirectoryPath);

@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.maven.appservice;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Locale;
 

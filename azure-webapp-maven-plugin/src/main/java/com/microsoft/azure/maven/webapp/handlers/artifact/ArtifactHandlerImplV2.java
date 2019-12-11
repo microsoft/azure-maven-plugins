@@ -6,11 +6,12 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
-import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.Utils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.zeroturnaround.zip.ZipUtil;
@@ -43,7 +44,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final String NO_EXECUTABLE_JAR = "No executable jar found in target folder according to resource filter '%s', " +
             "please make sure the resource filter is correct and you have built the jar.";
     private static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
-
 
     private RuntimeSetting runtimeSetting;
 
@@ -215,7 +215,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             }
         }
     }
-
 
     private File getProjectJarArtifact(final List<File> artifacts) throws MojoExecutionException {
         final String fileName = String.format("%s.%s", project.getBuild().getFinalName(), project.getPackaging());

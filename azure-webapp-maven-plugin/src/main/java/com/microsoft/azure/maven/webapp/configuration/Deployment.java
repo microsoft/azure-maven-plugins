@@ -6,8 +6,8 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collections;

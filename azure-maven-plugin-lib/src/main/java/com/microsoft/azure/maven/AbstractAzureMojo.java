@@ -24,6 +24,8 @@ import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.GetHashMac;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -34,7 +36,6 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
-import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;

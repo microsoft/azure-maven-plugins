@@ -12,17 +12,18 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.queryer.MavenPluginQueryer;
 import com.microsoft.azure.maven.queryer.QueryFactory;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -275,9 +276,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
                                                                          WebAppConfiguration configuration)
         throws MojoFailureException {
         final String defaultJavaVersion = configuration.getJavaVersionOrDefault();
-        final String javaVersionInput = queryer.assureInputFromUser("javaVersion",
-            defaultJavaVersion, getAvailableJavaVersion(), null);
-        final JavaVersion javaVersion =  JavaVersion.fromString(javaVersionInput);
+        final String javaVersionInput = queryer.assureInputFromUser("javaVersion", defaultJavaVersion, getAvailableJavaVersion(), null);
+        final JavaVersion javaVersion = JavaVersion.fromString(javaVersionInput);
         // For project which package is jar, use java se runtime
         if (isJarProject()) {
             return builder.javaVersion(javaVersion).webContainer(getJavaSEWebContainer(javaVersion));

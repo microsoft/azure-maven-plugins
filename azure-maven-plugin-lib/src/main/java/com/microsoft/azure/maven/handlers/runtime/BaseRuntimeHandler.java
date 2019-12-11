@@ -13,10 +13,11 @@ import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
-import org.codehaus.plexus.util.StringUtils;
 
 public abstract class BaseRuntimeHandler<T extends WebAppBase> implements RuntimeHandler<T> {
 
