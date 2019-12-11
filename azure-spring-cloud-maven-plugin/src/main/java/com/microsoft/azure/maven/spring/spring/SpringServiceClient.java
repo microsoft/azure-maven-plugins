@@ -13,7 +13,7 @@ import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementa
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.lang3.ArrayUtils;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;

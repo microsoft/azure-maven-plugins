@@ -14,8 +14,9 @@ import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementa
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.utils.Utils;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.util.List;
@@ -37,11 +38,11 @@ public class SpringAppClient extends AbstractSpringClient {
             return self();
         }
 
-        public SpringAppClient build() {
+		public SpringAppClient build() {
             return new SpringAppClient(this);
         }
 
-        public Builder self() {
+		public Builder self() {
             return this;
         }
     }
