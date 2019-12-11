@@ -7,9 +7,10 @@
 package com.microsoft.azure.maven.function.handlers;
 
 import com.microsoft.azure.maven.function.utils.CommandUtils;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.IOUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -105,7 +106,7 @@ public class CommandHandlerImpl implements CommandHandler {
 
     protected void showErrorIfAny(final InputStream inputStream) throws Exception {
         if (inputStream != null) {
-            final String input = IOUtil.toString(inputStream);
+            final String input = IOUtils.toString(inputStream, "utf8");
             this.logger.error(StringUtils.strip(input, "\n"));
         }
     }
