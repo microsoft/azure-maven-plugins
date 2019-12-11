@@ -46,7 +46,7 @@ public class PublicDockerHubRuntimeHandlerImplTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    private void initHandlerV2()  {
+    private void initHandlerV2() {
         handler = builder.appName(config.getAppName())
             .resourceGroup(config.getResourceGroup())
             .region(config.getRegion())

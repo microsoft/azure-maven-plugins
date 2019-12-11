@@ -201,7 +201,7 @@ public class ArtifactHandlerImplV2Test {
         handlerSpy.publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
 
         verify(mojo, times(1)).getLog();
-        verify(handlerSpy,times(1)).isJavaSERuntime();
+        verify(handlerSpy, times(1)).isJavaSERuntime();
         verify(handlerSpy, times(1)).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
         verifyNoMoreInteractions(handlerSpy);
     }
@@ -231,7 +231,6 @@ public class ArtifactHandlerImplV2Test {
         doReturn("jar").when(mavenProject).getPackaging();
         doReturn(true).when(runtimeSetting).isEmpty();
         assertTrue(handlerSpy.isJavaSERuntime());
-
 
         // Project with jar packaging will always be regarded as java se project
         Mockito.reset(runtimeSetting);

@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.maven.webapp.utils;
 
-import java.io.IOException;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
 
 public class TestUtils {
     private static final String clientId = System.getenv("CLIENT_ID");
