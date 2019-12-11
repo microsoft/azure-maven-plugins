@@ -7,8 +7,8 @@
 package com.microsoft.azure.maven.queryer;
 
 import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;

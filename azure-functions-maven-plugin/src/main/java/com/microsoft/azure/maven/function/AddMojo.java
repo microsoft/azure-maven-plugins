@@ -41,8 +41,6 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.lang.System.out;
 import static javax.lang.model.SourceVersion.isName;
-import static org.codehaus.plexus.util.IOUtil.copy;
-import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 
 /**
  * Create new Azure Functions (as Java class) and add to current project.
@@ -269,13 +267,13 @@ public class AddMojo extends AbstractFunctionMojo {
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionName(),
-                str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
+                str -> StringUtils.isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
                 this::setFunctionName,
                 true);
         } else {
             assureInputFromUser("Enter value for Function Name: ",
                 getFunctionName(),
-                str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
+                str -> StringUtils.isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
                 "Function name must start with a letter and can contain letters, digits, '_' and '-'",
                 this::setFunctionName);
         }
@@ -286,13 +284,13 @@ public class AddMojo extends AbstractFunctionMojo {
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionPackageName(),
-                str -> isNotEmpty(str) && isName(str),
+                str -> StringUtils.isNotEmpty(str) && isName(str),
                 this::setFunctionPackageName,
                 true);
         } else {
             assureInputFromUser("Enter value for Package Name: ",
                 getFunctionPackageName(),
-                str -> isNotEmpty(str) && isName(str),
+                str -> StringUtils.isNotEmpty(str) && isName(str),
                 "Input should be a valid Java package name.",
                 this::setFunctionPackageName);
         }
@@ -445,7 +443,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
     protected void saveToTargetFile(final File targetFile, final String newFunctionClass) throws Exception {
         try (final OutputStream os = new FileOutputStream(targetFile)) {
-            copy(newFunctionClass, os);
+            IOUtil.copy(newFunctionClass, os);
         }
     }
 

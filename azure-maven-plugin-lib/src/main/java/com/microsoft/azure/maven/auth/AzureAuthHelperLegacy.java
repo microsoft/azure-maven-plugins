@@ -19,11 +19,11 @@ import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
