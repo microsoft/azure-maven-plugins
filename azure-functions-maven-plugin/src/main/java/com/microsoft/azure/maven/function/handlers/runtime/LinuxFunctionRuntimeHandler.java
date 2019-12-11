@@ -13,7 +13,7 @@ public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHan
 
     // Todo: Will update FunctionRuntimeStack to java:3.0-java8 once service team release the stable build
     private static final FunctionRuntimeStack JAVA_8_RUNTIME = new FunctionRuntimeStack("java", "~3", "java|8",
-            "DOCKER|mcr.microsoft.com/azure-functions/java:3.0.12915-preview-java8-appservice");
+            "DOCKER|mcr.microsoft.com/azure-functions/java:3.0.12915-java8-appservice");
 
     public static class Builder extends FunctionRuntimeHandler.Builder<Builder> {
 
@@ -43,6 +43,6 @@ public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHan
     @Override
     public FunctionApp.Update updateAppRuntime(FunctionApp app) {
         checkFunctionExtensionVersion();
-        return app.update();
+        return app.update().withBuiltInImage(JAVA_8_RUNTIME);
     }
 }
