@@ -7,8 +7,11 @@
 package com.microsoft.azure.maven.function.handlers;
 
 import com.github.zafarkhaja.semver.Version;
-import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
+
+import org.apache.maven.plugin.logging.Log;
+
+import java.io.File;
 
 public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
@@ -26,25 +29,25 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     public static final String GET_LOCAL_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
     public static final Version LEAST_SUPPORTED_VERSION = Version.valueOf("2.0.1-beta.26");
 
-    private AbstractFunctionMojo mojo;
+    private Log log;
     private CommandHandler commandHandler;
 
-    public FunctionCoreToolsHandlerImpl(final AbstractFunctionMojo mojo, final CommandHandler commandHandler) {
-        this.mojo = mojo;
+    public FunctionCoreToolsHandlerImpl(final Log log, final CommandHandler commandHandler) {
+        this.log = log;
         this.commandHandler = commandHandler;
     }
 
     @Override
-    public void installExtension() throws Exception {
+    public void installExtension(File stagingDirectory, File basedir) throws Exception {
         assureRequirementAddressed();
-        installFunctionExtension();
+        installFunctionExtension(stagingDirectory, basedir);
     }
 
-    protected void installFunctionExtension() throws Exception {
+    protected void installFunctionExtension(File stagingDirector, File basedir) throws Exception {
         commandHandler.runCommandWithReturnCodeCheck(
-                String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, getProjectBasePath()),
+                String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, basedir.getAbsolutePath()),
                 true,
-                this.mojo.getDeploymentStagingDirectoryPath(),
+                stagingDirector.getAbsolutePath(),
                 CommandUtils.getDefaultValidReturnCodes(),
                 INSTALL_FUNCTION_EXTENSIONS_FAIL
         );
@@ -59,9 +62,9 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         }
         // Verify whether local function core tools is the latest version
         if (latestCoreVersion == null) {
-            this.mojo.warning(GET_LATEST_VERSION_FAIL);
+            log.warn(GET_LATEST_VERSION_FAIL);
         } else if (Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
-            this.mojo.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
+            log.warn(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
         }
     }
 
@@ -75,7 +78,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
             Version.valueOf(latestCoreVersion);
             return latestCoreVersion;
         } catch (Exception e) {
-            this.mojo.getLog().warn(GET_LATEST_VERSION_FAIL);
+            log.warn(GET_LATEST_VERSION_FAIL);
             return null;
         }
     }
@@ -90,12 +93,8 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
             Version.valueOf(localVersion);
             return localVersion;
         } catch (Exception e) {
-            this.mojo.getLog().warn(GET_LOCAL_VERSION_FAIL);
+            log.warn(GET_LOCAL_VERSION_FAIL);
             return null;
         }
-    }
-
-    protected String getProjectBasePath() {
-        return this.mojo.getProject().getBasedir().getAbsolutePath();
     }
 }
