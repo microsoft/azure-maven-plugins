@@ -296,7 +296,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Azure Functions Core Tools task
 
     protected FunctionCoreToolsHandler getFunctionCoreToolsHandler(final CommandHandler commandHandler) {
-        return new FunctionCoreToolsHandlerImpl(this, commandHandler);
+        return new FunctionCoreToolsHandlerImpl(this.getLog(), commandHandler);
     }
 
     protected void installExtension(final FunctionCoreToolsHandler handler,
@@ -305,7 +305,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         if (!isInstallingExtensionNeeded(bindingEnums)) {
             return;
         }
-        handler.installExtension();
+        handler.installExtension(new File(this.getDeploymentStagingDirectoryPath()), this.getProject().getBasedir());
         info(INSTALL_EXTENSIONS_FINISH);
     }
 
