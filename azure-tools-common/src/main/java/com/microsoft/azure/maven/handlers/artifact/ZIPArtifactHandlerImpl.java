@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.logging.Log;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
@@ -50,7 +51,7 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
         assureStagingDirectoryNotEmpty();
 
         final File zipFile = getZipFile();
-        log.info(String.format(DEPLOY_START, target.getName()));
+        Log.info(String.format(DEPLOY_START, target.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
@@ -59,10 +60,10 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
             retryCount += 1;
             try {
                 target.zipDeploy(zipFile);
-                log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+                Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
                 return;
             } catch (Exception e) {
-                log.debug(
+                Log.debug(
                     String.format("Exception occurred when deploying the zip package: %s, " +
                         "retrying immediately (%d/%d)", e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
             }

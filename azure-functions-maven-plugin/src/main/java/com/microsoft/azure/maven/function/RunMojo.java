@@ -58,7 +58,7 @@ public class RunMojo extends AbstractFunctionMojo {
 
     @Override
     protected void doExecute() throws Exception {
-        final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
+        final CommandHandler commandHandler = new CommandHandlerImpl();
 
         checkStageDirectoryExistence();
 

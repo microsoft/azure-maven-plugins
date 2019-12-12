@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.handlers.runtime;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.docker.IDockerCrendetialProvider;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.PricingTier;
@@ -16,8 +17,6 @@ import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.settings.Settings;
 
 public abstract class BaseRuntimeHandler<T extends WebAppBase> implements RuntimeHandler<T> {
 
@@ -31,11 +30,13 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
     protected String servicePlanName;
     protected String servicePlanResourceGroup;
     protected Azure azure;
-    protected Settings settings;
+    protected Object settings;
     protected String image;
     protected String serverId;
     protected String registryUrl;
-    protected Log log;
+    protected Object log;
+
+    protected IDockerCrendetialProvider provider;
 
     public abstract static class Builder<T extends Builder<T>> {
         protected String appName;
@@ -45,11 +46,11 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         protected String servicePlanName;
         protected String servicePlanResourceGroup;
         protected Azure azure;
-        protected Settings settings;
+        protected Object settings;
         protected String image;
         protected String serverId;
         protected String registryUrl;
-        protected Log log;
+        protected Object log;
 
         public T appName(final String value) {
             this.appName = value;
@@ -86,13 +87,13 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
             return self();
         }
 
-        public T mavenSettings(final Settings value) {
+        public T mavenSettings(final Object value) {
             this.settings = value;
             return self();
         }
 
-        public T log(final Log value) {
-            this.log = value;
+        public T log(final Object value) {
+//            this.log = value;
             return self();
         }
 

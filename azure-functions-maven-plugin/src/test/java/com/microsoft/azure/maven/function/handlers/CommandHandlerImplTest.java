@@ -20,14 +20,14 @@ public class CommandHandlerImplTest {
     @Test
     public void buildCommand() {
         final Log log = mock(Log.class);
-        final CommandHandlerImpl handler = new CommandHandlerImpl(log);
+        final CommandHandlerImpl handler = new CommandHandlerImpl();
         assertEquals(3, handler.buildCommand("cmd").length);
     }
 
     @Test
     public void getStdoutRedirect() {
         final Log log = mock(Log.class);
-        final CommandHandlerImpl handler = new CommandHandlerImpl(log);
+        final CommandHandlerImpl handler = new CommandHandlerImpl();
 
         assertEquals(ProcessBuilder.Redirect.INHERIT, handler.getStdoutRedirect(true));
         assertEquals(ProcessBuilder.Redirect.PIPE, handler.getStdoutRedirect(false));
@@ -36,7 +36,7 @@ public class CommandHandlerImplTest {
     @Test(expected = Exception.class)
     public void handleExitValue() throws Exception {
         final Log log = mock(Log.class);
-        final CommandHandlerImpl handler = new CommandHandlerImpl(log);
+        final CommandHandlerImpl handler = new CommandHandlerImpl();
         doNothing().when(log).error(anyString());
         doNothing().when(log).debug(anyString());
 

@@ -313,7 +313,7 @@ public class AnnotationHandlerImplTest {
 
     private AnnotationHandlerImpl getAnnotationHandler() {
         final Log log = mock(Log.class);
-        return new AnnotationHandlerImpl(log);
+        return new AnnotationHandlerImpl();
     }
 
     private URL getClassUrl() {

@@ -40,9 +40,9 @@ public class FunctionCoreToolsHandlerImplTest {
 
         doReturn("3.0.0").when(functionCoreToolsHandlerSpy).getLocalFunctionCoreToolsVersion();
         doReturn("3.0.0").when(functionCoreToolsHandlerSpy).getLatestFunctionCoreToolsVersion();
-        doNothing().when(functionCoreToolsHandlerSpy).installFunctionExtension();
+        doNothing().when(functionCoreToolsHandlerSpy).installFunctionExtension("path1", "path2");
 
-        functionCoreToolsHandlerSpy.installExtension();
+        functionCoreToolsHandlerSpy.installExtension("path1", "path2");
         verify(mojo, never()).warning(anyString());
     }
 
@@ -71,28 +71,6 @@ public class FunctionCoreToolsHandlerImplTest {
         doReturn("unexpected output")
                 .when(commandHandler).runCommandAndGetOutput(anyString(), anyBoolean(), any());
         assertNull(functionCoreToolsHandlerSpy.getLocalFunctionCoreToolsVersion());
-    }
-
-    @Test
-    public void installFunctionExtension() throws Exception {
-        final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
-        final CommandHandler commandHandler = mock(CommandHandler.class);
-        final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
-                new FunctionCoreToolsHandlerImpl(mojo, commandHandler);
-        final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
-        doNothing().when(commandHandler).runCommandWithReturnCodeCheck(anyString(),
-                anyBoolean(), any(), ArgumentMatchers.anyList(), anyString());
-        doReturn("path").when(functionCoreToolsHandlerSpy).getProjectBasePath();
-        doReturn("path").when(mojo).getDeploymentStagingDirectoryPath();
-
-        functionCoreToolsHandlerSpy.installFunctionExtension();
-        verify(commandHandler, times(1)).runCommandWithReturnCodeCheck(
-                String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, functionCoreToolsHandlerSpy.getProjectBasePath()),
-                true,
-                mojo.getDeploymentStagingDirectoryPath(),
-                CommandUtils.getDefaultValidReturnCodes(),
-                INSTALL_FUNCTION_EXTENSIONS_FAIL
-        );
     }
 
     @Test

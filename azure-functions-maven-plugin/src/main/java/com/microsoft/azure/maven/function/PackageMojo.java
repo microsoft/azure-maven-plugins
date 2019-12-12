@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
-import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.MavenUtils;
 import com.microsoft.azure.maven.function.bindings.BindingEnum;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
@@ -24,6 +24,7 @@ import com.microsoft.azure.maven.function.handlers.CommandHandler;
 import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl;
+
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.Resource;
@@ -106,7 +107,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         copyJarsToStageDirectory();
 
-        final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
+        final CommandHandler commandHandler = new CommandHandlerImpl();
         final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
         final Set<BindingEnum> bindingClasses = this.getFunctionBindingEnums(configMap);
 
@@ -120,7 +121,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Process annotations
 
     protected AnnotationHandler getAnnotationHandler() {
-        return new AnnotationHandlerImpl(getLog());
+        return new AnnotationHandlerImpl();
     }
 
     protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws Exception {
@@ -272,7 +273,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         final String stagingDirectory = getDeploymentStagingDirectoryPath();
         info("");
         info(COPY_JARS + stagingDirectory);
-        Utils.copyResources(
+        MavenUtils.copyResources(
                 getProject(),
                 getSession(),
                 getMavenResourcesFiltering(),
@@ -305,7 +306,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         if (!isInstallingExtensionNeeded(bindingEnums)) {
             return;
         }
-        handler.installExtension();
+        handler.installExtension(this.getDeploymentStagingDirectoryPath(), this.getProject().getBasedir().getAbsolutePath());
         info(INSTALL_EXTENSIONS_FINISH);
     }
 

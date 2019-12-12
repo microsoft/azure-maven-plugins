@@ -60,30 +60,30 @@ public class UtilsTest {
         when(settings.getServer(invalidServerId)).thenReturn(null);
         when(settings.getServer(validServerId)).thenReturn(new Server());
 
-        assertNull(Utils.getServer(null, validServerId));
-        assertNull(Utils.getServer(settings, null));
-        assertNull(Utils.getServer(settings, invalidServerId));
-        assertNotNull(Utils.getServer(settings, validServerId));
+        assertNull(MavenUtils.getServer(null, validServerId));
+        assertNull(MavenUtils.getServer(settings, null));
+        assertNull(MavenUtils.getServer(settings, invalidServerId));
+        assertNotNull(MavenUtils.getServer(settings, validServerId));
     }
 
     @Test
     public void getValueFromServerConfiguration() {
-        assertNull(null, Utils.getValueFromServerConfiguration(null, null));
+        assertNull(null, MavenUtils.getValueFromServerConfiguration(null, null));
 
         when(server.getConfiguration()).thenReturn(null);
-        assertNull(null, Utils.getValueFromServerConfiguration(server, "random-key"));
+        assertNull(null, MavenUtils.getValueFromServerConfiguration(server, "random-key"));
         verify(server, times(1)).getConfiguration();
         verifyNoMoreInteractions(server);
 
         when(server.getConfiguration()).thenReturn(configuration);
-        assertNull(null, Utils.getValueFromServerConfiguration(server, "random-key"));
+        assertNull(null, MavenUtils.getValueFromServerConfiguration(server, "random-key"));
         verify(configuration, times(1)).getChild(any(String.class));
         verifyNoMoreInteractions(configuration);
 
         when(server.getConfiguration()).thenReturn(configuration);
         when(configuration.getChild(any(String.class))).thenReturn(node);
         when(node.getValue()).thenReturn("randomValue");
-        assertEquals("randomValue", Utils.getValueFromServerConfiguration(server, "random-key"));
+        assertEquals("randomValue", MavenUtils.getValueFromServerConfiguration(server, "random-key"));
         verify(node, times(1)).getValue();
         verifyNoMoreInteractions(node);
     }
@@ -94,7 +94,7 @@ public class UtilsTest {
         final Resource resource = new Resource();
         resource.setTargetPath("/");
 
-        Utils.copyResources(mock(MavenProject.class),
+        MavenUtils.copyResources(mock(MavenProject.class),
                 mock(MavenSession.class),
                 filtering,
                 Arrays.asList(new Resource[] {resource}),

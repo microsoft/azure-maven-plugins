@@ -7,13 +7,7 @@
 package com.microsoft.azure.maven.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -26,43 +20,43 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
             "Please make sure it is configured in pom.xml.";
     protected static final String STAGING_FOLDER_EMPTY = "Staging directory: '%s' is empty, please check " +
             "your <resources> configuration.(Have you executed mvn package before this command?)";
-    protected MavenProject project;
-    protected MavenSession session;
-    protected MavenResourcesFiltering filtering;
-    protected List<Resource> resources;
+    protected Object project;
+    protected Object session;
+    protected Object filtering;
+    protected List<Object> resources;
     protected String stagingDirectoryPath;
     protected String buildDirectoryAbsolutePath;
-    protected Log log;
+    protected Object log;
 
     public abstract static class Builder<T extends Builder<T>> {
-        private MavenProject project;
-        private MavenSession session;
-        private MavenResourcesFiltering filtering;
-        private List<Resource> resources;
+        private Object project;
+        private Object session;
+        private Object filtering;
+        private List<Object> resources;
         private String stagingDirectoryPath;
         private String buildDirectoryAbsolutePath;
-        private Log log;
+        private Object log;
 
         protected abstract T self();
 
         public abstract ArtifactHandlerBase build();
 
-        public T project(final MavenProject value) {
+        public T project(final Object value) {
             this.project = value;
             return self();
         }
 
-        public T session(final MavenSession value) {
+        public T session(final Object value) {
             this.session = value;
             return self();
         }
 
-        public T filtering(final MavenResourcesFiltering value) {
+        public T filtering(final Object value) {
             this.filtering = value;
             return self();
         }
 
-        public T resources(final List<Resource> value) {
+        public T resources(final List<Object> value) {
             this.resources = value;
             return self();
         }
@@ -77,7 +71,7 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
             return self();
         }
 
-        public T log(final Log value) {
+        public T log(final Object value) {
             this.log = value;
             return self();
         }
@@ -105,7 +99,7 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
         if (resources == null || resources.isEmpty()) {
             throw new AzureExecutionException(NO_RESOURCES_CONFIG);
         }
-
-        Utils.copyResources(project, session, filtering, resources, stagingDirectoryPath);
+        // xugaofeng
+//        Utils.copyResources(project, session, filtering, resources, stagingDirectoryPath);
     }
 }

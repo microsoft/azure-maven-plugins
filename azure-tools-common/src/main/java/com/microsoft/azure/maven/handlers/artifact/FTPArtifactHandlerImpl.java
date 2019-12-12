@@ -6,15 +6,16 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
+import java.io.IOException;
+
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.logging.Log;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-
-import java.io.IOException;
 
 public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
     private static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
@@ -47,7 +48,7 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
         }
 
         assureStagingDirectoryNotEmpty();
-        log.info(String.format(DEPLOY_START, target.getName()));
+        Log.info(String.format(DEPLOY_START, target.getName()));
 
         uploadDirectoryToFTP(target);
 
@@ -55,7 +56,7 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
             ((FunctionApp) target.getApp()).syncTriggers();
         }
 
-        log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+        Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
     }
 
     protected void uploadDirectoryToFTP(DeployTarget target) throws AzureExecutionException {
@@ -72,6 +73,6 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     protected FTPUploader getUploader() {
-        return new FTPUploader(log);
+        return new FTPUploader();
     }
 }

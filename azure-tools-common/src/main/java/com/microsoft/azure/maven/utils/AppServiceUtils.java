@@ -7,14 +7,16 @@
 package com.microsoft.azure.maven.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.docker.IDockerCrendetialProvider;
+import com.microsoft.azure.logging.Log;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.appservice.DockerImageType;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -94,11 +96,11 @@ public class AppServiceUtils {
 
     public static AppServicePlan updateAppServicePlan(final AppServicePlan appServicePlan,
                                                       final PricingTier pricingTier,
-                                                      final Log log) throws AzureExecutionException {
+                                                      Object ignore) throws AzureExecutionException {
         if (appServicePlan == null) {
             throw new AzureExecutionException(SERVICE_PLAN_NOT_FOUND);
         }
-        log.info(String.format(UPDATE_APP_SERVICE_PLAN));
+        Log.info(String.format(UPDATE_APP_SERVICE_PLAN));
         final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
         // Update pricing tier
         if (pricingTier != null && !appServicePlan.pricingTier().equals(pricingTier)) {
@@ -111,14 +113,14 @@ public class AppServiceUtils {
         return first == null ? second == null : second != null && StringUtils.equals(first.id(), second.id());
     }
 
-    public static DockerImageType getDockerImageType(final String imageName, final String serverId,
+    public static DockerImageType getDockerImageType(final String imageName, final IDockerCrendetialProvider provider,
                                                      final String registryUrl) {
         if (StringUtils.isEmpty(imageName)) {
             return DockerImageType.NONE;
         }
 
         final boolean isCustomRegistry = StringUtils.isNotEmpty(registryUrl);
-        final boolean isPrivate = StringUtils.isNotEmpty(serverId);
+        final boolean isPrivate = provider != null && StringUtils.isNotEmpty(provider.getUsername()) && StringUtils.isNotEmpty(provider.getPassword());
 
         if (isCustomRegistry) {
             return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;

@@ -7,5 +7,5 @@
 package com.microsoft.azure.maven.function.handlers;
 
 public interface FunctionCoreToolsHandler {
-    void installExtension() throws Exception;
+    void installExtension(String deploymentStagingDirectoryPath, String baseDir) throws Exception;
 }

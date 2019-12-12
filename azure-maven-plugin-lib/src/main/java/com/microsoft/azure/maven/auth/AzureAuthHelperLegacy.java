@@ -17,6 +17,7 @@ import com.microsoft.azure.credentials.AzureCliCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
+import com.microsoft.azure.maven.MavenUtils;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.io.input.BOMInputStream;
@@ -35,7 +36,7 @@ import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Scanner;
 
-import static com.microsoft.azure.maven.Utils.assureServerExist;
+import static com.microsoft.azure.maven.MavenUtils.assureServerExist;
 
 /**
  * Helper class to authenticate with Azure
@@ -177,7 +178,7 @@ public class AzureAuthHelperLegacy {
             return null;
         }
 
-        final Server server = Utils.getServer(settings, serverId);
+        final Server server = MavenUtils.getServer(settings, serverId);
         try {
             assureServerExist(server, serverId);
         } catch (AzureExecutionException ex) {
@@ -306,23 +307,23 @@ public class AzureAuthHelperLegacy {
             return null;
         }
 
-        final String clientId = Utils.getValueFromServerConfiguration(server, CLIENT_ID);
+        final String clientId = MavenUtils.getValueFromServerConfiguration(server, CLIENT_ID);
         if (StringUtils.isEmpty(clientId)) {
             getLog().debug(CLIENT_ID_NOT_CONFIG);
             return null;
         }
 
-        final String tenantId = Utils.getValueFromServerConfiguration(server, TENANT_ID);
+        final String tenantId = MavenUtils.getValueFromServerConfiguration(server, TENANT_ID);
         if (StringUtils.isEmpty(tenantId)) {
             getLog().debug(TENANT_ID_NOT_CONFIG);
             return null;
         }
 
-        final String environment = Utils.getValueFromServerConfiguration(server, ENVIRONMENT);
+        final String environment = MavenUtils.getValueFromServerConfiguration(server, ENVIRONMENT);
         final AzureEnvironment azureEnvironment = getAzureEnvironment(environment);
         getLog().debug("Azure Management Endpoint: " + azureEnvironment.managementEndpoint());
 
-        final String key = Utils.getValueFromServerConfiguration(server, KEY);
+        final String key = MavenUtils.getValueFromServerConfiguration(server, KEY);
         if (!StringUtils.isEmpty(key)) {
             getLog().debug(USE_KEY_TO_AUTH);
             return new ApplicationTokenCredentials(clientId, tenantId, key, azureEnvironment);
@@ -330,13 +331,13 @@ public class AzureAuthHelperLegacy {
             getLog().debug(KEY_NOT_CONFIG);
         }
 
-        final String certificate = Utils.getValueFromServerConfiguration(server, CERTIFICATE);
+        final String certificate = MavenUtils.getValueFromServerConfiguration(server, CERTIFICATE);
         if (StringUtils.isEmpty(certificate)) {
             getLog().debug(CERTIFICATE_FILE_NOT_CONFIG);
             return null;
         }
 
-        final String certificatePassword = Utils.getValueFromServerConfiguration(server, CERTIFICATE_PASSWORD);
+        final String certificatePassword = MavenUtils.getValueFromServerConfiguration(server, CERTIFICATE_PASSWORD);
         try {
             final byte[] cert;
             cert = Files.readAllBytes(Paths.get(certificate, new String[0]));
