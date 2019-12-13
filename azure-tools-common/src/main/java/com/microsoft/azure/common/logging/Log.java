@@ -6,10 +6,13 @@
 
 package com.microsoft.azure.common.logging;
 
+import com.google.common.base.Preconditions;
+
 public final class Log {
     private static ILogger logger = new DefaultLogger();
 
     public static void configureLogger(ILogger newLogger) {
+        Preconditions.checkNotNull(newLogger);
         logger = newLogger;
     }
 

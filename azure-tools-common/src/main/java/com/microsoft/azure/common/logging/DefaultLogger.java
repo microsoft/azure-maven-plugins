@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.common.logging;
 
+import com.nimbusds.oauth2.sdk.util.StringUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +78,7 @@ public class DefaultLogger implements ILogger {
     }
 
     private void print(PrintStream output, String content, Throwable error) {
-        if (content != null && content.length() > 0) {
+        if (StringUtils.isNotBlank(content)) {
             output.println(content);
         }
 
