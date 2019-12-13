@@ -47,32 +47,32 @@ public class DefaultLogger implements ILogger {
 
     @Override
     public void warn(String content) {
-
+        warn(content, null);
     }
 
     @Override
     public void warn(String content, Throwable error) {
-
+        print(System.err, content, error);
     }
 
     @Override
     public void warn(Throwable error) {
-
+        warn("", error);
     }
 
     @Override
     public void error(String content) {
-
+        error(content, null);
     }
 
     @Override
     public void error(String content, Throwable error) {
-
+        print(System.err, content, error);
     }
 
     @Override
     public void error(Throwable error) {
-
+        error("", error);
     }
 
     private void print(PrintStream output, String content, Throwable error) {
