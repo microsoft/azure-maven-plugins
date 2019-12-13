@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers.artifact;
 
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 
@@ -32,7 +33,7 @@ public class DockerArtifactHandler extends ArtifactHandlerBase {
 
     @Override
     public void publish(DeployTarget deployTarget) {
-        log.info(SKIP_DOCKER_DEPLOYMENT);
+        Log.info(SKIP_DOCKER_DEPLOYMENT);
         deployTarget.getApp().restart();
     }
 }

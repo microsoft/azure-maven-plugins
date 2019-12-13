@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers.artifact;
 
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
@@ -51,11 +52,11 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     private CloudBlockBlob deployArtifactToAzureStorage(DeployTarget deployTarget, File zipPackage, CloudStorageAccount storageAccount) throws Exception {
-        log.info(String.format(DEPLOY_START, deployTarget.getName()));
+        Log.info(String.format(DEPLOY_START, deployTarget.getName()));
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, zipPackage.getName());
         final String blobUri = blob.getUri().getHost() + blob.getUri().getPath();
-        log.info(String.format(DEPLOY_FINISH, blobUri));
+        Log.info(String.format(DEPLOY_FINISH, blobUri));
         return blob;
     }
 }
