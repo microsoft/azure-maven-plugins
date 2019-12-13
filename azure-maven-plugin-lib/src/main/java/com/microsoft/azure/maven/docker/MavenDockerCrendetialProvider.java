@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.maven.docker;
 
+import com.google.common.base.Preconditions;
 import com.microsoft.azure.common.docker.IDockerCredentialProvider;
 import com.microsoft.azure.maven.exceptions.ServerNotFoundException;
 
@@ -17,6 +18,7 @@ public class MavenDockerCrendetialProvider implements IDockerCredentialProvider 
 
     public MavenDockerCrendetialProvider(Settings settings, String serverId) throws ServerNotFoundException {
         if (StringUtils.isNotBlank(serverId)) {
+            Preconditions.checkNotNull(settings, "Maven 'settings' is required");
             this.server = getServer(settings, serverId);
             if (server == null) {
                 throw new ServerNotFoundException(String.format("Server not found in settings.xml. ServerId=%s", serverId));
