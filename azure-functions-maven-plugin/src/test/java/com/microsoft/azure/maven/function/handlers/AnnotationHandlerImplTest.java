@@ -37,7 +37,7 @@ import com.microsoft.azure.functions.annotation.TimerTrigger;
 import com.microsoft.azure.functions.annotation.TwilioSmsOutput;
 import com.microsoft.azure.maven.function.bindings.Binding;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
-import org.apache.maven.plugin.logging.Log;
+
 import org.junit.Test;
 import org.reflections.util.ClasspathHelper;
 
@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 public class AnnotationHandlerImplTest {
     public static final String HTTP_TRIGGER_FUNCTION = "HttpTriggerFunction";
@@ -312,8 +311,7 @@ public class AnnotationHandlerImplTest {
     }
 
     private AnnotationHandlerImpl getAnnotationHandler() {
-        final Log log = mock(Log.class);
-        return new AnnotationHandlerImpl(log);
+        return new AnnotationHandlerImpl();
     }
 
     private URL getClassUrl() {

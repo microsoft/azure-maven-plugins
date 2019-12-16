@@ -149,7 +149,7 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         if (!AppServiceUtils.isEqualAppServicePlan(appServicePlan, targetAppServicePlan)) {
             changeAppServicePlan(app, targetAppServicePlan);
         }
-        return AppServiceUtils.updateAppServicePlan(targetAppServicePlan, pricingTier, log);
+        return AppServiceUtils.updateAppServicePlan(targetAppServicePlan, pricingTier);
     }
 
     protected AppServicePlan getAppServicePlan() {

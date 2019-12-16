@@ -11,6 +11,7 @@ import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.storage.CloudStorageAccount;
+
 import org.junit.Test;
 
 import java.util.Map;
@@ -18,8 +19,8 @@ import java.util.Map;
 import static com.microsoft.azure.maven.function.Constants.INTERNAL_STORAGE_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;

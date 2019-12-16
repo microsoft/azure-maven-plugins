@@ -7,9 +7,8 @@
 package com.microsoft.azure.maven.function.handlers;
 
 import com.github.zafarkhaja.semver.Version;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
-
-import org.apache.maven.plugin.logging.Log;
 
 import java.io.File;
 
@@ -29,11 +28,9 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     public static final String GET_LOCAL_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
     public static final Version LEAST_SUPPORTED_VERSION = Version.valueOf("2.0.1-beta.26");
 
-    private Log log;
     private CommandHandler commandHandler;
 
-    public FunctionCoreToolsHandlerImpl(final Log log, final CommandHandler commandHandler) {
-        this.log = log;
+    public FunctionCoreToolsHandlerImpl(final CommandHandler commandHandler) {
         this.commandHandler = commandHandler;
     }
 
@@ -62,9 +59,9 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         }
         // Verify whether local function core tools is the latest version
         if (latestCoreVersion == null) {
-            log.warn(GET_LATEST_VERSION_FAIL);
+            Log.warn(GET_LATEST_VERSION_FAIL);
         } else if (Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
-            log.warn(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
+            Log.warn(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
         }
     }
 
@@ -78,7 +75,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
             Version.valueOf(latestCoreVersion);
             return latestCoreVersion;
         } catch (Exception e) {
-            log.warn(GET_LATEST_VERSION_FAIL);
+            Log.warn(GET_LATEST_VERSION_FAIL);
             return null;
         }
     }
@@ -93,7 +90,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
             Version.valueOf(localVersion);
             return localVersion;
         } catch (Exception e) {
-            log.warn(GET_LOCAL_VERSION_FAIL);
+            Log.warn(GET_LOCAL_VERSION_FAIL);
             return null;
         }
     }

@@ -38,7 +38,7 @@ public class FTPUploaderTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        ftpUploader = new FTPUploader(log);
+        ftpUploader = new FTPUploader();
     }
 
     @Test

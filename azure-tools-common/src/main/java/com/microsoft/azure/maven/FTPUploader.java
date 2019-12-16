@@ -7,10 +7,10 @@
 package com.microsoft.azure.maven;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.maven.plugin.logging.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,17 +33,6 @@ public class FTPUploader {
     public static final String UPLOAD_FILE = "%s[FILE] %s --> %s";
     public static final String UPLOAD_FILE_REPLY = "%s.......Reply Message : %s";
 
-    private Log log;
-
-    /**
-     * Constructor
-     *
-     * @param log
-     */
-    public FTPUploader(final Log log) {
-        this.log = log;
-    }
-
     /**
      * Upload directory to specified FTP server with retries.
      *
@@ -61,12 +50,12 @@ public class FTPUploader {
         int retryCount = 0;
         while (retryCount < maxRetryCount) {
             retryCount++;
-            log.info(UPLOAD_START + ftpServer);
+            Log.info(UPLOAD_START + ftpServer);
             if (uploadDirectory(ftpServer, username, password, sourceDirectory, targetDirectory)) {
-                log.info(UPLOAD_SUCCESS + ftpServer);
+                Log.info(UPLOAD_SUCCESS + ftpServer);
                 return;
             } else {
-                log.warn(String.format(UPLOAD_FAILURE, retryCount, maxRetryCount));
+                Log.warn(String.format(UPLOAD_FAILURE, retryCount, maxRetryCount));
             }
         }
         // Reaching here means all retries failed.
@@ -85,19 +74,19 @@ public class FTPUploader {
      */
     protected boolean uploadDirectory(final String ftpServer, final String username, final String password,
                                       final String sourceDirectoryPath, final String targetDirectoryPath) {
-        log.debug("FTP username: " + username);
+        Log.debug("FTP username: " + username);
         try {
             final FTPClient ftpClient = getFTPClient(ftpServer, username, password);
 
-            log.info(String.format(UPLOAD_DIR_START, sourceDirectoryPath, targetDirectoryPath));
+            Log.info(String.format(UPLOAD_DIR_START, sourceDirectoryPath, targetDirectoryPath));
             uploadDirectory(ftpClient, sourceDirectoryPath, targetDirectoryPath, "");
-            log.info(String.format(UPLOAD_DIR_FINISH, sourceDirectoryPath, targetDirectoryPath));
+            Log.info(String.format(UPLOAD_DIR_FINISH, sourceDirectoryPath, targetDirectoryPath));
 
             ftpClient.disconnect();
             return true;
         } catch (Exception e) {
-            log.debug(e);
-            log.error(String.format(UPLOAD_DIR_FAILURE, sourceDirectoryPath, targetDirectoryPath));
+            Log.debug(e.getMessage());
+            Log.error(String.format(UPLOAD_DIR_FAILURE, sourceDirectoryPath, targetDirectoryPath));
         }
 
         return false;
@@ -113,11 +102,11 @@ public class FTPUploader {
      */
     protected void uploadDirectory(final FTPClient ftpClient, final String sourceDirectoryPath,
                                    final String targetDirectoryPath, final String logPrefix) throws IOException {
-        log.info(String.format(UPLOAD_DIR, logPrefix, sourceDirectoryPath, targetDirectoryPath));
+        Log.info(String.format(UPLOAD_DIR, logPrefix, sourceDirectoryPath, targetDirectoryPath));
         final File sourceDirectory = new File(sourceDirectoryPath);
         final File[] files = sourceDirectory.listFiles();
         if (files == null || files.length == 0) {
-            log.info(String.format("%sEmpty directory at %s", logPrefix, sourceDirectoryPath));
+            Log.info(String.format("%sEmpty directory at %s", logPrefix, sourceDirectoryPath));
             return;
         }
 
@@ -148,7 +137,7 @@ public class FTPUploader {
      */
     protected void uploadFile(final FTPClient ftpClient, final String sourceFilePath, final String targetFilePath,
                               final String logPrefix) throws IOException {
-        log.info(String.format(UPLOAD_FILE, logPrefix, sourceFilePath, targetFilePath));
+        Log.info(String.format(UPLOAD_FILE, logPrefix, sourceFilePath, targetFilePath));
         final File sourceFile = new File(sourceFilePath);
         try (final InputStream is = new FileInputStream(sourceFile)) {
             ftpClient.changeWorkingDirectory(targetFilePath);
@@ -157,10 +146,10 @@ public class FTPUploader {
             final int replyCode = ftpClient.getReplyCode();
             final String replyMessage = ftpClient.getReplyString();
             if (isCommandFailed(replyCode)) {
-                log.error(String.format(UPLOAD_FILE_REPLY, logPrefix, replyMessage));
+                Log.error(String.format(UPLOAD_FILE_REPLY, logPrefix, replyMessage));
                 throw new IOException("Failed to upload file: " + sourceFilePath);
             } else {
-                log.info(String.format(UPLOAD_FILE_REPLY, logPrefix, replyMessage));
+                Log.info(String.format(UPLOAD_FILE_REPLY, logPrefix, replyMessage));
             }
         }
     }

@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers.artifact;
 
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
 import com.microsoft.azure.maven.function.Constants;
@@ -70,21 +71,15 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     protected void logInfo(final String message) {
-        if (log != null) {
-            log.info(message);
-        }
+        Log.info(message);
     }
 
     protected void logDebug(final String message) {
-        if (log != null) {
-            log.debug(message);
-        }
+        Log.debug(message);
     }
 
     protected void logError(final String message) {
-        if (log != null) {
-            log.error(message);
-        }
+        Log.error(message);
     }
 
     protected File createZipPackage() throws Exception {

@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
@@ -14,7 +15,6 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.appservice.DockerImageType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -93,12 +93,11 @@ public class AppServiceUtils {
     }
 
     public static AppServicePlan updateAppServicePlan(final AppServicePlan appServicePlan,
-                                                      final PricingTier pricingTier,
-                                                      final Log log) throws AzureExecutionException {
+                                                      final PricingTier pricingTier) throws AzureExecutionException {
         if (appServicePlan == null) {
             throw new AzureExecutionException(SERVICE_PLAN_NOT_FOUND);
         }
-        log.info(String.format(UPDATE_APP_SERVICE_PLAN));
+        Log.info(UPDATE_APP_SERVICE_PLAN);
         final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
         // Update pricing tier
         if (pricingTier != null && !appServicePlan.pricingTier().equals(pricingTier)) {

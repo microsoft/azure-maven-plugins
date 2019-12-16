@@ -32,7 +32,7 @@ public class FunctionCoreToolsHandlerImplTest {
         final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
-                new FunctionCoreToolsHandlerImpl(mojo.getLog(), commandHandler);
+                new FunctionCoreToolsHandlerImpl(commandHandler);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
 
         doReturn("3.0.0").when(functionCoreToolsHandlerSpy).getLocalFunctionCoreToolsVersion();
@@ -45,10 +45,9 @@ public class FunctionCoreToolsHandlerImplTest {
 
     @Test
     public void getLocalFunctionCoreToolsVersion() throws Exception {
-        final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
-                new FunctionCoreToolsHandlerImpl(mojo.getLog(), commandHandler);
+                new FunctionCoreToolsHandlerImpl(commandHandler);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
         doReturn("2.0.1-beta.26")
                 .when(commandHandler).runCommandAndGetOutput(anyString(), anyBoolean(), any());
@@ -63,7 +62,7 @@ public class FunctionCoreToolsHandlerImplTest {
         doReturn(log).when(mojo).getLog();
         doNothing().when(log).warn(anyString());
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
-                new FunctionCoreToolsHandlerImpl(mojo.getLog(), commandHandler);
+                new FunctionCoreToolsHandlerImpl(commandHandler);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
         doReturn("unexpected output")
                 .when(commandHandler).runCommandAndGetOutput(anyString(), anyBoolean(), any());
@@ -75,7 +74,7 @@ public class FunctionCoreToolsHandlerImplTest {
         final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
-                new FunctionCoreToolsHandlerImpl(mojo.getLog(), commandHandler);
+                new FunctionCoreToolsHandlerImpl(commandHandler);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
 
         doReturn("2.0.1-beta.26").when(functionCoreToolsHandlerSpy).getLocalFunctionCoreToolsVersion();
@@ -85,10 +84,9 @@ public class FunctionCoreToolsHandlerImplTest {
 
     @Test(expected = Exception.class)
     public void isLocalVersionSupportAutoInstallWhenLocalVersionTooLow() throws Exception {
-        final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         final CommandHandler commandHandler = mock(CommandHandler.class);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
-                new FunctionCoreToolsHandlerImpl(mojo.getLog(), commandHandler);
+                new FunctionCoreToolsHandlerImpl(commandHandler);
         final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
 
         doReturn("2.0.0").when(functionCoreToolsHandlerSpy).getLocalFunctionCoreToolsVersion();
@@ -101,7 +99,7 @@ public class FunctionCoreToolsHandlerImplTest {
         //    final AbstractFunctionMojo mojo = mock(AbstractFunctionMojo.class);
         //    final CommandHandler commandHandler = mock(CommandHandler.class);
         //    final FunctionCoreToolsHandlerImpl functionCoreToolsHandler =
-        //            new FunctionCoreToolsHandlerImpl(mojo.getLog(), commandHandler);
+        //            new FunctionCoreToolsHandlerImpl(commandHandler);
         //    final FunctionCoreToolsHandlerImpl functionCoreToolsHandlerSpy = spy(functionCoreToolsHandler);
         //
         //    // Equal to newest version
