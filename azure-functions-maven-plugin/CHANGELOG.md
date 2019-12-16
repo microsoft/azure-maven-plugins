@@ -1,6 +1,8 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.4.0](#140)
+  - [1.3.5](#135)
   - [1.3.4](#134)
   - [1.3.3](#133)
   - [1.3.2](#132)
@@ -9,6 +11,17 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
+
+## 1.4.0
+- Support functions with Linux runtime.[PR#906](https://github.com/microsoft/azure-maven-plugins/pull/906)
+- Support functions in docker runtime.[PR#917](https://github.com/microsoft/azure-maven-plugins/pull/917)
+- Support new deployment methods: RUN_FROM_ZIP,RUN_FROM_BLOB.[PR#896](https://github.com/microsoft/azure-maven-plugins/pull/896),[PR#903](https://github.com/microsoft/azure-maven-plugins/pull/903)
+- Add default value for `FUNCTIONS_EXTENSION_VERSION`.[PR#898](https://github.com/microsoft/azure-maven-plugins/pull/898)
+
+## 1.3.5
+- Support OAuth and Device Login support to auth with Azure.[PR#843](https://github.com/microsoft/azure-maven-plugins/pull/843)
+- Update to `azure-function-java-library` 1.3.1. [#882](https://github.com/microsoft/azure-maven-plugins/issues/822)
+- Always write `authLevel` of HTTPTrigger to `function.json`, for HttpTrigger-Java connector issues.[PR#892](https://github.com/microsoft/azure-maven-plugins/pull/892)
 
 ## 1.3.4
 - Skip `func extensions install` when using extension bundles [#609](https://github.com/microsoft/azure-maven-plugins/issues/609)
