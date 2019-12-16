@@ -103,6 +103,7 @@ Property | Required | Description
 `<resourceGroup>` | true | Specifies the Azure Resource Group for your Azure Functions.
 `<appName>` | true | Specifies the name of your Azure Functions.
 `<region>`* | false | Specifies the region where your Azure Functions will be hosted; default value is **westus**. All valid regions are at [Supported Regions](#supported-regions) section.
+`<runtime>` | false |The runtime environment configuration, default runtime is **windows**. Details could be found in [Runtime](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Functions:-Configuration-Details#runtime) section.
 `<pricingTier>`* | false | Specifies the pricing tier for your Azure Functions; default value is **Consumption**. All valid pricing tiers are at [Supported Pricing Tiers](#supported-pricing-tiers) section.
 `<appServicePlanResourceGroup>` | false | Specifies the resource group of the existing App Service Plan when you do not want to create a new one. If this setting is not specified, the plugin will use the value defined in `<resourceGroup>`.
 `<appServicePlanName>` | false | Specifies the name of the existing App Service Plan when you do not want to create a new one.
