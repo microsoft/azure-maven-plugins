@@ -36,21 +36,9 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
         super(builder);
     }
 
-    /**
-     * Web App and Deployment Slot need the handler to prepare resources to staging folder.
-     * Function App does not.
-     */
-    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
-        return !(target.getApp() instanceof FunctionApp);
-    }
-
+   
     @Override
     public void publish(DeployTarget target) throws AzureExecutionException, IOException {
-        if (isResourcesPreparationRequired(target)) {
-            prepareResources();
-        }
-        assureStagingDirectoryNotEmpty();
-
         final File zipFile = getZipFile();
         Log.info(String.format(DEPLOY_START, target.getName()));
 

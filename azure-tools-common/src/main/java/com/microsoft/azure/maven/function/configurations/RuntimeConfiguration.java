@@ -8,13 +8,12 @@ package com.microsoft.azure.maven.function.configurations;
 
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 
-public class RuntimeConfiguration {
+public abstract class RuntimeConfiguration {
 
     public static final OperatingSystemEnum DEFAULT_OS = OperatingSystemEnum.Windows;
 
     protected String os;
     protected String image;
-    protected String serverId;
     protected String registryUrl;
 
     public String getOs() {
@@ -31,14 +30,6 @@ public class RuntimeConfiguration {
 
     public void setImage(String image) {
         this.image = image;
-    }
-
-    public String getServerId() {
-        return serverId;
-    }
-
-    public void setServerId(String serverId) {
-        this.serverId = serverId;
     }
 
     public String getRegistryUrl() {

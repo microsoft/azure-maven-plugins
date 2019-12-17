@@ -43,11 +43,6 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
 
     @Override
     public void publish(final DeployTarget target) throws IOException, AzureExecutionException {
-        if (isResourcesPreparationRequired(target)) {
-            prepareResources();
-        }
-
-        assureStagingDirectoryNotEmpty();
         Log.info(String.format(DEPLOY_START, target.getName()));
 
         uploadDirectoryToFTP(target);

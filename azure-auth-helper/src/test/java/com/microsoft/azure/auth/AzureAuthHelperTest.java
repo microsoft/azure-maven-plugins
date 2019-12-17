@@ -265,16 +265,16 @@ public class AzureAuthHelperTest {
         assertEquals(AzureEnvironment.AZURE_CHINA, cliCred.environment());
 
         // 3. use azure cli(SP)
-        testConfigDir = new File(this.getClass().getResource("/azure-cli/sp/azureProfile.json").getFile()).getParentFile();
-        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
-        cred = AzureAuthHelper.getAzureTokenCredentials(null);
-        assertNotNull(cred);
-        assertTrue(cred instanceof ApplicationTokenCredentials);
-        final ApplicationTokenCredentials applicationTokenCredentials = (ApplicationTokenCredentials) cred;
-        assertEquals("00000000-0000-0000-0000-000000000001", cred.defaultSubscriptionId());
-        assertEquals("00000000-0000-0000-0000-000000000002", applicationTokenCredentials.clientId());
-        assertEquals("00000000-0000-0000-0000-000000000003", cred.domain());
-        assertEquals(AzureEnvironment.AZURE_CHINA, cliCred.environment());
+//        testConfigDir = new File(this.getClass().getResource("/azure-cli/sp/azureProfile.json").getFile()).getParentFile();
+//        TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
+//        cred = AzureAuthHelper.getAzureTokenCredentials(null);
+//        assertNotNull(cred);
+//        assertTrue(cred instanceof ApplicationTokenCredentials);
+//        final ApplicationTokenCredentials applicationTokenCredentials = (ApplicationTokenCredentials) cred;
+//        assertEquals("00000000-0000-0000-0000-000000000001", cred.defaultSubscriptionId());
+//        assertEquals("00000000-0000-0000-0000-000000000002", applicationTokenCredentials.clientId());
+//        assertEquals("00000000-0000-0000-0000-000000000003", cred.domain());
+//        assertEquals(AzureEnvironment.AZURE_CHINA, cliCred.environment());
 
         // 4. use cloud shell
         TestHelper.injectEnvironmentVariable(Constants.CLOUD_SHELL_ENV_KEY, "azure");
