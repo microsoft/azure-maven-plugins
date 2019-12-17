@@ -6,11 +6,11 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.common.project.JavaProject;
-import com.microsoft.azure.maven.handlers.ArtifactHandler;
-
 import java.io.File;
+
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.project.IProject;
+import com.microsoft.azure.maven.handlers.ArtifactHandler;
 
 
 public abstract class ArtifactHandlerBase implements ArtifactHandler {
@@ -21,12 +21,12 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
             "Please make sure it is configured in pom.xml.";
     protected static final String STAGING_FOLDER_EMPTY = "Staging directory: '%s' is empty, please check " +
             "your <resources> configuration.(Have you executed mvn package before this command?)";
-    protected JavaProject project;
+    protected IProject project;
 
     protected String stagingDirectoryPath;
 
     public abstract static class Builder<T extends Builder<T>> {
-        protected JavaProject project;
+        protected IProject project;
 
         protected String stagingDirectoryPath;
 
@@ -34,7 +34,7 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
 
         public abstract ArtifactHandlerBase build();
 
-        public T project(final JavaProject value) {
+        public T project(final IProject value) {
             this.project = value;
             return self();
         }

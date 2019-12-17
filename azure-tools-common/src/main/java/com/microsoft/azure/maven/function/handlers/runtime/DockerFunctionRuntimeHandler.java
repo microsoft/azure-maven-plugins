@@ -97,7 +97,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
                 throw new AzureExecutionException("Cannot get username for private image.");
             }
             if (StringUtils.isEmpty(dockerCredentialProvider.getPassword())) {
-                throw new AzureExecutionException("Cannot get username for private image.");
+                throw new AzureExecutionException("Cannot get password for private image.");
             }
         }
     }
