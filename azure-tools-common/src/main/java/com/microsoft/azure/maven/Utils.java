@@ -17,11 +17,9 @@ import java.util.Locale;
  * Utility class
  */
 public final class Utils {
-
-
     public static OperatingSystemEnum parseOperationSystem(final String os) throws AzureExecutionException {
         if (StringUtils.isEmpty(os)) {
-            throw new AzureExecutionException("The value of <os> is empty, please specify it in pom.xml.");
+            throw new AzureExecutionException("The value of 'os' is empty, please specify it in 'runtime' configuration.");
         }
         switch (os.toLowerCase(Locale.ENGLISH)) {
             case "windows":

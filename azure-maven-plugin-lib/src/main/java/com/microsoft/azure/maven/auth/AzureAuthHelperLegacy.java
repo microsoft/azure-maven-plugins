@@ -17,13 +17,13 @@ import com.microsoft.azure.credentials.AzureCliCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
-import com.microsoft.azure.maven.Utils;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,7 +35,6 @@ import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Scanner;
 
-import static com.microsoft.azure.maven.Utils.assureServerExist;
 
 /**
  * Helper class to authenticate with Azure
@@ -177,7 +176,7 @@ public class AzureAuthHelperLegacy {
             return null;
         }
 
-        final Server server = Utils.getServer(settings, serverId);
+        final Server server = getServer(settings, serverId);
         try {
             assureServerExist(server, serverId);
         } catch (AzureExecutionException ex) {
@@ -306,23 +305,23 @@ public class AzureAuthHelperLegacy {
             return null;
         }
 
-        final String clientId = Utils.getValueFromServerConfiguration(server, CLIENT_ID);
+        final String clientId = getValueFromServerConfiguration(server, CLIENT_ID);
         if (StringUtils.isEmpty(clientId)) {
             getLog().debug(CLIENT_ID_NOT_CONFIG);
             return null;
         }
 
-        final String tenantId = Utils.getValueFromServerConfiguration(server, TENANT_ID);
+        final String tenantId = getValueFromServerConfiguration(server, TENANT_ID);
         if (StringUtils.isEmpty(tenantId)) {
             getLog().debug(TENANT_ID_NOT_CONFIG);
             return null;
         }
 
-        final String environment = Utils.getValueFromServerConfiguration(server, ENVIRONMENT);
+        final String environment = getValueFromServerConfiguration(server, ENVIRONMENT);
         final AzureEnvironment azureEnvironment = getAzureEnvironment(environment);
         getLog().debug("Azure Management Endpoint: " + azureEnvironment.managementEndpoint());
 
-        final String key = Utils.getValueFromServerConfiguration(server, KEY);
+        final String key = getValueFromServerConfiguration(server, KEY);
         if (!StringUtils.isEmpty(key)) {
             getLog().debug(USE_KEY_TO_AUTH);
             return new ApplicationTokenCredentials(clientId, tenantId, key, azureEnvironment);
@@ -330,13 +329,13 @@ public class AzureAuthHelperLegacy {
             getLog().debug(KEY_NOT_CONFIG);
         }
 
-        final String certificate = Utils.getValueFromServerConfiguration(server, CERTIFICATE);
+        final String certificate = getValueFromServerConfiguration(server, CERTIFICATE);
         if (StringUtils.isEmpty(certificate)) {
             getLog().debug(CERTIFICATE_FILE_NOT_CONFIG);
             return null;
         }
 
-        final String certificatePassword = Utils.getValueFromServerConfiguration(server, CERTIFICATE_PASSWORD);
+        final String certificatePassword = getValueFromServerConfiguration(server, CERTIFICATE_PASSWORD);
         try {
             final byte[] cert;
             cert = Files.readAllBytes(Paths.get(certificate, new String[0]));
@@ -384,5 +383,59 @@ public class AzureAuthHelperLegacy {
             final String jsonProfile = scanner.useDelimiter("\\Z").next();
             return (new Gson()).fromJson(jsonProfile, JsonArray.class);
         }
+    }
+
+
+    /**
+     * Get server credential from Maven settings by server Id.
+     *
+     * @param settings Maven settings object.
+     * @param serverId Server Id.
+     * @return Server object if it exists in settings. Otherwise return null.
+     */
+    private  static Server getServer(final Settings settings, final String serverId) {
+        if (settings == null || StringUtils.isEmpty(serverId)) {
+            return null;
+        }
+        return settings.getServer(serverId);
+    }
+
+    /**
+     * Assure the server with specified id does exist in settings.xml.
+     * It could be the server used for azure authentication.
+     * Or, the server used for docker hub authentication of runtime configuration.
+     * @param server
+     * @param serverId
+     * @throws AzureExecutionException
+     */
+    private static void assureServerExist(final Server server, final String serverId) throws AzureExecutionException {
+        if (server == null) {
+            throw new AzureExecutionException(String.format("Server not found in settings.xml. ServerId=%s", serverId));
+        }
+    }
+
+    /**
+     * Get string value from server configuration section in settings.xml.
+     *
+     * @param server Server object.
+     * @param key    Key string.
+     * @return String value if key exists; otherwise, return null.
+     */
+    private  static String getValueFromServerConfiguration(final Server server, final String key) {
+        if (server == null) {
+            return null;
+        }
+
+        final Xpp3Dom configuration = (Xpp3Dom) server.getConfiguration();
+        if (configuration == null) {
+            return null;
+        }
+
+        final Xpp3Dom node = configuration.getChild(key);
+        if (node == null) {
+            return null;
+        }
+
+        return node.getValue();
     }
 }

@@ -9,7 +9,6 @@ package com.microsoft.azure.maven;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,9 +29,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FTPUploaderTest {
-    @Mock
-    Log log;
-
     private FTPUploader ftpUploader = null;
 
     @Before
