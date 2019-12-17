@@ -10,8 +10,6 @@ import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 public interface IFunctionContext {
 	String getDeploymentStagingDirectoryPath();
 
-	String getProjectDir();
-
 	String getSubscription();
 
 	String getAppName();

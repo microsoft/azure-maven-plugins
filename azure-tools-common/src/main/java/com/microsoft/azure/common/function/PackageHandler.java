@@ -79,7 +79,7 @@ public class PackageHandler {
 	private IFunctionContext ctx;
 
 	public PackageHandler(IFunctionContext ctx) {
-
+		this.ctx = ctx;
 	}
 
 	public void execute() throws AzureExecutionException, IOException {
