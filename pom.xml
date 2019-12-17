@@ -46,6 +46,7 @@
     <modules>
         <module>build-tools</module>
         <module>azure-maven-plugins-pom</module>
+        <module>azure-auth-helper</module>
         <module>azure-tools-common</module>
     </modules>
 </project>
