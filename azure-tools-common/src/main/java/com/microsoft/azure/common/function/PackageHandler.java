@@ -69,6 +69,7 @@ public class PackageHandler {
 
 	private static final String FUNCTION_JSON = "function.json";
 	private static final String HOST_JSON = "host.json";
+	public static final String LOCAL_SETTINGS_JSON = "local.settings.json";
 	private static final String EXTENSION_BUNDLE = "extensionBundle";
 
 	private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = { BindingEnum.HttpOutput,
@@ -76,13 +77,50 @@ public class PackageHandler {
 	private static final String EXTENSION_BUNDLE_ID = "Microsoft.Azure.Functions.ExtensionBundle";
 	private static final String SKIP_INSTALL_EXTENSIONS_BUNDLE = "Extension bundle specified, skip install extension";
 
+	public static final String STAGE_DIR_FOUND = "Azure Function App's staging directory found at: ";
+
 	private IFunctionContext ctx;
 
 	public PackageHandler(IFunctionContext ctx) {
 		this.ctx = ctx;
 	}
 
+
+	private boolean checkStageDirectoryDirty() throws AzureExecutionException {
+		final File stagingDirectory = new File(ctx.getDeploymentStagingDirectoryPath());
+		File jarFileInStaging = new File(stagingDirectory, this.ctx.getProject().getJarArtifact().getFileName().toString());
+		File jarFileInBuild = this.ctx.getProject().getJarArtifact().toFile();
+		if (!jarFileInBuild.exists()) {
+			throw new AzureExecutionException("Artifact file '" + jarFileInBuild + "' cannot be found, please run 'gradle jar' to build the project.");
+		}
+
+		if (jarFileInBuild.length() == 0) {
+			throw new AzureExecutionException("Artifact file '" + jarFileInBuild + "' is empty, please run 'gradle jar' to build the project.");
+		}
+
+		if (!stagingDirectory.exists()) {
+			Log.info("Stage directory not found, build it now...");
+			return true;
+		}
+		if (stagingDirectory.exists() && stagingDirectory.isFile()) {
+			throw new AzureExecutionException("File name conflict: please delete file '" + stagingDirectory.getAbsolutePath() + "', and try again.");
+		}
+		if (jarFileInStaging.exists() && jarFileInStaging.length() == jarFileInBuild.length()) {
+			Log.info(STAGE_DIR_FOUND + ctx.getDeploymentStagingDirectoryPath());
+			return false;
+		}
+		if (jarFileInStaging.exists()) {
+			Log.info("Stage directory is dirty, build it now...");
+		} else {
+			Log.info("Artifact file cannot be found in staging directory, build it now...");
+		}
+		return true;
+	}
+
 	public void execute() throws AzureExecutionException, IOException {
+		if (!checkStageDirectoryDirty()) {
+			return;
+		}
 		final AnnotationHandler annotationHandler = getAnnotationHandler();
 		final Set<Method> methods = findAnnotatedMethods(annotationHandler);
 
@@ -97,7 +135,7 @@ public class PackageHandler {
 
 		final ObjectWriter objectWriter = getObjectWriter();
 
-		writeEmptyHostJsonFile(objectWriter);
+		copyHostJsonFile(objectWriter);
 
 		writeFunctionJsonFiles(objectWriter, configMap);
 
@@ -228,12 +266,18 @@ public class PackageHandler {
 		Log.info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
 	}
 
-	private void writeEmptyHostJsonFile(final ObjectWriter objectWriter) throws IOException {
+	protected void copyHostJsonFile(final ObjectWriter objectWriter) throws IOException {
 		Log.info("");
 		Log.info(SAVE_HOST_JSON);
-		final File hostJsonFile = Paths.get(ctx.getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
-		writeObjectToFile(objectWriter, new Object(), hostJsonFile);
+		final File hostJsonFile = Paths.get(this.ctx.getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
+		FileUtils.copyFile(new File(ctx.getProject().getBaseDirectory().toFile(), HOST_JSON), hostJsonFile);
 		Log.info(SAVE_SUCCESS + hostJsonFile.getAbsolutePath());
+
+		final File localSettingJsonFile = Paths.get(this.ctx.getDeploymentStagingDirectoryPath(), LOCAL_SETTINGS_JSON)
+				.toFile();
+		FileUtils.copyFile(new File(ctx.getProject().getBaseDirectory().toFile(), LOCAL_SETTINGS_JSON), localSettingJsonFile);
+
+		Log.info(SAVE_SUCCESS + localSettingJsonFile.getAbsolutePath());
 	}
 
 	private void writeObjectToFile(final ObjectWriter objectWriter, final Object object, final File targetFile)
@@ -258,12 +302,12 @@ public class PackageHandler {
 		Log.info("");
 		Log.info(COPY_JARS + stagingDirectory);
 
-		FileUtils.copyFileToDirectory(ctx.getProject().getJarArtifact().toFile(), new File(ctx.getDeploymentStagingDirectoryPath()));
-
 		for (Path jarFilePath : ctx.getProject().getProjectDepencencies()) {
 			FileUtils.copyFileToDirectory(jarFilePath.toFile(),
 					new File(ctx.getDeploymentStagingDirectoryPath(), "lib"));
 		}
+
+		FileUtils.copyFileToDirectory(ctx.getProject().getJarArtifact().toFile(), new File(ctx.getDeploymentStagingDirectoryPath()));
 		Log.info(COPY_SUCCESS);
 	}
 

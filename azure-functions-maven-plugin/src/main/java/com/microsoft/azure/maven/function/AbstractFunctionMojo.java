@@ -6,23 +6,22 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.function.configurations.ElasticPremiumPricingTier;
-import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
-import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
-import com.microsoft.azure.maven.function.utils.FunctionUtils;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
+import java.io.File;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.util.Map;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.maven.AbstractAppServiceMojo;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.configuration.MavenRuntimeConfiguration;
+import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
+import com.microsoft.azure.maven.function.utils.FunctionUtils;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
@@ -80,7 +79,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     protected String region;
 
     @Parameter(property = "functions.runtime")
-    protected RuntimeConfiguration runtime;
+    protected MavenRuntimeConfiguration runtime;
 
     //endregion
 
@@ -124,13 +123,8 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     //region Getter
 
-    public PricingTier getPricingTier() throws AzureExecutionException {
-        if (StringUtils.isEmpty(pricingTier)) {
-            return null;
-        }
-        final ElasticPremiumPricingTier elasticPremiumPricingTier = ElasticPremiumPricingTier.fromString(pricingTier);
-        return elasticPremiumPricingTier != null ? elasticPremiumPricingTier.toPricingTier()
-                : AppServiceUtils.getPricingTierFromString(pricingTier);
+    public String getPricingTier() {
+        return pricingTier;
     }
 
     public String getRegion() {
@@ -159,7 +153,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return null;
     }
 
-    public RuntimeConfiguration getRuntime() {
+    public MavenRuntimeConfiguration getRuntime() {
         return runtime;
     }
 

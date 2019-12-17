@@ -37,7 +37,6 @@ public class MavenDockerCrendetialProvider implements IDockerCredentialProvider 
     }
 
     private static Server getServer(final Settings settings, final String serverId) {
-
         return settings.getServer(serverId);
     }
 }

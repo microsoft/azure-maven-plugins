@@ -6,16 +6,22 @@
 
 package com.microsoft.azure.maven;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.maven.appservice.DeploymentType;
-import org.apache.maven.model.Resource;
-import org.apache.maven.plugins.annotations.Parameter;
-
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import org.apache.maven.model.Resource;
+import org.apache.maven.plugins.annotations.Parameter;
+
+import com.microsoft.azure.auth.configuration.AuthConfiguration;
+import com.microsoft.azure.common.docker.IDockerCredentialProvider;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.IFunctionContext;
+import com.microsoft.azure.common.project.IProject;
+import com.microsoft.azure.maven.appservice.DeploymentType;
+import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 
 /**
  * Base abstract class for all Azure App Service Mojos.
@@ -111,8 +117,8 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         return appSettings;
     }
 
-    public DeploymentType getDeploymentType() throws AzureExecutionException {
-        return DeploymentType.fromString(deploymentType);
+    public String getDeploymentType() {
+        return deploymentType;
     }
 
     public List<Resource> getResources() {
