@@ -6,19 +6,6 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
-import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.functions.annotation.FunctionName;
-import com.microsoft.azure.functions.annotation.StorageAccount;
-import com.microsoft.azure.maven.function.bindings.Binding;
-import com.microsoft.azure.maven.function.bindings.BindingEnum;
-import com.microsoft.azure.maven.function.bindings.BindingFactory;
-import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
-
-import org.apache.commons.lang3.StringUtils;
-import org.reflections.Reflections;
-import org.reflections.scanners.MethodAnnotationsScanner;
-import org.reflections.util.ConfigurationBuilder;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -33,6 +20,20 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import org.apache.commons.lang3.StringUtils;
+import org.reflections.Reflections;
+import org.reflections.scanners.MethodAnnotationsScanner;
+import org.reflections.util.ConfigurationBuilder;
+
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.functions.annotation.FunctionName;
+import com.microsoft.azure.functions.annotation.StorageAccount;
+import com.microsoft.azure.maven.function.bindings.Binding;
+import com.microsoft.azure.maven.function.bindings.BindingEnum;
+import com.microsoft.azure.maven.function.bindings.BindingFactory;
+import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 
 public class AnnotationHandlerImpl implements AnnotationHandler {
 
@@ -52,7 +53,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     }
 
     @Override
-    public Map<String, FunctionConfiguration> generateConfigurations(final Set<Method> methods) throws Exception {
+    public Map<String, FunctionConfiguration> generateConfigurations(final Set<Method> methods) throws AzureExecutionException {
         final Map<String, FunctionConfiguration> configMap = new HashMap<>();
         for (final Method method : methods) {
             final FunctionName functionAnnotation = method.getAnnotation(FunctionName.class);
@@ -64,12 +65,12 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         return configMap;
     }
 
-    protected void validateFunctionName(final Set<String> nameSet, final String functionName) throws Exception {
+    protected void validateFunctionName(final Set<String> nameSet, final String functionName) throws AzureExecutionException {
         if (StringUtils.isEmpty(functionName)) {
-            throw new Exception("Azure Functions name cannot be empty.");
+            throw new AzureExecutionException("Azure Functions name cannot be empty.");
         }
         if (nameSet.stream().anyMatch(n -> StringUtils.equalsIgnoreCase(n, functionName))) {
-            throw new Exception("Found duplicate Azure Function: " + functionName);
+            throw new AzureExecutionException("Found duplicate Azure Function: " + functionName);
         }
     }
 

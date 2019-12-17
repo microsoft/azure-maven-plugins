@@ -6,6 +6,15 @@
 
 package com.microsoft.azure.maven.utils;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.microsoft.azure.common.docker.IDockerCredentialProvider;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
@@ -14,13 +23,6 @@ import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.appservice.DockerImageType;
-import org.apache.commons.lang3.StringUtils;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 public class AppServiceUtils {
 
@@ -110,14 +112,14 @@ public class AppServiceUtils {
         return first == null ? second == null : second != null && StringUtils.equals(first.id(), second.id());
     }
 
-    public static DockerImageType getDockerImageType(final String imageName, final String serverId,
+    public static DockerImageType getDockerImageType(final String imageName, final IDockerCredentialProvider provider,
                                                      final String registryUrl) {
         if (StringUtils.isEmpty(imageName)) {
             return DockerImageType.NONE;
         }
 
         final boolean isCustomRegistry = StringUtils.isNotEmpty(registryUrl);
-        final boolean isPrivate = StringUtils.isNotEmpty(serverId);
+        final boolean isPrivate = provider != null;
 
         if (isCustomRegistry) {
             return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;

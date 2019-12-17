@@ -6,46 +6,25 @@
 
 package com.microsoft.azure.common.logging;
 
-import com.google.common.base.Preconditions;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class Log {
-    private static ILogger logger = new DefaultLogger();
-
-    public static void configureLogger(ILogger newLogger) {
-        Preconditions.checkNotNull(newLogger);
-        logger = newLogger;
-    }
-
-    public static void error(String message, Exception ex) {
-        logger.error(message, ex);
-    }
+	private static final Logger logger = Logger.getLogger(LogUtils.LOGGER_NAME);
 
     public static void error(String message) {
-        logger.error(message);
+    	logger.log(Level.SEVERE, message);
     }
 
     public static void info(String message) {
         logger.info(message);
     }
 
-    public static void info(String message, Exception ex) {
-        logger.info(message, ex);
-    }
-
     public static void debug(String message) {
-        logger.debug(message);
-    }
-
-    public static void debug(String message, Exception ex) {
-        logger.debug(message, ex);
+        logger.fine(message);
     }
 
     public static void warn(String message) {
-        logger.warn(message);
+        logger.warning(message);
     }
-
-    public static void warn(String message, Exception ex) {
-        logger.warn(message, ex);
-    }
-
 }

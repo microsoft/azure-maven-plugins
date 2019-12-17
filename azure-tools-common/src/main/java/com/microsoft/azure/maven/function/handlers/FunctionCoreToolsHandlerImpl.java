@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.function.handlers;
 
 import com.github.zafarkhaja.semver.Version;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
 
@@ -35,27 +36,31 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     }
 
     @Override
-    public void installExtension(File stagingDirectory, File basedir) throws Exception {
+    public void installExtension(File stagingDirectory, File basedir) throws AzureExecutionException {
         assureRequirementAddressed();
         installFunctionExtension(stagingDirectory, basedir);
     }
 
-    protected void installFunctionExtension(File stagingDirector, File basedir) throws Exception {
-        commandHandler.runCommandWithReturnCodeCheck(
-                String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, basedir.getAbsolutePath()),
-                true,
-                stagingDirector.getAbsolutePath(),
-                CommandUtils.getDefaultValidReturnCodes(),
-                INSTALL_FUNCTION_EXTENSIONS_FAIL
-        );
+    protected void installFunctionExtension(File stagingDirector, File basedir) throws AzureExecutionException {
+        try {
+			commandHandler.runCommandWithReturnCodeCheck(
+			        String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, basedir.getAbsolutePath()),
+			        true,
+			        stagingDirector.getAbsolutePath(),
+			        CommandUtils.getDefaultValidReturnCodes(),
+			        INSTALL_FUNCTION_EXTENSIONS_FAIL
+			);
+		} catch (Exception e) {
+			throw new AzureExecutionException("Cannot execute '" + String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, basedir.getAbsolutePath()) + "'", e);
+		}
     }
 
-    protected void assureRequirementAddressed() throws Exception {
+    protected void assureRequirementAddressed() throws AzureExecutionException {
         final String localVersion = getLocalFunctionCoreToolsVersion();
         final String latestCoreVersion = getLatestFunctionCoreToolsVersion();
         // Ensure azure function core tools has been installed and support extension auto-install
         if (localVersion == null || LEAST_SUPPORTED_VERSION.greaterThan(Version.valueOf(localVersion))) {
-            throw new Exception(CANNOT_AUTO_INSTALL);
+            throw new AzureExecutionException(CANNOT_AUTO_INSTALL);
         }
         // Verify whether local function core tools is the latest version
         if (latestCoreVersion == null) {

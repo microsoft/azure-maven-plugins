@@ -106,7 +106,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         copyJarsToStageDirectory();
 
-        final CommandHandler commandHandler = new CommandHandlerImpl();
+        final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
         final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
         final Set<BindingEnum> bindingClasses = this.getFunctionBindingEnums(configMap);
 
@@ -120,7 +120,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Process annotations
 
     protected AnnotationHandler getAnnotationHandler() {
-        return new AnnotationHandlerImpl();
+        return new AnnotationHandlerImpl(getLog());
     }
 
     protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws Exception {
@@ -296,7 +296,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Azure Functions Core Tools task
 
     protected FunctionCoreToolsHandler getFunctionCoreToolsHandler(final CommandHandler commandHandler) {
-        return new FunctionCoreToolsHandlerImpl(commandHandler);
+        return new FunctionCoreToolsHandlerImpl(this, commandHandler);
     }
 
     protected void installExtension(final FunctionCoreToolsHandler handler,
@@ -305,7 +305,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         if (!isInstallingExtensionNeeded(bindingEnums)) {
             return;
         }
-        handler.installExtension(new File(this.getDeploymentStagingDirectoryPath()), this.getProject().getBasedir());
+        handler.installExtension();
         info(INSTALL_EXTENSIONS_FINISH);
     }
 

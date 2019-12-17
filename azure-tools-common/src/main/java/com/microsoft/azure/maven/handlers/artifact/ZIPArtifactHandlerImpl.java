@@ -6,15 +6,14 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import java.io.File;
+import java.io.IOException;
 
 import org.zeroturnaround.zip.ZipUtil;
 
-import java.io.File;
-import java.io.IOException;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
 public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
     private static final int DEFAULT_MAX_RETRY_TIMES = 3;
@@ -36,21 +35,9 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
         super(builder);
     }
 
-    /**
-     * Web App and Deployment Slot need the handler to prepare resources to staging folder.
-     * Function App does not.
-     */
-    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
-        return !(target.getApp() instanceof FunctionApp);
-    }
 
     @Override
     public void publish(DeployTarget target) throws AzureExecutionException, IOException {
-        if (isResourcesPreparationRequired(target)) {
-            prepareResources();
-        }
-        assureStagingDirectoryNotEmpty();
-
         final File zipFile = getZipFile();
         Log.info(String.format(DEPLOY_START, target.getName()));
 
