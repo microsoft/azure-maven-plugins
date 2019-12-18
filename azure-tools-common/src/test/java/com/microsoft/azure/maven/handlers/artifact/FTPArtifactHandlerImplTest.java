@@ -6,8 +6,6 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -97,20 +95,6 @@ public class FTPArtifactHandlerImplTest {
         verify(handlerSpy, times(1)).uploadDirectoryToFTP(target);
         verify(handlerSpy, times(1)).publish(target);
         verifyNoMoreInteractions(handlerSpy);
-    }
-
-    @Test
-    public void isResourcesPreparationRequired() {
-        buildHandler();
-
-        DeployTarget target = new DeployTarget(mock(WebApp.class), DeployTargetType.WEBAPP);
-        assertTrue(handlerSpy.isResourcesPreparationRequired(target));
-
-        target = new DeployTarget(mock(DeploymentSlot.class), DeployTargetType.SLOT);
-        assertTrue(handlerSpy.isResourcesPreparationRequired(target));
-
-        target = new DeployTarget(mock(FunctionApp.class), DeployTargetType.FUNCTION);
-        assertFalse(handlerSpy.isResourcesPreparationRequired(target));
     }
 
     @Test

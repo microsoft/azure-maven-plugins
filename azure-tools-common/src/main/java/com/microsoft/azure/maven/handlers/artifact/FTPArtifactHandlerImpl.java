@@ -6,16 +6,14 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
+import java.io.IOException;
+
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-
-import java.io.IOException;
 
 public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
     private static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
@@ -37,9 +35,6 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
         super(builder);
     }
 
-    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
-        return target.getApp() instanceof WebApp || target.getApp() instanceof DeploymentSlot;
-    }
 
     @Override
     public void publish(final DeployTarget target) throws IOException, AzureExecutionException {

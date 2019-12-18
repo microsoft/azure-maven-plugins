@@ -14,9 +14,6 @@ import org.apache.maven.shared.filtering.MavenResourcesExecution;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
 
 public class MavenUtility {
@@ -33,11 +30,6 @@ public class MavenUtility {
 			throw new AzureExecutionException(String.format(STAGING_FOLDER_EMPTY, stagingDirectory.getAbsolutePath()));
 		}
 	}
-
-
-	public static boolean isResourcesPreparationRequired(final DeployTarget target) {
-        return target.getApp() instanceof WebApp || target.getApp() instanceof DeploymentSlot;
-    }
 
 	/**
 	 * Copy resources to target directory using Maven resource filtering so that we
