@@ -6,12 +6,12 @@
 
 package com.microsoft.azure.maven.webapp.handlers.runtime;
 
-import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.management.appservice.WebApp.UpdateStages.WithCredentials;
-import com.microsoft.azure.management.appservice.implementation.SiteInner;
-import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -22,11 +22,15 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.management.appservice.WebApp.UpdateStages.WithCredentials;
+import com.microsoft.azure.management.appservice.implementation.SiteInner;
+import com.microsoft.azure.maven.docker.MavenDockerCrendetialProvider;
+import com.microsoft.azure.maven.exceptions.ServerNotFoundException;
+import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PrivateRegistryRuntimeHandlerImplTest {
@@ -49,23 +53,27 @@ public class PrivateRegistryRuntimeHandlerImplTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    private void initHandlerForV2() {
+    private void initHandlerForV2() throws ServerNotFoundException {
+
+        if (StringUtils.isNotBlank(config.getServerId())) {
+        	builder.dockerCredentialProvider(new MavenDockerCrendetialProvider(config.getMavenSettings(), config.getServerId()));
+    	}
         handler = builder.appName(config.getAppName())
-            .resourceGroup(config.getResourceGroup())
-            .region(config.getRegion())
-            .pricingTier(config.getPricingTier())
-            .servicePlanName(config.getServicePlanName())
-            .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
-            .azure(azureClient)
-            .mavenSettings(config.getMavenSettings())
-            .image(config.getImage())
-            .serverId(config.getServerId())
-            .registryUrl(config.getRegistryUrl())
-            .log(log)
-            .build();
+                .resourceGroup(config.getResourceGroup())
+                .region(config.getRegion())
+                .pricingTier(config.getPricingTier())
+                .servicePlanName(config.getServicePlanName())
+                .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
+                .azure(azureClient)
+                .image(config.getImage())
+                .registryUrl(config.getRegistryUrl())
+                .build();
     }
 
-    private void initHandlerV1() {
+    private void initHandlerV1() throws ServerNotFoundException {
+    	if (StringUtils.isNotBlank(config.getServerId())) {
+        	builder.dockerCredentialProvider(new MavenDockerCrendetialProvider(config.getMavenSettings(), config.getServerId()));
+    	}
         handler = builder.appName(config.getAppName())
             .resourceGroup(config.getResourceGroup())
             .region(config.getRegion())
@@ -73,11 +81,8 @@ public class PrivateRegistryRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .mavenSettings(config.getMavenSettings())
             .image(config.getImage())
-            .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
-            .log(log)
             .build();
     }
 
@@ -99,14 +104,15 @@ public class PrivateRegistryRuntimeHandlerImplTest {
         doReturn("").when(config).getImage();
         doReturn("").when(config).getRegistryUrl();
         doReturn("serverId").when(config).getServerId();
-
+        doReturn("user").when(server).getUsername();
+        doReturn("password").when(server).getPassword();
         initHandlerForV2();
 
         handler.updateAppRuntime(app);
 
         verify(update, times(1)).withPrivateRegistryImage("", "");
-        verify(server, times(1)).getUsername();
-        verify(server, times(1)).getPassword();
+        verify(server, times(2)).getUsername();
+        verify(server, times(2)).getPassword();
     }
 
     @Test
@@ -126,12 +132,14 @@ public class PrivateRegistryRuntimeHandlerImplTest {
         doReturn(server).when(settings).getServer(anyString());
         doReturn(settings).when(config).getMavenSettings();
 
+        doReturn("user").when(server).getUsername();
+        doReturn("password").when(server).getPassword();
         initHandlerV1();
         handler.updateAppRuntime(app);
 
         verify(update, times(1)).withPrivateRegistryImage(null, null);
-        verify(server, times(1)).getUsername();
-        verify(server, times(1)).getPassword();
+        verify(server, times(2)).getUsername();
+        verify(server, times(2)).getPassword();
     }
 
 }

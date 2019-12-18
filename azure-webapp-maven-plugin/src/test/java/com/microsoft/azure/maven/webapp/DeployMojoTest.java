@@ -101,7 +101,7 @@ public class DeployMojoTest {
         f.setAccessible(true);
         f.set(null, new HandlerFactory() {
             @Override
-            public RuntimeHandler getRuntimeHandler(WebAppConfiguration config, Azure azureClient, Log log) {
+            public RuntimeHandler getRuntimeHandler(WebAppConfiguration config, Azure azureClient) {
                 return runtimeHandler;
             }
 

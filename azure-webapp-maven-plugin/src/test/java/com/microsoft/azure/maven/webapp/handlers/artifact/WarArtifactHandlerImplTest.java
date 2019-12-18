@@ -51,7 +51,6 @@ public class WarArtifactHandlerImplTest {
 
     public void buildHandler() {
         handler = new WarArtifactHandlerImpl.Builder()
-            .log(mojo.getLog())
             .warFile(mojo.getWarFile())
             .contextPath(mojo.getPath())
             .build();

@@ -10,12 +10,9 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.appservice.DockerImageType;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
-
-import org.apache.maven.settings.Server;
-
-import static com.microsoft.azure.maven.Utils.assureServerExist;
 
 public class PrivateDockerHubRuntimeHandlerImpl extends WebAppRuntimeHandler {
     public static class Builder extends WebAppRuntimeHandler.Builder<Builder> {
@@ -36,13 +33,12 @@ public class PrivateDockerHubRuntimeHandlerImpl extends WebAppRuntimeHandler {
 
     @Override
     public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
-        final Server server = Utils.getServer(settings, serverId);
-        assureServerExist(server, serverId);
+        checkServerConfiguration(DockerImageType.PRIVATE_DOCKER_HUB, dockerCredentialProvider);
 
         final AppServicePlan plan = createOrGetAppServicePlan();
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
             .withPrivateDockerHubImage(image)
-            .withCredentials(server.getUsername(), server.getPassword());
+            .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
     }
 
     @Override
@@ -50,11 +46,11 @@ public class PrivateDockerHubRuntimeHandlerImpl extends WebAppRuntimeHandler {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
 
-        final Server server = Utils.getServer(settings, serverId);
-        assureServerExist(server, serverId);
+        checkServerConfiguration(DockerImageType.PRIVATE_DOCKER_HUB, dockerCredentialProvider);
+
         return app.update()
             .withPrivateDockerHubImage(image)
-            .withCredentials(server.getUsername(), server.getPassword());
+            .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
     }
 
     @Override

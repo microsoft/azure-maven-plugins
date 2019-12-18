@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
@@ -19,7 +20,6 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDoc
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 
-import org.apache.maven.plugin.logging.Log;
 
 public class WebAppUtils {
     public static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
@@ -71,13 +71,12 @@ public class WebAppUtils {
                                                            final String servicePlanResourceGroup,
                                                            final Region region,
                                                            final PricingTier pricingTier,
-                                                           final Log log,
                                                            final OperatingSystem os) throws AzureExecutionException {
         final AppServicePlan plan = AppServiceUtils.getAppServicePlan(servicePlanName, azure,
                 resourceGroup, servicePlanResourceGroup);
 
         return plan != null ? plan : createAppServicePlan(servicePlanName, resourceGroup, azure,
-                servicePlanResourceGroup, region, pricingTier, log, os);
+                servicePlanResourceGroup, region, pricingTier, os);
     }
 
     public static AppServicePlan createAppServicePlan(String servicePlanName,
@@ -86,7 +85,6 @@ public class WebAppUtils {
                                                            final String servicePlanResourceGroup,
                                                            final Region region,
                                                            final PricingTier pricingTier,
-                                                           final Log log,
                                                            final OperatingSystem os) throws AzureExecutionException {
         if (region == null) {
             throw new AzureExecutionException("Please config the <region> in pom.xml, " +
@@ -95,7 +93,7 @@ public class WebAppUtils {
         servicePlanName = AppServiceUtils.getAppServicePlanName(servicePlanName);
         final String servicePlanResGrp = AppServiceUtils.getAppServicePlanResourceGroup(
                 resourceGroup, servicePlanResourceGroup);
-        log.info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
+        Log.info(String.format(CREATE_SERVICE_PLAN, servicePlanName));
 
         final AppServicePlan.DefinitionStages.WithGroup withGroup = azure.appServices().appServicePlans()
                 .define(servicePlanName).withRegion(region);
@@ -107,7 +105,7 @@ public class WebAppUtils {
 
         final AppServicePlan result = withPricingTier.withPricingTier(pricingTier).withOperatingSystem(os).create();
 
-        log.info(SERVICE_PLAN_CREATED);
+        Log.info(SERVICE_PLAN_CREATED);
         return result;
     }
 

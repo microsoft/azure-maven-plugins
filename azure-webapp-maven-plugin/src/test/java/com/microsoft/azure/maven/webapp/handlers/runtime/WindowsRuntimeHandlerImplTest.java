@@ -59,7 +59,6 @@ public class WindowsRuntimeHandlerImplTest {
             .azure(azureClient)
             .javaVersion(config.getJavaVersion())
             .webContainer(config.getWebContainer())
-            .log(log)
             .build();
     }
 
@@ -73,7 +72,6 @@ public class WindowsRuntimeHandlerImplTest {
             .azure(azureClient)
             .javaVersion(config.getJavaVersion())
             .webContainer(config.getWebContainer())
-            .log(log)
             .build();
     }
 

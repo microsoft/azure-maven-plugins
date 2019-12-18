@@ -72,7 +72,6 @@ public class MSDeployArtifactHandlerImplTest {
         when(mojo.getLog()).thenReturn(log);
         handler = new MSDeployArtifactHandlerImpl.Builder()
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
-            .log(mojo.getLog())
             .build();
         handlerSpy = spy(handler);
     }

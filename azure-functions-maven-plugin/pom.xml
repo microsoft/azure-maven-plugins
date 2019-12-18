@@ -10,9 +10,8 @@
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
-    <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-functions-maven-plugin</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Functions</name>
     <description>Maven Plugin for Azure Functions</description>
@@ -28,7 +27,7 @@
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
-        <azure.maven-plugin-lib.version>1.2.12</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.2.13-SNAPSHOT</azure.maven-plugin-lib.version>
         <azure.function.version>1.3.1</azure.function.version>
         <reflections.version>0.9.11</reflections.version>
         <junit.version>4.12</junit.version>
@@ -387,6 +386,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
+                 <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

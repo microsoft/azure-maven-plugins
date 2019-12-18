@@ -112,14 +112,13 @@ public class AppServiceUtils {
         return first == null ? second == null : second != null && StringUtils.equals(first.id(), second.id());
     }
 
-    public static DockerImageType getDockerImageType(final String imageName, final IDockerCredentialProvider provider,
+    public static DockerImageType getDockerImageType(final String imageName, final boolean isPrivate,
                                                      final String registryUrl) {
         if (StringUtils.isEmpty(imageName)) {
             return DockerImageType.NONE;
         }
 
         final boolean isCustomRegistry = StringUtils.isNotEmpty(registryUrl);
-        final boolean isPrivate = provider != null;
 
         if (isCustomRegistry) {
             return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;

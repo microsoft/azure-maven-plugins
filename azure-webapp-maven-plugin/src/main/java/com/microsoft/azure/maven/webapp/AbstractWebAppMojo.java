@@ -401,7 +401,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         }
         if (webAppConfig.getImage() != null) {
             final String imageType = AppServiceUtils.getDockerImageType(webAppConfig.getImage(),
-                webAppConfig.getServerId(), webAppConfig.getRegistryUrl()).toString();
+                StringUtils.isNotBlank(webAppConfig.getServerId()), webAppConfig.getRegistryUrl()).toString();
             map.put(DOCKER_IMAGE_TYPE_KEY, imageType);
         } else {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
@@ -414,12 +414,10 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             webAppConfig.getJavaVersion().toString());
         map.put(LINUX_RUNTIME_KEY, webAppConfig.getRuntimeStack() == null ? "" :
             webAppConfig.getRuntimeStack().stack() + " " + webAppConfig.getRuntimeStack().version());
-
-        try {
-            map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
-        } catch (AzureExecutionException e) {
-            map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
+        if (StringUtils.isNoneBlank(getDeploymentType())) {
+        	map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType());
         }
+
         return map;
     }
 

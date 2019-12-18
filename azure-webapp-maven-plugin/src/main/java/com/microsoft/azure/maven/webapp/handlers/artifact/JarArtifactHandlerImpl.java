@@ -6,18 +6,17 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
+import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.DEFAULT_APP_SERVICE_JAR_NAME;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.io.Files;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
-
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-
-import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.DEFAULT_APP_SERVICE_JAR_NAME;
 
 /**
  * Artifact handler for deploying a JAR, self-contained, Java application (e.g.
@@ -26,7 +25,6 @@ import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandler
  * @since 1.3.0
  */
 public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
-    private String linuxRuntime;
     private String jarFile;
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
@@ -34,7 +32,6 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
 
     public static class Builder extends ZIPArtifactHandlerImpl.Builder {
         private String jarFile;
-        private String linuxRuntime;
 
         @Override
         protected JarArtifactHandlerImpl.Builder self() {
@@ -46,10 +43,6 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
             return new JarArtifactHandlerImpl(this);
         }
 
-        public Builder linuxRuntime(final String value) {
-            this.linuxRuntime = value;
-            return self();
-        }
 
         public Builder jarFile(final String value) {
             this.jarFile = value;
@@ -59,17 +52,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
 
     protected JarArtifactHandlerImpl(final Builder builder) {
         super(builder);
-        this.linuxRuntime = builder.linuxRuntime;
         this.jarFile = builder.jarFile;
-    }
-
-    /**
-     * Jar deploy prepares deployment file itself.
-     * So preparing resources to staging folder is not necessary.
-     */
-    @Override
-    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
-        return false;
     }
 
     @Override
@@ -90,7 +73,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
 
     protected File getJarFile() {
         final String jarFilePath = StringUtils.isNotEmpty(jarFile) ? jarFile :
-                Paths.get(buildDirectoryAbsolutePath, project.getBuild().getFinalName() + ".jar").toString();
+                project.getJarArtifact().toString();
         return new File(jarFilePath);
     }
 

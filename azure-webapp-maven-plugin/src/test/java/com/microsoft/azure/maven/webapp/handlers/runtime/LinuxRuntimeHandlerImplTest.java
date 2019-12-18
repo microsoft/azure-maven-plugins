@@ -56,7 +56,6 @@ public class LinuxRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .log(log)
             .build();
     }
 
@@ -69,7 +68,6 @@ public class LinuxRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .log(log)
             .build();
     }
 

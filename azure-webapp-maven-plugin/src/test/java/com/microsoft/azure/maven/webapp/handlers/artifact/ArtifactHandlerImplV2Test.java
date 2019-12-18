@@ -6,34 +6,6 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.maven.appservice.DeployTargetType;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.Deployment;
-import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
-import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.project.MavenProject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,6 +18,35 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.logging.Log;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.project.JavaProject;
+import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.configuration.Deployment;
+import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArtifactHandlerImplV2Test {
@@ -64,7 +65,6 @@ public class ArtifactHandlerImplV2Test {
     public void buildHandler() {
         handler = new ArtifactHandlerImplV2.Builder()
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
-            .log(mojo.getLog())
             .resources(mojo.getDeployment().getResources())
             .build();
         handlerSpy = spy(handler);
@@ -85,7 +85,6 @@ public class ArtifactHandlerImplV2Test {
         doNothing().when(log).info(anyString());
 
         buildHandler();
-        doNothing().when(handlerSpy).copyArtifactsToStagingDirectory();
 
         final List<File> allArtifacts = new ArrayList<File>();
         allArtifacts.add(new File("dummypath\\dummy.war"));
@@ -98,7 +97,6 @@ public class ArtifactHandlerImplV2Test {
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
-        verify(handlerSpy, times(1)).copyArtifactsToStagingDirectory();
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
         verify(handlerSpy, times(1))
             .publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
@@ -120,7 +118,6 @@ public class ArtifactHandlerImplV2Test {
         doNothing().when(log).info(anyString());
 
         buildHandler();
-        doNothing().when(handlerSpy).copyArtifactsToStagingDirectory();
 
         final List<File> allArtifacts = new ArrayList<File>();
         allArtifacts.add(new File("dummypath\\dummy.jar"));
@@ -132,7 +129,6 @@ public class ArtifactHandlerImplV2Test {
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
-        verify(handlerSpy, times(1)).copyArtifactsToStagingDirectory();
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
         verify(handlerSpy, times(1)).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
         verifyNoMoreInteractions(handlerSpy);
@@ -208,11 +204,10 @@ public class ArtifactHandlerImplV2Test {
 
     @Test
     public void isJavaSERuntime() {
-        final MavenProject mavenProject = mock(MavenProject.class);
+        final JavaProject mavenProject = mock(JavaProject.class);
         final RuntimeSetting runtimeSetting = mock(RuntimeSetting.class);
         handler = new ArtifactHandlerImplV2.Builder()
                 .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
-                .log(mojo.getLog())
                 .project(mavenProject)
                 .runtime(runtimeSetting)
                 .build();
@@ -224,18 +219,18 @@ public class ArtifactHandlerImplV2Test {
         assertTrue(handlerSpy.isJavaSERuntime());
 
         // No runtime setting, just check project packaging
-        doReturn("war").when(mavenProject).getPackaging();
+        doReturn(true).when(mavenProject).isWarProject();
         doReturn(true).when(runtimeSetting).isEmpty();
         assertFalse(handlerSpy.isJavaSERuntime());
 
-        doReturn("jar").when(mavenProject).getPackaging();
+        doReturn(true).when(mavenProject).isJarProject();
         doReturn(true).when(runtimeSetting).isEmpty();
         assertTrue(handlerSpy.isJavaSERuntime());
 
         // Project with jar packaging will always be regarded as java se project
         Mockito.reset(runtimeSetting);
         doReturn(false).when(runtimeSetting).isEmpty();
-        doReturn("jar").when(mavenProject).getPackaging();
+        doReturn(true).when(mavenProject).isJarProject();
         assertTrue(handlerSpy.isJavaSERuntime());
         verify(runtimeSetting, times(0)).getOsEnum();
         verify(runtimeSetting, times(0)).getWebContainer();

@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
@@ -14,6 +15,7 @@ import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Resource;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
@@ -47,9 +49,13 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     private RuntimeSetting runtimeSetting;
 
+    private List<Resource> resources;
+
     public static class Builder extends ArtifactHandlerBase.Builder<ArtifactHandlerImplV2.Builder> {
 
         private RuntimeSetting runtimeSetting;
+
+        private List<Resource> resources;
 
         public RuntimeSetting getRuntimeSetting() {
             return runtimeSetting;
@@ -65,6 +71,12 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             return self();
         }
 
+
+        public ArtifactHandlerImplV2.Builder resources(List<Resource> resources) {
+            this.resources = resources;
+            return self();
+        }
+
         @Override
         public ArtifactHandlerImplV2 build() {
             return new ArtifactHandlerImplV2(this);
@@ -74,16 +86,11 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     protected ArtifactHandlerImplV2(final ArtifactHandlerImplV2.Builder builder) {
         super(builder);
         this.runtimeSetting = builder.getRuntimeSetting();
+        this.resources = builder.resources;
     }
 
     @Override
     public void publish(final DeployTarget target) throws AzureExecutionException, IOException {
-        if (resources == null || resources.size() < 1) {
-            log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
-            return;
-        }
-        copyArtifactsToStagingDirectory();
-
         final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
         if (allArtifacts.size() == 0) {
             final String absolutePath = new File(stagingDirectoryPath).getAbsolutePath();
@@ -91,25 +98,25 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
                     String.format("There is no artifact to deploy in staging directory: '%s'", absolutePath));
         }
 
-        log.info(String.format(DEPLOY_START, target.getName()));
+        Log.info(String.format(DEPLOY_START, target.getName()));
 
         if (areAllWarFiles(allArtifacts)) {
             publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
-            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+            Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
             return;
         }
 
         if (!hasWarFiles(allArtifacts)) {
             publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
-            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+            Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
             return;
         }
 
         if (isDeployMixedArtifactsConfirmed()) {
             publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
-            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+            Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
         } else {
-            log.info(DEPLOY_ABORT);
+            Log.info(DEPLOY_ABORT);
         }
     }
 
@@ -118,12 +125,12 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             return true;
         }
 
-        log.info(String.format("To get rid of the following message, set the property %s to true to always proceed " +
+        Log.info(String.format("To get rid of the following message, set the property %s to true to always proceed " +
                 "with the deploy.", ALWAYS_DEPLOY_PROPERTY));
 
         final Scanner scanner = new Scanner(System.in, "UTF-8");
         while (true) {
-            log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
+            Log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
                     "are you sure to proceed (y/n)?");
             final String input = scanner.nextLine();
             if ("y".equalsIgnoreCase(input)) {
@@ -139,11 +146,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         return getArtifacts(stagingDirectory);
     }
 
-    protected void copyArtifactsToStagingDirectory() throws IOException, AzureExecutionException {
-        prepareResources();
-        assureStagingDirectoryNotEmpty();
-    }
-
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,
                                                 final String stagingDirectoryPath) throws AzureExecutionException {
         if (isJavaSERuntime()) {
@@ -152,11 +154,11 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final File stagingDirectory = new File(stagingDirectoryPath);
         final File zipFile = Utils.createTempFile(stagingDirectory.getName(), ".zip");
         ZipUtil.pack(stagingDirectory, zipFile);
-        log.info(String.format("Deploying the zip package %s...", zipFile.getName()));
+        Log.info(String.format("Deploying the zip package %s...", zipFile.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
-        final boolean deploySuccess = performActionWithRetry(() -> target.zipDeploy(zipFile), MAX_RETRY_TIMES, log);
+        final boolean deploySuccess = performActionWithRetry(() -> target.zipDeploy(zipFile), MAX_RETRY_TIMES);
         if (!deploySuccess) {
             throw new AzureExecutionException(
                     String.format("The zip deploy failed after %d times of retry.", MAX_RETRY_TIMES + 1));
@@ -178,11 +180,11 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     public void publishWarArtifact(final DeployTarget target, final File warArtifact,
                                    final String contextPath) throws AzureExecutionException {
         final Runnable executor = getRealWarDeployExecutor(target, warArtifact, contextPath);
-        log.info(String.format("Deploying the war file %s...", warArtifact.getName()));
+        Log.info(String.format("Deploying the war file %s...", warArtifact.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
-        final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES, log);
+        final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES);
         if (!deploySuccess) {
             throw new AzureExecutionException(
                     String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES));
@@ -190,7 +192,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
     protected boolean isJavaSERuntime() {
-        final boolean isJarProject = project != null && StringUtils.equalsIgnoreCase(project.getPackaging(), "jar");
+        final boolean isJarProject = project != null && project.isJarProject();
         if (runtimeSetting == null || runtimeSetting.isEmpty() || isJarProject) {
             return isJarProject;
         }
@@ -209,7 +211,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final File artifact = getProjectJarArtifact(artifacts);
         final File renamedArtifact = new File(artifact.getParent(), DEFAULT_APP_SERVICE_JAR_NAME);
         if (!StringUtils.equals(artifact.getName(), DEFAULT_APP_SERVICE_JAR_NAME)) {
-            log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_APP_SERVICE_JAR_NAME));
+            Log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_APP_SERVICE_JAR_NAME));
             if (!artifact.renameTo(renamedArtifact)) {
                 throw new AzureExecutionException(String.format(RENAMING_FAILED_MESSAGE, DEFAULT_APP_SERVICE_JAR_NAME));
             }
@@ -217,7 +219,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
     private File getProjectJarArtifact(final List<File> artifacts) throws AzureExecutionException {
-        final String fileName = String.format("%s.%s", project.getBuild().getFinalName(), project.getPackaging());
+        final String fileName = project.getJarArtifact().getFileName().toString();
         final List<File> executableArtifacts = artifacts.stream()
                 .filter(file -> isExecutableJar(file)).collect(Collectors.toList());
         final File finalArtifact = executableArtifacts.stream()

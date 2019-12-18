@@ -7,10 +7,12 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.MavenUtility;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
@@ -20,6 +22,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -49,7 +52,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void doExecute() throws Exception {
         // todo: use parser to getAzureClient from mojo configs
         final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(
-                getWebAppConfiguration(), getAzureClient(), getLog());
+                getWebAppConfiguration(), getAzureClient());
         // todo: use parser to get web app from mojo configs
         final WebApp app = getWebApp();
         if (app == null) {
@@ -112,10 +115,25 @@ public class DeployMojo extends AbstractWebAppMojo {
             } else {
                 target = new WebAppDeployTarget(app);
             }
+
+
+            if (resources == null || resources.size() < 1) {
+                Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
+                return;
+            }
+
+            copyArtifactsToStagingDirectory();
+
             getFactory().getArtifactHandler(this).publish(target);
         } finally {
             util.afterDeployArtifacts();
         }
+    }
+
+    protected void copyArtifactsToStagingDirectory() throws IOException, AzureExecutionException {
+        MavenUtility.prepareResources(this.getProject(), this.getSession(), this.getMavenResourcesFiltering(),
+        		this.resources, getDeploymentStagingDirectoryPath());
+        MavenUtility.assureStagingDirectoryNotEmpty(getDeploymentStagingDirectoryPath());
     }
 
     protected HandlerFactory getFactory() {

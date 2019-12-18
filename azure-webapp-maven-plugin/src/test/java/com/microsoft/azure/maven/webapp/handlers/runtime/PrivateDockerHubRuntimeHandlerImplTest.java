@@ -57,10 +57,7 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .mavenSettings(config.getMavenSettings())
-            .log(log)
             .image(config.getImage())
-            .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
             .build();
     }
@@ -73,11 +70,8 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .mavenSettings(config.getMavenSettings())
             .image(config.getImage())
-            .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
-            .log(log)
             .build();
     }
 

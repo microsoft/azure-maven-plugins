@@ -40,7 +40,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
 
     @Override
     public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
-        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider,
+        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider != null,
                 registryUrl);
         checkFunctionExtensionVersion();
         checkServerConfiguration(imageType, dockerCredentialProvider);
@@ -69,7 +69,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
 
     @Override
     public FunctionApp.Update updateAppRuntime(FunctionApp app) throws AzureExecutionException {
-        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider,
+        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider != null,
                 registryUrl);
         checkFunctionExtensionVersion();
         checkServerConfiguration(imageType, dockerCredentialProvider);

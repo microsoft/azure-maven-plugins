@@ -6,14 +6,16 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
-import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
-import org.apache.maven.project.MavenProject;
+import java.io.File;
+import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,15 +23,12 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.File;
-import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
+import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JarArtifactHandlerImplTest {
@@ -46,7 +45,6 @@ public class JarArtifactHandlerImplTest {
 
     private void buildHandler() {
         handler = (JarArtifactHandlerImpl) new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile())
-            .project(mojo.getProject())
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .build();
         handlerSpy = spy(handler);
@@ -88,8 +86,6 @@ public class JarArtifactHandlerImplTest {
         buildHandler();
         assertEquals("test.jar", handlerSpy.getJarFile().getName());
 
-        final MavenProject project = mock(MavenProject.class);
-        doReturn(project).when(mojo).getProject();
         buildHandler();
         assertEquals("test.jar", handlerSpy.getJarFile().getName());
         assertEquals("test.jar", handlerSpy.getJarFile().getName());

@@ -54,7 +54,6 @@ public class HandlerFactoryImplTest {
     public void getRuntimeHandler() throws AzureExecutionException {
         final WebAppConfiguration config = mock(WebAppConfiguration.class);
         final Azure azureClient = mock(Azure.class);
-        final Log log = mock(Log.class);
         final HandlerFactory factory = new HandlerFactoryImpl();
 
         doReturn("").when(config).getAppName();
@@ -65,37 +64,37 @@ public class HandlerFactoryImplTest {
         doReturn("").when(config).getServicePlanResourceGroup();
 
         doReturn(null).when(config).getOs();
-        RuntimeHandler handler = factory.getRuntimeHandler(config, azureClient, log);
+        RuntimeHandler handler = factory.getRuntimeHandler(config, azureClient);
         assertTrue(handler instanceof NullRuntimeHandlerImpl);
 
         doReturn(OperatingSystemEnum.Windows).when(config).getOs();
         doReturn(JavaVersion.JAVA_8_NEWEST).when(config).getJavaVersion();
         doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(config).getWebContainer();
-        handler = factory.getRuntimeHandler(config, azureClient, log);
+        handler = factory.getRuntimeHandler(config, azureClient);
         assertTrue(handler instanceof WindowsRuntimeHandlerImpl);
 
         doReturn(OperatingSystemEnum.Linux).when(config).getOs();
         doReturn(RuntimeStack.JAVA_8_JRE8).when(config).getRuntimeStack();
-        handler = factory.getRuntimeHandler(config, azureClient, log);
+        handler = factory.getRuntimeHandler(config, azureClient);
         assertTrue(handler instanceof LinuxRuntimeHandlerImpl);
 
         doReturn(OperatingSystemEnum.Docker).when(config).getOs();
         doReturn("imageName").when(config).getImage();
-        handler = factory.getRuntimeHandler(config, azureClient, log);
+        handler = factory.getRuntimeHandler(config, azureClient);
         assertTrue(handler instanceof PublicDockerHubRuntimeHandlerImpl);
 
         doReturn("serverId").when(config).getServerId();
         doReturn("registry").when(config).getRegistryUrl();
-        handler = factory.getRuntimeHandler(config, azureClient, log);
+        handler = factory.getRuntimeHandler(config, azureClient);
         assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImpl);
 
         doReturn("").when(config).getRegistryUrl();
-        handler = factory.getRuntimeHandler(config, azureClient, log);
+        handler = factory.getRuntimeHandler(config, azureClient);
         assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImpl);
 
         doReturn("").when(config).getImage();
         try {
-            factory.getRuntimeHandler(config, azureClient, log);
+            factory.getRuntimeHandler(config, azureClient);
         } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Invalid docker runtime configured.");
         }
