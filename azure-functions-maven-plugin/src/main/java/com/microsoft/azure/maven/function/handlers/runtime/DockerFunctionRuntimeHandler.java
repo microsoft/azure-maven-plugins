@@ -49,7 +49,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
         final Server server = Utils.getServer(settings, serverId);
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
         checkFunctionExtensionVersion();
-        checkServerConfiguration(imageType, server);
+        checkConfiguration(imageType, server);
 
         final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage = super.defineLinuxFunction();
         final FunctionApp.DefinitionStages.WithCreate result;
@@ -78,7 +78,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
         final Server server = Utils.getServer(settings, serverId);
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
         checkFunctionExtensionVersion();
-        checkServerConfiguration(imageType, server);
+        checkConfiguration(imageType, server);
 
         final FunctionApp.Update update = app.update();
         switch (imageType) {
@@ -93,9 +93,12 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
         }
     }
 
-    protected void checkServerConfiguration(DockerImageType imageType, Server server) throws AzureExecutionException {
+    protected void checkConfiguration(DockerImageType imageType, Server server) throws AzureExecutionException {
         if (imageType != PUBLIC_DOCKER_HUB) {
             assureServerExist(server, serverId);
+        }
+        if (pricingTier == null) {
+            throw new AzureExecutionException("Consumption plan is not supported for docker functions");
         }
     }
 
