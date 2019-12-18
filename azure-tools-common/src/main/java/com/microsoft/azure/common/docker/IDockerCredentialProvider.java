@@ -6,8 +6,10 @@
 
 package com.microsoft.azure.common.docker;
 
-public interface IDockerCredentialProvider {
-    String getUsername();
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
-    String getPassword();
+public interface IDockerCredentialProvider {
+    String getUsername() throws AzureExecutionException;
+
+    String getPassword() throws AzureExecutionException;
 }

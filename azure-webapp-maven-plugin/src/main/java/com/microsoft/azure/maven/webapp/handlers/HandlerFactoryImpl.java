@@ -11,7 +11,7 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.appservice.DockerImageType;
-import com.microsoft.azure.maven.docker.MavenDockerCrendetialProvider;
+import com.microsoft.azure.maven.docker.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
@@ -72,7 +72,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
 		final WebAppRuntimeHandler.Builder<? extends WebAppRuntimeHandler.Builder> builder;
 
 		final IDockerCredentialProvider dockerCredentialProvider = StringUtils.isNotBlank(config.getServerId())
-				? new MavenDockerCrendetialProvider(config.getMavenSettings(), config.getServerId())
+				? new MavenDockerCredentialProvider(config.getMavenSettings(), config.getServerId())
 				: null;
 		final DockerImageType imageType = AppServiceUtils.getDockerImageType(config.getImage(),
 				StringUtils.isNotBlank(config.getServerId()), config.getRegistryUrl());

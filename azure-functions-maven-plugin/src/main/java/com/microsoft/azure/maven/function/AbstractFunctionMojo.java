@@ -15,12 +15,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import com.microsoft.azure.common.docker.IDockerCredentialProvider;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.function.IFunctionContext;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.configuration.MavenRuntimeConfiguration;
+import com.microsoft.azure.maven.docker.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.maven.function.utils.FunctionUtils;
 
@@ -169,6 +171,10 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     private void initializeContext() {
     	context = new MavenFunctionContext(this);
+    	if (StringUtils.isNoneBlank(this.runtime.getServerId())) {
+    		context.registerProvider(IDockerCredentialProvider.class,
+    				new MavenDockerCredentialProvider(this.getSettings(), this.runtime.getServerId()));
+    	}
 	}
 
 	private void checkJavaVersion() {

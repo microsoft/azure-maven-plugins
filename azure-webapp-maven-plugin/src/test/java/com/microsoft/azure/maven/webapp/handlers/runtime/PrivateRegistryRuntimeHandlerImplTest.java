@@ -27,7 +27,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebApp.UpdateStages.WithCredentials;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-import com.microsoft.azure.maven.docker.MavenDockerCrendetialProvider;
+import com.microsoft.azure.maven.docker.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.exceptions.ServerNotFoundException;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
@@ -56,7 +56,7 @@ public class PrivateRegistryRuntimeHandlerImplTest {
     private void initHandlerForV2() throws ServerNotFoundException {
 
         if (StringUtils.isNotBlank(config.getServerId())) {
-        	builder.dockerCredentialProvider(new MavenDockerCrendetialProvider(config.getMavenSettings(), config.getServerId()));
+        	builder.dockerCredentialProvider(new MavenDockerCredentialProvider(config.getMavenSettings(), config.getServerId()));
     	}
         handler = builder.appName(config.getAppName())
                 .resourceGroup(config.getResourceGroup())
@@ -72,7 +72,7 @@ public class PrivateRegistryRuntimeHandlerImplTest {
 
     private void initHandlerV1() throws ServerNotFoundException {
     	if (StringUtils.isNotBlank(config.getServerId())) {
-        	builder.dockerCredentialProvider(new MavenDockerCrendetialProvider(config.getMavenSettings(), config.getServerId()));
+        	builder.dockerCredentialProvider(new MavenDockerCredentialProvider(config.getMavenSettings(), config.getServerId()));
     	}
         handler = builder.appName(config.getAppName())
             .resourceGroup(config.getResourceGroup())

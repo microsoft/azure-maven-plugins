@@ -88,11 +88,11 @@ public class MavenFunctionContext implements IFunctionContext {
 		return mojo.getDeploymentType();
 	}
 
-	@Override
 	public IDockerCredentialProvider getDockerCredentialProvider() {
 		return getProvider(IDockerCredentialProvider.class);
 	}
 
+	@Override
 	public void registerProvider(Class<? extends Object> clazz, Object provider) {
 		if (clazz == null) {
 			throw new IllegalArgumentException("Null provider class is illegal.");
@@ -118,7 +118,8 @@ public class MavenFunctionContext implements IFunctionContext {
 		return project;
 	}
 
-	private <T> T getProvider(Class<T> clazz) {
+	@Override
+	public <T> T getProvider(Class<T> clazz) {
 		if (!providerMap.containsKey(clazz)) {
 			throw new IllegalArgumentException(String.format("%s has not been registered.", clazz.getName()));
 		}
