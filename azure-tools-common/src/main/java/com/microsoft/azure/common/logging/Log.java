@@ -17,7 +17,7 @@ public final class Log {
     }
 
     public static void info(String message) {
-        logger.info(message);
+        System.out.println(message);
     }
 
     public static void debug(String message) {
