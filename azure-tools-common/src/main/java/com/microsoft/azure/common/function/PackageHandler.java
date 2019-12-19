@@ -87,7 +87,7 @@ public class PackageHandler {
 	public PackageHandler(IProject project, String deploymentStagingDirectoryPath) {
 		Preconditions.checkNotNull(project);
 		Preconditions.checkNotNull(deploymentStagingDirectoryPath);
-		Preconditions.checkArgument(new File(deploymentStagingDirectoryPath).isDirectory());
+		Preconditions.checkArgument(!new File(deploymentStagingDirectoryPath).isFile());
 		this.deploymentStagingDirectoryPath = deploymentStagingDirectoryPath;
 		this.project = project;
 	}
