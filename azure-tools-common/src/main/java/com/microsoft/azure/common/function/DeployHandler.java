@@ -17,9 +17,11 @@ import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Preconditions;
+import com.microsoft.azure.common.IAppServiceContext;
+import com.microsoft.azure.common.IProviderContext;
+import com.microsoft.azure.common.docker.IDockerCredentialProvider;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
@@ -86,16 +88,15 @@ public class DeployHandler {
 			+ "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
 
 	public static final OperatingSystemEnum DEFAULT_OS = OperatingSystemEnum.Windows;
-	private IFunctionContext ctx;
+	private IAppServiceContext ctx;
+	private IProviderContext providerContext;
 
-	private Azure azure;
 
-
-	public DeployHandler(IFunctionContext ctx, Azure azure) {
+	public DeployHandler(IAppServiceContext ctx, IProviderContext providerContext) {
 		Preconditions.checkNotNull(ctx);
-		Preconditions.checkNotNull(azure);
+		Preconditions.checkNotNull(providerContext);
 		this.ctx = ctx;
-		this.azure = azure;
+		this.providerContext = providerContext;
 	}
 
 	public void execute() throws Exception {
@@ -119,7 +120,7 @@ public class DeployHandler {
 
 	// endregion
 
-	private void checkJavaVersion() {
+	private static void checkJavaVersion() {
 		final String javaVersion = System.getProperty("java.version");
 		if (!javaVersion.startsWith("1.8")) {
 			Log.warn(String.format(JDK_VERSION_ERROR, javaVersion));
@@ -180,9 +181,6 @@ public class DeployHandler {
 
 	// endregion
 
-
-
-
 	protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws AzureExecutionException {
 		final FunctionRuntimeHandler.Builder<?> builder;
 		final OperatingSystemEnum os = getOsEnum();
@@ -195,9 +193,9 @@ public class DeployHandler {
 			break;
 		case Docker:
 			final RuntimeConfiguration runtime = this.ctx.getRuntime();
-			builder = new DockerFunctionRuntimeHandler.Builder().image(runtime.getImage()).
-//					.serverId(runtime.getServerId()).
-					registryUrl(runtime.getRegistryUrl());
+			builder = new DockerFunctionRuntimeHandler.Builder().image(runtime.getImage())
+					.dockerCredentialProvider(providerContext.getProvider(IDockerCredentialProvider.class))
+					.registryUrl(runtime.getRegistryUrl());
 			break;
 		default:
 			throw new AzureExecutionException(String.format("Unsupported runtime %s", os));
@@ -206,7 +204,7 @@ public class DeployHandler {
 				.region(Region.fromName(ctx.getRegion())).pricingTier(getPricingTier())
 				.servicePlanName(ctx.getAppServicePlanName())
 				.servicePlanResourceGroup(ctx.getAppServicePlanResourceGroup())
-				.functionExtensionVersion(getFunctionExtensionVersion()).azure(azure).build();
+				.functionExtensionVersion(getFunctionExtensionVersion()).azure(this.ctx.getAzureClient()).build();
 	}
 
 	private OperatingSystemEnum getOsEnum() throws AzureExecutionException {
@@ -242,7 +240,7 @@ public class DeployHandler {
 
 	public FunctionApp getFunctionApp() {
 		try {
-			return azure.appServices().functionApps().getByResourceGroup(ctx.getResourceGroup(),
+			return ctx.getAzureClient().appServices().functionApps().getByResourceGroup(ctx.getResourceGroup(),
 					ctx.getAppName());
 		} catch (Exception ex) {
 //			Log.debug(ex);

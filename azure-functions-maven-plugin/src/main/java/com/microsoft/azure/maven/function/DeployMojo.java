@@ -20,7 +20,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
 	@Override
 	protected void doExecute() throws Exception {
-		new DeployHandler(context, getAzureClient()).execute();
+		new DeployHandler(context, context).execute();
 	}
 
 }

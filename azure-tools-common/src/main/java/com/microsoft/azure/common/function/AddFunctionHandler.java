@@ -255,7 +255,7 @@ public class AddFunctionHandler  {
     protected void prepareFunctionName() throws AzureExecutionException {
     	Log.info("Common parameter [Function Name]: name for both the new function and Java class");
 
-        if (isInteractiveMode) {
+        if (!isInteractiveMode) {
             assureInputInBatchMode(getFunctionName(),
                 str -> StringUtils.isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
                 this::setFunctionName,
@@ -272,7 +272,7 @@ public class AddFunctionHandler  {
     protected void preparePackageName() throws AzureExecutionException {
         Log.info("Common parameter [Package Name]: package name of the new Java class");
 
-        if (isInteractiveMode) {
+        if (!isInteractiveMode) {
             assureInputInBatchMode(getFunctionPackageName(),
                 str -> StringUtils.isNotEmpty(str) && isName(str),
                 this::setFunctionPackageName,
@@ -300,7 +300,7 @@ public class AddFunctionHandler  {
 
                 Log.info(format("Trigger specific parameter [%s]:%s", property,
                 TemplateResources.getResource(helpMessage)));
-            if (isInteractiveMode) {
+            if (!isInteractiveMode) {
                 if (options != null && options.size() > 0) {
                     final String foundElement = findElementInOptions(options, initValue);
                     initValue = foundElement == null ? options.get(0) : foundElement;

@@ -8,15 +8,17 @@ package com.microsoft.azure.maven.function.handlers;
 
 import java.util.List;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+
 public interface CommandHandler {
 
     void runCommandWithReturnCodeCheck(final String command,
                                        final boolean showStdout,
                                        final String workingDirectory,
                                        final List<Long> validReturnCodes,
-                                       final String errorMessage) throws Exception;
+                                       final String errorMessage) throws AzureExecutionException;
 
     String runCommandAndGetOutput(final String command,
                                   final boolean showStdout,
-                                  final String workingDirectory) throws Exception;
+                                  final String workingDirectory) throws AzureExecutionException;
 }

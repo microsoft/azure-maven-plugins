@@ -7,10 +7,11 @@
 
 package com.microsoft.azure.maven.function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import com.microsoft.azure.common.function.RunHandler;
+import com.microsoft.azure.common.function.LocalRunHandler;
 
 @Mojo(name = "run")
 public class RunMojo extends AbstractFunctionMojo {
@@ -25,7 +26,9 @@ public class RunMojo extends AbstractFunctionMojo {
 
 	@Override
 	protected void doExecute() throws Exception {
-		new RunHandler(context, localDebugConfig).execute();
+		final String enableDebug = System.getProperty("enableDebug");
+		final boolean debugEnabled = StringUtils.isNotEmpty(localDebugConfig) && StringUtils.isNotEmpty(enableDebug) && enableDebug.equalsIgnoreCase("true");
+		new LocalRunHandler(context.getDeploymentStagingDirectoryPath(), debugEnabled ? localDebugConfig : null).execute();
 	}
 
 }

@@ -21,7 +21,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     @Override
     protected void doExecute() throws Exception {
-    	new PackageHandler(context).execute();
+    	new PackageHandler(context.getProject(), context.getDeploymentStagingDirectoryPath()).execute();
     }
 
 }

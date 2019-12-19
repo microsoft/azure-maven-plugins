@@ -13,14 +13,18 @@ import org.apache.maven.project.MavenProject;
 
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.common.docker.IDockerCredentialProvider;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.function.IFunctionContext;
 import com.microsoft.azure.common.project.IProject;
 import com.microsoft.azure.common.project.JavaProject;
+import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 
 public class MavenFunctionContext implements IFunctionContext {
 	private AbstractFunctionMojo mojo;
 	private IProject project;
+	private Azure azure;
 	private Map<Class<? extends Object>, Object> providerMap = new HashMap<>();
 
 	public MavenFunctionContext(AbstractFunctionMojo mojo) {
@@ -116,6 +120,18 @@ public class MavenFunctionContext implements IFunctionContext {
 	@Override
 	public IProject getProject() {
 		return project;
+	}
+
+	@Override
+	public Azure getAzureClient() throws AzureExecutionException {
+		if (azure == null) {
+			try {
+				this.azure = mojo.getAzureClient();
+			} catch (AzureAuthFailureException e) {
+				throw new AzureExecutionException("Fail to authenticate from azure", e);
+			};
+		}
+		return azure;
 	}
 
 	@Override

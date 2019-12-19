@@ -22,7 +22,7 @@ public class ListHandler {
 	private static final String BINDINGS_FILE = "/bindings.json";
 	private static final String RESOURCES_FILE = "/resources.json";
 
-	public void execute() throws Exception {
+	public void execute() throws IOException {
 		Log.info(TEMPLATES_START);
 		printToSystemOut(TEMPLATES_FILE);
 		Log.info(TEMPLATES_END);

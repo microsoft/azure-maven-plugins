@@ -6,24 +6,7 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.appservice.DeployTargetType;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.zeroturnaround.zip.ZipException;
-
-import java.io.File;
-import java.io.IOException;
-
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -31,6 +14,21 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.zeroturnaround.zip.ZipException;
+
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.maven.appservice.DeployTargetType;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ZIPArtifactHandlerImplTest {
