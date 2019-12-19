@@ -117,7 +117,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             }
 
 
-            if (resources == null || resources.size() < 1) {
+            if (this.getResources() == null || this.getResources().isEmpty()) {
                 Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
                 return;
             }
@@ -132,7 +132,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     protected void copyArtifactsToStagingDirectory() throws IOException, AzureExecutionException {
         MavenUtility.prepareResources(this.getProject(), this.getSession(), this.getMavenResourcesFiltering(),
-        		this.resources, getDeploymentStagingDirectoryPath());
+        		this.getResources(), getDeploymentStagingDirectoryPath());
         MavenUtility.assureStagingDirectoryNotEmpty(getDeploymentStagingDirectoryPath());
     }
 

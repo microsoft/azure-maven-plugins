@@ -17,6 +17,7 @@ public enum SchemaVersion {
     V2;
 
     public static final String UNKNOWN_SCHEMA_VERSION = "Unknown value of <schemaVersion> in pom.xml.";
+    public static final String V1_SCHEMA_DEPRECATED = "Please use 'v2' in <schemaVersion> in pom.xml.";
 
     public static SchemaVersion fromString(final String input) throws AzureExecutionException {
         final String schemaVersion = StringUtils.isEmpty(input) ? "v1" : input;

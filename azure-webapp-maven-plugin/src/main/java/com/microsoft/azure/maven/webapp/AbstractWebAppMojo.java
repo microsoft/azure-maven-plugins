@@ -6,29 +6,6 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.appservice.DockerImageType;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
-import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.configuration.Deployment;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
-import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
-import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
-import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
-import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
-import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.model.Resource;
-import org.apache.maven.plugins.annotations.Parameter;
-
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -37,6 +14,25 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Resource;
+import org.apache.maven.plugins.annotations.Parameter;
+
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.maven.AbstractAppServiceMojo;
+import com.microsoft.azure.maven.appservice.DockerImageType;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
+import com.microsoft.azure.maven.webapp.configuration.Deployment;
+import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
+import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
+import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
+import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 
 /**
  * Base abstract class for Web App Mojos.
@@ -74,73 +70,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected String pricingTier;
 
     /**
-     * JVM version of Web App. This only applies to Windows-based Web App.<br/>
-     * Below is the list of supported JVM versions:
-     * <ul>
-     *     <li>1.7</li>
-     *     <li>1.7.0_51</li>
-     *     <li>1.7.0_71</li>
-     *     <li>1.8</li>
-     *     <li>1.8.0_25</li>
-     *     <li>1.8.0_60</li>
-     *     <li>1.8.0_73</li>
-     *     <li>1.8.0_111</li>
-     *     <li>1.8.0_92</li>
-     *     <li>1.8.0_102</li>
-     * </ul>
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.javaVersion")
-    protected String javaVersion;
-
-    /**
-     * Web container type and version within Web App. This only applies to Windows-based Web App.<br/>
-     * Below is the list of supported web container types:
-     * <ul>
-     *     <li>tomcat 7.0</li>
-     *     <li>tomcat 7.0.50</li>
-     *     <li>tomcat 7.0.62</li>
-     *     <li>tomcat 8.0</li>
-     *     <li>tomcat 8.0.23</li>
-     *     <li>tomcat 8.5</li>
-     *     <li>tomcat 8.5.6</li>
-     *     <li>jetty 9.1</li>
-     *     <li>jetty 9.1.0.20131115</li>
-     *     <li>jetty 9.3</li>
-     *     <li>jetty 9.3.12.20161014</li>
-     * </ul>
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.javaWebContainer", defaultValue = "tomcat 8.5")
-    protected String javaWebContainer;
-
-    /**
-     * Below is the list of supported Linux runtime:
-     * <ul>
-     *     <li>tomcat 8.5-jre8</li>
-     *     <li>tomcat 9.0-jre8</li>
-     *     <li>jre8</li>
-     * </ul>
-     */
-    @Parameter(property = "webapp.linuxRuntime")
-    protected String linuxRuntime;
-
-    /**
-     * Settings of docker container image within Web App. This only applies to Linux-based Web App.<br/>
-     * Below are the supported sub-element within {@code <containerSettings>}:<br/>
-     * {@code <imageName>} specifies docker image name to use in Web App on Linux<br/>
-     * {@code <serverId>} specifies credentials to access docker image. Use it when you are using private Docker Hub
-     * image or private registry.<br/>
-     * {@code <registryUrl>} specifies your docker image registry URL. Use it when you are using private registry.
-     *
-     * @since 0.1.0
-     */
-    @Parameter
-    protected ContainerSetting containerSettings;
-
-    /**
      * Flag to control whether stop Web App during deployment.
      *
      * @since 0.1.4
@@ -149,38 +78,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected boolean stopAppDuringDeployment;
 
     /**
-     * Resources to deploy to Web App.
-     *
-     * @since 0.1.0
-     */
-    @Parameter(property = "webapp.resources")
-    protected List<Resource> resources;
-
-    /**
      * Skip execution.
      *
      * @since 0.1.4
      */
     @Parameter(property = "webapp.skip", defaultValue = "false")
     protected boolean skip;
-
-    /**
-     * Location of the war file which is going to be deployed. If this field is not defined,
-     * plugin will find the war file with the final name in the build directory.
-     *
-     * @since 1.1.0
-     */
-    @Parameter(property = "webapp.warFile")
-    protected String warFile;
-
-    /**
-     * Location of the jar file which is going to be deployed. If this field is not defined,
-     * plugin will find the jar file with the final name in the build directory.
-     *
-     * @since 1.3.0
-     */
-    @Parameter(property = "webapp.jarFile")
-    protected String jarFile;
 
     /**
      * The context path for the deployment.
@@ -209,7 +112,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 2.0.0
      */
-    @Parameter(property = "schemaVersion", defaultValue = "v1")
+    @Parameter(property = "schemaVersion", defaultValue = "v2")
     protected String schemaVersion;
 
     /**
@@ -273,23 +176,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return this.pricingTier;
     }
 
-    public String getJavaVersion() {
-        return this.javaVersion;
-    }
-
-    public String getLinuxRuntime() {
-        return linuxRuntime;
-    }
-
-    public WebContainer getJavaWebContainer() {
-        return StringUtils.isEmpty(javaWebContainer) ?
-            WebContainer.TOMCAT_8_5_NEWEST :
-            WebContainer.fromString(javaWebContainer);
-    }
-
-    public ContainerSetting getContainerSettings() {
-        return containerSettings;
-    }
 
     public boolean isStopAppDuringDeployment() {
         return stopAppDuringDeployment;
@@ -297,19 +183,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     @Override
     public List<Resource> getResources() {
-        return resources == null ? Collections.EMPTY_LIST : resources;
-    }
-
-    public String getWarFile() {
-        return warFile;
-    }
-
-    public String getJarFile() {
-        return jarFile;
-    }
-
-    public String getPath() {
-        return path;
+        return this.deployment == null ? Collections.EMPTY_LIST : this.deployment.getResources();
     }
 
     public WebApp getWebApp() throws AzureAuthFailureException {
@@ -361,7 +235,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
         switch (version.toLowerCase(Locale.ENGLISH)) {
             case "v1":
-                return new V1ConfigurationParser(this, new V1ConfigurationValidator(this));
+            	throw new AzureExecutionException(SchemaVersion.V1_SCHEMA_DEPRECATED);
             case "v2":
                 return new V2ConfigurationParser(this, new V2ConfigurationValidator(this));
             default:

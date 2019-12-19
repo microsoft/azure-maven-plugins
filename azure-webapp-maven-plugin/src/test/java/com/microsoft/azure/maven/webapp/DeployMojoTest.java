@@ -135,12 +135,6 @@ public class DeployMojoTest {
 
         assertEquals(null, mojo.getPricingTier());
 
-        assertEquals(null, mojo.getJavaVersion());
-
-        assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getJavaWebContainer());
-
-        assertFalse(mojo.getContainerSettings().isEmpty());
-
         assertEquals(1, mojo.getAppSettings().size());
 
         assertEquals(DeploymentType.EMPTY, mojo.getDeploymentType());
@@ -160,9 +154,9 @@ public class DeployMojoTest {
     public void getConfigurationForWindows() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-windows.xml");
 
-        assertEquals(JavaVersion.JAVA_8_NEWEST, JavaVersion.fromString(mojo.getJavaVersion()));
+        assertEquals(JavaVersion.JAVA_8_NEWEST, mojo.getRuntime().getJavaVersion());
 
-        assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getJavaWebContainer());
+        assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getRuntime().getWebContainer());
 
         assertEquals(PricingTier.STANDARD_S2, AppServiceUtils.getPricingTierFromString(mojo.getPricingTier()));
     }
@@ -277,16 +271,5 @@ public class DeployMojoTest {
         final DeployMojo mojo = (DeployMojo) rule.lookupMojo("deploy", pom);
         assertNotNull(mojo);
         return mojo;
-    }
-
-    private List<Resource> getResourceList() {
-        final Resource resource = new Resource();
-        resource.setDirectory("/");
-        resource.setTargetPath("/");
-
-        final List<Resource> resources = new ArrayList<>();
-        resources.add(resource);
-
-        return resources;
     }
 }

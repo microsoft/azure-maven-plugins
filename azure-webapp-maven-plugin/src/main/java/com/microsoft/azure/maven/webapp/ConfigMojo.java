@@ -348,9 +348,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return result;
     }
 
-    private String getDefaultValue(String defaultValue, String fallBack) {
-        return StringUtils.isNotEmpty(defaultValue) ? defaultValue : fallBack;
-    }
 
     private String getDefaultValue(String defaultValue, String fallBack, String pattern) {
         return StringUtils.isNotEmpty(defaultValue) && defaultValue.matches(pattern) ? defaultValue : fallBack;

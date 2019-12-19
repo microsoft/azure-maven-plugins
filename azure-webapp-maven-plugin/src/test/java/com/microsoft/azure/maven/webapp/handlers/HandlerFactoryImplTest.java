@@ -141,24 +141,4 @@ public class HandlerFactoryImplTest {
         assertNotNull(handler);
         assertTrue(handler instanceof DeploymentSlotHandler);
     }
-
-    @Test
-    public void getArtifactHandlerFromPackaging() throws AzureExecutionException {
-        final MavenProject project = mock(MavenProject.class);
-        doReturn(project).when(mojo).getProject();
-        doReturn("jar").when(project).getPackaging();
-
-        final HandlerFactoryImpl factory = new HandlerFactoryImpl();
-
-        assertTrue(factory.getArtifactHandlerBuilderFromPackaging(mojo).build() instanceof JarArtifactHandlerImpl);
-    }
-
-    @Test(expected = AzureExecutionException.class)
-    public void getArtifactHandlerFromPackagingThrowException() throws AzureExecutionException {
-        final MavenProject project = mock(MavenProject.class);
-        doReturn(project).when(mojo).getProject();
-        doReturn("unknown").when(project).getPackaging();
-        final HandlerFactoryImpl factory = new HandlerFactoryImpl();
-        factory.getArtifactHandlerBuilderFromPackaging(mojo);
-    }
 }
