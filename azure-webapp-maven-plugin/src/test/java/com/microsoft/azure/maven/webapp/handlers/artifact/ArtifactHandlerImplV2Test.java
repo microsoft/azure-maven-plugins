@@ -94,10 +94,11 @@ public class ArtifactHandlerImplV2Test {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         doNothing().when(handlerSpy).publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
-
+        doNothing().when(handlerSpy).deployExternalResources(target);
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
+        verify(handlerSpy, times(1)).deployExternalResources(target);
         verify(handlerSpy, times(1)).copyArtifactsToStagingDirectory();
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
         verify(handlerSpy, times(1))
@@ -129,9 +130,11 @@ public class ArtifactHandlerImplV2Test {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         doNothing().when(handlerSpy).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
+        doNothing().when(handlerSpy).deployExternalResources(target);
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
+        verify(handlerSpy, times(1)).deployExternalResources(target);
         verify(handlerSpy, times(1)).copyArtifactsToStagingDirectory();
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
         verify(handlerSpy, times(1)).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
@@ -215,6 +218,7 @@ public class ArtifactHandlerImplV2Test {
                 .log(mojo.getLog())
                 .project(mavenProject)
                 .runtime(runtimeSetting)
+                .resources(Collections.EMPTY_LIST)
                 .build();
         handlerSpy = spy(handler);
 
