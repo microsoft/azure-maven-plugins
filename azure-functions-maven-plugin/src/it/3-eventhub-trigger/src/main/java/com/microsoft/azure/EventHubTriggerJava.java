@@ -13,7 +13,7 @@ public class EventHubTriggerJava {
     @FunctionName("EventHubTriggerJava")
     public void run(
             @EventHubTrigger(name = "message", eventHubName = "trigger", connection = "CIEventHubConnection", consumerGroup = "$Default") String message,
-            @EventHubOutput(name = "result", eventHubName = "output", connection = "CIEventHubConnection" ) OutputBinding<String> result,
+            @EventHubOutput(name = "result", eventHubName = "output", connection = "CIEventHubConnection") OutputBinding<String> result,
             final ExecutionContext context
     ) {
         if(message.contains("CIInput")){

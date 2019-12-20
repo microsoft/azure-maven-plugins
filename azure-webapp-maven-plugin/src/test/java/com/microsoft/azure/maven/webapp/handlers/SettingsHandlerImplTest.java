@@ -34,7 +34,7 @@ public class SettingsHandlerImplTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        doReturn(new HashMap() {
+        doReturn(new HashMap<String, String>() {
             {
                 put("Key", "Value");
             }
