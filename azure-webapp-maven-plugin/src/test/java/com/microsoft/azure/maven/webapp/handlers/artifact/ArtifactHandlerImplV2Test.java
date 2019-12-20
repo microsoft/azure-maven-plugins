@@ -98,6 +98,7 @@ public class ArtifactHandlerImplV2Test {
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
+        verify(handlerSpy, times(1)).processResources();
         verify(handlerSpy, times(1)).deployExternalResources(target);
         verify(handlerSpy, times(1)).copyArtifactsToStagingDirectory();
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
@@ -134,6 +135,7 @@ public class ArtifactHandlerImplV2Test {
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
+        verify(handlerSpy, times(1)).processResources();
         verify(handlerSpy, times(1)).deployExternalResources(target);
         verify(handlerSpy, times(1)).copyArtifactsToStagingDirectory();
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);

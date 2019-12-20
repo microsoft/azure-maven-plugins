@@ -83,8 +83,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     protected ArtifactHandlerImplV2(final ArtifactHandlerImplV2.Builder builder) {
         super(builder);
         this.runtimeSetting = builder.getRuntimeSetting();
-
-        processResources();
     }
 
     @Override
@@ -93,6 +91,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
             return;
         }
+        processResources();
         deployExternalResources(target);
         copyArtifactsToStagingDirectory();
         final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
