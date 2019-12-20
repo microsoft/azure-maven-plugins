@@ -7,9 +7,18 @@
 package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Resource;
+import org.apache.maven.shared.utils.io.DirectoryScanner;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Utils {
 
@@ -23,6 +32,25 @@ public class Utils {
         } catch (IOException e) {
             throw new AzureExecutionException(String.format(CREATE_TEMP_FILE_FAIL, prefix, suffix), e.getCause());
         }
+    }
+
+    // Todo: Move this method to common for duplicated with Utils in spring maven plugin
+    public static List<File> getArtifacts(Resource resource) {
+        final List<File> result = new ArrayList<>();
+        final DirectoryScanner directoryScanner = new DirectoryScanner();
+        if (resource.getIncludes() != null && !resource.getIncludes().isEmpty()) {
+            directoryScanner.setBasedir(resource.getDirectory());
+            directoryScanner.setIncludes(resource.getIncludes().toArray(new String[0]));
+            final String[] exclude = resource.getExcludes() == null ? new String[0] :
+                    resource.getExcludes().toArray(new String[0]);
+            directoryScanner.setExcludes(exclude);
+            directoryScanner.scan();
+            final List<File> resourceFiles = Arrays.stream(directoryScanner.getIncludedFiles())
+                    .map(path -> new File(resource.getDirectory(), path))
+                    .collect(Collectors.toList());
+            result.addAll(resourceFiles);
+        }
+        return result;
     }
 
     private Utils(){
