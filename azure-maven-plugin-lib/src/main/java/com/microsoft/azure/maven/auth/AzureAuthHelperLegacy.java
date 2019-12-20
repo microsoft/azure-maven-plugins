@@ -12,6 +12,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureCliCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
@@ -19,9 +20,9 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.rest.LogLevel;
+
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 
@@ -36,6 +37,8 @@ import java.util.Locale;
 import java.util.Scanner;
 
 import static com.microsoft.azure.maven.Utils.assureServerExist;
+
+
 
 /**
  * Helper class to authenticate with Azure
@@ -106,17 +109,13 @@ public class AzureAuthHelperLegacy {
                     auth.withDefaultSubscription() :
                     auth.withSubscription(subscriptionId);
         } catch (Exception e) {
-            getLog().debug(e);
+            Log.debug(e.getMessage());
         }
         return null;
     }
 
-    private Log getLog() {
-        return config.getLog();
-    }
-
     protected LogLevel getLogLevel() {
-        return getLog().isDebugEnabled() ?
+        return Log.isDebugEnabled() ?
                 LogLevel.BODY_AND_HEADERS :
                 LogLevel.NONE;
     }
@@ -173,7 +172,7 @@ public class AzureAuthHelperLegacy {
      */
     protected Authenticated getAuthObjFromServerId(final Settings settings, final String serverId) {
         if (StringUtils.isEmpty(serverId)) {
-            getLog().debug(SERVER_ID_NOT_CONFIG);
+            Log.debug(SERVER_ID_NOT_CONFIG);
             return null;
         }
 
@@ -181,19 +180,19 @@ public class AzureAuthHelperLegacy {
         try {
             assureServerExist(server, serverId);
         } catch (AzureExecutionException ex) {
-            getLog().error(ex.getMessage());
+            Log.error(ex);
             return null;
         }
 
         final ApplicationTokenCredentials credential = getAppTokenCredentialsFromServer(server);
         if (credential == null) {
-            getLog().error(AZURE_AUTH_INVALID + serverId);
+            Log.error(AZURE_AUTH_INVALID + serverId);
             return null;
         }
 
         final Authenticated auth = azureConfigure().authenticate(credential);
         if (auth != null) {
-            getLog().info(AUTH_WITH_SERVER_ID + serverId);
+            Log.info(AUTH_WITH_SERVER_ID + serverId);
         }
         return auth;
     }
@@ -206,24 +205,24 @@ public class AzureAuthHelperLegacy {
      */
     protected Authenticated getAuthObjFromFile(final File authFile) {
         if (authFile == null) {
-            getLog().debug(AUTH_FILE_NOT_CONFIG);
+            Log.debug(AUTH_FILE_NOT_CONFIG);
             return null;
         }
 
         if (!authFile.exists()) {
-            getLog().error(AUTH_FILE_NOT_EXIST + authFile.getAbsolutePath());
+            Log.error(AUTH_FILE_NOT_EXIST + authFile.getAbsolutePath());
             return null;
         }
 
         try {
             final Authenticated auth = azureConfigure().authenticate(authFile);
             if (auth != null) {
-                getLog().info(AUTH_WITH_FILE + authFile.getAbsolutePath());
+                Log.info(AUTH_WITH_FILE + authFile.getAbsolutePath());
             }
             return auth;
         } catch (Exception e) {
-            getLog().error(AUTH_FILE_READ_FAIL + authFile.getAbsolutePath());
-            getLog().error(e);
+            Log.error(AUTH_FILE_READ_FAIL + authFile.getAbsolutePath());
+            Log.error(e);
         }
         return null;
     }
@@ -241,10 +240,10 @@ public class AzureAuthHelperLegacy {
             final Azure.Configurable azureConfigurable = azureConfigure();
             final Authenticated auth;
             if (isInCloudShell()) {
-                getLog().info(AUTH_WITH_MSI);
+                Log.info(AUTH_WITH_MSI);
                 auth = azureConfigurable.authenticate(new MSICredentials());
             } else {
-                getLog().info(AUTH_WITH_AZURE_CLI);
+                Log.info(AUTH_WITH_AZURE_CLI);
                 final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create();
                 if (azureCliCredentials.clientId() != null) {
                     return azureConfigurable.authenticate(azureCliCredentials);
@@ -257,8 +256,8 @@ public class AzureAuthHelperLegacy {
             }
             return auth;
         } catch (Exception e) {
-            getLog().debug(AZURE_CLI_AUTH_FAIL);
-            getLog().debug(e);
+            Log.debug(AZURE_CLI_AUTH_FAIL);
+            Log.debug(e.getMessage());
         }
         return null;
     }
@@ -275,12 +274,12 @@ public class AzureAuthHelperLegacy {
         final String servicePrincipalName = subscription == null ? null : subscription.get("user")
                 .getAsJsonObject().get("name").getAsString();
         if (servicePrincipalName == null) {
-            getLog().error(AZURE_CLI_GET_SUBSCRIPTION_FAIL);
+            Log.error(AZURE_CLI_GET_SUBSCRIPTION_FAIL);
             return null;
         }
         final JsonArray tokens = getAzureCliTokenList();
         if (tokens == null) {
-            getLog().error(AZURE_CLI_LOAD_TOKEN_FAIL);
+            Log.error(AZURE_CLI_LOAD_TOKEN_FAIL);
             return null;
         }
         for (final JsonElement token : tokens) {
@@ -308,31 +307,31 @@ public class AzureAuthHelperLegacy {
 
         final String clientId = Utils.getValueFromServerConfiguration(server, CLIENT_ID);
         if (StringUtils.isEmpty(clientId)) {
-            getLog().debug(CLIENT_ID_NOT_CONFIG);
+            Log.debug(CLIENT_ID_NOT_CONFIG);
             return null;
         }
 
         final String tenantId = Utils.getValueFromServerConfiguration(server, TENANT_ID);
         if (StringUtils.isEmpty(tenantId)) {
-            getLog().debug(TENANT_ID_NOT_CONFIG);
+            Log.debug(TENANT_ID_NOT_CONFIG);
             return null;
         }
 
         final String environment = Utils.getValueFromServerConfiguration(server, ENVIRONMENT);
         final AzureEnvironment azureEnvironment = getAzureEnvironment(environment);
-        getLog().debug("Azure Management Endpoint: " + azureEnvironment.managementEndpoint());
+        Log.debug("Azure Management Endpoint: " + azureEnvironment.managementEndpoint());
 
         final String key = Utils.getValueFromServerConfiguration(server, KEY);
         if (!StringUtils.isEmpty(key)) {
-            getLog().debug(USE_KEY_TO_AUTH);
+            Log.debug(USE_KEY_TO_AUTH);
             return new ApplicationTokenCredentials(clientId, tenantId, key, azureEnvironment);
         } else {
-            getLog().debug(KEY_NOT_CONFIG);
+            Log.debug(KEY_NOT_CONFIG);
         }
 
         final String certificate = Utils.getValueFromServerConfiguration(server, CERTIFICATE);
         if (StringUtils.isEmpty(certificate)) {
-            getLog().debug(CERTIFICATE_FILE_NOT_CONFIG);
+            Log.debug(CERTIFICATE_FILE_NOT_CONFIG);
             return null;
         }
 
@@ -340,10 +339,10 @@ public class AzureAuthHelperLegacy {
         try {
             final byte[] cert;
             cert = Files.readAllBytes(Paths.get(certificate, new String[0]));
-            getLog().debug(USE_CERTIFICATE_TO_AUTH + certificate);
+            Log.debug(USE_CERTIFICATE_TO_AUTH + certificate);
             return new ApplicationTokenCredentials(clientId, tenantId, cert, certificatePassword, azureEnvironment);
         } catch (Exception e) {
-            getLog().debug(CERTIFICATE_FILE_READ_FAIL + certificate);
+            Log.debug(CERTIFICATE_FILE_READ_FAIL + certificate);
         }
 
         return null;

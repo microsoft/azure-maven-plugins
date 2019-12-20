@@ -9,11 +9,9 @@ package com.microsoft.azure.maven;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -30,15 +28,12 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FTPUploaderTest {
-    @Mock
-    Log log;
-
     private FTPUploader ftpUploader = null;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        ftpUploader = new FTPUploader(log);
+        ftpUploader = new FTPUploader();
     }
 
     @Test
@@ -47,12 +42,10 @@ public class FTPUploaderTest {
 
         // Failure
         AzureExecutionException exception = null;
-        doReturn(false)
-                .when(uploaderSpy)
-                .uploadDirectory(anyString(), anyString(), anyString(), anyString(), anyString());
+        doReturn(false).when(uploaderSpy).uploadDirectory(anyString(), anyString(), anyString(), anyString(),
+                anyString());
         try {
-            uploaderSpy.uploadDirectoryWithRetries("ftpServer", "username", "password",
-                    "sourceDir", "targetDir", 1);
+            uploaderSpy.uploadDirectoryWithRetries("ftpServer", "username", "password", "sourceDir", "targetDir", 1);
         } catch (AzureExecutionException e) {
             exception = e;
         } finally {
@@ -60,11 +53,9 @@ public class FTPUploaderTest {
         }
 
         // Success
-        doReturn(true)
-                .when(uploaderSpy)
-                .uploadDirectory(anyString(), anyString(), anyString(), anyString(), anyString());
-        uploaderSpy.uploadDirectoryWithRetries("ftpServer", "username", "password",
-                "sourceDir", "targetDir", 1);
+        doReturn(true).when(uploaderSpy).uploadDirectory(anyString(), anyString(), anyString(), anyString(),
+                anyString());
+        uploaderSpy.uploadDirectoryWithRetries("ftpServer", "username", "password", "sourceDir", "targetDir", 1);
     }
 
     @Test

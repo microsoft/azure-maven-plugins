@@ -6,13 +6,10 @@
 
 package com.microsoft.azure.maven.auth;
 
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
 
 public interface AuthConfiguration {
     Settings getSettings();
-
-    Log getLog();
 
     String getSubscriptionId();
 

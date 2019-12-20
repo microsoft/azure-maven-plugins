@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
@@ -85,11 +86,11 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
 
-        info(DEPLOY_START);
+        Log.info(DEPLOY_START);
 
         getArtifactHandler().publish(deployTarget);
 
-        info(String.format(DEPLOY_FINISH, getAppName()));
+        Log.info(String.format(DEPLOY_FINISH, getAppName()));
     }
 
     //endregion
@@ -106,16 +107,16 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected void createFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
-        info(FUNCTION_APP_CREATE_START);
+        Log.info(FUNCTION_APP_CREATE_START);
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
         configureAppSettings(withCreate::withAppSettings, getAppSettingsWithDefaultValue());
         withCreate.withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
-        info(String.format(FUNCTION_APP_CREATED, getAppName()));
+        Log.info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
 
     protected void updateFunctionApp(final FunctionApp app) throws AzureAuthFailureException, AzureExecutionException {
-        info(FUNCTION_APP_UPDATE);
+        Log.info(FUNCTION_APP_UPDATE);
         // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
         app.inner().withTags(null);
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
@@ -124,18 +125,18 @@ public class DeployMojo extends AbstractFunctionMojo {
         checkHostJavaVersion(app, update); // Check Java Version of Server
         configureAppSettings(update::withAppSettings, getAppSettingsWithDefaultValue());
         update.apply();
-        info(FUNCTION_APP_UPDATE_DONE + getAppName());
+        Log.info(FUNCTION_APP_UPDATE_DONE + getAppName());
     }
 
     protected void checkHostJavaVersion(final FunctionApp app, final Update update) {
         final JavaVersion serverJavaVersion = app.javaVersion();
         if (serverJavaVersion.toString().matches(VALID_JAVA_VERSION_PATTERN)) {
-            info(String.format(HOST_JAVA_VERSION, serverJavaVersion));
+            Log.info(String.format(HOST_JAVA_VERSION, serverJavaVersion));
         } else if (serverJavaVersion.equals(JavaVersion.OFF)) {
-            info(HOST_JAVA_VERSION_OFF);
+            Log.info(HOST_JAVA_VERSION_OFF);
             update.withJavaVersion(DEFAULT_JAVA_VERSION);
         } else {
-            warning(HOST_JAVA_VERSION_INCORRECT);
+            Log.warn(HOST_JAVA_VERSION_INCORRECT);
             update.withJavaVersion(DEFAULT_JAVA_VERSION);
         }
     }
@@ -178,7 +179,6 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .functionExtensionVersion(getFunctionExtensionVersion())
                 .azure(getAzureClient())
                 .mavenSettings(getSettings())
-                .log(getLog())
                 .build();
     }
 
@@ -220,7 +220,6 @@ public class DeployMojo extends AbstractFunctionMojo {
             .resources(this.getResources())
             .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
             .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
-            .log(this.getLog())
             .build();
     }
 

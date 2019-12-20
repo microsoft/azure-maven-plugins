@@ -7,11 +7,12 @@
 package com.microsoft.azure.maven.auth;
 
 import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.AbstractAzureMojo;
 import com.microsoft.rest.LogLevel;
-import org.apache.maven.plugin.logging.Log;
+
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -49,13 +50,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({System.class, AzureAuthHelperLegacy.class})
+@PrepareForTest({System.class, AzureAuthHelperLegacy.class, Log.class})
 public class AzureAuthHelperTest {
     @Mock
     AbstractAzureMojo mojo;
-
-    @Mock
-    Log log;
 
     @Mock
     Settings settings;
@@ -96,8 +94,8 @@ public class AzureAuthHelperTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(mojo.getLog()).thenReturn(log);
-        when(log.isDebugEnabled()).thenReturn(false);
+        PowerMockito.mockStatic(Log.class);
+        when(Log.isDebugEnabled()).thenReturn(false);
     }
 
     @Test
@@ -159,10 +157,10 @@ public class AzureAuthHelperTest {
     public void testGetLogLevel() {
         final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
 
-        when(log.isDebugEnabled()).thenReturn(false);
+        when(Log.isDebugEnabled()).thenReturn(false);
         assertSame(LogLevel.NONE, helper.getLogLevel());
 
-        when(log.isDebugEnabled()).thenReturn(true);
+        when(Log.isDebugEnabled()).thenReturn(true);
         assertSame(LogLevel.BODY_AND_HEADERS, helper.getLogLevel());
     }
 

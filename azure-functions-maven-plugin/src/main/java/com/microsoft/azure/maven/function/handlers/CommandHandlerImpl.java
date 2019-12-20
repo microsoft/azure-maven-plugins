@@ -6,11 +6,11 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,12 +21,6 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 public class CommandHandlerImpl implements CommandHandler {
-
-    private Log logger;
-
-    public CommandHandlerImpl(final Log logger) {
-        this.logger = logger;
-    }
 
     @Override
     public void runCommandWithReturnCodeCheck(final String command,
@@ -63,7 +57,7 @@ public class CommandHandlerImpl implements CommandHandler {
     protected Process runCommand(final String command,
                                  final boolean showStdout,
                                  final String workingDirectory) throws Exception {
-        this.logger.debug("Executing command: " + StringUtils.join(command, " "));
+        Log.debug("Executing command: " + StringUtils.join(command, " "));
 
         final ProcessBuilder.Redirect redirect = getStdoutRedirect(showStdout);
         final ProcessBuilder processBuilder = new ProcessBuilder(buildCommand(command))
@@ -95,11 +89,11 @@ public class CommandHandlerImpl implements CommandHandler {
                                    final List<Long> validReturnCodes,
                                    final String errorMessage,
                                    final InputStream inputStream) throws Exception {
-        this.logger.debug("Process exit value: " + exitValue);
+        Log.debug("Process exit value: " + exitValue);
         if (!validReturnCodes.contains(Integer.toUnsignedLong(exitValue))) {
             // input stream is a merge of standard output and standard error of the sub-process
             showErrorIfAny(inputStream);
-            this.logger.error(errorMessage);
+            Log.error(errorMessage);
             throw new Exception(errorMessage);
         }
     }
@@ -107,7 +101,7 @@ public class CommandHandlerImpl implements CommandHandler {
     protected void showErrorIfAny(final InputStream inputStream) throws Exception {
         if (inputStream != null) {
             final String input = IOUtils.toString(inputStream, "utf8");
-            this.logger.error(StringUtils.strip(input, "\n"));
+            Log.error(StringUtils.strip(input, "\n"));
         }
     }
 }

@@ -203,12 +203,4 @@ public class AbstractAzureMojoTest {
         ReflectionUtils.setVariableValueInObject(mojo, "authentication", null);
         assertEquals("AzureCLI", mojo.getAuthType());
     }
-
-    @Test
-    public void logging() throws Exception {
-        mojo.debug("debug message");
-        mojo.info("info message");
-        mojo.warning("warning message");
-        mojo.error("error message");
-    }
 }

@@ -9,11 +9,12 @@ package com.microsoft.azure.maven.handlers.artifact;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -32,7 +33,6 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
     protected List<Resource> resources;
     protected String stagingDirectoryPath;
     protected String buildDirectoryAbsolutePath;
-    protected Log log;
 
     public abstract static class Builder<T extends Builder<T>> {
         private MavenProject project;
@@ -41,7 +41,6 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
         private List<Resource> resources;
         private String stagingDirectoryPath;
         private String buildDirectoryAbsolutePath;
-        private Log log;
 
         protected abstract T self();
 
@@ -77,10 +76,6 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
             return self();
         }
 
-        public T log(final Log value) {
-            this.log = value;
-            return self();
-        }
     }
 
     protected ArtifactHandlerBase(Builder<?> builder) {
@@ -90,7 +85,6 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
         this.resources = builder.resources;
         this.stagingDirectoryPath = builder.stagingDirectoryPath;
         this.buildDirectoryAbsolutePath = builder.buildDirectoryAbsolutePath;
-        this.log = builder.log;
     }
 
     protected void assureStagingDirectoryNotEmpty() throws AzureExecutionException {

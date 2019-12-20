@@ -7,9 +7,11 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.function.handlers.CommandHandler;
 import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -58,7 +60,7 @@ public class RunMojo extends AbstractFunctionMojo {
 
     @Override
     protected void doExecute() throws Exception {
-        final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
+        final CommandHandler commandHandler = new CommandHandlerImpl();
 
         checkStageDirectoryExistence();
 
@@ -72,7 +74,7 @@ public class RunMojo extends AbstractFunctionMojo {
         if (!file.exists() || !file.isDirectory()) {
             throw new AzureExecutionException(STAGE_DIR_NOT_FOUND);
         }
-        info(STAGE_DIR_FOUND + getDeploymentStagingDirectoryPath());
+        Log.info(STAGE_DIR_FOUND + getDeploymentStagingDirectoryPath());
     }
 
     protected void checkRuntimeExistence(final CommandHandler handler) throws Exception {
@@ -83,7 +85,7 @@ public class RunMojo extends AbstractFunctionMojo {
                 CommandUtils.getDefaultValidReturnCodes(),
                 RUNTIME_NOT_FOUND
         );
-        info(RUNTIME_FOUND);
+        Log.info(RUNTIME_FOUND);
     }
 
     protected void runFunctions(final CommandHandler handler) throws Exception {

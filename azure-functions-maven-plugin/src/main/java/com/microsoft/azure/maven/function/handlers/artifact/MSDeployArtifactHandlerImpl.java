@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers.artifact;
 
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
 import com.microsoft.azure.maven.function.Constants;
@@ -69,29 +70,11 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
         deployWithPackageUri(target, packageUri, () -> deletePackageFromAzureStorage(storageAccount, blobName));
     }
 
-    protected void logInfo(final String message) {
-        if (log != null) {
-            log.info(message);
-        }
-    }
-
-    protected void logDebug(final String message) {
-        if (log != null) {
-            log.debug(message);
-        }
-    }
-
-    protected void logError(final String message) {
-        if (log != null) {
-            log.error(message);
-        }
-    }
-
     protected File createZipPackage() throws Exception {
-        logInfo("");
-        logInfo(CREATE_ZIP_START);
+        Log.info("");
+        Log.info(CREATE_ZIP_START);
         final File zipPackage = FunctionArtifactHelper.createFunctionArtifact(stagingDirectoryPath);
-        logInfo(CREATE_ZIP_DONE + stagingDirectoryPath.concat(Constants.ZIP_EXT));
+        Log.info(CREATE_ZIP_DONE + stagingDirectoryPath.concat(Constants.ZIP_EXT));
         return zipPackage;
     }
 
@@ -103,19 +86,19 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
 
     protected String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
                                                  final String blobName) throws Exception {
-        logInfo(UPLOAD_PACKAGE_START);
+        Log.info(UPLOAD_PACKAGE_START);
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, blobName);
         final String packageUri = blob.getUri().toString();
-        logInfo(UPLOAD_PACKAGE_DONE + packageUri);
+        Log.info(UPLOAD_PACKAGE_DONE + packageUri);
         return packageUri;
     }
 
     protected void deployWithPackageUri(final DeployTarget target, final String packageUri, Runnable onDeployFinish) {
         try {
-            logInfo(DEPLOY_PACKAGE_START);
+            Log.info(DEPLOY_PACKAGE_START);
             target.msDeploy(packageUri, false);
-            logInfo(DEPLOY_PACKAGE_DONE);
+            Log.info(DEPLOY_PACKAGE_DONE);
         } finally {
             onDeployFinish.run();
         }
@@ -123,11 +106,11 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
 
     protected void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName) {
         try {
-            logInfo(DELETE_PACKAGE_START);
+            Log.info(DELETE_PACKAGE_START);
             AzureStorageHelper.deleteBlob(storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);
-            logInfo(DELETE_PACKAGE_DONE + blobName);
+            Log.info(DELETE_PACKAGE_DONE + blobName);
         } catch (Exception e) {
-            logError(DELETE_PACKAGE_FAIL + blobName);
+            Log.error(DELETE_PACKAGE_FAIL + blobName);
         }
     }
 }

@@ -16,7 +16,6 @@ import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
-import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +27,6 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -54,15 +52,12 @@ public class FTPArtifactHandlerImplTest {
     }
 
     private void buildHandler() {
-        handler = builder.stagingDirectoryPath((mojo.getDeploymentStagingDirectoryPath())).log(mojo.getLog()).build();
+        handler = builder.stagingDirectoryPath((mojo.getDeploymentStagingDirectoryPath())).build();
         handlerSpy = spy(handler);
     }
 
     @Test
     public void publishWebApp() throws IOException, AzureExecutionException {
-        final Log log = mock(Log.class);
-        doReturn(log).when(mojo).getLog();
-        doNothing().when(log).info(anyString());
         buildHandler();
 
         final WebApp app = mock(WebApp.class);
@@ -84,9 +79,6 @@ public class FTPArtifactHandlerImplTest {
 
     @Test
     public void publishWebAppDeploymentSlot() throws IOException, AzureExecutionException {
-        final Log log = mock(Log.class);
-        doReturn(log).when(mojo).getLog();
-        doNothing().when(log).info(anyString());
         buildHandler();
 
         final DeploymentSlot slot = mock(DeploymentSlot.class);
@@ -108,9 +100,6 @@ public class FTPArtifactHandlerImplTest {
 
     @Test
     public void publishFunctionApp() throws IOException, AzureExecutionException {
-        final Log log = mock(Log.class);
-        doReturn(log).when(mojo).getLog();
-        doNothing().when(log).info(anyString());
         buildHandler();
 
         final FunctionApp app = mock(FunctionApp.class);

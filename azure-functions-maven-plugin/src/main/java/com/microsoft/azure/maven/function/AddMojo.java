@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.function;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.function.template.BindingTemplate;
 import com.microsoft.azure.maven.function.template.BindingsTemplate;
 import com.microsoft.azure.maven.function.template.FunctionSettingTemplate;
@@ -21,6 +22,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.IOUtil;
 
 import javax.annotation.Nullable;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -167,23 +169,23 @@ public class AddMojo extends AbstractFunctionMojo {
                 .readValue(bindingsJsonStr, BindingsTemplate.class);
             return bindingsTemplate.getBindingTemplateByName(type);
         } catch (IOException e) {
-            warning(LOAD_BINDING_TEMPLATES_FAIL);
+            Log.warn(LOAD_BINDING_TEMPLATES_FAIL);
             // Add mojo could work without Binding Template, just return null if binding load fail
             return null;
         }
     }
 
     protected List<FunctionTemplate> loadAllFunctionTemplates() throws Exception {
-        info("");
-        info(LOAD_TEMPLATES);
+        Log.info("");
+        Log.info(LOAD_TEMPLATES);
 
         try (final InputStream is = AddMojo.class.getResourceAsStream("/templates.json")) {
             final String templatesJsonStr = IOUtil.toString(is);
             final List<FunctionTemplate> templates = parseTemplateJson(templatesJsonStr);
-            info(LOAD_TEMPLATES_DONE);
+            Log.info(LOAD_TEMPLATES_DONE);
             return templates;
         } catch (Exception e) {
-            error(LOAD_TEMPLATES_FAIL);
+            Log.error(LOAD_TEMPLATES_FAIL);
             throw e;
         }
     }
@@ -197,8 +199,8 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //region Get function template
     protected FunctionTemplate getFunctionTemplate(final List<FunctionTemplate> templates) throws Exception {
-        info("");
-        info(FIND_TEMPLATE);
+        Log.info("");
+        Log.info(FIND_TEMPLATE);
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionTemplate(),
@@ -224,13 +226,13 @@ public class AddMojo extends AbstractFunctionMojo {
 
     protected FunctionTemplate findTemplateByName(final List<FunctionTemplate> templates, final String templateName)
             throws Exception {
-        info("Selected function template: " + templateName);
+        Log.info("Selected function template: " + templateName);
         final Optional<FunctionTemplate> template = templates.stream()
             .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
             .findFirst();
 
         if (template.isPresent()) {
-            info(FIND_TEMPLATE_DONE + templateName);
+            Log.info(FIND_TEMPLATE_DONE + templateName);
             return template.get();
         }
 
@@ -244,8 +246,8 @@ public class AddMojo extends AbstractFunctionMojo {
     protected Map<String, String> prepareRequiredParameters(final FunctionTemplate template,
                                                             final BindingTemplate bindingTemplate)
         throws MojoFailureException {
-        info("");
-        info(PREPARE_PARAMS);
+        Log.info("");
+        Log.info(PREPARE_PARAMS);
 
         prepareFunctionName();
 
@@ -264,7 +266,7 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void prepareFunctionName() throws MojoFailureException {
-        info("Common parameter [Function Name]: name for both the new function and Java class");
+        Log.info("Common parameter [Function Name]: name for both the new function and Java class");
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionName(),
@@ -281,7 +283,7 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void preparePackageName() throws MojoFailureException {
-        info("Common parameter [Package Name]: package name of the new Java class");
+        Log.info("Common parameter [Package Name]: package name of the new Java class");
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionPackageName(),
@@ -309,7 +311,7 @@ public class AddMojo extends AbstractFunctionMojo {
             final String helpMessage = (settingTemplate != null && settingTemplate.getHelp() != null) ?
                 settingTemplate.getHelp() : "";
 
-            info(format("Trigger specific parameter [%s]:%s", property,
+            Log.info(format("Trigger specific parameter [%s]:%s", property,
                 TemplateResources.getResource(helpMessage)));
             if (settings != null && !settings.isInteractiveMode()) {
                 if (options != null && options.size() > 0) {
@@ -345,7 +347,7 @@ public class AddMojo extends AbstractFunctionMojo {
         final Function<String, Boolean> validator = getStringInputValidator(template);
 
         if (validator.apply(initValue)) {
-            info(FOUND_VALID_VALUE);
+            Log.info(FOUND_VALID_VALUE);
             return initValue;
         }
 
@@ -359,7 +361,7 @@ public class AddMojo extends AbstractFunctionMojo {
             } else if (StringUtils.isNotEmpty(defaultValue) && StringUtils.isEmpty(input)) {
                 return defaultValue;
             }
-            warning(getStringInputErrorMessage(template));
+            Log.warn(getStringInputErrorMessage(template));
         }
     }
 
@@ -384,10 +386,10 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void displayParameters(final Map<String, String> params) {
-        info("");
-        info("Summary of parameters for function template:");
+        Log.info("");
+        Log.info("Summary of parameters for function template:");
 
-        params.entrySet().stream().forEach(e -> info(format("%s: %s", e.getKey(), e.getValue())));
+        params.entrySet().stream().forEach(e -> Log.info(format("%s: %s", e.getKey(), e.getValue())));
     }
 
     //endregion
@@ -407,8 +409,8 @@ public class AddMojo extends AbstractFunctionMojo {
     //region Save function to file
 
     protected void saveNewFunctionToFile(final String newFunctionClass) throws Exception {
-        info("");
-        info(SAVE_FILE);
+        Log.info("");
+        Log.info(SAVE_FILE);
 
         final File packageDir = getPackageDir();
 
@@ -418,7 +420,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
         saveToTargetFile(targetFile, newFunctionClass);
 
-        info(SAVE_FILE_DONE + targetFile.getAbsolutePath());
+        Log.info(SAVE_FILE_DONE + targetFile.getAbsolutePath());
     }
 
     protected File getPackageDir() {
@@ -456,7 +458,7 @@ public class AddMojo extends AbstractFunctionMojo {
                                        final Consumer<String> setter) {
         final String option = findElementInOptions(options, initValue);
         if (option != null) {
-            info(FOUND_VALID_VALUE);
+            Log.info(FOUND_VALID_VALUE);
             setter.accept(option);
             return;
         }
@@ -486,7 +488,7 @@ public class AddMojo extends AbstractFunctionMojo {
                                        final Function<String, Boolean> validator, final String errorMessage,
                                        final Consumer<String> setter) {
         if (validator.apply(initValue)) {
-            info(FOUND_VALID_VALUE);
+            Log.info(FOUND_VALID_VALUE);
             setter.accept(initValue);
             return;
         }
@@ -505,7 +507,7 @@ public class AddMojo extends AbstractFunctionMojo {
             } catch (Exception ignored) {
             }
             // Reaching here means invalid input
-            warning(errorMessage);
+            Log.warn(errorMessage);
         }
     }
 
@@ -513,7 +515,7 @@ public class AddMojo extends AbstractFunctionMojo {
                                           final Consumer<String> setter, final boolean required)
             throws MojoFailureException {
         if (validator.apply(input)) {
-            info(FOUND_VALID_VALUE);
+            Log.info(FOUND_VALID_VALUE);
             setter.accept(input);
             return;
         }

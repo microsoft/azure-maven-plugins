@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.function.bindings.BindingEnum;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
@@ -24,6 +25,7 @@ import com.microsoft.azure.maven.function.handlers.CommandHandler;
 import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl;
+
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.Resource;
@@ -90,7 +92,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         final Set<Method> methods = findAnnotatedMethods(annotationHandler);
 
         if (methods.size() == 0) {
-            info(NO_FUNCTIONS);
+            Log.info(NO_FUNCTIONS);
             return;
         }
 
@@ -106,13 +108,13 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         copyJarsToStageDirectory();
 
-        final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
+        final CommandHandler commandHandler = new CommandHandlerImpl();
         final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
         final Set<BindingEnum> bindingClasses = this.getFunctionBindingEnums(configMap);
 
         installExtension(functionCoreToolsHandler, bindingClasses);
 
-        info(BUILD_SUCCESS);
+        Log.info(BUILD_SUCCESS);
     }
 
     //endregion
@@ -120,24 +122,24 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Process annotations
 
     protected AnnotationHandler getAnnotationHandler() {
-        return new AnnotationHandlerImpl(getLog());
+        return new AnnotationHandlerImpl();
     }
 
     protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws Exception {
-        info("");
-        info(SEARCH_FUNCTIONS);
+        Log.info("");
+        Log.info(SEARCH_FUNCTIONS);
         Set<Method> functions;
         try {
-            debug("ClassPath to resolve: " + getTargetClassUrl());
+            Log.debug("ClassPath to resolve: " + getTargetClassUrl());
             final List<URL> dependencyWithTargetClass = getDependencyArtifactUrls();
             dependencyWithTargetClass.add(getTargetClassUrl());
             functions = handler.findFunctions(dependencyWithTargetClass);
         } catch (NoClassDefFoundError e) {
             // fallback to reflect through artifact url, for shaded project(fat jar)
-            debug("ClassPath to resolve: " + getArtifactUrl());
+            Log.debug("ClassPath to resolve: " + getArtifactUrl());
             functions = handler.findFunctions(Arrays.asList(getArtifactUrl()));
         }
-        info(functions.size() + FOUND_FUNCTIONS);
+        Log.info(functions.size() + FOUND_FUNCTIONS);
         return functions;
     }
 
@@ -158,14 +160,14 @@ public class PackageMojo extends AbstractFunctionMojo {
         try {
             compileClasspathElements.addAll(this.getProject().getCompileClasspathElements());
         } catch (DependencyResolutionRequiredException e) {
-            debug("Failed to resolve dependencies for compile scope, exception: " + e.getMessage());
+            Log.debug("Failed to resolve dependencies for compile scope, exception: " + e.getMessage());
         }
         for (final String element : compileClasspathElements) {
             final File f = new File(element);
             try {
                 urlList.add(f.toURI().toURL());
             } catch (MalformedURLException e) {
-                debug("Failed to get URL for file: " + f.toString());
+                Log.debug("Failed to get URL for file: " + f.toString());
             }
         }
         return urlList;
@@ -177,15 +179,15 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected Map<String, FunctionConfiguration> getFunctionConfigurations(final AnnotationHandler handler,
                                                                            final Set<Method> methods) throws Exception {
-        info("");
-        info(GENERATE_CONFIG);
+        Log.info("");
+        Log.info(GENERATE_CONFIG);
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(methods);
         if (configMap.size() == 0) {
-            info(GENERATE_SKIP);
+            Log.info(GENERATE_SKIP);
         } else {
             final String scriptFilePath = getScriptFilePath();
             configMap.values().forEach(config -> config.setScriptFile(scriptFilePath));
-            info(GENERATE_DONE);
+            Log.info(GENERATE_DONE);
         }
 
         return configMap;
@@ -205,13 +207,13 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Validate function configurations
 
     protected void validateFunctionConfigurations(final Map<String, FunctionConfiguration> configMap) {
-        info("");
-        info(VALIDATE_CONFIG);
+        Log.info("");
+        Log.info(VALIDATE_CONFIG);
         if (configMap.size() == 0) {
-            info(VALIDATE_SKIP);
+            Log.info(VALIDATE_SKIP);
         } else {
             configMap.values().forEach(config -> config.validate());
-            info(VALIDATE_DONE);
+            Log.info(VALIDATE_DONE);
         }
     }
 
@@ -221,10 +223,10 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void writeFunctionJsonFiles(final ObjectWriter objectWriter,
                                           final Map<String, FunctionConfiguration> configMap) throws IOException {
-        info("");
-        info(SAVE_FUNCTION_JSONS);
+        Log.info("");
+        Log.info(SAVE_FUNCTION_JSONS);
         if (configMap.size() == 0) {
-            info(SAVE_SKIP);
+            Log.info(SAVE_SKIP);
         } else {
             for (final Map.Entry<String, FunctionConfiguration> config : configMap.entrySet()) {
                 writeFunctionJsonFile(objectWriter, config.getKey(), config.getValue());
@@ -234,19 +236,19 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void writeFunctionJsonFile(final ObjectWriter objectWriter, final String functionName,
                                          final FunctionConfiguration config) throws IOException {
-        info(SAVE_FUNCTION_JSON + functionName);
+        Log.info(SAVE_FUNCTION_JSON + functionName);
         final File functionJsonFile = Paths.get(getDeploymentStagingDirectoryPath(),
                 functionName, FUNCTION_JSON).toFile();
         writeObjectToFile(objectWriter, config, functionJsonFile);
-        info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
+        Log.info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
     }
 
     protected void writeEmptyHostJsonFile(final ObjectWriter objectWriter) throws IOException {
-        info("");
-        info(SAVE_HOST_JSON);
+        Log.info("");
+        Log.info(SAVE_HOST_JSON);
         final File hostJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
         writeObjectToFile(objectWriter, new Object(), hostJsonFile);
-        info(SAVE_SUCCESS + hostJsonFile.getAbsolutePath());
+        Log.info(SAVE_SUCCESS + hostJsonFile.getAbsolutePath());
     }
 
     protected void writeObjectToFile(final ObjectWriter objectWriter, final Object object, final File targetFile)
@@ -270,15 +272,15 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void copyJarsToStageDirectory() throws IOException {
         final String stagingDirectory = getDeploymentStagingDirectoryPath();
-        info("");
-        info(COPY_JARS + stagingDirectory);
+        Log.info("");
+        Log.info(COPY_JARS + stagingDirectory);
         Utils.copyResources(
                 getProject(),
                 getSession(),
                 getMavenResourcesFiltering(),
                 getResources(),
                 stagingDirectory);
-        info(COPY_SUCCESS);
+        Log.info(COPY_SUCCESS);
     }
 
     @Override
@@ -301,12 +303,12 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void installExtension(final FunctionCoreToolsHandler handler,
                                     Set<BindingEnum> bindingEnums) throws Exception {
-        info(INSTALL_EXTENSIONS);
+        Log.info(INSTALL_EXTENSIONS);
         if (!isInstallingExtensionNeeded(bindingEnums)) {
             return;
         }
         handler.installExtension();
-        info(INSTALL_EXTENSIONS_FINISH);
+        Log.info(INSTALL_EXTENSIONS_FINISH);
     }
 
     protected Set<BindingEnum> getFunctionBindingEnums(Map<String, FunctionConfiguration> configMap) {
@@ -321,13 +323,13 @@ public class PackageMojo extends AbstractFunctionMojo {
         final JsonObject extensionBundle = hostJson == null ? null : hostJson.getAsJsonObject(EXTENSION_BUNDLE);
         if (extensionBundle != null && extensionBundle.has("id") &&
                 StringUtils.equalsIgnoreCase(extensionBundle.get("id").getAsString(), EXTENSION_BUNDLE_ID)) {
-            getLog().info(SKIP_INSTALL_EXTENSIONS_BUNDLE);
+            Log.info(SKIP_INSTALL_EXTENSIONS_BUNDLE);
             return false;
         }
         final boolean isNonHttpTriggersExist = bindingTypes.stream().anyMatch(binding ->
                 !Arrays.asList(FUNCTION_WITHOUT_FUNCTION_EXTENSION).contains(binding));
         if (!isNonHttpTriggersExist) {
-            getLog().info(SKIP_INSTALL_EXTENSIONS_HTTP);
+            Log.info(SKIP_INSTALL_EXTENSIONS_HTTP);
             return false;
         }
         return true;
