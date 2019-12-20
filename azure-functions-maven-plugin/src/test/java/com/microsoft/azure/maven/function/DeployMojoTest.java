@@ -7,19 +7,13 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.appservice.AppServicePlans;
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
-import com.microsoft.azure.management.appservice.FunctionApps;
 import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.appservice.DeploymentType;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.maven.function.handlers.runtime.FunctionRuntimeHandler;
@@ -49,7 +43,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
@@ -145,17 +138,17 @@ public class DeployMojoTest extends MojoTestBase {
     @Test
     public void testDefaultAppSettings() throws Exception {
         final Map settings = mojo.getAppSettingsWithDefaultValue();
-        assertEquals("java", (String) settings.get("FUNCTIONS_WORKER_RUNTIME"));
-        assertEquals("~3", (String) settings.get("FUNCTIONS_EXTENSION_VERSION"));
+        assertEquals("java", settings.get("FUNCTIONS_WORKER_RUNTIME"));
+        assertEquals("~3", settings.get("FUNCTIONS_EXTENSION_VERSION"));
     }
 
     @Test
     public void testCustomAppSettings() throws Exception {
         final DeployMojo mojoWithSettings = (DeployMojo) getMojoFromPom("/pom-with-settings.xml", "deploy");
         final Map settings = mojoWithSettings.getAppSettingsWithDefaultValue();
-        assertEquals("bar", (String) settings.get("FOO"));
-        assertEquals("java", (String) settings.get("FUNCTIONS_WORKER_RUNTIME"));
-        assertEquals("beta", (String) settings.get("FUNCTIONS_EXTENSION_VERSION"));
+        assertEquals("bar", settings.get("FOO"));
+        assertEquals("java", settings.get("FUNCTIONS_WORKER_RUNTIME"));
+        assertEquals("beta", settings.get("FUNCTIONS_EXTENSION_VERSION"));
     }
 
     @Test
@@ -228,19 +221,5 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployMojo mojoFromPom = (DeployMojo) getMojoFromPom("/pom.xml", "deploy");
         assertNotNull(mojoFromPom);
         return mojoFromPom;
-    }
-
-    private void prepareFunctionAppCreation(Azure azure, AppServiceManager appServiceManager,
-                                            AppServicePlans appServicePlans, FunctionApps functionApps,
-                                            Blank blank) throws AzureAuthFailureException {
-        doNothing().when(mojoSpy).info(anyString());
-        doReturn(azure).when(mojoSpy).getAzureClient();
-        doReturn("resGrp").when(mojoSpy).getResourceGroup();
-        doReturn("").when(mojoSpy).getAppServicePlanResourceGroup();
-        doReturn("appServicePlanName").when(mojoSpy).getAppServicePlanName();
-        doReturn(appServiceManager).when(azure).appServices();
-        doReturn(appServicePlans).when(appServiceManager).appServicePlans();
-        doReturn(functionApps).when(appServiceManager).functionApps();
-        doReturn(blank).when(functionApps).define(anyString());
     }
 }
