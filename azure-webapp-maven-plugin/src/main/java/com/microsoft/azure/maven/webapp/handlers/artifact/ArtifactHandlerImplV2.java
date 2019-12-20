@@ -280,7 +280,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
                 FTP_ROOT.resolve(Paths.get(targetPath)).normalize().toString();
     }
 
-    protected static boolean isExternalResource(Resource resource) {
+    private static boolean isExternalResource(Resource resource) {
         Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
         return !target.startsWith(FTP_ROOT);
     }

@@ -38,7 +38,7 @@ public class Utils {
     public static List<File> getArtifacts(Resource resource) {
         final List<File> result = new ArrayList<>();
         final DirectoryScanner directoryScanner = new DirectoryScanner();
-        if (resource.getIncludes() != null && resource.getIncludes().size() > 0) {
+        if (resource.getIncludes() != null && !resource.getIncludes().isEmpty()) {
             directoryScanner.setBasedir(resource.getDirectory());
             directoryScanner.setIncludes(resource.getIncludes().toArray(new String[0]));
             final String[] exclude = resource.getExcludes() == null ? new String[0] :

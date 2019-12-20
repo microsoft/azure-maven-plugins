@@ -22,6 +22,7 @@ public class FTPUtils {
 
     public static final String REPLY_MESSAGE = "Reply Message : %s";
     public static final String FAILED_TO_UPLOAD_RESOURCE = "Failed to upload file: ";
+    public static final String UPLOADING_RESOURCE = "Uploading resource %s to %s";
 
     public static FTPClient getFTPClient(final String ftpServer, final String username, final String password)
             throws IOException {
@@ -35,7 +36,7 @@ public class FTPUtils {
 
     public static void uploadFile(final FTPClient ftpClient, final String sourceFilePath,
                                   final String targetFilePath, Log log) throws IOException {
-        log.info(String.format("Uploading resource %s to %s", sourceFilePath, targetFilePath));
+        log.info(String.format(UPLOADING_RESOURCE, sourceFilePath, targetFilePath));
         final File sourceFile = new File(sourceFilePath);
         changeDirectoryWithCreate(ftpClient, targetFilePath);
         try (final InputStream is = new FileInputStream(sourceFile)) {
