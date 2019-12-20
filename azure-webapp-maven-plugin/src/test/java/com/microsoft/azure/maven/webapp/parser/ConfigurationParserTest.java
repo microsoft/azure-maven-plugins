@@ -12,10 +12,11 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;

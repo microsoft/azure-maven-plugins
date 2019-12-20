@@ -123,8 +123,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 builder = new ZIPArtifactHandlerImpl.Builder();
                 break;
             case JAR:
-                builder = new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile())
-                    .linuxRuntime(mojo.getLinuxRuntime());
+                builder = new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile());
                 break;
             case WAR:
                 builder = new WarArtifactHandlerImpl.Builder().warFile(mojo.getWarFile())
@@ -174,8 +173,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
                 return new WarArtifactHandlerImpl.Builder().warFile(mojo.getWarFile())
                     .contextPath(mojo.getPath());
             case "jar":
-                return new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile())
-                    .linuxRuntime(mojo.getLinuxRuntime());
+                return new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile());
             default:
                 throw new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }

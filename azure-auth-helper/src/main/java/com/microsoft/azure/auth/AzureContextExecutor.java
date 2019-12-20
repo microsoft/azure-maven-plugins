@@ -10,7 +10,6 @@ import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.aad.adal4j.AuthenticationResult;
 import com.microsoft.azure.auth.exception.AzureLoginTimeoutException;
 import org.apache.commons.lang3.StringUtils;
-
 import java.net.MalformedURLException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
