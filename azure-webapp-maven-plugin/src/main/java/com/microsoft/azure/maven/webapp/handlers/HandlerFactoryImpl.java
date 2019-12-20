@@ -32,7 +32,6 @@ import com.microsoft.azure.maven.webapp.handlers.runtime.WebAppRuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.runtime.WindowsRuntimeHandlerImpl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
 
 import java.util.Locale;
 
@@ -41,8 +40,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
         "The value of <deploymentType> is unknown, supported values are: jar, war, zip, ftp, auto and none.";
 
     @Override
-    public RuntimeHandler getRuntimeHandler(final WebAppConfiguration config, final Azure azureClient,
-                                            final Log log) throws AzureExecutionException {
+    public RuntimeHandler getRuntimeHandler(final WebAppConfiguration config, final Azure azureClient) throws AzureExecutionException {
         if (config.getOs() == null) {
             return new NullRuntimeHandlerImpl();
         }
@@ -68,7 +66,6 @@ public class HandlerFactoryImpl extends HandlerFactory {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .log(log)
             .build();
     }
 
@@ -145,7 +142,6 @@ public class HandlerFactoryImpl extends HandlerFactory {
             .resources(mojo.getResources())
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .buildDirectoryAbsolutePath(mojo.getBuildDirectoryAbsolutePath())
-            .log(mojo.getLog())
             .build();
     }
 
@@ -156,7 +152,6 @@ public class HandlerFactoryImpl extends HandlerFactory {
             .filtering(mojo.getMavenResourcesFiltering())
             .resources(mojo.getDeployment().getResources())
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
-            .log(mojo.getLog())
             .runtime(mojo.getRuntime())
             .build();
     }

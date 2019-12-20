@@ -7,14 +7,12 @@
 package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import org.apache.commons.lang3.StringUtils;
+
 import org.apache.maven.model.Resource;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

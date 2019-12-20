@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
@@ -78,7 +79,7 @@ public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
 
     protected boolean validateConfiguration(String errorMessage) {
         if (errorMessage != null) {
-            mojo.getLog().warn(errorMessage);
+            Log.warn(errorMessage);
         }
         return errorMessage == null;
     }

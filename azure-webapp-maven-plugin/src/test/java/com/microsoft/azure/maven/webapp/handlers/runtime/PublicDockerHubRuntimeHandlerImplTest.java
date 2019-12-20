@@ -11,7 +11,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import org.apache.maven.plugin.logging.Log;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,9 +34,6 @@ public class PublicDockerHubRuntimeHandlerImplTest {
     @Mock
     private Azure azureClient;
 
-    @Mock
-    private Log log;
-
     private PublicDockerHubRuntimeHandlerImpl.Builder builder = new PublicDockerHubRuntimeHandlerImpl.Builder();
 
     private PublicDockerHubRuntimeHandlerImpl handler;
@@ -57,7 +54,6 @@ public class PublicDockerHubRuntimeHandlerImplTest {
             .image(config.getImage())
             .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
-            .log(log)
             .build();
     }
 
@@ -72,7 +68,6 @@ public class PublicDockerHubRuntimeHandlerImplTest {
             .image(config.getImage())
             .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
-            .log(log)
             .build();
     }
 

@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
@@ -16,6 +17,7 @@ import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -49,7 +51,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void doExecute() throws Exception {
         // todo: use parser to getAzureClient from mojo configs
         final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(
-                getWebAppConfiguration(), getAzureClient(), getLog());
+                getWebAppConfiguration(), getAzureClient());
         // todo: use parser to get web app from mojo configs
         final WebApp app = getWebApp();
         if (app == null) {
@@ -64,13 +66,13 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     protected void createWebApp(final RuntimeHandler runtimeHandler) throws Exception {
-        info(WEBAPP_NOT_EXIST);
+        Log.info(WEBAPP_NOT_EXIST);
 
         final WithCreate withCreate = (WithCreate) runtimeHandler.defineAppWithRuntime();
         getFactory().getSettingsHandler(this).processSettings(withCreate);
         withCreate.create();
 
-        info(WEBAPP_CREATED);
+        Log.info(WEBAPP_CREATED);
     }
 
     protected void updateWebApp(final RuntimeHandler runtimeHandler, final WebApp app) throws Exception {
@@ -79,20 +81,20 @@ public class DeployMojo extends AbstractWebAppMojo {
         // Update Web App
         final Update update = (Update) runtimeHandler.updateAppRuntime(app);
         if (update == null) {
-            info(UPDATE_WEBAPP_SKIP);
+            Log.info(UPDATE_WEBAPP_SKIP);
         } else {
-            info(UPDATE_WEBAPP);
+            Log.info(UPDATE_WEBAPP);
             getFactory().getSettingsHandler(this).processSettings(update);
             update.apply();
-            info(UPDATE_WEBAPP_DONE);
+            Log.info(UPDATE_WEBAPP_DONE);
         }
 
         if (isDeployToDeploymentSlot()) {
-            info(CREATE_DEPLOYMENT_SLOT);
+            Log.info(CREATE_DEPLOYMENT_SLOT);
 
             getFactory().getDeploymentSlotHandler(this).createDeploymentSlotIfNotExist();
 
-            info(CREATE_DEPLOYMENT_SLOT_DONE);
+            Log.info(CREATE_DEPLOYMENT_SLOT_DONE);
         }
     }
 
@@ -127,7 +129,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
         public void beforeDeployArtifacts() throws Exception {
             if (isStopAppDuringDeployment()) {
-                info(STOP_APP);
+                Log.info(STOP_APP);
 
                 getWebApp().stop();
 
@@ -137,18 +139,18 @@ public class DeployMojo extends AbstractWebAppMojo {
 
                 isAppStopped = true;
 
-                info(STOP_APP_DONE);
+                Log.info(STOP_APP_DONE);
             }
         }
 
         public void afterDeployArtifacts() throws Exception {
             if (isAppStopped) {
-                info(START_APP);
+                Log.info(START_APP);
 
                 getWebApp().start();
                 isAppStopped = false;
 
-                info(START_APP_DONE);
+                Log.info(START_APP_DONE);
             }
             if (stagingDirectory != null) {
                 FileUtils.forceDeleteOnExit(stagingDirectory);

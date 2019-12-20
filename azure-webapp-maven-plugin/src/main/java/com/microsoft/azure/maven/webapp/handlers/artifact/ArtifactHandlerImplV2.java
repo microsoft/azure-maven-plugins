@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
@@ -88,7 +89,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     @Override
     public void publish(final DeployTarget target) throws AzureExecutionException, IOException {
         if (resources == null || resources.size() < 1) {
-            log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
+            Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
             return;
         }
         processResources();
@@ -101,25 +102,25 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
                     String.format("There is no artifact to deploy in staging directory: '%s'", absolutePath));
         }
 
-        log.info(String.format(DEPLOY_START, target.getName()));
+        Log.info(String.format(DEPLOY_START, target.getName()));
 
         if (areAllWarFiles(allArtifacts)) {
             publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
-            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+            Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
             return;
         }
 
         if (!hasWarFiles(allArtifacts)) {
             publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
-            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+            Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
             return;
         }
 
         if (isDeployMixedArtifactsConfirmed()) {
             publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
-            log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+            Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
         } else {
-            log.info(DEPLOY_ABORT);
+            Log.info(DEPLOY_ABORT);
         }
     }
 
@@ -135,12 +136,12 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             return true;
         }
 
-        log.info(String.format("To get rid of the following message, set the property %s to true to always proceed " +
+        Log.info(String.format("To get rid of the following message, set the property %s to true to always proceed " +
                 "with the deploy.", ALWAYS_DEPLOY_PROPERTY));
 
         try (final Scanner scanner = new Scanner(System.in, "UTF-8")) {
             while (true) {
-                log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
+                Log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
                         "are you sure to proceed (y/n)?");
                 final String input = scanner.nextLine();
                 if ("y".equalsIgnoreCase(input)) {
@@ -170,11 +171,11 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final File stagingDirectory = new File(stagingDirectoryPath);
         final File zipFile = Utils.createTempFile(stagingDirectory.getName(), ".zip");
         ZipUtil.pack(stagingDirectory, zipFile);
-        log.info(String.format("Deploying the zip package %s...", zipFile.getName()));
+        Log.info(String.format("Deploying the zip package %s...", zipFile.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
-        final boolean deploySuccess = performActionWithRetry(() -> target.zipDeploy(zipFile), MAX_RETRY_TIMES, log);
+        final boolean deploySuccess = performActionWithRetry(() -> target.zipDeploy(zipFile), MAX_RETRY_TIMES);
         if (!deploySuccess) {
             throw new AzureExecutionException(
                     String.format("The zip deploy failed after %d times of retry.", MAX_RETRY_TIMES + 1));
@@ -196,11 +197,11 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     public void publishWarArtifact(final DeployTarget target, final File warArtifact,
                                    final String contextPath) throws AzureExecutionException {
         final Runnable executor = getRealWarDeployExecutor(target, warArtifact, contextPath);
-        log.info(String.format("Deploying the war file %s...", warArtifact.getName()));
+        Log.info(String.format("Deploying the war file %s...", warArtifact.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
-        final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES, log);
+        final boolean deploySuccess = performActionWithRetry(executor, MAX_RETRY_TIMES);
         if (!deploySuccess) {
             throw new AzureExecutionException(
                     String.format("Failed to deploy war file after %d times of retry.", MAX_RETRY_TIMES));
@@ -227,7 +228,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final File artifact = getProjectJarArtifact(artifacts);
         final File renamedArtifact = new File(artifact.getParent(), DEFAULT_APP_SERVICE_JAR_NAME);
         if (!StringUtils.equals(artifact.getName(), DEFAULT_APP_SERVICE_JAR_NAME)) {
-            log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_APP_SERVICE_JAR_NAME));
+            Log.info(String.format(RENAMING_MESSAGE, artifact.getAbsolutePath(), DEFAULT_APP_SERVICE_JAR_NAME));
             if (!artifact.renameTo(renamedArtifact)) {
                 throw new AzureExecutionException(String.format(RENAMING_FAILED_MESSAGE, DEFAULT_APP_SERVICE_JAR_NAME));
             }
@@ -270,7 +271,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final List<File> files = Utils.getArtifacts(resource);
         final String target = getAbsoluteTargetPath(resource.getTargetPath());
         for (File file : files) {
-            FTPUtils.uploadFile(ftpClient, file.getPath(), target, log);
+            FTPUtils.uploadFile(ftpClient, file.getPath(), target);
         }
     }
 

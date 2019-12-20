@@ -12,7 +12,7 @@ import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebApp.UpdateStages.WithCredentials;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import org.apache.maven.plugin.logging.Log;
+
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.junit.Before;
@@ -36,10 +36,7 @@ public class PrivateRegistryRuntimeHandlerImplTest {
     @Mock
     private Azure azureClient;
 
-    @Mock
-    private Log log;
-
-    private final PrivateRegistryRuntimeHandlerImpl.Builder builder =
+        private final PrivateRegistryRuntimeHandlerImpl.Builder builder =
         new PrivateRegistryRuntimeHandlerImpl.Builder();
 
     private PrivateRegistryRuntimeHandlerImpl handler;
@@ -61,7 +58,6 @@ public class PrivateRegistryRuntimeHandlerImplTest {
             .image(config.getImage())
             .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
-            .log(log)
             .build();
     }
 
@@ -77,7 +73,6 @@ public class PrivateRegistryRuntimeHandlerImplTest {
             .image(config.getImage())
             .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
-            .log(log)
             .build();
     }
 

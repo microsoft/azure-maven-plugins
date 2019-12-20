@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
@@ -63,11 +64,11 @@ public class DeploymentSlotHandler {
 
         switch (type) {
             case NEW:
-                this.mojo.getLog().info(EMPTY_CONFIGURATION_SOURCE);
+                Log.info(EMPTY_CONFIGURATION_SOURCE);
                 definedSlot.withBrandNewConfiguration().create();
                 break;
             case PARENT:
-                this.mojo.getLog().info(DEFAULT_CONFIGURATION_SOURCE);
+                Log.info(DEFAULT_CONFIGURATION_SOURCE);
                 definedSlot.withConfigurationFromParent().create();
                 break;
             case OTHERS:
@@ -75,7 +76,7 @@ public class DeploymentSlotHandler {
                 if (configurationSourceSlot == null) {
                     throw new AzureExecutionException(TARGET_CONFIGURATION_SOURCE_SLOT_NOT_EXIST);
                 }
-                this.mojo.getLog().info(String.format(COPY_CONFIGURATION_FROM_SLOT, configurationSource));
+                Log.info(String.format(COPY_CONFIGURATION_FROM_SLOT, configurationSource));
                 definedSlot.withConfigurationFromDeploymentSlot(configurationSourceSlot).create();
                 break;
             default:

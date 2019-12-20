@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
@@ -82,7 +83,7 @@ public abstract class ConfigurationParser {
         WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
         final OperatingSystemEnum os = getOs();
         if (os == null) {
-            mojo.getLog().debug("No runtime related config is specified. " +
+            Log.debug("No runtime related config is specified. " +
                 "It will cause error if creating a new web app.");
         } else {
             switch (os) {

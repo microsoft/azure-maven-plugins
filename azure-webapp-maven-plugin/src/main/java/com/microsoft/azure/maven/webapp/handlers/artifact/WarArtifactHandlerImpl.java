@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.google.common.io.Files;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 
@@ -72,21 +73,21 @@ public class WarArtifactHandlerImpl extends ArtifactHandlerBase {
         assureWarFileExisted(war);
 
         final Runnable warDeployExecutor = ArtifactHandlerUtils.getRealWarDeployExecutor(target, war, getContextPath());
-        log.info(String.format(DEPLOY_START, target.getName()));
+        Log.info(String.format(DEPLOY_START, target.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
         int retryCount = 0;
-        log.info("Deploying the war file...");
+        Log.info("Deploying the war file...");
 
         while (retryCount < DEFAULT_MAX_RETRY_TIMES) {
             retryCount++;
             try {
                 warDeployExecutor.run();
-                log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+                Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
                 return;
             } catch (Exception e) {
-                log.debug(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
+                Log.debug(String.format(UPLOAD_FAILURE, e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
             }
         }
 
