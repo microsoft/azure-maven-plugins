@@ -19,13 +19,7 @@ import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
 public class CommonUtils {
-    private static final String clientId = System.getenv("CLIENT_ID");
-    private static final String tenantId = System.getenv("TENANT_ID");
-    private static final String key = System.getenv("KEY");
-
-    private static final String loginAzureCli = "az login --service-principal -u %s -p %s --tenant %s";
     private static final String deleteResourceGroup = "az group delete -y -n %s%s";
-
     private static final String windowsCommand = "cmd /c %s";
     private static final String nonWindowsCommand = "bash -c %s";
 
@@ -35,10 +29,6 @@ public class CommonUtils {
     private static Azure azureClient = null;
 
     private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
-
-    private static void azureLogin() throws IOException, InterruptedException {
-        executeCommand(String.format(loginAzureCli, clientId, key, tenantId));
-    }
 
     public static void deleteAzureResourceGroup(String resourceGroupName, boolean waitForOperationFinish)
             throws InterruptedException, IOException {

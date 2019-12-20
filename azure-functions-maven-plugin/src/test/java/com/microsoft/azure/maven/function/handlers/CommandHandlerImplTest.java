@@ -19,18 +19,13 @@ import static org.mockito.Mockito.mock;
 public class CommandHandlerImplTest {
     @Test
     public void buildCommand() {
-        final Log log = mock(Log.class);
-        final CommandHandlerImpl handler = new CommandHandlerImpl(log);
-        assertEquals(3, handler.buildCommand("cmd").length);
+        assertEquals(3, CommandHandlerImpl.buildCommand("cmd").length);
     }
 
     @Test
     public void getStdoutRedirect() {
-        final Log log = mock(Log.class);
-        final CommandHandlerImpl handler = new CommandHandlerImpl(log);
-
-        assertEquals(ProcessBuilder.Redirect.INHERIT, handler.getStdoutRedirect(true));
-        assertEquals(ProcessBuilder.Redirect.PIPE, handler.getStdoutRedirect(false));
+        assertEquals(ProcessBuilder.Redirect.INHERIT, CommandHandlerImpl.getStdoutRedirect(true));
+        assertEquals(ProcessBuilder.Redirect.PIPE, CommandHandlerImpl.getStdoutRedirect(false));
     }
 
     @Test(expected = Exception.class)

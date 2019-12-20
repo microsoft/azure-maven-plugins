@@ -26,7 +26,6 @@ import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandler
  * @since 1.3.0
  */
 public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
-    private String linuxRuntime;
     private String jarFile;
 
     public static final String FILE_IS_NOT_JAR = "The deployment file is not a jar typed file.";
@@ -34,7 +33,6 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
 
     public static class Builder extends ZIPArtifactHandlerImpl.Builder {
         private String jarFile;
-        private String linuxRuntime;
 
         @Override
         protected JarArtifactHandlerImpl.Builder self() {
@@ -46,11 +44,6 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
             return new JarArtifactHandlerImpl(this);
         }
 
-        public Builder linuxRuntime(final String value) {
-            this.linuxRuntime = value;
-            return self();
-        }
-
         public Builder jarFile(final String value) {
             this.jarFile = value;
             return self();
@@ -59,7 +52,6 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
 
     protected JarArtifactHandlerImpl(final Builder builder) {
         super(builder);
-        this.linuxRuntime = builder.linuxRuntime;
         this.jarFile = builder.jarFile;
     }
 

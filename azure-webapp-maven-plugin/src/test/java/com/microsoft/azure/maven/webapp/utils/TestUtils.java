@@ -17,12 +17,6 @@ public class TestUtils {
 
     private static final String deleteResourceGroup = "az group delete -y -n %s%s";
     private static final String loginAzureCli = "az login --service-principal -u %s -p %s --tenant %s";
-    private static final String createResourceGroup = "az group create -n %s --location %s";
-    private static final String createAppServicePlan = "az appservice plan create -g %s -n %s --sku S1";
-    private static final String createWebApp = "az webapp create -g %s -p %s -n %s";
-    private static final String createLinuxWebApp = createWebApp + " --runtime \"TOMCAT|8.5-jre8\"";
-    private static final String createLinuxAppServicePlan = createAppServicePlan + " --is-linux";
-
     private static final String windowsCommand = "cmd /c %s";
     private static final String nonWindowsCommand = "bash -c %s";
 
@@ -39,26 +33,6 @@ public class TestUtils {
                 String.format(deleteResourceGroup,
                         resourceGroupName,
                         waitForOperationFinish ? "" : " --no-wait"));
-    }
-
-    private static void createWebApp(final String resourceGroupName, final String location,
-                                     final String servicePlanName, final String webAppName,
-                                     final boolean isLinux) throws IOException, InterruptedException {
-
-        executeCommand(
-                String.format(createResourceGroup,
-                        resourceGroupName,
-                        location));
-        executeCommand(
-                String.format(isLinux ? createLinuxAppServicePlan : createAppServicePlan,
-                        resourceGroupName,
-                        servicePlanName));
-        executeCommand(
-                String.format(isLinux ? createLinuxWebApp : createWebApp,
-                        resourceGroupName,
-                        servicePlanName,
-                        webAppName));
-
     }
 
     private static void executeCommand(final String command) throws IOException, InterruptedException {

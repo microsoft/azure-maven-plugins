@@ -139,15 +139,16 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         log.info(String.format("To get rid of the following message, set the property %s to true to always proceed " +
                 "with the deploy.", ALWAYS_DEPLOY_PROPERTY));
 
-        final Scanner scanner = new Scanner(System.in, "UTF-8");
-        while (true) {
-            log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
-                    "are you sure to proceed (y/n)?");
-            final String input = scanner.nextLine();
-            if ("y".equalsIgnoreCase(input)) {
-                return true;
-            } else if ("n".equalsIgnoreCase(input)) {
-                return false;
+        try (final Scanner scanner = new Scanner(System.in, "UTF-8")) {
+            while (true) {
+                log.warn("Deploying war along with other kinds of artifacts might make the web app inaccessible, " +
+                        "are you sure to proceed (y/n)?");
+                final String input = scanner.nextLine();
+                if ("y".equalsIgnoreCase(input)) {
+                    return true;
+                } else if ("n".equalsIgnoreCase(input)) {
+                    return false;
+                }
             }
         }
     }

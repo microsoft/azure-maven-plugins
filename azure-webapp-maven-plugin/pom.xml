@@ -11,7 +11,6 @@
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
-    <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-webapp-maven-plugin</artifactId>
     <version>1.9.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
