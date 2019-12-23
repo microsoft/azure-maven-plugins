@@ -10,7 +10,6 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureCliCredentials;
-import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -248,7 +247,7 @@ public class AzureAuthHelperTest {
         // 1. use azure-secret.json
         File testConfigDir = new File(this.getClass().getResource("/azure-login/azure-secret.json").getFile()).getParentFile();
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
-        AzureTokenCredentials cred = AzureAuthHelper.getAzureTokenCredentials(null);
+        AzureTokenCredentialsDecorator cred = AzureAuthHelper.getAzureTokenCredentials(null);
         assertNotNull(cred);
         assertEquals("00000000-0000-0000-0000-000000000001", cred.defaultSubscriptionId());
 
@@ -257,8 +256,8 @@ public class AzureAuthHelperTest {
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
         cred = AzureAuthHelper.getAzureTokenCredentials(null);
         assertNotNull(cred);
-        assertTrue(cred instanceof AzureCliCredentials);
-        final AzureCliCredentials cliCred = (AzureCliCredentials) cred;
+        assertTrue(cred.getAzureTokenCredentials() instanceof AzureCliCredentials);
+        final AzureCliCredentials cliCred = (AzureCliCredentials) cred.getAzureTokenCredentials();
         assertEquals("00000000-0000-0000-0000-000000000001", cliCred.defaultSubscriptionId());
         assertEquals("00000000-0000-0000-0000-000000000002", cliCred.clientId());
         assertEquals("00000000-0000-0000-0000-000000000003", cliCred.domain());
@@ -269,8 +268,8 @@ public class AzureAuthHelperTest {
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
         cred = AzureAuthHelper.getAzureTokenCredentials(null);
         assertNotNull(cred);
-        assertTrue(cred instanceof ApplicationTokenCredentials);
-        final ApplicationTokenCredentials applicationTokenCredentials = (ApplicationTokenCredentials) cred;
+        assertTrue(cred.getAzureTokenCredentials() instanceof ApplicationTokenCredentials);
+        final ApplicationTokenCredentials applicationTokenCredentials = (ApplicationTokenCredentials) cred.getAzureTokenCredentials();
         assertEquals("00000000-0000-0000-0000-000000000001", cred.defaultSubscriptionId());
         assertEquals("00000000-0000-0000-0000-000000000002", applicationTokenCredentials.clientId());
         assertEquals("00000000-0000-0000-0000-000000000003", cred.domain());
@@ -282,7 +281,7 @@ public class AzureAuthHelperTest {
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "non-exist-folder");
         cred = AzureAuthHelper.getAzureTokenCredentials(null);
         assertNotNull(cred);
-        assertTrue(cred instanceof MSICredentials);
+        assertTrue(cred.getAzureTokenCredentials() instanceof MSICredentials);
 
         // 5. all of the ways have been tried
         TestHelper.injectEnvironmentVariable(Constants.CLOUD_SHELL_ENV_KEY, null);
@@ -296,13 +295,13 @@ public class AzureAuthHelperTest {
         auth.setTenant("tenant_id");
         auth.setKey("key");
         auth.setEnvironment("azure_germany");
-        final AzureTokenCredentials cred = AzureAuthHelper.getAzureTokenCredentials(auth);
+        final AzureTokenCredentialsDecorator cred = AzureAuthHelper.getAzureTokenCredentials(auth);
         assertNotNull(cred);
-        assertTrue(cred instanceof ApplicationTokenCredentials);
+        assertTrue(cred.getAzureTokenCredentials() instanceof ApplicationTokenCredentials);
         assertNull(cred.defaultSubscriptionId());
         assertEquals(AzureEnvironment.AZURE_GERMANY, cred.environment());
         assertEquals("tenant_id", cred.domain());
-        assertEquals("client_id", ((ApplicationTokenCredentials) cred).clientId());
+        assertEquals("client_id", ((ApplicationTokenCredentials) cred.getAzureTokenCredentials()).clientId());
     }
 
     @Test

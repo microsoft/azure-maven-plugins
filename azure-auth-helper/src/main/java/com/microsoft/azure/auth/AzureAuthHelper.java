@@ -10,6 +10,7 @@ import com.google.gson.JsonSyntaxException;
 import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
+import com.microsoft.azure.auth.configuration.AuthType;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
@@ -274,20 +275,21 @@ public class AzureAuthHelper {
      * @return the azure credential through
      * @throws IOException when there are some IO errors.
      */
-    public static AzureTokenCredentials getAzureTokenCredentials(AuthConfiguration configuration)
+    public static AzureTokenCredentialsDecorator getAzureTokenCredentials(AuthConfiguration configuration)
             throws InvalidConfigurationException, IOException {
         if (configuration != null) {
-            return AzureServicePrincipleAuthHelper.getAzureServicePrincipleCredentials(configuration);
+            return new AzureTokenCredentialsDecorator(AuthType.SERVICE_PRINCIPAL,
+                    AzureServicePrincipleAuthHelper.getAzureServicePrincipleCredentials(configuration));
         }
         if (existsAzureSecretFile()) {
             try {
-                return getMavenAzureLoginCredentials();
+                return new AzureTokenCredentialsDecorator(AuthType.SECRET_FILE, getMavenAzureLoginCredentials());
             } catch (IOException ex) {
                 // ignore
             }
         }
         if (isInCloudShell()) {
-            return new MSICredentials();
+            return new AzureTokenCredentialsDecorator(AuthType.MSI, new MSICredentials());
         }
         final File credentialParent = getAzureConfigFolder();
         if (credentialParent.exists() && credentialParent.isDirectory()) {
@@ -312,9 +314,10 @@ public class AzureAuthHelper {
 
                     final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create(azureProfile, accessTokens);
                     if (azureCliCredentials.clientId() != null) {
-                        return azureCliCredentials;
+                        return new AzureTokenCredentialsDecorator(AuthType.AZURE_CLI, azureCliCredentials);
                     } else {
-                        return AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
+                        return new AzureTokenCredentialsDecorator(AuthType.AZURE_CLI_SP,
+                                AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal());
                     }
 
                 } catch (JsonSyntaxException | IOException ex) {
