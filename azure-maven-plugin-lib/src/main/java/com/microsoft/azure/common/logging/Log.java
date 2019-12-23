@@ -6,23 +6,23 @@
 
 package com.microsoft.azure.common.logging;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 public final class Log {
-    public static final String LOGGER_NAME = "azure-tools";
-
-    private static final Logger logger = Logger.getLogger(LOGGER_NAME);
+    private static Logger logger = LoggerFactory.getLogger(Log.class);
 
     public static void error(String message) {
-        logger.severe(message);
+        logger.error(message);
     }
 
     public static void error(Exception error) {
-        logger.severe(getErrorDetail(error));
+        logger.error(getErrorDetail(error));
     }
 
     public static void info(String message) {
@@ -34,23 +34,23 @@ public final class Log {
     }
 
     public static void debug(String message) {
-        logger.fine(message);
+        logger.debug(message);
     }
 
     public static void debug(Exception error) {
-        logger.fine(getErrorDetail(error));
+        logger.debug(getErrorDetail(error));
     }
 
     public static void warn(String message) {
-        logger.warning(message);
+        logger.warn(message);
     }
 
     public static void warn(Exception error) {
-        logger.warning(getErrorDetail(error));
+        logger.warn(getErrorDetail(error));
     }
 
     public static boolean isDebugEnabled() {
-        return logger.isLoggable(Level.FINE);
+        return logger.isDebugEnabled();
     }
 
     private static String getErrorDetail(Exception error) {
@@ -60,7 +60,7 @@ public final class Log {
         try {
             sw.close();
         } catch (IOException e) {
-            logger.severe(String.format("Cannot close the StringWriter caused IOException: %s.", e.getMessage()));
+            // swallow error to avoid deadlock
         }
         return exceptionDetails;
     }
