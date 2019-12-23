@@ -26,7 +26,6 @@ import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
 
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Before;
@@ -47,7 +46,6 @@ import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_VERSION_K
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_WEB_CONTAINER_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.LINUX_RUNTIME_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.OS_KEY;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -100,7 +98,7 @@ public class DeployMojoTest {
         f.setAccessible(true);
         f.set(null, new HandlerFactory() {
             @Override
-            public RuntimeHandler getRuntimeHandler(WebAppConfiguration config, Azure azureClient, Log log) {
+            public RuntimeHandler getRuntimeHandler(WebAppConfiguration config, Azure azureClient) {
                 return runtimeHandler;
             }
 

@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
@@ -16,11 +17,13 @@ import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersio
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.maven.function.utils.FunctionUtils;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
+
 import java.io.File;
 import java.util.Map;
 
@@ -104,9 +107,9 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
         final String setting = (String) result.get(settingName);
         if (StringUtils.isEmpty(setting)) {
-            info(settingIsEmptyMessage);
+            Log.info(settingIsEmptyMessage);
         } else if (!setting.equals(settingValue)) {
-            warning(String.format(changeSettingMessage, setting));
+            Log.warn(String.format(changeSettingMessage, setting));
         }
         result.put(settingName, settingValue);
     }
@@ -116,7 +119,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
         final String setting = (String) result.get(settingName);
         if (StringUtils.isEmpty(setting)) {
-            info(settingIsEmptyMessage);
+            Log.info(settingIsEmptyMessage);
             result.put(settingName, settingValue);
         }
     }
@@ -153,7 +156,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         } catch (AzureAuthFailureException authEx) {
             throw authEx;
         } catch (Exception ex) {
-            this.getLog().debug(ex);
+            Log.debug(ex);
             // Swallow exception for non-existing Azure Functions
         }
         return null;
@@ -172,7 +175,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     public void checkJavaVersion() {
         final String javaVersion = System.getProperty("java.version");
         if (!javaVersion.startsWith("1.8")) {
-            super.warning(String.format(JDK_VERSION_ERROR, javaVersion));
+            Log.warn(String.format(JDK_VERSION_ERROR, javaVersion));
         }
     }
 

@@ -12,7 +12,7 @@ import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebApp.UpdateStages.WithCredentials;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import org.apache.maven.plugin.logging.Log;
+import com.microsoft.azure.common.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.junit.Before;
@@ -58,7 +58,6 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
             .mavenSettings(config.getMavenSettings())
-            .log(log)
             .image(config.getImage())
             .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
@@ -77,7 +76,6 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
             .image(config.getImage())
             .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
-            .log(log)
             .build();
     }
 

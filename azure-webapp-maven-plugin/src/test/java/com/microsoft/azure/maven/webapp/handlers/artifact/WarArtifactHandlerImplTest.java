@@ -13,8 +13,8 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
+
 import org.apache.maven.model.Build;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,6 @@ public class WarArtifactHandlerImplTest {
 
     public void buildHandler() {
         handler = new WarArtifactHandlerImpl.Builder()
-            .log(mojo.getLog())
             .warFile(mojo.getWarFile())
             .contextPath(mojo.getPath())
             .build();
@@ -63,10 +62,7 @@ public class WarArtifactHandlerImplTest {
         final File file = new File("");
         final String path = "";
 
-        final Log logMock = mock(Log.class);
         final WebApp appMock = mock(WebApp.class);
-        doReturn(logMock).when(mojo).getLog();
-        doNothing().when(logMock).info(anyString());
         doReturn(appMock).when(mojo).getWebApp();
         doNothing().when(appMock).warDeploy(any(File.class), anyString());
 
@@ -80,14 +76,11 @@ public class WarArtifactHandlerImplTest {
 
     @Test
     public void publishToDeploymentSlot() throws Exception {
-        final Log logMock = mock(Log.class);
         final WebApp appMock = mock(WebApp.class);
         final DeploymentSlotSetting slotSettingMock = mock(DeploymentSlotSetting.class);
         final DeploymentSlot slotMock = mock(DeploymentSlot.class);
-        doReturn(logMock).when(mojo).getLog();
         doReturn(appMock).when(mojo).getWebApp();
         doReturn(slotSettingMock).when(mojo).getDeploymentSlotSetting();
-        doNothing().when(logMock).info(anyString());
         doReturn("").when(slotSettingMock).getName();
         doReturn(slotMock).when(mojo).getDeploymentSlot(appMock, "");
         doNothing().when(slotMock).warDeploy(any(File.class), anyString());
@@ -106,10 +99,7 @@ public class WarArtifactHandlerImplTest {
     @Test(expected = AzureExecutionException.class)
     public void publishFailed() throws Exception {
         final File file = new File("");
-        final Log log = mock(Log.class);
         final WebApp app = mock(WebApp.class);
-        doReturn(log).when(mojo).getLog();
-        doNothing().when(log).info(anyString());
         doReturn(app).when(mojo).getWebApp();
         doThrow(RuntimeException.class).when(app).warDeploy(file, "");
 
@@ -124,8 +114,6 @@ public class WarArtifactHandlerImplTest {
     public void publishThrowException() throws AzureExecutionException {
         final File file = new File("");
         final WebApp app = mock(WebApp.class);
-        final Log log = mock(Log.class);
-        doReturn(log).when(mojo).getLog();
         buildHandler();
         final String path = "";
         doReturn(file).when(handlerSpy).getWarFile();

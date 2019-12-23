@@ -1,4 +1,4 @@
-/**
+ /**
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for
  * license information.
@@ -12,7 +12,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import org.apache.maven.plugin.logging.Log;
+import com.microsoft.azure.common.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,7 +56,6 @@ public class LinuxRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .log(log)
             .build();
     }
 
@@ -69,7 +68,6 @@ public class LinuxRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .log(log)
             .build();
     }
 

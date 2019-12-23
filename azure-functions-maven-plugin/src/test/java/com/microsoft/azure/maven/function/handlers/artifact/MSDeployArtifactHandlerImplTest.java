@@ -17,7 +17,7 @@ import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import org.apache.maven.plugin.logging.Log;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,9 +55,6 @@ public class MSDeployArtifactHandlerImplTest {
     @Mock
     AbstractFunctionMojo mojo;
 
-    @Mock
-    Log log;
-
     private MSDeployArtifactHandlerImpl handler;
 
     private MSDeployArtifactHandlerImpl handlerSpy;
@@ -69,10 +66,8 @@ public class MSDeployArtifactHandlerImplTest {
 
     public void buildHandler() {
         when(mojo.getAppName()).thenReturn("appName");
-        when(mojo.getLog()).thenReturn(log);
         handler = new MSDeployArtifactHandlerImpl.Builder()
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
-            .log(mojo.getLog())
             .build();
         handlerSpy = spy(handler);
     }

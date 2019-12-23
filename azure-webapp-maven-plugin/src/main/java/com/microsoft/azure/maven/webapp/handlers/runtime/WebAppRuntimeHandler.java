@@ -71,7 +71,7 @@ public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
 
     protected AppServicePlan createOrGetAppServicePlan() throws AzureExecutionException {
         return WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azure,
-                servicePlanResourceGroup, region, getPricingTierOrDefault(), log, getAppServicePlatform());
+                servicePlanResourceGroup, region, getPricingTierOrDefault(), getAppServicePlatform());
     }
 
     protected PricingTier getPricingTierOrDefault(){

@@ -5,9 +5,10 @@
  */
 package com.microsoft.azure.maven.webapp.utils;
 
+import com.microsoft.azure.common.logging.Log;
+
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.maven.plugin.logging.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,8 +36,8 @@ public class FTPUtils {
     }
 
     public static void uploadFile(final FTPClient ftpClient, final String sourceFilePath,
-                                  final String targetFilePath, Log log) throws IOException {
-        log.info(String.format(UPLOADING_RESOURCE, sourceFilePath, targetFilePath));
+                                  final String targetFilePath) throws IOException {
+        Log.info(String.format(UPLOADING_RESOURCE, sourceFilePath, targetFilePath));
         final File sourceFile = new File(sourceFilePath);
         changeDirectoryWithCreate(ftpClient, targetFilePath);
         try (final InputStream is = new FileInputStream(sourceFile)) {
@@ -46,7 +47,7 @@ public class FTPUtils {
             if (isCommandFailed(replyCode)) {
                 throw new IOException(FAILED_TO_UPLOAD_RESOURCE + sourceFilePath);
             } else {
-                log.info(String.format(REPLY_MESSAGE, replyMessage));
+                Log.info(String.format(REPLY_MESSAGE, replyMessage));
             }
         }
     }

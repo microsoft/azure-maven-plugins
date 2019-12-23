@@ -25,7 +25,6 @@ import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 
-import org.apache.maven.plugin.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -34,7 +33,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -200,9 +198,6 @@ public class WebAppUtilsTest {
         final Region region = Region.EUROPE_WEST;
         final String empty = "";
 
-        final Log logMock = mock(Log.class);
-        doNothing().when(logMock).info(anyString());
-
         final Azure azureMock = mock(Azure.class);
         final AppServiceManager appServiceManagerMock = mock(AppServiceManager.class);
         doReturn(appServiceManagerMock).when(azureMock).appServices();
@@ -238,7 +233,7 @@ public class WebAppUtilsTest {
         // create App Service Plan in existing resource group with user defined plan name
         doReturn(true).when(resourceGroupsMock).contain(anyString());
         WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azureMock,
-            servicePlanResourceGroup, region, PricingTier.BASIC_B1, logMock, OperatingSystem.LINUX);
+            servicePlanResourceGroup, region, PricingTier.BASIC_B1, OperatingSystem.LINUX);
         verify(withGroupMock, times(1)).withExistingResourceGroup(anyString());
         verify(withGroupMock, never()).withNewResourceGroup(anyString());
         verify(createMock, times(1)).create();
@@ -248,7 +243,7 @@ public class WebAppUtilsTest {
         doReturn(false).when(resourceGroupsMock).contain(anyString());
         doReturn(priceMock).when(withGroupMock).withNewResourceGroup(anyString());
         WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azureMock,
-            servicePlanResourceGroup, region, PricingTier.BASIC_B1, logMock, OperatingSystem.LINUX);
+            servicePlanResourceGroup, region, PricingTier.BASIC_B1, OperatingSystem.LINUX);
         verify(withGroupMock, never()).withExistingResourceGroup(anyString());
         verify(withGroupMock, times(1)).withNewResourceGroup(anyString());
 
@@ -256,13 +251,13 @@ public class WebAppUtilsTest {
         reset(createMock);
         doReturn(planMock).when(plansMock).getByResourceGroup(anyString(), anyString());
         WebAppUtils.createOrGetAppServicePlan(servicePlanName, resourceGroup, azureMock,
-            servicePlanResourceGroup, region, PricingTier.BASIC_B1, logMock, OperatingSystem.LINUX);
+            servicePlanResourceGroup, region, PricingTier.BASIC_B1, OperatingSystem.LINUX);
         verify(createMock, times(0)).create();
 
         // create App Service Plan due to no plan name is given
         reset(createMock);
         WebAppUtils.createOrGetAppServicePlan(empty, resourceGroup, azureMock,
-            servicePlanResourceGroup, region, PricingTier.BASIC_B1, logMock, OperatingSystem.LINUX);
+            servicePlanResourceGroup, region, PricingTier.BASIC_B1, OperatingSystem.LINUX);
         verify(createMock, times(1)).create();
     }
 }

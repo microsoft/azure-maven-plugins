@@ -6,9 +6,10 @@
 
 package com.microsoft.azure.maven.queryer;
 
+import com.microsoft.azure.common.logging.Log;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 
 import java.util.List;
 import java.util.Scanner;
@@ -24,10 +25,8 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
     public static final String DEFAULT_INPUT_ERROR_MESSAGE_WITH_REGEX = "Invalid input, value should match( %s ).";
 
     private Scanner reader;
-    private Log log;
 
-    public MavenPluginQueryerDefaultImpl(Log log) {
-        this.log = log;
+    public MavenPluginQueryerDefaultImpl() {
         this.reader = new Scanner(System.in);
     }
 
@@ -35,7 +34,7 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
     public String assureInputFromUser(String attribute, String defaultValue, List<String> options, String prompt) {
         final String initValue = getInitValue(attribute);
         if (initValue != null && validateInputByOptions(initValue, options)) {
-            log.info(FOUND_VALID_VALUE);
+            Log.info(FOUND_VALID_VALUE);
             return initValue;
         }
         prompt = StringUtils.isEmpty(prompt) ? getPromptString(attribute, defaultValue) : prompt;
@@ -71,7 +70,7 @@ public class MavenPluginQueryerDefaultImpl extends MavenPluginQueryer {
                                       String prompt, String errorMessage) throws MojoFailureException {
         final String initValue = getInitValue(attribute);
         if (initValue != null && validateInputByRegex(initValue, regex)) {
-            log.info(FOUND_VALID_VALUE);
+            Log.info(FOUND_VALID_VALUE);
             return initValue;
         }
 

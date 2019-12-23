@@ -81,7 +81,6 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void doExecute() throws Exception {
-        doCallRealMethod().when(mojoSpy).getLog();
         final ArtifactHandler handler = mock(ArtifactHandler.class);
         final FunctionApp app = mock(FunctionApp.class);
         doReturn(app).when(mojoSpy).getFunctionApp();

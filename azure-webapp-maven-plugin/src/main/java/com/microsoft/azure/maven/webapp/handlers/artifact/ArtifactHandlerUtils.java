@@ -8,12 +8,12 @@ package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.google.common.io.Files;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -55,7 +55,7 @@ public class ArtifactHandlerUtils {
             "The type of deploy target is unknown, supported types are WebApp and DeploymentSlot.");
     }
 
-    public static boolean performActionWithRetry(final Runnable runnable, final int maxRetryTimes, final Log log) {
+    public static boolean performActionWithRetry(final Runnable runnable, final int maxRetryTimes) {
         int retryCount = 0;
         while (retryCount < maxRetryTimes) {
             retryCount += 1;
@@ -63,7 +63,7 @@ public class ArtifactHandlerUtils {
                 runnable.run();
                 return true;
             } catch (Exception e) {
-                log.info(String.format("Exception occurred during deployment: %s, retry immediately(%d/%d)...",
+                Log.info(String.format("Exception occurred during deployment: %s, retry immediately(%d/%d)...",
                     e.getMessage(), retryCount, maxRetryTimes));
             }
         }

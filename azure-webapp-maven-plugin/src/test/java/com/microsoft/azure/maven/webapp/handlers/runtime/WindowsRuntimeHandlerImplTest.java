@@ -15,7 +15,7 @@ import com.microsoft.azure.management.appservice.WebAppBase.UpdateStages.WithWeb
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import org.apache.maven.plugin.logging.Log;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,8 +38,6 @@ public class WindowsRuntimeHandlerImplTest {
     @Mock
     private Azure azureClient;
 
-    @Mock
-    private Log log;
     private final WindowsRuntimeHandlerImpl.Builder builder = new WindowsRuntimeHandlerImpl.Builder();
 
     private WindowsRuntimeHandlerImpl handler = null;
@@ -59,7 +57,6 @@ public class WindowsRuntimeHandlerImplTest {
             .azure(azureClient)
             .javaVersion(config.getJavaVersion())
             .webContainer(config.getWebContainer())
-            .log(log)
             .build();
     }
 
@@ -73,7 +70,6 @@ public class WindowsRuntimeHandlerImplTest {
             .azure(azureClient)
             .javaVersion(config.getJavaVersion())
             .webContainer(config.getWebContainer())
-            .log(log)
             .build();
     }
 

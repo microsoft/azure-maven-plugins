@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
@@ -64,14 +65,14 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     @Override
     protected void doExecute() throws Exception {
-        queryer = QueryFactory.getQueryer(settings, getLog());
+        queryer = QueryFactory.getQueryer(settings);
         pomHandler = new WebAppPomHandler(project.getFile().getAbsolutePath());
 
         try {
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
                     getWebAppConfigurationWithoutValidation();
             if (!isV2Configuration(configuration)) {
-                warning(CONFIG_ONLY_SUPPORT_V2);
+                Log.warn(CONFIG_ONLY_SUPPORT_V2);
             } else {
                 config(configuration);
             }
@@ -94,7 +95,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 result = updateConfiguration(configuration.getBuilderFromConfiguration().build());
             }
         } while (!confirmConfiguration(result));
-        info(SAVING_TO_POM);
+        Log.info(SAVING_TO_POM);
         pomHandler.updatePluginConfiguration(result, configuration);
     }
 
@@ -234,7 +235,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration getRuntimeConfiguration(WebAppConfiguration configuration)
         throws MojoFailureException, AzureExecutionException {
         WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
-        warning(CHANGE_OS_WARNING);
+        Log.warn(CHANGE_OS_WARNING);
         final OperatingSystemEnum defaultOs = configuration.getOs() == null ? OperatingSystemEnum.Linux :
             configuration.getOs();
         final String os = queryer.assureInputFromUser("OS", defaultOs, null);

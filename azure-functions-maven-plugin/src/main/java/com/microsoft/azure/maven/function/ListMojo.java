@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.logging.Log;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -34,17 +36,17 @@ public class ListMojo extends AbstractFunctionMojo {
 
     @Override
     protected void doExecute() throws Exception {
-        info(TEMPLATES_START);
+        Log.info(TEMPLATES_START);
         printToSystemOut(TEMPLATES_FILE);
-        info(TEMPLATES_END);
+        Log.info(TEMPLATES_END);
 
-        info(BINDINGS_START);
+        Log.info(BINDINGS_START);
         printToSystemOut(BINDINGS_FILE);
-        info(BINDINGS_END);
+        Log.info(BINDINGS_END);
 
-        info(RESOURCES_START);
+        Log.info(RESOURCES_START);
         printToSystemOut(RESOURCES_FILE);
-        info(RESOURCES_END);
+        Log.info(RESOURCES_END);
     }
 
     protected void printToSystemOut(String file) throws IOException {

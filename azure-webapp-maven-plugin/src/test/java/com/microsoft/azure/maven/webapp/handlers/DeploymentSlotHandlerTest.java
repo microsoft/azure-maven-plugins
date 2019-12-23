@@ -16,7 +16,6 @@ import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 
-import org.apache.maven.plugin.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -83,12 +82,10 @@ public class DeploymentSlotHandlerTest {
     public void createDeploymentSlotFromParent() throws AzureExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
-        final Log logMock = mock(Log.class);
         final DeploymentSlots slots = mock(DeploymentSlots.class);
         final Blank stage1 = mock(Blank.class);
         final WithCreate withCreate = mock(WithCreate.class);
 
-        doReturn(logMock).when(mojo).getLog();
         doReturn(slots).when(app).deploymentSlots();
         doReturn(stage1).when(slots).define("test");
         doReturn(withCreate).when(stage1).withConfigurationFromParent();
@@ -102,13 +99,11 @@ public class DeploymentSlotHandlerTest {
     public void createDeploymentSlotFromOtherDeploymentSlot() throws AzureExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
-        final Log logMock = mock(Log.class);
         final DeploymentSlots slots = mock(DeploymentSlots.class);
         final Blank stage1 = mock(Blank.class);
         final DeploymentSlot slot = mock(DeploymentSlot.class);
         final WithCreate withCreate = mock(WithCreate.class);
 
-        doReturn(logMock).when(mojo).getLog();
         doReturn(slots).when(app).deploymentSlots();
         doReturn(stage1).when(slots).define("");
         doReturn(slot).when(mojo).getDeploymentSlot(app, "otherSlot");
@@ -144,12 +139,10 @@ public class DeploymentSlotHandlerTest {
     public void createBreadNewDeploymentSlot() throws AzureExecutionException {
         final DeploymentSlotHandler handlerSpy = spy(handler);
         final WebApp app = mock(WebApp.class);
-        final Log logMock = mock(Log.class);
         final DeploymentSlots slots = mock(DeploymentSlots.class);
         final Blank stage1 = mock(Blank.class);
         final WithCreate withCreate = mock(WithCreate.class);
 
-        doReturn(logMock).when(mojo).getLog();
         doReturn(slots).when(app).deploymentSlots();
         doReturn(stage1).when(slots).define("test");
         doReturn(withCreate).when(stage1).withBrandNewConfiguration();

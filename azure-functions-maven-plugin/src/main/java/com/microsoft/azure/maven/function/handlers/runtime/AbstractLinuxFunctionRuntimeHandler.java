@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers.runtime;
 
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
@@ -51,7 +52,7 @@ public abstract class AbstractLinuxFunctionRuntimeHandler extends FunctionRuntim
 
     protected void checkFunctionExtensionVersion() {
         if (functionExtensionVersion.getValue() < LINUX_MINIMUM_VERSION.getValue()) {
-            log.warn(String.format(FUNCTION_EXTENSION_VERSION_NOT_SUPPORTED, functionExtensionVersion.getVersion()));
+            Log.warn(String.format(FUNCTION_EXTENSION_VERSION_NOT_SUPPORTED, functionExtensionVersion.getVersion()));
         }
     }
 }

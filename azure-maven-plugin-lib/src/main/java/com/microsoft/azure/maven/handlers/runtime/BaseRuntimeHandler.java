@@ -16,7 +16,6 @@ import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Settings;
 
 public abstract class BaseRuntimeHandler<T extends WebAppBase> implements RuntimeHandler<T> {
@@ -35,7 +34,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
     protected String image;
     protected String serverId;
     protected String registryUrl;
-    protected Log log;
 
     public abstract static class Builder<T extends Builder<T>> {
         protected String appName;
@@ -49,7 +47,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         protected String image;
         protected String serverId;
         protected String registryUrl;
-        protected Log log;
 
         public T appName(final String value) {
             this.appName = value;
@@ -91,11 +88,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
             return self();
         }
 
-        public T log(final Log value) {
-            this.log = value;
-            return self();
-        }
-
         public T image(final String value) {
             this.image = value;
             return self();
@@ -129,7 +121,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         this.image = builder.image;
         this.serverId = builder.serverId;
         this.registryUrl = builder.registryUrl;
-        this.log = builder.log;
     }
 
     public abstract WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException;
@@ -149,7 +140,7 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         if (!AppServiceUtils.isEqualAppServicePlan(appServicePlan, targetAppServicePlan)) {
             changeAppServicePlan(app, targetAppServicePlan);
         }
-        return AppServiceUtils.updateAppServicePlan(targetAppServicePlan, pricingTier, log);
+        return AppServiceUtils.updateAppServicePlan(targetAppServicePlan, pricingTier);
     }
 
     protected AppServicePlan getAppServicePlan() {

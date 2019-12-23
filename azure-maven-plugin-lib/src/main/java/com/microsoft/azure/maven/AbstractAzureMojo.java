@@ -11,6 +11,7 @@ import com.microsoft.azure.auth.MavenSettingHelper;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.auth.exception.MavenDecryptException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
@@ -251,7 +252,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (azure == null) {
             if (this.authentication != null && (this.authentication.getFile() != null || StringUtils.isNotBlank(authentication.getServerId()))) {
                 // TODO: remove the old way of authentication
-                getLog().warn("You are using an old way of authentication which will be deprecated in future versions, please change your configurations.");
+                Log.warn("You are using an old way of authentication which will be deprecated in future versions, please change your configurations.");
                 azure = new AzureAuthHelperLegacy(this).getAzureClient();
             } else {
                 initAuth();
@@ -381,7 +382,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
 
             if (isSkipMojo()) {
-                info("Skip execution.");
+                Log.info("Skip execution.");
                 trackMojoSkip();
             } else {
                 trackMojoStart();
@@ -459,7 +460,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (isFailingOnError()) {
             throw new MojoExecutionException(message, exception);
         } else {
-            error(message);
+            Log.error(message);
         }
     }
 
@@ -480,7 +481,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
         } catch (Exception e) {
             // catch exceptions here to avoid blocking mojo execution.
-            debug(e.getMessage());
+            Log.debug(e.getMessage());
         }
         return true;
     }
@@ -491,14 +492,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             prop.store(output, "Azure Maven Plugin configurations");
         } catch (Exception e) {
             // catch exceptions here to avoid blocking mojo execution.
-            debug(e.getMessage());
+            Log.debug(e.getMessage());
         }
     }
 
     protected class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
         @Override
         public void uncaughtException(Thread t, Throwable e) {
-            debug("uncaughtException: " + e);
+            Log.debug("uncaughtException: " + e);
         }
     }
 
@@ -506,27 +507,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     //region Logging
 
-    public void debug(final String message) {
-        getLog().debug(message);
-    }
-
-    public void info(final String message) {
-        getLog().info(message);
-    }
-
     public void infoWithMultipleLines(final String messages) {
         final String[] messageArray = messages.split("\\n");
         for (final String line : messageArray) {
-            getLog().info(line);
+            Log.info(line);
         }
-    }
-
-    public void warning(final String message) {
-        getLog().warn(message);
-    }
-
-    public void error(final String message) {
-        getLog().error(message);
     }
 
     //endregion

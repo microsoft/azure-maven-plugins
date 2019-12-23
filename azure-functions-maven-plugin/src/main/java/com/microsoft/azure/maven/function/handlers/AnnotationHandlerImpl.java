@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.StorageAccount;
 import com.microsoft.azure.maven.function.bindings.Binding;
@@ -14,7 +15,6 @@ import com.microsoft.azure.maven.function.bindings.BindingFactory;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
@@ -35,12 +35,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class AnnotationHandlerImpl implements AnnotationHandler {
-    protected Log log;
-
-    public AnnotationHandlerImpl(final Log log) {
-        this.log = log;
-    }
-
     @Override
     public Set<Method> findFunctions(final List<URL> urls) {
         return new Reflections(
@@ -63,7 +57,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
             final FunctionName functionAnnotation = method.getAnnotation(FunctionName.class);
             final String functionName = functionAnnotation.value();
             validateFunctionName(configMap.keySet(), functionName);
-            log.debug("Starting processing function : " + functionName);
+            Log.debug("Starting processing function : " + functionName);
             configMap.put(functionName, generateConfiguration(method));
         }
         return configMap;
@@ -117,7 +111,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         for (final Annotation annotation : annotationProvider.get()) {
             final Binding binding = annotationParser.apply(annotation);
             if (binding != null) {
-                log.debug("Adding binding: " + binding.toString());
+                Log.debug("Adding binding: " + binding.toString());
                 bindings.add(binding);
             }
         }
@@ -143,14 +137,14 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
                 .findFirst();
 
         if (storageAccount.isPresent()) {
-            log.debug("StorageAccount annotation found.");
+            Log.debug("StorageAccount annotation found.");
             final String connectionString = ((StorageAccount) storageAccount.get()).value();
             // Replace empty connection string
             bindings.stream().filter(binding -> binding.getBindingEnum().isStorage())
                     .filter(binding -> StringUtils.isEmpty((String) binding.getAttribute("connection")))
                     .forEach(binding -> binding.setAttribute("connection", connectionString));
         } else {
-            log.debug("No StorageAccount annotation found.");
+            Log.debug("No StorageAccount annotation found.");
         }
     }
 }
