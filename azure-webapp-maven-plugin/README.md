@@ -11,7 +11,7 @@ and makes it easier for developers to deploy your applications to following type
 
 ## Documentation
 
-Visit our [Wiki](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Web-App) for detailed documentation.
+:book: Visit our [Wiki](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Web-App) for detailed documentation.
 
 ## Feedback and Questions
 To report bugs or request new features, file issues on [Issues](https://github.com/microsoft/azure-maven-plugins/issues). Or, ask questions on [Stack Overflow with tag azure-java-tools](https://stackoverflow.com/questions/tagged/azure-java-tools).

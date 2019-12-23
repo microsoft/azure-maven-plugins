@@ -4,7 +4,7 @@ Azure Maven plugin provides basic functions for all Azure maven plugins, for now
 
 ## Documentation
 
-Visit our [Wiki](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Maven-Plugin) for detailed documentation.
+:book: Visit our [Wiki](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Maven-Plugin) for detailed documentation.
 
 ## Feedback and Questions
 To report bugs or request new features, file issues on [Issues](https://github.com/microsoft/azure-maven-plugins/issues). Or, ask questions on [Stack Overflow with tag azure-java-tools](https://stackoverflow.com/questions/tagged/azure-java-tools).
