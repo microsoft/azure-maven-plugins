@@ -7,6 +7,7 @@
 package com.microsoft.azure.common.logging;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,7 +15,7 @@ import java.io.StringWriter;
 
 
 public final class Log {
-    private static Logger logger = org.slf4j.LoggerFactory.getLogger(Log.class);
+    private static Logger logger = LoggerFactory.getLogger(Log.class);
 
     public static void error(String message) {
         logger.error(message);
