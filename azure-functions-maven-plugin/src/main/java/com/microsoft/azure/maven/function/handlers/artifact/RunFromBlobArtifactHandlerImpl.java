@@ -52,7 +52,8 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
         FunctionArtifactHelper.updateAppSetting(deployTarget, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, sasToken);
     }
 
-    private CloudBlockBlob deployArtifactToAzureStorage(DeployTarget deployTarget, File zipPackage, CloudStorageAccount storageAccount) throws AzureExecutionException {
+    private CloudBlockBlob deployArtifactToAzureStorage(DeployTarget deployTarget, File zipPackage, CloudStorageAccount storageAccount)
+        throws AzureExecutionException {
         Log.info(String.format(DEPLOY_START, deployTarget.getName()));
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, zipPackage.getName());

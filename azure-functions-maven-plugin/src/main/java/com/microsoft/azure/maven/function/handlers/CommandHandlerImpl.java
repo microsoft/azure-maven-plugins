@@ -6,6 +6,13 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.maven.function.utils.CommandUtils;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -13,13 +20,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.maven.function.utils.CommandUtils;
 
 public class CommandHandlerImpl implements CommandHandler {
     @Override
@@ -29,24 +29,24 @@ public class CommandHandlerImpl implements CommandHandler {
                                               final List<Long> validReturnCodes,
                                               final String errorMessage) throws AzureExecutionException {
         try {
-        	final Process process = runCommand(command, showStdout, workingDirectory);
+            final Process process = runCommand(command, showStdout, workingDirectory);
 
             handleExitValue(process.exitValue(), validReturnCodes, errorMessage, process.getInputStream());
-    	} catch (IOException | InterruptedException ex) {
-			throw new AzureExecutionException("Cannot execute '" + command + "'", ex);
-    	}
+        } catch (IOException | InterruptedException ex) {
+            throw new AzureExecutionException("Cannot execute '" + command + "'", ex);
+        }
     }
 
     @Override
     public String runCommandAndGetOutput(final String command,
                                          final boolean showStdout,
                                          final String workingDirectory) throws AzureExecutionException {
-    	try {
-	        final Process process = runCommand(command, showStdout, workingDirectory);
-	        return getOutputFromProcess(process);
-    	} catch (IOException | InterruptedException ex) {
-			throw new AzureExecutionException("Cannot execute '" + command + "'", ex);
-    	}
+        try {
+            final Process process = runCommand(command, showStdout, workingDirectory);
+            return getOutputFromProcess(process);
+        } catch (IOException | InterruptedException ex) {
+            throw new AzureExecutionException("Cannot execute '" + command + "'", ex);
+        }
     }
 
     protected String getOutputFromProcess(final Process process) throws IOException {
