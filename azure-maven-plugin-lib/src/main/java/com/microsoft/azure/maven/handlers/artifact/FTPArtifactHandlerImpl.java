@@ -42,9 +42,13 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     @Override
-    public void publish(final DeployTarget target) throws IOException, AzureExecutionException {
+    public void publish(final DeployTarget target) throws AzureExecutionException {
         if (isResourcesPreparationRequired(target)) {
-            prepareResources();
+            try {
+                prepareResources();
+            } catch (IOException e) {
+                throw new AzureExecutionException("Encounter error when preparing resources:" + e.getMessage(), e);
+            }
         }
 
         assureStagingDirectoryNotEmpty();

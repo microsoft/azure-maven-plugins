@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -23,7 +25,7 @@ public class AbstractAppServiceMojoTest {
     @InjectMocks
     private AbstractAppServiceMojo mojo = new AbstractAppServiceMojo() {
         @Override
-        protected void doExecute() throws Exception {
+        protected void doExecute() throws AzureExecutionException {
 
         }
     };

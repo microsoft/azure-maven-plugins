@@ -269,10 +269,10 @@ public class AzureAuthHelperTest {
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
         cred = AzureAuthHelper.getAzureTokenCredentials(null);
         assertNotNull(cred);
-        assertTrue(cred instanceof ApplicationTokenCredentials);
-        final ApplicationTokenCredentials applicationTokenCredentials = (ApplicationTokenCredentials) cred;
+        assertTrue(cred instanceof AzureCliCredentials);
+        final AzureCliCredentials azureCliCredential = (AzureCliCredentials) cred;
         assertEquals("00000000-0000-0000-0000-000000000001", cred.defaultSubscriptionId());
-        assertEquals("00000000-0000-0000-0000-000000000002", applicationTokenCredentials.clientId());
+        assertEquals("00000000-0000-0000-0000-000000000002", azureCliCredential.clientId());
         assertEquals("00000000-0000-0000-0000-000000000003", cred.domain());
         assertEquals(AzureEnvironment.AZURE_CHINA, cliCred.environment());
 

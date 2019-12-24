@@ -6,7 +6,10 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.function.template.BindingTemplate;
 import com.microsoft.azure.maven.function.template.BindingsTemplate;
@@ -28,7 +31,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -146,17 +148,21 @@ public class AddMojo extends AbstractFunctionMojo {
     //region Entry Point
 
     @Override
-    protected void doExecute() throws Exception {
-        final List<FunctionTemplate> templates = loadAllFunctionTemplates();
+    protected void doExecute() throws AzureExecutionException {
+        try {
+            final List<FunctionTemplate> templates = loadAllFunctionTemplates();
 
-        final FunctionTemplate template = getFunctionTemplate(templates);
-        final BindingTemplate bindingTemplate = loadBindingTemplate(template.getTriggerType());
+            final FunctionTemplate template = getFunctionTemplate(templates);
+            final BindingTemplate bindingTemplate = loadBindingTemplate(template.getTriggerType());
 
-        final Map params = prepareRequiredParameters(template, bindingTemplate);
+            final Map params = prepareRequiredParameters(template, bindingTemplate);
 
-        final String newFunctionClass = substituteParametersInTemplate(template, params);
+            final String newFunctionClass = substituteParametersInTemplate(template, params);
 
-        saveNewFunctionToFile(newFunctionClass);
+            saveNewFunctionToFile(newFunctionClass);
+        } catch (MojoFailureException | IOException e) {
+            throw new AzureExecutionException("Cannot add new java functions.", e);
+        }
     }
 
     //endregion
@@ -175,7 +181,7 @@ public class AddMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected List<FunctionTemplate> loadAllFunctionTemplates() throws Exception {
+    protected List<FunctionTemplate> loadAllFunctionTemplates() throws AzureExecutionException {
         Log.info("");
         Log.info(LOAD_TEMPLATES);
 
@@ -186,11 +192,11 @@ public class AddMojo extends AbstractFunctionMojo {
             return templates;
         } catch (Exception e) {
             Log.error(LOAD_TEMPLATES_FAIL);
-            throw e;
+            throw new AzureExecutionException(LOAD_TEMPLATES_FAIL, e);
         }
     }
 
-    protected List<FunctionTemplate> parseTemplateJson(final String templateJson) throws Exception {
+    protected List<FunctionTemplate> parseTemplateJson(final String templateJson) throws JsonParseException, JsonMappingException, IOException {
         final FunctionTemplates templates = new ObjectMapper().readValue(templateJson, FunctionTemplates.class);
         return templates.getTemplates();
     }
@@ -198,7 +204,7 @@ public class AddMojo extends AbstractFunctionMojo {
     //endregion
 
     //region Get function template
-    protected FunctionTemplate getFunctionTemplate(final List<FunctionTemplate> templates) throws Exception {
+    protected FunctionTemplate getFunctionTemplate(final List<FunctionTemplate> templates) throws IOException, AzureExecutionException, MojoFailureException {
         Log.info("");
         Log.info(FIND_TEMPLATE);
 
@@ -225,7 +231,7 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected FunctionTemplate findTemplateByName(final List<FunctionTemplate> templates, final String templateName)
-            throws Exception {
+            throws AzureExecutionException {
         Log.info("Selected function template: " + templateName);
         final Optional<FunctionTemplate> template = templates.stream()
             .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
@@ -236,7 +242,7 @@ public class AddMojo extends AbstractFunctionMojo {
             return template.get();
         }
 
-        throw new Exception(FIND_TEMPLATE_FAIL + templateName);
+        throw new AzureExecutionException(FIND_TEMPLATE_FAIL + templateName);
     }
 
     //endregion
@@ -408,7 +414,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //region Save function to file
 
-    protected void saveNewFunctionToFile(final String newFunctionClass) throws Exception {
+    protected void saveNewFunctionToFile(final String newFunctionClass) throws IOException, AzureExecutionException {
         Log.info("");
         Log.info(SAVE_FILE);
 
@@ -429,11 +435,11 @@ public class AddMojo extends AbstractFunctionMojo {
         return Paths.get(sourceRoot, packageName).toFile();
     }
 
-    protected File getTargetFile(final File packageDir) throws Exception {
+    protected File getTargetFile(final File packageDir) throws AzureExecutionException {
         final String javaFileName = getClassName() + ".java";
         final File targetFile = new File(packageDir, javaFileName);
         if (targetFile.exists()) {
-            throw new FileAlreadyExistsException(format(FILE_EXIST, targetFile.getAbsolutePath()));
+            throw new AzureExecutionException(format(FILE_EXIST, targetFile.getAbsolutePath()));
         }
         return targetFile;
     }
@@ -444,7 +450,7 @@ public class AddMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void saveToTargetFile(final File targetFile, final String newFunctionClass) throws Exception {
+    protected void saveToTargetFile(final File targetFile, final String newFunctionClass) throws IOException {
         try (final OutputStream os = new FileOutputStream(targetFile)) {
             IOUtil.copy(newFunctionClass, os);
         }

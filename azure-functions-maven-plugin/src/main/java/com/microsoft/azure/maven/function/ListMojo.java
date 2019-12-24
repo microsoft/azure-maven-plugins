@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 
 import org.apache.commons.io.IOUtils;
@@ -35,18 +36,22 @@ public class ListMojo extends AbstractFunctionMojo {
     protected static final String RESOURCES_FILE = "/resources.json";
 
     @Override
-    protected void doExecute() throws Exception {
-        Log.info(TEMPLATES_START);
-        printToSystemOut(TEMPLATES_FILE);
-        Log.info(TEMPLATES_END);
+    protected void doExecute() throws AzureExecutionException {
+        try {
+            Log.info(TEMPLATES_START);
+            printToSystemOut(TEMPLATES_FILE);
+            Log.info(TEMPLATES_END);
 
-        Log.info(BINDINGS_START);
-        printToSystemOut(BINDINGS_FILE);
-        Log.info(BINDINGS_END);
+            Log.info(BINDINGS_START);
+            printToSystemOut(BINDINGS_FILE);
+            Log.info(BINDINGS_END);
 
-        Log.info(RESOURCES_START);
-        printToSystemOut(RESOURCES_FILE);
-        Log.info(RESOURCES_END);
+            Log.info(RESOURCES_START);
+            printToSystemOut(RESOURCES_FILE);
+            Log.info(RESOURCES_END);
+        } catch (IOException e) {
+            throw new AzureExecutionException("IO errror when printing templates:" + e.getMessage(), e);
+        }
     }
 
     protected void printToSystemOut(String file) throws IOException {

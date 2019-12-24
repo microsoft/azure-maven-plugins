@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+
 import java.util.List;
 
 public interface CommandHandler {
@@ -14,9 +16,9 @@ public interface CommandHandler {
                                        final boolean showStdout,
                                        final String workingDirectory,
                                        final List<Long> validReturnCodes,
-                                       final String errorMessage) throws Exception;
+                                       final String errorMessage) throws AzureExecutionException;
 
     String runCommandAndGetOutput(final String command,
                                   final boolean showStdout,
-                                  final String workingDirectory) throws Exception;
+                                  final String workingDirectory) throws AzureExecutionException;
 }

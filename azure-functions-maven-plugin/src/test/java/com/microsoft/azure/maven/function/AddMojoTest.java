@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.settings.Settings;
@@ -56,7 +58,7 @@ public class AddMojoTest extends MojoTestBase {
         assertTrue(newFunctionFile.exists());
     }
 
-    @Test(expected = MojoFailureException.class)
+    @Test(expected = AzureExecutionException.class)
     public void doExecuteWithInvalidFunctionName() throws Exception {
         final AddMojo mojo = getMojoFromPom();
         final Settings settings = new Settings();
