@@ -44,9 +44,13 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     @Override
-    public void publish(DeployTarget target) throws AzureExecutionException, IOException {
+    public void publish(DeployTarget target) throws AzureExecutionException {
         if (isResourcesPreparationRequired(target)) {
-            prepareResources();
+            try {
+                prepareResources();
+            } catch (IOException e) {
+                throw new AzureExecutionException("Encounter error when preparing resources:" + e.getMessage(), e);
+            }
         }
         assureStagingDirectoryNotEmpty();
 

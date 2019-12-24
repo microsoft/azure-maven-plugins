@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
@@ -15,6 +16,7 @@ import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
 import javax.annotation.Nonnull;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -58,7 +60,7 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     @Override
-    public void publish(final DeployTarget target) throws Exception {
+    public void publish(final DeployTarget target) throws AzureExecutionException {
         final File zipPackage = createZipPackage();
 
         final CloudStorageAccount storageAccount = FunctionArtifactHelper.getCloudStorageAccount(target);
@@ -70,7 +72,7 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
         deployWithPackageUri(target, packageUri, () -> deletePackageFromAzureStorage(storageAccount, blobName));
     }
 
-    protected File createZipPackage() throws Exception {
+    protected File createZipPackage() throws AzureExecutionException {
         Log.info("");
         Log.info(CREATE_ZIP_START);
         final File zipPackage = FunctionArtifactHelper.createFunctionArtifact(stagingDirectoryPath);
@@ -85,7 +87,7 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     protected String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
-                                                 final String blobName) throws Exception {
+                                                 final String blobName) throws AzureExecutionException {
         Log.info(UPLOAD_PACKAGE_START);
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, blobName);

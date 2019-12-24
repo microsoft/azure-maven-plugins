@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
@@ -75,7 +76,7 @@ public class AbstractAzureMojoTest {
     @InjectMocks
     private AbstractAzureMojo mojo = new AbstractAzureMojo() {
         @Override
-        protected void doExecute() throws Exception {
+        protected void doExecute() throws AzureExecutionException {
         }
     };
 

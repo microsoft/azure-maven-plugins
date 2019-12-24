@@ -12,6 +12,7 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
@@ -22,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,24 +50,29 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected DeploymentUtil util = new DeploymentUtil();
 
     @Override
-    protected void doExecute() throws Exception {
+    protected void doExecute() throws AzureExecutionException {
         // todo: use parser to getAzureClient from mojo configs
-        final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(
-                getWebAppConfiguration(), getAzureClient());
-        // todo: use parser to get web app from mojo configs
-        final WebApp app = getWebApp();
-        if (app == null) {
-            if (this.isDeployToDeploymentSlot()) {
-                throw new AzureExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+        try {
+            final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(
+                    getWebAppConfiguration(), getAzureClient());
+            // todo: use parser to get web app from mojo configs
+            final WebApp app = getWebApp();
+            if (app == null) {
+                if (this.isDeployToDeploymentSlot()) {
+                    throw new AzureExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
+                }
+                createWebApp(runtimeHandler);
+            } else {
+                updateWebApp(runtimeHandler, app);
             }
-            createWebApp(runtimeHandler);
-        } else {
-            updateWebApp(runtimeHandler, app);
+            deployArtifacts();
+        } catch (IOException | AzureAuthFailureException | InterruptedException e) {
+            throw new AzureExecutionException(
+                    String.format("Encoutering error when deploying to azure: '%s'", e.getMessage()), e);
         }
-        deployArtifacts();
     }
 
-    protected void createWebApp(final RuntimeHandler runtimeHandler) throws Exception {
+    protected void createWebApp(final RuntimeHandler runtimeHandler) throws AzureExecutionException {
         Log.info(WEBAPP_NOT_EXIST);
 
         final WithCreate withCreate = (WithCreate) runtimeHandler.defineAppWithRuntime();
@@ -75,7 +82,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         Log.info(WEBAPP_CREATED);
     }
 
-    protected void updateWebApp(final RuntimeHandler runtimeHandler, final WebApp app) throws Exception {
+    protected void updateWebApp(final RuntimeHandler runtimeHandler, final WebApp app) throws AzureExecutionException, AzureAuthFailureException {
         // Update App Service Plan
         runtimeHandler.updateAppServicePlan(app);
         // Update Web App
@@ -98,7 +105,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    protected void deployArtifacts() throws Exception {
+    protected void deployArtifacts() throws AzureAuthFailureException, InterruptedException, AzureExecutionException, IOException {
         try {
             util.beforeDeployArtifacts();
             final WebApp app = getWebApp();
@@ -127,7 +134,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     class DeploymentUtil {
         boolean isAppStopped = false;
 
-        public void beforeDeployArtifacts() throws Exception {
+        public void beforeDeployArtifacts() throws AzureAuthFailureException, InterruptedException {
             if (isStopAppDuringDeployment()) {
                 Log.info(STOP_APP);
 
@@ -143,7 +150,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             }
         }
 
-        public void afterDeployArtifacts() throws Exception {
+        public void afterDeployArtifacts() throws AzureAuthFailureException, IOException {
             if (isAppStopped) {
                 Log.info(START_APP);
 

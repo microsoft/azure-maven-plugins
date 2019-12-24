@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.function.bindings.BindingEnum;
@@ -86,10 +87,15 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Entry Point
 
     @Override
-    protected void doExecute() throws Exception {
+    protected void doExecute() throws AzureExecutionException {
         final AnnotationHandler annotationHandler = getAnnotationHandler();
 
-        final Set<Method> methods = findAnnotatedMethods(annotationHandler);
+        Set<Method> methods = null;
+        try {
+            methods = findAnnotatedMethods(annotationHandler);
+        } catch (MalformedURLException e) {
+            throw new AzureExecutionException("Invalid URL when resolving class path:" + e.getMessage(), e);
+        }
 
         if (methods.size() == 0) {
             Log.info(NO_FUNCTIONS);
@@ -102,11 +108,15 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         final ObjectWriter objectWriter = getObjectWriter();
 
-        writeEmptyHostJsonFile(objectWriter);
+        try {
+            writeEmptyHostJsonFile(objectWriter);
 
-        writeFunctionJsonFiles(objectWriter, configMap);
+            writeFunctionJsonFiles(objectWriter, configMap);
 
-        copyJarsToStageDirectory();
+            copyJarsToStageDirectory();
+        } catch (IOException e) {
+            throw new AzureExecutionException("Canot perform IO operations due to error:" + e.getMessage(), e);
+        }
 
         final CommandHandler commandHandler = new CommandHandlerImpl();
         final FunctionCoreToolsHandler functionCoreToolsHandler = getFunctionCoreToolsHandler(commandHandler);
@@ -125,7 +135,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         return new AnnotationHandlerImpl();
     }
 
-    protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws Exception {
+    protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws AzureExecutionException, MalformedURLException {
         Log.info("");
         Log.info(SEARCH_FUNCTIONS);
         Set<Method> functions;
@@ -143,11 +153,11 @@ public class PackageMojo extends AbstractFunctionMojo {
         return functions;
     }
 
-    protected URL getArtifactUrl() throws Exception {
+    protected URL getArtifactUrl() throws MalformedURLException {
         return this.getProject().getArtifact().getFile().toURI().toURL();
     }
 
-    protected URL getTargetClassUrl() throws Exception {
+    protected URL getTargetClassUrl() throws MalformedURLException {
         return outputDirectory.toURI().toURL();
     }
 
@@ -178,7 +188,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     //region Generate function configurations
 
     protected Map<String, FunctionConfiguration> getFunctionConfigurations(final AnnotationHandler handler,
-                                                                           final Set<Method> methods) throws Exception {
+                                                                           final Set<Method> methods) throws AzureExecutionException {
         Log.info("");
         Log.info(GENERATE_CONFIG);
         final Map<String, FunctionConfiguration> configMap = handler.generateConfigurations(methods);
@@ -302,7 +312,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected void installExtension(final FunctionCoreToolsHandler handler,
-                                    Set<BindingEnum> bindingEnums) throws Exception {
+                                    Set<BindingEnum> bindingEnums) throws AzureExecutionException {
         Log.info(INSTALL_EXTENSIONS);
         if (!isInstallingExtensionNeeded(bindingEnums)) {
             return;

@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.function.configurations;
 
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.SkuName;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;

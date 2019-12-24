@@ -59,7 +59,7 @@ public class RunMojo extends AbstractFunctionMojo {
     //region Entry Point
 
     @Override
-    protected void doExecute() throws Exception {
+    protected void doExecute() throws AzureExecutionException {
         final CommandHandler commandHandler = new CommandHandlerImpl();
 
         checkStageDirectoryExistence();
@@ -69,7 +69,7 @@ public class RunMojo extends AbstractFunctionMojo {
         runFunctions(commandHandler);
     }
 
-    protected void checkStageDirectoryExistence() throws Exception {
+    protected void checkStageDirectoryExistence() throws AzureExecutionException {
         final File file = new File(getDeploymentStagingDirectoryPath());
         if (!file.exists() || !file.isDirectory()) {
             throw new AzureExecutionException(STAGE_DIR_NOT_FOUND);
@@ -77,7 +77,7 @@ public class RunMojo extends AbstractFunctionMojo {
         Log.info(STAGE_DIR_FOUND + getDeploymentStagingDirectoryPath());
     }
 
-    protected void checkRuntimeExistence(final CommandHandler handler) throws Exception {
+    protected void checkRuntimeExistence(final CommandHandler handler) throws AzureExecutionException {
         handler.runCommandWithReturnCodeCheck(
                 getCheckRuntimeCommand(),
                 false, /* showStdout */
@@ -88,7 +88,7 @@ public class RunMojo extends AbstractFunctionMojo {
         Log.info(RUNTIME_FOUND);
     }
 
-    protected void runFunctions(final CommandHandler handler) throws Exception {
+    protected void runFunctions(final CommandHandler handler) throws AzureExecutionException {
         handler.runCommandWithReturnCodeCheck(
                 getStartFunctionHostCommand(),
                 true, /* showStdout */

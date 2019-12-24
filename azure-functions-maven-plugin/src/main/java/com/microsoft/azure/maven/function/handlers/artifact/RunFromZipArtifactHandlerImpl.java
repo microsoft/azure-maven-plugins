@@ -10,8 +10,6 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 
-import java.io.IOException;
-
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_WEBSITE_RUN_FROM_PACKAGE;
 
 public class RunFromZipArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
@@ -35,7 +33,7 @@ public class RunFromZipArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
     }
 
     @Override
-    public void publish(DeployTarget target) throws AzureExecutionException, IOException {
+    public void publish(DeployTarget target) throws AzureExecutionException {
         FunctionArtifactHelper.updateAppSetting(target, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, RUN_FROM_PACKAGE_VALUE);
         super.publish(target);
     }

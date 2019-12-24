@@ -75,22 +75,26 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //region Entry Point
     @Override
-    protected void doExecute() throws Exception {
-        createOrUpdateFunctionApp();
+    protected void doExecute() throws AzureExecutionException {
+        try {
+            createOrUpdateFunctionApp();
 
-        final FunctionApp app = getFunctionApp();
-        if (app == null) {
-            throw new AzureExecutionException(
-                String.format("Failed to get the function app with name: %s", getAppName()));
+            final FunctionApp app = getFunctionApp();
+            if (app == null) {
+                throw new AzureExecutionException(
+                    String.format("Failed to get the function app with name: %s", getAppName()));
+            }
+
+            final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
+
+            Log.info(DEPLOY_START);
+
+            getArtifactHandler().publish(deployTarget);
+
+            Log.info(String.format(DEPLOY_FINISH, getAppName()));
+        } catch (AzureAuthFailureException e) {
+            throw new AzureExecutionException("Cannot auth to azure", e);
         }
-
-        final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
-
-        Log.info(DEPLOY_START);
-
-        getArtifactHandler().publish(deployTarget);
-
-        Log.info(String.format(DEPLOY_FINISH, getAppName()));
     }
 
     //endregion
