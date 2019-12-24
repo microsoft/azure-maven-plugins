@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.StorageAccount;
@@ -51,7 +52,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     }
 
     @Override
-    public Map<String, FunctionConfiguration> generateConfigurations(final Set<Method> methods) throws Exception {
+    public Map<String, FunctionConfiguration> generateConfigurations(final Set<Method> methods) throws AzureExecutionException {
         final Map<String, FunctionConfiguration> configMap = new HashMap<>();
         for (final Method method : methods) {
             final FunctionName functionAnnotation = method.getAnnotation(FunctionName.class);
@@ -63,12 +64,12 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         return configMap;
     }
 
-    protected void validateFunctionName(final Set<String> nameSet, final String functionName) throws Exception {
+    protected void validateFunctionName(final Set<String> nameSet, final String functionName) throws AzureExecutionException {
         if (StringUtils.isEmpty(functionName)) {
-            throw new Exception("Azure Functions name cannot be empty.");
+            throw new AzureExecutionException("Azure Functions name cannot be empty.");
         }
         if (nameSet.stream().anyMatch(n -> StringUtils.equalsIgnoreCase(n, functionName))) {
-            throw new Exception("Found duplicate Azure Function: " + functionName);
+            throw new AzureExecutionException("Found duplicate Azure Function: " + functionName);
         }
     }
 

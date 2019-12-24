@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.function.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;

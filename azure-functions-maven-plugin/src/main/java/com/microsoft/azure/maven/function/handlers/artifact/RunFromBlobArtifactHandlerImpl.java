@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.AzureStorageHelper;
@@ -43,7 +44,7 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     @Override
-    public void publish(DeployTarget deployTarget) throws Exception {
+    public void publish(DeployTarget deployTarget) throws AzureExecutionException {
         final File zipPackage = FunctionArtifactHelper.createFunctionArtifact(stagingDirectoryPath);
         final CloudStorageAccount storageAccount = FunctionArtifactHelper.getCloudStorageAccount(deployTarget);
         final CloudBlockBlob blob = deployArtifactToAzureStorage(deployTarget, zipPackage, storageAccount);
@@ -51,7 +52,7 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
         FunctionArtifactHelper.updateAppSetting(deployTarget, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, sasToken);
     }
 
-    private CloudBlockBlob deployArtifactToAzureStorage(DeployTarget deployTarget, File zipPackage, CloudStorageAccount storageAccount) throws Exception {
+    private CloudBlockBlob deployArtifactToAzureStorage(DeployTarget deployTarget, File zipPackage, CloudStorageAccount storageAccount) throws AzureExecutionException {
         Log.info(String.format(DEPLOY_START, deployTarget.getName()));
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, zipPackage.getName());

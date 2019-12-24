@@ -65,11 +65,16 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
     }
 
     @Override
-    public void publish(DeployTarget deployTarget) throws IOException, AzureExecutionException {
+    public void publish(DeployTarget deployTarget) throws AzureExecutionException {
         final File jar = getJarFile();
         assureJarFileExisted(jar);
 
-        prepareDeploymentFiles(jar);
+        try {
+            prepareDeploymentFiles(jar);
+        } catch (IOException e) {
+            throw new AzureExecutionException(
+                    String.format("Cannot copy jar to staging directory: '%s'", jar), e);
+        }
 
         super.publish(deployTarget);
     }

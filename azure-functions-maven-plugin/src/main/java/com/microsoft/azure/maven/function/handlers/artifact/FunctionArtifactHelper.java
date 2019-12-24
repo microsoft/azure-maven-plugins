@@ -13,10 +13,13 @@ import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.function.Constants;
 import com.microsoft.azure.storage.CloudStorageAccount;
+
 import org.apache.commons.lang3.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
 import java.util.Map;
 
 import static com.microsoft.azure.maven.function.Constants.INTERNAL_STORAGE_KEY;
@@ -29,12 +32,12 @@ public class FunctionArtifactHelper {
     private static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found.";
     private static final String UNSUPPORTED_DEPLOYMENT_TARGET = "Unsupported deployment target, only function is supported";
 
-    public static File createFunctionArtifact(final String stagingDirectoryPath) throws Exception {
+    public static File createFunctionArtifact(final String stagingDirectoryPath) throws AzureExecutionException {
         final File stageDirectory = new File(stagingDirectoryPath);
         final File zipPackage = new File(stagingDirectoryPath.concat(Constants.ZIP_EXT));
 
         if (!stageDirectory.exists() || !stageDirectory.isDirectory()) {
-            throw new Exception(STAGE_DIR_NOT_FOUND);
+            throw new AzureExecutionException(STAGE_DIR_NOT_FOUND);
         }
 
         ZipUtil.pack(stageDirectory, zipPackage);
@@ -52,7 +55,7 @@ public class FunctionArtifactHelper {
         functionApp.update().withAppSetting(key, value).apply();
     }
 
-    public static CloudStorageAccount getCloudStorageAccount(final DeployTarget target) throws Exception {
+    public static CloudStorageAccount getCloudStorageAccount(final DeployTarget target) throws AzureExecutionException {
         final Map<String, AppSetting> settingsMap = target.getAppSettings();
 
         if (settingsMap != null) {
@@ -60,10 +63,14 @@ public class FunctionArtifactHelper {
             if (setting != null) {
                 final String value = setting.value();
                 if (StringUtils.isNotEmpty(value)) {
-                    return CloudStorageAccount.parse(value);
+                    try {
+                        return CloudStorageAccount.parse(value);
+                    } catch (InvalidKeyException | URISyntaxException e) {
+                        throw new AzureExecutionException("Cannot parse storage connection string due to error: " + e.getMessage(), e);
+                    }
                 }
             }
         }
-        throw new Exception(INTERNAL_STORAGE_NOT_FOUND);
+        throw new AzureExecutionException(INTERNAL_STORAGE_NOT_FOUND);
     }
 }

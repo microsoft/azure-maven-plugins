@@ -11,6 +11,7 @@ import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
+
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.maven.settings.Server;

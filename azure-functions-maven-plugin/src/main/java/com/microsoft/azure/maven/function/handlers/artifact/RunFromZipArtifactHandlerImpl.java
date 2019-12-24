@@ -35,7 +35,7 @@ public class RunFromZipArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
     }
 
     @Override
-    public void publish(DeployTarget target) throws AzureExecutionException, IOException {
+    public void publish(DeployTarget target) throws AzureExecutionException {
         FunctionArtifactHelper.updateAppSetting(target, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, RUN_FROM_PACKAGE_VALUE);
         super.publish(target);
     }

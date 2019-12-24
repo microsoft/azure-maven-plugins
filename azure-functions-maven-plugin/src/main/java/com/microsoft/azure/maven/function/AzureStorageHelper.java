@@ -20,6 +20,8 @@ import com.microsoft.azure.storage.blob.SharedAccessBlobPolicy;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -27,24 +29,34 @@ import java.util.EnumSet;
 
 public class AzureStorageHelper {
     private static final int SAS_START_RESERVE_MINUTE = 5;
+    private static final String FAIL_TO_DELETE_BLOB = "Fail to delete blob";
+    private static final String FAIL_TO_UPLOAD_BLOB = "Fail to updload file as blob";
     private static final String FAIL_TO_GENERATE_BLOB_SAS_TOKEN = "Fail to generate blob sas token";
 
     public static CloudBlockBlob uploadFileAsBlob(final File fileToUpload, final CloudStorageAccount storageAccount,
-                                                  final String containerName, final String blobName) throws Exception {
-        final CloudBlobContainer blobContainer = getBlobContainer(storageAccount, containerName);
-        blobContainer.createIfNotExists(BlobContainerPublicAccessType.BLOB, null, null);
+            final String containerName, final String blobName) throws AzureExecutionException {
+        try {
+            final CloudBlobContainer blobContainer = getBlobContainer(storageAccount, containerName);
+            blobContainer.createIfNotExists(BlobContainerPublicAccessType.BLOB, null, null);
 
-        final CloudBlockBlob blob = blobContainer.getBlockBlobReference(blobName);
-        blob.upload(new FileInputStream(fileToUpload), fileToUpload.length());
-        return blob;
+            final CloudBlockBlob blob = blobContainer.getBlockBlobReference(blobName);
+            blob.upload(new FileInputStream(fileToUpload), fileToUpload.length());
+            return blob;
+        } catch (URISyntaxException | StorageException | IOException e) {
+            throw new AzureExecutionException(FAIL_TO_UPLOAD_BLOB, e);
+        }
     }
 
     public static void deleteBlob(final CloudStorageAccount storageAccount, final String containerName,
-                                  final String blobName) throws Exception {
-        final CloudBlobContainer blobContainer = getBlobContainer(storageAccount, containerName);
-        if (blobContainer.exists()) {
-            final CloudBlockBlob blob = blobContainer.getBlockBlobReference(blobName);
-            blob.deleteIfExists();
+            final String blobName) throws AzureExecutionException {
+        try {
+            final CloudBlobContainer blobContainer = getBlobContainer(storageAccount, containerName);
+            if (blobContainer.exists()) {
+                final CloudBlockBlob blob = blobContainer.getBlockBlobReference(blobName);
+                blob.deleteIfExists();
+            }
+        } catch (URISyntaxException | StorageException e) {
+            throw new AzureExecutionException(FAIL_TO_DELETE_BLOB, e);
         }
     }
 
@@ -68,7 +80,7 @@ public class AzureStorageHelper {
     }
 
     protected static CloudBlobContainer getBlobContainer(final CloudStorageAccount storageAccount,
-                                                         final String containerName) throws Exception {
+                                                         final String containerName) throws URISyntaxException, StorageException {
         final CloudBlobClient blobClient = storageAccount.createCloudBlobClient();
         return blobClient.getContainerReference(containerName);
     }

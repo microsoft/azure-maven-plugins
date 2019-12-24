@@ -6,12 +6,6 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
-import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.maven.function.utils.CommandUtils;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -20,26 +14,39 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.List;
 
-public class CommandHandlerImpl implements CommandHandler {
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.maven.function.utils.CommandUtils;
+
+public class CommandHandlerImpl implements CommandHandler {
     @Override
     public void runCommandWithReturnCodeCheck(final String command,
                                               final boolean showStdout,
                                               final String workingDirectory,
                                               final List<Long> validReturnCodes,
-                                              final String errorMessage) throws Exception {
-        final Process process = runCommand(command, showStdout, workingDirectory);
+                                              final String errorMessage) throws AzureExecutionException {
+        try {
+        	final Process process = runCommand(command, showStdout, workingDirectory);
 
-        handleExitValue(process.exitValue(), validReturnCodes, errorMessage, process.getInputStream());
+            handleExitValue(process.exitValue(), validReturnCodes, errorMessage, process.getInputStream());
+    	} catch (IOException | InterruptedException ex) {
+			throw new AzureExecutionException("Cannot execute '" + command + "'", ex);
+    	}
     }
 
     @Override
     public String runCommandAndGetOutput(final String command,
                                          final boolean showStdout,
-                                         final String workingDirectory) throws Exception {
-        final Process process = runCommand(command, showStdout, workingDirectory);
-
-        return getOutputFromProcess(process);
+                                         final String workingDirectory) throws AzureExecutionException {
+    	try {
+	        final Process process = runCommand(command, showStdout, workingDirectory);
+	        return getOutputFromProcess(process);
+    	} catch (IOException | InterruptedException ex) {
+			throw new AzureExecutionException("Cannot execute '" + command + "'", ex);
+    	}
     }
 
     protected String getOutputFromProcess(final Process process) throws IOException {
@@ -56,7 +63,7 @@ public class CommandHandlerImpl implements CommandHandler {
 
     protected Process runCommand(final String command,
                                  final boolean showStdout,
-                                 final String workingDirectory) throws Exception {
+                                 final String workingDirectory) throws IOException, InterruptedException {
         Log.debug("Executing command: " + StringUtils.join(command, " "));
 
         final ProcessBuilder.Redirect redirect = getStdoutRedirect(showStdout);
@@ -88,17 +95,17 @@ public class CommandHandlerImpl implements CommandHandler {
     protected void handleExitValue(int exitValue,
                                    final List<Long> validReturnCodes,
                                    final String errorMessage,
-                                   final InputStream inputStream) throws Exception {
+                                   final InputStream inputStream) throws AzureExecutionException, IOException {
         Log.debug("Process exit value: " + exitValue);
         if (!validReturnCodes.contains(Integer.toUnsignedLong(exitValue))) {
             // input stream is a merge of standard output and standard error of the sub-process
             showErrorIfAny(inputStream);
             Log.error(errorMessage);
-            throw new Exception(errorMessage);
+            throw new AzureExecutionException(errorMessage);
         }
     }
 
-    protected void showErrorIfAny(final InputStream inputStream) throws Exception {
+    protected void showErrorIfAny(final InputStream inputStream) throws IOException {
         if (inputStream != null) {
             final String input = IOUtils.toString(inputStream, "utf8");
             Log.error(StringUtils.strip(input, "\n"));

@@ -155,7 +155,7 @@ public class FTPUploader {
     }
 
     protected FTPClient getFTPClient(final String ftpServer, final String username, final String password)
-            throws Exception {
+            throws IOException {
         final FTPClient ftpClient = new FTPClient();
         ftpClient.connect(ftpServer);
         ftpClient.login(username, password);
