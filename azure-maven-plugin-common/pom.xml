@@ -25,7 +25,7 @@
         <maven.version>3.3.3</maven.version>
         <junit.version>4.12</junit.version>
         <jansi.version>1.17.1</jansi.version>
-        <azure.ai.version>2.5.1-BETA</azure.ai.version>
+        <azure.ai.version>2.5.1</azure.ai.version>
         <jaxb.version>2.3.2</jaxb.version>
         <surefire.version>2.22.0</surefire.version>
         <jacoco.version>0.8.4</jacoco.version>
