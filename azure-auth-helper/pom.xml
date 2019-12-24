@@ -16,7 +16,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <azure.version>1.28.0</azure.version>
+        <azure.version>1.29.0</azure.version>
         <azure.ai.version>2.5.1</azure.ai.version>
         <azure.client.authentication.version>1.6.15</azure.client.authentication.version>
         <commons.collections4.version>4.4</commons.collections4.version>
