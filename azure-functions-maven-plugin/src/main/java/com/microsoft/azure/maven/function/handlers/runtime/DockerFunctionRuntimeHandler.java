@@ -8,15 +8,13 @@ package com.microsoft.azure.maven.function.handlers.runtime;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.maven.settings.Server;
 
-import static com.microsoft.azure.maven.Utils.assureServerExist;
 import static com.microsoft.azure.maven.appservice.DockerImageType.PUBLIC_DOCKER_HUB;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_FUNCTION_APP_EDIT_MODE;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_FUNCTION_APP_EDIT_MODE_VALUE;
@@ -47,7 +45,8 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
 
     @Override
     public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
-        final Server server = Utils.getServer(settings, serverId);
+        final MavenDockerCredentialProvider server = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
+
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
         checkFunctionExtensionVersion();
         checkConfiguration(imageType, server);
@@ -76,7 +75,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
 
     @Override
     public FunctionApp.Update updateAppRuntime(FunctionApp app) throws AzureExecutionException {
-        final Server server = Utils.getServer(settings, serverId);
+        final MavenDockerCredentialProvider server = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
         checkFunctionExtensionVersion();
         checkConfiguration(imageType, server);
@@ -94,9 +93,10 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
         }
     }
 
-    protected void checkConfiguration(DockerImageType imageType, Server server) throws AzureExecutionException {
+    protected void checkConfiguration(DockerImageType imageType, MavenDockerCredentialProvider server) throws AzureExecutionException {
         if (imageType != PUBLIC_DOCKER_HUB) {
-            assureServerExist(server, serverId);
+            // try to call getPassword to verify serverId configuration
+            server.getPassword();
         }
         if (pricingTier == null) {
             throw new AzureExecutionException("Consumption plan is not supported for docker functions");
