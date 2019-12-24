@@ -310,13 +310,7 @@ public class AzureAuthHelper {
                         return null;
                     }
 
-                    final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create(azureProfile, accessTokens);
-                    if (azureCliCredentials.clientId() != null) {
-                        return azureCliCredentials;
-                    } else {
-                        return AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal();
-                    }
-
+                    return AzureCliCredentials.create(azureProfile, accessTokens);
                 } catch (JsonSyntaxException | IOException ex) {
                     // ignore
                 }
