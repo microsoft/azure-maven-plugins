@@ -17,7 +17,6 @@ import com.google.gson.JsonParser;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.function.bindings.BindingEnum;
 import com.microsoft.azure.maven.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
@@ -29,10 +28,15 @@ import com.microsoft.azure.maven.function.handlers.FunctionCoreToolsHandlerImpl;
 
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.filtering.MavenFilteringException;
+import org.apache.maven.shared.filtering.MavenResourcesExecution;
+import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,6 +47,7 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -284,7 +289,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         final String stagingDirectory = getDeploymentStagingDirectoryPath();
         Log.info("");
         Log.info(COPY_JARS + stagingDirectory);
-        Utils.copyResources(
+        copyResources(
                 getProject(),
                 getSession(),
                 getMavenResourcesFiltering(),
@@ -357,4 +362,51 @@ public class PackageMojo extends AbstractFunctionMojo {
         }
     }
     // end region
+
+    /**
+     * Copy resources to target directory using Maven resource filtering so that we don't have to handle
+     * recursive directory listing and pattern matching.
+     * In order to disable filtering, the "filtering" property is force set to False.
+     *
+     * @param project
+     * @param session
+     * @param filtering
+     * @param resources
+     * @param targetDirectory
+     * @throws IOException
+     */
+    private static void copyResources(final MavenProject project, final MavenSession session,
+                                     final MavenResourcesFiltering filtering, final List<Resource> resources,
+                                     final String targetDirectory) throws IOException {
+        for (final Resource resource : resources) {
+            final String targetPath = resource.getTargetPath() == null ? "" : resource.getTargetPath();
+            resource.setTargetPath(Paths.get(targetDirectory, targetPath).toString());
+            resource.setFiltering(false);
+        }
+
+        final MavenResourcesExecution mavenResourcesExecution = new MavenResourcesExecution(
+            resources,
+            new File(targetDirectory),
+            project,
+            "UTF-8",
+            null,
+            Collections.EMPTY_LIST,
+            session
+        );
+
+        // Configure executor
+        mavenResourcesExecution.setEscapeWindowsPaths(true);
+        mavenResourcesExecution.setInjectProjectBuildFilters(false);
+        mavenResourcesExecution.setOverwrite(true);
+        mavenResourcesExecution.setIncludeEmptyDirs(false);
+        mavenResourcesExecution.setSupportMultiLineFiltering(false);
+
+        // Filter resources
+        try {
+            filtering.filterResources(mavenResourcesExecution);
+        } catch (MavenFilteringException ex) {
+            throw new IOException("Failed to copy resources", ex);
+        }
+    }
+
 }

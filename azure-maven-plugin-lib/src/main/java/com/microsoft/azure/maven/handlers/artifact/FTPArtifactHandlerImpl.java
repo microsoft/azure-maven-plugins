@@ -15,8 +15,6 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
-import java.io.IOException;
-
 public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
     private static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
     private static final int DEFAULT_MAX_RETRY_TIMES = 3;
@@ -43,15 +41,6 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
 
     @Override
     public void publish(final DeployTarget target) throws AzureExecutionException {
-        if (isResourcesPreparationRequired(target)) {
-            try {
-                prepareResources();
-            } catch (IOException e) {
-                throw new AzureExecutionException("Encounter error when preparing resources:" + e.getMessage(), e);
-            }
-        }
-
-        assureStagingDirectoryNotEmpty();
         Log.info(String.format(DEPLOY_START, target.getName()));
 
         uploadDirectoryToFTP(target);
