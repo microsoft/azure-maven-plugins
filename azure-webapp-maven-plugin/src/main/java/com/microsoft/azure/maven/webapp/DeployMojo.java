@@ -12,19 +12,27 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
+import com.microsoft.azure.maven.appservice.DeploymentType;
+import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
+import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
+import com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerImplV2;
+import com.microsoft.azure.maven.webapp.utils.Utils;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
@@ -47,6 +55,9 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist. " +
             "Please check if any error message during creation";
 
+    private static final String NO_RESOURCES_CONFIG = "<resources> is empty. " +
+            "Please make sure it is configured in pom.xml.";
+
     protected DeploymentUtil util = new DeploymentUtil();
 
     @Override
@@ -65,7 +76,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             } else {
                 updateWebApp(runtimeHandler, app);
             }
-            deployArtifacts();
+            deployArtifacts(getWebAppConfiguration());
         } catch (IOException | AzureAuthFailureException | InterruptedException e) {
             throw new AzureExecutionException(
                     String.format("Encoutering error when deploying to azure: '%s'", e.getMessage()), e);
@@ -105,7 +116,8 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    protected void deployArtifacts() throws AzureAuthFailureException, InterruptedException, AzureExecutionException, IOException {
+    protected void deployArtifacts(WebAppConfiguration webAppConfiguration)
+        throws AzureAuthFailureException, InterruptedException, AzureExecutionException, IOException {
         try {
             util.beforeDeployArtifacts();
             final WebApp app = getWebApp();
@@ -121,6 +133,18 @@ public class DeployMojo extends AbstractWebAppMojo {
             } else {
                 target = new WebAppDeployTarget(app);
             }
+            final boolean isV1Schema = SchemaVersion
+                    .fromString(this.getSchemaVersion()) == SchemaVersion.V1;
+            // copy resources according to maven filter if the os is not docker
+            if (webAppConfiguration.getOs() != OperatingSystemEnum.Docker && isV1Schema && this.getDeploymentType() != DeploymentType.JAR) {
+                final List<Resource> effectiveResources = isV1Schema ? resources
+                                : (this.deployment == null ? null : this.deployment.getResources());
+                if (effectiveResources != null && !effectiveResources.isEmpty()) {
+                    copyArtifactsToStagingDirectory(isV1Schema ? effectiveResources :
+                        effectiveResources.stream().filter(resource -> !ArtifactHandlerImplV2.isExternalResource(resource)).collect(Collectors.toList()));
+                }
+
+            }
             getFactory().getArtifactHandler(this).publish(target);
         } finally {
             util.afterDeployArtifacts();
@@ -130,6 +154,13 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected HandlerFactory getFactory() {
         return HandlerFactory.getInstance();
     }
+
+    private void copyArtifactsToStagingDirectory(List<Resource> effectiveResources) throws IOException, AzureExecutionException {
+        Utils.prepareResources(this.getProject(), this.getSession(), this.getMavenResourcesFiltering(),
+                effectiveResources, getDeploymentStagingDirectoryPath());
+        Utils.assureStagingDirectoryNotEmpty(getDeploymentStagingDirectoryPath());
+    }
+
 
     class DeploymentUtil {
         boolean isAppStopped = false;

@@ -36,7 +36,7 @@ public class PrivateRegistryRuntimeHandlerImplTest {
     @Mock
     private Azure azureClient;
 
-        private final PrivateRegistryRuntimeHandlerImpl.Builder builder =
+    private final PrivateRegistryRuntimeHandlerImpl.Builder builder =
         new PrivateRegistryRuntimeHandlerImpl.Builder();
 
     private PrivateRegistryRuntimeHandlerImpl handler;

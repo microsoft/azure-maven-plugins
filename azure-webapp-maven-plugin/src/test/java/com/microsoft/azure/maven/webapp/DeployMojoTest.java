@@ -38,6 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.Map;
 
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DEPLOYMENT_TYPE_KEY;
@@ -224,13 +225,14 @@ public class DeployMojoTest {
     @Test
     public void deployArtifactsWithNoResources() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+
         final DeployMojo mojoSpy = spy(mojo);
         final WebApp app = mock(WebApp.class);
-
+        doReturn("target/classes").when(mojoSpy).getDeploymentStagingDirectoryPath();
         doReturn(app).when(mojoSpy).getWebApp();
         doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
 
-        mojoSpy.deployArtifacts();
+        mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
     }
 
     @Test
@@ -241,9 +243,9 @@ public class DeployMojoTest {
 
         doReturn(app).when(mojoSpy).getWebApp();
         doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
-
+        doReturn("target/classes").when(mojoSpy).getDeploymentStagingDirectoryPath();
         final DeployTarget deployTarget = new WebAppDeployTarget(app);
-        mojoSpy.deployArtifacts();
+        mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
 
         verify(artifactHandler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(artifactHandler);
@@ -260,10 +262,12 @@ public class DeployMojoTest {
         doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
         doReturn("test").when(slotSetting).getName();
         doReturn(slot).when(mojoSpy).getDeploymentSlot(app, "test");
-
+        doReturn("target/classes").when(mojoSpy).getDeploymentStagingDirectoryPath();
+        doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
+        doReturn(DeploymentType.NONE).when(mojoSpy).getDeploymentType();
+        mojoSpy.resources = Collections.EMPTY_LIST;
         final DeployTarget deployTarget = new DeploymentSlotDeployTarget(slot);
-
-        mojoSpy.deployArtifacts();
+        mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
 
         verify(artifactHandler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(artifactHandler);

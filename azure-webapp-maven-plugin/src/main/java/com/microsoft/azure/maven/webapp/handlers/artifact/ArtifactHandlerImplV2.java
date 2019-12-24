@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -60,6 +59,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     public static class Builder extends ArtifactHandlerBase.Builder<ArtifactHandlerImplV2.Builder> {
 
         private RuntimeSetting runtimeSetting;
+        private List<Resource> externalResources;
 
         public RuntimeSetting getRuntimeSetting() {
             return runtimeSetting;
@@ -75,6 +75,11 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             return self();
         }
 
+        public ArtifactHandlerImplV2.Builder externalResources(List<Resource> externalResources) {
+            this.externalResources = externalResources;
+            return self();
+        }
+
         @Override
         public ArtifactHandlerImplV2 build() {
             return new ArtifactHandlerImplV2(this);
@@ -84,21 +89,13 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     protected ArtifactHandlerImplV2(final ArtifactHandlerImplV2.Builder builder) {
         super(builder);
         this.runtimeSetting = builder.getRuntimeSetting();
+        this.externalResources = builder.externalResources;
     }
 
     @Override
     public void publish(final DeployTarget target) throws AzureExecutionException {
-        if (resources == null || resources.size() < 1) {
-            Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
-            return;
-        }
-        processResources();
-        deployExternalResources(target);
-        try {
-            copyArtifactsToStagingDirectory();
-        } catch (IOException e) {
-            throw new AzureExecutionException(
-                    String.format("Cannot copy artifacts to staging directory: '%s'", stagingDirectoryPath), e);
+        if (externalResources != null && !externalResources.isEmpty()) {
+            deployExternalResources(target);
         }
         final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
         if (allArtifacts.size() == 0) {
@@ -129,11 +126,9 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         }
     }
 
-    protected void processResources() {
-        final Map<Boolean, List<Resource>> resourceMap = resources.stream()
-                .collect(Collectors.partitioningBy(resource -> isExternalResource(resource)));
-        resources = resourceMap.get(false);
-        externalResources = resourceMap.get(true);
+    public static boolean isExternalResource(Resource resource) {
+        final Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
+        return !target.startsWith(FTP_ROOT);
     }
 
     protected boolean isDeployMixedArtifactsConfirmed() {
@@ -161,11 +156,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     protected List<File> getAllArtifacts(final String stagingDirectoryPath) {
         final File stagingDirectory = new File(stagingDirectoryPath);
         return getArtifacts(stagingDirectory);
-    }
-
-    protected void copyArtifactsToStagingDirectory() throws IOException, AzureExecutionException {
-        prepareResources();
-        assureStagingDirectoryNotEmpty();
     }
 
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,
@@ -284,11 +274,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         targetPath = StringUtils.defaultString(targetPath);
         return StringUtils.startsWith(targetPath, "/") ? targetPath :
                 FTP_ROOT.resolve(Paths.get(targetPath)).normalize().toString();
-    }
-
-    private static boolean isExternalResource(Resource resource) {
-        final Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
-        return !target.startsWith(FTP_ROOT);
     }
 
     private static boolean existsWebConfig(final List<File> artifacts) {

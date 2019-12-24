@@ -55,15 +55,6 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
         this.jarFile = builder.jarFile;
     }
 
-    /**
-     * Jar deploy prepares deployment file itself.
-     * So preparing resources to staging folder is not necessary.
-     */
-    @Override
-    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
-        return false;
-    }
-
     @Override
     public void publish(DeployTarget deployTarget) throws AzureExecutionException {
         final File jar = getJarFile();
