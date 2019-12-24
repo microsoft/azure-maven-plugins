@@ -25,7 +25,8 @@
     <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
     <maven.version>3.3.3</maven.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
   </properties>
 
   <licenses>
