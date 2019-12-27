@@ -32,12 +32,8 @@ import com.microsoft.azure.maven.webapp.handlers.runtime.WebAppRuntimeHandler;
 import com.microsoft.azure.maven.webapp.handlers.runtime.WindowsRuntimeHandlerImpl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.model.Resource;
 
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class HandlerFactoryImpl extends HandlerFactory {
     public static final String UNKNOWN_DEPLOYMENT_TYPE =
@@ -151,15 +147,12 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
     protected ArtifactHandler getV2ArtifactHandler(AbstractWebAppMojo mojo) {
         // process externalResources
-        final Map<Boolean, List<Resource>> resourceMap = mojo.getDeployment().getResources().stream()
-                .collect(Collectors.partitioningBy(ArtifactHandlerImplV2::isExternalResource));
-
         return new ArtifactHandlerImplV2.Builder()
             .project(mojo.getProject())
             .session(mojo.getSession())
             .filtering(mojo.getMavenResourcesFiltering())
-            .resources(resourceMap.get(false))
-            .externalResources(resourceMap.get(true))
+            .resources(mojo.getResources())
+            .externalResources(mojo.getExternalResources())
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .runtime(mojo.getRuntime())
             .build();

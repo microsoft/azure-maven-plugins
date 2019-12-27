@@ -12,7 +12,6 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
@@ -31,6 +30,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -54,9 +54,6 @@ public class DeployMojo extends AbstractWebAppMojo {
             "Please make sure the Web App name is correct.";
     public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist. " +
             "Please check if any error message during creation";
-
-    private static final String NO_RESOURCES_CONFIG = "<resources> is empty. " +
-            "Please make sure it is configured in pom.xml.";
 
     protected DeploymentUtil util = new DeploymentUtil();
 
@@ -136,12 +133,17 @@ public class DeployMojo extends AbstractWebAppMojo {
             final boolean isV1Schema = SchemaVersion
                     .fromString(this.getSchemaVersion()) == SchemaVersion.V1;
             // copy resources according to maven filter if the os is not docker
-            if (webAppConfiguration.getOs() != OperatingSystemEnum.Docker && isV1Schema && this.getDeploymentType() != DeploymentType.JAR) {
-                final List<Resource> effectiveResources = isV1Schema ? resources
+            if (webAppConfiguration.getOs() != OperatingSystemEnum.Docker) {
+                final List<Resource> finalResources = isV1Schema ? resources
                                 : (this.deployment == null ? null : this.deployment.getResources());
-                if (effectiveResources != null && !effectiveResources.isEmpty()) {
-                    copyArtifactsToStagingDirectory(isV1Schema ? effectiveResources :
-                        effectiveResources.stream().filter(resource -> !ArtifactHandlerImplV2.isExternalResource(resource)).collect(Collectors.toList()));
+                if (!isV1Schema) {
+                    final Map<Boolean, List<Resource>> resourceMap = finalResources.stream()
+                            .collect(Collectors.partitioningBy(ArtifactHandlerImplV2::isExternalResource));
+                    this.setExternalResources(resourceMap.get(true));
+                    this.deployment.setResources(resourceMap.get(false));
+                }
+                if (finalResources != null && !finalResources.isEmpty()) {
+                    copyArtifactsToStagingDirectory(isV1Schema ? finalResources : this.deployment.getResources());
                 }
 
             }

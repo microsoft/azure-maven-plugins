@@ -232,6 +232,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     protected File stagingDirectory;
 
+    private List<Resource> externalResources;
+
     //endregion
 
     //region Getter
@@ -354,6 +356,13 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         this.runtime = runtime;
     }
 
+    public void setExternalResources(List<Resource> externalResources) {
+        this.externalResources = externalResources;
+    }
+
+    public List<Resource> getExternalResources() {
+        return externalResources;
+    }
     //endregion
 
     protected ConfigurationParser getParserBySchemaVersion() throws AzureExecutionException {
