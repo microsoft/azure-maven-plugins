@@ -1,6 +1,9 @@
 # Maven Plugin for Azure Spring Cloud
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-spring-cloud-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-spring-cloud-maven-plugin%22)  
+
 ### Azure Spring Cloud
+
 [Azure Spring Cloud](https://docs.microsoft.com/en-us/azure/spring-cloud/) makes it easy to deploy Spring Boot-based microservice applications to Azure with zero code changes. Azure Spring Cloud allows developers to focus on their code by managing the lifecycle of Spring Cloud applications. Spring Cloud provides lifecycle management using comprehensive monitoring and diagnostics, configuration management, service discovery, CI/CD integration, blue-green deployments, and more.
 
 ### Azure Spring Cloud Maven Plugin
