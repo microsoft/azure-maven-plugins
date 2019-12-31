@@ -87,14 +87,19 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
     @Override
-    public void publish(final DeployTarget target) throws AzureExecutionException, IOException {
+    public void publish(final DeployTarget target) throws AzureExecutionException {
         if (resources == null || resources.size() < 1) {
             Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
             return;
         }
         processResources();
         deployExternalResources(target);
-        copyArtifactsToStagingDirectory();
+        try {
+            copyArtifactsToStagingDirectory();
+        } catch (IOException e) {
+            throw new AzureExecutionException(
+                    String.format("Cannot copy artifacts to staging directory: '%s'", stagingDirectoryPath), e);
+        }
         final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
         if (allArtifacts.size() == 0) {
             final String absolutePath = new File(stagingDirectoryPath).getAbsolutePath();
@@ -257,9 +262,8 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         final PublishingProfile publishingProfile = deployTarget.getPublishingProfile();
         final String serverUrl = publishingProfile.ftpUrl().split("/", 2)[0];
         try {
-            FTPClient ftpClient = FTPUtils.getFTPClient(serverUrl, publishingProfile.ftpUsername(), publishingProfile.ftpPassword());
-            List<Resource> externalResources = this.externalResources;
-            for (Resource resource : externalResources) {
+            final FTPClient ftpClient = FTPUtils.getFTPClient(serverUrl, publishingProfile.ftpUsername(), publishingProfile.ftpPassword());
+            for (final Resource resource : externalResources) {
                 uploadResource(resource, ftpClient);
             }
         } catch (IOException e) {
@@ -270,7 +274,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     protected void uploadResource(Resource resource, FTPClient ftpClient) throws IOException {
         final List<File> files = Utils.getArtifacts(resource);
         final String target = getAbsoluteTargetPath(resource.getTargetPath());
-        for (File file : files) {
+        for (final File file : files) {
             FTPUtils.uploadFile(ftpClient, file.getPath(), target);
         }
     }
@@ -283,7 +287,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
     private static boolean isExternalResource(Resource resource) {
-        Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
+        final Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
         return !target.startsWith(FTP_ROOT);
     }
 

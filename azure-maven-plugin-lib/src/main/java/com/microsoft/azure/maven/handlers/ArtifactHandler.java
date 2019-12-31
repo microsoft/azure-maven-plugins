@@ -6,8 +6,9 @@
 
 package com.microsoft.azure.maven.handlers;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
 public interface ArtifactHandler<T extends DeployTarget> {
-    void publish(T deployTarget) throws Exception;
+    void publish(T deployTarget) throws AzureExecutionException;
 }

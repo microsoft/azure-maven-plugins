@@ -29,6 +29,7 @@ import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.dom4j.DocumentException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,11 +65,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static final String[] configTypes = {"Application", "Runtime", "DeploymentSlot"};
 
     @Override
-    protected void doExecute() throws Exception {
+    protected void doExecute() throws AzureExecutionException {
         queryer = QueryFactory.getQueryer(settings);
-        pomHandler = new WebAppPomHandler(project.getFile().getAbsolutePath());
-
         try {
+            pomHandler = new WebAppPomHandler(project.getFile().getAbsolutePath());
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
                     getWebAppConfigurationWithoutValidation();
             if (!isV2Configuration(configuration)) {
@@ -76,6 +76,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
             } else {
                 config(configuration);
             }
+        } catch (DocumentException | MojoFailureException | IOException e) {
+            throw new AzureExecutionException(e.getMessage(), e);
         } finally {
             queryer.close();
         }

@@ -311,16 +311,8 @@ public class AzureAuthHelper {
                     if (wrapper.subscriptions == null || wrapper.subscriptions.isEmpty()) {
                         return null;
                     }
-
-                    final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create(azureProfile, accessTokens);
-
-                    if (azureCliCredentials.clientId() != null) {
-                        return new AzureTokenCredentialsDecorator(AuthType.AZURE_CLI, azureCliCredentials, azureProfile, accessTokens);
-                    } else {
-                        return new AzureTokenCredentialsDecorator(AuthType.AZURE_CLI_SP,
-                                AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal(), azureProfile, accessTokens);
-                    }
-
+                    return new AzureTokenCredentialsDecorator(AuthType.AZURE_CLI,
+                            AzureCliCredentials.create(azureProfile, accessTokens), azureProfile, accessTokens);
                 } catch (JsonSyntaxException | IOException ex) {
                     // ignore
                 }

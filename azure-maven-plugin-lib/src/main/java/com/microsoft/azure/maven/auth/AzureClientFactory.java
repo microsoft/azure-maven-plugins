@@ -78,7 +78,7 @@ public class AzureClientFactory {
         if (subscriptions.size() == 0) {
             throw new AzureLoginFailureException(NO_AVAILABLE_SUBSCRIPTION);
         }
-        Optional<Subscription> targetSubscription = subscriptions.stream()
+        final Optional<Subscription> targetSubscription = subscriptions.stream()
                 .filter(subscription -> StringUtils.equals(subscription.subscriptionId(), subscriptionId))
                 .findAny();
         if (!targetSubscription.isPresent()) {
