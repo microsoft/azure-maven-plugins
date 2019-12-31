@@ -1,5 +1,7 @@
 # Maven Plugin for Azure
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-maven-plugin%22)  
+
 Azure Maven plugin provides basic functions for all Azure maven plugins, for now mostly on authentication with Azure, eg: login.
 
 ## Documentation
