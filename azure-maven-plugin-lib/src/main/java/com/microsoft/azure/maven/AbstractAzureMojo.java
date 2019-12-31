@@ -11,6 +11,7 @@ import com.microsoft.azure.auth.MavenSettingHelper;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.auth.exception.MavenDecryptException;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
@@ -420,9 +421,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     /**
      * Entry point of sub-class. Sub-class should implement this method to do real work.
      *
-     * @throws Exception
+     * @throws AzureExecutionException
      */
-    protected abstract void doExecute() throws Exception;
+    protected abstract void doExecute() throws AzureExecutionException;
 
     //endregion
 
