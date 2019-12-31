@@ -283,7 +283,7 @@ public class AzureAuthHelper {
         }
         if (existsAzureSecretFile()) {
             try {
-                return new AzureTokenCredentialsDecorator(AuthType.SECRET_FILE, getMavenAzureLoginCredentials());
+                return new AzureTokenCredentialsDecorator(AuthType.SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
             } catch (IOException ex) {
                 // ignore
             }
@@ -313,11 +313,12 @@ public class AzureAuthHelper {
                     }
 
                     final AzureCliCredentials azureCliCredentials = AzureCliCredentials.create(azureProfile, accessTokens);
+
                     if (azureCliCredentials.clientId() != null) {
-                        return new AzureTokenCredentialsDecorator(AuthType.AZURE_CLI, azureCliCredentials);
+                        return new AzureTokenCredentialsDecorator(AuthType.AZURE_CLI, azureCliCredentials, azureProfile, accessTokens);
                     } else {
                         return new AzureTokenCredentialsDecorator(AuthType.AZURE_CLI_SP,
-                                AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal());
+                                AzureServicePrincipleAuthHelper.getCredentialFromAzureCliWithServicePrincipal(), azureProfile, accessTokens);
                     }
 
                 } catch (JsonSyntaxException | IOException ex) {

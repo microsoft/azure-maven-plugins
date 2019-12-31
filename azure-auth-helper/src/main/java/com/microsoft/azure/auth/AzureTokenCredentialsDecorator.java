@@ -10,14 +10,22 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.configuration.AuthType;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import okhttp3.OkHttpClient;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.net.ssl.SSLSocketFactory;
+import java.io.File;
 import java.io.IOException;
 import java.net.Proxy;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class AzureTokenCredentialsDecorator extends AzureTokenCredentials {
 
+    private static final String TEMPLATE = "Auth Type : %s";
+    private static final String TEMPLATE_WITH_FILE = "Auth Type : %s; Auth Files : [%s]";
+
     private AuthType authType;
+    private File[] authFileLocation;
     private AzureTokenCredentials azureTokenCredentials;
 
     public AzureTokenCredentialsDecorator(AuthType authType, AzureTokenCredentials credentials) {
@@ -26,12 +34,29 @@ public class AzureTokenCredentialsDecorator extends AzureTokenCredentials {
         this.azureTokenCredentials = credentials;
     }
 
+    public AzureTokenCredentialsDecorator(AuthType authType, AzureTokenCredentials credentials, File... authFileLocation) {
+        this(authType, credentials);
+        this.authFileLocation = authFileLocation;
+    }
+
     public AuthType getAuthType() {
         return authType;
     }
 
     public AzureTokenCredentials getAzureTokenCredentials() {
         return azureTokenCredentials;
+    }
+
+    public File[] getAuthFileLocation() {
+        return authFileLocation;
+    }
+
+    public String getCredentialDescription() {
+        if (ArrayUtils.isEmpty(authFileLocation)) {
+            return String.format(TEMPLATE, authType);
+        }
+        final String authFiles = Arrays.stream(authFileLocation).map(file -> file.getAbsolutePath()).collect(Collectors.joining(","));
+        return String.format(TEMPLATE_WITH_FILE, authType, authFiles);
     }
 
     @Override
