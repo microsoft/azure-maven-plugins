@@ -12,16 +12,18 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerImplV2;
+import com.microsoft.azure.maven.webapp.handlers.artifact.JarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.artifact.WarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 
 import org.apache.commons.io.FileUtils;
@@ -31,6 +33,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -133,19 +136,39 @@ public class DeployMojo extends AbstractWebAppMojo {
             } else {
                 target = new WebAppDeployTarget(app);
             }
-            final boolean isV1Schema = SchemaVersion
-                    .fromString(this.getSchemaVersion()) == SchemaVersion.V1;
-            // copy resources according to maven filter if the os is not docker
-            if (webAppConfiguration.getOs() != OperatingSystemEnum.Docker && isV1Schema && this.getDeploymentType() != DeploymentType.JAR) {
-                final List<Resource> effectiveResources = isV1Schema ? resources
-                                : (this.deployment == null ? null : this.deployment.getResources());
-                if (effectiveResources != null && !effectiveResources.isEmpty()) {
-                    copyArtifactsToStagingDirectory(isV1Schema ? effectiveResources :
-                        effectiveResources.stream().filter(resource -> !ArtifactHandlerImplV2.isExternalResource(resource)).collect(Collectors.toList()));
+
+            if (webAppConfiguration.getOs() == OperatingSystemEnum.Docker) {
+                return;
+            }
+
+            final boolean isV1Schema = SchemaVersion.fromString(this.getSchemaVersion()) == SchemaVersion.V1;
+            List<Resource> effectiveResources = isV1Schema ? resources
+                    : (this.deployment == null ? null : this.deployment.getResources());
+            if (!isV1Schema) {
+                if (effectiveResources == null || effectiveResources.isEmpty()) {
+                    Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
+                    return;
                 }
 
+                final Map<Boolean, List<Resource>> resourceMap = effectiveResources.stream()
+                        .collect(Collectors.partitioningBy(ArtifactHandlerImplV2::isExternalResource));
+                this.setExternalResources(resourceMap.get(true));
+                this.deployment.setResources(resourceMap.get(false));
+                effectiveResources = resourceMap.get(false);
+
             }
-            getFactory().getArtifactHandler(this).publish(target);
+            ArtifactHandler artifactHandler = getFactory().getArtifactHandler(this);
+            // copy resources according to maven filter if the deployment type is war or jar
+            // legacy code for v1 jar/war deploy: no need to handle resources
+            if (!(artifactHandler instanceof JarArtifactHandlerImpl || artifactHandler instanceof WarArtifactHandlerImpl)) {
+                if (effectiveResources != null && !effectiveResources.isEmpty()) {
+                    copyArtifactsToStagingDirectory(effectiveResources);
+                } else {
+                    throw new AzureExecutionException(NO_RESOURCES_CONFIG);
+                }
+            }
+
+            artifactHandler.publish(target);
         } finally {
             util.afterDeployArtifacts();
         }
