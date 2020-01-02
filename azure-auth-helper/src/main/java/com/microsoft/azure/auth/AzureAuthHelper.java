@@ -275,21 +275,21 @@ public class AzureAuthHelper {
      * @return the azure credential through
      * @throws IOException when there are some IO errors.
      */
-    public static AzureTokenCredentialsDecorator getAzureTokenCredentials(AuthConfiguration configuration)
+    public static AzureTokenWrapper getAzureTokenCredentials(AuthConfiguration configuration)
             throws InvalidConfigurationException, IOException {
         if (configuration != null) {
-            return new AzureTokenCredentialsDecorator(AuthType.SERVICE_PRINCIPAL,
+            return new AzureTokenWrapper(AuthType.SERVICE_PRINCIPAL,
                     AzureServicePrincipleAuthHelper.getAzureServicePrincipleCredentials(configuration));
         }
         if (existsAzureSecretFile()) {
             try {
-                return new AzureTokenCredentialsDecorator(AuthType.SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
+                return new AzureTokenWrapper(AuthType.SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
             } catch (IOException ex) {
                 // ignore
             }
         }
         if (isInCloudShell()) {
-            return new AzureTokenCredentialsDecorator(AuthType.MSI, new MSICredentials());
+            return new AzureTokenWrapper(AuthType.MSI, new MSICredentials());
         }
         final File credentialParent = getAzureConfigFolder();
         if (credentialParent.exists() && credentialParent.isDirectory()) {
@@ -311,7 +311,7 @@ public class AzureAuthHelper {
                     if (wrapper.subscriptions == null || wrapper.subscriptions.isEmpty()) {
                         return null;
                     }
-                    return new AzureTokenCredentialsDecorator(AuthType.AZURE_CLI,
+                    return new AzureTokenWrapper(AuthType.AZURE_CLI,
                             AzureCliCredentials.create(azureProfile, accessTokens), azureProfile, accessTokens);
                 } catch (JsonSyntaxException | IOException ex) {
                     // ignore

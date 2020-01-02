@@ -10,7 +10,7 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureCredential;
-import com.microsoft.azure.auth.AzureTokenCredentialsDecorator;
+import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.configuration.AuthType;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
@@ -35,7 +35,7 @@ public class AzureClientFactory {
 
     public static Azure getAzureClient(AuthConfiguration auth, String subscriptionId) throws InvalidConfigurationException, IOException,
         AzureLoginFailureException, InterruptedException, ExecutionException {
-        AzureTokenCredentialsDecorator azureTokenCredentials = AzureAuthHelper.getAzureTokenCredentials(auth);
+        AzureTokenWrapper azureTokenCredentials = AzureAuthHelper.getAzureTokenCredentials(auth);
         if (azureTokenCredentials == null) {
             AuthType authType;
             final AzureEnvironment environment = AzureEnvironment.AZURE;
@@ -48,7 +48,7 @@ public class AzureClientFactory {
                 azureCredential = AzureAuthHelper.deviceLogin(environment);
             }
             AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
-            azureTokenCredentials = new AzureTokenCredentialsDecorator(authType,
+            azureTokenCredentials = new AzureTokenWrapper(authType,
                     AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, environment));
         }
 
@@ -63,6 +63,7 @@ public class AzureClientFactory {
             final Azure azure = StringUtils.isEmpty(subscriptionId) ?
                     authenticated.withDefaultSubscription() :
                     authenticated.withSubscription(subscriptionId);
+            subscriptionId = StringUtils.isEmpty(subscriptionId) ? azureTokenCredentials.defaultSubscriptionId() : subscriptionId;
             checkSubscription(azure, subscriptionId);
             final Subscription subscription = azure.getCurrentSubscription();
             Log.info(String.format(SUBSCRIPTION_TEMPLATE, subscription.displayName(), subscription.subscriptionId()));
@@ -72,17 +73,21 @@ public class AzureClientFactory {
         return null;
     }
 
-    private static void checkSubscription(Azure azure, String subscriptionId) throws AzureLoginFailureException {
+    private static void checkSubscription(Azure azure, String defaultSubscription) throws AzureLoginFailureException {
         final PagedList<Subscription> subscriptions = azure.subscriptions().list();
         subscriptions.loadAll();
         if (subscriptions.size() == 0) {
             throw new AzureLoginFailureException(NO_AVAILABLE_SUBSCRIPTION);
         }
+        if (StringUtils.isEmpty(defaultSubscription)) {
+            Log.warn("SubscriptionId was not specified, will use the first subscription in current account");
+            return;
+        }
         final Optional<Subscription> targetSubscription = subscriptions.stream()
-                .filter(subscription -> StringUtils.equals(subscription.subscriptionId(), subscriptionId))
+                .filter(subscription -> StringUtils.equals(subscription.subscriptionId(), defaultSubscription))
                 .findAny();
         if (!targetSubscription.isPresent()) {
-            throw new AzureLoginFailureException(String.format(SUBSCRIPTION_NOT_FOUND, subscriptionId));
+            throw new AzureLoginFailureException(String.format(SUBSCRIPTION_NOT_FOUND, defaultSubscription));
         }
     }
 }

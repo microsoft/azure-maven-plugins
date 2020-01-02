@@ -247,7 +247,7 @@ public class AzureAuthHelperTest {
         // 1. use azure-secret.json
         File testConfigDir = new File(this.getClass().getResource("/azure-login/azure-secret.json").getFile()).getParentFile();
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
-        AzureTokenCredentialsDecorator cred = AzureAuthHelper.getAzureTokenCredentials(null);
+        AzureTokenWrapper cred = AzureAuthHelper.getAzureTokenCredentials(null);
         assertNotNull(cred);
         assertEquals("00000000-0000-0000-0000-000000000001", cred.defaultSubscriptionId());
 
@@ -295,7 +295,7 @@ public class AzureAuthHelperTest {
         auth.setTenant("tenant_id");
         auth.setKey("key");
         auth.setEnvironment("azure_germany");
-        final AzureTokenCredentialsDecorator cred = AzureAuthHelper.getAzureTokenCredentials(auth);
+        final AzureTokenWrapper cred = AzureAuthHelper.getAzureTokenCredentials(auth);
         assertNotNull(cred);
         assertTrue(cred.getAzureTokenCredentials() instanceof ApplicationTokenCredentials);
         assertNull(cred.defaultSubscriptionId());

@@ -19,7 +19,7 @@ import java.net.Proxy;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class AzureTokenCredentialsDecorator extends AzureTokenCredentials {
+public class AzureTokenWrapper extends AzureTokenCredentials {
 
     private static final String TEMPLATE = "Auth Type : %s";
     private static final String TEMPLATE_WITH_FILE = "Auth Type : %s; Auth Files : [%s]";
@@ -28,13 +28,13 @@ public class AzureTokenCredentialsDecorator extends AzureTokenCredentials {
     private File[] authFileLocation;
     private AzureTokenCredentials azureTokenCredentials;
 
-    public AzureTokenCredentialsDecorator(AuthType authType, AzureTokenCredentials credentials) {
+    public AzureTokenWrapper(AuthType authType, AzureTokenCredentials credentials) {
         super(credentials.environment(), credentials.domain());
         this.authType = authType;
         this.azureTokenCredentials = credentials;
     }
 
-    public AzureTokenCredentialsDecorator(AuthType authType, AzureTokenCredentials credentials, File... authFileLocation) {
+    public AzureTokenWrapper(AuthType authType, AzureTokenCredentials credentials, File... authFileLocation) {
         this(authType, credentials);
         this.authFileLocation = authFileLocation;
     }
