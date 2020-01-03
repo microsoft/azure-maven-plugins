@@ -37,7 +37,7 @@ import java.util.concurrent.ExecutionException;
 
 public class AzureAuthHelper {
 
-    private static final AuthType[] AUTH_ORDER = {AuthType.SERVICE_PRINCIPAL, AuthType.SECRET_FILE, AuthType.MSI,
+    private static final AuthType[] AUTH_ORDER = {AuthType.SERVICE_PRINCIPAL, AuthType.AZURE_SECRET_FILE, AuthType.CLOUD_SHELL,
         AuthType.AZURE_CLI, AuthType.OAUTH, AuthType.DEVICE_LOGIN};
 
     /**
@@ -298,11 +298,11 @@ public class AzureAuthHelper {
     }
 
     public static AzureTokenWrapper getSecretFileCredential() throws IOException {
-        return new AzureTokenWrapper(AuthType.SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
+        return new AzureTokenWrapper(AuthType.AZURE_SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
     }
 
     public static AzureTokenWrapper getMSICredential() {
-        return isInCloudShell() ? new AzureTokenWrapper(AuthType.MSI, new MSICredentials()) : null;
+        return isInCloudShell() ? new AzureTokenWrapper(AuthType.CLOUD_SHELL, new MSICredentials()) : null;
     }
 
     /**
@@ -324,23 +324,22 @@ public class AzureAuthHelper {
         }
         if (existsAzureSecretFile()) {
             try {
-                return new AzureTokenWrapper(AuthType.SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
+                return new AzureTokenWrapper(AuthType.AZURE_SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
             } catch (IOException ex) {
                 // ignore
             }
         }
         if (isInCloudShell()) {
-            return new AzureTokenWrapper(AuthType.MSI, new MSICredentials());
+            return new AzureTokenWrapper(AuthType.CLOUD_SHELL, new MSICredentials());
         }
 
         return getAzureCLICredential();
     }
 
-    public static AzureTokenWrapper getAzureCredentialByAuthType(String authType, AuthConfiguration authConfiguration,
+    public static AzureTokenWrapper getAzureCredentialByAuthType(AuthType authType, AuthConfiguration authConfiguration,
                                                                  AzureEnvironment azureEnvironment) throws AzureLoginFailureException {
-        final AuthType type = AuthType.fromString(authType);
-        return type == AuthType.UNKNOWN ? getAzureCredentialByOrder(authConfiguration, azureEnvironment) :
-                type.getAzureToken(authConfiguration, azureEnvironment);
+        return authType == AuthType.EMPTY ? getAzureCredentialByOrder(authConfiguration, azureEnvironment) :
+                authType.getAzureToken(authConfiguration, azureEnvironment);
     }
 
     public static AzureTokenWrapper getAzureCredentialByOrder(AuthConfiguration authConfiguration, AzureEnvironment azureEnvironment) {

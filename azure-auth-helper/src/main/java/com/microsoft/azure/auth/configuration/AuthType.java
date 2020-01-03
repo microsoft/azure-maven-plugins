@@ -11,10 +11,8 @@ import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureCredential;
 import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 public enum AuthType {
     AZURE_CLI {
@@ -40,7 +38,7 @@ public enum AuthType {
             }
         }
     },
-    MSI {
+    CLOUD_SHELL {
         @Override
         public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) {
             return AzureAuthHelper.getMSICredential();
@@ -59,7 +57,7 @@ public enum AuthType {
             }
         }
     },
-    SECRET_FILE {
+    AZURE_SECRET_FILE {
         @Override
         public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) throws AzureLoginFailureException {
             try {
@@ -79,19 +77,12 @@ public enum AuthType {
             }
         }
     },
-    UNKNOWN {
+    EMPTY {
         @Override
         public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) {
             return null;
         }
     };
-
-    public static AuthType fromString(String input) {
-        return StringUtils.isEmpty(input) ? UNKNOWN :
-                Arrays.stream(AuthType.values())
-                        .filter(authType -> StringUtils.equalsIgnoreCase(input, authType.name()))
-                        .findFirst().orElse(UNKNOWN);
-    }
 
     public abstract AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) throws AzureLoginFailureException;
 }

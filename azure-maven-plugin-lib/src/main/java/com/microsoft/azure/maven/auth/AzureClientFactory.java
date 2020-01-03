@@ -11,6 +11,7 @@ import com.microsoft.azure.PagedList;
 import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
+import com.microsoft.azure.auth.configuration.AuthType;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
@@ -29,11 +30,7 @@ public class AzureClientFactory {
     public static final String SUBSCRIPTION_NOT_SPECIFIED = "Subscription ID was not specified, using the first subscription in current account," +
             " please refer https://github.com/microsoft/azure-maven-plugins/wiki/Authentication#subscription for more information";
 
-    public static Azure getAzureClient(AuthConfiguration auth, String subscriptionId) throws IOException, AzureLoginFailureException {
-        return getAzureClient(null, auth, subscriptionId);
-    }
-
-    public static Azure getAzureClient(String authType, AuthConfiguration auth, String subscriptionId) throws IOException, AzureLoginFailureException {
+    public static Azure getAzureClient(AuthType authType, AuthConfiguration auth, String subscriptionId) throws IOException, AzureLoginFailureException {
         final AzureEnvironment environment = AzureEnvironment.AZURE;
         final AzureTokenWrapper azureTokenCredentials = AzureAuthHelper.getAzureCredentialByAuthType(authType, auth, environment);
         if (azureTokenCredentials != null) {

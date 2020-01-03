@@ -8,6 +8,7 @@ package com.microsoft.azure.maven;
 
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
 import com.microsoft.azure.auth.MavenSettingHelper;
+import com.microsoft.azure.auth.configuration.AuthType;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.MavenDecryptException;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
@@ -46,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +78,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
         "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
         "For more information, please go to https://aka.ms/azure-maven-config.\n";
+    public static final String INVALID_AUTH_TYPE = "%s is not a valid auth type for Azure maven plugins, will use default authentication";
 
     //region Properties
 
@@ -155,6 +158,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Parameter(property = "httpProxyPort", defaultValue = "80")
     protected int httpProxyPort;
 
+    /**
+     * Authentication type, could be OAuth, DeviceLogin, Azure_CLI, Azure_Secret_File
+     * If this is not set, maven plugin try all available auth methods with default order
+     */
     @Parameter(property = "authType")
     protected String authType;
 
@@ -259,7 +266,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             } else {
                 initAuth();
                 try {
-                    azure = AzureClientFactory.getAzureClient(authType, isAuthConfigurationExist() ? this.auth : null, this.subscriptionId);
+                    azure = AzureClientFactory.getAzureClient(getAuthTypeEnum(), isAuthConfigurationExist() ? this.auth : null, this.subscriptionId);
                 } catch (IOException | AzureLoginFailureException e) {
                     throw new AzureAuthFailureException(e.getMessage());
                 }
@@ -273,6 +280,20 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
         }
         return azure;
+    }
+
+    protected AuthType getAuthTypeEnum() {
+        if (StringUtils.isEmpty(authType)) {
+            return AuthType.EMPTY;
+        }
+        AuthType result = Arrays.stream(AuthType.values())
+                .filter(authTypeEnum -> StringUtils.equalsAnyIgnoreCase(authTypeEnum.name(), authType))
+                .findFirst().orElse(null);
+        if (result == null) {
+            Log.warn(String.format(INVALID_AUTH_TYPE, authType));
+            result = AuthType.EMPTY;
+        }
+        return result;
     }
 
     public TelemetryProxy getTelemetryProxy() {
