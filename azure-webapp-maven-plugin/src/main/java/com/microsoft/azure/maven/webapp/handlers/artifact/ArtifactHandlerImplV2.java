@@ -42,7 +42,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final String RENAMING_MESSAGE = "Renaming %s to %s";
     private static final String RENAMING_FAILED_MESSAGE = "Failed to rename artifact to %s, which is required in Java SE environment, " +
             "refer to https://docs.microsoft.com/en-us/azure/app-service/containers/configure-language-java#set-java-runtime-options for details.";
-    private static final String NO_EXECUTABLE_JAR = "No executable jar found in target folder according to resource filter '%s', " +
+    private static final String NO_EXECUTABLE_JAR = "No executable jar found in target folder according to resource filter in <resource>, " +
             "please make sure the resource filter is correct and you have built the jar.";
     private static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
@@ -181,7 +181,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
     protected boolean isJavaSERuntime() {
-        final boolean isJarProject = project != null && StringUtils.equalsIgnoreCase(project.getPackaging(), "jar");
+        final boolean isJarProject = project != null && project.isJarProject();
         if (runtimeSetting == null || runtimeSetting.isEmpty() || isJarProject) {
             return isJarProject;
         }
@@ -208,21 +208,17 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
     private File getProjectJarArtifact(final List<File> artifacts) throws AzureExecutionException {
-        final String fileName = String.format("%s.%s", project.getBuild().getFinalName(), project.getPackaging());
+        final String fileName = project.getArtifactFile().getFileName().toString();
         final List<File> executableArtifacts = artifacts.stream()
                 .filter(file -> isExecutableJar(file)).collect(Collectors.toList());
         final File finalArtifact = executableArtifacts.stream()
                 .filter(file -> StringUtils.equals(fileName, file.getName())).findFirst().orElse(null);
         if (executableArtifacts.size() == 0) {
-            throw new AzureExecutionException(String.format(NO_EXECUTABLE_JAR, getResourceConfiguration()));
+            throw new AzureExecutionException(NO_EXECUTABLE_JAR);
         } else if (finalArtifact == null && executableArtifacts.size() > 1) {
             throw new AzureExecutionException(MULTI_EXECUTABLE_JARS);
         }
         return finalArtifact == null ? executableArtifacts.get(0) : finalArtifact;
-    }
-
-    private String getResourceConfiguration() {
-        return resources.stream().map(resource -> resource.toString()).collect(Collectors.joining(","));
     }
 
     private static boolean existsWebConfig(final List<File> artifacts) {

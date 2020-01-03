@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.project.IProject;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
@@ -56,10 +57,7 @@ public class ArtifactHandlerBaseTest {
     private ArtifactHandlerBase handlerSpy;
 
     private void buildHandler() {
-        handler = builder.project(mojo.getProject())
-            .session(mojo.getSession())
-            .filtering(mojo.getMavenResourcesFiltering())
-            .resources(mojo.getResources())
+        handler = builder.project(mock(IProject.class))
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .build();
         handlerSpy = spy(handler);
@@ -78,9 +76,6 @@ public class ArtifactHandlerBaseTest {
         buildHandler();
 
         assertEquals(handler.project, mojo.getProject());
-        assertEquals(handler.session, mojo.getSession());
-        assertEquals(handler.resources, mojo.getResources());
-        assertEquals(handler.filtering, mojo.getMavenResourcesFiltering());
         assertEquals(handler.stagingDirectoryPath, mojo.getDeploymentStagingDirectoryPath());
     }
 

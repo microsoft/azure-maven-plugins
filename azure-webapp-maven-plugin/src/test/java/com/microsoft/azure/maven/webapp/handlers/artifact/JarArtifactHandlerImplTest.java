@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
@@ -46,7 +47,7 @@ public class JarArtifactHandlerImplTest {
 
     private void buildHandler() {
         handler = (JarArtifactHandlerImpl) new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile())
-            .project(mojo.getProject())
+            .project(ProjectUtils.convertCommonProject(mojo.getProject()))
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .build();
         handlerSpy = spy(handler);
