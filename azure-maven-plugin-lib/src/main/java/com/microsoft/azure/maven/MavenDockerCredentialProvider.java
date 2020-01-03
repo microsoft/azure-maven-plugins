@@ -44,6 +44,12 @@ public class MavenDockerCredentialProvider {
         return server != null ? server.getPassword() : null;
     }
 
+    public void validate() throws AzureExecutionException {
+        if (server == null) {
+            initializeServer();
+        }
+    }
+
     private void initializeServer() throws AzureExecutionException {
         if (StringUtils.isNotBlank(serverId)) {
             server = settings.getServer(serverId);

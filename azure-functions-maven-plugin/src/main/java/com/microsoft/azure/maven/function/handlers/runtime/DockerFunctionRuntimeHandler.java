@@ -45,11 +45,11 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
 
     @Override
     public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
-        final MavenDockerCredentialProvider server = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
+        final MavenDockerCredentialProvider provider = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
 
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
         checkFunctionExtensionVersion();
-        checkConfiguration(imageType, server);
+        checkConfiguration(imageType, provider);
 
         final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage = super.defineLinuxFunction();
         final FunctionApp.DefinitionStages.WithCreate result;
@@ -58,10 +58,10 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
                 result = withDockerContainerImage.withPublicDockerHubImage(image);
                 break;
             case PRIVATE_DOCKER_HUB:
-                result = withDockerContainerImage.withPrivateDockerHubImage(image).withCredentials(server.getUsername(), server.getPassword());
+                result = withDockerContainerImage.withPrivateDockerHubImage(image).withCredentials(provider.getUsername(), provider.getPassword());
                 break;
             case PRIVATE_REGISTRY:
-                result = withDockerContainerImage.withPrivateRegistryImage(image, registryUrl).withCredentials(server.getUsername(), server.getPassword());
+                result = withDockerContainerImage.withPrivateRegistryImage(image, registryUrl).withCredentials(provider.getUsername(), provider.getPassword());
                 break;
             default:
                 throw new AzureExecutionException(INVALID_DOCKER_RUNTIME);
@@ -75,29 +75,30 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
 
     @Override
     public FunctionApp.Update updateAppRuntime(FunctionApp app) throws AzureExecutionException {
-        final MavenDockerCredentialProvider server = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
+        final MavenDockerCredentialProvider provider = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
         checkFunctionExtensionVersion();
-        checkConfiguration(imageType, server);
+        checkConfiguration(imageType, provider);
 
         final FunctionApp.Update update = app.update();
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
                 return update.withPublicDockerHubImage(image);
             case PRIVATE_DOCKER_HUB:
-                return update.withPrivateDockerHubImage(image).withCredentials(server.getUsername(), server.getPassword());
+                return update.withPrivateDockerHubImage(image).withCredentials(provider.getUsername(), provider.getPassword());
             case PRIVATE_REGISTRY:
-                return update.withPrivateRegistryImage(image, registryUrl).withCredentials(server.getUsername(), server.getPassword());
+                return update.withPrivateRegistryImage(image, registryUrl).withCredentials(provider.getUsername(), provider.getPassword());
             default:
                 throw new AzureExecutionException(INVALID_DOCKER_RUNTIME);
         }
     }
 
-    protected void checkConfiguration(DockerImageType imageType, MavenDockerCredentialProvider server) throws AzureExecutionException {
+    protected void checkConfiguration(DockerImageType imageType, MavenDockerCredentialProvider provider) throws AzureExecutionException {
         if (imageType != PUBLIC_DOCKER_HUB) {
             // try to call getPassword to verify serverId configuration
-            server.getPassword();
+            provider.validate();
         }
+
         if (pricingTier == null) {
             throw new AzureExecutionException("Consumption plan is not supported for docker functions");
         }

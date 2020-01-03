@@ -146,16 +146,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             final ArtifactHandler artifactHandler = getFactory().getArtifactHandler(this);
             final boolean isV1Schema = SchemaVersion.fromString(this.getSchemaVersion()) == SchemaVersion.V1;
             if (isV1Schema) {
-                if (resources == null || resources.isEmpty()) {
-                    if (!(artifactHandler instanceof NONEArtifactHandlerImpl ||
-                            artifactHandler instanceof JarArtifactHandlerImpl ||
-                            artifactHandler instanceof WarArtifactHandlerImpl
-                            )) {
-                        throw new AzureExecutionException(NO_RESOURCES_CONFIG);
-                    }
-                } else {
-                    copyArtifactsToStagingDirectory(resources);
-                }
+                handleV1Resources(artifactHandler);
             } else {
                 final List<Resource> v2Resources = this.deployment == null ? null : this.deployment.getResources();
 
@@ -163,10 +154,7 @@ public class DeployMojo extends AbstractWebAppMojo {
                     Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
                     return;
                 }
-                final Map<Boolean, List<Resource>> resourceMap = v2Resources.stream()
-                        .collect(Collectors.partitioningBy(DeployMojo::isExternalResource));
-                copyArtifactsToStagingDirectory(resourceMap.get(false));
-                deployExternalResources(target, resourceMap.get(true));
+                handleV2Resources(target, v2Resources);
             }
             artifactHandler.publish(target);
         } finally {
@@ -174,7 +162,28 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    protected HandlerFactory getFactory() {
+    private void handleV2Resources(final DeployTarget target, List<Resource> v2Resources) throws IOException, AzureExecutionException {
+        final Map<Boolean, List<Resource>> resourceMap = v2Resources.stream()
+                .collect(Collectors.partitioningBy(DeployMojo::isExternalResource));
+        copyArtifactsToStagingDirectory(resourceMap.get(false));
+        deployExternalResources(target, resourceMap.get(true));
+    }
+
+    private void handleV1Resources(final ArtifactHandler artifactHandler) throws AzureExecutionException, IOException {
+        if (resources == null || resources.isEmpty()) {
+            // TODO: v1 schema will be deprecated, so this legacy code will be removed in future
+            if (!(artifactHandler instanceof NONEArtifactHandlerImpl ||
+                    artifactHandler instanceof JarArtifactHandlerImpl ||
+                    artifactHandler instanceof WarArtifactHandlerImpl
+                    )) {
+                throw new AzureExecutionException(NO_RESOURCES_CONFIG);
+            }
+        } else {
+            copyArtifactsToStagingDirectory(resources);
+        }
+    }
+
+    private HandlerFactory getFactory() {
         return HandlerFactory.getInstance();
     }
 
@@ -186,7 +195,7 @@ public class DeployMojo extends AbstractWebAppMojo {
                 resourceList, getDeploymentStagingDirectoryPath());
     }
 
-    protected void deployExternalResources(DeployTarget deployTarget, List<Resource> externalResources) throws AzureExecutionException {
+    private void deployExternalResources(DeployTarget deployTarget, List<Resource> externalResources) throws AzureExecutionException {
         if (externalResources.isEmpty()) {
             return;
         }
@@ -202,7 +211,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    protected void uploadResource(Resource resource, FTPClient ftpClient) throws IOException {
+    private void uploadResource(Resource resource, FTPClient ftpClient) throws IOException {
         final List<File> files = Utils.getArtifacts(resource);
         final String target = getAbsoluteTargetPath(resource.getTargetPath());
         for (final File file : files) {
@@ -210,7 +219,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    protected static String getAbsoluteTargetPath(String targetPath) {
+    private static String getAbsoluteTargetPath(String targetPath) {
         // convert null to empty string
         targetPath = StringUtils.defaultString(targetPath);
         return StringUtils.startsWith(targetPath, "/") ? targetPath :
