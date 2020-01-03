@@ -81,10 +81,10 @@ public class AzureClientFactory {
             Log.warn(SUBSCRIPTION_NOT_SPECIFIED);
             return;
         }
-        final Optional<Subscription> targetSubscription = subscriptions.stream()
+        final Optional<Subscription> optionalSubscription = subscriptions.stream()
                 .filter(subscription -> StringUtils.equals(subscription.subscriptionId(), targetSubscription))
                 .findAny();
-        if (!targetSubscription.isPresent()) {
+        if (!optionalSubscription.isPresent()) {
             throw new AzureLoginFailureException(String.format(SUBSCRIPTION_NOT_FOUND, targetSubscription));
         }
     }
