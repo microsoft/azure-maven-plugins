@@ -9,7 +9,6 @@ package com.microsoft.azure.maven;
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
 import com.microsoft.azure.auth.MavenSettingHelper;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
-import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.auth.exception.MavenDecryptException;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
@@ -52,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -157,6 +155,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Parameter(property = "httpProxyPort", defaultValue = "80")
     protected int httpProxyPort;
 
+    @Parameter(property = "authType")
+    protected String authType;
+
     @Parameter(property = "auth")
     protected com.microsoft.azure.auth.configuration.AuthConfiguration auth;
 
@@ -258,8 +259,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             } else {
                 initAuth();
                 try {
-                    azure = AzureClientFactory.getAzureClient(isAuthConfigurationExist() ? this.auth : null, this.subscriptionId);
-                } catch (InvalidConfigurationException | IOException | AzureLoginFailureException | InterruptedException | ExecutionException e) {
+                    azure = AzureClientFactory.getAzureClient(authType, isAuthConfigurationExist() ? this.auth : null, this.subscriptionId);
+                } catch (IOException | AzureLoginFailureException e) {
                     throw new AzureAuthFailureException(e.getMessage());
                 }
             }
