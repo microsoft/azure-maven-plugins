@@ -25,8 +25,11 @@ import com.microsoft.azure.maven.webapp.handlers.DeploymentSlotHandler;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,7 +41,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.Map;
 
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DEPLOYMENT_TYPE_KEY;
@@ -52,7 +54,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -232,6 +236,15 @@ public class DeployMojoTest {
         doReturn(app).when(mojoSpy).getWebApp();
         doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
 
+        final MavenResourcesFiltering filtering = mock(MavenResourcesFiltering.class);
+        doNothing().when(filtering).filterResources(any());
+        doReturn(filtering).when(mojoSpy).getMavenResourcesFiltering();
+        final MavenSession session = mock(MavenSession.class);
+        doReturn(session).when(mojoSpy).getSession();
+        final MavenProject project = mock(MavenProject.class);
+        doReturn(new File("target/..")).when(project).getBasedir();
+        doReturn(project).when(mojoSpy).getProject();
+
         mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
     }
 
@@ -244,6 +257,14 @@ public class DeployMojoTest {
         doReturn(app).when(mojoSpy).getWebApp();
         doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
         doReturn("target/classes").when(mojoSpy).getDeploymentStagingDirectoryPath();
+        final MavenResourcesFiltering filtering = mock(MavenResourcesFiltering.class);
+        doNothing().when(filtering).filterResources(any());
+        doReturn(filtering).when(mojoSpy).getMavenResourcesFiltering();
+        final MavenSession session = mock(MavenSession.class);
+        doReturn(session).when(mojoSpy).getSession();
+        final MavenProject project = mock(MavenProject.class);
+        doReturn(new File("target/..")).when(project).getBasedir();
+        doReturn(project).when(mojoSpy).getProject();
         final DeployTarget deployTarget = new WebAppDeployTarget(app);
         mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
 
@@ -264,8 +285,15 @@ public class DeployMojoTest {
         doReturn(slot).when(mojoSpy).getDeploymentSlot(app, "test");
         doReturn("target/classes").when(mojoSpy).getDeploymentStagingDirectoryPath();
         doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
-        doReturn(DeploymentType.NONE).when(mojoSpy).getDeploymentType();
-        mojoSpy.resources = Collections.EMPTY_LIST;
+        final MavenResourcesFiltering filtering = mock(MavenResourcesFiltering.class);
+        doNothing().when(filtering).filterResources(any());
+        doReturn(filtering).when(mojoSpy).getMavenResourcesFiltering();
+        final MavenSession session = mock(MavenSession.class);
+        doReturn(session).when(mojoSpy).getSession();
+        final MavenProject project = mock(MavenProject.class);
+        doReturn(new File("target/..")).when(project).getBasedir();
+        doReturn(project).when(mojoSpy).getProject();
+
         final DeployTarget deployTarget = new DeploymentSlotDeployTarget(slot);
         mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
 

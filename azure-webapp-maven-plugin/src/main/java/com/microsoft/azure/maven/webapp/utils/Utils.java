@@ -29,9 +29,6 @@ public class Utils {
 
     private static final String CREATE_TEMP_FILE_FAIL = "Failed to create temp file %s.%s";
 
-    private static final String STAGING_FOLDER_EMPTY = "Staging directory: '%s' is empty, please check " +
-         "your <resources> configuration.(Have you executed mvn package before this command?)";
-
     private static final String NO_RESOURCES_CONFIG = "<resources> is empty. " + "Please make sure it is configured in pom.xml.";
 
     public static File createTempFile(final String prefix, final String suffix) throws AzureExecutionException {
@@ -61,14 +58,6 @@ public class Utils {
             result.addAll(resourceFiles);
         }
         return result;
-    }
-
-    public static void assureStagingDirectoryNotEmpty(String stagingDirectoryPath) throws AzureExecutionException {
-        final File stagingDirectory = new File(stagingDirectoryPath);
-        final File[] files = stagingDirectory.listFiles();
-        if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
-            throw new AzureExecutionException(String.format(STAGING_FOLDER_EMPTY, stagingDirectory.getAbsolutePath()));
-        }
     }
 
     public static void prepareResources(final MavenProject project, final MavenSession session,

@@ -56,9 +56,10 @@ public class ZIPArtifactHandlerImplTest {
 
         doReturn(file).when(handlerSpy).getZipFile();
         doNothing().when(app).zipDeploy(file);
+        doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
 
         handlerSpy.publish(target);
-
+        verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
         verify(handlerSpy, times(1)).getZipFile();
         verify(handlerSpy, times(1)).publish(target);
         verifyNoMoreInteractions(handlerSpy);
@@ -72,6 +73,7 @@ public class ZIPArtifactHandlerImplTest {
         final File file = mock(File.class);
 
         doReturn(file).when(handlerSpy).getZipFile();
+        doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
 
         try {
             handlerSpy.publish(target);

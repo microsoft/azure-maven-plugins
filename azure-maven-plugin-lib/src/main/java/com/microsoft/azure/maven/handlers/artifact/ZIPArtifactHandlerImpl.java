@@ -36,6 +36,8 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
 
     @Override
     public void publish(DeployTarget target) throws AzureExecutionException {
+        assureStagingDirectoryNotEmpty();
+
         final File zipFile = getZipFile();
         Log.info(String.format(DEPLOY_START, target.getName()));
 

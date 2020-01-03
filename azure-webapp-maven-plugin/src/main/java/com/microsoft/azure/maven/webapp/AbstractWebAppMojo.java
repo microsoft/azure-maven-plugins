@@ -231,9 +231,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     private WebAppConfiguration webAppConfiguration;
 
     protected File stagingDirectory;
-
-    private List<Resource> externalResources;
-
     //endregion
 
     //region Getter
@@ -354,14 +351,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     public void setRuntime(final RuntimeSetting runtime) {
         this.runtime = runtime;
-    }
-
-    public void setExternalResources(List<Resource> externalResources) {
-        this.externalResources = externalResources;
-    }
-
-    public List<Resource> getExternalResources() {
-        return externalResources;
     }
     //endregion
 

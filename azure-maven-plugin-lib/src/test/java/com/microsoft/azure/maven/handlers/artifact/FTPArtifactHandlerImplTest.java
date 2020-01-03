@@ -46,7 +46,7 @@ public class FTPArtifactHandlerImplTest {
     }
 
     private void buildHandler() {
-        handler = builder.stagingDirectoryPath("/testfolder").build();
+        handler = builder.stagingDirectoryPath("target/classes").build();
         handlerSpy = spy(handler);
     }
 
@@ -57,10 +57,12 @@ public class FTPArtifactHandlerImplTest {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
 
+        doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
         doNothing().when(handlerSpy).uploadDirectoryToFTP(target);
 
         handlerSpy.publish(target);
 
+        verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
         verify(handlerSpy, times(1)).uploadDirectoryToFTP(target);
         verify(handlerSpy, times(1)).publish(target);
         verifyNoMoreInteractions(handlerSpy);
@@ -72,10 +74,13 @@ public class FTPArtifactHandlerImplTest {
 
         final DeploymentSlot slot = mock(DeploymentSlot.class);
         final DeployTarget target = new DeployTarget(slot, DeployTargetType.SLOT);
+
+        doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
         doNothing().when(handlerSpy).uploadDirectoryToFTP(target);
 
         handlerSpy.publish(target);
 
+        verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
         verify(handlerSpy, times(1)).uploadDirectoryToFTP(target);
         verify(handlerSpy, times(1)).publish(target);
         verifyNoMoreInteractions(handlerSpy);
@@ -88,10 +93,12 @@ public class FTPArtifactHandlerImplTest {
         final FunctionApp app = mock(FunctionApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.FUNCTION);
 
+        doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
         doNothing().when(handlerSpy).uploadDirectoryToFTP(target);
 
         handlerSpy.publish(target);
 
+        verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
         verify(handlerSpy, times(1)).uploadDirectoryToFTP(target);
         verify(handlerSpy, times(1)).publish(target);
         verifyNoMoreInteractions(handlerSpy);
@@ -119,7 +126,7 @@ public class FTPArtifactHandlerImplTest {
         verifyNoMoreInteractions(profile);
         verify(uploader, times(1))
             .uploadDirectoryWithRetries("ftp.azurewebsites.net", null, null,
-                "/testfolder", "/site/wwwroot", 3);
+                "target/classes", "/site/wwwroot", 3);
         verifyNoMoreInteractions(uploader);
     }
 }

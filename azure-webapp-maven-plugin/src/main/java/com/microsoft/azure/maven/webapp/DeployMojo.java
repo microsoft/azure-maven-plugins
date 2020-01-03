@@ -9,10 +9,10 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
@@ -21,17 +21,23 @@ import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
-import com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerImplV2;
 import com.microsoft.azure.maven.webapp.handlers.artifact.JarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.artifact.NONEArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.artifact.WarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.utils.FTPUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.net.ftp.FTPClient;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +48,10 @@ import java.util.stream.Collectors;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
+    private static final Path FTP_ROOT = Paths.get("/site/wwwroot");
+    private static final String NO_RESOURCES_CONFIG = "<resources> is empty. " +
+            "Please make sure it is configured in pom.xml.";
+
     public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
     public static final String WEBAPP_CREATED = "Successfully created Web App.";
     public static final String CREATE_DEPLOYMENT_SLOT = "Target Deployment Slot doesn't exist. Creating a new one...";
@@ -57,9 +67,6 @@ public class DeployMojo extends AbstractWebAppMojo {
             "Please make sure the Web App name is correct.";
     public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist. " +
             "Please check if any error message during creation";
-
-    private static final String NO_RESOURCES_CONFIG = "<resources> is empty. " +
-            "Please make sure it is configured in pom.xml.";
 
     protected DeploymentUtil util = new DeploymentUtil();
 
@@ -136,38 +143,31 @@ public class DeployMojo extends AbstractWebAppMojo {
             } else {
                 target = new WebAppDeployTarget(app);
             }
-
-            if (webAppConfiguration.getOs() == OperatingSystemEnum.Docker) {
-                return;
-            }
-
+            final ArtifactHandler artifactHandler = getFactory().getArtifactHandler(this);
             final boolean isV1Schema = SchemaVersion.fromString(this.getSchemaVersion()) == SchemaVersion.V1;
-            List<Resource> effectiveResources = isV1Schema ? resources
-                    : (this.deployment == null ? null : this.deployment.getResources());
-            if (!isV1Schema) {
-                if (effectiveResources == null || effectiveResources.isEmpty()) {
+            if (isV1Schema) {
+                if (resources == null || resources.isEmpty()) {
+                    if (!(artifactHandler instanceof NONEArtifactHandlerImpl ||
+                            artifactHandler instanceof JarArtifactHandlerImpl ||
+                            artifactHandler instanceof WarArtifactHandlerImpl
+                            )) {
+                        throw new AzureExecutionException(NO_RESOURCES_CONFIG);
+                    }
+                } else {
+                    copyArtifactsToStagingDirectory(resources);
+                }
+            } else {
+                final List<Resource> v2Resources = this.deployment == null ? null : this.deployment.getResources();
+
+                if (v2Resources == null || v2Resources.isEmpty()) {
                     Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
                     return;
                 }
-
-                final Map<Boolean, List<Resource>> resourceMap = effectiveResources.stream()
-                        .collect(Collectors.partitioningBy(ArtifactHandlerImplV2::isExternalResource));
-                this.setExternalResources(resourceMap.get(true));
-                this.deployment.setResources(resourceMap.get(false));
-                effectiveResources = resourceMap.get(false);
-
+                final Map<Boolean, List<Resource>> resourceMap = v2Resources.stream()
+                        .collect(Collectors.partitioningBy(DeployMojo::isExternalResource));
+                copyArtifactsToStagingDirectory(resourceMap.get(false));
+                deployExternalResources(target, resourceMap.get(true));
             }
-            ArtifactHandler artifactHandler = getFactory().getArtifactHandler(this);
-            // copy resources according to maven filter if the deployment type is war or jar
-            // legacy code for v1 jar/war deploy: no need to handle resources
-            if (!(artifactHandler instanceof JarArtifactHandlerImpl || artifactHandler instanceof WarArtifactHandlerImpl)) {
-                if (effectiveResources != null && !effectiveResources.isEmpty()) {
-                    copyArtifactsToStagingDirectory(effectiveResources);
-                } else {
-                    throw new AzureExecutionException(NO_RESOURCES_CONFIG);
-                }
-            }
-
             artifactHandler.publish(target);
         } finally {
             util.afterDeployArtifacts();
@@ -178,12 +178,49 @@ public class DeployMojo extends AbstractWebAppMojo {
         return HandlerFactory.getInstance();
     }
 
-    private void copyArtifactsToStagingDirectory(List<Resource> effectiveResources) throws IOException, AzureExecutionException {
+    private void copyArtifactsToStagingDirectory(List<Resource> resourceList) throws IOException, AzureExecutionException {
+        if (resourceList.isEmpty()) {
+            return;
+        }
         Utils.prepareResources(this.getProject(), this.getSession(), this.getMavenResourcesFiltering(),
-                effectiveResources, getDeploymentStagingDirectoryPath());
-        Utils.assureStagingDirectoryNotEmpty(getDeploymentStagingDirectoryPath());
+                resourceList, getDeploymentStagingDirectoryPath());
     }
 
+    protected void deployExternalResources(DeployTarget deployTarget, List<Resource> externalResources) throws AzureExecutionException {
+        if (externalResources.isEmpty()) {
+            return;
+        }
+        final PublishingProfile publishingProfile = deployTarget.getPublishingProfile();
+        final String serverUrl = publishingProfile.ftpUrl().split("/", 2)[0];
+        try {
+            final FTPClient ftpClient = FTPUtils.getFTPClient(serverUrl, publishingProfile.ftpUsername(), publishingProfile.ftpPassword());
+            for (final Resource externalResource : externalResources) {
+                uploadResource(externalResource, ftpClient);
+            }
+        } catch (IOException e) {
+            throw new AzureExecutionException(e.getMessage(), e);
+        }
+    }
+
+    protected void uploadResource(Resource resource, FTPClient ftpClient) throws IOException {
+        final List<File> files = Utils.getArtifacts(resource);
+        final String target = getAbsoluteTargetPath(resource.getTargetPath());
+        for (final File file : files) {
+            FTPUtils.uploadFile(ftpClient, file.getPath(), target);
+        }
+    }
+
+    protected static String getAbsoluteTargetPath(String targetPath) {
+        // convert null to empty string
+        targetPath = StringUtils.defaultString(targetPath);
+        return StringUtils.startsWith(targetPath, "/") ? targetPath :
+                FTP_ROOT.resolve(Paths.get(targetPath)).normalize().toString();
+    }
+
+    private static boolean isExternalResource(Resource resource) {
+        final Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
+        return !target.startsWith(FTP_ROOT);
+    }
 
     class DeploymentUtil {
         boolean isAppStopped = false;

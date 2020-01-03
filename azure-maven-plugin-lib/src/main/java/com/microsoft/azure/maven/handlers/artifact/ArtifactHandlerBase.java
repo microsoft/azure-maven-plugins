@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.handlers.artifact;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
 
 import org.apache.maven.execution.MavenSession;
@@ -13,14 +14,13 @@ import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 
+import java.io.File;
 import java.util.List;
 
 public abstract class ArtifactHandlerBase implements ArtifactHandler {
     protected static final String DEPLOY_START = "Trying to deploy artifact to %s...";
     protected static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     protected static final String DEPLOY_ABORT = "Deployment is aborted.";
-    protected static final String NO_RESOURCES_CONFIG = "<resources> is empty. " +
-            "Please make sure it is configured in pom.xml.";
     protected static final String STAGING_FOLDER_EMPTY = "Staging directory: '%s' is empty, please check " +
             "your <resources> configuration.(Have you executed mvn package before this command?)";
     protected MavenProject project;
@@ -82,4 +82,13 @@ public abstract class ArtifactHandlerBase implements ArtifactHandler {
         this.stagingDirectoryPath = builder.stagingDirectoryPath;
         this.buildDirectoryAbsolutePath = builder.buildDirectoryAbsolutePath;
     }
+
+    protected void assureStagingDirectoryNotEmpty() throws AzureExecutionException {
+        final File stagingDirectory = new File(stagingDirectoryPath);
+        final File[] files = stagingDirectory.listFiles();
+        if (!stagingDirectory.exists() || !stagingDirectory.isDirectory() || files == null || files.length == 0) {
+            throw new AzureExecutionException(String.format(STAGING_FOLDER_EMPTY, stagingDirectory.getAbsolutePath()));
+        }
+    }
+
 }

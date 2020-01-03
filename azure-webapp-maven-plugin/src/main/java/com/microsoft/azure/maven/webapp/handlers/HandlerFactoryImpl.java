@@ -111,6 +111,9 @@ public class HandlerFactoryImpl extends HandlerFactory {
 
     protected ArtifactHandler getV1ArtifactHandler(final AbstractWebAppMojo mojo) throws AzureExecutionException {
         final ArtifactHandlerBase.Builder builder;
+        if (mojo.getContainerSettings() != null && StringUtils.isNotEmpty(mojo.getContainerSettings().getImageName())) {
+            return new NONEArtifactHandlerImpl.Builder().build();
+        }
 
         switch (mojo.getDeploymentType()) {
             case FTP:
@@ -146,12 +149,14 @@ public class HandlerFactoryImpl extends HandlerFactory {
     }
 
     protected ArtifactHandler getV2ArtifactHandler(AbstractWebAppMojo mojo) {
+        if (StringUtils.isNotEmpty(mojo.getRuntime().getImage())) {
+            return new NONEArtifactHandlerImpl.Builder().build();
+        }
         return new ArtifactHandlerImplV2.Builder()
             .project(mojo.getProject())
             .session(mojo.getSession())
             .filtering(mojo.getMavenResourcesFiltering())
             .resources(mojo.getResources())
-            .externalResources(mojo.getExternalResources())
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .runtime(mojo.getRuntime())
             .build();

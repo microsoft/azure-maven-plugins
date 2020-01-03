@@ -64,7 +64,6 @@ public class ArtifactHandlerImplV2Test {
         handler = new ArtifactHandlerImplV2.Builder()
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .resources(mojo.getDeployment().getResources())
-            .externalResources(mojo.getDeployment().getResources())
             .build();
         handlerSpy = spy(handler);
     }
@@ -88,11 +87,9 @@ public class ArtifactHandlerImplV2Test {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         doNothing().when(handlerSpy).publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
-        doNothing().when(handlerSpy).deployExternalResources(target);
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
-        verify(handlerSpy, times(1)).deployExternalResources(target);
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
         verify(handlerSpy, times(1))
             .publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
@@ -119,11 +116,9 @@ public class ArtifactHandlerImplV2Test {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         doNothing().when(handlerSpy).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
-        doNothing().when(handlerSpy).deployExternalResources(target);
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
-        verify(handlerSpy, times(1)).deployExternalResources(target);
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
         verify(handlerSpy, times(1)).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
         verifyNoMoreInteractions(handlerSpy);
