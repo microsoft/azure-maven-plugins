@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.webapp.handlers.artifact;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
@@ -31,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertFalse;
@@ -63,7 +63,6 @@ public class ArtifactHandlerImplV2Test {
     public void buildHandler() {
         handler = new ArtifactHandlerImplV2.Builder()
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
-            .resources(mojo.getDeployment().getResources())
             .build();
         handlerSpy = spy(handler);
     }
@@ -179,9 +178,7 @@ public class ArtifactHandlerImplV2Test {
         final RuntimeSetting runtimeSetting = mock(RuntimeSetting.class);
         handler = new ArtifactHandlerImplV2.Builder()
                 .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
-                .project(mavenProject)
-                .runtime(runtimeSetting)
-                .resources(Collections.EMPTY_LIST)
+                .project(ProjectUtils.convertCommonProject(mavenProject))
                 .build();
         handlerSpy = spy(handler);
 

@@ -13,6 +13,7 @@ import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Wi
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.appservice.DeploymentType;
@@ -218,10 +219,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             default:
                 throw new AzureExecutionException(UNKNOW_DEPLOYMENT_TYPE);
         }
-        return builder.project(this.getProject())
-            .session(this.getSession())
-            .filtering(this.getMavenResourcesFiltering())
-            .resources(this.getResources())
+        return builder.project(ProjectUtils.convertCommonProject(this.getProject()))
             .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
             .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
             .build();

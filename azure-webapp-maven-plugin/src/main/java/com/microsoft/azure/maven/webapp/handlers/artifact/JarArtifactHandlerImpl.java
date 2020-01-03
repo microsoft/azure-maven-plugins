@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.DEFAULT_APP_SERVICE_JAR_NAME;
 
@@ -78,8 +77,8 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
 
     protected File getJarFile() {
         final String jarFilePath = StringUtils.isNotEmpty(jarFile) ? jarFile :
-                Paths.get(buildDirectoryAbsolutePath, project.getBuild().getFinalName() + ".jar").toString();
-        return new File(jarFilePath);
+            project.getArtifactFile().toString();
+    return new File(jarFilePath);
     }
 
     protected void assureJarFileExisted(File jar) throws AzureExecutionException {

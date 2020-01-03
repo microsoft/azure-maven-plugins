@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.handlers.ArtifactHandler;
@@ -139,10 +140,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
             default:
                 throw new AzureExecutionException(DeploymentType.UNKNOWN_DEPLOYMENT_TYPE);
         }
-        return builder.project(mojo.getProject())
-            .session(mojo.getSession())
-            .filtering(mojo.getMavenResourcesFiltering())
-            .resources(mojo.getResources())
+        return builder.project(ProjectUtils.convertCommonProject(mojo.getProject()))
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .buildDirectoryAbsolutePath(mojo.getBuildDirectoryAbsolutePath())
             .build();
@@ -153,10 +151,7 @@ public class HandlerFactoryImpl extends HandlerFactory {
             return new NONEArtifactHandlerImpl.Builder().build();
         }
         return new ArtifactHandlerImplV2.Builder()
-            .project(mojo.getProject())
-            .session(mojo.getSession())
-            .filtering(mojo.getMavenResourcesFiltering())
-            .resources(mojo.getResources())
+            .project(ProjectUtils.convertCommonProject(mojo.getProject()))
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .runtime(mojo.getRuntime())
             .build();
