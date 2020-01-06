@@ -28,7 +28,7 @@ public enum AuthType {
             }
         }
     },
-    AZURE_MAVEN_PLUGIN {
+    AZURE_AUTH_MAVEN_PLUGIN {
         @Override
         public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) throws AzureLoginFailureException {
             try {
@@ -67,7 +67,7 @@ public enum AuthType {
     };
 
     public static AuthType[] getValidAuthTypes() {
-        return new AuthType[]{AZURE_CLI, AZURE_MAVEN_PLUGIN, SERVICE_PRINCIPAL, AUTO};
+        return new AuthType[]{SERVICE_PRINCIPAL, AZURE_AUTH_MAVEN_PLUGIN, AZURE_CLI, AUTO};
     }
 
     public abstract AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) throws AzureLoginFailureException;

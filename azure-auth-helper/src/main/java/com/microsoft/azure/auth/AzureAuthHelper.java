@@ -38,7 +38,7 @@ import java.util.concurrent.ExecutionException;
 
 public class AzureAuthHelper {
 
-    private static final AuthType[] AUTH_ORDER = {AuthType.SERVICE_PRINCIPAL, AuthType.AZURE_SECRET_FILE, AuthType.AZURE_CLI, AuthType.AZURE_MAVEN_PLUGIN};
+    private static final AuthType[] AUTH_ORDER = {AuthType.SERVICE_PRINCIPAL, AuthType.AZURE_SECRET_FILE, AuthType.AZURE_CLI, AuthType.AZURE_AUTH_MAVEN_PLUGIN};
 
     /**
      * Performs an OAuth 2.0 login.
