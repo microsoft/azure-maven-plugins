@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.auth;
 
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.PagedList;
-import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.configuration.AuthType;
@@ -32,7 +31,7 @@ public class AzureClientFactory {
 
     public static Azure getAzureClient(AuthType authType, AuthConfiguration auth, String subscriptionId) throws IOException, AzureLoginFailureException {
         final AzureEnvironment environment = AzureEnvironment.AZURE;
-        final AzureTokenWrapper azureTokenCredentials = AzureAuthHelper.getAzureCredentialByAuthType(authType, auth, environment);
+        final AzureTokenWrapper azureTokenCredentials = authType.getAzureToken(auth, environment);
         if (azureTokenCredentials != null) {
             Log.info(azureTokenCredentials.getCredentialDescription());
             final Authenticated authenticated = Azure.configure().authenticate(azureTokenCredentials);

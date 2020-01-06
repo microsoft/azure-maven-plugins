@@ -78,7 +78,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
         "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
         "For more information, please go to https://aka.ms/azure-maven-config.\n";
-    public static final String INVALID_AUTH_TYPE = "%s is not a valid auth type for Azure maven plugins, will use default authentication";
+    public static final String INVALID_AUTH_TYPE = "%s is not a valid auth type for Azure maven plugins, " +
+            "supported values are %s. Will use AUTO by default";
 
     //region Properties
 
@@ -284,14 +285,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     protected AuthType getAuthTypeEnum() {
         if (StringUtils.isEmpty(authType)) {
-            return AuthType.EMPTY;
+            return AuthType.AUTO;
         }
         AuthType result = Arrays.stream(AuthType.values())
                 .filter(authTypeEnum -> StringUtils.equalsAnyIgnoreCase(authTypeEnum.name(), authType))
                 .findFirst().orElse(null);
         if (result == null) {
-            Log.warn(String.format(INVALID_AUTH_TYPE, authType));
-            result = AuthType.EMPTY;
+            Log.warn(String.format(INVALID_AUTH_TYPE, authType, StringUtils.join(AuthType.values(), ", ")));
+            result = AuthType.AUTO;
         }
         return result;
     }

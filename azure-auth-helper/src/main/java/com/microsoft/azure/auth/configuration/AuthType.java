@@ -77,10 +77,10 @@ public enum AuthType {
             }
         }
     },
-    EMPTY {
+    AUTO {
         @Override
         public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) {
-            return null;
+            return AzureAuthHelper.getAzureCredentialByOrder(configuration, environment);
         }
     };
 

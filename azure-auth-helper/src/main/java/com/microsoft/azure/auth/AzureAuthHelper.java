@@ -336,12 +336,6 @@ public class AzureAuthHelper {
         return getAzureCLICredential();
     }
 
-    public static AzureTokenWrapper getAzureCredentialByAuthType(AuthType authType, AuthConfiguration authConfiguration,
-                                                                 AzureEnvironment azureEnvironment) throws AzureLoginFailureException {
-        return authType == AuthType.EMPTY ? getAzureCredentialByOrder(authConfiguration, azureEnvironment) :
-                authType.getAzureToken(authConfiguration, azureEnvironment);
-    }
-
     public static AzureTokenWrapper getAzureCredentialByOrder(AuthConfiguration authConfiguration, AzureEnvironment azureEnvironment) {
         AzureTokenWrapper result = null;
         for (final AuthType authType : AUTH_ORDER) {
