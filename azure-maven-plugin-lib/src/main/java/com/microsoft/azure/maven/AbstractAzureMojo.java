@@ -7,6 +7,8 @@
 package com.microsoft.azure.maven;
 
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
+import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.auth.MavenSettingHelper;
 import com.microsoft.azure.auth.configuration.AuthType;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
@@ -26,7 +28,6 @@ import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.GetHashMac;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -70,16 +71,17 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     public static final String FAILURE_REASON = "failureReason";
     private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
-        ".azure", "mavenplugins.properties").toString();
+            ".azure", "mavenplugins.properties").toString();
     private static final String FIRST_RUN_KEY = "first.run";
     private static final String PRIVACY_STATEMENT = "\nData/Telemetry\n" +
-        "---------\n" +
-        "This project collects usage data and sends it to Microsoft to help improve our products and services.\n" +
-        "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
-        "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
-        "For more information, please go to https://aka.ms/azure-maven-config.\n";
+            "---------\n" +
+            "This project collects usage data and sends it to Microsoft to help improve our products and services.\n" +
+            "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
+            "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
+            "For more information, please go to https://aka.ms/azure-maven-config.\n";
     public static final String INVALID_AUTH_TYPE = "%s is not a valid auth type for Azure maven plugins, " +
             "supported values are %s. Will use AUTO by default";
+    public static final String AUTH_TYPE_UNKNOWN = "Unknown";
 
     //region Properties
 
@@ -176,6 +178,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     private TelemetryProxy telemetryProxy;
 
+    private AzureTokenWrapper azureTokenWrapper;
+
     private String sessionId = UUID.randomUUID().toString();
 
     private String installationId = GetHashMac.getHashMac();
@@ -244,8 +248,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Override
     public String getUserAgent() {
         return isTelemetryAllowed() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
-            INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
-            : String.format("%s/%s", getPluginName(), getPluginVersion());
+                INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
+                : String.format("%s/%s", getPluginName(), getPluginVersion());
     }
 
     @Override
@@ -267,7 +271,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             } else {
                 initAuth();
                 try {
-                    azure = AzureClientFactory.getAzureClient(getAuthTypeEnum(), isAuthConfigurationExist() ? this.auth : null, this.subscriptionId);
+                    // TODO: Enable extra Azure Environment like Azure China
+                    final AzureEnvironment environment = AzureEnvironment.AZURE;
+                    azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
+                    azure = AzureClientFactory.getAzureClient(azureTokenWrapper, this.subscriptionId);
                 } catch (IOException | AzureLoginFailureException e) {
                     throw new AzureAuthFailureException(e.getMessage());
                 }
@@ -370,20 +377,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return map;
     }
 
-    // TODO:
-    // Add AuthType ENUM and move to AzureAuthHelper.
     public String getAuthType() {
-        final AuthenticationSetting authSetting = getAuthenticationSetting();
-        if (authSetting == null) {
-            return "AzureCLI";
-        }
-        if (StringUtils.isNotEmpty(authSetting.getServerId())) {
-            return "ServerId";
-        }
-        if (authSetting.getFile() != null) {
-            return "AuthFile";
-        }
-        return "Unknown";
+        return azureTokenWrapper == null ? AUTH_TYPE_UNKNOWN : azureTokenWrapper.getAuthType().name();
     }
 
     //endregion
