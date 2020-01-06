@@ -8,14 +8,10 @@ package com.microsoft.azure.maven.auth;
 
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.PagedList;
-import com.microsoft.azure.auth.AzureAuthHelper;
-import com.microsoft.azure.auth.AzureCredential;
 import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
 import com.microsoft.azure.auth.configuration.AuthType;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
-import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
-import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
@@ -24,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 public class AzureClientFactory {
 
@@ -34,24 +29,9 @@ public class AzureClientFactory {
     public static final String SUBSCRIPTION_NOT_SPECIFIED = "Subscription ID was not specified, using the first subscription in current account," +
             " please refer https://github.com/microsoft/azure-maven-plugins/wiki/Authentication#subscription for more information";
 
-    public static Azure getAzureClient(AuthConfiguration auth, String subscriptionId) throws InvalidConfigurationException, IOException,
-            AzureLoginFailureException, InterruptedException, ExecutionException {
-        AzureTokenWrapper azureTokenCredentials = AzureAuthHelper.getAzureTokenCredentials(auth);
-        if (azureTokenCredentials == null) {
-            final AzureEnvironment environment = AzureEnvironment.AZURE;
-            AzureCredential azureCredential;
-            AuthType authType;
-            try {
-                authType = AuthType.OAUTH;
-                azureCredential = AzureAuthHelper.oAuthLogin(environment);
-            } catch (DesktopNotSupportedException e) {
-                authType = AuthType.DEVICE_LOGIN;
-                azureCredential = AzureAuthHelper.deviceLogin(environment);
-            }
-            AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
-            azureTokenCredentials = new AzureTokenWrapper(authType, AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, environment));
-        }
-
+    public static Azure getAzureClient(AuthType authType, AuthConfiguration auth, String subscriptionId) throws IOException, AzureLoginFailureException {
+        final AzureEnvironment environment = AzureEnvironment.AZURE;
+        final AzureTokenWrapper azureTokenCredentials = authType.getAzureToken(auth, environment);
         if (azureTokenCredentials != null) {
             Log.info(azureTokenCredentials.getCredentialDescription());
             final Authenticated authenticated = Azure.configure().authenticate(azureTokenCredentials);
@@ -67,7 +47,6 @@ public class AzureClientFactory {
             Log.info(String.format(SUBSCRIPTION_TEMPLATE, subscription.displayName(), subscription.subscriptionId()));
             return azureClient;
         }
-
         return null;
     }
 
