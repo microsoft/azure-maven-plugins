@@ -10,7 +10,6 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -29,7 +28,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.File;
 import java.util.Map;
 
-import static com.microsoft.azure.maven.AbstractAzureMojo.AUTH_TYPE;
 import static com.microsoft.azure.maven.AbstractAzureMojo.INSTALLATION_ID_KEY;
 import static com.microsoft.azure.maven.AbstractAzureMojo.PLUGIN_NAME_KEY;
 import static com.microsoft.azure.maven.AbstractAzureMojo.PLUGIN_VERSION_KEY;
@@ -181,27 +179,11 @@ public class AbstractAzureMojoTest {
     public void getTelemetryProperties() throws Exception {
         final Map map = mojo.getTelemetryProperties();
 
-        assertEquals(6, map.size());
+        assertEquals(5, map.size());
         assertTrue(map.containsKey(INSTALLATION_ID_KEY));
         assertTrue(map.containsKey(PLUGIN_NAME_KEY));
         assertTrue(map.containsKey(PLUGIN_VERSION_KEY));
         assertTrue(map.containsKey(SUBSCRIPTION_ID_KEY));
         assertTrue(map.containsKey(SESSION_ID_KEY));
-        assertTrue(map.containsKey(AUTH_TYPE));
-    }
-
-    @Test
-    public void getAuthType() throws Exception {
-        assertEquals("Unknown", mojo.getAuthType());
-
-        doReturn("serverId").when(authenticationSetting).getServerId();
-        assertEquals("ServerId", mojo.getAuthType());
-
-        doReturn(null).when(authenticationSetting).getServerId();
-        doReturn(new File("/pom.xml")).when(authenticationSetting).getFile();
-        assertEquals("AuthFile", mojo.getAuthType());
-
-        ReflectionUtils.setVariableValueInObject(mojo, "authentication", null);
-        assertEquals("AzureCLI", mojo.getAuthType());
     }
 }
