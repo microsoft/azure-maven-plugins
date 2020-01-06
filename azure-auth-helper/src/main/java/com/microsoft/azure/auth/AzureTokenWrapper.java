@@ -7,7 +7,7 @@
 package com.microsoft.azure.auth;
 
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.auth.configuration.AuthType;
+import com.microsoft.azure.auth.configuration.AuthMethod;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.ArrayUtils;
@@ -24,23 +24,23 @@ public class AzureTokenWrapper extends AzureTokenCredentials {
     private static final String TEMPLATE = "Auth Type : %s";
     private static final String TEMPLATE_WITH_FILE = "Auth Type : %s; Auth Files : [%s]";
 
-    private AuthType authType;
+    private AuthMethod authMethod;
     private File[] authFileLocation;
     private AzureTokenCredentials azureTokenCredentials;
 
-    public AzureTokenWrapper(AuthType authType, AzureTokenCredentials credentials) {
+    public AzureTokenWrapper(AuthMethod authMethod, AzureTokenCredentials credentials) {
         super(credentials.environment(), credentials.domain());
-        this.authType = authType;
+        this.authMethod = authMethod;
         this.azureTokenCredentials = credentials;
     }
 
-    public AzureTokenWrapper(AuthType authType, AzureTokenCredentials credentials, File... authFileLocation) {
-        this(authType, credentials);
+    public AzureTokenWrapper(AuthMethod authMethod, AzureTokenCredentials credentials, File... authFileLocation) {
+        this(authMethod, credentials);
         this.authFileLocation = authFileLocation;
     }
 
-    public AuthType getAuthType() {
-        return authType;
+    public AuthMethod getAuthMethod() {
+        return authMethod;
     }
 
     public AzureTokenCredentials getAzureTokenCredentials() {
@@ -53,10 +53,10 @@ public class AzureTokenWrapper extends AzureTokenCredentials {
 
     public String getCredentialDescription() {
         if (ArrayUtils.isEmpty(authFileLocation)) {
-            return String.format(TEMPLATE, authType);
+            return String.format(TEMPLATE, authMethod);
         }
         final String authFiles = Arrays.stream(authFileLocation).map(file -> file.getAbsolutePath()).collect(Collectors.joining(","));
-        return String.format(TEMPLATE_WITH_FILE, authType, authFiles);
+        return String.format(TEMPLATE_WITH_FILE, authMethod, authFiles);
     }
 
     @Override
