@@ -291,7 +291,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 .filter(authTypeEnum -> StringUtils.equalsAnyIgnoreCase(authTypeEnum.name(), authType))
                 .findFirst().orElse(null);
         if (result == null) {
-            Log.warn(String.format(INVALID_AUTH_TYPE, authType, StringUtils.join(AuthType.values(), ", ")));
+            final String validAuthTypes = Arrays.stream(AuthType.values())
+                    .map(authType -> StringUtils.lowerCase(authType.name()))
+                    .collect(Collectors.joining(", "));
+            Log.warn(String.format(INVALID_AUTH_TYPE, authType, validAuthTypes));
             result = AuthType.AUTO;
         }
         return result;
