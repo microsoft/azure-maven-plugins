@@ -81,7 +81,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
             "For more information, please go to https://aka.ms/azure-maven-config.\n";
     public static final String INVALID_AUTH_TYPE = "%s is not a valid auth type for Azure maven plugins, " +
-            "supported values are %s. Will use AUTO by default";
+            "supported values are %s. Will use auto by default";
 
     //region Properties
 
