@@ -188,6 +188,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     private boolean authInitialized = false;
 
+    private AuthType authTypeEnum;
+
     //endregion
 
     //region Getter
@@ -299,20 +301,23 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected AuthType getAuthTypeEnum() {
+        if (authTypeEnum != null) {
+            return authTypeEnum;
+        }
         if (StringUtils.isEmpty(authType)) {
             return AuthType.AUTO;
         }
-        AuthType result = Arrays.stream(AuthType.getValidAuthTypes())
+        authTypeEnum = Arrays.stream(AuthType.getValidAuthTypes())
                 .filter(authTypeEnum -> StringUtils.equalsAnyIgnoreCase(authTypeEnum.name(), authType))
                 .findFirst().orElse(null);
-        if (result == null) {
+        if (authTypeEnum == null) {
             final String validAuthTypes = Arrays.stream(AuthType.getValidAuthTypes())
                     .map(authType -> StringUtils.lowerCase(authType.name()))
                     .collect(Collectors.joining(", "));
             Log.warn(String.format(INVALID_AUTH_TYPE, authType, validAuthTypes));
-            result = AuthType.AUTO;
+            authTypeEnum = AuthType.AUTO;
         }
-        return result;
+        return authTypeEnum;
     }
 
     public TelemetryProxy getTelemetryProxy() {
