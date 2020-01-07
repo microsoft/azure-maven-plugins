@@ -66,6 +66,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public static final String SESSION_ID_KEY = "sessionId";
     public static final String SUBSCRIPTION_ID_KEY = "subscriptionId";
     public static final String AUTH_TYPE = "authType";
+    public static final String AUTH_METHOD = "authMethod";
     public static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
     public static final String INIT_FAILURE = "InitFailure";
     public static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
@@ -164,6 +165,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     /**
      * Authentication type, could be OAuth, DeviceLogin, Azure_CLI, Azure_Secret_File
      * If this is not set, maven plugin try all available auth methods with default order
+     *
+     * @since 1.9.0
      */
     @Parameter(property = "authType")
     protected String authType;
@@ -283,7 +286,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 getTelemetryProxy().trackEvent(INIT_FAILURE);
                 throw new AzureAuthFailureException(AZURE_INIT_FAIL);
             } else {
-                getTelemetryProxy().addDefaultProperty(AUTH_TYPE, getAuthType());
+                getTelemetryProxy().addDefaultProperty(AUTH_TYPE, authType);
+                getTelemetryProxy().addDefaultProperty(AUTH_METHOD, getAuthMethod());
                 // Repopulate subscriptionId in case it is not configured.
                 getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
             }
@@ -377,8 +381,21 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return map;
     }
 
-    public String getAuthType() {
-        return azureTokenWrapper == null ? AUTH_TYPE_UNKNOWN : azureTokenWrapper.getAuthType().name();
+    public String getAuthMethod() {
+        if (azureTokenWrapper == null) {
+            return azureTokenWrapper.getAuthMethod().name();
+        }
+        final AuthenticationSetting authSetting = getAuthenticationSetting();
+        if (authSetting == null) {
+            return "AzureCLI";
+        }
+        if (StringUtils.isNotEmpty(authSetting.getServerId())) {
+            return "ServerId";
+        }
+        if (authSetting.getFile() != null) {
+            return "AuthFile";
+        }
+        return "Unknown";
     }
 
     //endregion
