@@ -74,12 +74,6 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void getFunctionApp() throws Exception {
-        doReturn(null).when(mojoSpy).getAzureClient();
-        assertNull(mojoSpy.getFunctionApp());
-    }
-
-    @Test
     public void doExecute() throws Exception {
         final ArtifactHandler handler = mock(ArtifactHandler.class);
         final FunctionApp app = mock(FunctionApp.class);

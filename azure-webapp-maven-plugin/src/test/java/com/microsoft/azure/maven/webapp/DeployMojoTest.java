@@ -182,13 +182,6 @@ public class DeployMojoTest {
     }
 
     @Test
-    public void getWebApp() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-
-        assertNull(mojo.getWebApp());
-    }
-
-    @Test
     public void getDeploymentSlotSetting() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
         assertNotNull(mojo.getDeploymentSlotSetting());
