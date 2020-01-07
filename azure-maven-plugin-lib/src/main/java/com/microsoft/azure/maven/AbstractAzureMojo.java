@@ -385,7 +385,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     public String getAuthMethod() {
-        if (azureTokenWrapper == null) {
+        if (azureTokenWrapper != null) {
             return azureTokenWrapper.getAuthMethod().name();
         }
         final AuthenticationSetting authSetting = getAuthenticationSetting();
