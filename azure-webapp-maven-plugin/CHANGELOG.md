@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure App Service" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.9.0](#190)
   - [1.8.0](#180)
   - [1.7.0](#170)
   - [1.6.0](#160)
@@ -15,6 +16,12 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.2.0](#120)
   - [1.1.0](#110)
   - [1.0.0](#100)
+
+## 1.9.0
+- Support deploy external resources to Azure outside `wwwroot`.[PR#953](https://github.com/microsoft/azure-maven-plugins/pull/953)
+- Support specify authentication method in configuration with parameter `<authType>`.[#PR#975](https://github.com/microsoft/azure-maven-plugins/pull/975)
+- Validate null subscription id and provide friendly error messages when authentication fails.[#931](https://github.com/microsoft/azure-maven-plugins/issues/931)
+- Fix: Updating pricingTier only if user specified it in configuration.[#908](https://github.com/microsoft/azure-maven-plugins/issues/908),[#927](https://github.com/microsoft/azure-maven-plugins/issues/927)
 
 ## 1.8.0
 - Support OAuth and Device Login support to auth with Azure.[PR#843](https://github.com/microsoft/azure-maven-plugins/pull/843)
