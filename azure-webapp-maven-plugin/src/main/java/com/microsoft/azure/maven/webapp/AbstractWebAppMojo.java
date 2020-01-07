@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
@@ -33,6 +34,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -313,13 +315,17 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     public WebApp getWebApp() throws AzureAuthFailureException {
-        final PagedList<WebApp> functionList = getAzureClient().webApps().list();
-        functionList.loadAll();
-        return functionList.stream()
-                .filter(webapp -> StringUtils.equals(webapp.resourceGroupName(), getResourceGroup()) &&
-                        StringUtils.equals(webapp.name(), getAppName()))
-                .findFirst()
-                .orElse(null);
+        final PagedList<WebApp> webAppPagedList = getAzureClient().webApps().list();
+        final ListIterator<WebApp> webAppListIterator = webAppPagedList.listIterator();
+        WebApp webApp = null;
+        while (webAppListIterator.hasNext()) {
+            webApp = webAppListIterator.next();
+            if (StringUtils.equals(webApp.resourceGroupName(), getResourceGroup()) &&
+                    StringUtils.equals(webApp.name(), getAppName())) {
+                return webApp;
+            }
+        }
+        return null;
     }
 
     public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {
