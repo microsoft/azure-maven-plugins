@@ -9,6 +9,7 @@ package com.microsoft.azure.auth;
 import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
+import com.microsoft.azure.auth.configuration.AuthMethod;
 import com.microsoft.azure.auth.configuration.AuthType;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
@@ -37,8 +38,7 @@ import java.util.concurrent.ExecutionException;
 
 public class AzureAuthHelper {
 
-    private static final AuthType[] AUTH_ORDER = {AuthType.SERVICE_PRINCIPAL, AuthType.AZURE_SECRET_FILE, AuthType.CLOUD_SHELL,
-        AuthType.AZURE_CLI, AuthType.OAUTH, AuthType.DEVICE_LOGIN};
+    private static final AuthType[] AUTH_ORDER = {AuthType.SERVICE_PRINCIPAL, AuthType.AZURE_SECRET_FILE, AuthType.AZURE_CLI, AuthType.AZURE_AUTH_MAVEN_PLUGIN};
 
     /**
      * Performs an OAuth 2.0 login.
@@ -268,6 +268,9 @@ public class AzureAuthHelper {
     }
 
     public static AzureTokenWrapper getAzureCLICredential() throws IOException {
+        if (isInCloudShell()) {
+            return new AzureTokenWrapper(AuthMethod.CLOUD_SHELL, new MSICredentials());
+        }
         final File credentialParent = getAzureConfigFolder();
         if (credentialParent.exists() && credentialParent.isDirectory()) {
             final File azureProfile = new File(credentialParent, Constants.AZURE_PROFILE_NAME);
@@ -286,23 +289,38 @@ public class AzureAuthHelper {
             if (wrapper.subscriptions == null || wrapper.subscriptions.isEmpty()) {
                 return null;
             }
-            return new AzureTokenWrapper(AuthType.AZURE_CLI,
+            return new AzureTokenWrapper(AuthMethod.AZURE_CLI,
                     AzureCliCredentials.create(azureProfile, accessTokens), azureProfile, accessTokens);
         }
         return null;
     }
 
     public static AzureTokenWrapper getServicePrincipalCredential(AuthConfiguration configuration) throws InvalidConfigurationException, IOException {
-        return configuration == null ? null : new AzureTokenWrapper(AuthType.SERVICE_PRINCIPAL,
+        return configuration == null ? null : new AzureTokenWrapper(AuthMethod.SERVICE_PRINCIPAL,
                 AzureServicePrincipleAuthHelper.getAzureServicePrincipleCredentials(configuration));
     }
 
-    public static AzureTokenWrapper getSecretFileCredential() throws IOException {
-        return new AzureTokenWrapper(AuthType.AZURE_SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
+    public static AzureTokenWrapper getAzureMavenPluginCredential(AzureEnvironment environment) throws IOException, InterruptedException,
+            ExecutionException, AzureLoginFailureException {
+        if (existsAzureSecretFile()) {
+            return new AzureTokenWrapper(AuthMethod.AZURE_SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
+        }
+        AuthMethod authMethod = null;
+        AzureCredential credential = null;
+        try {
+            authMethod = AuthMethod.OAUTH;
+            credential = AzureAuthHelper.oAuthLogin(environment);
+        } catch (DesktopNotSupportedException | AzureLoginFailureException | InterruptedException | ExecutionException e) {
+            // fallback to device login if oauth login fails
+            authMethod = AuthMethod.DEVICE_LOGIN;
+            credential = AzureAuthHelper.deviceLogin(environment);
+        }
+        AzureAuthHelper.writeAzureCredentials(credential, AzureAuthHelper.getAzureSecretFile());
+        return new AzureTokenWrapper(authMethod, getMavenAzureLoginCredentials(credential, environment));
     }
 
-    public static AzureTokenWrapper getMSICredential() {
-        return isInCloudShell() ? new AzureTokenWrapper(AuthType.CLOUD_SHELL, new MSICredentials()) : null;
+    public static AzureTokenWrapper getAzureSecretFileCredential() throws IOException {
+        return existsAzureSecretFile() ? new AzureTokenWrapper(AuthMethod.AZURE_SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile()) : null;
     }
 
     /**
@@ -319,18 +337,18 @@ public class AzureAuthHelper {
     public static AzureTokenWrapper getAzureTokenCredentials(AuthConfiguration configuration)
             throws InvalidConfigurationException, IOException {
         if (configuration != null) {
-            return new AzureTokenWrapper(AuthType.SERVICE_PRINCIPAL,
+            return new AzureTokenWrapper(AuthMethod.SERVICE_PRINCIPAL,
                     AzureServicePrincipleAuthHelper.getAzureServicePrincipleCredentials(configuration));
         }
         if (existsAzureSecretFile()) {
             try {
-                return new AzureTokenWrapper(AuthType.AZURE_SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
+                return new AzureTokenWrapper(AuthMethod.AZURE_SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
             } catch (IOException ex) {
                 // ignore
             }
         }
         if (isInCloudShell()) {
-            return new AzureTokenWrapper(AuthType.CLOUD_SHELL, new MSICredentials());
+            return new AzureTokenWrapper(AuthMethod.CLOUD_SHELL, new MSICredentials());
         }
 
         return getAzureCLICredential();

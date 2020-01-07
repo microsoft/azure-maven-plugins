@@ -8,12 +8,15 @@ package com.microsoft.azure.auth.configuration;
 
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.AzureAuthHelper;
-import com.microsoft.azure.auth.AzureCredential;
 import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
+/**
+ * Enum for customer specified auth type
+ */
 public enum AuthType {
     AZURE_CLI {
         @Override
@@ -25,43 +28,22 @@ public enum AuthType {
             }
         }
     },
-    DEVICE_LOGIN {
+    AZURE_AUTH_MAVEN_PLUGIN {
         @Override
-        public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment)
-                throws AzureLoginFailureException {
+        public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) throws AzureLoginFailureException {
             try {
-                final AzureCredential azureCredential = AzureAuthHelper.deviceLogin(environment);
-                AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
-                return new AzureTokenWrapper(DEVICE_LOGIN, AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, environment));
-            } catch (Exception e) {
+                return AzureAuthHelper.getAzureMavenPluginCredential(environment);
+            } catch (IOException | InterruptedException | ExecutionException e) {
                 throw new AzureLoginFailureException(e.getMessage());
             }
         }
     },
-    CLOUD_SHELL {
-        @Override
-        public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) {
-            return AzureAuthHelper.getMSICredential();
-        }
-    },
-    OAUTH {
-        @Override
-        public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment)
-                throws AzureLoginFailureException {
-            try {
-                final AzureCredential azureCredential = AzureAuthHelper.oAuthLogin(environment);
-                AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
-                return new AzureTokenWrapper(OAUTH, AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, environment));
-            } catch (Exception e) {
-                throw new AzureLoginFailureException(e.getMessage());
-            }
-        }
-    },
+    // Used for auto only, as we need to check existing azure maven plugin credential first and then azure cli
     AZURE_SECRET_FILE {
         @Override
         public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) throws AzureLoginFailureException {
             try {
-                return AzureAuthHelper.getSecretFileCredential();
+                return AzureAuthHelper.getAzureSecretFileCredential();
             } catch (IOException e) {
                 throw new AzureLoginFailureException(e.getMessage());
             }
@@ -83,6 +65,10 @@ public enum AuthType {
             return AzureAuthHelper.getAzureCredentialByOrder(configuration, environment);
         }
     };
+
+    public static AuthType[] getValidAuthTypes() {
+        return new AuthType[]{SERVICE_PRINCIPAL, AZURE_AUTH_MAVEN_PLUGIN, AZURE_CLI, AUTO};
+    }
 
     public abstract AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) throws AzureLoginFailureException;
 }
