@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
@@ -24,7 +25,6 @@ import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -313,14 +313,13 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     public WebApp getWebApp() throws AzureAuthFailureException {
-        try {
-            return getAzureClient().webApps().getByResourceGroup(getResourceGroup(), getAppName());
-        } catch (AzureAuthFailureException authEx) {
-            throw authEx;
-        } catch (Exception ex) {
-            // Swallow exception for non-existing web app
-        }
-        return null;
+        final PagedList<WebApp> functionList = getAzureClient().webApps().list();
+        functionList.loadAll();
+        return functionList.stream()
+                .filter(webapp -> StringUtils.equals(webapp.resourceGroupName(), getResourceGroup()) &&
+                        StringUtils.equals(webapp.name(), getAppName()))
+                .findFirst()
+                .orElse(null);
     }
 
     public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {
