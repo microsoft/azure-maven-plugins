@@ -152,7 +152,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Nullable
     public FunctionApp getFunctionApp() throws AzureAuthFailureException {
         final PagedList<FunctionApp> functionList = getAzureClient().appServices().functionApps().list();
-        final ListIterator<FunctionApp> functionAppListIterator =  functionList.listIterator();
+        final ListIterator<FunctionApp> functionAppListIterator = functionList.listIterator();
         FunctionApp functionApp = null;
         while (functionAppListIterator.hasNext()) {
             functionApp = functionAppListIterator.next();
