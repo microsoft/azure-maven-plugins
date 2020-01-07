@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.auth;
 
+import com.google.common.base.Preconditions;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
@@ -27,22 +28,20 @@ public class AzureClientFactory {
             " please refer https://github.com/microsoft/azure-maven-plugins/wiki/Authentication#subscription for more information";
 
     public static Azure getAzureClient(AzureTokenWrapper azureTokenCredentials, String subscriptionId) throws IOException, AzureLoginFailureException {
-        if (azureTokenCredentials != null) {
-            Log.info(azureTokenCredentials.getCredentialDescription());
-            final Authenticated authenticated = Azure.configure().authenticate(azureTokenCredentials);
-            // For cloud shell, use subscription in profile as the default subscription.
-            if (StringUtils.isEmpty(subscriptionId) && AzureAuthHelperLegacy.isInCloudShell()) {
-                subscriptionId = AzureAuthHelperLegacy.getSubscriptionOfCloudShell();
-            }
-            subscriptionId = StringUtils.isEmpty(subscriptionId) ? azureTokenCredentials.defaultSubscriptionId() : subscriptionId;
-            final Azure azureClient = StringUtils.isEmpty(subscriptionId) ? authenticated.withDefaultSubscription() :
-                    authenticated.withSubscription(subscriptionId);
-            checkSubscription(azureClient, subscriptionId);
-            final Subscription subscription = azureClient.getCurrentSubscription();
-            Log.info(String.format(SUBSCRIPTION_TEMPLATE, subscription.displayName(), subscription.subscriptionId()));
-            return azureClient;
+        Preconditions.checkNotNull(azureTokenCredentials, "The parameter 'azureTokenCredentials' cannot be null");
+        Log.info(azureTokenCredentials.getCredentialDescription());
+        final Authenticated authenticated = Azure.configure().authenticate(azureTokenCredentials);
+        // For cloud shell, use subscription in profile as the default subscription.
+        if (StringUtils.isEmpty(subscriptionId) && AzureAuthHelperLegacy.isInCloudShell()) {
+            subscriptionId = AzureAuthHelperLegacy.getSubscriptionOfCloudShell();
         }
-        return null;
+        subscriptionId = StringUtils.isEmpty(subscriptionId) ? azureTokenCredentials.defaultSubscriptionId() : subscriptionId;
+        final Azure azureClient = StringUtils.isEmpty(subscriptionId) ? authenticated.withDefaultSubscription() :
+                authenticated.withSubscription(subscriptionId);
+        checkSubscription(azureClient, subscriptionId);
+        final Subscription subscription = azureClient.getCurrentSubscription();
+        Log.info(String.format(SUBSCRIPTION_TEMPLATE, subscription.displayName(), subscription.subscriptionId()));
+        return azureClient;
     }
 
     private static void checkSubscription(Azure azure, String targetSubscription) throws AzureLoginFailureException {

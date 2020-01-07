@@ -82,7 +82,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             "For more information, please go to https://aka.ms/azure-maven-config.\n";
     public static final String INVALID_AUTH_TYPE = "%s is not a valid auth type for Azure maven plugins, " +
             "supported values are %s. Will use AUTO by default";
-    public static final String AUTH_TYPE_UNKNOWN = "Unknown";
 
     //region Properties
 
@@ -273,14 +272,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 azure = new AzureAuthHelperLegacy(this).getAzureClient();
             } else {
                 initAuth();
-                try {
-                    // TODO: Enable extra Azure Environment like Azure China
-                    final AzureEnvironment environment = AzureEnvironment.AZURE;
-                    azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
-                    azure = AzureClientFactory.getAzureClient(azureTokenWrapper, this.subscriptionId);
-                } catch (IOException | AzureLoginFailureException e) {
-                    throw new AzureAuthFailureException(e.getMessage());
-                }
+                azure = getAzureClientByAuthType();
             }
             if (azure == null) {
                 getTelemetryProxy().trackEvent(INIT_FAILURE);
@@ -293,6 +285,17 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
         }
         return azure;
+    }
+
+    protected Azure getAzureClientByAuthType() throws AzureAuthFailureException {
+        try {
+            // TODO: Enable extra Azure Environment like Azure China
+            final AzureEnvironment environment = AzureEnvironment.AZURE;
+            azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
+            return azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper, this.subscriptionId);
+        } catch (IOException | AzureLoginFailureException e) {
+            throw new AzureAuthFailureException(e.getMessage());
+        }
     }
 
     protected AuthType getAuthTypeEnum() {
