@@ -166,7 +166,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
      * Authentication type, could be OAuth, DeviceLogin, Azure_CLI, Azure_Secret_File
      * If this is not set, maven plugin try all available auth methods with default order
      *
-     * @since 1.9.0
+     * @since 1.2.13
      */
     @Parameter(property = "authType")
     protected String authType;
