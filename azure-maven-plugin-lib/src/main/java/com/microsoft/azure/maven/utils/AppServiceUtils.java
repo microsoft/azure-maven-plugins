@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.utils;
 
+import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
@@ -14,12 +15,13 @@ import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.appservice.DockerImageType;
-
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -125,5 +127,11 @@ public class AppServiceUtils {
         } else {
             return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
         }
+    }
+
+    public static <T extends WebAppBase> T findAppServiceInPagedList(PagedList<T> list, String resourceGroup, String name) {
+        final Iterator<T> iterator = list.listIterator();
+        return IteratorUtils.find(iterator, (appBase) -> StringUtils.equals(appBase.resourceGroupName(), resourceGroup) &&
+                StringUtils.equals(appBase.name(), name));
     }
 }

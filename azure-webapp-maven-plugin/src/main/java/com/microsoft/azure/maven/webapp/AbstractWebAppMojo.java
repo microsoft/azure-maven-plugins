@@ -316,16 +316,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     public WebApp getWebApp() throws AzureAuthFailureException {
         final PagedList<WebApp> webAppPagedList = getAzureClient().webApps().list();
-        final ListIterator<WebApp> webAppListIterator = webAppPagedList.listIterator();
-        WebApp webApp = null;
-        while (webAppListIterator.hasNext()) {
-            webApp = webAppListIterator.next();
-            if (StringUtils.equals(webApp.resourceGroupName(), getResourceGroup()) &&
-                    StringUtils.equals(webApp.name(), getAppName())) {
-                return webApp;
-            }
-        }
-        return null;
+        return AppServiceUtils.findAppServiceInPagedList(webAppPagedList, getResourceGroup(), getAppName());
     }
 
     public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {

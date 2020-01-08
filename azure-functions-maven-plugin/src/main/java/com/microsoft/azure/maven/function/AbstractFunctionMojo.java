@@ -24,7 +24,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ListIterator;
 import java.util.Map;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
@@ -152,16 +151,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Nullable
     public FunctionApp getFunctionApp() throws AzureAuthFailureException {
         final PagedList<FunctionApp> functionList = getAzureClient().appServices().functionApps().list();
-        final ListIterator<FunctionApp> functionAppListIterator = functionList.listIterator();
-        FunctionApp functionApp = null;
-        while (functionAppListIterator.hasNext()) {
-            functionApp = functionAppListIterator.next();
-            if (StringUtils.equals(functionApp.resourceGroupName(), getResourceGroup()) &&
-                    StringUtils.equals(functionApp.name(), getAppName())) {
-                return functionApp;
-            }
-        }
-        return null;
+        return AppServiceUtils.findAppServiceInPagedList(functionList, getResourceGroup(), getAppName());
     }
 
     public RuntimeConfiguration getRuntime() {
