@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.FunctionApp;
@@ -17,13 +18,11 @@ import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersio
 import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.maven.function.utils.FunctionUtils;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
-
 import java.io.File;
 import java.util.Map;
 
@@ -151,15 +150,8 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     @Nullable
     public FunctionApp getFunctionApp() throws AzureAuthFailureException {
-        try {
-            return getAzureClient().appServices().functionApps().getByResourceGroup(getResourceGroup(), getAppName());
-        } catch (AzureAuthFailureException authEx) {
-            throw authEx;
-        } catch (Exception ex) {
-            Log.debug(ex);
-            // Swallow exception for non-existing Azure Functions
-        }
-        return null;
+        final PagedList<FunctionApp> functionList = getAzureClient().appServices().functionApps().list();
+        return AppServiceUtils.findAppServiceInPagedList(functionList, getResourceGroup(), getAppName());
     }
 
     public RuntimeConfiguration getRuntime() {
