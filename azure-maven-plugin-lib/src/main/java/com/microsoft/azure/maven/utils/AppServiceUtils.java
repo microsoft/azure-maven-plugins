@@ -130,6 +130,9 @@ public class AppServiceUtils {
     }
 
     public static <T extends WebAppBase> T findAppServiceInPagedList(PagedList<T> list, String resourceGroup, String name) {
+        if (StringUtils.isEmpty(resourceGroup) || StringUtils.isEmpty(name)) {
+            return null;
+        }
         final Iterator<T> iterator = list.listIterator();
         return IteratorUtils.find(iterator, (appBase) -> StringUtils.equals(appBase.resourceGroupName(), resourceGroup) &&
                 StringUtils.equals(appBase.name(), name));
