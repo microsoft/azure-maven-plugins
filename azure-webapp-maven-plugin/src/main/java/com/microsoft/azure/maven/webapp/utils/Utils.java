@@ -29,7 +29,7 @@ public class Utils {
 
     private static final String CREATE_TEMP_FILE_FAIL = "Failed to create temp file %s.%s";
 
-    private static final String NO_RESOURCES_CONFIG = "<resources> is empty. " + "Please make sure it is configured in pom.xml.";
+    private static final String NO_RESOURCES_CONFIG = "<resources> is empty. Please make sure it is configured in pom.xml.";
 
     public static File createTempFile(final String prefix, final String suffix) throws AzureExecutionException {
         try {

@@ -49,8 +49,7 @@ import java.util.stream.Collectors;
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
     private static final Path FTP_ROOT = Paths.get("/site/wwwroot");
-    private static final String NO_RESOURCES_CONFIG = "<resources> is empty. " +
-            "Please make sure it is configured in pom.xml.";
+    private static final String NO_RESOURCES_CONFIG = "<resources> is empty. Please make sure it is configured in pom.xml.";
 
     public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
     public static final String WEBAPP_CREATED = "Successfully created Web App.";
