@@ -25,8 +25,11 @@ import com.microsoft.azure.maven.webapp.handlers.DeploymentSlotHandler;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,7 +54,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -224,13 +229,23 @@ public class DeployMojoTest {
     @Test
     public void deployArtifactsWithNoResources() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
+
         final DeployMojo mojoSpy = spy(mojo);
         final WebApp app = mock(WebApp.class);
-
+        doReturn("target/classes").when(mojoSpy).getDeploymentStagingDirectoryPath();
         doReturn(app).when(mojoSpy).getWebApp();
         doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
 
-        mojoSpy.deployArtifacts();
+        final MavenResourcesFiltering filtering = mock(MavenResourcesFiltering.class);
+        doNothing().when(filtering).filterResources(any());
+        doReturn(filtering).when(mojoSpy).getMavenResourcesFiltering();
+        final MavenSession session = mock(MavenSession.class);
+        doReturn(session).when(mojoSpy).getSession();
+        final MavenProject project = mock(MavenProject.class);
+        doReturn(new File("target/..")).when(project).getBasedir();
+        doReturn(project).when(mojoSpy).getProject();
+
+        mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
     }
 
     @Test
@@ -241,9 +256,17 @@ public class DeployMojoTest {
 
         doReturn(app).when(mojoSpy).getWebApp();
         doReturn(false).when(mojoSpy).isDeployToDeploymentSlot();
-
+        doReturn("target/classes").when(mojoSpy).getDeploymentStagingDirectoryPath();
+        final MavenResourcesFiltering filtering = mock(MavenResourcesFiltering.class);
+        doNothing().when(filtering).filterResources(any());
+        doReturn(filtering).when(mojoSpy).getMavenResourcesFiltering();
+        final MavenSession session = mock(MavenSession.class);
+        doReturn(session).when(mojoSpy).getSession();
+        final MavenProject project = mock(MavenProject.class);
+        doReturn(new File("target/..")).when(project).getBasedir();
+        doReturn(project).when(mojoSpy).getProject();
         final DeployTarget deployTarget = new WebAppDeployTarget(app);
-        mojoSpy.deployArtifacts();
+        mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
 
         verify(artifactHandler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(artifactHandler);
@@ -260,10 +283,19 @@ public class DeployMojoTest {
         doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
         doReturn("test").when(slotSetting).getName();
         doReturn(slot).when(mojoSpy).getDeploymentSlot(app, "test");
+        doReturn("target/classes").when(mojoSpy).getDeploymentStagingDirectoryPath();
+        doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
+        final MavenResourcesFiltering filtering = mock(MavenResourcesFiltering.class);
+        doNothing().when(filtering).filterResources(any());
+        doReturn(filtering).when(mojoSpy).getMavenResourcesFiltering();
+        final MavenSession session = mock(MavenSession.class);
+        doReturn(session).when(mojoSpy).getSession();
+        final MavenProject project = mock(MavenProject.class);
+        doReturn(new File("target/..")).when(project).getBasedir();
+        doReturn(project).when(mojoSpy).getProject();
 
         final DeployTarget deployTarget = new DeploymentSlotDeployTarget(slot);
-
-        mojoSpy.deployArtifacts();
+        mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
 
         verify(artifactHandler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(artifactHandler);

@@ -79,7 +79,6 @@ public class ArtifactHandlerImplV2Test {
         final String stagingDirectoryPath = "dummy";
         doReturn(stagingDirectoryPath).when(mojo).getDeploymentStagingDirectoryPath();
         buildHandler();
-        doNothing().when(handlerSpy).copyArtifactsToStagingDirectory();
 
         final List<File> allArtifacts = new ArrayList<File>();
         allArtifacts.add(new File("dummypath\\dummy.war"));
@@ -88,13 +87,9 @@ public class ArtifactHandlerImplV2Test {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         doNothing().when(handlerSpy).publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
-        doNothing().when(handlerSpy).deployExternalResources(target);
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
-        verify(handlerSpy, times(1)).processResources();
-        verify(handlerSpy, times(1)).deployExternalResources(target);
-        verify(handlerSpy, times(1)).copyArtifactsToStagingDirectory();
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
         verify(handlerSpy, times(1))
             .publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
@@ -113,7 +108,6 @@ public class ArtifactHandlerImplV2Test {
         doReturn(stagingDirectoryPath).when(mojo).getDeploymentStagingDirectoryPath();
 
         buildHandler();
-        doNothing().when(handlerSpy).copyArtifactsToStagingDirectory();
 
         final List<File> allArtifacts = new ArrayList<File>();
         allArtifacts.add(new File("dummypath\\dummy.jar"));
@@ -122,27 +116,11 @@ public class ArtifactHandlerImplV2Test {
         final WebApp app = mock(WebApp.class);
         final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
         doNothing().when(handlerSpy).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
-        doNothing().when(handlerSpy).deployExternalResources(target);
         handlerSpy.publish(target);
 
         verify(handlerSpy, times(1)).publish(target);
-        verify(handlerSpy, times(1)).processResources();
-        verify(handlerSpy, times(1)).deployExternalResources(target);
-        verify(handlerSpy, times(1)).copyArtifactsToStagingDirectory();
         verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
         verify(handlerSpy, times(1)).publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
-        verifyNoMoreInteractions(handlerSpy);
-    }
-
-    @Test
-    public void skipPublishWhenDeploymentNotSet() throws IOException, AzureExecutionException {
-        final Deployment deployment = mock(Deployment.class);
-        doReturn(deployment).when(mojo).getDeployment();
-        doReturn(Collections.emptyList()).when(deployment).getResources();
-        final DeployTarget target = mock(DeployTarget.class);
-        buildHandler();
-        handlerSpy.publish(target);
-        verify(handlerSpy, times(1)).publish(target);
         verifyNoMoreInteractions(handlerSpy);
     }
 

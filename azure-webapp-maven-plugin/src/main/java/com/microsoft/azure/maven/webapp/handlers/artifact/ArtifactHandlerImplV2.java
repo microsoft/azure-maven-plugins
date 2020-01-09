@@ -8,26 +8,19 @@ package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-import com.microsoft.azure.maven.webapp.utils.FTPUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.maven.model.Resource;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -44,7 +37,6 @@ import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandler
 public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final int MAX_RETRY_TIMES = 3;
     private static final String ALWAYS_DEPLOY_PROPERTY = "alwaysDeploy";
-    private static final Path FTP_ROOT = Paths.get("/site/wwwroot");
 
     private static final String WEB_CONFIG = "web.config";
     private static final String RENAMING_MESSAGE = "Renaming %s to %s";
@@ -55,7 +47,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
     private RuntimeSetting runtimeSetting;
-    private List<Resource> externalResources;
 
     public static class Builder extends ArtifactHandlerBase.Builder<ArtifactHandlerImplV2.Builder> {
 
@@ -88,18 +79,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     @Override
     public void publish(final DeployTarget target) throws AzureExecutionException {
-        if (resources == null || resources.size() < 1) {
-            Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
-            return;
-        }
-        processResources();
-        deployExternalResources(target);
-        try {
-            copyArtifactsToStagingDirectory();
-        } catch (IOException e) {
-            throw new AzureExecutionException(
-                    String.format("Cannot copy artifacts to staging directory: '%s'", stagingDirectoryPath), e);
-        }
         final List<File> allArtifacts = getAllArtifacts(stagingDirectoryPath);
         if (allArtifacts.size() == 0) {
             final String absolutePath = new File(stagingDirectoryPath).getAbsolutePath();
@@ -129,13 +108,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
         }
     }
 
-    protected void processResources() {
-        final Map<Boolean, List<Resource>> resourceMap = resources.stream()
-                .collect(Collectors.partitioningBy(resource -> isExternalResource(resource)));
-        resources = resourceMap.get(false);
-        externalResources = resourceMap.get(true);
-    }
-
     protected boolean isDeployMixedArtifactsConfirmed() {
         if ("true".equalsIgnoreCase(System.getProperty(ALWAYS_DEPLOY_PROPERTY))) {
             return true;
@@ -161,11 +133,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     protected List<File> getAllArtifacts(final String stagingDirectoryPath) {
         final File stagingDirectory = new File(stagingDirectoryPath);
         return getArtifacts(stagingDirectory);
-    }
-
-    protected void copyArtifactsToStagingDirectory() throws IOException, AzureExecutionException {
-        prepareResources();
-        assureStagingDirectoryNotEmpty();
     }
 
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,
@@ -256,39 +223,6 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     private String getResourceConfiguration() {
         return resources.stream().map(resource -> resource.toString()).collect(Collectors.joining(","));
-    }
-
-    protected void deployExternalResources(DeployTarget deployTarget) throws AzureExecutionException {
-        final PublishingProfile publishingProfile = deployTarget.getPublishingProfile();
-        final String serverUrl = publishingProfile.ftpUrl().split("/", 2)[0];
-        try {
-            final FTPClient ftpClient = FTPUtils.getFTPClient(serverUrl, publishingProfile.ftpUsername(), publishingProfile.ftpPassword());
-            for (final Resource resource : externalResources) {
-                uploadResource(resource, ftpClient);
-            }
-        } catch (IOException e) {
-            throw new AzureExecutionException(e.getMessage(), e);
-        }
-    }
-
-    protected void uploadResource(Resource resource, FTPClient ftpClient) throws IOException {
-        final List<File> files = Utils.getArtifacts(resource);
-        final String target = getAbsoluteTargetPath(resource.getTargetPath());
-        for (final File file : files) {
-            FTPUtils.uploadFile(ftpClient, file.getPath(), target);
-        }
-    }
-
-    protected static String getAbsoluteTargetPath(String targetPath) {
-        // convert null to empty string
-        targetPath = StringUtils.defaultString(targetPath);
-        return StringUtils.startsWith(targetPath, "/") ? targetPath :
-                FTP_ROOT.resolve(Paths.get(targetPath)).normalize().toString();
-    }
-
-    private static boolean isExternalResource(Resource resource) {
-        final Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
-        return !target.startsWith(FTP_ROOT);
     }
 
     private static boolean existsWebConfig(final List<File> artifacts) {

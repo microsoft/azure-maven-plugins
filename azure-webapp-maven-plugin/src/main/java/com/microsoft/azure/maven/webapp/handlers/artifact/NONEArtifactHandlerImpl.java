@@ -30,6 +30,6 @@ public class NONEArtifactHandlerImpl extends ArtifactHandlerBase {
 
     @Override
     public void publish(DeployTarget deployTarget) {
-        Log.info("The value of <deploymentType> is NONE, skip deployment.");
+        Log.info("Skip deployment.");
     }
 }
