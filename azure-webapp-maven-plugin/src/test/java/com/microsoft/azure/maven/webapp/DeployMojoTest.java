@@ -177,20 +177,13 @@ public class DeployMojoTest {
 
         final Map map = mojo.getTelemetryProperties();
 
-        assertEquals(13, map.size());
+        assertEquals(12, map.size());
         assertTrue(map.containsKey(JAVA_VERSION_KEY));
         assertTrue(map.containsKey(JAVA_WEB_CONTAINER_KEY));
         assertTrue(map.containsKey(DOCKER_IMAGE_TYPE_KEY));
         assertTrue(map.containsKey(DEPLOYMENT_TYPE_KEY));
         assertTrue(map.containsKey(LINUX_RUNTIME_KEY));
         assertTrue(map.containsKey(OS_KEY));
-    }
-
-    @Test
-    public void getWebApp() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-
-        assertNull(mojo.getWebApp());
     }
 
     @Test

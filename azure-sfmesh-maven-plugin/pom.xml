@@ -12,7 +12,6 @@
       <relativePath>../azure-maven-plugins-pom</relativePath>
   </parent>
 
-  <groupId>com.microsoft.azure</groupId>
   <artifactId>azure-sfmesh-maven-plugin</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
@@ -26,6 +25,8 @@
     <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
     <maven.version>3.3.3</maven.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
   </properties>
 
   <licenses>
