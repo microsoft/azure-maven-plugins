@@ -38,8 +38,8 @@ import java.util.regex.Pattern;
 
 public class AppServiceUtils {
 
-    private static final String SERVICE_PLAN_NOT_FOUND = "Failed to get App Service Plan";
-    private static final String UPDATE_APP_SERVICE_PLAN = "Updating app service plan";
+    private static final String SERVICE_PLAN_NOT_FOUND = "Failed to get App Service Plan.";
+    private static final String UPDATE_APP_SERVICE_PLAN = "Updating App Service Plan...";
     private static final List<PricingTier> pricingTiers = new ArrayList<>();
     private static final Pattern FTP_REGEX = Pattern.compile("publishMethod=\"FTP\" publishUrl=\"ftp://([^\"]+).+" +
             "userName=\"([^\"]+\\\\\\$[^\"]+)\".+userPWD=\"([^\"]+)\"");
