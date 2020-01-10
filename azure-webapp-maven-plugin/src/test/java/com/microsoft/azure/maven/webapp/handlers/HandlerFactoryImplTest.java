@@ -46,7 +46,6 @@ public class HandlerFactoryImplTest {
     AbstractWebAppMojo mojo;
     private MavenProject project;
 
-
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -144,7 +143,6 @@ public class HandlerFactoryImplTest {
 
     @Test
     public void getArtifactHandlerFromPackaging() throws Exception {
-        final MavenProject project = TestUtils.getSimpleMavenProjectForUnitTest();
         doReturn(project).when(mojo).getProject();
         final HandlerFactoryImpl factory = new HandlerFactoryImpl();
 

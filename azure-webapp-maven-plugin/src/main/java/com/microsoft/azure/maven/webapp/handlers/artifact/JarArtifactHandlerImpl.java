@@ -78,7 +78,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
     protected File getJarFile() {
         final String jarFilePath = StringUtils.isNotEmpty(jarFile) ? jarFile :
             project.getArtifactFile().toString();
-    return new File(jarFilePath);
+        return new File(jarFilePath);
     }
 
     protected void assureJarFileExisted(File jar) throws AzureExecutionException {

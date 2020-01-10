@@ -15,13 +15,11 @@ import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.utils.TestUtils;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
 import org.junit.Test;
@@ -169,7 +167,7 @@ public class ArtifactHandlerImplV2Test {
 
         // Project with jar packaging will always be regarded as java se project
         Mockito.reset(runtimeSetting);
-        doReturn(false).when(runtimeSetting).isEmpty(   );
+        doReturn(false).when(runtimeSetting).isEmpty();
         FieldUtils.writeField(project, "artifactFile", Paths.get("artifactFile.jar"), true);
         assertTrue(handlerSpy.isJavaSERuntime());
         verify(runtimeSetting, times(0)).getOsEnum();

@@ -96,5 +96,4 @@ public class TestUtils {
         return reader.read(pomFile, Collections.emptyMap());
     }
 
-
 }
