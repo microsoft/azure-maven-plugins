@@ -11,17 +11,11 @@ import com.microsoft.azure.common.project.IProject;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Resource;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;
@@ -64,18 +58,9 @@ public class ArtifactHandlerBaseTest {
     }
 
     @Test
-    public void testCtror() throws IOException, AzureExecutionException {
-        final List<Resource> resourceList = new ArrayList<>();
-        doReturn(mock(MavenProject.class)).when(mojo).getProject();
-        doReturn(mock(MavenSession.class)).when(mojo).getSession();
-        doReturn(mock(MavenResourcesFiltering.class)).when(mojo).getMavenResourcesFiltering();
-        resourceList.add(new Resource());
-        doReturn(resourceList).when(mojo).getResources();
+    public void testCtor() throws IOException, AzureExecutionException {
         doReturn("target/classes").when(mojo).getDeploymentStagingDirectoryPath();
-
         buildHandler();
-
-        assertEquals(handler.project, mojo.getProject());
         assertEquals(handler.stagingDirectoryPath, mojo.getDeploymentStagingDirectoryPath());
     }
 

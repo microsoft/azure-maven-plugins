@@ -22,6 +22,9 @@ import java.util.Set;
 
 public class ProjectUtils {
     public static IProject convertCommonProject(MavenProject project) {
+        if (project == null) {
+            return null;
+        }
         final JavaProject proj = new JavaProject();
         proj.setProjectName(project.getName());
         proj.setBaseDirectory(project.getBasedir().toPath());
@@ -41,6 +44,7 @@ public class ProjectUtils {
         return results;
     }
 
+    @SuppressWarnings("unused")
     private static class JavaProject implements IProject {
 
         private String projectName;

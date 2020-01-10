@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.project.IProject;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.ProjectUtils;
@@ -17,7 +18,9 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
+import com.microsoft.azure.maven.webapp.utils.TestUtils;
 
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
@@ -69,39 +72,11 @@ public class ArtifactHandlerImplV2Test {
 
     @Test
     public void publishViaWarDeploy() throws IOException, AzureExecutionException {
-        final Deployment deployment = mock(Deployment.class);
-        doReturn(deployment).when(mojo).getDeployment();
-        final List<Resource> resources = new ArrayList<Resource>();
-        resources.add(new Resource());
-        doReturn(resources).when(deployment).getResources();
 
-        final String stagingDirectoryPath = "dummy";
-        doReturn(stagingDirectoryPath).when(mojo).getDeploymentStagingDirectoryPath();
-        buildHandler();
-
-        final List<File> allArtifacts = new ArrayList<File>();
-        allArtifacts.add(new File("dummypath\\dummy.war"));
-        doReturn(allArtifacts).when(handlerSpy).getAllArtifacts(stagingDirectoryPath);
-
-        final WebApp app = mock(WebApp.class);
-        final DeployTarget target = new DeployTarget(app, DeployTargetType.WEBAPP);
-        doNothing().when(handlerSpy).publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
-        handlerSpy.publish(target);
-
-        verify(handlerSpy, times(1)).publish(target);
-        verify(handlerSpy, times(1)).getAllArtifacts(stagingDirectoryPath);
-        verify(handlerSpy, times(1))
-            .publishArtifactsViaWarDeploy(target, stagingDirectoryPath, allArtifacts);
-        verifyNoMoreInteractions(handlerSpy);
     }
 
     @Test
     public void publishViaZipDeploy() throws IOException, AzureExecutionException {
-        final Deployment deployment = mock(Deployment.class);
-        doReturn(deployment).when(mojo).getDeployment();
-        final List<Resource> resources = new ArrayList<Resource>();
-        resources.add(new Resource());
-        doReturn(resources).when(deployment).getResources();
 
         final String stagingDirectoryPath = "dummy";
         doReturn(stagingDirectoryPath).when(mojo).getDeploymentStagingDirectoryPath();
@@ -128,8 +103,6 @@ public class ArtifactHandlerImplV2Test {
         final DeployTarget target = mock(DeployTarget.class);
         final String stagingDirectoryPath = "";
         final List<File> warArtifacts = null;
-        final Deployment deployment = mock(Deployment.class);
-        doReturn(deployment).when(mojo).getDeployment();
         buildHandler();
         handlerSpy.publishArtifactsViaWarDeploy(target, stagingDirectoryPath, warArtifacts);
     }
@@ -143,8 +116,6 @@ public class ArtifactHandlerImplV2Test {
         final List<File> artifacts = new ArrayList<>();
         final File artifact = new File(Paths.get(stagingDirectory, "dummypath", "dummy.war").toString());
         artifacts.add(artifact);
-        final Deployment deployment = mock(Deployment.class);
-        doReturn(deployment).when(mojo).getDeployment();
         buildHandler();
         doNothing().when(handlerSpy).publishWarArtifact(target, artifact, "dummypath");
         handlerSpy.publishArtifactsViaWarDeploy(target, stagingDirectory, artifacts);
@@ -161,8 +132,6 @@ public class ArtifactHandlerImplV2Test {
         final String stagingDirectoryPath = zipTestDirectory.getAbsolutePath();
         doNothing().when(target).zipDeploy(any());
 
-        final Deployment deployment = mock(Deployment.class);
-        doReturn(deployment).when(mojo).getDeployment();
         buildHandler();
         doReturn(false).when(handlerSpy).isJavaSERuntime();
         handlerSpy.publishArtifactsViaZipDeploy(target, stagingDirectoryPath);
@@ -173,12 +142,14 @@ public class ArtifactHandlerImplV2Test {
     }
 
     @Test
-    public void isJavaSERuntime() {
-        final MavenProject mavenProject = mock(MavenProject.class);
+    public void isJavaSERuntime() throws Exception {
+        final MavenProject mavenProject = TestUtils.getSimpleMavenProjectForUnitTest();
+        final IProject project = ProjectUtils.convertCommonProject(mavenProject);
         final RuntimeSetting runtimeSetting = mock(RuntimeSetting.class);
         handler = new ArtifactHandlerImplV2.Builder()
                 .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
-                .project(ProjectUtils.convertCommonProject(mavenProject))
+                .project(project)
+                .runtime(runtimeSetting)
                 .build();
         handlerSpy = spy(handler);
 
@@ -188,18 +159,18 @@ public class ArtifactHandlerImplV2Test {
         assertTrue(handlerSpy.isJavaSERuntime());
 
         // No runtime setting, just check project packaging
-        doReturn("war").when(mavenProject).getPackaging();
+        FieldUtils.writeField(project, "artifactFile", Paths.get("artifactFile.war"), true);
         doReturn(true).when(runtimeSetting).isEmpty();
         assertFalse(handlerSpy.isJavaSERuntime());
 
-        doReturn("jar").when(mavenProject).getPackaging();
+        FieldUtils.writeField(project, "artifactFile", Paths.get("artifactFile.jar"), true);
         doReturn(true).when(runtimeSetting).isEmpty();
         assertTrue(handlerSpy.isJavaSERuntime());
 
         // Project with jar packaging will always be regarded as java se project
         Mockito.reset(runtimeSetting);
-        doReturn(false).when(runtimeSetting).isEmpty();
-        doReturn("jar").when(mavenProject).getPackaging();
+        doReturn(false).when(runtimeSetting).isEmpty(   );
+        FieldUtils.writeField(project, "artifactFile", Paths.get("artifactFile.jar"), true);
         assertTrue(handlerSpy.isJavaSERuntime());
         verify(runtimeSetting, times(0)).getOsEnum();
         verify(runtimeSetting, times(0)).getWebContainer();
@@ -212,9 +183,6 @@ public class ArtifactHandlerImplV2Test {
         final File warArtifact = new File("D:\\temp\\dummypath");
         final String contextPath = "dummy";
         doNothing().when(target).warDeploy(warArtifact, contextPath);
-
-        final Deployment deployment = mock(Deployment.class);
-        doReturn(deployment).when(mojo).getDeployment();
 
         buildHandler();
         handlerSpy.publishWarArtifact(target, warArtifact, contextPath);
@@ -231,8 +199,6 @@ public class ArtifactHandlerImplV2Test {
 
         doThrow(RuntimeException.class).when(target).warDeploy(warArtifact, contextPath);
 
-        final Deployment deployment = mock(Deployment.class);
-        doReturn(deployment).when(mojo).getDeployment();
         buildHandler();
         handlerSpy.publishWarArtifact(target, warArtifact, contextPath);
     }
