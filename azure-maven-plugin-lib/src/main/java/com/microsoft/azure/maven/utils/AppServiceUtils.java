@@ -6,30 +6,45 @@
 
 package com.microsoft.azure.maven.utils;
 
+import com.google.common.io.CharStreams;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
+import com.microsoft.azure.management.appservice.CsmPublishingProfileOptions;
+import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebAppBase;
+import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.appservice.DockerImageType;
+import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AppServiceUtils {
 
     private static final String SERVICE_PLAN_NOT_FOUND = "Failed to get App Service Plan.";
     private static final String UPDATE_APP_SERVICE_PLAN = "Updating app service plan...";
     private static final List<PricingTier> pricingTiers = new ArrayList<>();
+    private static final Pattern FTP_REGEX = Pattern.compile("publishMethod=\"FTP\" publishUrl=\"ftp://([^\"]+).+" +
+            "userName=\"([^\"]+\\\\\\$[^\"]+)\".+userPWD=\"([^\"]+)\"");
+    public static final String FAILED_TO_GET_PUBLISHING_PROFILE = "Failed to get publishing profile of deployment slot %s";
+    public static final String FAILED_TO_PARSE_PUBLISHING_PROFILE = "Failed to parse publishing profile\\n %s";
 
     static {
         // Init runtimeStack list
@@ -126,6 +141,66 @@ public class AppServiceUtils {
             return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;
         } else {
             return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
+        }
+    }
+
+    public static PublishingProfile getPublishingProfileFromDeploymentTarget(DeployTarget deployTarget) throws AzureExecutionException {
+        if (!StringUtils.equalsIgnoreCase(deployTarget.getType(), DeployTargetType.SLOT.toString())) {
+            return deployTarget.getPublishingProfile();
+        }
+        // Below is the workaround for https://github.com/Azure/azure-libraries-for-java/issues/955
+        // Invoke listPublishingProfileXmlWithSecretsSlotAsync directly and convert the xml to PublishingProfile
+        final DeploymentSlot targetWebApp = (DeploymentSlot) deployTarget.getApp();
+        final InputStream profileStream = deployTarget.getApp().manager().inner().webApps()
+                .listPublishingProfileXmlWithSecretsSlotAsync(targetWebApp.resourceGroupName(), targetWebApp.parent().name(),
+                        targetWebApp.name(), new CsmPublishingProfileOptions()).toBlocking().single();
+        try {
+            final String xml = CharStreams.toString(new InputStreamReader(profileStream));
+            return parseFTPPublishingProfileFromXml(xml);
+        } catch (IOException e) {
+            throw new AzureExecutionException(String.format(FAILED_TO_GET_PUBLISHING_PROFILE, targetWebApp.name()), e);
+        }
+    }
+
+    public static PublishingProfile parseFTPPublishingProfileFromXml(String publishingProfileXml) throws AzureExecutionException {
+        final Matcher matcher = FTP_REGEX.matcher(publishingProfileXml);
+        if (matcher.find()) {
+            final String ftpUrl = matcher.group(1);
+            final String ftpUsername = matcher.group(2);
+            final String ftpPassword = matcher.group(3);
+            return new PublishingProfile() {
+                @Override
+                public String ftpUrl() {
+                    return ftpUrl;
+                }
+
+                @Override
+                public String ftpUsername() {
+                    return ftpUsername;
+                }
+
+                @Override
+                public String ftpPassword() {
+                    return ftpPassword;
+                }
+
+                @Override
+                public String gitUrl() {
+                    return null;
+                }
+
+                @Override
+                public String gitUsername() {
+                    return null;
+                }
+
+                @Override
+                public String gitPassword() {
+                    return null;
+                }
+            };
+        } else {
+            throw new AzureExecutionException(String.format(FAILED_TO_PARSE_PUBLISHING_PROFILE, publishingProfileXml));
         }
     }
 

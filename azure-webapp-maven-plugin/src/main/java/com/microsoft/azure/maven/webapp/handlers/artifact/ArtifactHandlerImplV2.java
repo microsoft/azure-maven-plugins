@@ -12,10 +12,11 @@ import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
+import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.FTPUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.maven.model.Resource;
@@ -259,7 +260,10 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     }
 
     protected void deployExternalResources(DeployTarget deployTarget) throws AzureExecutionException {
-        final PublishingProfile publishingProfile = deployTarget.getPublishingProfile();
+        if (CollectionUtils.isEmpty(externalResources)) {
+            return;
+        }
+        final PublishingProfile publishingProfile = AppServiceUtils.getPublishingProfileFromDeploymentTarget(deployTarget);
         final String serverUrl = publishingProfile.ftpUrl().split("/", 2)[0];
         try {
             final FTPClient ftpClient = FTPUtils.getFTPClient(serverUrl, publishingProfile.ftpUsername(), publishingProfile.ftpPassword());
