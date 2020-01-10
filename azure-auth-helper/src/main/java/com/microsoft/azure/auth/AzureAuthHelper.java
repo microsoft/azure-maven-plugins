@@ -6,10 +6,11 @@
 
 package com.microsoft.azure.auth;
 
-import com.google.gson.JsonSyntaxException;
 import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
+import com.microsoft.azure.auth.configuration.AuthMethod;
+import com.microsoft.azure.auth.configuration.AuthType;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
@@ -36,6 +37,9 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class AzureAuthHelper {
+
+    private static final AuthType[] AUTH_ORDER = {AuthType.SERVICE_PRINCIPAL, AuthType.AZURE_SECRET_FILE, AuthType.AZURE_CLI, AuthType.AZURE_AUTH_MAVEN_PLUGIN};
+
     /**
      * Performs an OAuth 2.0 login.
      *
@@ -263,6 +267,62 @@ public class AzureAuthHelper {
         return azureTokenCredentials;
     }
 
+    public static AzureTokenWrapper getAzureCLICredential() throws IOException {
+        if (isInCloudShell()) {
+            return new AzureTokenWrapper(AuthMethod.CLOUD_SHELL, new MSICredentials());
+        }
+        final File credentialParent = getAzureConfigFolder();
+        if (credentialParent.exists() && credentialParent.isDirectory()) {
+            final File azureProfile = new File(credentialParent, Constants.AZURE_PROFILE_NAME);
+            final File accessTokens = new File(credentialParent, Constants.AZURE_TOKEN_NAME);
+
+            // see code at https://github.com/Azure/autorest-clientruntime-for-java
+            // /blob/a55f87f3cc3a68742a2ac94c031c6d715965a9c2/azure-client-authentication
+            // /src/main/java/com/microsoft/azure/credentials/AzureCliCredentials.java#L48
+            // AzureCliCredentials.create will block using  System.in.read() if user has logout using `az logout`
+            // here we must check these two json files for empty
+            final List tokens = JsonUtils.fromJson(FileUtils.readFileToString(accessTokens, "utf8"), List.class);
+            if (tokens.isEmpty()) {
+                return null;
+            }
+            final Wrapper wrapper = JsonUtils.fromJson(FileUtils.readFileToString(azureProfile, "utf8"), Wrapper.class);
+            if (wrapper.subscriptions == null || wrapper.subscriptions.isEmpty()) {
+                return null;
+            }
+            return new AzureTokenWrapper(AuthMethod.AZURE_CLI,
+                    AzureCliCredentials.create(azureProfile, accessTokens), azureProfile, accessTokens);
+        }
+        return null;
+    }
+
+    public static AzureTokenWrapper getServicePrincipalCredential(AuthConfiguration configuration) throws InvalidConfigurationException, IOException {
+        return configuration == null ? null : new AzureTokenWrapper(AuthMethod.SERVICE_PRINCIPAL,
+                AzureServicePrincipleAuthHelper.getAzureServicePrincipleCredentials(configuration));
+    }
+
+    public static AzureTokenWrapper getAzureMavenPluginCredential(AzureEnvironment environment) throws IOException, InterruptedException,
+            ExecutionException, AzureLoginFailureException {
+        if (existsAzureSecretFile()) {
+            return new AzureTokenWrapper(AuthMethod.AZURE_SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
+        }
+        AuthMethod authMethod = null;
+        AzureCredential credential = null;
+        try {
+            authMethod = AuthMethod.OAUTH;
+            credential = AzureAuthHelper.oAuthLogin(environment);
+        } catch (DesktopNotSupportedException | AzureLoginFailureException | InterruptedException | ExecutionException e) {
+            // fallback to device login if oauth login fails
+            authMethod = AuthMethod.DEVICE_LOGIN;
+            credential = AzureAuthHelper.deviceLogin(environment);
+        }
+        AzureAuthHelper.writeAzureCredentials(credential, AzureAuthHelper.getAzureSecretFile());
+        return new AzureTokenWrapper(authMethod, getMavenAzureLoginCredentials(credential, environment));
+    }
+
+    public static AzureTokenWrapper getAzureSecretFileCredential() throws IOException {
+        return existsAzureSecretFile() ? new AzureTokenWrapper(AuthMethod.AZURE_SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile()) : null;
+    }
+
     /**
      * Get an AzureTokenCredentials from :
      * a. in-place &lt;auth&gt; configuration in pom.xml
@@ -274,50 +334,39 @@ public class AzureAuthHelper {
      * @return the azure credential through
      * @throws IOException when there are some IO errors.
      */
-    public static AzureTokenCredentials getAzureTokenCredentials(AuthConfiguration configuration)
+    public static AzureTokenWrapper getAzureTokenCredentials(AuthConfiguration configuration)
             throws InvalidConfigurationException, IOException {
         if (configuration != null) {
-            return AzureServicePrincipleAuthHelper.getAzureServicePrincipleCredentials(configuration);
+            return new AzureTokenWrapper(AuthMethod.SERVICE_PRINCIPAL,
+                    AzureServicePrincipleAuthHelper.getAzureServicePrincipleCredentials(configuration));
         }
         if (existsAzureSecretFile()) {
             try {
-                return getMavenAzureLoginCredentials();
+                return new AzureTokenWrapper(AuthMethod.AZURE_SECRET_FILE, getMavenAzureLoginCredentials(), getAzureSecretFile());
             } catch (IOException ex) {
                 // ignore
             }
         }
         if (isInCloudShell()) {
-            return new MSICredentials();
+            return new AzureTokenWrapper(AuthMethod.CLOUD_SHELL, new MSICredentials());
         }
-        final File credentialParent = getAzureConfigFolder();
-        if (credentialParent.exists() && credentialParent.isDirectory()) {
-            final File azureProfile = new File(credentialParent, Constants.AZURE_PROFILE_NAME);
-            final File accessTokens = new File(credentialParent, Constants.AZURE_TOKEN_NAME);
 
-            if (azureProfile.exists() && accessTokens.exists()) {
-                try {
-                    // see code at https://github.com/Azure/autorest-clientruntime-for-java
-                    // /blob/a55f87f3cc3a68742a2ac94c031c6d715965a9c2/azure-client-authentication
-                    // /src/main/java/com/microsoft/azure/credentials/AzureCliCredentials.java#L48
-                    // AzureCliCredentials.create will block using  System.in.read() if user has logout using `az logout`
-                    // here we must check these two json files for empty
-                    final List tokens = JsonUtils.fromJson(FileUtils.readFileToString(accessTokens, "utf8"), List.class);
-                    if (tokens.isEmpty()) {
-                        return null;
-                    }
-                    final Wrapper wrapper = JsonUtils.fromJson(FileUtils.readFileToString(azureProfile, "utf8"), Wrapper.class);
-                    if (wrapper.subscriptions == null || wrapper.subscriptions.isEmpty()) {
-                        return null;
-                    }
+        return getAzureCLICredential();
+    }
 
-                    return AzureCliCredentials.create(azureProfile, accessTokens);
-                } catch (JsonSyntaxException | IOException ex) {
-                    // ignore
+    public static AzureTokenWrapper getAzureCredentialByOrder(AuthConfiguration authConfiguration, AzureEnvironment azureEnvironment) {
+        AzureTokenWrapper result = null;
+        for (final AuthType authType : AUTH_ORDER) {
+            try {
+                result = authType.getAzureToken(authConfiguration, azureEnvironment);
+                if (result != null) {
+                    break;
                 }
+            } catch (AzureLoginFailureException e) {
+                continue;
             }
         }
-
-        return null;
+        return result;
     }
 
     static boolean isInCloudShell() {

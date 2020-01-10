@@ -62,7 +62,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         "Creating a new function app...";
     public static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s";
     public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
-    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
+    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app: %s";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
     public static final String HOST_JAVA_VERSION = "Java version of function host : %s";
@@ -129,7 +129,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         checkHostJavaVersion(app, update); // Check Java Version of Server
         configureAppSettings(update::withAppSettings, getAppSettingsWithDefaultValue());
         update.apply();
-        Log.info(FUNCTION_APP_UPDATE_DONE + getAppName());
+        Log.info(String.format(FUNCTION_APP_UPDATE_DONE, getAppName()));
     }
 
     protected void checkHostJavaVersion(final FunctionApp app, final Update update) {

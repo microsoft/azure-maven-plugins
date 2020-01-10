@@ -255,7 +255,7 @@ public class AzureAuthHelperTest {
         // 2. use azure cli(non SP)
         testConfigDir = new File(this.getClass().getResource("/azure-cli/default/azureProfile.json").getFile()).getParentFile();
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
-        cred = AzureAuthHelper.getAzureTokenCredentials(null);
+        cred = AzureAuthHelper.getAzureTokenCredentials(null).getAzureTokenCredentials();
         assertNotNull(cred);
         assertTrue(cred instanceof AzureCliCredentials);
         final AzureCliCredentials cliCred = (AzureCliCredentials) cred;
@@ -267,7 +267,7 @@ public class AzureAuthHelperTest {
         // 3. use azure cli(SP)
         testConfigDir = new File(this.getClass().getResource("/azure-cli/sp/azureProfile.json").getFile()).getParentFile();
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, testConfigDir.getAbsolutePath());
-        cred = AzureAuthHelper.getAzureTokenCredentials(null);
+        cred = AzureAuthHelper.getAzureTokenCredentials(null).getAzureTokenCredentials();
         assertNotNull(cred);
         assertTrue(cred instanceof AzureCliCredentials);
         final AzureCliCredentials azureCliCredential = (AzureCliCredentials) cred;
@@ -280,7 +280,7 @@ public class AzureAuthHelperTest {
         TestHelper.injectEnvironmentVariable(Constants.CLOUD_SHELL_ENV_KEY, "azure");
         assertTrue(AzureAuthHelper.isInCloudShell());
         TestHelper.injectEnvironmentVariable(Constants.AZURE_CONFIG_DIR, "non-exist-folder");
-        cred = AzureAuthHelper.getAzureTokenCredentials(null);
+        cred = AzureAuthHelper.getAzureTokenCredentials(null).getAzureTokenCredentials();
         assertNotNull(cred);
         assertTrue(cred instanceof MSICredentials);
 
@@ -296,7 +296,7 @@ public class AzureAuthHelperTest {
         auth.setTenant("tenant_id");
         auth.setKey("key");
         auth.setEnvironment("azure_germany");
-        final AzureTokenCredentials cred = AzureAuthHelper.getAzureTokenCredentials(auth);
+        final AzureTokenCredentials cred = AzureAuthHelper.getAzureTokenCredentials(auth).getAzureTokenCredentials();
         assertNotNull(cred);
         assertTrue(cred instanceof ApplicationTokenCredentials);
         assertNull(cred.defaultSubscriptionId());
