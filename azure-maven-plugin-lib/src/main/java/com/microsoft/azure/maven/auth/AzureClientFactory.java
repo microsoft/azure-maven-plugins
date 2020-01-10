@@ -22,13 +22,13 @@ import java.util.Optional;
 public class AzureClientFactory {
 
     private static final String SUBSCRIPTION_TEMPLATE = "Subscription : %s(%s)";
-    public static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account";
-    public static final String NO_AVAILABLE_SUBSCRIPTION = "No available subscription found in current account";
+    public static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
+    public static final String NO_AVAILABLE_SUBSCRIPTION = "No available subscription found in current account.";
     public static final String SUBSCRIPTION_NOT_SPECIFIED = "Subscription ID was not specified, using the first subscription in current account," +
-            " please refer https://github.com/microsoft/azure-maven-plugins/wiki/Authentication#subscription for more information";
+            " please refer https://github.com/microsoft/azure-maven-plugins/wiki/Authentication#subscription for more information.";
 
     public static Azure getAzureClient(AzureTokenWrapper azureTokenCredentials, String subscriptionId) throws IOException, AzureLoginFailureException {
-        Preconditions.checkNotNull(azureTokenCredentials, "The parameter 'azureTokenCredentials' cannot be null");
+        Preconditions.checkNotNull(azureTokenCredentials, "The parameter 'azureTokenCredentials' cannot be null.");
         Log.info(azureTokenCredentials.getCredentialDescription());
         final Authenticated authenticated = Azure.configure().authenticate(azureTokenCredentials);
         // For cloud shell, use subscription in profile as the default subscription.

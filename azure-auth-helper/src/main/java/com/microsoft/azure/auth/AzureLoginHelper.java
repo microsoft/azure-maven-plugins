@@ -36,8 +36,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 class AzureLoginHelper {
-    private static final String AUTH_WITH_OAUTH = "Authenticate with OAuth";
-    private static final String AUTH_WITH_DEVICE_LOGIN = "Authenticate with Device Login";
     private static final Map<AzureEnvironment, String> AZURE_ENVIRONMENT_MAP = new HashMap<>();
 
     static {
@@ -83,7 +81,6 @@ class AzureLoginHelper {
             try {
                 final String authorizationUrl = authorizationUrl(env, redirectUrl);
                 Desktop.getDesktop().browse(new URL(authorizationUrl).toURI());
-                System.out.println(AUTH_WITH_OAUTH);
                 code = server.waitForCode();
             } catch (InterruptedException e) {
                 throw new AzureLoginFailureException("The OAuth flow is interrupted.");
@@ -116,8 +113,6 @@ class AzureLoginHelper {
         Object oldLevelValue = null;
 
         try {
-            System.out.println(AUTH_WITH_DEVICE_LOGIN);
-
             try {
                 // disable log4j of AuthenticationContext, otherwise the pending user
                 // authorization log

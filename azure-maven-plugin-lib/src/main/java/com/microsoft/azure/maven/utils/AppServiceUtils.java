@@ -27,8 +27,8 @@ import java.util.UUID;
 
 public class AppServiceUtils {
 
-    private static final String SERVICE_PLAN_NOT_FOUND = "Failed to get App Service Plan";
-    private static final String UPDATE_APP_SERVICE_PLAN = "Updating app service plan";
+    private static final String SERVICE_PLAN_NOT_FOUND = "Failed to get App Service Plan.";
+    private static final String UPDATE_APP_SERVICE_PLAN = "Updating App Service Plan...";
     private static final List<PricingTier> pricingTiers = new ArrayList<>();
 
     static {

@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class AzureTokenWrapper extends AzureTokenCredentials {
 
     private static final String TEMPLATE = "Auth Type : %s";
-    private static final String TEMPLATE_WITH_FILE = "Auth Type : %s; Auth Files : [%s]";
+    private static final String TEMPLATE_WITH_FILE = "Auth Type : %s, Auth Files : [%s]";
 
     private AuthMethod authMethod;
     private File[] authFileLocation;
@@ -53,10 +53,10 @@ public class AzureTokenWrapper extends AzureTokenCredentials {
 
     public String getCredentialDescription() {
         if (ArrayUtils.isEmpty(authFileLocation)) {
-            return String.format(TEMPLATE, authMethod);
+            return String.format(TEMPLATE, authMethod.getAuthType());
         }
-        final String authFiles = Arrays.stream(authFileLocation).map(file -> file.getAbsolutePath()).collect(Collectors.joining(","));
-        return String.format(TEMPLATE_WITH_FILE, authMethod, authFiles);
+        final String authFiles = Arrays.stream(authFileLocation).map(file -> file.getAbsolutePath()).collect(Collectors.joining(", "));
+        return String.format(TEMPLATE_WITH_FILE, authMethod.getAuthType(), authFiles);
     }
 
     @Override
