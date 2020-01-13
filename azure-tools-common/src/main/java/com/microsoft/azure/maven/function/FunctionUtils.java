@@ -27,7 +27,7 @@ public class FunctionUtils {
     private static final String LOAD_BINDING_TEMPLATES_FAIL = "Failed to load function binding template.";
 
     public static BindingTemplate loadBindingTemplate(String type) {
-        try (final InputStream is = Constants.class.getResourceAsStream("/bindings.json")) {
+        try (final InputStream is = FunctionUtils.class.getResourceAsStream("/bindings.json")) {
             final String bindingsJsonStr = IOUtils.toString(is, "utf8");
             final BindingsTemplate bindingsTemplate = new ObjectMapper()
                 .readValue(bindingsJsonStr, BindingsTemplate.class);
