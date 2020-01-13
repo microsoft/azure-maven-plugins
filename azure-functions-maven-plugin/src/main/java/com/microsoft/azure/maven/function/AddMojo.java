@@ -6,16 +6,11 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.function.template.BindingTemplate;
-import com.microsoft.azure.maven.function.template.BindingsTemplate;
 import com.microsoft.azure.maven.function.template.FunctionSettingTemplate;
 import com.microsoft.azure.maven.function.template.FunctionTemplate;
-import com.microsoft.azure.maven.function.template.FunctionTemplates;
 import com.microsoft.azure.maven.function.template.TemplateResources;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +24,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -153,7 +147,7 @@ public class AddMojo extends AbstractFunctionMojo {
             final List<FunctionTemplate> templates = loadAllFunctionTemplates();
 
             final FunctionTemplate template = getFunctionTemplate(templates);
-            final BindingTemplate bindingTemplate = loadBindingTemplate(template.getTriggerType());
+            final BindingTemplate bindingTemplate = FunctionUtils.loadBindingTemplate(template.getTriggerType());
 
             final Map params = prepareRequiredParameters(template, bindingTemplate);
 
@@ -168,37 +162,12 @@ public class AddMojo extends AbstractFunctionMojo {
     //endregion
 
     //region Load templates
-    protected BindingTemplate loadBindingTemplate(String type) {
-        try (final InputStream is = Constants.class.getResourceAsStream("/bindings.json")) {
-            final String bindingsJsonStr = IOUtil.toString(is);
-            final BindingsTemplate bindingsTemplate = new ObjectMapper()
-                .readValue(bindingsJsonStr, BindingsTemplate.class);
-            return bindingsTemplate.getBindingTemplateByName(type);
-        } catch (IOException e) {
-            Log.warn(LOAD_BINDING_TEMPLATES_FAIL);
-            // Add mojo could work without Binding Template, just return null if binding load fail
-            return null;
-        }
-    }
-
     protected List<FunctionTemplate> loadAllFunctionTemplates() throws AzureExecutionException {
         Log.info("");
         Log.info(LOAD_TEMPLATES);
-
-        try (final InputStream is = AddMojo.class.getResourceAsStream("/templates.json")) {
-            final String templatesJsonStr = IOUtil.toString(is);
-            final List<FunctionTemplate> templates = parseTemplateJson(templatesJsonStr);
-            Log.info(LOAD_TEMPLATES_DONE);
-            return templates;
-        } catch (Exception e) {
-            Log.error(LOAD_TEMPLATES_FAIL);
-            throw new AzureExecutionException(LOAD_TEMPLATES_FAIL, e);
-        }
-    }
-
-    protected List<FunctionTemplate> parseTemplateJson(final String templateJson) throws JsonParseException, JsonMappingException, IOException {
-        final FunctionTemplates templates = new ObjectMapper().readValue(templateJson, FunctionTemplates.class);
-        return templates.getTemplates();
+        final List<FunctionTemplate> templates = FunctionUtils.loadAllFunctionTemplates();
+        Log.info(LOAD_TEMPLATES_DONE);
+        return templates;
     }
 
     //endregion
