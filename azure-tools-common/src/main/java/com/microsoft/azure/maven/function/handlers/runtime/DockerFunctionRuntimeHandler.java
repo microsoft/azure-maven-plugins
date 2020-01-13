@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.function.handlers.runtime;
 
-import com.microsoft.azure.common.docker.IDockerCredentialProvider;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.appservice.DockerImageType;
@@ -46,7 +45,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
     public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider != null, registryUrl);
         checkFunctionExtensionVersion();
-        checkConfiguration(imageType, dockerCredentialProvider);
+        checkConfiguration(imageType);
 
         final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage = super.defineLinuxFunction();
         final FunctionApp.DefinitionStages.WithCreate result;
@@ -76,7 +75,7 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
     public FunctionApp.Update updateAppRuntime(FunctionApp app) throws AzureExecutionException {
         final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider != null, registryUrl);
         checkFunctionExtensionVersion();
-        checkConfiguration(imageType, dockerCredentialProvider);
+        checkConfiguration(imageType);
 
         final FunctionApp.Update update = app.update();
         switch (imageType) {
@@ -92,10 +91,12 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
         }
     }
 
-    protected void checkConfiguration(DockerImageType imageType, IDockerCredentialProvider provider) throws AzureExecutionException {
+    protected void checkConfiguration(DockerImageType imageType) throws AzureExecutionException {
         if (imageType != PUBLIC_DOCKER_HUB) {
-            // try to call getPassword to verify serverId configuration
-            provider.validate();
+            if (dockerCredentialProvider == null) {
+                throw new AzureExecutionException("Cannot get docker credential for private image.");
+            }
+            dockerCredentialProvider.validate();
         }
 
         if (pricingTier == null) {

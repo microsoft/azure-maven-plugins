@@ -15,7 +15,6 @@ import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.junit.Before;
@@ -38,9 +37,6 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
 
     @Mock
     private Azure azureClient;
-
-    @Mock
-    private Log log;
 
     private final PrivateDockerHubRuntimeHandlerImpl.Builder builder =
         new PrivateDockerHubRuntimeHandlerImpl.Builder();
