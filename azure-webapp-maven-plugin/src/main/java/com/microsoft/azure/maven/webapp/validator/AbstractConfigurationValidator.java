@@ -20,7 +20,7 @@ public abstract class AbstractConfigurationValidator {
 
     protected final AbstractWebAppMojo mojo;
 
-    public AbstractConfigurationValidator(AbstractWebAppMojo mojo){
+    public AbstractConfigurationValidator(AbstractWebAppMojo mojo) {
         this.mojo = mojo;
     }
 
@@ -36,7 +36,7 @@ public abstract class AbstractConfigurationValidator {
         return null;
     }
 
-    public String validateResourceGroup(){
+    public String validateResourceGroup() {
         final String resourceGroupName = mojo.getResourceGroup();
         if (StringUtils.isEmpty(resourceGroupName)) {
             return "Please config the <resourceGroup> in pom.xml.";
@@ -48,7 +48,7 @@ public abstract class AbstractConfigurationValidator {
         return null;
     }
 
-    public String validatePricingTier(){
+    public String validatePricingTier() {
         if (mojo.getPricingTier() != null && AppServiceUtils.getPricingTierFromString(mojo.getPricingTier()) == null) {
             return "Unknown value of the pricingTier.";
         }

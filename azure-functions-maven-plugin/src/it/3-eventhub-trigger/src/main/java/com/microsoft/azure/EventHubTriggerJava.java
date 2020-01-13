@@ -16,7 +16,7 @@ public class EventHubTriggerJava {
             @EventHubOutput(name = "result", eventHubName = "output", connection = "CIEventHubConnection") OutputBinding<String> result,
             final ExecutionContext context
     ) {
-        if(message.contains("CIInput")){
+        if(message.contains("CIInput")) {
             result.setValue("CITest");
         }
     }

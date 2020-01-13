@@ -87,7 +87,7 @@ public class AddMojoTest extends MojoTestBase {
     }
 
     @Test(expected = MojoFailureException.class)
-    public void assureInputInBatchModeWhenRequired() throws Exception{
+    public void assureInputInBatchModeWhenRequired() throws Exception {
         final AddMojo mojo = getMojoFromPom();
         final AddMojo mojoSpy = spy(mojo);
 
@@ -96,7 +96,7 @@ public class AddMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void assureInputInBatchModeWhenNotRequired() throws Exception{
+    public void assureInputInBatchModeWhenNotRequired() throws Exception {
         final AddMojo mojo = getMojoFromPom();
         final AddMojo mojoSpy = spy(mojo);
 

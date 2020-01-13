@@ -36,7 +36,7 @@ public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
     }
 
     @Override
-    protected PricingTier getPricingTier() throws AzureExecutionException{
+    protected PricingTier getPricingTier() throws AzureExecutionException {
         return validateConfiguration(validator.validatePricingTier()) ?
                 super.getPricingTier() : null;
     }

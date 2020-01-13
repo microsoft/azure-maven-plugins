@@ -97,7 +97,7 @@ public class FunctionSettingTemplate {
         return (validators != null && validators.length > 0) ? validators[0].getExpression() : null;
     }
 
-    public String getErrorText(){
+    public String getErrorText() {
         return (validators != null && validators.length > 0) ? validators[0].getErrorText() : null;
     }
 }

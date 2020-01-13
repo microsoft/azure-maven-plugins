@@ -54,7 +54,7 @@ public class FunctionTemplate {
         this.function = function;
     }
 
-    public String getTriggerType(){
+    public String getTriggerType() {
         return this.function;
     }
 }

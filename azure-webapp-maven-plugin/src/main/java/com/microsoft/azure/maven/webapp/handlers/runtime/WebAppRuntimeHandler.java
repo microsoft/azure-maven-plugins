@@ -74,7 +74,7 @@ public abstract class WebAppRuntimeHandler extends BaseRuntimeHandler<WebApp> {
                 servicePlanResourceGroup, region, getPricingTierOrDefault(), getAppServicePlatform());
     }
 
-    protected PricingTier getPricingTierOrDefault(){
+    protected PricingTier getPricingTierOrDefault() {
         return pricingTier == null ? WebAppConfiguration.DEFAULT_PRICINGTIER : pricingTier;
     }
 }

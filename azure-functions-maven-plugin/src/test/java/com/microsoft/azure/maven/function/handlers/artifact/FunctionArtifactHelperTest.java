@@ -83,7 +83,7 @@ public class FunctionArtifactHelperTest {
     }
 
     @Test
-    public void testUpdateAppSettingWithException(){
+    public void testUpdateAppSettingWithException() {
         final DeployTarget deployTarget = mock(DeployTarget.class);
         final WebApp webapp = mock(WebApp.class);
         doReturn(webapp).when(deployTarget).getApp();

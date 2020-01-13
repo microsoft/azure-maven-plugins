@@ -198,7 +198,7 @@ public class DeployMojoTest extends MojoTestBase {
     }
 
     @Test
-    public void testIsDedicatedPricingTier(){
+    public void testIsDedicatedPricingTier() {
         mojoSpy.pricingTier = "P1V2";
         assertTrue(mojoSpy.isDedicatedPricingTier());
         mojoSpy.pricingTier = "B1";
