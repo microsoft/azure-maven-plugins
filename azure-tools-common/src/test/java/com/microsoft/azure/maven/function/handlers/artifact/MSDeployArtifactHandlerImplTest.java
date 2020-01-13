@@ -11,7 +11,6 @@ import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.WebDeployment.DefinitionStages.WithExecute;
 import com.microsoft.azure.management.appservice.WebDeployment.DefinitionStages.WithPackageUri;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
@@ -21,7 +20,6 @@ import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -52,9 +50,6 @@ import static org.mockito.Mockito.when;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({MSDeployArtifactHandlerImpl.class, FunctionArtifactHelper.class})
 public class MSDeployArtifactHandlerImplTest {
-    @Mock
-    AbstractFunctionMojo mojo;
-
     private MSDeployArtifactHandlerImpl handler;
 
     private MSDeployArtifactHandlerImpl handlerSpy;
@@ -65,9 +60,8 @@ public class MSDeployArtifactHandlerImplTest {
     }
 
     public void buildHandler() {
-        when(mojo.getAppName()).thenReturn("appName");
         handler = new MSDeployArtifactHandlerImpl.Builder()
-            .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
+            .stagingDirectoryPath("target/classes")
             .build();
         handlerSpy = spy(handler);
     }
@@ -80,7 +74,6 @@ public class MSDeployArtifactHandlerImplTest {
         final AppSetting storageSetting = mock(AppSetting.class);
 
         mapSettings.put(INTERNAL_STORAGE_KEY, storageSetting);
-        doReturn("azure-functions-maven-plugin").when(mojo).getPluginName();
         doReturn(mapSettings).when(deployTarget).getAppSettings();
         doReturn(storageSetting).when(mapSettings).get(anyString());
         buildHandler();
@@ -105,8 +98,6 @@ public class MSDeployArtifactHandlerImplTest {
 
     @Test
     public void createZipPackage() throws Exception {
-        when(mojo.getDeploymentStagingDirectoryPath()).thenReturn("target/classes");
-
         buildHandler();
         final File zipPackage = handlerSpy.createZipPackage();
 

@@ -6,8 +6,10 @@
 
 package com.microsoft.azure.maven.function.handlers;
 
+import java.io.File;
+
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
 public interface FunctionCoreToolsHandler {
-    void installExtension() throws AzureExecutionException;
+    void installExtension(File stagingDirectory, File basedir) throws AzureExecutionException;
 }
