@@ -6,16 +6,11 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.function.template.BindingTemplate;
-import com.microsoft.azure.maven.function.template.BindingsTemplate;
 import com.microsoft.azure.maven.function.template.FunctionSettingTemplate;
 import com.microsoft.azure.maven.function.template.FunctionTemplate;
-import com.microsoft.azure.maven.function.template.FunctionTemplates;
 import com.microsoft.azure.maven.function.template.TemplateResources;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +24,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -52,21 +46,19 @@ import static javax.lang.model.SourceVersion.isName;
  */
 @Mojo(name = "add")
 public class AddMojo extends AbstractFunctionMojo {
-    public static final String LOAD_TEMPLATES = "Step 1 of 4: Load all function templates";
-    public static final String LOAD_TEMPLATES_DONE = "Successfully loaded all function templates";
-    public static final String LOAD_TEMPLATES_FAIL = "Failed to load all function templates.";
-    public static final String FIND_TEMPLATE = "Step 2 of 4: Select function template";
-    public static final String FIND_TEMPLATE_DONE = "Successfully found function template: ";
-    public static final String FIND_TEMPLATE_FAIL = "Function template not found: ";
-    public static final String LOAD_BINDING_TEMPLATES_FAIL = "Failed to load function binding template.";
-    public static final String PREPARE_PARAMS = "Step 3 of 4: Prepare required parameters";
-    public static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
-    public static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
-    public static final String SAVE_FILE_DONE = "Successfully saved new function at ";
-    public static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
-    public static final String DEFAULT_INPUT_ERROR_MESSAGE = "Invalid input, please check and try again.";
-    public static final String PROMPT_STRING_WITH_DEFAULTVALUE = "Enter value for %s(Default: %s): ";
-    public static final String PROMPT_STRING_WITHOUT_DEFAULTVALUE = "Enter value for %s: ";
+    private static final String LOAD_TEMPLATES = "Step 1 of 4: Load all function templates";
+    private static final String LOAD_TEMPLATES_DONE = "Successfully loaded all function templates";
+    private static final String FIND_TEMPLATE = "Step 2 of 4: Select function template";
+    private static final String FIND_TEMPLATE_DONE = "Successfully found function template: ";
+    private static final String FIND_TEMPLATE_FAIL = "Function template not found: ";
+    private static final String PREPARE_PARAMS = "Step 3 of 4: Prepare required parameters";
+    private static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
+    private static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
+    private static final String SAVE_FILE_DONE = "Successfully saved new function at ";
+    private static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
+    private static final String DEFAULT_INPUT_ERROR_MESSAGE = "Invalid input, please check and try again.";
+    private static final String PROMPT_STRING_WITH_DEFAULTVALUE = "Enter value for %s(Default: %s): ";
+    private static final String PROMPT_STRING_WITHOUT_DEFAULTVALUE = "Enter value for %s: ";
     private static final String FUNCTION_NAME_REGEXP = "^[a-zA-Z][a-zA-Z\\d_\\-]*$";
 
     //region Properties
@@ -153,7 +145,7 @@ public class AddMojo extends AbstractFunctionMojo {
             final List<FunctionTemplate> templates = loadAllFunctionTemplates();
 
             final FunctionTemplate template = getFunctionTemplate(templates);
-            final BindingTemplate bindingTemplate = loadBindingTemplate(template.getTriggerType());
+            final BindingTemplate bindingTemplate = FunctionUtils.loadBindingTemplate(template.getTriggerType());
 
             final Map params = prepareRequiredParameters(template, bindingTemplate);
 
@@ -168,37 +160,12 @@ public class AddMojo extends AbstractFunctionMojo {
     //endregion
 
     //region Load templates
-    protected BindingTemplate loadBindingTemplate(String type) {
-        try (final InputStream is = Constants.class.getResourceAsStream("/bindings.json")) {
-            final String bindingsJsonStr = IOUtil.toString(is);
-            final BindingsTemplate bindingsTemplate = new ObjectMapper()
-                .readValue(bindingsJsonStr, BindingsTemplate.class);
-            return bindingsTemplate.getBindingTemplateByName(type);
-        } catch (IOException e) {
-            Log.warn(LOAD_BINDING_TEMPLATES_FAIL);
-            // Add mojo could work without Binding Template, just return null if binding load fail
-            return null;
-        }
-    }
-
     protected List<FunctionTemplate> loadAllFunctionTemplates() throws AzureExecutionException {
         Log.info("");
         Log.info(LOAD_TEMPLATES);
-
-        try (final InputStream is = AddMojo.class.getResourceAsStream("/templates.json")) {
-            final String templatesJsonStr = IOUtil.toString(is);
-            final List<FunctionTemplate> templates = parseTemplateJson(templatesJsonStr);
-            Log.info(LOAD_TEMPLATES_DONE);
-            return templates;
-        } catch (Exception e) {
-            Log.error(LOAD_TEMPLATES_FAIL);
-            throw new AzureExecutionException(LOAD_TEMPLATES_FAIL, e);
-        }
-    }
-
-    protected List<FunctionTemplate> parseTemplateJson(final String templateJson) throws JsonParseException, JsonMappingException, IOException {
-        final FunctionTemplates templates = new ObjectMapper().readValue(templateJson, FunctionTemplates.class);
-        return templates.getTemplates();
+        final List<FunctionTemplate> templates = FunctionUtils.loadAllFunctionTemplates();
+        Log.info(LOAD_TEMPLATES_DONE);
+        return templates;
     }
 
     //endregion
