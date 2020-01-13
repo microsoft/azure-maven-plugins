@@ -38,8 +38,8 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
         }
 
         public T dockerCredentialProvider(IDockerCredentialProvider value) {
-        	 this.dockerCredentialProvider = value;
-             return self();
+            this.dockerCredentialProvider = value;
+            return self();
         }
 
         public abstract FunctionRuntimeHandler build();

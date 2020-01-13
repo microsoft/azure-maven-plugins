@@ -16,76 +16,76 @@ import java.util.List;
 public class JavaProject implements IProject {
     private String projectName;
 
-        private Path baseDirectory;
+    private Path baseDirectory;
 
-        private Path classesOutputDirectory;
+    private Path classesOutputDirectory;
 
-        private Path buildDirectory;
+    private Path buildDirectory;
 
-        private Path artifactFile;
+    private Path artifactFile;
 
-        private List<Path> dependencies;
+    private List<Path> dependencies;
 
-        public String getProjectName() {
-            return projectName;
-        }
+    public String getProjectName() {
+        return projectName;
+    }
 
-        public void setProjectName(String projectName) {
-            this.projectName = projectName;
-        }
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
 
-        public Path getBaseDirectory() {
-            return baseDirectory;
-        }
+    public Path getBaseDirectory() {
+        return baseDirectory;
+    }
 
-        public void setBaseDirectory(Path baseDirectory) {
-            this.baseDirectory = baseDirectory;
-        }
+    public void setBaseDirectory(Path baseDirectory) {
+        this.baseDirectory = baseDirectory;
+    }
 
-        public Path getClassesOutputDirectory() {
-            return classesOutputDirectory;
-        }
+    public Path getClassesOutputDirectory() {
+        return classesOutputDirectory;
+    }
 
-        public void setClassesOutputDirectory(Path classesOutputDirectory) {
-            this.classesOutputDirectory = classesOutputDirectory;
-        }
+    public void setClassesOutputDirectory(Path classesOutputDirectory) {
+        this.classesOutputDirectory = classesOutputDirectory;
+    }
 
-        public Path getBuildDirectory() {
-            return buildDirectory;
-        }
+    public Path getBuildDirectory() {
+        return buildDirectory;
+    }
 
-        public void setBuildDirectory(Path buildDirectory) {
-            this.buildDirectory = buildDirectory;
-        }
+    public void setBuildDirectory(Path buildDirectory) {
+        this.buildDirectory = buildDirectory;
+    }
 
-        public Path getArtifactFile() {
-            return artifactFile;
-        }
+    public Path getArtifactFile() {
+        return artifactFile;
+    }
 
-        public void setArtifactFile(Path artifactFile) {
-            this.artifactFile = artifactFile;
-        }
+    public void setArtifactFile(Path artifactFile) {
+        this.artifactFile = artifactFile;
+    }
 
-        public List<Path> getDependencies() {
-            return dependencies;
-        }
+    public List<Path> getDependencies() {
+        return dependencies;
+    }
 
-        public void setDependencies(List<Path> dependencies) {
-            this.dependencies = dependencies;
-        }
+    public void setDependencies(List<Path> dependencies) {
+        this.dependencies = dependencies;
+    }
 
-        @Override
-        public Collection<Path> getProjectDepencencies() {
-            return dependencies;
-        }
+    @Override
+    public Collection<Path> getProjectDepencencies() {
+        return dependencies;
+    }
 
-        @Override
-        public boolean isWarProject() {
-            return StringUtils.equalsIgnoreCase(FilenameUtils.getExtension(artifactFile.getFileName().toString()), "war");
-        }
+    @Override
+    public boolean isWarProject() {
+        return StringUtils.equalsIgnoreCase(FilenameUtils.getExtension(artifactFile.getFileName().toString()), "war");
+    }
 
-        @Override
-        public boolean isJarProject() {
-            return StringUtils.equalsIgnoreCase(FilenameUtils.getExtension(artifactFile.getFileName().toString()), "jar");
-        }
+    @Override
+    public boolean isJarProject() {
+        return StringUtils.equalsIgnoreCase(FilenameUtils.getExtension(artifactFile.getFileName().toString()), "jar");
+    }
 }
