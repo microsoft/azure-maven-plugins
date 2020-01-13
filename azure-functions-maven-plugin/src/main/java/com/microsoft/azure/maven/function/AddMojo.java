@@ -46,21 +46,19 @@ import static javax.lang.model.SourceVersion.isName;
  */
 @Mojo(name = "add")
 public class AddMojo extends AbstractFunctionMojo {
-    public static final String LOAD_TEMPLATES = "Step 1 of 4: Load all function templates";
-    public static final String LOAD_TEMPLATES_DONE = "Successfully loaded all function templates";
-    public static final String LOAD_TEMPLATES_FAIL = "Failed to load all function templates.";
-    public static final String FIND_TEMPLATE = "Step 2 of 4: Select function template";
-    public static final String FIND_TEMPLATE_DONE = "Successfully found function template: ";
-    public static final String FIND_TEMPLATE_FAIL = "Function template not found: ";
-    public static final String LOAD_BINDING_TEMPLATES_FAIL = "Failed to load function binding template.";
-    public static final String PREPARE_PARAMS = "Step 3 of 4: Prepare required parameters";
-    public static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
-    public static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
-    public static final String SAVE_FILE_DONE = "Successfully saved new function at ";
-    public static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
-    public static final String DEFAULT_INPUT_ERROR_MESSAGE = "Invalid input, please check and try again.";
-    public static final String PROMPT_STRING_WITH_DEFAULTVALUE = "Enter value for %s(Default: %s): ";
-    public static final String PROMPT_STRING_WITHOUT_DEFAULTVALUE = "Enter value for %s: ";
+    private static final String LOAD_TEMPLATES = "Step 1 of 4: Load all function templates";
+    private static final String LOAD_TEMPLATES_DONE = "Successfully loaded all function templates";
+    private static final String FIND_TEMPLATE = "Step 2 of 4: Select function template";
+    private static final String FIND_TEMPLATE_DONE = "Successfully found function template: ";
+    private static final String FIND_TEMPLATE_FAIL = "Function template not found: ";
+    private static final String PREPARE_PARAMS = "Step 3 of 4: Prepare required parameters";
+    private static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
+    private static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
+    private static final String SAVE_FILE_DONE = "Successfully saved new function at ";
+    private static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
+    private static final String DEFAULT_INPUT_ERROR_MESSAGE = "Invalid input, please check and try again.";
+    private static final String PROMPT_STRING_WITH_DEFAULTVALUE = "Enter value for %s(Default: %s): ";
+    private static final String PROMPT_STRING_WITHOUT_DEFAULTVALUE = "Enter value for %s: ";
     private static final String FUNCTION_NAME_REGEXP = "^[a-zA-Z][a-zA-Z\\d_\\-]*$";
 
     //region Properties
