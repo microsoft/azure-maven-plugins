@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.DEFAULT_APP_SERVICE_JAR_NAME;
 
@@ -55,15 +54,6 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
         this.jarFile = builder.jarFile;
     }
 
-    /**
-     * Jar deploy prepares deployment file itself.
-     * So preparing resources to staging folder is not necessary.
-     */
-    @Override
-    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
-        return false;
-    }
-
     @Override
     public void publish(DeployTarget deployTarget) throws AzureExecutionException {
         final File jar = getJarFile();
@@ -87,7 +77,7 @@ public final class JarArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
 
     protected File getJarFile() {
         final String jarFilePath = StringUtils.isNotEmpty(jarFile) ? jarFile :
-                Paths.get(buildDirectoryAbsolutePath, project.getBuild().getFinalName() + ".jar").toString();
+            project.getArtifactFile().toString();
         return new File(jarFilePath);
     }
 

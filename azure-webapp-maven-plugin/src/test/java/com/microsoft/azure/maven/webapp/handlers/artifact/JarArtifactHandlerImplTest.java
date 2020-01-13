@@ -8,10 +8,13 @@ package com.microsoft.azure.maven.webapp.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.maven.ProjectUtils;
+import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
+import com.microsoft.azure.maven.webapp.utils.TestUtils;
 
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
@@ -30,6 +33,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JarArtifactHandlerImplTest {
@@ -45,11 +49,16 @@ public class JarArtifactHandlerImplTest {
     }
 
     private void buildHandler() {
-        handler = (JarArtifactHandlerImpl) new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile())
-            .project(mojo.getProject())
-            .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
-            .build();
-        handlerSpy = spy(handler);
+        try {
+            when(mojo.getProject()).thenReturn(TestUtils.getSimpleMavenProjectForUnitTest());
+            handler = (JarArtifactHandlerImpl) new JarArtifactHandlerImpl.Builder().jarFile(mojo.getJarFile())
+                    .project(ProjectUtils.convertCommonProject(mojo.getProject()))
+                    .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath()).build();
+            handlerSpy = spy(handler);
+        } catch (Exception e) {
+            SneakyThrowUtils.sneakyThrow(e);
+        }
+
     }
 
     @Test

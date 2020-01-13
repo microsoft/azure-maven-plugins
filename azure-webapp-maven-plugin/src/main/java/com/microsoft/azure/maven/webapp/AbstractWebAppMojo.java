@@ -9,7 +9,6 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
@@ -26,6 +25,7 @@ import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -34,7 +34,6 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -233,7 +232,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     private WebAppConfiguration webAppConfiguration;
 
     protected File stagingDirectory;
-
     //endregion
 
     //region Getter
@@ -349,7 +347,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public void setRuntime(final RuntimeSetting runtime) {
         this.runtime = runtime;
     }
-
     //endregion
 
     protected ConfigurationParser getParserBySchemaVersion() throws AzureExecutionException {

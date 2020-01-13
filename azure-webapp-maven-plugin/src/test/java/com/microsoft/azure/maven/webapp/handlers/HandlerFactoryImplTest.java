@@ -27,6 +27,7 @@ import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateDockerHubRuntime
 import com.microsoft.azure.maven.webapp.handlers.runtime.PrivateRegistryRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.PublicDockerHubRuntimeHandlerImpl;
 import com.microsoft.azure.maven.webapp.handlers.runtime.WindowsRuntimeHandlerImpl;
+import com.microsoft.azure.maven.webapp.utils.TestUtils;
 
 import org.apache.maven.project.MavenProject;
 import org.junit.Before;
@@ -43,10 +44,12 @@ import static org.mockito.Mockito.mock;
 public class HandlerFactoryImplTest {
     @Mock
     AbstractWebAppMojo mojo;
+    private MavenProject project;
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
+        project = TestUtils.getSimpleMavenProjectForUnitTest();
     }
 
     @Test
@@ -109,23 +112,20 @@ public class HandlerFactoryImplTest {
     }
 
     @Test
-    public void getDefaultArtifactHandler() throws Exception {
-        final MavenProject project = mock(MavenProject.class);
+    public void getDefaultArtifactHandler() throws AzureExecutionException {
         doReturn(project).when(mojo).getProject();
         doReturn(DeploymentType.EMPTY).when(mojo).getDeploymentType();
-        doReturn("jar").when(project).getPackaging();
-
+        project.setPackaging("jar");
         final HandlerFactory factory = new HandlerFactoryImpl();
         final ArtifactHandler handler = factory.getArtifactHandler(mojo);
         assertTrue(handler instanceof JarArtifactHandlerImpl);
     }
 
     @Test
-    public void getAutoArtifactHandler() throws Exception {
-        final MavenProject project = mock(MavenProject.class);
+    public void getAutoArtifactHandler() throws AzureExecutionException {
         doReturn(project).when(mojo).getProject();
         doReturn(DeploymentType.AUTO).when(mojo).getDeploymentType();
-        doReturn("war").when(project).getPackaging();
+        project.setPackaging("war");
 
         final HandlerFactory factory = new HandlerFactoryImpl();
         final ArtifactHandler handler = factory.getArtifactHandler(mojo);
@@ -133,7 +133,7 @@ public class HandlerFactoryImplTest {
     }
 
     @Test
-    public void getDeploymentSlotHandler() throws Exception {
+    public void getDeploymentSlotHandler() throws AzureExecutionException {
         final HandlerFactory factory = new HandlerFactoryImpl();
 
         final DeploymentSlotHandler handler = factory.getDeploymentSlotHandler(mojo);
@@ -142,11 +142,8 @@ public class HandlerFactoryImplTest {
     }
 
     @Test
-    public void getArtifactHandlerFromPackaging() throws AzureExecutionException {
-        final MavenProject project = mock(MavenProject.class);
+    public void getArtifactHandlerFromPackaging() throws Exception {
         doReturn(project).when(mojo).getProject();
-        doReturn("jar").when(project).getPackaging();
-
         final HandlerFactoryImpl factory = new HandlerFactoryImpl();
 
         assertTrue(factory.getArtifactHandlerBuilderFromPackaging(mojo).build() instanceof JarArtifactHandlerImpl);
@@ -154,9 +151,8 @@ public class HandlerFactoryImplTest {
 
     @Test(expected = AzureExecutionException.class)
     public void getArtifactHandlerFromPackagingThrowException() throws AzureExecutionException {
-        final MavenProject project = mock(MavenProject.class);
         doReturn(project).when(mojo).getProject();
-        doReturn("unknown").when(project).getPackaging();
+        project.setPackaging("ear");
         final HandlerFactoryImpl factory = new HandlerFactoryImpl();
         factory.getArtifactHandlerBuilderFromPackaging(mojo);
     }

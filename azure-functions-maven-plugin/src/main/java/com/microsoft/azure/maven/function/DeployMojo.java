@@ -13,6 +13,7 @@ import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Wi
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.appservice.DeploymentType;
@@ -57,19 +58,19 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     public static final String DEPLOY_START = "Trying to deploy the function app...";
     public static final String DEPLOY_FINISH =
-        "Successfully deployed the function app at https://%s.azurewebsites.net";
+        "Successfully deployed the function app at https://%s.azurewebsites.net.";
     public static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
         "Creating a new function app...";
-    public static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s";
+    public static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s.";
     public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
-    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app: %s";
+    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app: %s.";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
     public static final String HOST_JAVA_VERSION = "Java version of function host : %s";
     public static final String HOST_JAVA_VERSION_OFF = "Java version of function host is not initiated," +
-        " set it to Java 8";
+        " set it to Java 8.";
     public static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
-        " meet the requirement of Azure Functions, set it to Java 8";
+        " meet the requirement of Azure Functions, set it to Java 8.";
     public static final String UNKNOW_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
             "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
 
@@ -218,10 +219,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             default:
                 throw new AzureExecutionException(UNKNOW_DEPLOYMENT_TYPE);
         }
-        return builder.project(this.getProject())
-            .session(this.getSession())
-            .filtering(this.getMavenResourcesFiltering())
-            .resources(this.getResources())
+        return builder.project(ProjectUtils.convertCommonProject(this.getProject()))
             .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
             .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
             .build();

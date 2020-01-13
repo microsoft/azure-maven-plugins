@@ -7,20 +7,17 @@
 package com.microsoft.azure.maven.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.project.IProject;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Resource;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.filtering.MavenResourcesFiltering;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -54,36 +51,17 @@ public class ArtifactHandlerBaseTest {
     private ArtifactHandlerBase handlerSpy;
 
     private void buildHandler() {
-        handler = builder.project(mojo.getProject())
-            .session(mojo.getSession())
-            .filtering(mojo.getMavenResourcesFiltering())
-            .resources(mojo.getResources())
+        handler = builder.project(mock(IProject.class))
             .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
             .build();
         handlerSpy = spy(handler);
     }
 
     @Test
-    public void prepareResources() throws IOException, AzureExecutionException {
-        final List<Resource> resourceList = new ArrayList<>();
-        doReturn(mock(MavenProject.class)).when(mojo).getProject();
-        doReturn(mock(MavenSession.class)).when(mojo).getSession();
-        doReturn(mock(MavenResourcesFiltering.class)).when(mojo).getMavenResourcesFiltering();
-        resourceList.add(new Resource());
-        doReturn(resourceList).when(mojo).getResources();
-        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
-
+    public void testCtor() throws IOException, AzureExecutionException {
+        doReturn("target/classes").when(mojo).getDeploymentStagingDirectoryPath();
         buildHandler();
-        handlerSpy.prepareResources();
-
-        verify(handlerSpy, times(1)).prepareResources();
-        verifyNoMoreInteractions(handlerSpy);
-    }
-
-    @Test(expected = AzureExecutionException.class)
-    public void prepareResourcesThrowException() throws IOException, AzureExecutionException {
-        buildHandler();
-        handlerSpy.prepareResources();
+        assertEquals(handler.stagingDirectoryPath, mojo.getDeploymentStagingDirectoryPath());
     }
 
     @Test(expected = AzureExecutionException.class)

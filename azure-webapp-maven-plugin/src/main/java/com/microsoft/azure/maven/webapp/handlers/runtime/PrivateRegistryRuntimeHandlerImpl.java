@@ -10,12 +10,8 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.Utils;
+import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
-
-import org.apache.maven.settings.Server;
-
-import static com.microsoft.azure.maven.Utils.assureServerExist;
 
 public class PrivateRegistryRuntimeHandlerImpl extends WebAppRuntimeHandler {
     public static class Builder extends WebAppRuntimeHandler.Builder<Builder> {
@@ -37,13 +33,12 @@ public class PrivateRegistryRuntimeHandlerImpl extends WebAppRuntimeHandler {
 
     @Override
     public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
-        final Server server = Utils.getServer(settings, serverId);
-        assureServerExist(server, serverId);
+        final MavenDockerCredentialProvider provider = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
 
         final AppServicePlan plan = createOrGetAppServicePlan();
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
             .withPrivateRegistryImage(image, registryUrl)
-            .withCredentials(server.getUsername(), server.getPassword());
+            .withCredentials(provider.getUsername(), provider.getPassword());
     }
 
     @Override
@@ -51,11 +46,10 @@ public class PrivateRegistryRuntimeHandlerImpl extends WebAppRuntimeHandler {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
 
-        final Server server = Utils.getServer(settings, serverId);
-        assureServerExist(server, serverId);
+        final MavenDockerCredentialProvider provider = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
         return app.update()
             .withPrivateRegistryImage(image, registryUrl)
-            .withCredentials(server.getUsername(), server.getPassword());
+            .withCredentials(provider.getUsername(), provider.getPassword());
     }
 
     @Override
