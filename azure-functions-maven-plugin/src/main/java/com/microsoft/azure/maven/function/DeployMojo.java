@@ -168,6 +168,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 final RuntimeConfiguration runtime = this.getRuntime();
                 builder = new DockerFunctionRuntimeHandler.Builder()
                         .image(runtime.getImage())
+                        .mavenSettings(getSettings())
                         .serverId(runtime.getServerId())
                         .registryUrl(runtime.getRegistryUrl());
                 break;
@@ -183,7 +184,6 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .servicePlanResourceGroup(getAppServicePlanResourceGroup())
                 .functionExtensionVersion(getFunctionExtensionVersion())
                 .azure(getAzureClient())
-                .mavenSettings(getSettings())
                 .build();
     }
 

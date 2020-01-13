@@ -36,6 +36,7 @@
         <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
         <azure.auth.helper.version>0.2.0</azure.auth.helper.version>
+        <azure-tools-common.version>0.1.0-SNAPSHOT</azure-tools-common.version>
     </properties>
 
     <licenses>
@@ -138,6 +139,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-tools-common</artifactId>
+            <version>${azure-tools-common.version}</version>
+        </dependency>
+        <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
             <version>${common-net.version}</version>
@@ -158,17 +164,17 @@
             <version>1.7.29</version>
         </dependency>
 
-        <!-- JAXB For Application Insight Issue -->
-        <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>${jaxb.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-            <version>${jaxb.version}</version>
-        </dependency>
+    <!-- JAXB For Application Insight Issue -->
+    <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>${jaxb.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jaxb</groupId>
+        <artifactId>jaxb-runtime</artifactId>
+        <version>${jaxb.version}</version>
+    </dependency>
 
         <!-- TEST -->
         <dependency>

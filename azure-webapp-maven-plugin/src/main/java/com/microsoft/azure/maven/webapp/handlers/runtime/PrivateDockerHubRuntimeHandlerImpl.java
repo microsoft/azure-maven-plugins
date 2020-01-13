@@ -13,9 +13,15 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 
+import org.apache.maven.settings.Settings;
+
 
 public class PrivateDockerHubRuntimeHandlerImpl extends WebAppRuntimeHandler {
+    private Settings settings;
+
     public static class Builder extends WebAppRuntimeHandler.Builder<Builder> {
+        private Settings settings;
+
         @Override
         protected PrivateDockerHubRuntimeHandlerImpl.Builder self() {
             return this;
@@ -25,10 +31,16 @@ public class PrivateDockerHubRuntimeHandlerImpl extends WebAppRuntimeHandler {
         public PrivateDockerHubRuntimeHandlerImpl build() {
             return new PrivateDockerHubRuntimeHandlerImpl(this);
         }
+
+        public Builder mavenSettings(final Settings value) {
+            this.settings = value;
+            return self();
+        }
     }
 
     private PrivateDockerHubRuntimeHandlerImpl(final Builder builder) {
         super(builder);
+        this.settings = builder.settings;
     }
 
     @Override

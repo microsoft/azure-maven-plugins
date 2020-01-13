@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.project.IProject;
-import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
 import org.junit.Test;
@@ -19,7 +18,6 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -28,8 +26,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArtifactHandlerBaseTest {
-    private final AbstractAppServiceMojo mojo = mock(AbstractAppServiceMojo.class);
-
     private ArtifactHandlerBase.Builder builder = new ArtifactHandlerBase.Builder() {
         @Override
         protected ArtifactHandlerBase.Builder self() {
@@ -52,22 +48,22 @@ public class ArtifactHandlerBaseTest {
 
     private void buildHandler() {
         handler = builder.project(mock(IProject.class))
-            .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
+            .stagingDirectoryPath("target/classes")
             .build();
         handlerSpy = spy(handler);
     }
 
     @Test
     public void testCtor() throws IOException, AzureExecutionException {
-        doReturn("target/classes").when(mojo).getDeploymentStagingDirectoryPath();
         buildHandler();
-        assertEquals(handler.stagingDirectoryPath, mojo.getDeploymentStagingDirectoryPath());
+        assertEquals(handler.stagingDirectoryPath, "target/classes");
     }
 
     @Test(expected = AzureExecutionException.class)
     public void assureStagingDirectoryNotEmptyThrowException() throws AzureExecutionException {
-        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
-        buildHandler();
+        handler = builder.project(mock(IProject.class))
+            .stagingDirectoryPath("")
+            .build();
         handler.assureStagingDirectoryNotEmpty();
     }
 

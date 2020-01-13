@@ -16,7 +16,6 @@ import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.settings.Settings;
 
 public abstract class BaseRuntimeHandler<T extends WebAppBase> implements RuntimeHandler<T> {
 
@@ -30,7 +29,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
     protected String servicePlanName;
     protected String servicePlanResourceGroup;
     protected Azure azure;
-    protected Settings settings;
     protected String image;
     protected String serverId;
     protected String registryUrl;
@@ -43,7 +41,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         protected String servicePlanName;
         protected String servicePlanResourceGroup;
         protected Azure azure;
-        protected Settings settings;
         protected String image;
         protected String serverId;
         protected String registryUrl;
@@ -83,11 +80,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
             return self();
         }
 
-        public T mavenSettings(final Settings value) {
-            this.settings = value;
-            return self();
-        }
-
         public T image(final String value) {
             this.image = value;
             return self();
@@ -117,7 +109,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         this.servicePlanName = builder.servicePlanName;
         this.servicePlanResourceGroup = builder.servicePlanResourceGroup;
         this.azure = builder.azure;
-        this.settings = builder.settings;
         this.image = builder.image;
         this.serverId = builder.serverId;
         this.registryUrl = builder.registryUrl;
