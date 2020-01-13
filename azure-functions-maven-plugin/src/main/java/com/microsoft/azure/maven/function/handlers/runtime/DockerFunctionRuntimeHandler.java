@@ -14,6 +14,7 @@ import com.microsoft.azure.maven.utils.AppServiceUtils;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.maven.settings.Settings;
 
 import static com.microsoft.azure.maven.appservice.DockerImageType.PUBLIC_DOCKER_HUB;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_FUNCTION_APP_EDIT_MODE;
@@ -26,7 +27,10 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
 
     private static final String INVALID_DOCKER_RUNTIME = "Invalid docker runtime configured.";
 
+    private Settings settings;
+
     public static class Builder extends FunctionRuntimeHandler.Builder<DockerFunctionRuntimeHandler.Builder> {
+        private Settings settings;
 
         @Override
         public DockerFunctionRuntimeHandler build() {
@@ -37,10 +41,16 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
         protected Builder self() {
             return this;
         }
+
+        public Builder mavenSettings(final Settings value) {
+            this.settings = value;
+            return self();
+        }
     }
 
     protected DockerFunctionRuntimeHandler(Builder builder) {
         super(builder);
+        this.settings = builder.settings;
     }
 
     @Override

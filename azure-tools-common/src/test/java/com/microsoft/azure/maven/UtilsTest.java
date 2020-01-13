@@ -23,7 +23,7 @@ public class UtilsTest {
     }
 
     @Test
-    public void testParseOperationSystemUnkown() throws Exception {
+    public void testParseOperationSystemUnknown() throws Exception {
         try {
             Utils.parseOperationSystem("unkown");
             fail("expected AzureExecutionException when os is invalid");

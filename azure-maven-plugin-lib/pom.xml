@@ -36,6 +36,7 @@
         <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
         <azure.auth.helper.version>0.2.0</azure.auth.helper.version>
+        <azure-tools-common.version>0.1.0-SNAPSHOT</azure-tools-common.version>
     </properties>
 
     <licenses>
@@ -136,6 +137,11 @@
                     <artifactId>guava</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-tools-common</artifactId>
+            <version>${azure-tools-common.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>

@@ -35,7 +35,7 @@ public class CommonUtils {
 
     private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
 
-    private static void azureLogin() throws IOException, InterruptedException {
+    public static void azureLogin() throws IOException, InterruptedException {
         executeCommand(String.format(loginAzureCli, clientId, key, tenantId));
     }
 
