@@ -19,7 +19,7 @@ public class MavenDockerCredentialProvider implements IDockerCredentialProvider 
     private Settings settings;
     private String serverId;
 
-    private MavenDockerCredentialProvider(Settings settings, String serverId) {
+    public MavenDockerCredentialProvider(Settings settings, String serverId) {
         if (StringUtils.isNotBlank(serverId)) {
             Preconditions.checkNotNull(settings, "Maven 'settings' is required");
             this.serverId = serverId;

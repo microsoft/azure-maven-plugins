@@ -113,19 +113,18 @@ public class AppServiceUtils {
         return first == null ? second == null : second != null && StringUtils.equals(first.id(), second.id());
     }
 
-    public static DockerImageType getDockerImageType(final String imageName, final String serverId,
+    public static DockerImageType getDockerImageType(final String imageName, final boolean hasCredential,
                                                      final String registryUrl) {
         if (StringUtils.isEmpty(imageName)) {
             return DockerImageType.NONE;
         }
 
         final boolean isCustomRegistry = StringUtils.isNotEmpty(registryUrl);
-        final boolean isPrivate = StringUtils.isNotEmpty(serverId);
 
         if (isCustomRegistry) {
-            return isPrivate ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;
+            return hasCredential ? DockerImageType.PRIVATE_REGISTRY : DockerImageType.UNKNOWN;
         } else {
-            return isPrivate ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
+            return hasCredential ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
         }
     }
 

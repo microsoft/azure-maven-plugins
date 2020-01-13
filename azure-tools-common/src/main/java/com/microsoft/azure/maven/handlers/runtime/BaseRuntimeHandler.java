@@ -30,7 +30,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
     protected String servicePlanResourceGroup;
     protected Azure azure;
     protected String image;
-    protected String serverId;
     protected String registryUrl;
 
     public abstract static class Builder<T extends Builder<T>> {
@@ -42,7 +41,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         protected String servicePlanResourceGroup;
         protected Azure azure;
         protected String image;
-        protected String serverId;
         protected String registryUrl;
 
         public T appName(final String value) {
@@ -85,11 +83,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
             return self();
         }
 
-        public T serverId(final String value) {
-            this.serverId = value;
-            return self();
-        }
-
         public T registryUrl(final String value) {
             this.registryUrl = value;
             return self();
@@ -110,7 +103,6 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
         this.servicePlanResourceGroup = builder.servicePlanResourceGroup;
         this.azure = builder.azure;
         this.image = builder.image;
-        this.serverId = builder.serverId;
         this.registryUrl = builder.registryUrl;
     }
 

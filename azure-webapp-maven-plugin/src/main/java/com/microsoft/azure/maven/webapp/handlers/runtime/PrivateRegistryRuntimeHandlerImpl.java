@@ -6,20 +6,18 @@
 
 package com.microsoft.azure.maven.webapp.handlers.runtime;
 
+import com.microsoft.azure.common.docker.IDockerCredentialProvider;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 
-import org.apache.maven.settings.Settings;
-
 public class PrivateRegistryRuntimeHandlerImpl extends WebAppRuntimeHandler {
-    private Settings settings;
+    protected IDockerCredentialProvider dockerCredentialProvider;
 
     public static class Builder extends WebAppRuntimeHandler.Builder<Builder> {
-        private Settings settings;
+        protected IDockerCredentialProvider dockerCredentialProvider;
 
         @Override
         protected PrivateRegistryRuntimeHandlerImpl.Builder self() {
@@ -31,25 +29,23 @@ public class PrivateRegistryRuntimeHandlerImpl extends WebAppRuntimeHandler {
             return new PrivateRegistryRuntimeHandlerImpl(this);
         }
 
-        public Builder mavenSettings(final Settings value) {
-            this.settings = value;
+        public Builder dockerCredentialProvider(IDockerCredentialProvider value) {
+            this.dockerCredentialProvider = value;
             return self();
         }
     }
 
     private PrivateRegistryRuntimeHandlerImpl(final Builder builder) {
         super(builder);
-        this.settings = builder.settings;
+        this.dockerCredentialProvider = builder.dockerCredentialProvider;
     }
 
     @Override
     public WebApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
-        final MavenDockerCredentialProvider provider = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
-
         final AppServicePlan plan = createOrGetAppServicePlan();
         return WebAppUtils.defineLinuxApp(resourceGroup, appName, azure, plan)
             .withPrivateRegistryImage(image, registryUrl)
-            .withCredentials(provider.getUsername(), provider.getPassword());
+            .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
     }
 
     @Override
@@ -57,10 +53,9 @@ public class PrivateRegistryRuntimeHandlerImpl extends WebAppRuntimeHandler {
         WebAppUtils.assureLinuxWebApp(app);
         WebAppUtils.clearTags(app);
 
-        final MavenDockerCredentialProvider provider = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
         return app.update()
             .withPrivateRegistryImage(image, registryUrl)
-            .withCredentials(provider.getUsername(), provider.getPassword());
+            .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
     }
 
     @Override

@@ -170,7 +170,6 @@ public class DeployMojo extends AbstractFunctionMojo {
                 builder = new DockerFunctionRuntimeHandler.Builder()
                         .image(runtime.getImage())
                         .dockerCredentialProvider(MavenDockerCredentialProvider.fromMavenSettings(this.getSettings(), runtime.getServerId()))
-                        .serverId(runtime.getServerId())
                         .registryUrl(runtime.getRegistryUrl());
                 break;
             default:

@@ -44,7 +44,6 @@ import static org.mockito.Mockito.verify;
 public class WebAppUtilsTest {
     @Test
     public void assureLinuxWebApp() throws Exception {
-
         final SiteInner siteInner = mock(SiteInner.class);
         doReturn("app,linux").when(siteInner).kind();
         final WebApp app = mock(WebApp.class);
@@ -89,18 +88,17 @@ public class WebAppUtilsTest {
 
     @Test
     public void getDockerImageType() {
-        assertEquals(DockerImageType.NONE, AppServiceUtils.getDockerImageType("", "", ""));
+        assertEquals(DockerImageType.NONE, AppServiceUtils.getDockerImageType("", false, ""));
 
         assertEquals(DockerImageType.PUBLIC_DOCKER_HUB, AppServiceUtils.getDockerImageType("imageName",
-            "", ""));
+            false, ""));
 
         assertEquals(DockerImageType.PRIVATE_DOCKER_HUB, AppServiceUtils.getDockerImageType("imageName",
-            "serverId", ""));
+            true, ""));
 
-        assertEquals(DockerImageType.PRIVATE_REGISTRY, AppServiceUtils.getDockerImageType("imageName",
-            "serverId", "https://microsoft.azurecr.io"));
+        assertEquals(DockerImageType.PRIVATE_REGISTRY, AppServiceUtils.getDockerImageType("imageName", true, "https://microsoft.azurecr.io"));
 
-        assertEquals(DockerImageType.UNKNOWN, AppServiceUtils.getDockerImageType("imageName", "",
+        assertEquals(DockerImageType.UNKNOWN, AppServiceUtils.getDockerImageType("imageName", false,
             "https://microsoft.azurecr.io"));
     }
 

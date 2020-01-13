@@ -11,7 +11,11 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.management.appservice.WebApp.UpdateStages.WithCredentials;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
+import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.junit.Before;
@@ -35,6 +39,9 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
     @Mock
     private Azure azureClient;
 
+    @Mock
+    private Log log;
+
     private final PrivateDockerHubRuntimeHandlerImpl.Builder builder =
         new PrivateDockerHubRuntimeHandlerImpl.Builder();
 
@@ -46,6 +53,9 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
     }
 
     private void initHandlerV2() {
+        if (StringUtils.isNotBlank(config.getServerId())) {
+            builder.dockerCredentialProvider(new MavenDockerCredentialProvider(config.getMavenSettings(), config.getServerId()));
+        }
         handler = builder.appName(config.getAppName())
             .resourceGroup(config.getResourceGroup())
             .region(config.getRegion())
@@ -53,14 +63,15 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .mavenSettings(config.getMavenSettings())
             .image(config.getImage())
-            .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
             .build();
     }
 
     private void initHandlerV1() {
+        if (StringUtils.isNotBlank(config.getServerId())) {
+            builder.dockerCredentialProvider(new MavenDockerCredentialProvider(config.getMavenSettings(), config.getServerId()));
+        }
         handler = builder.appName(config.getAppName())
             .resourceGroup(config.getResourceGroup())
             .region(config.getRegion())
@@ -68,9 +79,7 @@ public class PrivateDockerHubRuntimeHandlerImplTest {
             .servicePlanName(config.getServicePlanName())
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
-            .mavenSettings(config.getMavenSettings())
             .image(config.getImage())
-            .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
             .build();
     }

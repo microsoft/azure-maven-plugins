@@ -11,7 +11,6 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
-import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
@@ -45,11 +44,9 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
 
     @Override
     public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
-        final IDockerCredentialProvider provider = StringUtils.isNotBlank(this.serverId) ? this.dockerCredentialProvider : null;
-
-        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
+        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider != null, registryUrl);
         checkFunctionExtensionVersion();
-        checkConfiguration(imageType, provider);
+        checkConfiguration(imageType, dockerCredentialProvider);
 
         final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage = super.defineLinuxFunction();
         final FunctionApp.DefinitionStages.WithCreate result;
@@ -58,10 +55,12 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
                 result = withDockerContainerImage.withPublicDockerHubImage(image);
                 break;
             case PRIVATE_DOCKER_HUB:
-                result = withDockerContainerImage.withPrivateDockerHubImage(image).withCredentials(provider.getUsername(), provider.getPassword());
+                result = withDockerContainerImage.withPrivateDockerHubImage(image)
+                    .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
                 break;
             case PRIVATE_REGISTRY:
-                result = withDockerContainerImage.withPrivateRegistryImage(image, registryUrl).withCredentials(provider.getUsername(), provider.getPassword());
+                result = withDockerContainerImage.withPrivateRegistryImage(image, registryUrl)
+                    .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
                 break;
             default:
                 throw new AzureExecutionException(INVALID_DOCKER_RUNTIME);
@@ -75,19 +74,19 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
 
     @Override
     public FunctionApp.Update updateAppRuntime(FunctionApp app) throws AzureExecutionException {
-        final IDockerCredentialProvider provider = StringUtils.isNotBlank(this.serverId) ? this.dockerCredentialProvider : null;
-        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
+        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider != null, registryUrl);
         checkFunctionExtensionVersion();
-        checkConfiguration(imageType, provider);
+        checkConfiguration(imageType, dockerCredentialProvider);
 
         final FunctionApp.Update update = app.update();
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
                 return update.withPublicDockerHubImage(image);
             case PRIVATE_DOCKER_HUB:
-                return update.withPrivateDockerHubImage(image).withCredentials(provider.getUsername(), provider.getPassword());
+                return update.withPrivateDockerHubImage(image).withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
             case PRIVATE_REGISTRY:
-                return update.withPrivateRegistryImage(image, registryUrl).withCredentials(provider.getUsername(), provider.getPassword());
+                return update.withPrivateRegistryImage(image, registryUrl)
+                        .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
             default:
                 throw new AzureExecutionException(INVALID_DOCKER_RUNTIME);
         }
