@@ -24,7 +24,7 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
         protected FunctionExtensionVersion functionExtensionVersion;
         protected RuntimeConfiguration runtimeConfiguration;
 
-        public T functionExtensionVersion(final FunctionExtensionVersion value){
+        public T functionExtensionVersion(final FunctionExtensionVersion value) {
             this.functionExtensionVersion = value;
             return self();
         }

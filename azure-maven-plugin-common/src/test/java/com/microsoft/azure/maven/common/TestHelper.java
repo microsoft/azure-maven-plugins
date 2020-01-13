@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class TestHelper {
     public static String joinIntegers(List<Integer> integers) {
         Preconditions.checkNotNull(integers, "Parameter 'integers' should not be null or empty.");
-        return integers.stream().map(t->t.toString()).collect(Collectors.joining(","));
+        return integers.stream().map(t -> t.toString()).collect(Collectors.joining(","));
     }
 
     public static Model readMavenModel(File pomFile) throws IOException {

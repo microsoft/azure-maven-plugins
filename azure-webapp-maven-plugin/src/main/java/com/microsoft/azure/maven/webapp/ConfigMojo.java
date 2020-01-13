@@ -355,7 +355,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return StringUtils.isNotEmpty(defaultValue) && defaultValue.matches(pattern) ? defaultValue : fallBack;
     }
 
-    private boolean isJarProject(){
+    private boolean isJarProject() {
         return getProject().getPackaging().equalsIgnoreCase("jar");
     }
 

@@ -21,7 +21,7 @@ public enum SchemaVersion {
     public static SchemaVersion fromString(final String input) throws AzureExecutionException {
         final String schemaVersion = StringUtils.isEmpty(input) ? "v1" : input;
 
-        switch(schemaVersion.toLowerCase(Locale.ENGLISH)) {
+        switch (schemaVersion.toLowerCase(Locale.ENGLISH)) {
             case "v1":
                 return V1;
             case "v2":

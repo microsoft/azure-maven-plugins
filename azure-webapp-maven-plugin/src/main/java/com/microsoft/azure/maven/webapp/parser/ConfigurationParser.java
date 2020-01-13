@@ -43,12 +43,12 @@ public abstract class ConfigurationParser {
         return mojo.getResourceGroup();
     }
 
-    protected PricingTier getPricingTier() throws AzureExecutionException{
+    protected PricingTier getPricingTier() throws AzureExecutionException {
         validate(validator.validatePricingTier());
         return AppServiceUtils.getPricingTierFromString(mojo.getPricingTier());
     }
 
-    protected DeploymentSlotSetting getDeploymentSlotSetting() throws AzureExecutionException{
+    protected DeploymentSlotSetting getDeploymentSlotSetting() throws AzureExecutionException {
         validate(validator.validateDeploymentSlot());
         return mojo.getDeploymentSlotSetting();
     }

@@ -194,7 +194,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         return authDom != null && authDom.getChildren().length > 0;
     }
 
-    protected void initTelemetry(){
+    protected void initTelemetry() {
         timeStart = System.currentTimeMillis();
         telemetries = new HashMap<>();
         if (!isTelemetryAllowed) {
