@@ -42,13 +42,13 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     }
 
     protected void installFunctionExtension(File stagingDirector, File basedir) throws AzureExecutionException {
-		commandHandler.runCommandWithReturnCodeCheck(
-		        String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, basedir.getAbsolutePath()),
-		        true,
-		        stagingDirector.getAbsolutePath(),
-		        CommandUtils.getDefaultValidReturnCodes(),
-		        INSTALL_FUNCTION_EXTENSIONS_FAIL
-		);
+        commandHandler.runCommandWithReturnCodeCheck(
+                String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, basedir.getAbsolutePath()),
+                true,
+                stagingDirector.getAbsolutePath(),
+                CommandUtils.getDefaultValidReturnCodes(),
+                INSTALL_FUNCTION_EXTENSIONS_FAIL
+        );
     }
 
     protected void assureRequirementAddressed() throws AzureExecutionException {
