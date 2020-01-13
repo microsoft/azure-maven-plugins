@@ -13,6 +13,7 @@ import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Wi
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.Utils;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
@@ -71,7 +72,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         " set it to Java 8.";
     public static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
         " meet the requirement of Azure Functions, set it to Java 8.";
-    public static final String UNKNOW_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
+    public static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
             "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
 
     //region Entry Point
@@ -168,7 +169,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 final RuntimeConfiguration runtime = this.getRuntime();
                 builder = new DockerFunctionRuntimeHandler.Builder()
                         .image(runtime.getImage())
-                        .mavenSettings(getSettings())
+                        .dockerCredentialProvider(MavenDockerCredentialProvider.fromMavenSettings(this.getSettings(), runtime.getServerId()))
                         .serverId(runtime.getServerId())
                         .registryUrl(runtime.getRegistryUrl());
                 break;
@@ -217,7 +218,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 builder = new RunFromZipArtifactHandlerImpl.Builder();
                 break;
             default:
-                throw new AzureExecutionException(UNKNOW_DEPLOYMENT_TYPE);
+                throw new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
         return builder.project(ProjectUtils.convertCommonProject(this.getProject()))
             .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())

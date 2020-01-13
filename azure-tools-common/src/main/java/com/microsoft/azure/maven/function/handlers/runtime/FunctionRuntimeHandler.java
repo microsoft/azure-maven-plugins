@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.function.handlers.runtime;
 
+import com.microsoft.azure.common.docker.IDockerCredentialProvider;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
@@ -18,11 +19,13 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
 
     protected FunctionExtensionVersion functionExtensionVersion;
     protected RuntimeConfiguration runtimeConfiguration;
+    protected IDockerCredentialProvider dockerCredentialProvider;
 
     public abstract static class Builder<T extends FunctionRuntimeHandler.Builder<T>> extends BaseRuntimeHandler.Builder<T> {
 
         protected FunctionExtensionVersion functionExtensionVersion;
         protected RuntimeConfiguration runtimeConfiguration;
+        protected IDockerCredentialProvider dockerCredentialProvider;
 
         public T functionExtensionVersion(final FunctionExtensionVersion value) {
             this.functionExtensionVersion = value;
@@ -34,6 +37,11 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
             return self();
         }
 
+        public T dockerCredentialProvider(IDockerCredentialProvider value) {
+        	 this.dockerCredentialProvider = value;
+             return self();
+        }
+
         public abstract FunctionRuntimeHandler build();
 
         protected abstract T self();
@@ -43,6 +51,7 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
         super(builder);
         this.functionExtensionVersion = builder.functionExtensionVersion;
         this.runtimeConfiguration = builder.runtimeConfiguration;
+        this.dockerCredentialProvider = builder.dockerCredentialProvider;
     }
 
     @Override
