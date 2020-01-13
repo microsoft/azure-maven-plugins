@@ -9,8 +9,9 @@ package com.microsoft.azure.maven.function.handlers;
 import com.github.zafarkhaja.semver.Version;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.maven.function.AbstractFunctionMojo;
 import com.microsoft.azure.maven.function.utils.CommandUtils;
+
+import java.io.File;
 
 public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
@@ -28,25 +29,23 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     public static final String GET_LOCAL_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
     public static final Version LEAST_SUPPORTED_VERSION = Version.valueOf("2.0.1-beta.26");
 
-    private AbstractFunctionMojo mojo;
     private CommandHandler commandHandler;
 
-    public FunctionCoreToolsHandlerImpl(final AbstractFunctionMojo mojo, final CommandHandler commandHandler) {
-        this.mojo = mojo;
+    public FunctionCoreToolsHandlerImpl(final CommandHandler commandHandler) {
         this.commandHandler = commandHandler;
     }
 
     @Override
-    public void installExtension() throws AzureExecutionException {
+    public void installExtension(File stagingDirectory, File basedir) throws AzureExecutionException {
         assureRequirementAddressed();
-        installFunctionExtension();
+        installFunctionExtension(stagingDirectory, basedir);
     }
 
-    protected void installFunctionExtension() throws AzureExecutionException {
+    protected void installFunctionExtension(File stagingDirector, File basedir) throws AzureExecutionException {
         commandHandler.runCommandWithReturnCodeCheck(
-                String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, getProjectBasePath()),
+                String.format(FUNC_EXTENSIONS_INSTALL_TEMPLATE, basedir.getAbsolutePath()),
                 true,
-                this.mojo.getDeploymentStagingDirectoryPath(),
+                stagingDirector.getAbsolutePath(),
                 CommandUtils.getDefaultValidReturnCodes(),
                 INSTALL_FUNCTION_EXTENSIONS_FAIL
         );
@@ -95,9 +94,5 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
             Log.warn(GET_LOCAL_VERSION_FAIL);
             return null;
         }
-    }
-
-    protected String getProjectBasePath() {
-        return this.mojo.getProject().getBasedir().getAbsolutePath();
     }
 }

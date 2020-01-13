@@ -169,7 +169,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //region Load templates
     protected BindingTemplate loadBindingTemplate(String type) {
-        try (final InputStream is = AddMojo.class.getResourceAsStream("/bindings.json")) {
+        try (final InputStream is = Constants.class.getResourceAsStream("/bindings.json")) {
             final String bindingsJsonStr = IOUtil.toString(is);
             final BindingsTemplate bindingsTemplate = new ObjectMapper()
                 .readValue(bindingsJsonStr, BindingsTemplate.class);
