@@ -44,6 +44,7 @@ import static org.mockito.Mockito.verify;
 public class WebAppUtilsTest {
     @Test
     public void assureLinuxWebApp() throws Exception {
+
         final SiteInner siteInner = mock(SiteInner.class);
         doReturn("app,linux").when(siteInner).kind();
         final WebApp app = mock(WebApp.class);

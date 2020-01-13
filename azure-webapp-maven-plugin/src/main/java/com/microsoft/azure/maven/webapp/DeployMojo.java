@@ -9,28 +9,48 @@ package com.microsoft.azure.maven.webapp;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
+import com.microsoft.azure.maven.handlers.ArtifactHandler;
 import com.microsoft.azure.maven.handlers.RuntimeHandler;
+import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
+import com.microsoft.azure.maven.webapp.handlers.artifact.JarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.artifact.NONEArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.handlers.artifact.WarArtifactHandlerImpl;
+import com.microsoft.azure.maven.webapp.utils.FTPUtils;
+import com.microsoft.azure.maven.webapp.utils.Utils;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
+    private static final Path FTP_ROOT = Paths.get("/site/wwwroot");
+    private static final String NO_RESOURCES_CONFIG = "<resources> is empty. Please make sure it is configured in pom.xml.";
+
     public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
     public static final String WEBAPP_CREATED = "Successfully created Web App.";
     public static final String CREATE_DEPLOYMENT_SLOT = "Target Deployment Slot doesn't exist. Creating a new one...";
@@ -65,7 +85,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             } else {
                 updateWebApp(runtimeHandler, app);
             }
-            deployArtifacts();
+            deployArtifacts(getWebAppConfiguration());
         } catch (IOException | AzureAuthFailureException | InterruptedException e) {
             throw new AzureExecutionException(
                     String.format("Encoutering error when deploying to azure: '%s'", e.getMessage()), e);
@@ -105,7 +125,8 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    protected void deployArtifacts() throws AzureAuthFailureException, InterruptedException, AzureExecutionException, IOException {
+    protected void deployArtifacts(WebAppConfiguration webAppConfiguration)
+        throws AzureAuthFailureException, InterruptedException, AzureExecutionException, IOException {
         try {
             util.beforeDeployArtifacts();
             final WebApp app = getWebApp();
@@ -121,14 +142,92 @@ public class DeployMojo extends AbstractWebAppMojo {
             } else {
                 target = new WebAppDeployTarget(app);
             }
-            getFactory().getArtifactHandler(this).publish(target);
+            final ArtifactHandler artifactHandler = getFactory().getArtifactHandler(this);
+            final boolean isV1Schema = SchemaVersion.fromString(this.getSchemaVersion()) == SchemaVersion.V1;
+            if (isV1Schema) {
+                handleV1Resources(artifactHandler);
+            } else {
+                final List<Resource> v2Resources = this.deployment == null ? null : this.deployment.getResources();
+
+                if (v2Resources == null || v2Resources.isEmpty()) {
+                    Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
+                    return;
+                }
+                handleV2Resources(target, v2Resources);
+            }
+            artifactHandler.publish(target);
         } finally {
             util.afterDeployArtifacts();
         }
     }
 
-    protected HandlerFactory getFactory() {
+    private void handleV2Resources(final DeployTarget target, List<Resource> v2Resources) throws IOException, AzureExecutionException {
+        final Map<Boolean, List<Resource>> resourceMap = v2Resources.stream()
+                .collect(Collectors.partitioningBy(DeployMojo::isExternalResource));
+        copyArtifactsToStagingDirectory(resourceMap.get(false));
+        deployExternalResources(target, resourceMap.get(true));
+    }
+
+    private void handleV1Resources(final ArtifactHandler artifactHandler) throws AzureExecutionException, IOException {
+        if (resources == null || resources.isEmpty()) {
+            // TODO: v1 schema will be deprecated, so this legacy code will be removed in future
+            if (!(artifactHandler instanceof NONEArtifactHandlerImpl ||
+                    artifactHandler instanceof JarArtifactHandlerImpl ||
+                    artifactHandler instanceof WarArtifactHandlerImpl
+                    )) {
+                throw new AzureExecutionException(NO_RESOURCES_CONFIG);
+            }
+        } else {
+            copyArtifactsToStagingDirectory(resources);
+        }
+    }
+
+    private HandlerFactory getFactory() {
         return HandlerFactory.getInstance();
+    }
+
+    private void copyArtifactsToStagingDirectory(List<Resource> resourceList) throws IOException, AzureExecutionException {
+        if (resourceList.isEmpty()) {
+            return;
+        }
+        Utils.prepareResources(this.getProject(), this.getSession(), this.getMavenResourcesFiltering(),
+                resourceList, getDeploymentStagingDirectoryPath());
+    }
+
+    private void deployExternalResources(DeployTarget deployTarget, List<Resource> externalResources) throws AzureExecutionException {
+        if (externalResources.isEmpty()) {
+            return;
+        }
+        final PublishingProfile publishingProfile = deployTarget.getPublishingProfile();
+        final String serverUrl = publishingProfile.ftpUrl().split("/", 2)[0];
+        try {
+            final FTPClient ftpClient = FTPUtils.getFTPClient(serverUrl, publishingProfile.ftpUsername(), publishingProfile.ftpPassword());
+            for (final Resource externalResource : externalResources) {
+                uploadResource(externalResource, ftpClient);
+            }
+        } catch (IOException e) {
+            throw new AzureExecutionException(e.getMessage(), e);
+        }
+    }
+
+    private void uploadResource(Resource resource, FTPClient ftpClient) throws IOException {
+        final List<File> files = Utils.getArtifacts(resource);
+        final String target = getAbsoluteTargetPath(resource.getTargetPath());
+        for (final File file : files) {
+            FTPUtils.uploadFile(ftpClient, file.getPath(), target);
+        }
+    }
+
+    private static String getAbsoluteTargetPath(String targetPath) {
+        // convert null to empty string
+        targetPath = StringUtils.defaultString(targetPath);
+        return StringUtils.startsWith(targetPath, "/") ? targetPath :
+                FTP_ROOT.resolve(Paths.get(targetPath)).normalize().toString();
+    }
+
+    private static boolean isExternalResource(Resource resource) {
+        final Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
+        return !target.startsWith(FTP_ROOT);
     }
 
     class DeploymentUtil {

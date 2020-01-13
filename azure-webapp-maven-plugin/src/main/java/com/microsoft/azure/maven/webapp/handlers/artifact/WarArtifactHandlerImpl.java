@@ -15,7 +15,6 @@ import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.nio.file.Paths;
 
 /**
  * Artifact handler used to deploy war file. Typically, each artifact handler needs to extends
@@ -104,7 +103,7 @@ public class WarArtifactHandlerImpl extends ArtifactHandlerBase {
 
     protected File getWarFile() {
         return StringUtils.isNotEmpty(warFile) ? new File(warFile) :
-            new File(Paths.get(buildDirectoryAbsolutePath, project.getBuild().getFinalName() + ".war").toString());
+            new File(project.getArtifactFile().toString());
     }
 
     protected void assureWarFileExisted(final File war) throws AzureExecutionException {

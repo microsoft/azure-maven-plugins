@@ -8,14 +8,12 @@ package com.microsoft.azure.maven.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.appservice.DeployTargetType;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.zeroturnaround.zip.ZipException;
@@ -34,9 +32,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ZIPArtifactHandlerImplTest {
-    @Mock
-    private AbstractAppServiceMojo mojo;
-
     private ZIPArtifactHandlerImpl.Builder builder = new ZIPArtifactHandlerImpl.Builder();
 
     private ZIPArtifactHandlerImpl handler;
@@ -48,7 +43,7 @@ public class ZIPArtifactHandlerImplTest {
     }
 
     private void buildHandler() {
-        handler = builder.stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath()).build();
+        handler = builder.stagingDirectoryPath("src/test/resources/ziptest").build();
         handlerSpy = spy(handler);
     }
 
@@ -62,12 +57,8 @@ public class ZIPArtifactHandlerImplTest {
         doReturn(file).when(handlerSpy).getZipFile();
         doNothing().when(app).zipDeploy(file);
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
-        doReturn(false).when(handlerSpy).isResourcesPreparationRequired(target);
 
         handlerSpy.publish(target);
-
-        verify(handlerSpy, times(0)).prepareResources();
-        verify(handlerSpy, times(1)).isResourcesPreparationRequired(target);
         verify(handlerSpy, times(1)).assureStagingDirectoryNotEmpty();
         verify(handlerSpy, times(1)).getZipFile();
         verify(handlerSpy, times(1)).publish(target);
@@ -82,7 +73,6 @@ public class ZIPArtifactHandlerImplTest {
         final File file = mock(File.class);
 
         doReturn(file).when(handlerSpy).getZipFile();
-        doReturn(false).when(handlerSpy).isResourcesPreparationRequired(target);
         doNothing().when(handlerSpy).assureStagingDirectoryNotEmpty();
 
         try {
@@ -109,15 +99,14 @@ public class ZIPArtifactHandlerImplTest {
     @Test
     public void getZipFile() {
         final File zipTestDirectory = new File("src/test/resources/ziptest");
-        doReturn(zipTestDirectory.getAbsolutePath()).when(mojo).getDeploymentStagingDirectoryPath();
         buildHandler();
         assertEquals(zipTestDirectory.getAbsolutePath() + ".zip", handlerSpy.getZipFile().getAbsolutePath());
     }
 
     @Test(expected = ZipException.class)
     public void getZipFileThrowException() {
-        doReturn("").when(mojo).getDeploymentStagingDirectoryPath();
-        buildHandler();
+        handler = builder.stagingDirectoryPath("").build();
+        handlerSpy = spy(handler);
         handlerSpy.getZipFile();
     }
 }

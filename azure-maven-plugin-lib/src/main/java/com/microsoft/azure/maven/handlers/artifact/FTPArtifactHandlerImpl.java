@@ -8,15 +8,10 @@ package com.microsoft.azure.maven.handlers.artifact;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.FTPUploader;
 import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
-
-import java.io.IOException;
 
 public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
     private static final String DEFAULT_WEBAPP_ROOT = "/site/wwwroot";
@@ -38,21 +33,10 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
         super(builder);
     }
 
-    protected boolean isResourcesPreparationRequired(final DeployTarget target) {
-        return target.getApp() instanceof WebApp || target.getApp() instanceof DeploymentSlot;
-    }
-
     @Override
     public void publish(final DeployTarget target) throws AzureExecutionException {
-        if (isResourcesPreparationRequired(target)) {
-            try {
-                prepareResources();
-            } catch (IOException e) {
-                throw new AzureExecutionException("Encounter error when preparing resources:" + e.getMessage(), e);
-            }
-        }
-
         assureStagingDirectoryNotEmpty();
+
         Log.info(String.format(DEPLOY_START, target.getName()));
 
         uploadDirectoryToFTP(target);
@@ -66,7 +50,7 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
 
     protected void uploadDirectoryToFTP(DeployTarget target) throws AzureExecutionException {
         final FTPUploader uploader = getUploader();
-        final PublishingProfile profile = AppServiceUtils.getPublishingProfileFromDeploymentTarget(target);
+        final PublishingProfile profile = target.getPublishingProfile();
         final String serverUrl = profile.ftpUrl().split("/", 2)[0];
 
         uploader.uploadDirectoryWithRetries(serverUrl,
