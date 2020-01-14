@@ -53,6 +53,15 @@ public final class Log {
         return logger.isDebugEnabled();
     }
 
+    public static void prompt(String message) {
+        // legacy code for prompt, will be replaced by new method: Notifier.noticeUser later
+        if (logger.isInfoEnabled()) {
+            logger.info(message);
+        } else {
+            System.out.println(message);
+        }
+    }
+
     private static String getErrorDetail(Exception error) {
         final StringWriter sw = new StringWriter();
         error.printStackTrace(new PrintWriter(sw));
@@ -64,4 +73,5 @@ public final class Log {
         }
         return exceptionDetails;
     }
+
 }

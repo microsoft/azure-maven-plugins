@@ -50,9 +50,9 @@ public class FTPUploader {
         int retryCount = 0;
         while (retryCount < maxRetryCount) {
             retryCount++;
-            Log.info(UPLOAD_START + ftpServer);
+            Log.prompt(UPLOAD_START + ftpServer);
             if (uploadDirectory(ftpServer, username, password, sourceDirectory, targetDirectory)) {
-                Log.info(UPLOAD_SUCCESS + ftpServer);
+                Log.prompt(UPLOAD_SUCCESS + ftpServer);
                 return;
             } else {
                 Log.warn(String.format(UPLOAD_FAILURE, retryCount, maxRetryCount));
@@ -78,9 +78,9 @@ public class FTPUploader {
         try {
             final FTPClient ftpClient = getFTPClient(ftpServer, username, password);
 
-            Log.info(String.format(UPLOAD_DIR_START, sourceDirectoryPath, targetDirectoryPath));
+            Log.prompt(String.format(UPLOAD_DIR_START, sourceDirectoryPath, targetDirectoryPath));
             uploadDirectory(ftpClient, sourceDirectoryPath, targetDirectoryPath, "");
-            Log.info(String.format(UPLOAD_DIR_FINISH, sourceDirectoryPath, targetDirectoryPath));
+            Log.prompt(String.format(UPLOAD_DIR_FINISH, sourceDirectoryPath, targetDirectoryPath));
 
             ftpClient.disconnect();
             return true;
@@ -102,11 +102,11 @@ public class FTPUploader {
      */
     protected void uploadDirectory(final FTPClient ftpClient, final String sourceDirectoryPath,
                                    final String targetDirectoryPath, final String logPrefix) throws IOException {
-        Log.info(String.format(UPLOAD_DIR, logPrefix, sourceDirectoryPath, targetDirectoryPath));
+        Log.prompt(String.format(UPLOAD_DIR, logPrefix, sourceDirectoryPath, targetDirectoryPath));
         final File sourceDirectory = new File(sourceDirectoryPath);
         final File[] files = sourceDirectory.listFiles();
         if (files == null || files.length == 0) {
-            Log.info(String.format("%sEmpty directory at %s", logPrefix, sourceDirectoryPath));
+            Log.prompt(String.format("%sEmpty directory at %s", logPrefix, sourceDirectoryPath));
             return;
         }
 
@@ -137,7 +137,7 @@ public class FTPUploader {
      */
     protected void uploadFile(final FTPClient ftpClient, final String sourceFilePath, final String targetFilePath,
                               final String logPrefix) throws IOException {
-        Log.info(String.format(UPLOAD_FILE, logPrefix, sourceFilePath, targetFilePath));
+        Log.prompt(String.format(UPLOAD_FILE, logPrefix, sourceFilePath, targetFilePath));
         final File sourceFile = new File(sourceFilePath);
         try (final InputStream is = new FileInputStream(sourceFile)) {
             ftpClient.changeWorkingDirectory(targetFilePath);
@@ -149,7 +149,7 @@ public class FTPUploader {
                 Log.error(String.format(UPLOAD_FILE_REPLY, logPrefix, replyMessage));
                 throw new IOException("Failed to upload file: " + sourceFilePath);
             } else {
-                Log.info(String.format(UPLOAD_FILE_REPLY, logPrefix, replyMessage));
+                Log.prompt(String.format(UPLOAD_FILE_REPLY, logPrefix, replyMessage));
             }
         }
     }

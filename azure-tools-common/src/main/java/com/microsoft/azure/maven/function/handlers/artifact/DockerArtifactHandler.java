@@ -33,7 +33,7 @@ public class DockerArtifactHandler extends ArtifactHandlerBase {
 
     @Override
     public void publish(DeployTarget deployTarget) {
-        Log.info(SKIP_DOCKER_DEPLOYMENT);
+        Log.prompt(SKIP_DOCKER_DEPLOYMENT);
         deployTarget.getApp().restart();
     }
 }
