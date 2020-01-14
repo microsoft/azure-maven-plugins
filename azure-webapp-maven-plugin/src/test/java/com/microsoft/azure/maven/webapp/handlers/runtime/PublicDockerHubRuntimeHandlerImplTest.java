@@ -52,7 +52,6 @@ public class PublicDockerHubRuntimeHandlerImplTest {
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
             .image(config.getImage())
-            .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
             .build();
     }
@@ -66,7 +65,6 @@ public class PublicDockerHubRuntimeHandlerImplTest {
             .servicePlanResourceGroup((config.getServicePlanResourceGroup()))
             .azure(azureClient)
             .image(config.getImage())
-            .serverId(config.getServerId())
             .registryUrl(config.getRegistryUrl())
             .build();
     }

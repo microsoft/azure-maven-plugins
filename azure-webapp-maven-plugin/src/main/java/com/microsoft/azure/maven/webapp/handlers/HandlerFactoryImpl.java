@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.appservice.DeploymentType;
 import com.microsoft.azure.maven.appservice.DockerImageType;
@@ -74,22 +75,24 @@ public class HandlerFactoryImpl extends HandlerFactory {
         throws AzureExecutionException {
 
         final WebAppRuntimeHandler.Builder<? extends WebAppRuntimeHandler.Builder> builder;
-        final DockerImageType imageType = AppServiceUtils.getDockerImageType(config.getImage(), config.getServerId(),
+        final DockerImageType imageType = AppServiceUtils.getDockerImageType(config.getImage(), StringUtils.isNotEmpty(config.getServerId()),
             config.getRegistryUrl());
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
                 builder = new PublicDockerHubRuntimeHandlerImpl.Builder();
                 break;
             case PRIVATE_DOCKER_HUB:
-                builder = new PrivateDockerHubRuntimeHandlerImpl.Builder().mavenSettings(config.getMavenSettings());
+                builder = new PrivateDockerHubRuntimeHandlerImpl.Builder()
+                    .dockerCredentialProvider(MavenDockerCredentialProvider.fromMavenSettings(config.getMavenSettings(), config.getServerId()));
                 break;
             case PRIVATE_REGISTRY:
-                builder = new PrivateRegistryRuntimeHandlerImpl.Builder().mavenSettings(config.getMavenSettings());
+                builder = new PrivateRegistryRuntimeHandlerImpl.Builder()
+                    .dockerCredentialProvider(MavenDockerCredentialProvider.fromMavenSettings(config.getMavenSettings(), config.getServerId()));
                 break;
             default:
                 throw new AzureExecutionException("Invalid docker runtime configured.");
         }
-        builder.image(config.getImage()).serverId(config.getServerId()).registryUrl(config.getRegistryUrl());
+        builder.image(config.getImage()).registryUrl(config.getRegistryUrl());
         return builder;
     }
 

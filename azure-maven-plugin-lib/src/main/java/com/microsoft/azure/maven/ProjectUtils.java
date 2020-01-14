@@ -7,16 +7,14 @@
 package com.microsoft.azure.maven;
 
 import com.microsoft.azure.common.project.IProject;
+import com.microsoft.azure.common.project.JavaProject;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -42,84 +40,5 @@ public class ProjectUtils {
             results.add(artifact.getFile().toPath());
         }
         return results;
-    }
-
-    @SuppressWarnings("unused")
-    private static class JavaProject implements IProject {
-
-        private String projectName;
-
-        private Path baseDirectory;
-
-        private Path classesOutputDirectory;
-
-        private Path buildDirectory;
-
-        private Path artifactFile;
-
-        private List<Path> dependencies;
-
-        public String getProjectName() {
-            return projectName;
-        }
-
-        public void setProjectName(String projectName) {
-            this.projectName = projectName;
-        }
-
-        public Path getBaseDirectory() {
-            return baseDirectory;
-        }
-
-        public void setBaseDirectory(Path baseDirectory) {
-            this.baseDirectory = baseDirectory;
-        }
-
-        public Path getClassesOutputDirectory() {
-            return classesOutputDirectory;
-        }
-
-        public void setClassesOutputDirectory(Path classesOutputDirectory) {
-            this.classesOutputDirectory = classesOutputDirectory;
-        }
-
-        public Path getBuildDirectory() {
-            return buildDirectory;
-        }
-
-        public void setBuildDirectory(Path buildDirectory) {
-            this.buildDirectory = buildDirectory;
-        }
-
-        public Path getArtifactFile() {
-            return artifactFile;
-        }
-
-        public void setArtifactFile(Path artifactFile) {
-            this.artifactFile = artifactFile;
-        }
-
-        public List<Path> getDependencies() {
-            return dependencies;
-        }
-
-        public void setDependencies(List<Path> dependencies) {
-            this.dependencies = dependencies;
-        }
-
-        @Override
-        public Collection<Path> getProjectDepencencies() {
-            return dependencies;
-        }
-
-        @Override
-        public boolean isWarProject() {
-            return StringUtils.equalsIgnoreCase(FilenameUtils.getExtension(artifactFile.getFileName().toString()), "war");
-        }
-
-        @Override
-        public boolean isJarProject() {
-            return StringUtils.equalsIgnoreCase(FilenameUtils.getExtension(artifactFile.getFileName().toString()), "jar");
-        }
     }
 }

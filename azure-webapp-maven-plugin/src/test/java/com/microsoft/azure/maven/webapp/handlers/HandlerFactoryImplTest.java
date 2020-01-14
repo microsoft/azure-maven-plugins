@@ -30,6 +30,7 @@ import com.microsoft.azure.maven.webapp.handlers.runtime.WindowsRuntimeHandlerIm
 import com.microsoft.azure.maven.webapp.utils.TestUtils;
 
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Settings;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -87,10 +88,12 @@ public class HandlerFactoryImplTest {
 
         doReturn("serverId").when(config).getServerId();
         doReturn("registry").when(config).getRegistryUrl();
+        doReturn(mock(Settings.class)).when(config).getMavenSettings();
         handler = factory.getRuntimeHandler(config, azureClient);
         assertTrue(handler instanceof PrivateRegistryRuntimeHandlerImpl);
 
         doReturn("").when(config).getRegistryUrl();
+
         handler = factory.getRuntimeHandler(config, azureClient);
         assertTrue(handler instanceof PrivateDockerHubRuntimeHandlerImpl);
 

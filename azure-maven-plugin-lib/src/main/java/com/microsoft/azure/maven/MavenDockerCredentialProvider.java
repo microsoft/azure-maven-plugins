@@ -7,18 +7,19 @@
 package com.microsoft.azure.maven;
 
 import com.google.common.base.Preconditions;
+import com.microsoft.azure.common.docker.IDockerCredentialProvider;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 
-public class MavenDockerCredentialProvider {
+public class MavenDockerCredentialProvider implements IDockerCredentialProvider {
     private Server server;
     private Settings settings;
     private String serverId;
 
-    private MavenDockerCredentialProvider(Settings settings, String serverId) {
+    public MavenDockerCredentialProvider(Settings settings, String serverId) {
         if (StringUtils.isNotBlank(serverId)) {
             Preconditions.checkNotNull(settings, "Maven 'settings' is required");
             this.serverId = serverId;

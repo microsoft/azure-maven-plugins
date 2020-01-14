@@ -394,7 +394,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         }
         if (webAppConfig.getImage() != null) {
             final String imageType = AppServiceUtils.getDockerImageType(webAppConfig.getImage(),
-                webAppConfig.getServerId(), webAppConfig.getRegistryUrl()).toString();
+                StringUtils.isNotEmpty(webAppConfig.getServerId()), webAppConfig.getRegistryUrl()).toString();
             map.put(DOCKER_IMAGE_TYPE_KEY, imageType);
         } else {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());

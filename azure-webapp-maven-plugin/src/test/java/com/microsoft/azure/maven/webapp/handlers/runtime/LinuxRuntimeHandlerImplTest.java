@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.webapp.handlers.runtime;
 
-import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebApp;
@@ -35,9 +34,6 @@ public class LinuxRuntimeHandlerImplTest {
 
     @Mock
     private Azure azureClient;
-
-    @Mock
-    private Log log;
 
     private final LinuxRuntimeHandlerImpl.Builder builder = new LinuxRuntimeHandlerImpl.Builder();
 

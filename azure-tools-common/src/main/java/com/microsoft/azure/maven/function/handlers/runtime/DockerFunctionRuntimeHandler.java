@@ -8,30 +8,24 @@ package com.microsoft.azure.maven.function.handlers.runtime;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.utils.AppServiceUtils;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.maven.settings.Settings;
 
 import static com.microsoft.azure.maven.appservice.DockerImageType.PUBLIC_DOCKER_HUB;
+import static com.microsoft.azure.maven.function.Constants.APP_SETTING_DISABLE_WEBSITES_APP_SERVICE_STORAGE;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_FUNCTION_APP_EDIT_MODE;
-import static com.microsoft.azure.maven.function.Constants.APP_SETTING_FUNCTION_APP_EDIT_MODE_VALUE;
+import static com.microsoft.azure.maven.function.Constants.APP_SETTING_FUNCTION_APP_EDIT_MODE_READONLY;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_MACHINEKEY_DECRYPTION_KEY;
 import static com.microsoft.azure.maven.function.Constants.APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE;
-import static com.microsoft.azure.maven.function.Constants.APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE_VALUE;
 
 public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHandler {
 
     private static final String INVALID_DOCKER_RUNTIME = "Invalid docker runtime configured.";
 
-    private Settings settings;
-
     public static class Builder extends FunctionRuntimeHandler.Builder<DockerFunctionRuntimeHandler.Builder> {
-        private Settings settings;
-
         @Override
         public DockerFunctionRuntimeHandler build() {
             return new DockerFunctionRuntimeHandler(self());
@@ -41,25 +35,17 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
         protected Builder self() {
             return this;
         }
-
-        public Builder mavenSettings(final Settings value) {
-            this.settings = value;
-            return self();
-        }
     }
 
     protected DockerFunctionRuntimeHandler(Builder builder) {
         super(builder);
-        this.settings = builder.settings;
     }
 
     @Override
     public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
-        final MavenDockerCredentialProvider provider = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
-
-        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
+        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider != null, registryUrl);
         checkFunctionExtensionVersion();
-        checkConfiguration(imageType, provider);
+        checkConfiguration(imageType);
 
         final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage = super.defineLinuxFunction();
         final FunctionApp.DefinitionStages.WithCreate result;
@@ -68,10 +54,12 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
                 result = withDockerContainerImage.withPublicDockerHubImage(image);
                 break;
             case PRIVATE_DOCKER_HUB:
-                result = withDockerContainerImage.withPrivateDockerHubImage(image).withCredentials(provider.getUsername(), provider.getPassword());
+                result = withDockerContainerImage.withPrivateDockerHubImage(image)
+                    .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
                 break;
             case PRIVATE_REGISTRY:
-                result = withDockerContainerImage.withPrivateRegistryImage(image, registryUrl).withCredentials(provider.getUsername(), provider.getPassword());
+                result = withDockerContainerImage.withPrivateRegistryImage(image, registryUrl)
+                    .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
                 break;
             default:
                 throw new AzureExecutionException(INVALID_DOCKER_RUNTIME);
@@ -79,38 +67,40 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
         final String decryptionKey = generateDecryptionKey();
         return (FunctionApp.DefinitionStages.WithCreate) result
                 .withAppSetting(APP_SETTING_MACHINEKEY_DECRYPTION_KEY, decryptionKey)
-                .withAppSetting(APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE, APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE_VALUE)
-                .withAppSetting(APP_SETTING_FUNCTION_APP_EDIT_MODE, APP_SETTING_FUNCTION_APP_EDIT_MODE_VALUE);
+                .withAppSetting(APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE, APP_SETTING_DISABLE_WEBSITES_APP_SERVICE_STORAGE)
+                .withAppSetting(APP_SETTING_FUNCTION_APP_EDIT_MODE, APP_SETTING_FUNCTION_APP_EDIT_MODE_READONLY);
     }
 
     @Override
     public FunctionApp.Update updateAppRuntime(FunctionApp app) throws AzureExecutionException {
-        final MavenDockerCredentialProvider provider = MavenDockerCredentialProvider.fromMavenSettings(settings, serverId);
-        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, serverId, registryUrl);
+        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider != null, registryUrl);
         checkFunctionExtensionVersion();
-        checkConfiguration(imageType, provider);
+        checkConfiguration(imageType);
 
         final FunctionApp.Update update = app.update();
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
                 return update.withPublicDockerHubImage(image);
             case PRIVATE_DOCKER_HUB:
-                return update.withPrivateDockerHubImage(image).withCredentials(provider.getUsername(), provider.getPassword());
+                return update.withPrivateDockerHubImage(image).withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
             case PRIVATE_REGISTRY:
-                return update.withPrivateRegistryImage(image, registryUrl).withCredentials(provider.getUsername(), provider.getPassword());
+                return update.withPrivateRegistryImage(image, registryUrl)
+                        .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
             default:
                 throw new AzureExecutionException(INVALID_DOCKER_RUNTIME);
         }
     }
 
-    protected void checkConfiguration(DockerImageType imageType, MavenDockerCredentialProvider provider) throws AzureExecutionException {
+    protected void checkConfiguration(DockerImageType imageType) throws AzureExecutionException {
         if (imageType != PUBLIC_DOCKER_HUB) {
-            // try to call getPassword to verify serverId configuration
-            provider.validate();
+            if (dockerCredentialProvider == null) {
+                throw new AzureExecutionException("Cannot get docker credential for private image.");
+            }
+            dockerCredentialProvider.validate();
         }
 
         if (pricingTier == null) {
-            throw new AzureExecutionException("Consumption plan is not supported for docker functions");
+            throw new AzureExecutionException("Consumption plan is not supported for docker functions.");
         }
     }
 
