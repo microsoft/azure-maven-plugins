@@ -73,10 +73,10 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     protected File createZipPackage() throws AzureExecutionException {
-        Log.info("");
-        Log.info(CREATE_ZIP_START);
+        Log.prompt("");
+        Log.prompt(CREATE_ZIP_START);
         final File zipPackage = FunctionArtifactHelper.createFunctionArtifact(stagingDirectoryPath);
-        Log.info(CREATE_ZIP_DONE + stagingDirectoryPath.concat(Constants.ZIP_EXT));
+        Log.prompt(CREATE_ZIP_DONE + stagingDirectoryPath.concat(Constants.ZIP_EXT));
         return zipPackage;
     }
 
@@ -88,19 +88,19 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
 
     protected String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
                                                  final String blobName) throws AzureExecutionException {
-        Log.info(UPLOAD_PACKAGE_START);
+        Log.prompt(UPLOAD_PACKAGE_START);
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, blobName);
         final String packageUri = blob.getUri().toString();
-        Log.info(UPLOAD_PACKAGE_DONE + packageUri);
+        Log.prompt(UPLOAD_PACKAGE_DONE + packageUri);
         return packageUri;
     }
 
     protected void deployWithPackageUri(final DeployTarget target, final String packageUri, Runnable onDeployFinish) {
         try {
-            Log.info(DEPLOY_PACKAGE_START);
+            Log.prompt(DEPLOY_PACKAGE_START);
             target.msDeploy(packageUri, false);
-            Log.info(DEPLOY_PACKAGE_DONE);
+            Log.prompt(DEPLOY_PACKAGE_DONE);
         } finally {
             onDeployFinish.run();
         }
@@ -108,9 +108,9 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
 
     protected void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName) {
         try {
-            Log.info(DELETE_PACKAGE_START);
+            Log.prompt(DELETE_PACKAGE_START);
             AzureStorageHelper.deleteBlob(storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);
-            Log.info(DELETE_PACKAGE_DONE + blobName);
+            Log.prompt(DELETE_PACKAGE_DONE + blobName);
         } catch (Exception e) {
             Log.error(DELETE_PACKAGE_FAIL + blobName);
         }

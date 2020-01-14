@@ -100,7 +100,7 @@ public class AppServiceUtils {
         if (appServicePlan == null) {
             throw new AzureExecutionException(SERVICE_PLAN_NOT_FOUND);
         }
-        Log.info(UPDATE_APP_SERVICE_PLAN);
+        Log.prompt(UPDATE_APP_SERVICE_PLAN);
         final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
         // Update pricing tier
         if (pricingTier != null && !appServicePlan.pricingTier().equals(pricingTier)) {

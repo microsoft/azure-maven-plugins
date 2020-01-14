@@ -37,7 +37,7 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
     public void publish(final DeployTarget target) throws AzureExecutionException {
         assureStagingDirectoryNotEmpty();
 
-        Log.info(String.format(DEPLOY_START, target.getName()));
+        Log.prompt(String.format(DEPLOY_START, target.getName()));
 
         uploadDirectoryToFTP(target);
 
@@ -45,7 +45,7 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
             ((FunctionApp) target.getApp()).syncTriggers();
         }
 
-        Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+        Log.prompt(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
     }
 
     protected void uploadDirectoryToFTP(DeployTarget target) throws AzureExecutionException {

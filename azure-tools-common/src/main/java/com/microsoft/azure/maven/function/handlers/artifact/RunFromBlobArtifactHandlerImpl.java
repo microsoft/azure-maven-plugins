@@ -54,11 +54,11 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
 
     private CloudBlockBlob deployArtifactToAzureStorage(DeployTarget deployTarget, File zipPackage, CloudStorageAccount storageAccount)
         throws AzureExecutionException {
-        Log.info(String.format(DEPLOY_START, deployTarget.getName()));
+        Log.prompt(String.format(DEPLOY_START, deployTarget.getName()));
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, zipPackage.getName());
         final String blobUri = blob.getUri().getHost() + blob.getUri().getPath();
-        Log.info(String.format(DEPLOY_FINISH, blobUri));
+        Log.prompt(String.format(DEPLOY_FINISH, blobUri));
         return blob;
     }
 }

@@ -39,7 +39,7 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
         assureStagingDirectoryNotEmpty();
 
         final File zipFile = getZipFile();
-        Log.info(String.format(DEPLOY_START, target.getName()));
+        Log.prompt(String.format(DEPLOY_START, target.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
@@ -48,7 +48,7 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
             retryCount += 1;
             try {
                 target.zipDeploy(zipFile);
-                Log.info(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+                Log.prompt(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
                 return;
             } catch (Exception e) {
                 Log.debug(
