@@ -153,7 +153,11 @@ public class DeployMojo extends AbstractWebAppMojo {
                     Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
                     return;
                 }
-                handleV2Resources(target, v2Resources);
+                final List<Resource> nonExternalResources = handleV2Resources(target, v2Resources);
+                if (nonExternalResources == null || nonExternalResources.isEmpty()) {
+                    Log.info("All external resources are already deployed.");
+                    return;
+                }
             }
             artifactHandler.publish(target);
         } finally {
@@ -161,11 +165,12 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    private void handleV2Resources(final DeployTarget target, List<Resource> v2Resources) throws IOException, AzureExecutionException {
+    private List<Resource> handleV2Resources(final DeployTarget target, List<Resource> v2Resources) throws IOException, AzureExecutionException {
         final Map<Boolean, List<Resource>> resourceMap = v2Resources.stream()
                 .collect(Collectors.partitioningBy(DeployMojo::isExternalResource));
         copyArtifactsToStagingDirectory(resourceMap.get(false));
         deployExternalResources(target, resourceMap.get(true));
+        return resourceMap.get(false);
     }
 
     private void handleV1Resources(final ArtifactHandler artifactHandler) throws AzureExecutionException, IOException {
