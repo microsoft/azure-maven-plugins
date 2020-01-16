@@ -145,31 +145,36 @@ public class DeployMojo extends AbstractWebAppMojo {
             final ArtifactHandler artifactHandler = getFactory().getArtifactHandler(this);
             final boolean isV1Schema = SchemaVersion.fromString(this.getSchemaVersion()) == SchemaVersion.V1;
             if (isV1Schema) {
-                handleV1Resources(artifactHandler);
+                handleV1Artifact(target, this.resources, artifactHandler);
             } else {
                 final List<Resource> v2Resources = this.deployment == null ? null : this.deployment.getResources();
-
-                if (v2Resources == null || v2Resources.isEmpty()) {
-                    Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
-                    return;
-                }
-                handleV2Resources(target, v2Resources);
+                handleV2Artifact(target, v2Resources, artifactHandler);
             }
-            artifactHandler.publish(target);
         } finally {
             util.afterDeployArtifacts();
         }
     }
 
-    private void handleV2Resources(final DeployTarget target, List<Resource> v2Resources) throws IOException, AzureExecutionException {
+    private void handleV2Artifact(final DeployTarget target, List<Resource> v2Resources, ArtifactHandler artifactHandler)
+            throws IOException, AzureExecutionException {
+        if (v2Resources == null || v2Resources.isEmpty()) {
+            Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
+            return;
+        }
         final Map<Boolean, List<Resource>> resourceMap = v2Resources.stream()
                 .collect(Collectors.partitioningBy(DeployMojo::isExternalResource));
-        copyArtifactsToStagingDirectory(resourceMap.get(false));
         deployExternalResources(target, resourceMap.get(true));
+        copyArtifactsToStagingDirectory(resourceMap.get(false));
+        if (resourceMap.get(false).isEmpty()) {
+            Log.info("All external resources are already deployed.");
+            return;
+        }
+        artifactHandler.publish(target);
     }
 
-    private void handleV1Resources(final ArtifactHandler artifactHandler) throws AzureExecutionException, IOException {
-        if (resources == null || resources.isEmpty()) {
+    private void handleV1Artifact(final DeployTarget target, List<Resource> v1Resources, final ArtifactHandler artifactHandler)
+            throws AzureExecutionException, IOException {
+        if (v1Resources == null || v1Resources.isEmpty()) {
             // TODO: v1 schema will be deprecated, so this legacy code will be removed in future
             if (!(artifactHandler instanceof NONEArtifactHandlerImpl ||
                     artifactHandler instanceof JarArtifactHandlerImpl ||
@@ -178,8 +183,9 @@ public class DeployMojo extends AbstractWebAppMojo {
                 throw new AzureExecutionException(NO_RESOURCES_CONFIG);
             }
         } else {
-            copyArtifactsToStagingDirectory(resources);
+            copyArtifactsToStagingDirectory(v1Resources);
         }
+        artifactHandler.publish(target);
     }
 
     private HandlerFactory getFactory() {
