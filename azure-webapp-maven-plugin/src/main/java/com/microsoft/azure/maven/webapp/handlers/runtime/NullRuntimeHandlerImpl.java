@@ -7,11 +7,11 @@
 package com.microsoft.azure.maven.webapp.handlers.runtime;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.maven.handlers.RuntimeHandler;
 
 public class NullRuntimeHandlerImpl implements RuntimeHandler<WebApp> {
     public static final String NO_RUNTIME_CONFIG = "No runtime related configuration is specified in pom.xml. " +

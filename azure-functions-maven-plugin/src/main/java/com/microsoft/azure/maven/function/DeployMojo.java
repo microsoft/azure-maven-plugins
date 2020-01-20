@@ -6,8 +6,27 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.common.appservice.DeployTargetType;
+import com.microsoft.azure.common.appservice.DeploymentType;
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.common.function.handlers.artifact.DockerArtifactHandler;
+import com.microsoft.azure.common.function.handlers.artifact.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.common.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
+import com.microsoft.azure.common.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
+import com.microsoft.azure.common.function.handlers.runtime.DockerFunctionRuntimeHandler;
+import com.microsoft.azure.common.function.handlers.runtime.FunctionRuntimeHandler;
+import com.microsoft.azure.common.function.handlers.runtime.LinuxFunctionRuntimeHandler;
+import com.microsoft.azure.common.function.handlers.runtime.WindowsFunctionRuntimeHandler;
+import com.microsoft.azure.common.handlers.ArtifactHandler;
+import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
+import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
+import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
@@ -15,26 +34,7 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
-import com.microsoft.azure.maven.Utils;
-import com.microsoft.azure.maven.appservice.DeployTargetType;
-import com.microsoft.azure.maven.appservice.DeploymentType;
-import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
-import com.microsoft.azure.maven.function.handlers.artifact.DockerArtifactHandler;
-import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
-import com.microsoft.azure.maven.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
-import com.microsoft.azure.maven.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
-import com.microsoft.azure.maven.function.handlers.runtime.DockerFunctionRuntimeHandler;
-import com.microsoft.azure.maven.function.handlers.runtime.FunctionRuntimeHandler;
-import com.microsoft.azure.maven.function.handlers.runtime.LinuxFunctionRuntimeHandler;
-import com.microsoft.azure.maven.function.handlers.runtime.WindowsFunctionRuntimeHandler;
-import com.microsoft.azure.maven.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
-import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
-import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -43,10 +43,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static com.microsoft.azure.maven.appservice.DeploymentType.DOCKER;
-import static com.microsoft.azure.maven.appservice.DeploymentType.EMPTY;
-import static com.microsoft.azure.maven.appservice.DeploymentType.RUN_FROM_BLOB;
-import static com.microsoft.azure.maven.appservice.DeploymentType.RUN_FROM_ZIP;
+import static com.microsoft.azure.common.appservice.DeploymentType.DOCKER;
+import static com.microsoft.azure.common.appservice.DeploymentType.EMPTY;
+import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_BLOB;
+import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
 
 /**
  * Deploy artifacts to target Azure Functions in Azure. If target Azure Functions doesn't exist, it will be created.

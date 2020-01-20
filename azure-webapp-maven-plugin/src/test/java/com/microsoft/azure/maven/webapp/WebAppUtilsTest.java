@@ -6,7 +6,9 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.AppServicePlans;
@@ -21,8 +23,6 @@ import com.microsoft.azure.management.appservice.implementation.AppServiceManage
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
 import com.microsoft.azure.management.resources.ResourceGroups;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.maven.appservice.DockerImageType;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 
 import org.junit.Test;

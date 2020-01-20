@@ -10,6 +10,7 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;

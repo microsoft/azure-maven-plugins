@@ -7,11 +7,12 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.template.BindingTemplate;
+import com.microsoft.azure.common.function.template.FunctionSettingTemplate;
+import com.microsoft.azure.common.function.template.FunctionTemplate;
+import com.microsoft.azure.common.function.template.TemplateResources;
+import com.microsoft.azure.common.function.utils.FunctionUtils;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.maven.function.template.BindingTemplate;
-import com.microsoft.azure.maven.function.template.FunctionSettingTemplate;
-import com.microsoft.azure.maven.function.template.FunctionTemplate;
-import com.microsoft.azure.maven.function.template.TemplateResources;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;

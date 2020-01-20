@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.management.appservice.RuntimeStack;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;

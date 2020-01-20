@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.serializer;
 
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
+
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoFailureException;
 import org.dom4j.Element;

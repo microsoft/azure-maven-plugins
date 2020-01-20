@@ -6,21 +6,21 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.common.appservice.DeployTargetType;
+import com.microsoft.azure.common.appservice.DeploymentType;
+import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.handlers.artifact.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.common.function.handlers.runtime.FunctionRuntimeHandler;
+import com.microsoft.azure.common.function.handlers.runtime.WindowsFunctionRuntimeHandler;
+import com.microsoft.azure.common.handlers.ArtifactHandler;
+import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
+import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-import com.microsoft.azure.maven.appservice.DeployTargetType;
-import com.microsoft.azure.maven.appservice.DeploymentType;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.function.handlers.artifact.MSDeployArtifactHandlerImpl;
-import com.microsoft.azure.maven.function.handlers.runtime.FunctionRuntimeHandler;
-import com.microsoft.azure.maven.function.handlers.runtime.WindowsFunctionRuntimeHandler;
-import com.microsoft.azure.maven.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
-import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -30,12 +30,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static com.microsoft.azure.maven.appservice.DeploymentType.DOCKER;
-import static com.microsoft.azure.maven.appservice.DeploymentType.RUN_FROM_BLOB;
-import static com.microsoft.azure.maven.appservice.DeploymentType.RUN_FROM_ZIP;
-import static com.microsoft.azure.maven.appservice.OperatingSystemEnum.Docker;
-import static com.microsoft.azure.maven.appservice.OperatingSystemEnum.Linux;
-import static com.microsoft.azure.maven.appservice.OperatingSystemEnum.Windows;
+import static com.microsoft.azure.common.appservice.DeploymentType.DOCKER;
+import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_BLOB;
+import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
+import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Docker;
+import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Linux;
+import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Windows;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

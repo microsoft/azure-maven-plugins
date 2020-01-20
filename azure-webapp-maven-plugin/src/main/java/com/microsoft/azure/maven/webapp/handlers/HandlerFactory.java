@@ -7,9 +7,9 @@
 package com.microsoft.azure.maven.webapp.handlers;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.handlers.ArtifactHandler;
+import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.maven.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 

@@ -6,18 +6,18 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.common.appservice.DeploymentType;
+import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.handlers.ArtifactHandler;
+import com.microsoft.azure.common.handlers.RuntimeHandler;
+import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
+import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
+import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
-import com.microsoft.azure.maven.appservice.DeploymentType;
-import com.microsoft.azure.maven.appservice.DockerImageType;
-import com.microsoft.azure.maven.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.handlers.RuntimeHandler;
-import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
-import com.microsoft.azure.maven.handlers.artifact.FTPArtifactHandlerImpl;
-import com.microsoft.azure.maven.handlers.artifact.ZIPArtifactHandlerImpl;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;

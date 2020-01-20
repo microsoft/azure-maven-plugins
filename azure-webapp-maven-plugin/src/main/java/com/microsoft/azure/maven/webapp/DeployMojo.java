@@ -6,7 +6,10 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.handlers.ArtifactHandler;
+import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.PublishingProfile;
@@ -14,9 +17,6 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.handlers.ArtifactHandler;
-import com.microsoft.azure.maven.handlers.RuntimeHandler;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;

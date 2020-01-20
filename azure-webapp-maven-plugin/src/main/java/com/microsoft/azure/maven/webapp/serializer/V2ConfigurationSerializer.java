@@ -6,11 +6,12 @@
 
 package com.microsoft.azure.maven.webapp.serializer;
 
-import com.microsoft.azure.maven.utils.AppServiceUtils;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
+
 import org.apache.maven.plugin.MojoFailureException;
 import org.dom4j.Element;
 import org.dom4j.dom.DOMElement;

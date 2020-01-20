@@ -14,6 +14,7 @@ import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.management.resources.Subscription;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;

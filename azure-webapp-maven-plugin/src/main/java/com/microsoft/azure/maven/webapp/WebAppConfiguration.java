@@ -6,13 +6,13 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 

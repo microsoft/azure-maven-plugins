@@ -8,21 +8,23 @@ package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.configurations.ElasticPremiumPricingTier;
+import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
+import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.common.function.utils.FunctionUtils;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.function.configurations.ElasticPremiumPricingTier;
-import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
-import com.microsoft.azure.maven.function.configurations.RuntimeConfiguration;
-import com.microsoft.azure.maven.function.utils.FunctionUtils;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
+
 import java.io.File;
 import java.util.Map;
 

@@ -28,6 +28,7 @@ import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.GetHashMac;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
