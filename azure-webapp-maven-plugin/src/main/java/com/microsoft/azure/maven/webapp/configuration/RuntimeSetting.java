@@ -6,13 +6,14 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
+import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.maven.Utils;
-import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
+
 import org.apache.commons.lang3.StringUtils;
 
 import static com.microsoft.azure.maven.webapp.ConfigMojo.JAVA_11_STRING;

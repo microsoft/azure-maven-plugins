@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
@@ -18,7 +19,6 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.Existin
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
 
 
 public class WebAppUtils {

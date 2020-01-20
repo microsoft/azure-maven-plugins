@@ -6,8 +6,9 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.maven.function.handlers.AnnotationHandler;
-import com.microsoft.azure.maven.function.handlers.AnnotationHandlerImpl;
+import com.microsoft.azure.common.function.handlers.AnnotationHandler;
+import com.microsoft.azure.common.function.handlers.AnnotationHandlerImpl;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;

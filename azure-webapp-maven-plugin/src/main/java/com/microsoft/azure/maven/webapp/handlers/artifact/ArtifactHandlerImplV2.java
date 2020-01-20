@@ -6,11 +6,11 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.maven.appservice.OperatingSystemEnum;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 

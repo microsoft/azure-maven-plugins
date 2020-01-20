@@ -7,14 +7,14 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.PagedList;
+import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.appservice.DockerImageType;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;

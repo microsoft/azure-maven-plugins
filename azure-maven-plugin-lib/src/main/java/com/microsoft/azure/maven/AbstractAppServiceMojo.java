@@ -6,8 +6,9 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.maven.appservice.DeploymentType;
+
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 

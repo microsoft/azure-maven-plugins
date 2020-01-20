@@ -10,6 +10,7 @@ import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.serializer.ConfigurationSerializer;
 import com.microsoft.azure.maven.webapp.serializer.V2ConfigurationSerializer;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
+
 import org.apache.maven.plugin.MojoFailureException;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;

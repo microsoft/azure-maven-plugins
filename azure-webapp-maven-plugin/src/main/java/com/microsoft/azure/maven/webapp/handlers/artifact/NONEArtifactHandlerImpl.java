@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.maven.webapp.handlers.artifact;
 
+import com.microsoft.azure.common.deploytarget.DeployTarget;
+import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.handlers.artifact.ArtifactHandlerBase;
 
 public class NONEArtifactHandlerImpl extends ArtifactHandlerBase {
 
