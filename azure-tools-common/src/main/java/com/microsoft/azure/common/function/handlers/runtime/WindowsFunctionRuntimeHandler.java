@@ -8,6 +8,7 @@ package com.microsoft.azure.common.function.handlers.runtime;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import org.apache.commons.lang3.StringUtils;
 
 public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
 
@@ -42,9 +43,11 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
                 appWithCreate = appWithNewServicePlan.withExistingResourceGroup(resourceGroup);
             }
             if (pricingTier == null) {
-                appWithCreate = appWithCreate.withNewConsumptionPlan();
+                appWithCreate = StringUtils.isEmpty(servicePlanName) ? appWithCreate.withNewConsumptionPlan() :
+                        appWithCreate.withNewConsumptionPlan(servicePlanName);
             } else {
-                appWithCreate = appWithCreate.withNewAppServicePlan(pricingTier);
+                appWithCreate = StringUtils.isEmpty(servicePlanName) ? appWithCreate.withNewAppServicePlan(pricingTier) :
+                        appWithCreate.withNewAppServicePlan(servicePlanName, pricingTier);
             }
         } else {
             final FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup appWithExistingServicePlan =

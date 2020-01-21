@@ -10,6 +10,8 @@ import com.microsoft.azure.common.function.configurations.FunctionExtensionVersi
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.maven.function.configurations.FunctionExtensionVersion;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class AbstractLinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {
 
@@ -34,9 +36,11 @@ public abstract class AbstractLinuxFunctionRuntimeHandler extends FunctionRuntim
                 withCreate = appWithNewServicePlan.withExistingResourceGroup(resourceGroup);
             }
             if (pricingTier == null) {
-                result = withCreate.withNewLinuxConsumptionPlan();
+                result = StringUtils.isEmpty(servicePlanName) ? withCreate.withNewLinuxConsumptionPlan() :
+                        withCreate.withNewLinuxConsumptionPlan(servicePlanName);
             } else {
-                result = withCreate.withNewLinuxAppServicePlan(pricingTier);
+                result = StringUtils.isEmpty(servicePlanName) ? withCreate.withNewLinuxAppServicePlan(pricingTier) :
+                        withCreate.withNewLinuxAppServicePlan(servicePlanName, pricingTier);
             }
         } else {
             final FunctionApp.DefinitionStages.ExistingLinuxPlanWithGroup appWithExistingServicePlan =
