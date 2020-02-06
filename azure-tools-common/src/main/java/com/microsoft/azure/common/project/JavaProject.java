@@ -75,7 +75,7 @@ public class JavaProject implements IProject {
     }
 
     @Override
-    public Collection<Path> getProjectDepencencies() {
+    public Collection<Path> getProjectDependencies() {
         return dependencies;
     }
 
