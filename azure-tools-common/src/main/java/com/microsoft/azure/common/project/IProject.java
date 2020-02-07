@@ -18,7 +18,7 @@ public interface IProject {
 
     Path getClassesOutputDirectory();
 
-    Collection<Path> getProjectDepencencies();
+    Collection<Path> getProjectDependencies();
 
     boolean isWarProject();
 
