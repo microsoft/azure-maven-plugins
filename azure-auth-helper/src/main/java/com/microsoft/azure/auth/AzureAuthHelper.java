@@ -281,16 +281,18 @@ public class AzureAuthHelper {
             // /src/main/java/com/microsoft/azure/credentials/AzureCliCredentials.java#L48
             // AzureCliCredentials.create will block using  System.in.read() if user has logout using `az logout`
             // here we must check these two json files for empty
-            final List tokens = JsonUtils.fromJson(FileUtils.readFileToString(accessTokens, "utf8"), List.class);
-            if (tokens.isEmpty()) {
-                return null;
+            if (azureProfile.exists() && accessTokens.exists()) {
+                final List tokens = JsonUtils.fromJson(FileUtils.readFileToString(accessTokens, "utf8"), List.class);
+                if (tokens.isEmpty()) {
+                    return null;
+                }
+                final Wrapper wrapper = JsonUtils.fromJson(FileUtils.readFileToString(azureProfile, "utf8"), Wrapper.class);
+                if (wrapper.subscriptions == null || wrapper.subscriptions.isEmpty()) {
+                    return null;
+                }
+                return new AzureTokenWrapper(AuthMethod.AZURE_CLI,
+                        AzureCliCredentials.create(azureProfile, accessTokens), azureProfile, accessTokens);
             }
-            final Wrapper wrapper = JsonUtils.fromJson(FileUtils.readFileToString(azureProfile, "utf8"), Wrapper.class);
-            if (wrapper.subscriptions == null || wrapper.subscriptions.isEmpty()) {
-                return null;
-            }
-            return new AzureTokenWrapper(AuthMethod.AZURE_CLI,
-                    AzureCliCredentials.create(azureProfile, accessTokens), azureProfile, accessTokens);
         }
         return null;
     }
