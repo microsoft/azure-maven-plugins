@@ -9,8 +9,10 @@ package com.microsoft.azure.common.function.handlers.runtime;
 import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.utils.AppServiceUtils;
+import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 
+import com.microsoft.azure.management.appservice.PricingTier;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
 
@@ -98,8 +100,11 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
             }
             dockerCredentialProvider.validate();
         }
-
-        if (pricingTier == null) {
+        final AppServicePlan appServicePlan = getAppServicePlan();
+        // Get target pricingTier, if didn't specify it in configuration, using existing app service plan pricing tier
+        final PricingTier appServicePricingTier = pricingTier != null ? pricingTier :
+                appServicePlan != null ? appServicePlan.pricingTier() : null;
+        if (appServicePricingTier == null) {
             throw new AzureExecutionException("Consumption plan is not supported for docker functions.");
         }
     }
