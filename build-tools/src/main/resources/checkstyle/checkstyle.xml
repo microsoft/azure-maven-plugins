@@ -378,7 +378,7 @@ page at https://checkstyle.org/config.html -->
             <property name="standardPackageRegExp" value="^java\."/>
             <property name="sortImportsInGroupAlphabetically" value="true"/>
             <property name="separateLineBetweenGroups" value="false"/>
-			<property name="severity" value="info"/>
+            <property name="severity" value="info"/>
         </module>
         <module name="UnusedImports"/>
 
