@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.4.1](#141)
   - [1.4.0](#140)
   - [1.3.5](#135)
   - [1.3.4](#134)
@@ -11,6 +12,12 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
+
+## 1.4.1
+- Support specify authentication method in configuration with parameter `<authType>`.[PR#975](https://github.com/microsoft/azure-maven-plugins/pull/975)
+- Support creating new app service plan with specified name.[PR#1011](https://github.com/microsoft/azure-maven-plugins/pull/1011)
+- Validate null subscription id and provide friendly error messages when authentication fails.[#931](https://github.com/microsoft/azure-maven-plugins/issues/931)
+- Fix: Functions will do useless service plan update during deployment when the settings are not changed[#1008](https://github.com/microsoft/azure-maven-plugins/issues/1008)
 
 ## 1.4.0
 - Support functions with Linux runtime.[PR#906](https://github.com/microsoft/azure-maven-plugins/pull/906)
