@@ -28,10 +28,11 @@ public class AzureClientFactory {
     public static final String SUBSCRIPTION_NOT_SPECIFIED = "Subscription ID was not specified, using the first subscription in current account," +
             " please refer https://github.com/microsoft/azure-maven-plugins/wiki/Authentication#subscription for more information.";
 
-    public static Azure getAzureClient(AzureTokenWrapper azureTokenCredentials, String subscriptionId) throws IOException, AzureLoginFailureException {
+    public static Azure getAzureClient(AzureTokenWrapper azureTokenCredentials, String subscriptionId,
+                                       String userAgent) throws IOException, AzureLoginFailureException {
         Preconditions.checkNotNull(azureTokenCredentials, "The parameter 'azureTokenCredentials' cannot be null.");
         Log.info(azureTokenCredentials.getCredentialDescription());
-        final Authenticated authenticated = Azure.configure().authenticate(azureTokenCredentials);
+        final Authenticated authenticated = Azure.configure().withUserAgent(userAgent).authenticate(azureTokenCredentials);
         // For cloud shell, use subscription in profile as the default subscription.
         if (StringUtils.isEmpty(subscriptionId) && AzureAuthHelperLegacy.isInCloudShell()) {
             subscriptionId = AzureAuthHelperLegacy.getSubscriptionOfCloudShell();
