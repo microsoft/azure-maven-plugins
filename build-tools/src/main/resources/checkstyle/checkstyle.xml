@@ -60,6 +60,23 @@ page at https://checkstyle.org/config.html -->
                   value='All TODOs should be named.  e.g. "TODO (johndoe): Refactor when v2 is released."'/>
     </module>
 
+    <module name="LineLengthCheck">
+        <property name="fileExtensions" value="java" />
+        <!-- Checks if a line is too long, default value of 120 is too short -->
+        <property name="max" value="${com.puppycrawl.tools.checkstyle.checks.sizes.LineLength.max}" default="160"/>
+        <property name="severity" value="error"/>
+
+        <!--
+            The default ignore pattern exempts the following elements:
+            - import statements
+            - long URLs inside comments
+        -->
+
+        <property name="ignorePattern"
+                    value="${com.puppycrawl.tools.checkstyle.checks.sizes.LineLength.ignorePattern}"
+                    default="^(package .*;\s*)|(import .*;\s*)|( *\* *https?://.*)$"/>
+    </module>
+
     <!-- All Java AST specific tests live under TreeWalker module. -->
     <module name="TreeWalker">
         <module name="SingleSpaceSeparator"/>
@@ -172,23 +189,6 @@ page at https://checkstyle.org/config.html -->
         LENGTH and CODING CHECKS
 
         -->
-
-        <module name="LineLength">
-            <!-- Checks if a line is too long, default value of 120 is too short -->
-            <property name="max" value="${com.puppycrawl.tools.checkstyle.checks.sizes.LineLength.max}" default="160"/>
-            <property name="severity" value="error"/>
-
-            <!--
-              The default ignore pattern exempts the following elements:
-                - import statements
-                - long URLs inside comments
-            -->
-
-            <property name="ignorePattern"
-                      value="${com.puppycrawl.tools.checkstyle.checks.sizes.LineLength.ignorePattern}"
-                      default="^(package .*;\s*)|(import .*;\s*)|( *\* *https?://.*)$"/>
-        </module>
-
         <module name="LeftCurly">
             <!-- Checks for placement of the left curly brace ('{'). -->
             <property name="severity" value="warning"/>
@@ -378,6 +378,7 @@ page at https://checkstyle.org/config.html -->
             <property name="standardPackageRegExp" value="^java\."/>
             <property name="sortImportsInGroupAlphabetically" value="true"/>
             <property name="separateLineBetweenGroups" value="false"/>
+            <property name="severity" value="info"/>
         </module>
         <module name="UnusedImports"/>
 
