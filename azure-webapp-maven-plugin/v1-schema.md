@@ -26,7 +26,7 @@ Property | Required | Description | Version
     <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
   </configuration>
   ```
-  The supported values are *tomcat 8.5-jre8*, *tomcat 9.0-jre8*, *wildfly 14-jre8*, *jre8*, *tomcat 8.5-java11*, *tomcat 9.0-java11*, *java11*.
+  The supported values are *tomcat 8.5-jre8*, *tomcat 9.0-jre8*, *jre8*, *tomcat 8.5-java11*, *tomcat 9.0-java11*, *java11*.
 
 - **Web App on Windows**
   ```xml
