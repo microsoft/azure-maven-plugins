@@ -293,7 +293,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             // TODO: Enable extra Azure Environment like Azure China
             final AzureEnvironment environment = AzureEnvironment.AZURE;
             azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
-            return azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper, this.subscriptionId);
+            return azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
+                    this.subscriptionId, getUserAgent());
         } catch (IOException | AzureLoginFailureException e) {
             throw new AzureAuthFailureException(e.getMessage());
         }
