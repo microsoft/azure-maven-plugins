@@ -101,13 +101,13 @@ public class AppServiceUtils {
         if (appServicePlan == null) {
             throw new AzureExecutionException(SERVICE_PLAN_NOT_FOUND);
         }
+        // Return when no need to update
+        if (pricingTier == null || pricingTier.equals(appServicePlan.pricingTier())) {
+            return appServicePlan;
+        }
         Log.prompt(UPDATE_APP_SERVICE_PLAN);
         final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
-        // Update pricing tier
-        if (pricingTier != null && !appServicePlan.pricingTier().equals(pricingTier)) {
-            appServicePlanUpdate.withPricingTier(pricingTier);
-        }
-        return appServicePlanUpdate.apply();
+        return appServicePlanUpdate.withPricingTier(pricingTier).apply();
     }
 
     public static boolean isEqualAppServicePlan(AppServicePlan first, AppServicePlan second) {
