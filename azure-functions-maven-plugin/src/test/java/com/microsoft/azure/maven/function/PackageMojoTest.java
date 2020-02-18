@@ -49,6 +49,7 @@ public class PackageMojoTest extends MojoTestBase {
         doReturn(mock(MavenSession.class)).when(mojoSpy).getSession();
         doReturn(false).when(mojoSpy).isInstallingExtensionNeeded(any());
         doReturn(mock(MavenResourcesFiltering.class)).when(mojoSpy).getMavenResourcesFiltering();
+        doNothing().when(mojoSpy).copyHostJsonFile(any());
 
         mojoSpy.doExecute();
     }

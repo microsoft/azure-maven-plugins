@@ -26,6 +26,7 @@ import com.microsoft.azure.common.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.common.function.handlers.FunctionCoreToolsHandlerImpl;
 import com.microsoft.azure.common.logging.Log;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
@@ -69,7 +70,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     public static final String VALIDATE_CONFIG = "Step 3 of 7: Validating generated configurations";
     public static final String VALIDATE_SKIP = "No configurations found. Skip validation.";
     public static final String VALIDATE_DONE = "Validation done.";
-    public static final String SAVE_HOST_JSON = "Step 4 of 7: Saving empty host.json";
+    public static final String SAVE_HOST_JSON = "Step 4 of 7: Saving host.json";
     public static final String SAVE_FUNCTION_JSONS = "Step 5 of 7: Saving configurations to function.json";
     public static final String SAVE_SKIP = "No configurations found. Skip save.";
     public static final String SAVE_FUNCTION_JSON = "Starting processing function: ";
@@ -114,7 +115,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         final ObjectWriter objectWriter = getObjectWriter();
 
         try {
-            writeEmptyHostJsonFile(objectWriter);
+            copyHostJsonFile(objectWriter);
 
             writeFunctionJsonFiles(objectWriter, configMap);
 
@@ -258,12 +259,17 @@ public class PackageMojo extends AbstractFunctionMojo {
         Log.info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
     }
 
-    protected void writeEmptyHostJsonFile(final ObjectWriter objectWriter) throws IOException {
+    protected void copyHostJsonFile(final ObjectWriter objectWriter) throws IOException {
         Log.info("");
         Log.info(SAVE_HOST_JSON);
-        final File hostJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
-        writeObjectToFile(objectWriter, new Object(), hostJsonFile);
-        Log.info(SAVE_SUCCESS + hostJsonFile.getAbsolutePath());
+        final File sourceFile = new File(project.getBasedir(), HOST_JSON);
+        final File targetFile = Paths.get(getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
+        if (sourceFile.exists()) {
+            FileUtils.copyFile(sourceFile, targetFile);
+        } else {
+            writeObjectToFile(objectWriter, new Object(), targetFile);
+        }
+        Log.info(SAVE_SUCCESS + targetFile.getAbsolutePath());
     }
 
     protected void writeObjectToFile(final ObjectWriter objectWriter, final Object object, final File targetFile)
