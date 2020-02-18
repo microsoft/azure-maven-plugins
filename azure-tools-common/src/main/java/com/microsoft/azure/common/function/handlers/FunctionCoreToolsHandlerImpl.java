@@ -15,7 +15,7 @@ import java.io.File;
 
 public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
 
-    public static final String FUNC_EXTENSIONS_INSTALL_TEMPLATE = "func extensions install -c \"%s\"";
+    public static final String FUNC_EXTENSIONS_INSTALL_TEMPLATE = "func extensions install -c \"%s\" --java";
     public static final String INSTALL_FUNCTION_EXTENSIONS_FAIL = "Failed to install the Function extensions";
     public static final String CANNOT_AUTO_INSTALL = "Local Azure Functions Core Tools does not " +
             "exist or is too old to support function extension installation, skip package phase." +
