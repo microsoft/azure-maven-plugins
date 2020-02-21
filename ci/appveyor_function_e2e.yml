@@ -17,7 +17,7 @@ build_script:
       
 test_script:
   - ps: |
-      $response = curl http://localhost:7071/api/HttpTrigger-Java?name=CI
+      $response = curl http://localhost:7071/api/HttpExample?name=CI
       $success = $response.Content -eq "Hello, CI"
       if (-not $success) { exit 1 } 
 
