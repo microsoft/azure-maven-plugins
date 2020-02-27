@@ -56,6 +56,10 @@ public class FunctionConfiguration {
         this.entryPoint = entryPoint;
     }
 
+    public void setBindings(List<Binding> bindings) {
+        this.bindings = bindings;
+    }
+
     public void validate() {
         checkMultipleTrigger();
 
