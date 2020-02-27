@@ -6,13 +6,13 @@
 
 package com.microsoft.azure.maven.webapp.utils;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Element;
 import org.dom4j.Namespace;
+import org.dom4j.Node;
 import org.dom4j.dom.DOMElement;
 import org.dom4j.tree.AbstractElement;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class XMLUtils {
@@ -24,29 +24,6 @@ public class XMLUtils {
         for (final Element child : element.elements()) {
             setNamespace(child, nameSpace);
         }
-    }
-
-    public static Element getChild(Element parent, String... paths) {
-        Element result = parent;
-        for (final String childName : paths) {
-            if (result != null) {
-                result = result.element(childName);
-            } else {
-                return null;
-            }
-        }
-        return result;
-    }
-
-    public static List<String> getListValue(Element domNode) {
-        if (domNode == null) {
-            return null;
-        }
-        final List<String> result = new ArrayList<>();
-        for (final Element child : domNode.elements()) {
-            result.add(child.getText());
-        }
-        return result;
     }
 
     public static String getChildValue(String attribute, Element element) {
@@ -83,6 +60,14 @@ public class XMLUtils {
         final Element aim = element.element(attribute);
         if (aim != null) {
             element.remove(aim);
+        }
+    }
+
+    public static void clearNode(Element element) {
+        for (final Element child : element.elements()) {
+            if (child.getNodeType() != Node.COMMENT_NODE) {
+                element.remove(child);
+            }
         }
     }
 

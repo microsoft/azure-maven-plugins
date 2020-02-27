@@ -6,14 +6,16 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,14 +38,14 @@ public class V1ConfigurationParserTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        parser = new V1ConfigurationParser(mojo);
+        parser = new V1ConfigurationParser(mojo, new V1ConfigurationValidator(mojo));
     }
 
     @Test
-    public void getOs() throws MojoExecutionException {
+    public void getOs() throws AzureExecutionException {
         assertNull(parser.getOs());
 
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
+        doReturn("1.8").when(mojo).getJavaVersion();
         assertEquals(OperatingSystemEnum.Windows, parser.getOs());
 
         doReturn(null).when(mojo).getJavaVersion();
@@ -56,23 +58,23 @@ public class V1ConfigurationParserTest {
         assertEquals(OperatingSystemEnum.Docker, parser.getOs());
 
         doReturn("linuxRuntime").when(mojo).getLinuxRuntime();
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
+        doReturn("1.8").when(mojo).getJavaVersion();
         try {
             parser.getOs();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Conflict settings found. <javaVersion>, <linuxRuntime>" +
                 "and <containerSettings> should not be set at the same time.");
         }
     }
 
     @Test
-    public void getRegion() throws MojoExecutionException {
+    public void getRegion() throws AzureExecutionException {
         assertEquals(Region.EUROPE_WEST, parser.getRegion());
 
         doReturn("unknown-region").when(mojo).getRegion();
         try {
             parser.getRegion();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The value of <region> is not correct, please correct it in pom.xml.");
         }
 
@@ -81,10 +83,10 @@ public class V1ConfigurationParserTest {
     }
 
     @Test
-    public void getRuntimeStack() throws MojoExecutionException {
+    public void getRuntimeStack() throws AzureExecutionException {
         try {
             parser.getRuntimeStack();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please configure the <linuxRuntime> in pom.xml.");
         }
 
@@ -94,23 +96,35 @@ public class V1ConfigurationParserTest {
         doReturn("tomcat 9.0-jre8").when(mojo).getLinuxRuntime();
         assertEquals(RuntimeStack.TOMCAT_9_0_JRE8, parser.getRuntimeStack());
 
+        doReturn("wildfly 14-jre8").when(mojo).getLinuxRuntime();
+        assertEquals(RuntimeStack.WILDFLY_14_JRE8, parser.getRuntimeStack());
+
         doReturn("jre8").when(mojo).getLinuxRuntime();
         assertEquals(RuntimeStack.JAVA_8_JRE8, parser.getRuntimeStack());
+
+        doReturn("tomcat 8.5-java11").when(mojo).getLinuxRuntime();
+        assertEquals(RuntimeStack.TOMCAT_8_5_JAVA11, parser.getRuntimeStack());
+
+        doReturn("tomcat 9.0-java11").when(mojo).getLinuxRuntime();
+        assertEquals(RuntimeStack.TOMCAT_9_0_JAVA11, parser.getRuntimeStack());
+
+        doReturn("java11").when(mojo).getLinuxRuntime();
+        assertEquals(RuntimeStack.JAVA_11_JAVA11, parser.getRuntimeStack());
 
         doReturn("unknown-value").when(mojo).getLinuxRuntime();
         try {
             parser.getRuntimeStack();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The configuration of <linuxRuntime> in pom.xml is not correct. " +
-                "The supported values are [tomcat 8.5-jre8, tomcat 9.0-jre8, wildfly 14-jre8, jre8]");
+                "Please refer https://aka.ms/maven_webapp_runtime_v1 for more information");
         }
     }
 
     @Test
-    public void getImage() throws MojoExecutionException {
+    public void getImage() throws AzureExecutionException {
         try {
             parser.getImage();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please config the <containerSettings> in pom.xml.");
         }
 
@@ -122,7 +136,7 @@ public class V1ConfigurationParserTest {
         doReturn("").when(containerSetting).getImageName();
         try {
             parser.getImage();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please config the <imageName> of <containerSettings> in pom.xml.");
         }
     }
@@ -148,10 +162,10 @@ public class V1ConfigurationParserTest {
     }
 
     @Test
-    public void getWebContainer() throws MojoExecutionException {
+    public void getWebContainer() throws AzureExecutionException {
         try {
             parser.getWebContainer();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The configuration of <javaWebContainer> in pom.xml is not correct.");
         }
 
@@ -160,14 +174,14 @@ public class V1ConfigurationParserTest {
     }
 
     @Test
-    public void getJavaVersion() throws MojoExecutionException {
+    public void getJavaVersion() throws AzureExecutionException {
         try {
             parser.getJavaVersion();
-        } catch (MojoExecutionException e) {
-            assertEquals(e.getMessage(), "The configuration of <javaVersion> in pom.xml is not correct.");
+        } catch (AzureExecutionException e) {
+            assertEquals(e.getMessage(), "Please config the <javaVersion> in pom.xml.");
         }
 
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(mojo).getJavaVersion();
+        doReturn("1.8").when(mojo).getJavaVersion();
         assertEquals(JavaVersion.JAVA_8_NEWEST, parser.getJavaVersion());
     }
 }

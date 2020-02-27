@@ -6,26 +6,26 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.maven.function.template.BindingTemplate;
-import com.microsoft.azure.maven.function.template.BindingsTemplate;
-import com.microsoft.azure.maven.function.template.FunctionSettingTemplate;
-import com.microsoft.azure.maven.function.template.FunctionTemplate;
-import com.microsoft.azure.maven.function.template.FunctionTemplates;
-import com.microsoft.azure.maven.function.template.TemplateResources;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.template.BindingTemplate;
+import com.microsoft.azure.common.function.template.FunctionSettingTemplate;
+import com.microsoft.azure.common.function.template.FunctionTemplate;
+import com.microsoft.azure.common.function.template.TemplateResources;
+import com.microsoft.azure.common.function.utils.FunctionUtils;
+import com.microsoft.azure.common.logging.Log;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 
 import javax.annotation.Nullable;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,29 +41,25 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.lang.System.out;
 import static javax.lang.model.SourceVersion.isName;
-import static org.codehaus.plexus.util.IOUtil.copy;
-import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 
 /**
  * Create new Azure Functions (as Java class) and add to current project.
  */
 @Mojo(name = "add")
 public class AddMojo extends AbstractFunctionMojo {
-    public static final String LOAD_TEMPLATES = "Step 1 of 4: Load all function templates";
-    public static final String LOAD_TEMPLATES_DONE = "Successfully loaded all function templates";
-    public static final String LOAD_TEMPLATES_FAIL = "Failed to load all function templates.";
-    public static final String FIND_TEMPLATE = "Step 2 of 4: Select function template";
-    public static final String FIND_TEMPLATE_DONE = "Successfully found function template: ";
-    public static final String FIND_TEMPLATE_FAIL = "Function template not found: ";
-    public static final String LOAD_BINDING_TEMPLATES_FAIL = "Failed to load function binding template.";
-    public static final String PREPARE_PARAMS = "Step 3 of 4: Prepare required parameters";
-    public static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
-    public static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
-    public static final String SAVE_FILE_DONE = "Successfully saved new function at ";
-    public static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
-    public static final String DEFAULT_INPUT_ERROR_MESSAGE = "Invalid input, please check and try again.";
-    public static final String PROMPT_STRING_WITH_DEFAULTVALUE = "Enter value for %s(Default: %s): ";
-    public static final String PROMPT_STRING_WITHOUT_DEFAULTVALUE = "Enter value for %s: ";
+    private static final String LOAD_TEMPLATES = "Step 1 of 4: Load all function templates";
+    private static final String LOAD_TEMPLATES_DONE = "Successfully loaded all function templates";
+    private static final String FIND_TEMPLATE = "Step 2 of 4: Select function template";
+    private static final String FIND_TEMPLATE_DONE = "Successfully found function template: ";
+    private static final String FIND_TEMPLATE_FAIL = "Function template not found: ";
+    private static final String PREPARE_PARAMS = "Step 3 of 4: Prepare required parameters";
+    private static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
+    private static final String SAVE_FILE = "Step 4 of 4: Saving function to file";
+    private static final String SAVE_FILE_DONE = "Successfully saved new function at ";
+    private static final String FILE_EXIST = "Function already exists at %s. Please specify a different function name.";
+    private static final String DEFAULT_INPUT_ERROR_MESSAGE = "Invalid input, please check and try again.";
+    private static final String PROMPT_STRING_WITH_DEFAULTVALUE = "Enter value for %s(Default: %s): ";
+    private static final String PROMPT_STRING_WITHOUT_DEFAULTVALUE = "Enter value for %s: ";
     private static final String FUNCTION_NAME_REGEXP = "^[a-zA-Z][a-zA-Z\\d_\\-]*$";
 
     //region Properties
@@ -133,7 +129,7 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void setFunctionName(String functionName) {
-        this.functionName = StringUtils.capitalise(functionName);
+        this.functionName = StringUtils.capitalize(functionName);
     }
 
     protected void setFunctionTemplate(String functionTemplate) {
@@ -145,62 +141,40 @@ public class AddMojo extends AbstractFunctionMojo {
     //region Entry Point
 
     @Override
-    protected void doExecute() throws Exception {
-        final List<FunctionTemplate> templates = loadAllFunctionTemplates();
+    protected void doExecute() throws AzureExecutionException {
+        try {
+            final List<FunctionTemplate> templates = loadAllFunctionTemplates();
 
-        final FunctionTemplate template = getFunctionTemplate(templates);
-        final BindingTemplate bindingTemplate = loadBindingTemplate(template.getTriggerType());
+            final FunctionTemplate template = getFunctionTemplate(templates);
+            final BindingTemplate bindingTemplate = FunctionUtils.loadBindingTemplate(template.getTriggerType());
 
-        final Map params = prepareRequiredParameters(template, bindingTemplate);
+            final Map params = prepareRequiredParameters(template, bindingTemplate);
 
-        final String newFunctionClass = substituteParametersInTemplate(template, params);
+            final String newFunctionClass = substituteParametersInTemplate(template, params);
 
-        saveNewFunctionToFile(newFunctionClass);
+            saveNewFunctionToFile(newFunctionClass);
+        } catch (MojoFailureException | IOException e) {
+            throw new AzureExecutionException("Cannot add new java functions.", e);
+        }
     }
 
     //endregion
 
     //region Load templates
-    protected BindingTemplate loadBindingTemplate(String type) {
-        try (final InputStream is = AddMojo.class.getResourceAsStream("/bindings.json")) {
-            final String bindingsJsonStr = IOUtil.toString(is);
-            final BindingsTemplate bindingsTemplate = new ObjectMapper()
-                .readValue(bindingsJsonStr, BindingsTemplate.class);
-            return bindingsTemplate.getBindingTemplateByName(type);
-        } catch (IOException e) {
-            warning(LOAD_BINDING_TEMPLATES_FAIL);
-            // Add mojo could work without Binding Template, just return null if binding load fail
-            return null;
-        }
-    }
-
-    protected List<FunctionTemplate> loadAllFunctionTemplates() throws Exception {
-        info("");
-        info(LOAD_TEMPLATES);
-
-        try (final InputStream is = AddMojo.class.getResourceAsStream("/templates.json")) {
-            final String templatesJsonStr = IOUtil.toString(is);
-            final List<FunctionTemplate> templates = parseTemplateJson(templatesJsonStr);
-            info(LOAD_TEMPLATES_DONE);
-            return templates;
-        } catch (Exception e) {
-            error(LOAD_TEMPLATES_FAIL);
-            throw e;
-        }
-    }
-
-    protected List<FunctionTemplate> parseTemplateJson(final String templateJson) throws Exception {
-        final FunctionTemplates templates = new ObjectMapper().readValue(templateJson, FunctionTemplates.class);
-        return templates.getTemplates();
+    protected List<FunctionTemplate> loadAllFunctionTemplates() throws AzureExecutionException {
+        Log.info("");
+        Log.info(LOAD_TEMPLATES);
+        final List<FunctionTemplate> templates = FunctionUtils.loadAllFunctionTemplates();
+        Log.info(LOAD_TEMPLATES_DONE);
+        return templates;
     }
 
     //endregion
 
     //region Get function template
-
-    protected FunctionTemplate getFunctionTemplate(final List<FunctionTemplate> templates) throws Exception {
-        info("");
-        info(FIND_TEMPLATE);
+    protected FunctionTemplate getFunctionTemplate(final List<FunctionTemplate> templates) throws IOException, AzureExecutionException, MojoFailureException {
+        Log.info("");
+        Log.info(FIND_TEMPLATE);
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionTemplate(),
@@ -225,18 +199,18 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected FunctionTemplate findTemplateByName(final List<FunctionTemplate> templates, final String templateName)
-            throws Exception {
-        info("Selected function template: " + templateName);
+            throws AzureExecutionException {
+        Log.info("Selected function template: " + templateName);
         final Optional<FunctionTemplate> template = templates.stream()
             .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
             .findFirst();
 
         if (template.isPresent()) {
-            info(FIND_TEMPLATE_DONE + templateName);
+            Log.info(FIND_TEMPLATE_DONE + templateName);
             return template.get();
         }
 
-        throw new Exception(FIND_TEMPLATE_FAIL + templateName);
+        throw new AzureExecutionException(FIND_TEMPLATE_FAIL + templateName);
     }
 
     //endregion
@@ -246,8 +220,8 @@ public class AddMojo extends AbstractFunctionMojo {
     protected Map<String, String> prepareRequiredParameters(final FunctionTemplate template,
                                                             final BindingTemplate bindingTemplate)
         throws MojoFailureException {
-        info("");
-        info(PREPARE_PARAMS);
+        Log.info("");
+        Log.info(PREPARE_PARAMS);
 
         prepareFunctionName();
 
@@ -266,34 +240,34 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void prepareFunctionName() throws MojoFailureException {
-        info("Common parameter [Function Name]: name for both the new function and Java class");
+        Log.info("Common parameter [Function Name]: name for both the new function and Java class");
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionName(),
-                str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
+                str -> StringUtils.isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
                 this::setFunctionName,
                 true);
         } else {
             assureInputFromUser("Enter value for Function Name: ",
                 getFunctionName(),
-                str -> isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
+                str -> StringUtils.isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
                 "Function name must start with a letter and can contain letters, digits, '_' and '-'",
                 this::setFunctionName);
         }
     }
 
     protected void preparePackageName() throws MojoFailureException {
-        info("Common parameter [Package Name]: package name of the new Java class");
+        Log.info("Common parameter [Package Name]: package name of the new Java class");
 
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionPackageName(),
-                str -> isNotEmpty(str) && isName(str),
+                str -> StringUtils.isNotEmpty(str) && isName(str),
                 this::setFunctionPackageName,
                 true);
         } else {
             assureInputFromUser("Enter value for Package Name: ",
                 getFunctionPackageName(),
-                str -> isNotEmpty(str) && isName(str),
+                str -> StringUtils.isNotEmpty(str) && isName(str),
                 "Input should be a valid Java package name.",
                 this::setFunctionPackageName);
         }
@@ -311,7 +285,7 @@ public class AddMojo extends AbstractFunctionMojo {
             final String helpMessage = (settingTemplate != null && settingTemplate.getHelp() != null) ?
                 settingTemplate.getHelp() : "";
 
-            info(format("Trigger specific parameter [%s]:%s", property,
+            Log.info(format("Trigger specific parameter [%s]:%s", property,
                 TemplateResources.getResource(helpMessage)));
             if (settings != null && !settings.isInteractiveMode()) {
                 if (options != null && options.size() > 0) {
@@ -347,7 +321,7 @@ public class AddMojo extends AbstractFunctionMojo {
         final Function<String, Boolean> validator = getStringInputValidator(template);
 
         if (validator.apply(initValue)) {
-            info(FOUND_VALID_VALUE);
+            Log.info(FOUND_VALID_VALUE);
             return initValue;
         }
 
@@ -361,7 +335,7 @@ public class AddMojo extends AbstractFunctionMojo {
             } else if (StringUtils.isNotEmpty(defaultValue) && StringUtils.isEmpty(input)) {
                 return defaultValue;
             }
-            warning(getStringInputErrorMessage(template));
+            Log.warn(getStringInputErrorMessage(template));
         }
     }
 
@@ -386,10 +360,10 @@ public class AddMojo extends AbstractFunctionMojo {
     }
 
     protected void displayParameters(final Map<String, String> params) {
-        info("");
-        info("Summary of parameters for function template:");
+        Log.info("");
+        Log.info("Summary of parameters for function template:");
 
-        params.entrySet().stream().forEach(e -> info(format("%s: %s", e.getKey(), e.getValue())));
+        params.entrySet().stream().forEach(e -> Log.info(format("%s: %s", e.getKey(), e.getValue())));
     }
 
     //endregion
@@ -408,9 +382,9 @@ public class AddMojo extends AbstractFunctionMojo {
 
     //region Save function to file
 
-    protected void saveNewFunctionToFile(final String newFunctionClass) throws Exception {
-        info("");
-        info(SAVE_FILE);
+    protected void saveNewFunctionToFile(final String newFunctionClass) throws IOException, AzureExecutionException {
+        Log.info("");
+        Log.info(SAVE_FILE);
 
         final File packageDir = getPackageDir();
 
@@ -420,7 +394,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
         saveToTargetFile(targetFile, newFunctionClass);
 
-        info(SAVE_FILE_DONE + targetFile.getAbsolutePath());
+        Log.info(SAVE_FILE_DONE + targetFile.getAbsolutePath());
     }
 
     protected File getPackageDir() {
@@ -429,11 +403,11 @@ public class AddMojo extends AbstractFunctionMojo {
         return Paths.get(sourceRoot, packageName).toFile();
     }
 
-    protected File getTargetFile(final File packageDir) throws Exception {
-        final String functionName = getClassName() + ".java";
-        final File targetFile = new File(packageDir, functionName);
+    protected File getTargetFile(final File packageDir) throws AzureExecutionException {
+        final String javaFileName = getClassName() + ".java";
+        final File targetFile = new File(packageDir, javaFileName);
         if (targetFile.exists()) {
-            throw new FileAlreadyExistsException(format(FILE_EXIST, targetFile.getAbsolutePath()));
+            throw new AzureExecutionException(format(FILE_EXIST, targetFile.getAbsolutePath()));
         }
         return targetFile;
     }
@@ -444,9 +418,9 @@ public class AddMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void saveToTargetFile(final File targetFile, final String newFunctionClass) throws Exception {
+    protected void saveToTargetFile(final File targetFile, final String newFunctionClass) throws IOException {
         try (final OutputStream os = new FileOutputStream(targetFile)) {
-            copy(newFunctionClass, os);
+            IOUtil.copy(newFunctionClass, os);
         }
     }
 
@@ -458,7 +432,7 @@ public class AddMojo extends AbstractFunctionMojo {
                                        final Consumer<String> setter) {
         final String option = findElementInOptions(options, initValue);
         if (option != null) {
-            info(FOUND_VALID_VALUE);
+            Log.info(FOUND_VALID_VALUE);
             setter.accept(option);
             return;
         }
@@ -488,7 +462,7 @@ public class AddMojo extends AbstractFunctionMojo {
                                        final Function<String, Boolean> validator, final String errorMessage,
                                        final Consumer<String> setter) {
         if (validator.apply(initValue)) {
-            info(FOUND_VALID_VALUE);
+            Log.info(FOUND_VALID_VALUE);
             setter.accept(initValue);
             return;
         }
@@ -507,7 +481,7 @@ public class AddMojo extends AbstractFunctionMojo {
             } catch (Exception ignored) {
             }
             // Reaching here means invalid input
-            warning(errorMessage);
+            Log.warn(errorMessage);
         }
     }
 
@@ -515,7 +489,7 @@ public class AddMojo extends AbstractFunctionMojo {
                                           final Consumer<String> setter, final boolean required)
             throws MojoFailureException {
         if (validator.apply(input)) {
-            info(FOUND_VALID_VALUE);
+            Log.info(FOUND_VALID_VALUE);
             setter.accept(input);
             return;
         }

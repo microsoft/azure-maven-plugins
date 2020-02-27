@@ -6,13 +6,12 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins-pom</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.0.3</version>
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
-    <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-functions-maven-plugin</artifactId>
-    <version>1.2.2-SNAPSHOT</version>
+    <version>1.4.2-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Functions</name>
     <description>Maven Plugin for Azure Functions</description>
@@ -28,13 +27,16 @@
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
-        <azure.maven-plugin-lib.version>1.2.7-SNAPSHOT</azure.maven-plugin-lib.version>
-        <azure.function.version>1.2.2</azure.function.version>
+        <azure.maven-plugin-lib.version>1.2.14</azure.maven-plugin-lib.version>
+        <azure.function.version>1.3.1</azure.function.version>
         <reflections.version>0.9.11</reflections.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
         <semver.version>0.9.0</semver.version>
+        <surefire.version>2.22.0</surefire.version>
+        <jacoco.version>0.8.4</jacoco.version>
+        <powermock.version>2.0.2</powermock.version>
     </properties>
 
     <repositories>
@@ -103,7 +105,7 @@
                 </property>
             </activation>
             <properties>
-                <azure.ai.ikey>d3278c59-22d7-4697-af8c-ff0077e3b4e9</azure.ai.ikey>
+                <azure.ai.ikey>435bdea7-d399-49ee-8d2d-b2792aa060d2</azure.ai.ikey>
             </properties>
         </profile>
         <profile>
@@ -146,6 +148,7 @@
                                     <goal>install</goal>
                                     <goal>integration-test</goal>
                                     <goal>verify</goal>
+                                    <goal>report</goal>
                                 </goals>
                             </execution>
                         </executions>
@@ -213,7 +216,6 @@
             <artifactId>java-semver</artifactId>
             <version>${semver.version}</version>
         </dependency>
-
         <!-- TEST -->
         <dependency>
             <groupId>org.apache.maven.plugin-testing</groupId>
@@ -262,6 +264,24 @@
             <version>2.0.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.agent</artifactId>
+            <version>${jacoco.version}</version>
+            <classifier>runtime</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -281,7 +301,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.4</version>
+                <version>3.6.0</version>
                 <configuration>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>
@@ -297,6 +317,51 @@
                         <goals>
                             <goal>helpmojo</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <jacoco-agent.destfile>${project.build.directory}/coverage.exec</jacoco-agent.destfile>
+                    </systemPropertyVariables>
+                </configuration>
+                <version>${surefire.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/HelpMojo.*</exclude>
+                        <exclude>**/configurations/*.class</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-instrument</id>
+                        <goals>
+                            <goal>instrument</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-restore-instrumented-classes</id>
+                        <goals>
+                            <goal>restore-instrumented-classes</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/coverage.exec</dataFile>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

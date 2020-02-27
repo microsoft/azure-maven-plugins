@@ -1,0 +1,19 @@
+branches:
+  only:
+    - feature-spring
+
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      JAVA_HOME: "C:\\Program Files\\Java\\jdk1.8.0"
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      JAVA_HOME: "/usr/lib/jvm/java-8-openjdk-amd64"
+
+install:
+  - cmd: SET PATH=%JAVA_HOME%\bin;%PATH%
+
+build_script:
+  - cmd: mvnw -B clean verify && mvnw cobertura:cobertura
+  - sh: |
+          ./mvnw clean verify

@@ -6,27 +6,22 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
+import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+
+import static com.microsoft.azure.maven.webapp.ConfigMojo.JAVA_11_STRING;
 
 /**
  * Runtime Setting
  */
 public class RuntimeSetting {
-    private static final String JRE_8 = "jre8";
-    private static final String TOMCAT_8_5 = "tomcat 8.5";
-    private static final String TOMCAT_9_0 = "tomcat 9.0";
-    private static final String WILDFLY_14 = "wildfly 14";
-
-    private static final BidiMap<String, RuntimeStack> runtimeStackMap = new DualHashBidiMap<>();
 
     protected String os;
     protected String javaVersion;
@@ -35,59 +30,42 @@ public class RuntimeSetting {
     protected String serverId;
     protected String registryUrl;
 
-    // init map from webContainer to runtime stack
+    public static final String RUNTIME_CONFIG_REFERENCE = "https://aka.ms/maven_webapp_runtime";
+
     static {
-        runtimeStackMap.put(JRE_8, RuntimeStack.JAVA_8_JRE8);
-        runtimeStackMap.put(TOMCAT_8_5, RuntimeStack.TOMCAT_8_5_JRE8);
-        runtimeStackMap.put(TOMCAT_9_0, RuntimeStack.TOMCAT_9_0_JRE8);
-        runtimeStackMap.put(WILDFLY_14, RuntimeStack.WILDFLY_14_JRE8);
+        WebContainer.fromString(JAVA_11_STRING); // Add Java 11 Enum as Fluent SDK had not added it yet
     }
 
     public String getOs() {
         return this.os;
     }
 
-    public JavaVersion getJavaVersion() {
-        return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
+    public OperatingSystemEnum getOsEnum() {
+        try {
+            return Utils.parseOperationSystem(this.os);
+        } catch (AzureExecutionException e) {
+            return null;
+        }
     }
 
-    public RuntimeStack getLinuxRuntime() throws MojoExecutionException {
+    public JavaVersion getJavaVersion() {
+        return (StringUtils.isEmpty(javaVersion) || !checkJavaVersion(javaVersion)) ?
+                null : JavaVersion.fromString(javaVersion);
+    }
+
+    public RuntimeStack getLinuxRuntime() {
         // todo: add unit tests
-        if (StringUtils.equalsIgnoreCase(javaVersion, JRE_8)) {
-            final String fixRuntime = StringUtils.isEmpty(webContainer) ? JRE_8 : webContainer;
-            if (runtimeStackMap.containsKey(fixRuntime)) {
-                return runtimeStackMap.get(fixRuntime);
-            } else {
-                throw new MojoExecutionException(
-                    String.format("Unknown value of <webContainer>. Supported values are %s.",
-                        StringUtils.join(runtimeStackMap.keySet(), ",")));
-            }
-        }
-        throw new MojoExecutionException(String.format(
-            "Unknown value of <javaVersion>. Supported values is %s", JRE_8));
+        return RuntimeStackUtils.getRuntimeStack(javaVersion, webContainer);
     }
 
     public WebContainer getWebContainer() {
+        if (!checkWebContainer(webContainer)) {
+            return null;
+        }
         if (StringUtils.isEmpty(webContainer)) {
             return WebContainer.TOMCAT_8_5_NEWEST;
         }
         return WebContainer.fromString(webContainer);
-    }
-
-    public static List<String> getValidLinuxRuntime() {
-        return new ArrayList<>(runtimeStackMap.keySet());
-    }
-
-    public static String getDefaultLinuxRuntimeStack(){
-        return JRE_8;
-    }
-
-    public static String getLinuxWebContainerByRuntimeStack(RuntimeStack runtimeStack) {
-        return runtimeStackMap.getKey(runtimeStack);
-    }
-
-    public static RuntimeStack getLinuxRuntimeStackByJavaVersion(String javaVersion){
-        return runtimeStackMap.get(javaVersion);
     }
 
     public String getImage() {
@@ -106,5 +84,23 @@ public class RuntimeSetting {
         return StringUtils.isEmpty(this.os) && StringUtils.isEmpty(this.javaVersion) &&
             StringUtils.isEmpty(this.webContainer) && StringUtils.isEmpty(image) &&
             StringUtils.isEmpty(this.serverId) && StringUtils.isEmpty(this.registryUrl);
+    }
+
+    protected boolean checkJavaVersion(String value) {
+        for (final JavaVersion version : JavaVersion.values()) {
+            if (version.toString().equals(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected boolean checkWebContainer(String value) {
+        for (final WebContainer container : WebContainer.values()) {
+            if (container.toString().equals(value)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

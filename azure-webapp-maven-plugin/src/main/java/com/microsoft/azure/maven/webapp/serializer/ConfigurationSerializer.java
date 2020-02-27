@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.serializer;
 
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
+
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoFailureException;
 import org.dom4j.Element;
@@ -47,12 +48,8 @@ public abstract class ConfigurationSerializer {
     }
 
     protected void createOrUpdateAttribute(String attribute, String value, String oldValue, Element element) {
-        if (value == null) {
-            XMLUtils.removeNode(element, attribute);
-            return;
-        }
         // if value is not changed, just return , in case overwrite ${} properties
-        if (value.equalsIgnoreCase(oldValue)) {
+        if (value == null || value.equalsIgnoreCase(oldValue)) {
             return;
         } else {
             XMLUtils.setChildValue(attribute, value, element);

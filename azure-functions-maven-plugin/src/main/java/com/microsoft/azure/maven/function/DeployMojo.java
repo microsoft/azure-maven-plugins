@@ -6,70 +6,104 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.management.appservice.AppServicePlan;
+import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.common.appservice.DeployTargetType;
+import com.microsoft.azure.common.appservice.DeploymentType;
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.common.deploytarget.DeployTarget;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.common.function.handlers.artifact.DockerArtifactHandler;
+import com.microsoft.azure.common.function.handlers.artifact.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.common.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
+import com.microsoft.azure.common.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
+import com.microsoft.azure.common.function.handlers.runtime.DockerFunctionRuntimeHandler;
+import com.microsoft.azure.common.function.handlers.runtime.FunctionRuntimeHandler;
+import com.microsoft.azure.common.function.handlers.runtime.LinuxFunctionRuntimeHandler;
+import com.microsoft.azure.common.function.handlers.runtime.WindowsFunctionRuntimeHandler;
+import com.microsoft.azure.common.handlers.ArtifactHandler;
+import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
+import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
+import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Blank;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.ExistingAppServicePlanWithGroup;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.NewAppServicePlanWithGroup;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.maven.appservice.DeployTargetType;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandlerBase;
-import com.microsoft.azure.maven.artifacthandler.FTPArtifactHandlerImpl;
-import com.microsoft.azure.maven.artifacthandler.ZIPArtifactHandlerImpl;
-import com.microsoft.azure.maven.deploytarget.DeployTarget;
-import com.microsoft.azure.maven.function.handlers.MSDeployArtifactHandlerImpl;
-import com.microsoft.azure.maven.utils.AppServiceUtils;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.maven.MavenDockerCredentialProvider;
+import com.microsoft.azure.maven.ProjectUtils;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static com.microsoft.azure.common.appservice.DeploymentType.DOCKER;
+import static com.microsoft.azure.common.appservice.DeploymentType.EMPTY;
+import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_BLOB;
+import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
+
 /**
  * Deploy artifacts to target Azure Functions in Azure. If target Azure Functions doesn't exist, it will be created.
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
+
+    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
+    public static final String VALID_JAVA_VERSION_PATTERN = "^1\\.8.*"; // For now we only support function with java 8
+
     public static final String DEPLOY_START = "Trying to deploy the function app...";
     public static final String DEPLOY_FINISH =
-        "Successfully deployed the function app at https://%s.azurewebsites.net";
+        "Successfully deployed the function app at https://%s.azurewebsites.net.";
     public static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
         "Creating a new function app...";
-    public static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s";
+    public static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s.";
     public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
-    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app.";
+    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app: %s.";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
+    public static final String HOST_JAVA_VERSION = "Java version of function host : %s";
+    public static final String HOST_JAVA_VERSION_OFF = "Java version of function host is not initiated," +
+        " set it to Java 8.";
+    public static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
+        " meet the requirement of Azure Functions, set it to Java 8.";
+    public static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
+            "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
+
     //region Entry Point
-
     @Override
-    protected void doExecute() throws Exception {
-        createOrUpdateFunctionApp();
+    protected void doExecute() throws AzureExecutionException {
+        try {
+            createOrUpdateFunctionApp();
 
-        final FunctionApp app = getFunctionApp();
-        if (app == null) {
-            throw new MojoExecutionException(
-                String.format("Failed to get the function app with name: %s", getAppName()));
+            final FunctionApp app = getFunctionApp();
+            if (app == null) {
+                throw new AzureExecutionException(
+                    String.format("Failed to get the function app with name: %s", getAppName()));
+            }
+
+            final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
+
+            Log.info(DEPLOY_START);
+
+            getArtifactHandler().publish(deployTarget);
+
+            Log.info(String.format(DEPLOY_FINISH, getAppName()));
+        } catch (AzureAuthFailureException e) {
+            throw new AzureExecutionException("Cannot auth to azure", e);
         }
-
-        final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
-
-        info(DEPLOY_START);
-
-        getArtifactHandler().publish(deployTarget);
-
-        info(String.format(DEPLOY_FINISH, getAppName()));
     }
 
     //endregion
 
     //region Create or update Azure Functions
 
-    protected void createOrUpdateFunctionApp() throws Exception {
+    protected void createOrUpdateFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
         final FunctionApp app = getFunctionApp();
         if (app == null) {
             createFunctionApp();
@@ -78,60 +112,38 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void createFunctionApp() throws Exception {
-        info(FUNCTION_APP_CREATE_START);
-
-        final AppServicePlan plan = AppServiceUtils.getAppServicePlan(this.getAppServicePlanName(),
-            this.getAzureClient(), this.getResourceGroup(), this.getAppServicePlanResourceGroup());
-        final Blank functionApp = getAzureClient().appServices().functionApps().define(appName);
-        final String resGrp = getResourceGroup();
-        final WithCreate withCreate;
-        if (plan == null) {
-            final NewAppServicePlanWithGroup newAppServicePlanWithGroup = functionApp.withRegion(region);
-            withCreate = configureResourceGroup(newAppServicePlanWithGroup, resGrp);
-            configurePricingTier(withCreate, getPricingTier());
-        } else {
-            final ExistingAppServicePlanWithGroup planWithGroup = functionApp.withExistingAppServicePlan(plan);
-            withCreate = isResourceGroupExist(resGrp) ?
-                    planWithGroup.withExistingResourceGroup(resGrp) :
-                    planWithGroup.withNewResourceGroup(resGrp);
-        }
-        configureAppSettings(withCreate::withAppSettings, getAppSettings());
-        withCreate.create();
-
-        info(String.format(FUNCTION_APP_CREATED, getAppName()));
+    protected void createFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
+        Log.info(FUNCTION_APP_CREATE_START);
+        final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
+        final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
+        configureAppSettings(withCreate::withAppSettings, getAppSettingsWithDefaultValue());
+        withCreate.withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
+        Log.info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
 
-    protected void updateFunctionApp(final FunctionApp app) {
-        info(FUNCTION_APP_UPDATE);
-
+    protected void updateFunctionApp(final FunctionApp app) throws AzureAuthFailureException, AzureExecutionException {
+        Log.info(FUNCTION_APP_UPDATE);
         // Work around of https://github.com/Azure/azure-sdk-for-java/issues/1755
         app.inner().withTags(null);
-
-        final Update update = app.update();
-        configureAppSettings(update::withAppSettings, getAppSettings());
+        final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
+        runtimeHandler.updateAppServicePlan(app);
+        final Update update = runtimeHandler.updateAppRuntime(app);
+        checkHostJavaVersion(app, update); // Check Java Version of Server
+        configureAppSettings(update::withAppSettings, getAppSettingsWithDefaultValue());
         update.apply();
-
-        info(FUNCTION_APP_UPDATE_DONE + getAppName());
+        Log.info(String.format(FUNCTION_APP_UPDATE_DONE, getAppName()));
     }
 
-    protected WithCreate configureResourceGroup(final NewAppServicePlanWithGroup newAppServicePlanWithGroup,
-                                                final String resourceGroup) throws Exception {
-        return isResourceGroupExist(resourceGroup) ?
-                newAppServicePlanWithGroup.withExistingResourceGroup(resourceGroup) :
-                newAppServicePlanWithGroup.withNewResourceGroup(resourceGroup);
-    }
-
-    protected boolean isResourceGroupExist(final String resourceGroup) throws Exception {
-        return getAzureClient().resourceGroups().contain(resourceGroup);
-    }
-
-    protected void configurePricingTier(final WithCreate withCreate, final PricingTier pricingTier) {
-        if (pricingTier != null) {
-            // Enable Always On when using app service plan
-            withCreate.withNewAppServicePlan(pricingTier).withWebAppAlwaysOn(true);
+    protected void checkHostJavaVersion(final FunctionApp app, final Update update) {
+        final JavaVersion serverJavaVersion = app.javaVersion();
+        if (serverJavaVersion.toString().matches(VALID_JAVA_VERSION_PATTERN)) {
+            Log.info(String.format(HOST_JAVA_VERSION, serverJavaVersion));
+        } else if (serverJavaVersion.equals(JavaVersion.OFF)) {
+            Log.info(HOST_JAVA_VERSION_OFF);
+            update.withJavaVersion(DEFAULT_JAVA_VERSION);
         } else {
-            withCreate.withNewConsumptionPlan();
+            Log.warn(HOST_JAVA_VERSION_INCORRECT);
+            update.withJavaVersion(DEFAULT_JAVA_VERSION);
         }
     }
 
@@ -143,32 +155,96 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     //endregion
 
-    protected ArtifactHandler getArtifactHandler() throws MojoExecutionException {
+    protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws AzureAuthFailureException, AzureExecutionException {
+        final FunctionRuntimeHandler.Builder<?> builder;
+        final OperatingSystemEnum os = getOsEnum();
+        switch (os) {
+            case Windows:
+                builder = new WindowsFunctionRuntimeHandler.Builder();
+                break;
+            case Linux:
+                builder = new LinuxFunctionRuntimeHandler.Builder();
+                break;
+            case Docker:
+                final RuntimeConfiguration runtime = this.getRuntime();
+                builder = new DockerFunctionRuntimeHandler.Builder()
+                        .image(runtime.getImage())
+                        .dockerCredentialProvider(MavenDockerCredentialProvider.fromMavenSettings(this.getSettings(), runtime.getServerId()))
+                        .registryUrl(runtime.getRegistryUrl());
+                break;
+            default:
+                throw new AzureExecutionException(String.format("Unsupported runtime %s", os));
+        }
+        return builder.appName(getAppName())
+                .resourceGroup(getResourceGroup())
+                .runtime(getRuntime())
+                .region(Region.fromName(region))
+                .pricingTier(getPricingTier())
+                .servicePlanName(getAppServicePlanName())
+                .servicePlanResourceGroup(getAppServicePlanResourceGroup())
+                .functionExtensionVersion(getFunctionExtensionVersion())
+                .azure(getAzureClient())
+                .build();
+    }
+
+    protected OperatingSystemEnum getOsEnum() throws AzureExecutionException {
+        final String os = runtime == null ? null : runtime.getOs();
+        return StringUtils.isEmpty(os) ? RuntimeConfiguration.DEFAULT_OS : Utils.parseOperationSystem(os);
+    }
+
+    protected ArtifactHandler getArtifactHandler() throws AzureExecutionException {
         final ArtifactHandlerBase.Builder builder;
 
-        switch (this.getDeploymentType()) {
+        final DeploymentType deploymentType = getDeploymentType();
+        switch (deploymentType) {
             case MSDEPLOY:
                 builder = new MSDeployArtifactHandlerImpl.Builder().functionAppName(this.getAppName());
                 break;
             case FTP:
                 builder = new FTPArtifactHandlerImpl.Builder();
                 break;
-            case EMPTY:
             case ZIP:
                 builder = new ZIPArtifactHandlerImpl.Builder();
                 break;
+            case RUN_FROM_BLOB:
+                builder = new RunFromBlobArtifactHandlerImpl.Builder();
+                break;
+            case DOCKER:
+                builder = new DockerArtifactHandler.Builder();
+                break;
+            case EMPTY:
+            case RUN_FROM_ZIP:
+                builder = new RunFromZipArtifactHandlerImpl.Builder();
+                break;
             default:
-                throw new MojoExecutionException(
-                    "The value of <deploymentType> is unknown, supported values are: ftp, zip and msdeploy.");
+                throw new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
-        return builder.project(this.getProject())
-            .session(this.getSession())
-            .filtering(this.getMavenResourcesFiltering())
-            .resources(this.getResources())
+        return builder.project(ProjectUtils.convertCommonProject(this.getProject()))
             .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
             .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
-            .log(this.getLog())
             .build();
+    }
+
+    @Override
+    public DeploymentType getDeploymentType() throws AzureExecutionException {
+        final DeploymentType deploymentType = super.getDeploymentType();
+        return deploymentType == EMPTY ? getDeploymentTypeByRuntime() : deploymentType;
+    }
+
+    public DeploymentType getDeploymentTypeByRuntime() throws AzureExecutionException {
+        final OperatingSystemEnum operatingSystemEnum = getOsEnum();
+        switch (operatingSystemEnum) {
+            case Docker:
+                return DOCKER;
+            case Linux:
+                return isDedicatedPricingTier() ? RUN_FROM_ZIP : RUN_FROM_BLOB;
+            default:
+                return RUN_FROM_ZIP;
+        }
+    }
+
+    protected boolean isDedicatedPricingTier() {
+        return AppServiceUtils.getPricingTierFromString(pricingTier) != null;
     }
 
     //region Telemetry Configuration Interface
@@ -179,7 +255,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
         }
         return map;

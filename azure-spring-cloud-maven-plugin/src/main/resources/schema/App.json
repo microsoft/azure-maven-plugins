@@ -1,0 +1,19 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "App",
+	"description": "An app in Azure Spring Cloud service",
+	"type": "object",
+	"properties": {
+		"appName": {
+			"description": "The app name",
+			"type": "string",
+			"pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])$",
+			"maxLength": 32
+		},
+		"isPublic": {
+			"description": "Public accessible to this app",
+			"type": "boolean",
+			"default": false
+		}
+	}
+}

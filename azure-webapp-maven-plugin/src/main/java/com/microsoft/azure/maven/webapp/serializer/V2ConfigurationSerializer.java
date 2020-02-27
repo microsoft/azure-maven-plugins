@@ -6,11 +6,12 @@
 
 package com.microsoft.azure.maven.webapp.serializer;
 
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
+
 import org.apache.maven.plugin.MojoFailureException;
 import org.dom4j.Element;
 import org.dom4j.dom.DOMElement;
@@ -28,13 +29,15 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
         createOrUpdateAttribute("resourceGroup", newConfigs.getResourceGroup(),
             oldConfigs.getResourceGroup(), configurationElement);
         createOrUpdateAttribute("appName", newConfigs.getAppName(), oldConfigs.getAppName(), configurationElement);
-
-        final String oldRegion = oldConfigs.getRegion() == null ? null : oldConfigs.getRegion().name();
-        createOrUpdateAttribute("region", newConfigs.getRegion().name(), oldRegion, configurationElement);
         createOrUpdateAttribute("pricingTier",
-            PricingTierEnum.getPricingTierStringByPricingTierObject(newConfigs.getPricingTier()),
-            PricingTierEnum.getPricingTierStringByPricingTierObject(oldConfigs.getPricingTier()),
-            configurationElement);
+                AppServiceUtils.convertPricingTierToString(newConfigs.getPricingTier()),
+                AppServiceUtils.convertPricingTierToString(oldConfigs.getPricingTier()),
+                configurationElement);
+
+        if (newConfigs.getRegion() != null) {
+            final String oldRegion = oldConfigs.getRegion() == null ? null : oldConfigs.getRegion().name();
+            createOrUpdateAttribute("region", newConfigs.getRegion().name(), oldRegion, configurationElement);
+        }
 
         if (newConfigs.getOs() != null) {
             updateRunTimeNode(newConfigs, oldConfigs, configurationElement);
@@ -58,12 +61,11 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
     private void updateRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
                                    Element configurationElement) throws MojoFailureException {
-        Element runtime = configurationElement.element("runtime");
-        if (!(runtime != null && newConfigs.getOs().equals(oldConfigs.getOs()))) {
-            XMLUtils.removeNode(configurationElement, "runtime");
-            runtime = new DOMElement("runtime");
-            configurationElement.add(runtime);
+        final Element runtime = XMLUtils.getOrCreateSubElement("runtime", configurationElement);
+        if (!newConfigs.getOs().equals(oldConfigs.getOs())) {
+            XMLUtils.clearNode(runtime);
         }
+
         switch (newConfigs.getOs()) {
             case Linux:
                 updateLinuxRunTimeNode(newConfigs, oldConfigs, runtime);
@@ -83,12 +85,20 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
                                         Element configurationElement) {
         final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
         createOrUpdateAttribute("os", "linux", oldOS, configurationElement);
-        final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
-            oldConfigs.getJavaVersion().toString();
-        createOrUpdateAttribute("javaVersion", "jre8", oldJavaVersion, configurationElement);
-        createOrUpdateAttribute("webContainer",
-            RuntimeSetting.getLinuxWebContainerByRuntimeStack(newConfigs.getRuntimeStack())
-            , RuntimeSetting.getLinuxWebContainerByRuntimeStack(oldConfigs.getRuntimeStack()), configurationElement);
+        if (newConfigs.getRuntimeStack() != null) {
+            final String oldJavaVersion = oldConfigs.getRuntimeStack() == null ? null :
+                    RuntimeStackUtils.getJavaVersionFromRuntimeStack(oldConfigs.getRuntimeStack());
+            createOrUpdateAttribute("javaVersion",
+                    RuntimeStackUtils.getJavaVersionFromRuntimeStack(newConfigs.getRuntimeStack()), oldJavaVersion,
+                    configurationElement);
+        }
+        if (newConfigs.getRuntimeStack() != null) {
+            final String oldWebContainer = oldConfigs.getRuntimeStack() == null ? null :
+                    RuntimeStackUtils.getWebContainerFromRuntimeStack(oldConfigs.getRuntimeStack());
+            createOrUpdateAttribute("webContainer",
+                    RuntimeStackUtils.getWebContainerFromRuntimeStack(newConfigs.getRuntimeStack())
+                    , oldWebContainer, configurationElement);
+        }
     }
 
     private void updateWindowsRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
@@ -96,14 +106,18 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
         final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
         createOrUpdateAttribute("os", "windows", oldOS, configurationElement);
-        final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
-            oldConfigs.getJavaVersion().toString();
-        createOrUpdateAttribute("javaVersion", newConfigs.getJavaVersion().toString(),
-            oldJavaVersion, configurationElement);
-        final String oldWebContainer = oldConfigs.getWebContainer() == null ? null :
-            oldConfigs.getWebContainer().toString();
-        createOrUpdateAttribute("webContainer", newConfigs.getWebContainer().toString(), oldWebContainer,
-            configurationElement);
+        if (newConfigs.getJavaVersion() != null) {
+            final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
+                    oldConfigs.getJavaVersion().toString();
+            createOrUpdateAttribute("javaVersion", newConfigs.getJavaVersion().toString(),
+                    oldJavaVersion, configurationElement);
+        }
+        if (newConfigs.getWebContainer() != null) {
+            final String oldWebContainer = oldConfigs.getWebContainer() == null ? null :
+                    oldConfigs.getWebContainer().toString();
+            createOrUpdateAttribute("webContainer", newConfigs.getWebContainer().toString(), oldWebContainer,
+                    configurationElement);
+        }
     }
 
     private void updateDockerRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,

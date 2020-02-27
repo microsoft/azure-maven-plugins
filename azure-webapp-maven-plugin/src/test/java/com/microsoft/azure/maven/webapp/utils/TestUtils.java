@@ -6,9 +6,18 @@
 
 package com.microsoft.azure.maven.webapp.utils;
 
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Build;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.DefaultModelReader;
+import org.apache.maven.model.io.ModelReader;
+import org.apache.maven.plugin.testing.stubs.MavenProjectStub;
+import org.apache.maven.project.MavenProject;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Collections;
 
 public class TestUtils {
     private static final String clientId = System.getenv("CLIENT_ID");
@@ -22,7 +31,6 @@ public class TestUtils {
     private static final String createWebApp = "az webapp create -g %s -p %s -n %s";
     private static final String createLinuxWebApp = createWebApp + " --runtime \"TOMCAT|8.5-jre8\"";
     private static final String createLinuxAppServicePlan = createAppServicePlan + " --is-linux";
-
     private static final String windowsCommand = "cmd /c %s";
     private static final String nonWindowsCommand = "bash -c %s";
 
@@ -41,10 +49,9 @@ public class TestUtils {
                         waitForOperationFinish ? "" : " --no-wait"));
     }
 
-    private static void createWebApp(final String resourceGroupName, final String location,
+    public static void createWebApp(final String resourceGroupName, final String location,
                                      final String servicePlanName, final String webAppName,
                                      final boolean isLinux) throws IOException, InterruptedException {
-
         executeCommand(
                 String.format(createResourceGroup,
                         resourceGroupName,
@@ -58,7 +65,23 @@ public class TestUtils {
                         resourceGroupName,
                         servicePlanName,
                         webAppName));
+    }
 
+    public static MavenProject getSimpleMavenProjectForUnitTest() throws IOException, URISyntaxException {
+        final File pomFile = new File(TestUtils.class.getResource("/pom-simple.xml").toURI());
+        final MavenProjectStub project = new MavenProjectStub(readMavenModel(pomFile));
+        final Model model = project.getModel();
+        final Build build = new Build();
+        final String basedir = project.getBasedir().toString();
+        build.setFinalName(model.getArtifactId());
+        build.setDirectory(basedir + "/target");
+        build.setSourceDirectory(basedir + "/src/main/java");
+        build.setOutputDirectory(basedir + "/target/classes");
+        build.setTestSourceDirectory(basedir + "/src/test/java");
+        build.setTestOutputDirectory(basedir + "/target/test-classes");
+        project.setBuild(build);
+        project.setPackaging(model.getPackaging());
+        return project;
     }
 
     private static void executeCommand(final String command) throws IOException, InterruptedException {
@@ -67,4 +90,10 @@ public class TestUtils {
             Runtime.getRuntime().exec(wholeCommand).waitFor();
         }
     }
+
+    private static Model readMavenModel(File pomFile) throws IOException {
+        final ModelReader reader = new DefaultModelReader();
+        return reader.read(pomFile, Collections.emptyMap());
+    }
+
 }

@@ -6,16 +6,30 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
+import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.auth.AzureTokenWrapper;
+import com.microsoft.azure.auth.MavenSettingHelper;
+import com.microsoft.azure.auth.configuration.AuthType;
+import com.microsoft.azure.auth.exception.AzureLoginFailureException;
+import com.microsoft.azure.auth.exception.MavenDecryptException;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.auth.AzureAuthHelper;
+import com.microsoft.azure.maven.auth.AzureAuthHelperLegacy;
+import com.microsoft.azure.maven.auth.AzureClientFactory;
+import com.microsoft.azure.maven.common.ConfigurationProblem;
+import com.microsoft.azure.maven.common.ConfigurationProblem.Severity;
+import com.microsoft.azure.maven.common.utils.MavenUtils;
 import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.GetHashMac;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -24,19 +38,24 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
-import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Base abstract class for all Azure Mojos.
@@ -48,19 +67,22 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public static final String SESSION_ID_KEY = "sessionId";
     public static final String SUBSCRIPTION_ID_KEY = "subscriptionId";
     public static final String AUTH_TYPE = "authType";
+    public static final String AUTH_METHOD = "authMethod";
     public static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
     public static final String INIT_FAILURE = "InitFailure";
     public static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     public static final String FAILURE_REASON = "failureReason";
     private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
-        ".azure", "mavenplugins.properties").toString();
+            ".azure", "mavenplugins.properties").toString();
     private static final String FIRST_RUN_KEY = "first.run";
     private static final String PRIVACY_STATEMENT = "\nData/Telemetry\n" +
-        "---------\n" +
-        "This project collects usage data and sends it to Microsoft to help improve our products and services.\n" +
-        "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
-        "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
-        "For more information, please go to https://aka.ms/azure-maven-config.\n";
+            "---------\n" +
+            "This project collects usage data and sends it to Microsoft to help improve our products and services.\n" +
+            "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
+            "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
+            "For more information, please go to https://aka.ms/azure-maven-config.\n";
+    public static final String INVALID_AUTH_TYPE = "'%s' is not a valid auth type for Azure maven plugins, " +
+            "supported values are %s. Will use 'auto' by default.";
 
     //region Properties
 
@@ -140,15 +162,32 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Parameter(property = "httpProxyPort", defaultValue = "80")
     protected int httpProxyPort;
 
-    private AzureAuthHelper azureAuthHelper = new AzureAuthHelper(this);
+    /**
+     * Authentication type, could be OAuth, DeviceLogin, Azure_CLI, Azure_Secret_File
+     * If this is not set, maven plugin try all available auth methods with default order
+     *
+     * @since 1.2.13
+     */
+    @Parameter(property = "authType")
+    protected String authType;
+
+    @Parameter(property = "auth")
+    protected com.microsoft.azure.auth.configuration.AuthConfiguration auth;
+
+    @Component
+    protected SettingsDecrypter settingsDecrypter;
 
     private Azure azure;
 
     private TelemetryProxy telemetryProxy;
 
+    private AzureTokenWrapper azureTokenWrapper;
+
     private String sessionId = UUID.randomUUID().toString();
 
     private String installationId = GetHashMac.getHashMac();
+
+    private boolean authInitialized = false;
 
     //endregion
 
@@ -170,14 +209,17 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return mavenResourcesFiltering;
     }
 
+    @Override
     public Settings getSettings() {
         return settings;
     }
 
+    @Override
     public AuthenticationSetting getAuthenticationSetting() {
         return authentication;
     }
 
+    @Override
     public String getSubscriptionId() {
         return subscriptionId;
     }
@@ -206,32 +248,73 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return plugin.getVersion();
     }
 
+    @Override
     public String getUserAgent() {
         return isTelemetryAllowed() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
-                        INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
+                INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
                 : String.format("%s/%s", getPluginName(), getPluginVersion());
     }
 
+    @Override
     public String getHttpProxyHost() {
         return httpProxyHost;
-    }  
-    
+    }
+
+    @Override
     public int getHttpProxyPort() {
         return httpProxyPort;
-    } 
+    }
 
     public Azure getAzureClient() throws AzureAuthFailureException {
         if (azure == null) {
-            azure = azureAuthHelper.getAzureClient();
+            if (this.authentication != null && (this.authentication.getFile() != null || StringUtils.isNotBlank(authentication.getServerId()))) {
+                // TODO: remove the old way of authentication
+                Log.warn("You are using an old way of authentication which will be deprecated in future versions, please change your configurations.");
+                azure = new AzureAuthHelperLegacy(this).getAzureClient();
+            } else {
+                initAuth();
+                azure = getAzureClientByAuthType();
+            }
             if (azure == null) {
                 getTelemetryProxy().trackEvent(INIT_FAILURE);
                 throw new AzureAuthFailureException(AZURE_INIT_FAIL);
             } else {
+                getTelemetryProxy().addDefaultProperty(AUTH_TYPE, authType);
+                getTelemetryProxy().addDefaultProperty(AUTH_METHOD, getAuthMethod());
                 // Repopulate subscriptionId in case it is not configured.
                 getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
             }
         }
         return azure;
+    }
+
+    protected Azure getAzureClientByAuthType() throws AzureAuthFailureException {
+        try {
+            // TODO: Enable extra Azure Environment like Azure China
+            final AzureEnvironment environment = AzureEnvironment.AZURE;
+            azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
+            return azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
+                    this.subscriptionId, getUserAgent());
+        } catch (IOException | AzureLoginFailureException e) {
+            throw new AzureAuthFailureException(e.getMessage());
+        }
+    }
+
+    protected AuthType getAuthTypeEnum() {
+        if (StringUtils.isEmpty(authType)) {
+            return AuthType.AUTO;
+        }
+        AuthType result = Arrays.stream(AuthType.getValidAuthTypes())
+                .filter(authTypeEnum -> StringUtils.equalsAnyIgnoreCase(authTypeEnum.name(), authType))
+                .findFirst().orElse(null);
+        if (result == null) {
+            final String validAuthTypes = Arrays.stream(AuthType.getValidAuthTypes())
+                    .map(authType -> String.format("'%s'", StringUtils.lowerCase(authType.name())))
+                    .collect(Collectors.joining(", "));
+            Log.warn(String.format(INVALID_AUTH_TYPE, authType, validAuthTypes));
+            result = AuthType.AUTO;
+        }
+        return result;
     }
 
     public TelemetryProxy getTelemetryProxy() {
@@ -249,10 +332,53 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
+    protected void initAuth() throws AzureAuthFailureException {
+        initializeAuthConfiguration();
+    }
+
     //endregion
+
+    protected void initializeAuthConfiguration() throws AzureAuthFailureException {
+        if (authInitialized) {
+            return;
+        }
+        authInitialized = true;
+        if (!isAuthConfigurationExist()) {
+            return;
+        }
+        if (StringUtils.isNotBlank(auth.getServerId())) {
+            if (this.settings.getServer(auth.getServerId()) != null) {
+                try {
+                    auth = MavenSettingHelper.getAuthConfigurationFromServer(session, settingsDecrypter, auth.getServerId());
+                } catch (MavenDecryptException e) {
+                    throw new AzureAuthFailureException(e.getMessage());
+                }
+            } else {
+                throw new AzureAuthFailureException(String.format("Unable to get server('%s') from settings.xml.", auth.getServerId()));
+            }
+        }
+
+        final List<ConfigurationProblem> problems = auth.validate();
+        if (problems.stream().anyMatch(problem -> problem.getSeverity() == Severity.ERROR)) {
+            throw new AzureAuthFailureException(String.format("Unable to validate auth configuration due to the following errors: %s",
+                    problems.stream().map(ConfigurationProblem::getErrorMessage).collect(Collectors.joining("\n"))));
+        }
+
+    }
+
+    protected boolean isAuthConfigurationExist() {
+        final String pluginKey = plugin.getPluginLookupKey();
+        final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
+        if (pluginDom == null) {
+            return false;
+        }
+        final Xpp3Dom authDom = pluginDom.getChild("auth");
+        return authDom != null && authDom.getChildren().length > 0;
+    }
 
     //region Telemetry Configuration Interface
 
+    @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = new HashMap<>();
         map.put(INSTALLATION_ID_KEY, getInstallationId());
@@ -260,13 +386,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         map.put(PLUGIN_VERSION_KEY, getPluginVersion());
         map.put(SUBSCRIPTION_ID_KEY, getSubscriptionId());
         map.put(SESSION_ID_KEY, getSessionId());
-        map.put(AUTH_TYPE, getAuthType());
         return map;
     }
 
-    // TODO:
-    // Add AuthType ENUM and move to AzureAuthHelper.
-    public String getAuthType() {
+    public String getAuthMethod() {
+        if (azureTokenWrapper != null) {
+            return azureTokenWrapper.getAuthMethod().name();
+        }
         final AuthenticationSetting authSetting = getAuthenticationSetting();
         if (authSetting == null) {
             return "AzureCLI";
@@ -300,7 +426,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
 
             if (isSkipMojo()) {
-                info("Skip execution.");
+                Log.info("Skip execution.");
                 trackMojoSkip();
             } else {
                 trackMojoStart();
@@ -311,6 +437,18 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
         } catch (Exception e) {
             handleException(e);
+        } finally {
+            // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
+            // into endless loop when close, we need to call it in main thread.
+            // Refer here for detail codes: https://github.com/Microsoft/ApplicationInsights-Java/blob/master/core/src
+            // /main/java/com/microsoft/applicationinsights/internal/channel/common/ApacheSender43.java#L103
+            try {
+                // Sleep to wait ai sdk flush telemetries
+                Thread.sleep(2 * 1000);
+            } catch (InterruptedException e) {
+                // swallow this exception
+            }
+            ApacheSenderFactory.INSTANCE.create().close();
         }
     }
 
@@ -326,9 +464,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     /**
      * Entry point of sub-class. Sub-class should implement this method to do real work.
      *
-     * @throws Exception
+     * @throws AzureExecutionException
      */
-    protected abstract void doExecute() throws Exception;
+    protected abstract void doExecute() throws AzureExecutionException;
 
     //endregion
 
@@ -366,7 +504,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (isFailingOnError()) {
             throw new MojoExecutionException(message, exception);
         } else {
-            error(message);
+            Log.error(message);
         }
     }
 
@@ -387,7 +525,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
         } catch (Exception e) {
             // catch exceptions here to avoid blocking mojo execution.
-            debug(e.getMessage());
+            Log.debug(e.getMessage());
         }
         return true;
     }
@@ -398,14 +536,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             prop.store(output, "Azure Maven Plugin configurations");
         } catch (Exception e) {
             // catch exceptions here to avoid blocking mojo execution.
-            debug(e.getMessage());
+            Log.debug(e.getMessage());
         }
     }
 
     protected class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
         @Override
         public void uncaughtException(Thread t, Throwable e) {
-            debug("uncaughtException: " + e);
+            Log.debug("uncaughtException: " + e);
         }
     }
 
@@ -413,27 +551,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     //region Logging
 
-    public void debug(final String message) {
-        getLog().debug(message);
-    }
-
-    public void info(final String message) {
-        getLog().info(message);
-    }
-
     public void infoWithMultipleLines(final String messages) {
         final String[] messageArray = messages.split("\\n");
         for (final String line : messageArray) {
-            getLog().info(line);
+            Log.info(line);
         }
-    }
-
-    public void warning(final String message) {
-        getLog().warn(message);
-    }
-
-    public void error(final String message) {
-        getLog().error(message);
     }
 
     //endregion

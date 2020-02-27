@@ -25,7 +25,7 @@ public class AddSecretValueMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     MavenProject project;
-    
+
     /**
      * schema version of the secret value yaml to be generated
     */

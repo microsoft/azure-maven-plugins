@@ -6,11 +6,13 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.maven.function.handlers.CommandHandler;
-import com.microsoft.azure.maven.function.handlers.CommandHandlerImpl;
-import com.microsoft.azure.maven.function.utils.CommandUtils;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.handlers.CommandHandler;
+import com.microsoft.azure.common.function.handlers.CommandHandlerImpl;
+import com.microsoft.azure.common.function.utils.CommandUtils;
+import com.microsoft.azure.common.logging.Log;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -28,7 +30,7 @@ public class RunMojo extends AbstractFunctionMojo {
     public static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
             "Please go to https://aka.ms/azfunc-install to install Azure Functions Core Tools first.";
     public static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
-    
+
     public static final String FUNC_HOST_START_CMD = "func host start";
     public static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start --language-worker -- " +
             "\"-agentlib:jdwp=%s\"";
@@ -57,8 +59,8 @@ public class RunMojo extends AbstractFunctionMojo {
     //region Entry Point
 
     @Override
-    protected void doExecute() throws Exception {
-        final CommandHandler commandHandler = new CommandHandlerImpl(this.getLog());
+    protected void doExecute() throws AzureExecutionException {
+        final CommandHandler commandHandler = new CommandHandlerImpl();
 
         checkStageDirectoryExistence();
 
@@ -67,15 +69,15 @@ public class RunMojo extends AbstractFunctionMojo {
         runFunctions(commandHandler);
     }
 
-    protected void checkStageDirectoryExistence() throws Exception {
+    protected void checkStageDirectoryExistence() throws AzureExecutionException {
         final File file = new File(getDeploymentStagingDirectoryPath());
         if (!file.exists() || !file.isDirectory()) {
-            throw new MojoExecutionException(STAGE_DIR_NOT_FOUND);
+            throw new AzureExecutionException(STAGE_DIR_NOT_FOUND);
         }
-        info(STAGE_DIR_FOUND + getDeploymentStagingDirectoryPath());
+        Log.info(STAGE_DIR_FOUND + getDeploymentStagingDirectoryPath());
     }
 
-    protected void checkRuntimeExistence(final CommandHandler handler) throws Exception {
+    protected void checkRuntimeExistence(final CommandHandler handler) throws AzureExecutionException {
         handler.runCommandWithReturnCodeCheck(
                 getCheckRuntimeCommand(),
                 false, /* showStdout */
@@ -83,10 +85,10 @@ public class RunMojo extends AbstractFunctionMojo {
                 CommandUtils.getDefaultValidReturnCodes(),
                 RUNTIME_NOT_FOUND
         );
-        info(RUNTIME_FOUND);
+        Log.info(RUNTIME_FOUND);
     }
 
-    protected void runFunctions(final CommandHandler handler) throws Exception {        
+    protected void runFunctions(final CommandHandler handler) throws AzureExecutionException {
         handler.runCommandWithReturnCodeCheck(
                 getStartFunctionHostCommand(),
                 true, /* showStdout */
@@ -114,8 +116,7 @@ public class RunMojo extends AbstractFunctionMojo {
     }
 
     protected String getStartFunctionHostWithDebugCommand() {
-        final String localDebugConfig = this.getLocalDebugConfig();
-        return String.format(FUNC_HOST_START_WITH_DEBUG_CMD, localDebugConfig);
+        return String.format(FUNC_HOST_START_WITH_DEBUG_CMD, this.getLocalDebugConfig());
     }
 
     //endregion

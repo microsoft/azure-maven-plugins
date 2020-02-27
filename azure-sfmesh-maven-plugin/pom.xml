@@ -8,11 +8,10 @@
   <parent>
       <groupId>com.microsoft.azure</groupId>
       <artifactId>azure-maven-plugins-pom</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.3</version>
       <relativePath>../azure-maven-plugins-pom</relativePath>
   </parent>
 
-  <groupId>com.microsoft.azure</groupId>
   <artifactId>azure-sfmesh-maven-plugin</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
@@ -21,11 +20,13 @@
   <url>https://github.com/microsoft/azure-maven-plugins</url>
 
   <properties>
-    <jackson.core.version>2.9.7</jackson.core.version>
-    <jackson.dataformat.version>2.9.7</jackson.dataformat.version>
+    <jackson.core.version>2.9.10.1</jackson.core.version>
+    <jackson.dataformat.version>2.9.10</jackson.dataformat.version>
     <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
     <maven.version>3.3.3</maven.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
   </properties>
 
   <licenses>
@@ -115,6 +116,7 @@
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-checkstyle-plugin</artifactId>
+            <configuration><skip>true</skip></configuration>
         </plugin>
       </plugins>
     </pluginManagement>

@@ -7,13 +7,12 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins-pom</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.0.3</version>
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
-    <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugin-lib</artifactId>
-    <version>1.2.7-SNAPSHOT</version>
+    <version>1.2.15-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
@@ -22,18 +21,22 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.3.3</maven.version>
         <maven.filtering.version>3.0.0</maven.filtering.version>
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <codehaus.plexus-utils>3.0.20</codehaus.plexus-utils>
-        <azure.version>1.17.1</azure.version>
-        <azure.ai.version>2.2.1</azure.ai.version>
+        <azure.version>1.30.0</azure.version>
+        <azure.ai.version>2.5.1</azure.ai.version>
         <common-net.version>3.6</common-net.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
+        <powermock.version>2.0.2</powermock.version>
+        <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
+        <azure.auth.helper.version>0.3.0</azure.auth.helper.version>
+        <azure-tools-common.version>0.1.0</azure-tools-common.version>
     </properties>
 
     <licenses>
@@ -136,6 +139,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-tools-common</artifactId>
+            <version>${azure-tools-common.version}</version>
+        </dependency>
+        <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
             <version>${common-net.version}</version>
@@ -144,6 +152,28 @@
             <groupId>org.zeroturnaround</groupId>
             <artifactId>zt-zip</artifactId>
             <version>${zeroturnaround.zip.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-auth-helper</artifactId>
+            <version>${azure.auth.helper.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.29</version>
+        </dependency>
+
+        <!-- JAXB For Application Insight Issue -->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>${jaxb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>${jaxb.version}</version>
         </dependency>
 
         <!-- TEST -->
@@ -157,6 +187,18 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -176,7 +218,6 @@
                         <excludes>
                             <exclude>**/AuthenticationSetting.class</exclude>
                             <exclude>**/telemetry/**.class</exclude>
-                            <exclude>**/PricingTierEnum.class</exclude>
                         </excludes>
                     </instrumentation>
                 </configuration>

@@ -6,33 +6,35 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
-import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
+
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.StringUtils;
+
 import java.util.List;
 import java.util.Locale;
 
 public class V2ConfigurationParser extends ConfigurationParser {
-    public V2ConfigurationParser(AbstractWebAppMojo mojo) {
-        super(mojo);
+
+    public V2ConfigurationParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
+        super(mojo, validator);
     }
 
     @Override
-    protected OperatingSystemEnum getOs() throws MojoExecutionException {
+    protected OperatingSystemEnum getOs() throws AzureExecutionException {
+        validate(validator.validateOs());
         final RuntimeSetting runtime = mojo.getRuntime();
         final String os = runtime.getOs();
         if (runtime.isEmpty()) {
             return null;
-        } else if (StringUtils.isEmpty(os)) {
-            throw new MojoExecutionException("Pleas configure the <os> of <runtime> in pom.xml.");
         }
         switch (os.toLowerCase(Locale.ENGLISH)) {
             case "windows":
@@ -42,22 +44,20 @@ public class V2ConfigurationParser extends ConfigurationParser {
             case "docker":
                 return OperatingSystemEnum.Docker;
             default:
-                throw new MojoExecutionException("The value of <os> is not correct, supported values are: windows, " +
-                    "linux and docker.");
+                return null;
         }
     }
 
     @Override
-    protected Region getRegion() throws MojoExecutionException {
+    protected Region getRegion() throws AzureExecutionException {
+        validate(validator.validateRegion());
         final String region = mojo.getRegion();
-        if (!StringUtils.isEmpty(region) && Region.findByLabelOrName(region) == null) {
-            throw new MojoExecutionException("The value of <region> is not supported, please correct it in pom.xml.");
-        }
         return Region.fromName(region);
     }
 
     @Override
-    protected RuntimeStack getRuntimeStack() throws MojoExecutionException {
+    protected RuntimeStack getRuntimeStack() throws AzureExecutionException {
+        validate(validator.validateRuntimeStack());
         final RuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null || runtime.isEmpty()) {
             return null;
@@ -66,14 +66,9 @@ public class V2ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected String getImage() throws MojoExecutionException {
+    protected String getImage() throws AzureExecutionException {
+        validate(validator.validateImage());
         final RuntimeSetting runtime = mojo.getRuntime();
-        if (runtime == null) {
-            throw new MojoExecutionException("Please configure the <runtime> in pom.xml.");
-        }
-        if (StringUtils.isEmpty(runtime.getImage())) {
-            throw new MojoExecutionException("Please config the <image> of <runtime> in pom.xml.");
-        }
         return runtime.getImage();
     }
 
@@ -101,23 +96,16 @@ public class V2ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected WebContainer getWebContainer() throws MojoExecutionException {
+    protected WebContainer getWebContainer() throws AzureExecutionException {
+        validate(validator.validateWebContainer());
         final RuntimeSetting runtime = mojo.getRuntime();
-        if (runtime == null) {
-            throw new MojoExecutionException("Pleas config the <runtime> in pom.xml.");
-        }
         return runtime.getWebContainer();
     }
 
     @Override
-    protected JavaVersion getJavaVersion() throws MojoExecutionException {
+    protected JavaVersion getJavaVersion() throws AzureExecutionException {
+        validate(validator.validateJavaVersion());
         final RuntimeSetting runtime = mojo.getRuntime();
-        if (runtime == null) {
-            throw new MojoExecutionException("Pleas config the <runtime> in pom.xml.");
-        }
-        if (runtime.getJavaVersion() == null) {
-            throw new MojoExecutionException("The configuration <javaVersion> in pom.xml is not correct.");
-        }
         return runtime.getJavaVersion();
     }
 

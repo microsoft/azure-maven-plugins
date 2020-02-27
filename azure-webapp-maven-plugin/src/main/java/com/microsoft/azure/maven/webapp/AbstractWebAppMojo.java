@@ -6,34 +6,38 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.PagedList;
+import com.microsoft.azure.common.appservice.DockerImageType;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.configuration.DockerImageType;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
-import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
-import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.util.StringUtils;
+import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
+import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Resource;
+import org.apache.maven.plugins.annotations.Parameter;
+
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 /**
  * Base abstract class for Web App Mojos.
@@ -67,8 +71,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *     <li>P3V2</li>
      * </ul>
      */
-    @Parameter(property = "webapp.pricingTier", defaultValue = "P1V2")
-    protected PricingTierEnum pricingTier;
+    @Parameter(property = "webapp.pricingTier")
+    protected String pricingTier;
 
     /**
      * JVM version of Web App. This only applies to Windows-based Web App.<br/>
@@ -203,6 +207,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     /**
      * Schema version, which will be used to indicate the version of settings schema to use.
+     *
      * @since 2.0.0
      */
     @Parameter(property = "schemaVersion", defaultValue = "v1")
@@ -210,6 +215,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     /**
      * Runtime setting
+     *
      * @since 2.0.0
      */
     @Parameter(property = "runtime")
@@ -217,6 +223,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     /**
      * Deployment setting
+     *
      * @since 2.0.0
      */
     @Parameter(property = "deployment")
@@ -224,6 +231,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     private WebAppConfiguration webAppConfiguration;
 
+    protected File stagingDirectory;
     //endregion
 
     //region Getter
@@ -233,22 +241,26 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return skip;
     }
 
+    @Override
     public String getResourceGroup() {
         return resourceGroup;
     }
 
+    @Override
     public String getAppName() {
-        return appName;
+        return appName == null ? "" : appName;
     }
 
     public DeploymentSlotSetting getDeploymentSlotSetting() {
         return deploymentSlotSetting;
     }
 
+    @Override
     public String getAppServicePlanResourceGroup() {
         return appServicePlanResourceGroup;
     }
 
+    @Override
     public String getAppServicePlanName() {
         return appServicePlanName;
     }
@@ -257,12 +269,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return region;
     }
 
-    public PricingTier getPricingTier() throws MojoExecutionException {
-        return pricingTier == null ? new PricingTier("Premium", "P1V2") : pricingTier.toPricingTier();
+    public String getPricingTier() {
+        return this.pricingTier;
     }
 
-    public JavaVersion getJavaVersion() {
-        return StringUtils.isEmpty(javaVersion) ? null : JavaVersion.fromString(javaVersion);
+    public String getJavaVersion() {
+        return this.javaVersion;
     }
 
     public String getLinuxRuntime() {
@@ -301,14 +313,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     public WebApp getWebApp() throws AzureAuthFailureException {
-        try {
-            return getAzureClient().webApps().getByResourceGroup(getResourceGroup(), getAppName());
-        } catch (AzureAuthFailureException authEx) {
-            throw authEx;
-        } catch (Exception ex) {
-            // Swallow exception for non-existing web app
-        }
-        return null;
+        final PagedList<WebApp> webAppPagedList = getAzureClient().webApps().list();
+        return AppServiceUtils.findAppServiceInPagedList(webAppPagedList, getResourceGroup(), getAppName());
     }
 
     public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {
@@ -341,23 +347,22 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public void setRuntime(final RuntimeSetting runtime) {
         this.runtime = runtime;
     }
-
     //endregion
 
-    protected ConfigurationParser getParserBySchemaVersion() throws MojoExecutionException {
-        final String schemaVersion = StringUtils.isEmpty(getSchemaVersion()) ? "v1" : getSchemaVersion();
+    protected ConfigurationParser getParserBySchemaVersion() throws AzureExecutionException {
+        final String version = StringUtils.isEmpty(getSchemaVersion()) ? "v1" : getSchemaVersion();
 
-        switch (schemaVersion.toLowerCase(Locale.ENGLISH)) {
+        switch (version.toLowerCase(Locale.ENGLISH)) {
             case "v1":
-                return new V1ConfigurationParser(this);
+                return new V1ConfigurationParser(this, new V1ConfigurationValidator(this));
             case "v2":
-                return new V2ConfigurationParser(this);
+                return new V2ConfigurationParser(this, new V2ConfigurationValidator(this));
             default:
-                throw new MojoExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
+                throw new AzureExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
         }
     }
 
-    protected WebAppConfiguration getWebAppConfiguration() throws MojoExecutionException {
+    protected WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {
         if (webAppConfiguration == null) {
             webAppConfiguration = getParserBySchemaVersion().getWebAppConfiguration();
         }
@@ -380,36 +385,55 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
-        final WebAppConfiguration webAppConfiguration;
+        final WebAppConfiguration webAppConfig;
         try {
-            webAppConfiguration = getWebAppConfiguration();
+            webAppConfig = getWebAppConfiguration();
         } catch (Exception e) {
             map.put(INVALID_CONFIG_KEY, e.getMessage());
             return map;
         }
-        if (webAppConfiguration.getImage() != null) {
-            final String imageType = WebAppUtils.getDockerImageType(webAppConfiguration.getImage(),
-                webAppConfiguration.getServerId(), webAppConfiguration.getRegistryUrl()).toString();
+        if (webAppConfig.getImage() != null) {
+            final String imageType = AppServiceUtils.getDockerImageType(webAppConfig.getImage(),
+                StringUtils.isNotEmpty(webAppConfig.getServerId()), webAppConfig.getRegistryUrl()).toString();
             map.put(DOCKER_IMAGE_TYPE_KEY, imageType);
         } else {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
         }
         map.put(SCHEMA_VERSION_KEY, schemaVersion);
-        map.put(OS_KEY, webAppConfiguration.getOs() == null ? "" : webAppConfiguration.getOs().toString());
-        map.put(JAVA_VERSION_KEY, webAppConfiguration.getJavaVersion() == null ? "" :
-            webAppConfiguration.getJavaVersion().toString());
-        map.put(JAVA_WEB_CONTAINER_KEY, webAppConfiguration.getWebContainer() == null ? "" :
-            webAppConfiguration.getJavaVersion().toString());
-        map.put(LINUX_RUNTIME_KEY, webAppConfiguration.getRuntimeStack() == null ? "" :
-            webAppConfiguration.getRuntimeStack().stack() + " " + webAppConfiguration.getRuntimeStack().version());
+        map.put(OS_KEY, webAppConfig.getOs() == null ? "" : webAppConfig.getOs().toString());
+        map.put(JAVA_VERSION_KEY, webAppConfig.getJavaVersion() == null ? "" :
+            webAppConfig.getJavaVersion().toString());
+        map.put(JAVA_WEB_CONTAINER_KEY, webAppConfig.getWebContainer() == null ? "" :
+            webAppConfig.getJavaVersion().toString());
+        map.put(LINUX_RUNTIME_KEY, webAppConfig.getRuntimeStack() == null ? "" :
+            webAppConfig.getRuntimeStack().stack() + " " + webAppConfig.getRuntimeStack().version());
 
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
         }
         return map;
     }
 
+    @Override
+    public String getDeploymentStagingDirectoryPath() {
+        if (stagingDirectory == null) {
+            synchronized (this) {
+                if (stagingDirectory == null) {
+                    final String outputFolder = this.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
+                    final String stagingDirectoryPath = Paths.get(this.getBuildDirectoryAbsolutePath(),
+                            outputFolder, String.format("%s-%s", this.getAppName(), UUID.randomUUID().toString())
+                    ).toString();
+                    stagingDirectory = new File(stagingDirectoryPath);
+                    // If staging directory doesn't exist, create one and delete it on exit
+                    if (!stagingDirectory.exists()) {
+                        stagingDirectory.mkdirs();
+                    }
+                }
+            }
+        }
+        return stagingDirectory.getPath();
+    }
     //endregion
 }

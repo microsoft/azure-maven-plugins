@@ -7,13 +7,12 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins-pom</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.0.3</version>
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
-    <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-webapp-maven-plugin</artifactId>
-    <version>1.5.3-SNAPSHOT</version>
+    <version>1.10.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Web Apps</name>
     <description>Maven Plugin for Azure Web Apps</description>
@@ -22,14 +21,14 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.3.3</maven.version>
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.0.20</codehaus.plexus-utils.version>
         <azure.ai.version>1.0.9</azure.ai.version>
-        <azure.maven-plugin-lib.version>1.2.7-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.2.14</azure.maven-plugin-lib.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.22.0</mockito.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
@@ -87,7 +86,7 @@
                 </property>
             </activation>
             <properties>
-                <azure.ai.ikey>d3278c59-22d7-4697-af8c-ff0077e3b4e9</azure.ai.ikey>
+                <azure.ai.ikey>435bdea7-d399-49ee-8d2d-b2792aa060d2</azure.ai.ikey>
             </properties>
         </profile>
         <profile>
@@ -124,6 +123,7 @@
                                     <goal>install</goal>
                                     <goal>integration-test</goal>
                                     <goal>verify</goal>
+                                    <goal>report</goal>
                                 </goals>
                             </execution>
                         </executions>
@@ -233,6 +233,7 @@
                 <includes>
                     <include>**/ApplicationInsights.xml</include>
                     <include>**/web.config.template</include>
+                    <include>**/plugin.properties</include>
                 </includes>
             </resource>
         </resources>
@@ -240,7 +241,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.4</version>
+                <version>3.6.0</version>
                 <configuration>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>

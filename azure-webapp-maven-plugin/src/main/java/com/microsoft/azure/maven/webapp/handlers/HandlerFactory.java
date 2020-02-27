@@ -6,12 +6,12 @@
 
 package com.microsoft.azure.maven.webapp.handlers;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.handlers.ArtifactHandler;
+import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.maven.artifacthandler.ArtifactHandler;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 
 public abstract class HandlerFactory {
     private static HandlerFactory instance = new HandlerFactoryImpl();
@@ -21,13 +21,13 @@ public abstract class HandlerFactory {
     }
 
     public abstract RuntimeHandler getRuntimeHandler(final WebAppConfiguration config,
-                                                     final Azure azureClient, final Log log)
-        throws MojoExecutionException;
+                                                         final Azure azureClient)
+        throws AzureExecutionException;
 
-    public abstract SettingsHandler getSettingsHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException;
+    public abstract SettingsHandler getSettingsHandler(final AbstractWebAppMojo mojo) throws AzureExecutionException;
 
-    public abstract ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws MojoExecutionException;
+    public abstract ArtifactHandler getArtifactHandler(final AbstractWebAppMojo mojo) throws AzureExecutionException;
 
     public abstract DeploymentSlotHandler getDeploymentSlotHandler(final AbstractWebAppMojo mojo)
-        throws MojoExecutionException;
+        throws AzureExecutionException;
 }

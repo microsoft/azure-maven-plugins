@@ -6,8 +6,9 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.Locale;
 
@@ -17,16 +18,16 @@ public enum SchemaVersion {
 
     public static final String UNKNOWN_SCHEMA_VERSION = "Unknown value of <schemaVersion> in pom.xml.";
 
-    public static SchemaVersion fromString(final String input) throws MojoExecutionException {
+    public static SchemaVersion fromString(final String input) throws AzureExecutionException {
         final String schemaVersion = StringUtils.isEmpty(input) ? "v1" : input;
 
-        switch(schemaVersion.toLowerCase(Locale.ENGLISH)) {
+        switch (schemaVersion.toLowerCase(Locale.ENGLISH)) {
             case "v1":
                 return V1;
             case "v2":
                 return V2;
             default:
-                throw new MojoExecutionException(UNKNOWN_SCHEMA_VERSION);
+                throw new AzureExecutionException(UNKNOWN_SCHEMA_VERSION);
         }
     }
 }

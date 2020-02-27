@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
@@ -13,10 +15,10 @@ import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Before;
@@ -25,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -40,7 +43,37 @@ public class ConfigurationParserTest {
     protected ConfigurationParser parser;
 
     public void buildParser() {
-        parser = new ConfigurationParser(mojo) {
+        parser = new ConfigurationParser(mojo, new AbstractConfigurationValidator(mojo) {
+            @Override
+            public String validateRegion() {
+                return null;
+            }
+
+            @Override
+            public String validateOs() {
+                return null;
+            }
+
+            @Override
+            public String validateRuntimeStack() {
+                return null;
+            }
+
+            @Override
+            public String validateImage() {
+                return null;
+            }
+
+            @Override
+            public String validateJavaVersion() {
+                return null;
+            }
+
+            @Override
+            public String validateWebContainer() {
+                return null;
+            }
+        }) {
             @Override
             protected OperatingSystemEnum getOs() {
                 return null;
@@ -100,14 +133,14 @@ public class ConfigurationParserTest {
     }
 
     @Test
-    public void getWebAppName() throws MojoExecutionException {
+    public void getWebAppName() throws AzureExecutionException {
         doReturn("appName").when(mojo).getAppName();
         assertEquals("appName", parser.getAppName());
 
         doReturn("-invalidAppName").when(mojo).getAppName();
         try {
             parser.getAppName();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The <appName> only allow alphanumeric characters, " +
                 "hyphens and cannot start or end in a hyphen.");
         }
@@ -115,20 +148,20 @@ public class ConfigurationParserTest {
         doReturn(null).when(mojo).getAppName();
         try {
             parser.getAppName();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please config the <appName> in pom.xml.");
         }
     }
 
     @Test
-    public void getResourceGroup() throws MojoExecutionException {
+    public void getResourceGroup() throws AzureExecutionException {
         doReturn("resourceGroupName").when(mojo).getResourceGroup();
         assertEquals("resourceGroupName", parser.getResourceGroup());
 
         doReturn("invalid**ResourceGroupName").when(mojo).getResourceGroup();
         try {
             parser.getResourceGroup();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "The <resourceGroup> only allow alphanumeric characters, periods, " +
                 "underscores, hyphens and parenthesis and cannot end in a period.");
         }
@@ -136,13 +169,13 @@ public class ConfigurationParserTest {
         doReturn(null).when(mojo).getResourceGroup();
         try {
             parser.getResourceGroup();
-        } catch (MojoExecutionException e) {
+        } catch (AzureExecutionException e) {
             assertEquals(e.getMessage(), "Please config the <resourceGroup> in pom.xml.");
         }
     }
 
     @Test
-    public void getWebAppConfiguration() throws MojoExecutionException {
+    public void getWebAppConfiguration() throws AzureExecutionException {
         final ConfigurationParser parserSpy = spy(parser);
 
         doReturn("appName").when(parserSpy).getAppName();
@@ -155,7 +188,7 @@ public class ConfigurationParserTest {
         doReturn(session).when(mojo).getSession();
         doReturn("test-staging-path").when(mojo).getDeploymentStagingDirectoryPath();
         doReturn("test-build-directory-path").when(mojo).getBuildDirectoryAbsolutePath();
-        doReturn(new PricingTier("Premium", "P1V2")).when(mojo).getPricingTier();
+        doReturn("p1v2").when(mojo).getPricingTier();
 
         doReturn(OperatingSystemEnum.Windows).when(parserSpy).getOs();
         WebAppConfiguration webAppConfiguration = parserSpy.getWebAppConfiguration();
@@ -163,7 +196,7 @@ public class ConfigurationParserTest {
         assertEquals("appName", webAppConfiguration.getAppName());
         assertEquals("resourceGroupName", webAppConfiguration.getResourceGroup());
         assertEquals(Region.EUROPE_WEST, webAppConfiguration.getRegion());
-        assertEquals(new PricingTier("Premium", "P1V2"), webAppConfiguration.getPricingTier());
+        assertEquals(new PricingTier("PremiumV2", "P1v2"), webAppConfiguration.getPricingTier());
         assertEquals(null, webAppConfiguration.getServicePlanName());
         assertEquals(null, webAppConfiguration.getServicePlanResourceGroup());
         assertEquals(OperatingSystemEnum.Windows, webAppConfiguration.getOs());

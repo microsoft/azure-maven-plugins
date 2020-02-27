@@ -6,21 +6,41 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.PagedList;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.configurations.ElasticPremiumPricingTier;
+import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
+import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.common.function.utils.FunctionUtils;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
+
 import java.io.File;
+import java.util.Map;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
-    private static final String JDK_VERSION_ERROR = "Local JDK version %s does not meet the requirement of the " +
-            "Maven plugin for Azure Functions. The supported version is JDK 8";
+    private static final String JDK_VERSION_ERROR = "Azure Functions only support JDK 8, which is lower than local " +
+            "JDK version %s.";
+    private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
+    private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
+    private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java.";
+    private static final String CHANGE_FUNCTIONS_WORKER_RUNTIME = "Function worker runtime doesn't " +
+            "meet the requirement, change it from %s to java.";
+    private static final String FUNCTIONS_EXTENSION_VERSION_NAME = "FUNCTIONS_EXTENSION_VERSION";
+    private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
+    private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
+            "isn't configured, setting up the default value.";
 
     //region Properties
     /**
@@ -41,7 +61,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
      * </ul>
      */
     @Parameter(property = "functions.pricingTier")
-    protected PricingTierEnum pricingTier;
+    protected String pricingTier;
 
     @Parameter(defaultValue = "${project.build.finalName}", readonly = true, required = true)
     protected String finalName;
@@ -63,12 +83,58 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.region", defaultValue = "westeurope")
     protected String region;
 
+    @Parameter(property = "functions.runtime")
+    protected RuntimeConfiguration runtime;
+
+    //endregion
+
+    //region get App Settings
+    public Map getAppSettingsWithDefaultValue() {
+        final Map settings = getAppSettings();
+        overrideDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
+                FUNCTIONS_WORKER_RUNTIME_VALUE, CHANGE_FUNCTIONS_WORKER_RUNTIME);
+        setDefaultAppSetting(settings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
+                FUNCTIONS_EXTENSION_VERSION_VALUE);
+        return settings;
+    }
+
+    public FunctionExtensionVersion getFunctionExtensionVersion() throws AzureExecutionException {
+        final String extensionVersion = (String) getAppSettingsWithDefaultValue().get(FUNCTIONS_EXTENSION_VERSION_NAME);
+        return FunctionUtils.parseFunctionExtensionVersion(extensionVersion);
+    }
+
+    private void overrideDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
+                                           String settingValue, String changeSettingMessage) {
+
+        final String setting = (String) result.get(settingName);
+        if (StringUtils.isEmpty(setting)) {
+            Log.info(settingIsEmptyMessage);
+        } else if (!setting.equals(settingValue)) {
+            Log.warn(String.format(changeSettingMessage, setting));
+        }
+        result.put(settingName, settingValue);
+    }
+
+    private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
+                                        String settingValue) {
+
+        final String setting = (String) result.get(settingName);
+        if (StringUtils.isEmpty(setting)) {
+            Log.info(settingIsEmptyMessage);
+            result.put(settingName, settingValue);
+        }
+    }
     //endregion
 
     //region Getter
 
-    public PricingTier getPricingTier() throws MojoExecutionException {
-        return pricingTier == null ? null : pricingTier.toPricingTier();
+    public PricingTier getPricingTier() throws AzureExecutionException {
+        if (StringUtils.isEmpty(pricingTier)) {
+            return null;
+        }
+        final ElasticPremiumPricingTier elasticPremiumPricingTier = ElasticPremiumPricingTier.fromString(pricingTier);
+        return elasticPremiumPricingTier != null ? elasticPremiumPricingTier.toPricingTier()
+                : AppServiceUtils.getPricingTierFromString(pricingTier);
     }
 
     public String getRegion() {
@@ -86,15 +152,12 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     @Nullable
     public FunctionApp getFunctionApp() throws AzureAuthFailureException {
-        try {
-            return getAzureClient().appServices().functionApps().getByResourceGroup(getResourceGroup(), getAppName());
-        } catch (AzureAuthFailureException authEx) {
-            throw authEx;
-        } catch (Exception ex) {
-            this.getLog().debug(ex);
-            // Swallow exception for non-existing Azure Functions
-        }
-        return null;
+        final PagedList<FunctionApp> functionList = getAzureClient().appServices().functionApps().list();
+        return AppServiceUtils.findAppServiceInPagedList(functionList, getResourceGroup(), getAppName());
+    }
+
+    public RuntimeConfiguration getRuntime() {
+        return runtime;
     }
 
     @Override
@@ -103,10 +166,10 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         super.execute();
     }
 
-    public void checkJavaVersion() throws MojoExecutionException {
+    public void checkJavaVersion() {
         final String javaVersion = System.getProperty("java.version");
-        if (!javaVersion.startsWith("1.8")){
-            throw new MojoExecutionException(String.format(JDK_VERSION_ERROR, javaVersion));
+        if (!javaVersion.startsWith("1.8")) {
+            Log.warn(String.format(JDK_VERSION_ERROR, javaVersion));
         }
     }
 

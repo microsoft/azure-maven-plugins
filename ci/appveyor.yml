@@ -12,9 +12,8 @@ environment:
 install:
   - cmd: npm i -g azure-functions-core-tools@core --unsafe-perm true
   - cmd: SET PATH=%PYTHON%;%PYTHON%\Scripts;%JAVA_HOME%\bin;%PATH%
-  - cmd: python -m pip install azure-cli
   - cmd: copy "C:\Program Files (x86)\Apache\Maven\bin\mvn.cmd" "C:\Program Files (x86)\Apache\Maven\bin\mvn.bat"
 
 build_script:
-  - cmd: mvnw.cmd clean install
+  - cmd: mvnw.cmd -B clean install
   

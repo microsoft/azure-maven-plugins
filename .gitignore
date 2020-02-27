@@ -40,3 +40,6 @@ hs_err_pid*
 
 # integration test
 */src/it/*/bin
+
+jacoco.exec
+bin/

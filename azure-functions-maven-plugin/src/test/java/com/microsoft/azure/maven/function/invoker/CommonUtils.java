@@ -10,7 +10,8 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.rest.LogLevel;
-import org.codehaus.plexus.util.StringUtils;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,7 +25,6 @@ public class CommonUtils {
 
     private static final String loginAzureCli = "az login --service-principal -u %s -p %s --tenant %s";
     private static final String deleteResourceGroup = "az group delete -y -n %s%s";
-
     private static final String windowsCommand = "cmd /c %s";
     private static final String nonWindowsCommand = "bash -c %s";
 
@@ -35,7 +35,7 @@ public class CommonUtils {
 
     private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
 
-    private static void azureLogin() throws IOException, InterruptedException {
+    public static void azureLogin() throws IOException, InterruptedException {
         executeCommand(String.format(loginAzureCli, clientId, key, tenantId));
     }
 

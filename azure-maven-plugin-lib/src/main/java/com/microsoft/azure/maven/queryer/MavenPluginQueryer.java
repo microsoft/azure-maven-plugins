@@ -6,10 +6,12 @@
 
 package com.microsoft.azure.maven.queryer;
 
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -20,8 +22,7 @@ public abstract class MavenPluginQueryer {
                                                List<String> options, String prompt) throws MojoFailureException;
 
     public abstract String assureInputFromUser(String attribute, String defaultValue,
-                                               String regex, String prompt, String errorMessage)
-        throws MojoFailureException;
+                                               String regex, String prompt, String errorMessage) throws MojoFailureException;
 
     public abstract void close();
 
@@ -33,6 +34,14 @@ public abstract class MavenPluginQueryer {
         }
         final ArrayList<String> options = new ArrayList<>(optionSet);
         return assureInputFromUser(attribute, defaultValueForAttribute, options, prompt);
+    }
+
+    public String assureInputFromUser(String attribute, String defaultValue,
+                                      BidiMap<String, String> options, String prompt) throws MojoFailureException {
+        final String defaultDisplayName = options.getKey(defaultValue);
+        final List<String> displayNames = new ArrayList<>(options.keySet());
+        Collections.sort(displayNames);
+        return options.get(assureInputFromUser(attribute, defaultDisplayName, displayNames, prompt));
     }
 
     protected boolean validateInputByOptions(String input, List<String> options) {

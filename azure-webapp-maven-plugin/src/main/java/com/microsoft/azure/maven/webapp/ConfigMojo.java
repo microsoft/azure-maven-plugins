@@ -6,22 +6,30 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.OperatingSystem;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.maven.appservice.PricingTierEnum;
 import com.microsoft.azure.maven.queryer.MavenPluginQueryer;
 import com.microsoft.azure.maven.queryer.QueryFactory;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.configuration.OperatingSystemEnum;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
+import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
+import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.codehaus.plexus.util.StringUtils;
+import org.dom4j.DocumentException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +39,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.APP_NAME_PATTERN;
+import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.RESOURCE_GROUP_PATTERN;
+
+/**
+ * Init or edit the configuration of azure webapp maven plugin.
+ */
 @Mojo(name = "config")
 public class ConfigMojo extends AbstractWebAppMojo {
 
@@ -42,48 +56,52 @@ public class ConfigMojo extends AbstractWebAppMojo {
         "webapp.";
     public static final String CONFIGURATION_NO_RUNTIME = "No runtime configuration, skip it.";
     public static final String SAVING_TO_POM = "Saving configuration to pom.";
+    public static final String JAVA_1_8 = "1.8";
+    public static final String JAVA_11 = "11";
+    public static final String JAVA_11_STRING = "java 11";
 
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
     private static final String[] configTypes = {"Application", "Runtime", "DeploymentSlot"};
 
     @Override
-    protected void doExecute() throws Exception {
-        queryer = QueryFactory.getQueryer(settings, getLog());
-        pomHandler = new WebAppPomHandler("pom.xml");
-
+    protected void doExecute() throws AzureExecutionException {
+        queryer = QueryFactory.getQueryer(settings);
         try {
+            pomHandler = new WebAppPomHandler(project.getFile().getAbsolutePath());
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
-                getWebAppConfiguration();
-            if (isV1Configuration(configuration)) {
-                warning(CONFIG_ONLY_SUPPORT_V2);
+                    getWebAppConfigurationWithoutValidation();
+            if (!isV2Configuration(configuration)) {
+                Log.warn(CONFIG_ONLY_SUPPORT_V2);
             } else {
                 config(configuration);
             }
+        } catch (DocumentException | MojoFailureException | IOException e) {
+            throw new AzureExecutionException(e.getMessage(), e);
         } finally {
             queryer.close();
         }
     }
 
-    private boolean isV1Configuration(WebAppConfiguration configuration) {
-        return configuration != null && configuration.getSchemaVersion().equals(SchemaVersion.V1.toString());
+    private boolean isV2Configuration(WebAppConfiguration configuration) {
+        return configuration == null || schemaVersion.equalsIgnoreCase(SchemaVersion.V2.toString());
     }
 
-    protected void config(WebAppConfiguration configuration) throws MojoFailureException, MojoExecutionException,
+    protected void config(WebAppConfiguration configuration) throws MojoFailureException, AzureExecutionException,
         IOException {
-        final WebAppConfiguration oldConfiguration = configuration;
+        WebAppConfiguration result = null;
         do {
             if (configuration == null) {
-                configuration = initConfig();
+                result = initConfig();
             } else {
-                configuration = updateConfiguration(configuration);
+                result = updateConfiguration(configuration.getBuilderFromConfiguration().build());
             }
-        } while (!confirmConfiguration(configuration));
-        info(SAVING_TO_POM);
-        pomHandler.updatePluginConfiguration(configuration, oldConfiguration);
+        } while (!confirmConfiguration(result));
+        Log.info(SAVING_TO_POM);
+        pomHandler.updatePluginConfiguration(result, configuration);
     }
 
-    protected boolean confirmConfiguration(WebAppConfiguration configuration) throws MojoExecutionException,
+    protected boolean confirmConfiguration(WebAppConfiguration configuration) throws AzureExecutionException,
         MojoFailureException {
         System.out.println("Please confirm webapp properties");
         System.out.println("AppName : " + configuration.getAppName());
@@ -109,7 +127,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                     System.out.println("RegistryUrl : " + configuration.getRegistryUrl());
                     break;
                 default:
-                    throw new MojoExecutionException("The value of <os> is unknown.");
+                    throw new AzureExecutionException("The value of <os> is unknown.");
             }
         }
         System.out.println("Deploy to slot : " + (configuration.getDeploymentSlotSetting() != null));
@@ -122,29 +140,29 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return result.equalsIgnoreCase("Y");
     }
 
-    protected WebAppConfiguration initConfig() throws MojoFailureException, MojoExecutionException {
+    protected WebAppConfiguration initConfig() throws MojoFailureException, AzureExecutionException {
         final WebAppConfiguration result = getDefaultConfiguration();
         return getRuntimeConfiguration(result);
     }
 
-    private WebAppConfiguration getDefaultConfiguration() throws MojoExecutionException {
+    private WebAppConfiguration getDefaultConfiguration() throws AzureExecutionException {
         final WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
         final String defaultName = getProject().getArtifactId() + "-" + System.currentTimeMillis();
         final String resourceGroup = defaultName + "-rg";
         final String defaultSchemaVersion = "V2";
         final Region defaultRegion = WebAppConfiguration.DEFAULT_REGION;
-        final PricingTierEnum pricingTierEnum = WebAppConfiguration.DEFAULT_PRICINGTIER;
+        final PricingTier pricingTier = WebAppConfiguration.DEFAULT_PRICINGTIER;
         return builder.appName(defaultName)
             .resourceGroup(resourceGroup)
             .region(defaultRegion)
-            .pricingTier(pricingTierEnum.toPricingTier())
+            .pricingTier(pricingTier)
             .resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources())
             .schemaVersion(defaultSchemaVersion)
             .build();
     }
 
     protected WebAppConfiguration updateConfiguration(WebAppConfiguration configuration)
-        throws MojoFailureException, MojoExecutionException {
+        throws MojoFailureException, AzureExecutionException {
         final String selection = queryer.assureInputFromUser("selection", null, Arrays.asList(configTypes),
             "Please choose which part to config");
         switch (selection) {
@@ -155,23 +173,24 @@ public class ConfigMojo extends AbstractWebAppMojo {
             case "DeploymentSlot":
                 return getSlotConfiguration(configuration);
             default:
-                throw new MojoExecutionException("Unknow webapp setting");
+                throw new AzureExecutionException("Unknow webapp setting");
         }
     }
 
     private WebAppConfiguration getWebAppConfiguration(WebAppConfiguration configuration)
-        throws MojoFailureException, MojoExecutionException {
+        throws MojoFailureException, AzureExecutionException {
         final WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
 
-        final String defaultAppName = getDefaultValue(configuration.appName, getProject().getArtifactId());
+        final String defaultAppName =
+                getDefaultValue(configuration.appName, getProject().getArtifactId(), APP_NAME_PATTERN);
         final String appName = queryer.assureInputFromUser("appName", defaultAppName,
-            NOT_EMPTY_REGEX, null, null);
+                APP_NAME_PATTERN, null, null);
 
         final String defaultResourceGroup = getDefaultValue(configuration.resourceGroup,
-            String.format("%s-rg", appName));
+                String.format("%s-rg", appName), RESOURCE_GROUP_PATTERN);
         final String resourceGroup = queryer.assureInputFromUser("resourceGroup",
             defaultResourceGroup,
-            NOT_EMPTY_REGEX, null, null);
+                RESOURCE_GROUP_PATTERN, null, null);
 
         final String defaultRegion = configuration.getRegionOrDefault();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
@@ -179,12 +198,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         final String defaultPricingTier = configuration.getPricingTierOrDefault();
         final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier,
-            getAvailablePricingTierList(), null);
-
+            getAvailablePricingTierList(configuration.getOs()), null);
         return builder.appName(appName)
             .resourceGroup(resourceGroup)
             .region(Region.fromName(region))
-            .pricingTier(PricingTierEnum.valueOf(pricingTier).toPricingTier())
+            .pricingTier(AppServiceUtils.getPricingTierFromString(pricingTier))
             .build();
     }
 
@@ -217,13 +235,13 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     private WebAppConfiguration getRuntimeConfiguration(WebAppConfiguration configuration)
-        throws MojoFailureException, MojoExecutionException {
+        throws MojoFailureException, AzureExecutionException {
         WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
-        warning(CHANGE_OS_WARNING);
+        Log.warn(CHANGE_OS_WARNING);
         final OperatingSystemEnum defaultOs = configuration.getOs() == null ? OperatingSystemEnum.Linux :
             configuration.getOs();
         final String os = queryer.assureInputFromUser("OS", defaultOs, null);
-        builder.os(OperatingSystemEnum.fromString(os));
+        builder.os(Utils.parseOperationSystem(os));
 
         switch (os.toLowerCase()) {
             case "linux":
@@ -236,7 +254,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 builder = getRuntimeConfigurationOfDocker(builder, configuration);
                 break;
             default:
-                throw new MojoExecutionException("The value of <os> is unknown.");
+                throw new AzureExecutionException("The value of <os> is unknown.");
         }
         return builder.build();
     }
@@ -244,24 +262,33 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration.Builder getRuntimeConfigurationOfLinux(WebAppConfiguration.Builder builder,
                                                                        WebAppConfiguration configuration)
         throws MojoFailureException {
-        final String defaultLinuxRuntimeStack = configuration.getRuntimeStackOrDefault();
+        final String defaultJavaVersion = configuration.getLinuxJavaVersionOrDefault();
+        final String javaVersion = queryer.assureInputFromUser("javaVersion",
+            defaultJavaVersion, RuntimeStackUtils.getValidJavaVersions(), null);
+        // For project which package is jar, use java se runtime
+        if (isJarProject()) {
+            return builder.runtimeStack(RuntimeStackUtils.getRuntimeStack(javaVersion));
+        }
+        final String defaultLinuxRuntimeStack = configuration.getLinuxRuntimeStackOrDefault();
         final String runtimeStack = queryer.assureInputFromUser("runtimeStack",
-            defaultLinuxRuntimeStack, RuntimeSetting.getValidLinuxRuntime(), null);
-        return builder.runtimeStack(RuntimeSetting.getLinuxRuntimeStackByJavaVersion(runtimeStack));
+            defaultLinuxRuntimeStack, RuntimeStackUtils.getValidWebContainer(javaVersion), null);
+        return builder.runtimeStack(RuntimeStackUtils.getRuntimeStack(javaVersion, runtimeStack));
     }
 
     private WebAppConfiguration.Builder getRuntimeConfigurationOfWindows(WebAppConfiguration.Builder builder,
                                                                          WebAppConfiguration configuration)
         throws MojoFailureException {
         final String defaultJavaVersion = configuration.getJavaVersionOrDefault();
-        final String javaVersion = queryer.assureInputFromUser("javaVersion",
-            defaultJavaVersion, getAvailableJavaVersion(), null);
-
+        final String javaVersionInput = queryer.assureInputFromUser("javaVersion", defaultJavaVersion, getAvailableJavaVersion(), null);
+        final JavaVersion javaVersion = JavaVersion.fromString(javaVersionInput);
+        // For project which package is jar, use java se runtime
+        if (isJarProject()) {
+            return builder.javaVersion(javaVersion).webContainer(getJavaSEWebContainer(javaVersion));
+        }
         final String defaultWebContainer = configuration.getWebContainerOrDefault();
-        final String webContainer = queryer.assureInputFromUser("webContainer",
+        final String webContainerInput = queryer.assureInputFromUser("webContainer",
             defaultWebContainer, getAvailableWebContainer(), null);
-        return builder.javaVersion(JavaVersion.fromString(javaVersion))
-            .webContainer(WebContainer.fromString(webContainer));
+        return builder.javaVersion(javaVersion).webContainer(WebContainer.fromString(webContainerInput));
     }
 
     private WebAppConfiguration.Builder getRuntimeConfigurationOfDocker(WebAppConfiguration.Builder builder,
@@ -292,23 +319,47 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static List<String> getAvailableWebContainer() {
         final List<String> result = new ArrayList<>();
         for (final WebContainer webContainer : WebContainer.values()) {
-            result.add(webContainer.toString());
+            if (!StringUtils.containsIgnoreCase(webContainer.toString(), "java")) {
+                result.add(webContainer.toString());
+            }
         }
         Collections.sort(result);
         return result;
     }
 
-    private static List<String> getAvailablePricingTierList() {
+    private static WebContainer getJavaSEWebContainer(JavaVersion javaVersion) throws MojoFailureException {
+        final String version = javaVersion.toString();
+        if (StringUtils.startsWith(version, JAVA_1_8)) {
+            return WebContainer.JAVA_8;
+        } else if (StringUtils.startsWith(version, JAVA_11)) {
+            return WebContainer.fromString(JAVA_11_STRING);
+        } else {
+            throw new MojoFailureException(String.format("Java SE environment is not supported in %s", javaVersion.toString()));
+        }
+    }
+
+    private static List<String> getAvailablePricingTierList(OperatingSystemEnum operatingSystem) {
         final Set<String> pricingTierSet = new HashSet<>();
-        for (final PricingTierEnum pricingTierEnum : PricingTierEnum.values()) {
-            pricingTierSet.add(pricingTierEnum.toString().toLowerCase());
+        // Linux and docker app service uses linux as the os of app service plan.
+        final List<PricingTier> availablePricingTier = AppServiceUtils.getAvailablePricingTiers(
+                operatingSystem == OperatingSystemEnum.Windows ? OperatingSystem.WINDOWS : OperatingSystem.LINUX);
+        for (final PricingTier pricingTier : availablePricingTier) {
+            pricingTierSet.add(pricingTier.toSkuDescription().size().toLowerCase());
         }
         final List<String> result = new ArrayList<>(pricingTierSet);
         Collections.sort(result);
         return result;
     }
 
-    private String getDefaultValue(String defaultValue, String fallBack) {
-        return StringUtils.isNotEmpty(defaultValue) ? defaultValue : fallBack;
+    private String getDefaultValue(String defaultValue, String fallBack, String pattern) {
+        return StringUtils.isNotEmpty(defaultValue) && defaultValue.matches(pattern) ? defaultValue : fallBack;
+    }
+
+    private boolean isJarProject() {
+        return getProject().getPackaging().equalsIgnoreCase("jar");
+    }
+
+    public WebAppConfiguration getWebAppConfigurationWithoutValidation() throws AzureExecutionException {
+        return new V2NoValidationConfigurationParser(this, new V2ConfigurationValidator(this)).getWebAppConfiguration();
     }
 }
