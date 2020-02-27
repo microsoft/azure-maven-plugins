@@ -92,7 +92,7 @@ Function GetEmailContent($project, $resultList) {
       </style>
     </head>
     <body>
-      <p>Please check the CI log for azure-functions-maven-plugin in the attachment</p>
+      <p>Please check the CI log for azure-maven-plugin in the attachment</p>
       <p>If you want to get more information, please refer <a href='$link'>Appveyor Job Log</a></p>
       <br />
       <div>
@@ -133,11 +133,10 @@ cd $base;
 $title = "Azure Maven Plugin CI Issue";
 $mailto = New-Object System.Collections.Generic.List[System.String];
 $mailto.Add("andxu@microsoft.com");
-$mailto.Add("Sheng.Chen@microsoft.com");
-$mailto.Add("Rome.Li@microsoft.com");
-$mailto.Add("Peng.Shi@microsoft.com");
+$mailto.Add("hanli@microsoft.com");
 $mailcc = New-Object System.Collections.Generic.List[System.String];
-$mailcc.Add("hanli@microsoft.com");
+$mailcc.Add("Sheng.Chen@microsoft.com");
+$mailcc.Add("Rome.Li@microsoft.com");
 $sender = "insvsc@microsoft.com";
 $senderPassword = $env:EMAIL_PASSWORD
 
