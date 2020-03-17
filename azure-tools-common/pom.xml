@@ -140,7 +140,7 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.29</version>
         </dependency>
-		<dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
             <version>4.4</version>
