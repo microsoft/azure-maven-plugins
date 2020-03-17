@@ -18,6 +18,7 @@ public class Deployment {
     private Integer instanceCount;
     private String deploymentName;
     private String jvmOptions;
+    private String runtimeVersion;
     private Boolean enablePersistentStorage;
     private Map<String, String> environment;
     private List<Resource> resources;
@@ -48,6 +49,14 @@ public class Deployment {
 
     public Boolean isEnablePersistentStorage() {
         return BooleanUtils.isTrue(enablePersistentStorage);
+    }
+
+    public String getJvmOptions() {
+        return jvmOptions;
+    }
+
+    public String getRuntimeVersion() {
+        return runtimeVersion;
     }
 
     public Deployment withCpu(Integer cpu) {
@@ -90,7 +99,8 @@ public class Deployment {
         return this;
     }
 
-    public String getJvmOptions() {
-        return jvmOptions;
+    public Deployment withRuntimeVersion(String runtimeVersion) {
+        this.runtimeVersion = runtimeVersion;
+        return this;
     }
 }

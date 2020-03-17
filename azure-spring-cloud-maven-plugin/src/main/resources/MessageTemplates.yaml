@@ -86,6 +86,12 @@ resource:         Deployment
 property:         jvmOptions
 
 ---
+id:               configure-java-version
+promote:          "Input runtime JAVA version{{(schema.default) ? '(***' ~ schema.default ~ '***)' : ''}}:"
+resource:         Deployment
+property:         runtimeVersion
+
+---
 id:               confirm
 promote:
       header:     'Summary of properties:'

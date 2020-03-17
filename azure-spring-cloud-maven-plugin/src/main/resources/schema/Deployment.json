@@ -32,6 +32,11 @@
     },
     "jvmOptions": {
       "type": "string"
+    },
+    "runtimeVersion": {
+      "type": "string",
+      "pattern": "(J|j)ava(\\s)?(8|11)$",
+      "default": "Java 8"
     }
   }
 }
