@@ -13,8 +13,7 @@
     <version>0.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Azure Maven Plugin Common Library</name>
-    <description>Common
-     library for Azure Maven Plugins</description>
+    <description>Common library for Azure Maven Plugins</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
 
     <properties>
