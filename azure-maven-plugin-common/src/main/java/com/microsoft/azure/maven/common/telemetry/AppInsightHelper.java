@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.common.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
+import com.microsoft.azure.common.utils.GetHashMac;
 
 import java.util.HashMap;
 import java.util.Map;
