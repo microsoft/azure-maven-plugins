@@ -4,9 +4,10 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.common.prompt;
+package com.microsoft.azure.common.prompt;
 
-import com.microsoft.azure.maven.common.utils.TextUtils;
+import com.microsoft.azure.common.utils.TextUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 

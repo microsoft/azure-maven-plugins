@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.common.prompt;
+package com.microsoft.azure.common.prompt;
 
 import org.junit.Test;
 

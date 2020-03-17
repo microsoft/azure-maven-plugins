@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.spring.pom;
 import com.microsoft.azure.maven.spring.TestHelper;
 import com.microsoft.azure.maven.spring.configuration.AppSettings;
 import com.microsoft.azure.maven.spring.configuration.DeploymentSettings;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;

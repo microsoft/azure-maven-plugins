@@ -9,8 +9,8 @@ package com.microsoft.azure.maven.spring;
 import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.ProxyResource;
 import com.microsoft.azure.auth.AzureAuthHelper;
+import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
-import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ServiceResourceInner;
 import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
@@ -19,6 +19,7 @@ import com.microsoft.azure.maven.spring.configuration.DeploymentSettings;
 import com.microsoft.azure.maven.spring.pom.PomXmlUpdater;
 import com.microsoft.azure.maven.spring.prompt.PromptWrapper;
 import com.microsoft.azure.maven.spring.spring.SpringServiceClient;
+
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Model;
@@ -110,7 +111,7 @@ public class ConfigMojoTest {
         FieldUtils.writeField(mojo, "log", mockLog, true);
 
         mockStatic(AzureAuthHelper.class);
-        final AzureTokenCredentials mockTokenCred = mock(AzureTokenCredentials.class);
+        final AzureTokenWrapper mockTokenCred = mock(AzureTokenWrapper.class);
         when(AzureAuthHelper.getAzureTokenCredentials(null)).thenReturn(mockTokenCred);
 
         reader = mock(BufferedReader.class);

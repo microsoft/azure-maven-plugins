@@ -5,7 +5,8 @@
  */
 package com.microsoft.azure.maven.spring.utils;
 
-import com.microsoft.azure.maven.common.utils.TextUtils;
+import com.microsoft.azure.common.utils.TextUtils;
+
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Namespace;

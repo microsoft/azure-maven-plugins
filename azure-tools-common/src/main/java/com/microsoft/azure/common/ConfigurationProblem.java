@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.common;
+package com.microsoft.azure.common;
 
 public class ConfigurationProblem {
 

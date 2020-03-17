@@ -35,8 +35,8 @@
         <powermock.version>2.0.2</powermock.version>
         <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
-        <azure.auth.helper.version>0.3.0</azure.auth.helper.version>
-        <azure-tools-common.version>0.1.0</azure-tools-common.version>
+        <azure.auth.helper.version>0.4.0-SNAPSHOT</azure.auth.helper.version>
+        <azure-tools-common.version>0.2.0-SNAPSHOT</azure-tools-common.version>
     </properties>
 
     <licenses>

@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.spring.configuration;
 
 import com.microsoft.azure.maven.spring.utils.ResourcesUtils;
+
 import org.junit.Test;
 
 import java.util.Collections;

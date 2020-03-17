@@ -6,9 +6,10 @@
 package com.microsoft.azure.maven.spring.prompt;
 
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
-import com.microsoft.azure.maven.common.prompt.IPrompter;
+import com.microsoft.azure.common.prompt.IPrompter;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
 import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
+
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 import org.apache.commons.lang3.StringUtils;

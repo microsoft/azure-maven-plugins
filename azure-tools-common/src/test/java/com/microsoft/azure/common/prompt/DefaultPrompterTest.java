@@ -4,10 +4,11 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.common.prompt;
+package com.microsoft.azure.common.prompt;
 
-import com.microsoft.azure.maven.common.TestHelper;
-import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
+import com.microsoft.azure.common.TestHelper;
+import com.microsoft.azure.common.utils.SneakyThrowUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Before;

@@ -7,15 +7,15 @@
 package com.microsoft.azure.auth.configuration;
 
 import com.microsoft.azure.auth.AzureAuthHelper;
-import com.microsoft.azure.maven.common.ConfigurationProblem;
+import com.microsoft.azure.common.ConfigurationProblem;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.microsoft.azure.maven.common.ConfigurationProblem.Severity.ERROR;
-import static com.microsoft.azure.maven.common.ConfigurationProblem.Severity.WARNING;
+import static com.microsoft.azure.common.ConfigurationProblem.Severity.ERROR;
+import static com.microsoft.azure.common.ConfigurationProblem.Severity.WARNING;
 
 
 public class AuthConfiguration {

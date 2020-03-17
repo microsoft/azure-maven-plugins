@@ -14,6 +14,7 @@ import com.microsoft.azure.management.appplatform.v2019_05_01_preview.UserSource
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
+
 import org.apache.maven.plugin.MojoExecutionException;
 
 public class SpringDeploymentClient extends AbstractSpringClient {

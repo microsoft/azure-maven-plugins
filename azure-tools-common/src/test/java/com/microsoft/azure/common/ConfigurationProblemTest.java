@@ -4,9 +4,10 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.common;
+package com.microsoft.azure.common;
 
-import com.microsoft.azure.maven.common.ConfigurationProblem.Severity;
+import com.microsoft.azure.common.ConfigurationProblem.Severity;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
