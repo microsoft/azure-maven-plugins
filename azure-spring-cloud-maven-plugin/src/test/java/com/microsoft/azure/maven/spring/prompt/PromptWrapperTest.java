@@ -81,13 +81,13 @@ public class PromptWrapperTest {
         String result = wrapper.handle("testId1", false);
         assertEquals("defaultValueForUnitTest", result);
 
-        when(reader.readLine()).thenReturn("abc");
+        when(reader.readLine()).thenReturn("abcd");
         result = wrapper.handle("testId1", false);
-        assertEquals("abc", result);
+        assertEquals("abcd", result);
 
-        when(reader.readLine()).thenReturn("^^&$").thenReturn("xyz");
+        when(reader.readLine()).thenReturn("^^&$").thenReturn("wxyz");
         result = wrapper.handle("testId1", false, null);
-        assertEquals("xyz", result);
+        assertEquals("wxyz", result);
 
         when(reader.readLine()).thenReturn("${expr}");
         when(mockEval.evaluate("${expr}")).thenReturn("evaluated");
@@ -158,7 +158,7 @@ public class PromptWrapperTest {
         result = wrapper.handle("testId1", true, "2");
         assertEquals("2", result);
 
-        result = wrapper.handle("testId1", true, "abc");
+        result = wrapper.handle("testId1", true, "abcd");
         assertEquals("1", result);
 
     }
@@ -389,9 +389,9 @@ public class PromptWrapperTest {
         templates.put("testId1", map);
         wrapper.putCommonVariable("global_property1", "value1");
         when(mockEval.evaluate("${expr}")).thenReturn(null);
-        when(reader.readLine()).thenReturn("${expr}").thenReturn("abc");
+        when(reader.readLine()).thenReturn("${expr}").thenReturn("abcd");
         final String result = wrapper.handle("testId1", false);
-        assertEquals("abc", result);
+        assertEquals("abcd", result);
     }
 
     @Test
