@@ -10,6 +10,7 @@ import com.microsoft.azure.common.function.configurations.FunctionExtensionVersi
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
+
 import org.apache.commons.lang3.StringUtils;
 
 public abstract class AbstractLinuxFunctionRuntimeHandler extends FunctionRuntimeHandler {

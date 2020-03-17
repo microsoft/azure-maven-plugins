@@ -6,7 +6,8 @@
 
 package com.microsoft.azure.maven.spring.utils;
 
-import com.microsoft.azure.maven.common.utils.TextUtils;
+import com.microsoft.azure.common.utils.TextUtils;
+
 import org.jtwig.JtwigModel;
 import org.jtwig.JtwigTemplate;
 

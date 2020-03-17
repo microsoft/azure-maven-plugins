@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.spring.utils;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.storage.file.CloudFile;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;

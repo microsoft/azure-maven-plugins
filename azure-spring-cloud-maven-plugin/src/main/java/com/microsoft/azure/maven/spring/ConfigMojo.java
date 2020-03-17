@@ -8,13 +8,13 @@ package com.microsoft.azure.maven.spring;
 
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.common.utils.SneakyThrowUtils;
+import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ServiceResourceInner;
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.common.utils.MavenUtils;
-import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
-import com.microsoft.azure.maven.common.utils.TextUtils;
 import com.microsoft.azure.maven.spring.configuration.AppSettings;
 import com.microsoft.azure.maven.spring.configuration.DeploymentSettings;
 import com.microsoft.azure.maven.spring.exception.NoResourcesAvailableException;
@@ -22,6 +22,7 @@ import com.microsoft.azure.maven.spring.exception.SpringConfigurationException;
 import com.microsoft.azure.maven.spring.pom.PomXmlUpdater;
 import com.microsoft.azure.maven.spring.prompt.PromptWrapper;
 import com.microsoft.azure.maven.spring.utils.Utils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoFailureException;

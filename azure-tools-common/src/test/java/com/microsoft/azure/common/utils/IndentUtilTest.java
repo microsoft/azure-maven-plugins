@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.common.utils;
+package com.microsoft.azure.common.utils;
 
 import org.junit.Test;
 

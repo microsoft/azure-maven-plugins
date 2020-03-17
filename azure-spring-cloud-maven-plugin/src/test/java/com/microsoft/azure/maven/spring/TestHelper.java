@@ -16,6 +16,7 @@ import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.management.resources.Subscriptions;
 import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
 import com.microsoft.rest.RestException;
+
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.DefaultModelReader;
 import org.apache.maven.model.io.ModelReader;

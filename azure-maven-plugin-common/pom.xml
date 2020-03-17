@@ -143,6 +143,13 @@
             <version>28.1-jre</version>
         </dependency>
 
+		<dependency>
+			<groupId>com.microsoft.azure</groupId>
+			<artifactId>azure-tools-common</artifactId>
+			<version>0.2.0-SNAPSHOT</version>
+		</dependency>
+	        
+
         <!-- TEST -->
         <dependency>
             <groupId>commons-codec</groupId>

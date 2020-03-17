@@ -4,13 +4,14 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.common.validation;
+package com.microsoft.azure.common.validation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jackson.JsonLoader;
-import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
+import com.microsoft.azure.common.utils.SneakyThrowUtils;
+
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
 import org.junit.Test;

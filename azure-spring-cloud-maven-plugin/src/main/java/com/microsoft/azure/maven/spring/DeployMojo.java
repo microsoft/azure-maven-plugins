@@ -6,21 +6,22 @@
 
 package com.microsoft.azure.maven.spring;
 
+import com.microsoft.azure.common.prompt.DefaultPrompter;
+import com.microsoft.azure.common.prompt.IPrompter;
+import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentInstance;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentResourceStatus;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.PersistentDisk;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.AppResourceInner;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
-import com.microsoft.azure.maven.common.prompt.DefaultPrompter;
-import com.microsoft.azure.maven.common.prompt.IPrompter;
 import com.microsoft.azure.maven.common.utils.MavenUtils;
-import com.microsoft.azure.maven.common.utils.TextUtils;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
 import com.microsoft.azure.maven.spring.utils.Utils;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;

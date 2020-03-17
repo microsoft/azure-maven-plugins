@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.spring.configuration;
 
 import com.microsoft.azure.maven.spring.utils.XmlUtils;
+
 import org.dom4j.Element;
 
 import java.util.Map;

@@ -8,6 +8,7 @@ package com.microsoft.azure.common.function.handlers.runtime;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
+
 import org.apache.commons.lang3.StringUtils;
 
 public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
