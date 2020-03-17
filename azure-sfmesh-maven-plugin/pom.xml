@@ -20,7 +20,7 @@
   <url>https://github.com/microsoft/azure-maven-plugins</url>
 
   <properties>
-    <jackson.core.version>2.9.10.1</jackson.core.version>
+    <jackson.core.version>2.9.10.3</jackson.core.version>
     <jackson.dataformat.version>2.9.10</jackson.dataformat.version>
     <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
     <maven.version>3.3.3</maven.version>
