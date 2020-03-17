@@ -12,14 +12,11 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ArtifactHandlerUtils {
 
@@ -80,11 +77,6 @@ public class ArtifactHandlerUtils {
             throw new AzureExecutionException("Can not get the context path because the file path is null or empty");
         }
         return Paths.get(stagingDirectoryPath).relativize(Paths.get(filePath).getParent()).toString();
-    }
-
-    public static List<File> getArtifacts(final File directory) {
-        final File[] files = directory.listFiles();
-        return Arrays.stream(files).filter(File::isFile).collect(Collectors.toList());
     }
 
     public static boolean areAllWarFiles(final List<File> allArtifacts) {
