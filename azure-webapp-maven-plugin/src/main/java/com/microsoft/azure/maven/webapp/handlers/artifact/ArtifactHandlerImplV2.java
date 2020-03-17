@@ -13,7 +13,7 @@ import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.Utils;
-
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.zeroturnaround.zip.ZipUtil;
 
@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.DEFAULT_APP_SERVICE_JAR_NAME;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.areAllWarFiles;
-import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getArtifacts;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getContextPathFromFileName;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.getRealWarDeployExecutor;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.hasWarFiles;
@@ -132,7 +131,9 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     protected List<File> getAllArtifacts(final String stagingDirectoryPath) {
         final File stagingDirectory = new File(stagingDirectoryPath);
-        return getArtifacts(stagingDirectory);
+        return FileUtils.listFiles(stagingDirectory, null, true)
+                .stream()
+                .collect(Collectors.toList());
     }
 
     protected void publishArtifactsViaZipDeploy(final DeployTarget target,
