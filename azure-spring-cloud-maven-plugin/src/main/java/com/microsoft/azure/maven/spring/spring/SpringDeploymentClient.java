@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentResourceProperties;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentSettings;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.RuntimeVersion;
@@ -14,10 +15,17 @@ import com.microsoft.azure.management.appplatform.v2019_05_01_preview.UserSource
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class SpringDeploymentClient extends AbstractSpringClient {
+
+    private static final String RUNTIME_VERSION_PATTERN = "(J|j)ava(\\s)?(8|11)$";
+    private static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_8;
+
     protected String appName;
     protected String deploymentName;
 
@@ -98,8 +106,13 @@ public class SpringDeploymentClient extends AbstractSpringClient {
     }
 
     private RuntimeVersion parseRuntimeVersion(String runtimeVersion) {
-        // TODO: parse runtime version
-        return null;
+        final Matcher matcher = Pattern.compile(RUNTIME_VERSION_PATTERN).matcher(runtimeVersion);
+        if (matcher.matches()) {
+            return StringUtils.equals(matcher.group(3), "8") ? RuntimeVersion.JAVA_8 : RuntimeVersion.JAVA_11;
+        } else {
+            Log.warn(String.format("%s is not a valid runtime version, use Java 8 instead", runtimeVersion));
+            return DEFAULT_RUNTIME_VERSION;
+        }
     }
 
 }
