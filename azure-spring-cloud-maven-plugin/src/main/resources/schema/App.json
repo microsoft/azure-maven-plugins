@@ -8,6 +8,7 @@
 			"description": "The app name",
 			"type": "string",
 			"pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])$",
+			"minLength": 4,
 			"maxLength": 32
 		},
 		"isPublic": {

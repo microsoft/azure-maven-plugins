@@ -53,8 +53,8 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 @Mojo(name = "config", requiresDirectInvocation = true, aggregator = true)
 public class ConfigMojo extends AbstractSpringMojo {
     private static final String DEPLOYMENT_TAG = "deployment";
-    private static final List<String> APP_PROPERTIES = Arrays.asList("subscriptionId", "appName", "isPublic", "runtimeVersion");
-    private static final List<String> DEPLOYMENT_PROPERTIES = Arrays.asList("cpu", "memoryInGB", "instanceCount", "jvmOptions");
+    private static final List<String> APP_PROPERTIES = Arrays.asList("subscriptionId", "appName", "isPublic");
+    private static final List<String> DEPLOYMENT_PROPERTIES = Arrays.asList("cpu", "memoryInGB", "instanceCount", "jvmOptions", "runtimeVersion");
 
     private boolean parentMode;
 
@@ -163,6 +163,7 @@ public class ConfigMojo extends AbstractSpringMojo {
         configureInstanceCount();
         configureCpu();
         configureMemory();
+        configureJavaVersion();
         configureJvmOptions();
     }
 
@@ -197,6 +198,10 @@ public class ConfigMojo extends AbstractSpringMojo {
         }
         this.wrapper.putCommonVariable("projects", targetProjects);
 
+    }
+
+    private void configureJavaVersion() throws IOException, InvalidConfigurationException {
+        this.deploymentSettings.setRuntimeVersion(this.wrapper.handle("configure-java-version", autoUseDefault()));
     }
 
     private void configureJvmOptions() throws IOException, InvalidConfigurationException {
@@ -241,6 +246,7 @@ public class ConfigMojo extends AbstractSpringMojo {
             changesToConfirm.put("CPU count", this.deploymentSettings.getCpu());
             changesToConfirm.put("Memory size(GB)", this.deploymentSettings.getMemoryInGB());
             changesToConfirm.put("JVM options", this.deploymentSettings.getJvmOptions());
+            changesToConfirm.put("Runtime Java version", this.deploymentSettings.getRuntimeVersion());
             this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
         }
     }

@@ -56,8 +56,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
                 .withInstanceCount(deploymentConfiguration.getInstanceCount())
                 .withJvmOptions(deploymentConfiguration.getJvmOptions())
                 .withMemoryInGB(deploymentConfiguration.getMemoryInGB())
-                // Now we support java 8 only
-                .withRuntimeVersion(RuntimeVersion.JAVA_8)
+                .withRuntimeVersion(parseRuntimeVersion(deploymentConfiguration.getRuntimeVersion()))
                 .withEnvironmentVariables(deploymentConfiguration.getEnvironment());
 
         final UserSourceInfo userSourceInfo = new UserSourceInfo();
@@ -96,6 +95,11 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         super(springAppClient);
         this.appName = springAppClient.appName;
         this.deploymentName = deploymentName;
+    }
+
+    private RuntimeVersion parseRuntimeVersion(String runtimeVersion) {
+        // TODO: parse runtime version
+        return null;
     }
 
 }
