@@ -22,7 +22,7 @@ import java.util.Set;
 
 public class RuntimeStackUtils {
 
-    private static final List<String> JAVA_STACKS = Arrays.asList("JAVA", "TOMCAT", "WILDFLY");
+    private static final List<String> JAVA_STACKS = Arrays.asList("JAVA", "TOMCAT");
     private static final List<RuntimeStack> RUNTIME_STACKS = new ArrayList<>();
     private static final BidiMap<String, String> JAVA_VERSIONS = new DualHashBidiMap<>();
 
