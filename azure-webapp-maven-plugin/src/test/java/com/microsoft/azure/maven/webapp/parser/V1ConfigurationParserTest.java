@@ -96,9 +96,6 @@ public class V1ConfigurationParserTest {
         doReturn("tomcat 9.0-jre8").when(mojo).getLinuxRuntime();
         assertEquals(RuntimeStack.TOMCAT_9_0_JRE8, parser.getRuntimeStack());
 
-        doReturn("wildfly 14-jre8").when(mojo).getLinuxRuntime();
-        assertEquals(RuntimeStack.WILDFLY_14_JRE8, parser.getRuntimeStack());
-
         doReturn("jre8").when(mojo).getLinuxRuntime();
         assertEquals(RuntimeStack.JAVA_8_JRE8, parser.getRuntimeStack());
 

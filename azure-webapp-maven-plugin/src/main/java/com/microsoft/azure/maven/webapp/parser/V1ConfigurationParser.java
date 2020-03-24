@@ -71,7 +71,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
         if (javaSERuntimeStack != null) {
             return javaSERuntimeStack;
         }
-        // Tomcat/WildFly
+        // Tomcat
         final List<RuntimeStack> runtimeStacks = RuntimeStackUtils.getValidRuntimeStacks();
         for (final RuntimeStack runtimeStack : runtimeStacks) {
             if (runtimeStack.toString().equalsIgnoreCase(mojo.getLinuxRuntime())) {
