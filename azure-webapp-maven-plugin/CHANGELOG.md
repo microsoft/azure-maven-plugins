@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure App Service" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.9.1](#191)
   - [1.9.0](#190)
   - [1.8.0](#180)
   - [1.7.0](#170)
@@ -16,6 +17,11 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.2.0](#120)
   - [1.1.0](#110)
   - [1.0.0](#100)
+
+## 1.9.1
+- Remove support for WildFly for Web App on Linux.
+- Fix: There is no artifact to deploy in staging directory.[#1032](https://github.com/microsoft/azure-maven-plugins/issues/1032)
+- Fix: Plugin will do useless during deployment update when the settings are not changed.[#1008](https://github.com/microsoft/azure-maven-plugins/issues/1008)
 
 ## 1.9.0
 - Support deploy external resources to Azure outside `wwwroot`.[PR#953](https://github.com/microsoft/azure-maven-plugins/pull/953)
