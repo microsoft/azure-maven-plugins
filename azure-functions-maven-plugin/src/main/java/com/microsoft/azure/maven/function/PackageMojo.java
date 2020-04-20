@@ -59,7 +59,7 @@ import java.util.Set;
  * Generate configuration files (host.json, function.json etc.) and copy JARs to staging directory.
  */
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE,
-        requiresDependencyResolution = ResolutionScope.COMPILE)
+        requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class PackageMojo extends AbstractFunctionMojo {
     public static final String SEARCH_FUNCTIONS = "Step 1 of 7: Searching for Azure Functions entry points";
     public static final String FOUND_FUNCTIONS = " Azure Functions entry point(s) found.";
@@ -172,13 +172,13 @@ public class PackageMojo extends AbstractFunctionMojo {
      */
     protected List<URL> getDependencyArtifactUrls() {
         final List<URL> urlList = new ArrayList<>();
-        final List<String> compileClasspathElements = new ArrayList<>();
+        final List<String> runtimeClasspathElements = new ArrayList<>();
         try {
-            compileClasspathElements.addAll(this.getProject().getCompileClasspathElements());
+            runtimeClasspathElements.addAll(this.getProject().getRuntimeClasspathElements());
         } catch (DependencyResolutionRequiredException e) {
             Log.debug("Failed to resolve dependencies for compile scope, exception: " + e.getMessage());
         }
-        for (final String element : compileClasspathElements) {
+        for (final String element : runtimeClasspathElements) {
             final File f = new File(element);
             try {
                 urlList.add(f.toURI().toURL());
