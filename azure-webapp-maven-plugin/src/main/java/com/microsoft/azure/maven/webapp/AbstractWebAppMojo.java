@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.utils.AppServiceUtils;
@@ -25,7 +24,6 @@ import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -313,8 +311,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     public WebApp getWebApp() throws AzureAuthFailureException {
-        final PagedList<WebApp> webAppPagedList = getAzureClient().webApps().list();
-        return AppServiceUtils.findAppServiceInPagedList(webAppPagedList, getResourceGroup(), getAppName());
+        return getAzureClient().webApps().getByResourceGroup(getResourceGroup(), getAppName());
     }
 
     public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {
