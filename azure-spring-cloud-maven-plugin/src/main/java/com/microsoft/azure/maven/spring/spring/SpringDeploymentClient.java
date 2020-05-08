@@ -106,6 +106,9 @@ public class SpringDeploymentClient extends AbstractSpringClient {
     }
 
     private RuntimeVersion parseRuntimeVersion(String runtimeVersion) {
+        if (StringUtils.isAllEmpty(runtimeVersion)) {
+            return DEFAULT_RUNTIME_VERSION;
+        }
         final Matcher matcher = Pattern.compile(RUNTIME_VERSION_PATTERN).matcher(runtimeVersion);
         if (matcher.matches()) {
             return StringUtils.equals(matcher.group(3), "8") ? RuntimeVersion.JAVA_8 : RuntimeVersion.JAVA_11;
