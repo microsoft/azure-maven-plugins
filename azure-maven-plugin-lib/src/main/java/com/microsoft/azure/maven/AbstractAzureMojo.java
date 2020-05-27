@@ -300,6 +300,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
+    protected AzureTokenWrapper getAzureTokenWrapper() {
+        return azureTokenWrapper;
+    }
+
     protected AuthType getAuthTypeEnum() {
         if (StringUtils.isEmpty(authType)) {
             return AuthType.AUTO;

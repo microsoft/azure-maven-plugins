@@ -6,7 +6,9 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.applicationinsights.management.rest.model.Resource;
 import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.common.applicationinsights.ApplicationInsightsManager;
 import com.microsoft.azure.common.appservice.DeployTargetType;
 import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
@@ -35,7 +37,6 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -74,6 +75,18 @@ public class DeployMojo extends AbstractFunctionMojo {
         " meet the requirement of Azure Functions, set it to Java 8.";
     public static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
             "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
+
+    public static final String APPINSIGHTS_INSTRUMENTATIONKEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
+    public static final String FAILED_TO_GET_APPLICATION_INSIGHT = "Failed to get application insight %s in resource " +
+            "group %s, please check the configuration.";
+    public static final String APPLICATION_INSIGHTS_CREATE_FAILED = "Unable to create the Application Insights " +
+            "for the Function App. Please use the Azure Portal to manually create and configure the Application " +
+            "Insights if needed.";
+    public static final String APPLICATION_INSIGHTS_CREATE_START = "Creating application insights...";
+    public static final String APPLICATION_INSIGHTS_CREATED = "Successfully created the application insights %s " +
+            "for this Function App. You can visit https://portal.azure.com/#resource%s/overview to view your " +
+            "Application Insights component.";
+    public static final String SKIP_CREATING_APPLICATION_INSIGHTS = "Skip creating application insights";
 
     //region Entry Point
     @Override
@@ -114,10 +127,14 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected void createFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
         Log.info(FUNCTION_APP_CREATE_START);
+        final Map appSettings = getAppSettingsWithDefaultValue();
+        final String instrumentKey = getInstrumentKey();
+        if (StringUtils.isNotEmpty(instrumentKey)) {
+            appSettings.put(APPINSIGHTS_INSTRUMENTATIONKEY, instrumentKey);
+        }
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
-        configureAppSettings(withCreate::withAppSettings, getAppSettingsWithDefaultValue());
-        withCreate.withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
+        withCreate.withAppSettings(appSettings).withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
         Log.info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
 
@@ -150,6 +167,46 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void configureAppSettings(final Consumer<Map> withAppSettings, final Map appSettings) {
         if (appSettings != null && !appSettings.isEmpty()) {
             withAppSettings.accept(appSettings);
+        }
+    }
+
+    protected String getInstrumentKey() throws AzureExecutionException {
+        if (StringUtils.isNotEmpty(getAppInsightsKey())) {
+            return getAppInsightsKey();
+        }
+        final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(getAzureTokenWrapper(), getUserAgent());
+        final Resource resource = StringUtils.isNotEmpty(getAppInsights()) ?
+                getApplicationInsight(applicationInsightsManager, getAppInsights()) :
+                createApplicationInsights(applicationInsightsManager);
+        return resource == null ? null : resource.getInstrumentationKey();
+    }
+
+    private Resource getApplicationInsight(ApplicationInsightsManager applicationInsightsManager, String appInsights) throws AzureExecutionException {
+        try {
+            final Resource resource = applicationInsightsManager.getApplicationInsightInstance(getSubscriptionId(), getResourceGroup(), appInsights);
+            if (resource == null) {
+                throw new AzureExecutionException(String.format(FAILED_TO_GET_APPLICATION_INSIGHT, appInsights, getResourceGroup()));
+            }
+            return resource;
+        } catch (AzureExecutionException e) {
+            throw new AzureExecutionException(String.format(FAILED_TO_GET_APPLICATION_INSIGHT, appInsights, getResourceGroup()), e);
+        }
+    }
+
+    private Resource createApplicationInsights(ApplicationInsightsManager applicationInsightsManager) {
+        if (isDisableAppInsights()) {
+            Log.info(SKIP_CREATING_APPLICATION_INSIGHTS);
+            return null;
+        }
+        try {
+            Log.info(APPLICATION_INSIGHTS_CREATE_START);
+            final String subscriptionId = getAzureClient().subscriptionId();
+            final Resource resource = applicationInsightsManager.createApplicationInsight(subscriptionId, getResourceGroup(), getAppName(), getRegion());
+            Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.getName(), resource.getId()));
+            return resource;
+        } catch (AzureExecutionException | AzureAuthFailureException e) {
+            Log.warn(APPLICATION_INSIGHTS_CREATE_FAILED);
+            return null;
         }
     }
 
