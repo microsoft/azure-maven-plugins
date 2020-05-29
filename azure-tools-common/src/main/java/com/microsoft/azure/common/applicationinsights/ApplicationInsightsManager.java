@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.common.applicationinsights;
 
-import com.microsoft.applicationinsights.management.rest.ApplicationInsightsManagementClient;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
@@ -20,7 +19,6 @@ public class ApplicationInsightsManager {
 
     private Azure azure;
     private InsightsManager insightsManager;
-    private ApplicationInsightsManagementClient aiClient;
 
     public ApplicationInsightsManager(AzureTokenCredentials tokenCredentials, String userAgent) throws AzureExecutionException {
         try {
