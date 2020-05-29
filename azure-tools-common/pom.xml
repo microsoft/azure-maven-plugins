@@ -30,7 +30,6 @@
         <powermock.version>2.0.2</powermock.version>
     </properties>
 
-
     <repositories>
         <repository>
             <id>maven.snapshots</id>
@@ -74,6 +73,13 @@
     </developers>
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.microsoft.azure.applicationinsights.v2015_05_01/azure-mgmt-insights -->
+        <dependency>
+            <groupId>com.microsoft.azure.applicationinsights.v2015_05_01</groupId>
+            <artifactId>azure-mgmt-insights</artifactId>
+            <version>1.0.0-beta</version>
+        </dependency>
+
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>applicationinsights-management</artifactId>
@@ -217,6 +223,12 @@
             <artifactId>powermock-module-junit4</artifactId>
             <version>${powermock.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-arm-client-runtime</artifactId>
+            <version>1.6.5</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <profiles>

@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.applicationinsights.management.rest.model.Resource;
 import com.microsoft.azure.common.Utils;
 import com.microsoft.azure.common.applicationinsights.ApplicationInsightsManager;
 import com.microsoft.azure.common.appservice.DeployTargetType;
@@ -29,6 +28,7 @@ import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
 import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
+import com.microsoft.azure.management.applicationinsights.v2015_05_01.ApplicationInsightsComponent;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
@@ -175,15 +175,16 @@ public class DeployMojo extends AbstractFunctionMojo {
             return getAppInsightsKey();
         }
         final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(getAzureTokenWrapper(), getUserAgent());
-        final Resource resource = StringUtils.isNotEmpty(getAppInsights()) ?
+        final ApplicationInsightsComponent resource = StringUtils.isNotEmpty(getAppInsights()) ?
                 getApplicationInsight(applicationInsightsManager, getAppInsights()) :
                 createApplicationInsights(applicationInsightsManager);
-        return resource == null ? null : resource.getInstrumentationKey();
+        return resource == null ? null : resource.instrumentationKey();
     }
 
-    private Resource getApplicationInsight(ApplicationInsightsManager applicationInsightsManager, String appInsights) throws AzureExecutionException {
+    private ApplicationInsightsComponent getApplicationInsight(ApplicationInsightsManager applicationInsightsManager, String appInsights)
+            throws AzureExecutionException {
         try {
-            final Resource resource = applicationInsightsManager.getApplicationInsightInstance(getSubscriptionId(), getResourceGroup(), appInsights);
+            final ApplicationInsightsComponent resource = applicationInsightsManager.getApplicationInsightInstance(getResourceGroup(), appInsights);
             if (resource == null) {
                 throw new AzureExecutionException(String.format(FAILED_TO_GET_APPLICATION_INSIGHT, appInsights, getResourceGroup()));
             }
@@ -193,18 +194,17 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    private Resource createApplicationInsights(ApplicationInsightsManager applicationInsightsManager) {
+    private ApplicationInsightsComponent createApplicationInsights(ApplicationInsightsManager applicationInsightsManager) {
         if (isDisableAppInsights()) {
             Log.info(SKIP_CREATING_APPLICATION_INSIGHTS);
             return null;
         }
         try {
             Log.info(APPLICATION_INSIGHTS_CREATE_START);
-            final String subscriptionId = getAzureClient().subscriptionId();
-            final Resource resource = applicationInsightsManager.createApplicationInsight(subscriptionId, getResourceGroup(), getAppName(), getRegion());
-            Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.getName(), resource.getId()));
+            final ApplicationInsightsComponent resource = applicationInsightsManager.createApplicationInsight(getResourceGroup(), getAppName(), getRegion());
+            Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.name(), resource.id()));
             return resource;
-        } catch (AzureExecutionException | AzureAuthFailureException e) {
+        } catch (Exception e) {
             Log.warn(APPLICATION_INSIGHTS_CREATE_FAILED);
             return null;
         }
