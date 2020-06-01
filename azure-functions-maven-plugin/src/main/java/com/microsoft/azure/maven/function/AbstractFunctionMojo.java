@@ -83,8 +83,8 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.runtime")
     protected RuntimeConfiguration runtime;
 
-    @Parameter(property = "functions.appInsights")
-    protected String appInsights;
+    @Parameter(property = "functions.appInsightsInstance")
+    protected String appInsightsInstance;
 
     @Parameter(property = "functions.appInsightsKey")
     protected String appInsightsKey;
@@ -156,8 +156,8 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return finalName;
     }
 
-    public String getAppInsights() {
-        return appInsights;
+    public String getAppInsightsInstance() {
+        return appInsightsInstance;
     }
 
     public String getAppInsightsKey() {
