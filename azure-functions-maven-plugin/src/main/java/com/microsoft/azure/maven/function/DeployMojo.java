@@ -79,8 +79,9 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
     private static final String APPLICATION_INSIGHTS_NOT_SUPPORTED = "Application Insights features are not supported with" +
             " current authentication, skip related steps.";
-    private static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Can not set <appInsightsKey> or " +
-            "<appInsightsInstance> as <disableAppInsights> is set to True, please check the configuration";
+    private static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Contradicting configuration for application insights," +
+            " specify 'appInsightsKey' or 'appInsightsInstance' if you want to enable it, and specify " +
+            "'disableAppInsights=true' if you want to disable it.";
     private static final String FAILED_TO_GET_APPLICATION_INSIGHTS = "The application insights %s cannot be found, " +
             "will create it in resource group %s.";
     private static final String SKIP_CREATING_APPLICATION_INSIGHTS = "Skip creating application insights";
@@ -92,7 +93,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             "for the Function App due to error %s. Please use the Azure Portal to manually create and configure the " +
             "Application Insights if needed.";
     private static final String INSTRUMENTATION_KEY_IS_NOT_VALID = "Instrumentation key is not valid, " +
-            "please check the configuration";
+            "please update the application insights configuration";
 
     //region Entry Point
     @Override
