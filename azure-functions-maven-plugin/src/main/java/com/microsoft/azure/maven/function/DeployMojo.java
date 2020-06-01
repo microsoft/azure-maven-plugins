@@ -76,22 +76,21 @@ public class DeployMojo extends AbstractFunctionMojo {
         " meet the requirement of Azure Functions, set it to Java 8.";
     public static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
             "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
-
     public static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
-    public static final String FAILED_TO_GET_APPLICATION_INSIGHT = "Application insight %s was not found, " +
+    public static final String APPLICATION_INSIGHTS_NOT_SUPPORTED = "Application Insights feature was not supported with" +
+            " current authentication, skip related steps.";
+    public static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Can not set <appInsightsKey> or " +
+            "<appInsightsInstance> as <disableAppInsights> is set to True, please check the configuration";
+    public static final String FAILED_TO_GET_APPLICATION_INSIGHT = "The application insights %s cannot be found, " +
             "will create it in resource group %s.";
-    public static final String APPLICATION_INSIGHTS_CREATE_FAILED = "Unable to create the Application Insights " +
-            "for the Function App. Please use the Azure Portal to manually create and configure the Application " +
-            "Insights if needed.";
+    public static final String SKIP_CREATING_APPLICATION_INSIGHTS = "Skip creating application insights";
     public static final String APPLICATION_INSIGHTS_CREATE_START = "Creating application insights...";
     public static final String APPLICATION_INSIGHTS_CREATED = "Successfully created the application insights %s " +
             "for this Function App. You can visit https://portal.azure.com/#resource%s/overview to view your " +
             "Application Insights component.";
-    public static final String SKIP_CREATING_APPLICATION_INSIGHTS = "Skip creating application insights";
-    public static final String APPLICATION_INSIGHTS_NOT_SUPPORTED = "Application Insights feature was not supported with" +
-            " current authentication, skip related steps.";
-    public static final String APP_INSIGHTS_CONFIGURATION_WAS_NOT_SUPPORTED = "Can not set appInsightsKey or " +
-            "appInsightsInstance with disableAppInsights, please check the configuration";
+    public static final String APPLICATION_INSIGHTS_CREATE_FAILED = "Unable to create the Application Insights " +
+            "for the Function App due to error %s. Please use the Azure Portal to manually create and configure the " +
+            "Application Insights if needed.";
 
     //region Entry Point
     @Override
@@ -134,12 +133,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         Log.info(FUNCTION_APP_CREATE_START);
         final Map appSettings = getAppSettingsWithDefaultValue();
         // get/create ai instances only if user didn't specify ai connection string in app settings
-        if (!appSettings.containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
-            final String instrumentKey = getInstrumentKey();
-            if (StringUtils.isNotEmpty(instrumentKey)) {
-                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentKey);
-            }
-        }
+        buildApplicationInsightConnection(appSettings);
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
         withCreate.withAppSettings(appSettings).withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
@@ -156,7 +150,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         checkHostJavaVersion(app, update); // Check Java Version of Server
         configureAppSettings(update::withAppSettings, getAppSettingsWithDefaultValue());
         // Remove App Insights connection when `disableAppInsights` set to true
-        if (disableAppInsights) {
+        if (isDisableAppInsights()) {
             update.withoutAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
         }
         update.apply();
@@ -182,33 +176,44 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected String getInstrumentKey() throws AzureExecutionException {
-        validateApplicationInsightConfiguration();
-        if (StringUtils.isNotEmpty(getAppInsightsKey())) {
-            return getAppInsightsKey();
+    private void buildApplicationInsightConnection(Map appSettings) throws AzureExecutionException {
+        // Skip app insight creation when user specify ai connection string in app settings
+        if (appSettings.containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
+            return;
         }
+        if (isDisableAppInsights() && (StringUtils.isNotEmpty(getAppInsightsKey()) || StringUtils.isNotEmpty(getAppInsightsInstance()))) {
+            throw new AzureExecutionException(APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT);
+        }
+        String instrumentationKey = null;
+        if (StringUtils.isNotEmpty(getAppInsightsKey())) {
+            instrumentationKey = getAppInsightsKey();
+        } else {
+            final ApplicationInsightsComponent applicationInsightsComponent = getOrCreateApplicationInsights();
+            instrumentationKey = applicationInsightsComponent == null ? null : applicationInsightsComponent.instrumentationKey();
+        }
+        if (StringUtils.isNotEmpty(instrumentationKey)) {
+            appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
+        }
+    }
+
+    private ApplicationInsightsComponent getOrCreateApplicationInsights() throws AzureExecutionException {
         final AzureTokenCredentials credentials = getAzureTokenWrapper();
         if (credentials == null) {
             Log.warn(APPLICATION_INSIGHTS_NOT_SUPPORTED);
             return null;
         }
         final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials, getUserAgent());
-        final ApplicationInsightsComponent resource = StringUtils.isNotEmpty(getAppInsightsInstance()) ?
-                getApplicationInsight(applicationInsightsManager, getAppInsightsInstance()) :
+        return StringUtils.isNotEmpty(getAppInsightsInstance()) ?
+                getApplicationInsights(applicationInsightsManager, getAppInsightsInstance()) :
                 createApplicationInsights(applicationInsightsManager);
-        return resource == null ? null : resource.instrumentationKey();
     }
 
-    private void validateApplicationInsightConfiguration() throws AzureExecutionException {
-        if (isDisableAppInsights() && (StringUtils.isNotEmpty(getAppInsightsKey()) || StringUtils.isNotEmpty(getAppInsightsInstance()))) {
-            throw new AzureExecutionException(APP_INSIGHTS_CONFIGURATION_WAS_NOT_SUPPORTED);
-        }
-    }
-
-    private ApplicationInsightsComponent getApplicationInsight(ApplicationInsightsManager applicationInsightsManager, String appInsights) {
-        final ApplicationInsightsComponent resource = applicationInsightsManager.getApplicationInsightInstance(getResourceGroup(), appInsights);
+    private ApplicationInsightsComponent getApplicationInsights(ApplicationInsightsManager applicationInsightsManager,
+                                                                String appInsightsInstance) {
+        final ApplicationInsightsComponent resource = applicationInsightsManager.getApplicationInsightInstance(getResourceGroup(),
+                appInsightsInstance);
         if (resource == null) {
-            Log.warn(String.format(FAILED_TO_GET_APPLICATION_INSIGHT, appInsights, getResourceGroup()));
+            Log.warn(String.format(FAILED_TO_GET_APPLICATION_INSIGHT, appInsightsInstance, getResourceGroup()));
             return createApplicationInsights(applicationInsightsManager);
         }
         return resource;
@@ -225,7 +230,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.name(), resource.id()));
             return resource;
         } catch (Exception e) {
-            Log.warn(APPLICATION_INSIGHTS_CREATE_FAILED);
+            Log.warn(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, e.getMessage()));
             return null;
         }
     }
