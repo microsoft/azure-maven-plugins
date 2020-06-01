@@ -56,41 +56,43 @@ import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
 
-    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
-    public static final String VALID_JAVA_VERSION_PATTERN = "^1\\.8.*"; // For now we only support function with java 8
+    private static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
+    private static final String VALID_JAVA_VERSION_PATTERN = "^1\\.8.*"; // For now we only support function with java 8
 
-    public static final String DEPLOY_START = "Trying to deploy the function app...";
-    public static final String DEPLOY_FINISH =
+    private static final String DEPLOY_START = "Trying to deploy the function app...";
+    private static final String DEPLOY_FINISH =
         "Successfully deployed the function app at https://%s.azurewebsites.net.";
-    public static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
+    private static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
         "Creating a new function app...";
-    public static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s.";
-    public static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
-    public static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app: %s.";
-    public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
+    private static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s.";
+    private static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
+    private static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app: %s.";
+    private static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
 
-    public static final String HOST_JAVA_VERSION = "Java version of function host : %s";
-    public static final String HOST_JAVA_VERSION_OFF = "Java version of function host is not initiated," +
+    private static final String HOST_JAVA_VERSION = "Java version of function host : %s";
+    private static final String HOST_JAVA_VERSION_OFF = "Java version of function host is not initiated," +
         " set it to Java 8.";
-    public static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
+    private static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
         " meet the requirement of Azure Functions, set it to Java 8.";
-    public static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
+    private static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
             "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
-    public static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
-    public static final String APPLICATION_INSIGHTS_NOT_SUPPORTED = "Application Insights features are not supported with" +
+    private static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
+    private static final String APPLICATION_INSIGHTS_NOT_SUPPORTED = "Application Insights features are not supported with" +
             " current authentication, skip related steps.";
-    public static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Can not set <appInsightsKey> or " +
+    private static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Can not set <appInsightsKey> or " +
             "<appInsightsInstance> as <disableAppInsights> is set to True, please check the configuration";
-    public static final String FAILED_TO_GET_APPLICATION_INSIGHTS = "The application insights %s cannot be found, " +
+    private static final String FAILED_TO_GET_APPLICATION_INSIGHTS = "The application insights %s cannot be found, " +
             "will create it in resource group %s.";
-    public static final String SKIP_CREATING_APPLICATION_INSIGHTS = "Skip creating application insights";
-    public static final String APPLICATION_INSIGHTS_CREATE_START = "Creating application insights...";
-    public static final String APPLICATION_INSIGHTS_CREATED = "Successfully created the application insights %s " +
+    private static final String SKIP_CREATING_APPLICATION_INSIGHTS = "Skip creating application insights";
+    private static final String APPLICATION_INSIGHTS_CREATE_START = "Creating application insights...";
+    private static final String APPLICATION_INSIGHTS_CREATED = "Successfully created the application insights %s " +
             "for this Function App. You can visit https://portal.azure.com/#resource%s/overview to view your " +
             "Application Insights component.";
-    public static final String APPLICATION_INSIGHTS_CREATE_FAILED = "Unable to create the Application Insights " +
+    private static final String APPLICATION_INSIGHTS_CREATE_FAILED = "Unable to create the Application Insights " +
             "for the Function App due to error %s. Please use the Azure Portal to manually create and configure the " +
             "Application Insights if needed.";
+    private static final String INSTRUMENTATION_KEY_IS_NOT_VALID = "Instrumentation key is not valid, " +
+            "please check the configuration";
 
     //region Entry Point
     @Override
@@ -153,17 +155,12 @@ public class DeployMojo extends AbstractFunctionMojo {
             // Remove App Insights connection when `disableAppInsights` set to true
             // Need to call `withoutAppSetting` as withAppSettings will only not remove parameters
             update.withoutAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
-        } else if (!isAppInsightsEnabledInFunctionApp(app)) {
+        } else {
             bindApplicationInsights(appSettings, false);
         }
         configureAppSettings(update::withAppSettings, appSettings);
         update.apply();
         Log.info(String.format(FUNCTION_APP_UPDATE_DONE, getAppName()));
-    }
-
-    private boolean isAppInsightsEnabledInFunctionApp(FunctionApp functionApp) {
-        return functionApp.getAppSettings().entrySet().stream()
-                .anyMatch(entry -> StringUtils.equals(entry.getKey(), APPINSIGHTS_INSTRUMENTATION_KEY));
     }
 
     protected void checkHostJavaVersion(final FunctionApp app, final Update update) {
@@ -203,6 +200,9 @@ public class DeployMojo extends AbstractFunctionMojo {
         String instrumentationKey = null;
         if (StringUtils.isNotEmpty(getAppInsightsKey())) {
             instrumentationKey = getAppInsightsKey();
+            if (!Utils.isGUID(instrumentationKey)) {
+                throw new AzureExecutionException(INSTRUMENTATION_KEY_IS_NOT_VALID);
+            }
         } else {
             final ApplicationInsightsComponent applicationInsightsComponent = getOrCreateApplicationInsights(isCreation);
             instrumentationKey = applicationInsightsComponent == null ? null : applicationInsightsComponent.instrumentationKey();
