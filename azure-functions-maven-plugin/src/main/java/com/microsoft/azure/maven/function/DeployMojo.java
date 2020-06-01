@@ -133,9 +133,12 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void createFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
         Log.info(FUNCTION_APP_CREATE_START);
         final Map appSettings = getAppSettingsWithDefaultValue();
-        final String instrumentKey = getInstrumentKey();
-        if (StringUtils.isNotEmpty(instrumentKey)) {
-            appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentKey);
+        // get/create ai instances only if user didn't specify ai connection string in app settings
+        if (!appSettings.containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
+            final String instrumentKey = getInstrumentKey();
+            if (StringUtils.isNotEmpty(instrumentKey)) {
+                appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentKey);
+            }
         }
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
@@ -152,7 +155,6 @@ public class DeployMojo extends AbstractFunctionMojo {
         final Update update = runtimeHandler.updateAppRuntime(app);
         checkHostJavaVersion(app, update); // Check Java Version of Server
         configureAppSettings(update::withAppSettings, getAppSettingsWithDefaultValue());
-        validateApplicationInsightConfiguration();
         // Remove App Insights connection when `disableAppInsights` set to true
         if (disableAppInsights) {
             update.withoutAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
@@ -188,6 +190,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         final AzureTokenCredentials credentials = getAzureTokenWrapper();
         if (credentials == null) {
             Log.warn(APPLICATION_INSIGHTS_NOT_SUPPORTED);
+            return null;
         }
         final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials, getUserAgent());
         final ApplicationInsightsComponent resource = StringUtils.isNotEmpty(getAppInsightsInstance()) ?
