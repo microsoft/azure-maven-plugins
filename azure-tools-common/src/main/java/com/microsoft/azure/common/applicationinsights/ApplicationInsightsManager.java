@@ -29,11 +29,11 @@ public class ApplicationInsightsManager {
         }
     }
 
-    public ApplicationInsightsComponent getApplicationInsightInstance(String resourceGroup, String name) {
+    public ApplicationInsightsComponent getApplicationInsightsInstance(String resourceGroup, String name) {
         return insightsManager.components().getByResourceGroup(resourceGroup, name);
     }
 
-    public ApplicationInsightsComponent createApplicationInsight(String resourceGroup, String name, String location) {
+    public ApplicationInsightsComponent createApplicationInsights(String resourceGroup, String name, String location) {
         if (!azure.resourceGroups().contain(resourceGroup)) {
             azure.resourceGroups().define(resourceGroup).withRegion(location).create();
         }

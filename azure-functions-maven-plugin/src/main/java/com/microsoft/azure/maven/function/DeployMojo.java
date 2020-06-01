@@ -77,11 +77,11 @@ public class DeployMojo extends AbstractFunctionMojo {
     public static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
             "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
     public static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
-    public static final String APPLICATION_INSIGHTS_NOT_SUPPORTED = "Application Insights feature was not supported with" +
+    public static final String APPLICATION_INSIGHTS_NOT_SUPPORTED = "Application Insights features are not supported with" +
             " current authentication, skip related steps.";
     public static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Can not set <appInsightsKey> or " +
             "<appInsightsInstance> as <disableAppInsights> is set to True, please check the configuration";
-    public static final String FAILED_TO_GET_APPLICATION_INSIGHT = "The application insights %s cannot be found, " +
+    public static final String FAILED_TO_GET_APPLICATION_INSIGHTS = "The application insights %s cannot be found, " +
             "will create it in resource group %s.";
     public static final String SKIP_CREATING_APPLICATION_INSIGHTS = "Skip creating application insights";
     public static final String APPLICATION_INSIGHTS_CREATE_START = "Creating application insights...";
@@ -133,7 +133,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         Log.info(FUNCTION_APP_CREATE_START);
         final Map appSettings = getAppSettingsWithDefaultValue();
         // get/create ai instances only if user didn't specify ai connection string in app settings
-        buildApplicationInsightConnection(appSettings);
+        bindApplicationInsights(appSettings, true);
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
         withCreate.withAppSettings(appSettings).withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
@@ -148,13 +148,22 @@ public class DeployMojo extends AbstractFunctionMojo {
         runtimeHandler.updateAppServicePlan(app);
         final Update update = runtimeHandler.updateAppRuntime(app);
         checkHostJavaVersion(app, update); // Check Java Version of Server
-        configureAppSettings(update::withAppSettings, getAppSettingsWithDefaultValue());
-        // Remove App Insights connection when `disableAppInsights` set to true
+        final Map appSettings = getAppSettingsWithDefaultValue();
         if (isDisableAppInsights()) {
+            // Remove App Insights connection when `disableAppInsights` set to true
+            // Need to call `withoutAppSetting` as withAppSettings will only not remove parameters
             update.withoutAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
+        } else if (!isAppInsightsEnabledInFunctionApp(app)) {
+            bindApplicationInsights(appSettings, false);
         }
+        configureAppSettings(update::withAppSettings, appSettings);
         update.apply();
         Log.info(String.format(FUNCTION_APP_UPDATE_DONE, getAppName()));
+    }
+
+    private boolean isAppInsightsEnabledInFunctionApp(FunctionApp functionApp) {
+        return functionApp.getAppSettings().entrySet().stream()
+                .anyMatch(entry -> StringUtils.equals(entry.getKey(), APPINSIGHTS_INSTRUMENTATION_KEY));
     }
 
     protected void checkHostJavaVersion(final FunctionApp app, final Update update) {
@@ -176,8 +185,15 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    private void buildApplicationInsightConnection(Map appSettings) throws AzureExecutionException {
-        // Skip app insight creation when user specify ai connection string in app settings
+    /**
+     * Binding Function App with Application Insights
+     * Will follow the below sequence appInsightsKey -> appInsightsInstance -> Create New AI Instance (Function creation only)
+     * @param appSettings App settings map
+     * @param isCreation Define the stage of function app, as we only create ai instance by default when create new function apps
+     * @throws AzureExecutionException When there are conflicts in configuration or meet errors while finding/creating application insights instance
+     */
+    private void bindApplicationInsights(Map appSettings, boolean isCreation) throws AzureExecutionException {
+        // Skip app insights creation when user specify ai connection string in app settings
         if (appSettings.containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
             return;
         }
@@ -188,7 +204,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (StringUtils.isNotEmpty(getAppInsightsKey())) {
             instrumentationKey = getAppInsightsKey();
         } else {
-            final ApplicationInsightsComponent applicationInsightsComponent = getOrCreateApplicationInsights();
+            final ApplicationInsightsComponent applicationInsightsComponent = getOrCreateApplicationInsights(isCreation);
             instrumentationKey = applicationInsightsComponent == null ? null : applicationInsightsComponent.instrumentationKey();
         }
         if (StringUtils.isNotEmpty(instrumentationKey)) {
@@ -196,7 +212,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    private ApplicationInsightsComponent getOrCreateApplicationInsights() throws AzureExecutionException {
+    private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureExecutionException {
         final AzureTokenCredentials credentials = getAzureTokenWrapper();
         if (credentials == null) {
             Log.warn(APPLICATION_INSIGHTS_NOT_SUPPORTED);
@@ -205,15 +221,15 @@ public class DeployMojo extends AbstractFunctionMojo {
         final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials, getUserAgent());
         return StringUtils.isNotEmpty(getAppInsightsInstance()) ?
                 getApplicationInsights(applicationInsightsManager, getAppInsightsInstance()) :
-                createApplicationInsights(applicationInsightsManager);
+                enableCreation ? createApplicationInsights(applicationInsightsManager) : null;
     }
 
     private ApplicationInsightsComponent getApplicationInsights(ApplicationInsightsManager applicationInsightsManager,
                                                                 String appInsightsInstance) {
-        final ApplicationInsightsComponent resource = applicationInsightsManager.getApplicationInsightInstance(getResourceGroup(),
+        final ApplicationInsightsComponent resource = applicationInsightsManager.getApplicationInsightsInstance(getResourceGroup(),
                 appInsightsInstance);
         if (resource == null) {
-            Log.warn(String.format(FAILED_TO_GET_APPLICATION_INSIGHT, appInsightsInstance, getResourceGroup()));
+            Log.warn(String.format(FAILED_TO_GET_APPLICATION_INSIGHTS, appInsightsInstance, getResourceGroup()));
             return createApplicationInsights(applicationInsightsManager);
         }
         return resource;
@@ -226,7 +242,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
         try {
             Log.info(APPLICATION_INSIGHTS_CREATE_START);
-            final ApplicationInsightsComponent resource = applicationInsightsManager.createApplicationInsight(getResourceGroup(), getAppName(), getRegion());
+            final ApplicationInsightsComponent resource = applicationInsightsManager.createApplicationInsights(getResourceGroup(), getAppName(), getRegion());
             Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.name(), resource.id()));
             return resource;
         } catch (Exception e) {
