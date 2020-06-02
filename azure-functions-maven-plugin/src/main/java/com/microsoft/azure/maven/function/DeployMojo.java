@@ -134,6 +134,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected void createFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
         Log.info(FUNCTION_APP_CREATE_START);
+        validateApplicationInsightsConfiguration();
         final Map appSettings = getAppSettingsWithDefaultValue();
         // get/create ai instances only if user didn't specify ai connection string in app settings
         bindApplicationInsights(appSettings, true);
@@ -151,11 +152,11 @@ public class DeployMojo extends AbstractFunctionMojo {
         runtimeHandler.updateAppServicePlan(app);
         final Update update = runtimeHandler.updateAppRuntime(app);
         checkHostJavaVersion(app, update); // Check Java Version of Server
+        validateApplicationInsightsConfiguration();
         final Map appSettings = getAppSettingsWithDefaultValue();
         if (isDisableAppInsights()) {
             // Remove App Insights connection when `disableAppInsights` set to true
             // Need to call `withoutAppSetting` as withAppSettings will only not remove parameters
-            validateApplicationInsightsConfiguration();
             update.withoutAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
         } else {
             bindApplicationInsights(appSettings, false);
@@ -192,7 +193,6 @@ public class DeployMojo extends AbstractFunctionMojo {
      * @throws AzureExecutionException When there are conflicts in configuration or meet errors while finding/creating application insights instance
      */
     private void bindApplicationInsights(Map appSettings, boolean isCreation) throws AzureExecutionException, AzureAuthFailureException {
-        validateApplicationInsightsConfiguration();
         // Skip app insights creation when user specify ai connection string in app settings
         if (appSettings.containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
             return;
