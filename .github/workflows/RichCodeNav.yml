@@ -1,0 +1,16 @@
+name: RichNavIndexing
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - validate/*
+
+jobs:
+  richnav:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: microsoft/RichCodeNavIndexer@master
+      with:
+        languages: java
