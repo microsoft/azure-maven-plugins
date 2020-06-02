@@ -19,9 +19,7 @@ import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
-import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.implementation.SiteInner;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,12 +105,10 @@ public class DeployMojoTest extends MojoTestBase {
         final SiteInner siteInner = mock(SiteInner.class);
         doReturn(siteInner).when(app).inner();
         final Update update = mock(Update.class);
-        doReturn(update).when(app).update();
         doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(app).javaVersion();
         final FunctionRuntimeHandler functionRuntimeHandler = mock(WindowsFunctionRuntimeHandler.class);
         doReturn(functionRuntimeHandler).when(mojoSpy).getFunctionRuntimeHandler();
-        doCallRealMethod().when(functionRuntimeHandler).updateAppRuntime(app);
+        doReturn(update).when(functionRuntimeHandler).updateAppRuntime(app);
         mojoSpy.updateFunctionApp(app);
 
         verify(update, times(1)).apply();

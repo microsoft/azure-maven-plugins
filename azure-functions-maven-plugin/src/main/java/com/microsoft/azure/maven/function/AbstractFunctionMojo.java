@@ -18,7 +18,6 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
@@ -175,19 +174,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     public RuntimeConfiguration getRuntime() {
         return runtime;
-    }
-
-    @Override
-    public void execute() throws MojoExecutionException {
-        checkJavaVersion();
-        super.execute();
-    }
-
-    public void checkJavaVersion() {
-        final String javaVersion = System.getProperty("java.version");
-        if (!javaVersion.startsWith("1.8")) {
-            Log.warn(String.format(JDK_VERSION_ERROR, javaVersion));
-        }
     }
 
     //endregion

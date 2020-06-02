@@ -33,7 +33,6 @@ import com.microsoft.azure.management.applicationinsights.v2015_05_01.Applicatio
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
-import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
@@ -56,9 +55,6 @@ import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
 
-    private static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
-    private static final String VALID_JAVA_VERSION_PATTERN = "^1\\.8.*"; // For now we only support function with java 8
-
     private static final String DEPLOY_START = "Trying to deploy the function app...";
     private static final String DEPLOY_FINISH =
         "Successfully deployed the function app at https://%s.azurewebsites.net.";
@@ -68,12 +64,6 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
     private static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app: %s.";
     private static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
-
-    private static final String HOST_JAVA_VERSION = "Java version of function host : %s";
-    private static final String HOST_JAVA_VERSION_OFF = "Java version of function host is not initiated," +
-        " set it to Java 8.";
-    private static final String HOST_JAVA_VERSION_INCORRECT = "Java version of function host %s does not" +
-        " meet the requirement of Azure Functions, set it to Java 8.";
     private static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
             "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
     private static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
@@ -140,7 +130,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         bindApplicationInsights(appSettings, true);
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
-        withCreate.withAppSettings(appSettings).withJavaVersion(DEFAULT_JAVA_VERSION).withWebContainer(null).create();
+        withCreate.withAppSettings(appSettings).create();
         Log.info(String.format(FUNCTION_APP_CREATED, getAppName()));
     }
 
@@ -151,7 +141,6 @@ public class DeployMojo extends AbstractFunctionMojo {
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         runtimeHandler.updateAppServicePlan(app);
         final Update update = runtimeHandler.updateAppRuntime(app);
-        checkHostJavaVersion(app, update); // Check Java Version of Server
         validateApplicationInsightsConfiguration();
         final Map appSettings = getAppSettingsWithDefaultValue();
         if (isDisableAppInsights()) {
@@ -164,19 +153,6 @@ public class DeployMojo extends AbstractFunctionMojo {
         configureAppSettings(update::withAppSettings, appSettings);
         update.apply();
         Log.info(String.format(FUNCTION_APP_UPDATE_DONE, getAppName()));
-    }
-
-    protected void checkHostJavaVersion(final FunctionApp app, final Update update) {
-        final JavaVersion serverJavaVersion = app.javaVersion();
-        if (serverJavaVersion.toString().matches(VALID_JAVA_VERSION_PATTERN)) {
-            Log.info(String.format(HOST_JAVA_VERSION, serverJavaVersion));
-        } else if (serverJavaVersion.equals(JavaVersion.OFF)) {
-            Log.info(HOST_JAVA_VERSION_OFF);
-            update.withJavaVersion(DEFAULT_JAVA_VERSION);
-        } else {
-            Log.warn(HOST_JAVA_VERSION_INCORRECT);
-            update.withJavaVersion(DEFAULT_JAVA_VERSION);
-        }
     }
 
     protected void configureAppSettings(final Consumer<Map> withAppSettings, final Map appSettings) {
