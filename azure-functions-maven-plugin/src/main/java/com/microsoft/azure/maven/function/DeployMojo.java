@@ -134,6 +134,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected void createFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
         Log.info(FUNCTION_APP_CREATE_START);
+        validateApplicationInsightsConfiguration();
         final Map appSettings = getAppSettingsWithDefaultValue();
         // get/create ai instances only if user didn't specify ai connection string in app settings
         bindApplicationInsights(appSettings, true);
@@ -151,6 +152,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         runtimeHandler.updateAppServicePlan(app);
         final Update update = runtimeHandler.updateAppRuntime(app);
         checkHostJavaVersion(app, update); // Check Java Version of Server
+        validateApplicationInsightsConfiguration();
         final Map appSettings = getAppSettingsWithDefaultValue();
         if (isDisableAppInsights()) {
             // Remove App Insights connection when `disableAppInsights` set to true
@@ -195,9 +197,6 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (appSettings.containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
             return;
         }
-        if (isDisableAppInsights() && (StringUtils.isNotEmpty(getAppInsightsKey()) || StringUtils.isNotEmpty(getAppInsightsInstance()))) {
-            throw new AzureExecutionException(APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT);
-        }
         String instrumentationKey = null;
         if (StringUtils.isNotEmpty(getAppInsightsKey())) {
             instrumentationKey = getAppInsightsKey();
@@ -210,6 +209,12 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
         if (StringUtils.isNotEmpty(instrumentationKey)) {
             appSettings.put(APPINSIGHTS_INSTRUMENTATION_KEY, instrumentationKey);
+        }
+    }
+
+    private void validateApplicationInsightsConfiguration() throws AzureExecutionException {
+        if (isDisableAppInsights() && (StringUtils.isNotEmpty(getAppInsightsKey()) || StringUtils.isNotEmpty(getAppInsightsInstance()))) {
+            throw new AzureExecutionException(APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT);
         }
     }
 
