@@ -79,7 +79,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
     private static final String APPLICATION_INSIGHTS_NOT_SUPPORTED = "Application Insights features are not supported with" +
             " current authentication, skip related steps.";
-    private static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Contradicting configuration for application insights," +
+    private static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Contradictory configurations for application insights," +
             " specify 'appInsightsKey' or 'appInsightsInstance' if you want to enable it, and specify " +
             "'disableAppInsights=true' if you want to disable it.";
     private static final String FAILED_TO_GET_APPLICATION_INSIGHTS = "The application insights %s cannot be found, " +
