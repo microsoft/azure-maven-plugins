@@ -190,7 +190,7 @@ public class DeployMojo extends AbstractFunctionMojo {
      * @param isCreation Define the stage of function app, as we only create ai instance by default when create new function apps
      * @throws AzureExecutionException When there are conflicts in configuration or meet errors while finding/creating application insights instance
      */
-    private void bindApplicationInsights(Map appSettings, boolean isCreation) throws AzureExecutionException {
+    private void bindApplicationInsights(Map appSettings, boolean isCreation) throws AzureExecutionException, AzureAuthFailureException {
         // Skip app insights creation when user specify ai connection string in app settings
         if (appSettings.containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
             return;
@@ -213,16 +213,17 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureExecutionException {
+    private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureAuthFailureException {
         final AzureTokenCredentials credentials = getAzureTokenWrapper();
         if (credentials == null) {
             Log.warn(APPLICATION_INSIGHTS_NOT_SUPPORTED);
             return null;
         }
-        final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials, getUserAgent());
+        final String subscriptionId = getAzureClient().subscriptionId();
+        final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials, subscriptionId, getUserAgent());
         return StringUtils.isNotEmpty(getAppInsightsInstance()) ?
                 getApplicationInsights(applicationInsightsManager, getAppInsightsInstance()) :
-                enableCreation ? createApplicationInsights(applicationInsightsManager) : null;
+                enableCreation ? createApplicationInsights(applicationInsightsManager, getAppName()) : null;
     }
 
     private ApplicationInsightsComponent getApplicationInsights(ApplicationInsightsManager applicationInsightsManager,
@@ -231,19 +232,19 @@ public class DeployMojo extends AbstractFunctionMojo {
                 appInsightsInstance);
         if (resource == null) {
             Log.warn(String.format(FAILED_TO_GET_APPLICATION_INSIGHTS, appInsightsInstance, getResourceGroup()));
-            return createApplicationInsights(applicationInsightsManager);
+            return createApplicationInsights(applicationInsightsManager, appInsightsInstance);
         }
         return resource;
     }
 
-    private ApplicationInsightsComponent createApplicationInsights(ApplicationInsightsManager applicationInsightsManager) {
+    private ApplicationInsightsComponent createApplicationInsights(ApplicationInsightsManager applicationInsightsManager, String name) {
         if (isDisableAppInsights()) {
             Log.info(SKIP_CREATING_APPLICATION_INSIGHTS);
             return null;
         }
         try {
             Log.info(APPLICATION_INSIGHTS_CREATE_START);
-            final ApplicationInsightsComponent resource = applicationInsightsManager.createApplicationInsights(getResourceGroup(), getAppName(), getRegion());
+            final ApplicationInsightsComponent resource = applicationInsightsManager.createApplicationInsights(getResourceGroup(), name, getRegion());
             Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.name(), resource.id()));
             return resource;
         } catch (Exception e) {

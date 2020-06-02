@@ -6,31 +6,33 @@
 
 package com.microsoft.azure.common.applicationinsights;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.ApplicationInsightsComponent;
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.ApplicationType;
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.implementation.InsightsManager;
 
-import java.io.IOException;
-
 public class ApplicationInsightsManager {
 
     private Azure azure;
     private InsightsManager insightsManager;
 
-    public ApplicationInsightsManager(AzureTokenCredentials tokenCredentials, String userAgent) throws AzureExecutionException {
-        try {
-            insightsManager = InsightsManager.authenticate(tokenCredentials, tokenCredentials.defaultSubscriptionId());
-            azure = Azure.configure().authenticate(tokenCredentials).withDefaultSubscription();
-        } catch (IOException e) {
-            throw new AzureExecutionException(e.getMessage(), e);
-        }
+    public ApplicationInsightsManager(AzureTokenCredentials tokenCredentials, String subscriptionId, String userAgent) {
+        azure = Azure.configure()
+                .withUserAgent(userAgent)
+                .authenticate(tokenCredentials).withSubscription(subscriptionId);
+        insightsManager = InsightsManager.configure()
+                .withUserAgent(userAgent)
+                .authenticate(tokenCredentials, subscriptionId);
     }
 
     public ApplicationInsightsComponent getApplicationInsightsInstance(String resourceGroup, String name) {
-        return insightsManager.components().getByResourceGroup(resourceGroup, name);
+        try {
+            return insightsManager.components().getByResourceGroup(resourceGroup, name);
+        } catch (Exception e) {
+            // SDK will throw exception when resource not found
+            return null;
+        }
     }
 
     public ApplicationInsightsComponent createApplicationInsights(String resourceGroup, String name, String location) {
