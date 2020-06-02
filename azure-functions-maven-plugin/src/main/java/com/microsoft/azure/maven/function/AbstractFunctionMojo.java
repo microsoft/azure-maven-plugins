@@ -83,6 +83,15 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.runtime")
     protected RuntimeConfiguration runtime;
 
+    @Parameter(property = "functions.appInsightsInstance")
+    protected String appInsightsInstance;
+
+    @Parameter(property = "functions.appInsightsKey")
+    protected String appInsightsKey;
+
+    @Parameter(property = "functions.disableAppInsights", defaultValue = "false")
+    protected boolean disableAppInsights;
+
     //endregion
 
     //region get App Settings
@@ -145,6 +154,18 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     public String getFinalName() {
         return finalName;
+    }
+
+    public String getAppInsightsInstance() {
+        return appInsightsInstance;
+    }
+
+    public String getAppInsightsKey() {
+        return appInsightsKey;
+    }
+
+    public boolean isDisableAppInsights() {
+        return disableAppInsights;
     }
 
     @Nullable
