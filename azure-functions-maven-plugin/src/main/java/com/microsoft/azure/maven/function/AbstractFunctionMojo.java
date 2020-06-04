@@ -176,7 +176,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return runtime;
     }
 
-
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> result = super.getTelemetryProperties();
