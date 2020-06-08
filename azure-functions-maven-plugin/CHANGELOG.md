@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.5.0](#150)
   - [1.4.1](#141)
   - [1.4.0](#140)
   - [1.3.5](#135)
@@ -12,6 +13,10 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
+
+## 1.5.0
+- Support creating application insights while creating or updating function apps. [PR#1074](https://github.com/microsoft/azure-maven-plugins/pull/1074)
+- Fix: Failed to package function projects with runtime classpath. [#1051](https://github.com/microsoft/azure-maven-plugins/issues/1051)
 
 ## 1.4.1
 - Support specify authentication method in configuration with parameter `<authType>`.[PR#975](https://github.com/microsoft/azure-maven-plugins/pull/975)
