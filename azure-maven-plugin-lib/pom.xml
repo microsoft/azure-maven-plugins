@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>azure-maven-plugin-lib</artifactId>
-    <version>1.2.15-SNAPSHOT</version>
+    <version>1.2.15</version>
     <packaging>jar</packaging>
     <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
@@ -27,16 +27,16 @@
         <maven.filtering.version>3.0.0</maven.filtering.version>
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <codehaus.plexus-utils>3.0.20</codehaus.plexus-utils>
-        <azure.version>1.30.0</azure.version>
-        <azure.ai.version>2.5.1</azure.ai.version>
+        <azure.ai.version>2.6.1</azure.ai.version>
         <common-net.version>3.6</common-net.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13</junit.version>
         <mockito.version>2.22.0</mockito.version>
         <powermock.version>2.0.2</powermock.version>
         <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
         <azure.auth.helper.version>0.4.0</azure.auth.helper.version>
-        <azure-tools-common.version>0.3.0-SNAPSHOT</azure-tools-common.version>
+        <azure-tools-common.version>0.3.0</azure-tools-common.version>
+        <commons.collections4.version>4.4</commons.collections4.version>
     </properties>
 
     <licenses>
@@ -78,7 +78,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>4.2</version>
+            <version>${commons.collections4.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -124,11 +124,6 @@
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure</artifactId>
-            <version>${azure.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
             <artifactId>applicationinsights-core</artifactId>
             <version>${azure.ai.version}</version>
             <exclusions>
@@ -147,11 +142,6 @@
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
             <version>${common-net.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.zeroturnaround</groupId>
-            <artifactId>zt-zip</artifactId>
-            <version>${zeroturnaround.zip.version}</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
