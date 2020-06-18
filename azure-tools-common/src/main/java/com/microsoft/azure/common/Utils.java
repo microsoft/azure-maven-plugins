@@ -12,6 +12,7 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Utility class
@@ -32,6 +33,14 @@ public final class Utils {
             default:
                 throw new AzureExecutionException("The value of <os> is unknown, supported values are: windows, " +
                         "linux and docker.");
+        }
+    }
+
+    public static boolean isGUID(String input) {
+        try {
+            return UUID.fromString(input).toString().equalsIgnoreCase(input);
+        } catch (Exception e) {
+            return false;
         }
     }
 }

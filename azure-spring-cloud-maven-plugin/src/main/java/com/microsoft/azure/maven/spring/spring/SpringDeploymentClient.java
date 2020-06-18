@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class SpringDeploymentClient extends AbstractSpringClient {
 
-    private static final String RUNTIME_VERSION_PATTERN = "(J|j)ava(\\s)?(8|11)$";
+    private static final String RUNTIME_VERSION_PATTERN = "(J|j)ava((\\s)?|_)(8|11)$";
     private static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_8;
 
     protected String appName;
@@ -59,12 +59,12 @@ public class SpringDeploymentClient extends AbstractSpringClient {
 
         final DeploymentSettings deploymentSettings = deploymentProperties.deploymentSettings() == null ?
                 new DeploymentSettings() : deploymentProperties.deploymentSettings();
-
+        final RuntimeVersion runtimeVersion = getRuntimeVersion(deploymentConfiguration.getRuntimeVersion(), deploymentSettings.runtimeVersion());
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
                 .withInstanceCount(deploymentConfiguration.getInstanceCount())
                 .withJvmOptions(deploymentConfiguration.getJvmOptions())
                 .withMemoryInGB(deploymentConfiguration.getMemoryInGB())
-                .withRuntimeVersion(parseRuntimeVersion(deploymentConfiguration.getRuntimeVersion()))
+                .withRuntimeVersion(runtimeVersion)
                 .withEnvironmentVariables(deploymentConfiguration.getEnvironment());
 
         final UserSourceInfo userSourceInfo = new UserSourceInfo();
@@ -105,14 +105,18 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         this.deploymentName = deploymentName;
     }
 
-    private RuntimeVersion parseRuntimeVersion(String runtimeVersion) {
+    private RuntimeVersion getRuntimeVersion(String runtimeVersion, RuntimeVersion previousRuntimeVersion) {
+        if (StringUtils.isAllEmpty(runtimeVersion)) {
+            return previousRuntimeVersion == null ? DEFAULT_RUNTIME_VERSION : previousRuntimeVersion;
+        }
+        runtimeVersion = StringUtils.trim(runtimeVersion);
         final Matcher matcher = Pattern.compile(RUNTIME_VERSION_PATTERN).matcher(runtimeVersion);
         if (matcher.matches()) {
-            return StringUtils.equals(matcher.group(3), "8") ? RuntimeVersion.JAVA_8 : RuntimeVersion.JAVA_11;
+            return StringUtils.equals(matcher.group(4), "8") ? RuntimeVersion.JAVA_8 : RuntimeVersion.JAVA_11;
         } else {
-            Log.warn(String.format("%s is not a valid runtime version, use Java 8 instead", runtimeVersion));
+            Log.warn(String.format("%s is not a valid runtime version, supported values are Java 8 and Java 11," +
+                    " using Java 8 in this deployment.", runtimeVersion));
             return DEFAULT_RUNTIME_VERSION;
         }
     }
-
 }
