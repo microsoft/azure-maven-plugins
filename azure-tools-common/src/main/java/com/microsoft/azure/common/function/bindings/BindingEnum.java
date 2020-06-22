@@ -19,6 +19,7 @@ public enum BindingEnum {
     EventHubTrigger("eventHubTrigger", Direction.IN),
     EventHubOutput("eventHub", Direction.OUT),
     EventGridTrigger("eventGridTrigger", Direction.IN),
+    EventGridOutput("eventGrid", Direction.OUT),
     HttpTrigger("httpTrigger", Direction.IN),
     HttpOutput("http", Direction.OUT),
     KafkaTrigger("kafkaTrigger", Direction.IN),
