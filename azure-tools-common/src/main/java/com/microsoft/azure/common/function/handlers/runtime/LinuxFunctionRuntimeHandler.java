@@ -12,12 +12,6 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 
 public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHandler {
 
-    // Todo: Will update FunctionRuntimeStack to java:3.0-java8 once service team release the stable build
-    private static final FunctionRuntimeStack JAVA_8_RUNTIME = new FunctionRuntimeStack("java", "~3", "java|8",
-            "DOCKER|mcr.microsoft.com/azure-functions/java:3.0-java8-appservice");
-    private static final FunctionRuntimeStack JAVA_11_RUNTIME = new FunctionRuntimeStack("java", "~3", "java|11",
-            "DOCKER|mcr.microsoft.com/azure-functions/java:3.0-java11-appservice");
-
     public static class Builder extends FunctionRuntimeHandler.Builder<Builder> {
 
         @Override
@@ -50,6 +44,6 @@ public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHan
     }
 
     private FunctionRuntimeStack getRuntimeStack() {
-        return javaVersion == JavaVersion.JAVA_8_NEWEST ? JAVA_8_RUNTIME : JAVA_11_RUNTIME;
+        return javaVersion == JavaVersion.JAVA_8_NEWEST ? FunctionRuntimeStack.JAVA_8 : FunctionRuntimeStack.JAVA_11;
     }
 }
