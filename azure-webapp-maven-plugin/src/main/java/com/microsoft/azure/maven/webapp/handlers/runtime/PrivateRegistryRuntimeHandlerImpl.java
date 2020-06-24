@@ -51,7 +51,6 @@ public class PrivateRegistryRuntimeHandlerImpl extends WebAppRuntimeHandler {
     @Override
     public WebApp.Update updateAppRuntime(final WebApp app) throws AzureExecutionException {
         WebAppUtils.assureLinuxWebApp(app);
-        WebAppUtils.clearTags(app);
 
         return app.update()
             .withPrivateRegistryImage(image, registryUrl)

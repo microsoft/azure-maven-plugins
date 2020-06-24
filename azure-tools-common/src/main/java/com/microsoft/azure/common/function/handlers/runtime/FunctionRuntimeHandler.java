@@ -81,7 +81,7 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
         return azure.resourceGroups().getByName(resourceGroup);
     }
 
-    protected JavaVersion parseJavaVersion() {
+    private JavaVersion parseJavaVersion() {
         final String javaVersionConfiguration = runtimeConfiguration.getJavaVersion();
         if (StringUtils.isEmpty(javaVersionConfiguration)) {
             return DEFAULT_JAVA_VERSION;

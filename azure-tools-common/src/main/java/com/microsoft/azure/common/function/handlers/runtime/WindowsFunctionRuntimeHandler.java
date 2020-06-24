@@ -74,9 +74,9 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
     public FunctionApp.Update updateAppRuntime(FunctionApp app) {
         final JavaVersion serverJavaVersion = app.javaVersion();
         final FunctionApp.Update update = app.update();
-        if (serverJavaVersion.equals(javaVersion)) {
+        if (javaVersion.equals(serverJavaVersion)) {
             Log.info(String.format(HOST_JAVA_VERSION, serverJavaVersion));
-        } else if (serverJavaVersion.equals(JavaVersion.OFF)) {
+        } else if (JavaVersion.OFF.equals(serverJavaVersion)) {
             Log.info(HOST_JAVA_VERSION_OFF);
             update.withJavaVersion(javaVersion);
         } else if (StringUtils.isNotEmpty(runtimeConfiguration.getJavaVersion())) {
