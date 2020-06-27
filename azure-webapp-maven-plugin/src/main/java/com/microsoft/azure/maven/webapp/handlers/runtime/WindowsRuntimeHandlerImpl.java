@@ -42,7 +42,6 @@ public class WindowsRuntimeHandlerImpl extends WebAppRuntimeHandler {
     @Override
     public Update updateAppRuntime(final WebApp app) throws AzureExecutionException {
         WebAppUtils.assureWindowsWebApp(app);
-        WebAppUtils.clearTags(app);
         final Update update = app.update();
         update.withJavaVersion(javaVersion).withWebContainer(webContainer);
         return update;
