@@ -310,6 +310,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
 
         switch (azureEnvironment.toUpperCase(Locale.ENGLISH)) {
+            case "AZURE":
+                return AzureEnvironment.AZURE;
             case "AZURE_CHINA":
                 return AzureEnvironment.AZURE_CHINA;
             case "AZURE_GERMANY":
