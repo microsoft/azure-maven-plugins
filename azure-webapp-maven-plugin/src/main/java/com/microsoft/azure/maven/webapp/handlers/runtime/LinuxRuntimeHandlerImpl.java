@@ -41,7 +41,6 @@ public class LinuxRuntimeHandlerImpl extends WebAppRuntimeHandler {
     @Override
     public Update updateAppRuntime(WebApp app) throws AzureExecutionException {
         WebAppUtils.assureLinuxWebApp(app);
-        WebAppUtils.clearTags(app);
         return app.update().withBuiltInImage(runtime);
     }
 
