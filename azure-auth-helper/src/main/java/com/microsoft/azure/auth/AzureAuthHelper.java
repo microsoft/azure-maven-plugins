@@ -267,9 +267,9 @@ public class AzureAuthHelper {
         return azureTokenCredentials;
     }
 
-    public static AzureTokenWrapper getAzureCLICredential() throws IOException {
+    public static AzureTokenWrapper getAzureCLICredential(AzureEnvironment environment) throws IOException {
         if (isInCloudShell()) {
-            return new AzureTokenWrapper(AuthMethod.CLOUD_SHELL, new MSICredentials());
+            return new AzureTokenWrapper(AuthMethod.CLOUD_SHELL, new MSICredentials(environment));
         }
         final File credentialParent = getAzureConfigFolder();
         if (credentialParent.exists() && credentialParent.isDirectory()) {
@@ -353,7 +353,7 @@ public class AzureAuthHelper {
             return new AzureTokenWrapper(AuthMethod.CLOUD_SHELL, new MSICredentials());
         }
 
-        return getAzureCLICredential();
+        return getAzureCLICredential(AzureEnvironment.AZURE);
     }
 
     public static AzureTokenWrapper getAzureCredentialByOrder(AuthConfiguration authConfiguration, AzureEnvironment azureEnvironment) {
