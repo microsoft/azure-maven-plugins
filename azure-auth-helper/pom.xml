@@ -16,14 +16,14 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <azure.version>1.30.0</azure.version>
-        <azure.ai.version>2.5.1</azure.ai.version>
-        <azure.client.authentication.version>1.6.15</azure.client.authentication.version>
+        <azure.version>1.35.0</azure.version>
+        <azure.ai.version>2.6.1</azure.ai.version>
+        <azure.client.authentication.version>1.7.5</azure.client.authentication.version>
         <commons.collections4.version>4.4</commons.collections4.version>
-        <commons.io.version>2.6</commons.io.version>
+        <commons.io.version>2.7</commons.io.version>
         <httpclient.version>4.5.9</httpclient.version>
-        <junit.version>4.12</junit.version>
-        <commons.lang3.version>3.9</commons.lang3.version>
+        <junit.version>4.13</junit.version>
+        <commons.lang3.version>3.10</commons.lang3.version>
         <jetty.server.version>9.4.20.v20190813</jetty.server.version>
         <jsonwebtoken.jjwt.version>0.9.1</jsonwebtoken.jjwt.version>
         <maven.version>3.3.3</maven.version>
