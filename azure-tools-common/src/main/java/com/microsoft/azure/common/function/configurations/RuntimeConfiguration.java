@@ -12,10 +12,11 @@ public class RuntimeConfiguration {
 
     public static final OperatingSystemEnum DEFAULT_OS = OperatingSystemEnum.Windows;
 
-    protected String os;
-    protected String image;
-    protected String serverId;
-    protected String registryUrl;
+    private String os;
+    private String javaVersion;
+    private String image;
+    private String serverId;
+    private String registryUrl;
 
     public String getOs() {
         return os;
@@ -47,5 +48,13 @@ public class RuntimeConfiguration {
 
     public void setRegistryUrl(String registryUrl) {
         this.registryUrl = registryUrl;
+    }
+
+    public String getJavaVersion() {
+        return javaVersion;
+    }
+
+    public void setJavaVersion(String javaVersion) {
+        this.javaVersion = javaVersion;
     }
 }

@@ -35,7 +35,7 @@
         <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
         <azure.auth.helper.version>0.5.0-SNAPSHOT</azure.auth.helper.version>
-        <azure-tools-common.version>0.3.0</azure-tools-common.version>
+        <azure-tools-common.version>0.4.0-SNAPSHOT</azure-tools-common.version>
         <commons.collections4.version>4.4</commons.collections4.version>
     </properties>
 
