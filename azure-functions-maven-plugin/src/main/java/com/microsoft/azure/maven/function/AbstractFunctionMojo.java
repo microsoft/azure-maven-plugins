@@ -18,7 +18,6 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
@@ -27,8 +26,6 @@ import java.util.Map;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
-    private static final String JDK_VERSION_ERROR = "Azure Functions only support JDK 8, which is lower than local " +
-            "JDK version %s.";
     private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
     private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
     private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java.";
@@ -38,6 +35,8 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
     private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
             "isn't configured, setting up the default value.";
+    private static final String FUNCTION_JAVA_VERSION_KEY = "functionJavaVersion";
+    private static final String DISABLE_APP_INSIGHTS_KEY = "disableAppInsights";
 
     //region Properties
     /**
@@ -178,17 +177,12 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     }
 
     @Override
-    public void execute() throws MojoExecutionException {
-        checkJavaVersion();
-        super.execute();
+    public Map<String, String> getTelemetryProperties() {
+        final Map<String, String> result = super.getTelemetryProperties();
+        final String javaVersion = runtime == null ? null : runtime.getJavaVersion();
+        result.put(FUNCTION_JAVA_VERSION_KEY, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
+        result.put(DISABLE_APP_INSIGHTS_KEY, String.valueOf(isDisableAppInsights()));
+        return result;
     }
-
-    public void checkJavaVersion() {
-        final String javaVersion = System.getProperty("java.version");
-        if (!javaVersion.startsWith("1.8")) {
-            Log.warn(String.format(JDK_VERSION_ERROR, javaVersion));
-        }
-    }
-
     //endregion
 }

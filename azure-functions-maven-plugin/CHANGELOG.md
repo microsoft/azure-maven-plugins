@@ -14,6 +14,10 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.1](#121)
   - [1.2.0](#120)
 
+## 1.6.0
+- Support Java 11 Azure Functions (Preview). [#1052](https://github.com/microsoft/azure-maven-plugins/issues/1052)
+- Support specify Azure environment in configuration. [PR#1095](https://github.com/microsoft/azure-maven-plugins/pull/1095)
+
 ## 1.5.0
 - Support creating application insights while creating or updating function apps. [PR#1074](https://github.com/microsoft/azure-maven-plugins/pull/1074)
 - Fix: Failed to package function projects with runtime classpath. [#1051](https://github.com/microsoft/azure-maven-plugins/issues/1051)

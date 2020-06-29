@@ -10,7 +10,7 @@ import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.maven.ProjectUtils;
-import com.microsoft.azure.maven.common.utils.SneakyThrowUtils;
+import com.microsoft.azure.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;

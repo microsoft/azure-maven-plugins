@@ -52,6 +52,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -81,8 +82,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
             "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
             "For more information, please go to https://aka.ms/azure-maven-config.\n";
-    public static final String INVALID_AUTH_TYPE = "'%s' is not a valid auth type for Azure maven plugins, " +
+    private static final String INVALID_AUTH_TYPE = "'%s' is not a valid auth type for Azure maven plugins, " +
             "supported values are %s. Will use 'auto' by default.";
+    private static final String UNSUPPORTED_AZURE_ENVIRONMENT = "Unsupported Azure environment %s, using Azure by default.";
 
     //region Properties
 
@@ -173,6 +175,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     @Parameter(property = "auth")
     protected com.microsoft.azure.auth.configuration.AuthConfiguration auth;
+
+    @Parameter(property = "azureEnvironment")
+    protected String azureEnvironment;
 
     @Component
     protected SettingsDecrypter settingsDecrypter;
@@ -290,13 +295,32 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     protected Azure getAzureClientByAuthType() throws AzureAuthFailureException {
         try {
-            // TODO: Enable extra Azure Environment like Azure China
-            final AzureEnvironment environment = AzureEnvironment.AZURE;
+            final AzureEnvironment environment = parseAzureEnvironmentFromConfiguration();
             azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
             return azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
                     this.subscriptionId, getUserAgent());
         } catch (IOException | AzureLoginFailureException e) {
             throw new AzureAuthFailureException(e.getMessage());
+        }
+    }
+
+    protected AzureEnvironment parseAzureEnvironmentFromConfiguration() {
+        if (StringUtils.isEmpty(azureEnvironment)) {
+            return AzureEnvironment.AZURE;
+        }
+
+        switch (azureEnvironment.toUpperCase(Locale.ENGLISH)) {
+            case "AZURE":
+                return AzureEnvironment.AZURE;
+            case "AZURE_CHINA":
+                return AzureEnvironment.AZURE_CHINA;
+            case "AZURE_GERMANY":
+                return AzureEnvironment.AZURE_GERMANY;
+            case "AZURE_US_GOVERNMENT":
+                return AzureEnvironment.AZURE_US_GOVERNMENT;
+            default:
+                Log.info(String.format(UNSUPPORTED_AZURE_ENVIRONMENT, azureEnvironment));
+                return AzureEnvironment.AZURE;
         }
     }
 
