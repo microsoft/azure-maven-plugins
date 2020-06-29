@@ -85,6 +85,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     private static final String INVALID_AUTH_TYPE = "'%s' is not a valid auth type for Azure maven plugins, " +
             "supported values are %s. Will use 'auto' by default.";
     private static final String UNSUPPORTED_AZURE_ENVIRONMENT = "Unsupported Azure environment %s, using Azure by default.";
+    private static final String USING_AZURE_ENVIRONMENT = "Using Azure environment : %s.";
 
     //region Properties
 
@@ -296,6 +297,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     protected Azure getAzureClientByAuthType() throws AzureAuthFailureException {
         try {
             final AzureEnvironment environment = parseAzureEnvironmentFromConfiguration();
+            if (environment != AzureEnvironment.AZURE) {
+                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, azureEnvironment));
+            }
             azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
             return azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
                     this.subscriptionId, getUserAgent());
