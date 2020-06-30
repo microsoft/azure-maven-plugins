@@ -1,7 +1,6 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
-  - [1.6.1](#161)
   - [1.6.0](#160)
   - [1.5.0](#150)
   - [1.4.1](#141)
@@ -15,9 +14,6 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
-
-## 1.6.1
-- Fix default deployment method for new linux functions with existing app service plan.[#1098](https://github.com/microsoft/azure-maven-plugins/issues/1098)
 
 ## 1.6.0
 - Support Java 11 Azure Functions (Preview). [#1052](https://github.com/microsoft/azure-maven-plugins/issues/1052)
