@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.6.0](#160)
   - [1.5.0](#150)
   - [1.4.1](#141)
   - [1.4.0](#140)
