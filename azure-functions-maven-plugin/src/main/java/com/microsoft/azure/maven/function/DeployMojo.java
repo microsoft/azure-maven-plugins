@@ -30,9 +30,11 @@ import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.ApplicationInsightsComponent;
+import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
+import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
@@ -84,6 +86,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             "Application Insights if needed.";
     private static final String INSTRUMENTATION_KEY_IS_NOT_VALID = "Instrumentation key is not valid, " +
             "please update the application insights configuration";
+    private static final String FAILED_TO_GET_FUNCTION_APP_PRICING_TIER = "Failed to get function app pricing tier";
 
     //region Entry Point
     @Override
@@ -275,6 +278,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         final ArtifactHandlerBase.Builder builder;
 
         final DeploymentType deploymentType = getDeploymentType();
+        getTelemetryProxy().addDefaultProperty(DEPLOYMENT_TYPE_KEY, deploymentType.toString());
         switch (deploymentType) {
             case MSDEPLOY:
                 builder = new MSDeployArtifactHandlerImpl.Builder().functionAppName(this.getAppName());
@@ -322,23 +326,14 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected boolean isDedicatedPricingTier() {
-        return AppServiceUtils.getPricingTierFromString(pricingTier) != null;
-    }
-
-    //region Telemetry Configuration Interface
-
-    @Override
-    public Map<String, String> getTelemetryProperties() {
-        final Map<String, String> map = super.getTelemetryProperties();
-
+    protected boolean isDedicatedPricingTier() throws AzureExecutionException {
         try {
-            map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
-        } catch (AzureExecutionException e) {
-            map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
+            final FunctionApp functionApp = getFunctionApp();
+            final AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlanByAppService(functionApp);
+            final PricingTier functionPricingTier = appServicePlan.pricingTier();
+            return PricingTier.getAll().stream().anyMatch(pricingTier -> pricingTier.equals(functionPricingTier));
+        } catch (AzureAuthFailureException e) {
+            throw new AzureExecutionException(FAILED_TO_GET_FUNCTION_APP_PRICING_TIER, e);
         }
-        return map;
     }
-
-    //endregion
 }

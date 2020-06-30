@@ -92,6 +92,7 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
                 case 8:
                     return JavaVersion.JAVA_8_NEWEST;
                 case 11:
+                    Log.info("Using Java 11 (Preview) runtime.");
                     return JavaVersion.JAVA_11;
                 default:
                     Log.warn(String.format(UNSUPPORTED_JAVA_VERSION, version));
