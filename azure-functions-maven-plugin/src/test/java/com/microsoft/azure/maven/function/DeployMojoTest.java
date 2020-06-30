@@ -19,6 +19,7 @@ import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
+import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +35,6 @@ import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Docker;
 import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Linux;
 import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Windows;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -138,6 +138,9 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getMSDeployArtifactHandler() throws AzureExecutionException {
+        final TelemetryProxy mockProxy = mock(TelemetryProxy.class);
+        doReturn(mockProxy).when(mojoSpy).getTelemetryProxy();
+        doNothing().when(mockProxy).addDefaultProperty(any(), any());
         doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
         doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.MSDEPLOY).when(mojoSpy).getDeploymentType();
@@ -149,6 +152,9 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getFTPArtifactHandler() throws AzureExecutionException {
+        final TelemetryProxy mockProxy = mock(TelemetryProxy.class);
+        doReturn(mockProxy).when(mojoSpy).getTelemetryProxy();
+        doNothing().when(mockProxy).addDefaultProperty(any(), any());
         doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
         doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.FTP).when(mojoSpy).getDeploymentType();
@@ -160,6 +166,9 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getZIPArtifactHandler() throws AzureExecutionException {
+        final TelemetryProxy mockProxy = mock(TelemetryProxy.class);
+        doReturn(mockProxy).when(mojoSpy).getTelemetryProxy();
+        doNothing().when(mockProxy).addDefaultProperty(any(), any());
         doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
         doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.ZIP).when(mojoSpy).getDeploymentType();
@@ -188,18 +197,6 @@ public class DeployMojoTest extends MojoTestBase {
         // Docker
         doReturn(Docker).when(mojoSpy).getOsEnum();
         assertEquals(DOCKER, mojoSpy.getDeploymentTypeByRuntime());
-    }
-
-    @Test
-    public void testIsDedicatedPricingTier() {
-        mojoSpy.pricingTier = "P1V2";
-        assertTrue(mojoSpy.isDedicatedPricingTier());
-        mojoSpy.pricingTier = "B1";
-        assertTrue(mojoSpy.isDedicatedPricingTier());
-        mojoSpy.pricingTier = "EP1";
-        assertFalse(mojoSpy.isDedicatedPricingTier());
-        mojoSpy.pricingTier = null;
-        assertFalse(mojoSpy.isDedicatedPricingTier());
     }
 
     private DeployMojo getMojoFromPom() throws Exception {
