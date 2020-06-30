@@ -34,7 +34,6 @@ import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Docker;
 import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Linux;
 import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Windows;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -188,18 +187,6 @@ public class DeployMojoTest extends MojoTestBase {
         // Docker
         doReturn(Docker).when(mojoSpy).getOsEnum();
         assertEquals(DOCKER, mojoSpy.getDeploymentTypeByRuntime());
-    }
-
-    @Test
-    public void testIsDedicatedPricingTier() {
-        mojoSpy.pricingTier = "P1V2";
-        assertTrue(mojoSpy.isDedicatedPricingTier());
-        mojoSpy.pricingTier = "B1";
-        assertTrue(mojoSpy.isDedicatedPricingTier());
-        mojoSpy.pricingTier = "EP1";
-        assertFalse(mojoSpy.isDedicatedPricingTier());
-        mojoSpy.pricingTier = null;
-        assertFalse(mojoSpy.isDedicatedPricingTier());
     }
 
     private DeployMojo getMojoFromPom() throws Exception {
