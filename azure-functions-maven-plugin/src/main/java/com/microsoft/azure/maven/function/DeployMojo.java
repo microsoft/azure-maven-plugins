@@ -278,6 +278,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         final ArtifactHandlerBase.Builder builder;
 
         final DeploymentType deploymentType = getDeploymentType();
+        getTelemetryProxy().addDefaultProperty(DEPLOYMENT_TYPE_KEY, deploymentType.toString());
         switch (deploymentType) {
             case MSDEPLOY:
                 builder = new MSDeployArtifactHandlerImpl.Builder().functionAppName(this.getAppName());
@@ -335,20 +336,4 @@ public class DeployMojo extends AbstractFunctionMojo {
             throw new AzureExecutionException(FAILED_TO_GET_FUNCTION_APP_PRICING_TIER, e);
         }
     }
-
-    //region Telemetry Configuration Interface
-
-    @Override
-    public Map<String, String> getTelemetryProperties() {
-        final Map<String, String> map = super.getTelemetryProperties();
-
-        try {
-            map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
-        } catch (AzureExecutionException e) {
-            map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
-        }
-        return map;
-    }
-
-    //endregion
 }

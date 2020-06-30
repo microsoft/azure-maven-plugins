@@ -19,6 +19,7 @@ import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
+import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -137,6 +138,9 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getMSDeployArtifactHandler() throws AzureExecutionException {
+        final TelemetryProxy mockProxy = mock(TelemetryProxy.class);
+        doReturn(mockProxy).when(mojoSpy).getTelemetryProxy();
+        doNothing().when(mockProxy).addDefaultProperty(any(), any());
         doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
         doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.MSDEPLOY).when(mojoSpy).getDeploymentType();
@@ -148,6 +152,9 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getFTPArtifactHandler() throws AzureExecutionException {
+        final TelemetryProxy mockProxy = mock(TelemetryProxy.class);
+        doReturn(mockProxy).when(mojoSpy).getTelemetryProxy();
+        doNothing().when(mockProxy).addDefaultProperty(any(), any());
         doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
         doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.FTP).when(mojoSpy).getDeploymentType();
@@ -159,6 +166,9 @@ public class DeployMojoTest extends MojoTestBase {
 
     @Test
     public void getZIPArtifactHandler() throws AzureExecutionException {
+        final TelemetryProxy mockProxy = mock(TelemetryProxy.class);
+        doReturn(mockProxy).when(mojoSpy).getTelemetryProxy();
+        doNothing().when(mockProxy).addDefaultProperty(any(), any());
         doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
         doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
         doReturn(DeploymentType.ZIP).when(mojoSpy).getDeploymentType();

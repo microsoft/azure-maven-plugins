@@ -292,9 +292,16 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     protected Azure getAzureClientByAuthType() throws AzureAuthFailureException {
         try {
-            final AzureEnvironment environment = AzureAuthHelper.getAzureEnvironment(auth.getEnvironment());
+            final AzureEnvironment environment;
+            if (!AzureAuthHelper.validateEnvironment(auth.getEnvironment())) {
+                Log.prompt(String.format(UNSUPPORTED_AZURE_ENVIRONMENT, auth.getEnvironment()));
+                environment = AzureEnvironment.AZURE;
+            } else {
+                environment = AzureAuthHelper.getAzureEnvironment(auth.getEnvironment());
+            }
+            final String environmentName = AzureAuthHelper.getAzureEnvironmentDisplayName(environment);
             if (environment != AzureEnvironment.AZURE) {
-                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, AzureAuthHelper.getAzureEnvironmentDisplayName(environment)));
+                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
             }
             azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
             return azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
@@ -364,14 +371,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             } else {
                 throw new AzureAuthFailureException(String.format("Unable to get server('%s') from settings.xml.", auth.getServerId()));
             }
+        } else if (getAuthTypeEnum() == AuthType.SERVICE_PRINCIPAL) {
+            final List<ConfigurationProblem> problems = auth.validate();
+            if (problems.stream().anyMatch(problem -> problem.getSeverity() == Severity.ERROR)) {
+                throw new AzureAuthFailureException(String.format("Unable to validate auth configuration due to the following errors: %s",
+                        problems.stream().map(ConfigurationProblem::getErrorMessage).collect(Collectors.joining("\n"))));
+            }
         }
-
-        final List<ConfigurationProblem> problems = auth.validate();
-        if (problems.stream().anyMatch(problem -> problem.getSeverity() == Severity.ERROR)) {
-            throw new AzureAuthFailureException(String.format("Unable to validate auth configuration due to the following errors: %s",
-                    problems.stream().map(ConfigurationProblem::getErrorMessage).collect(Collectors.joining("\n"))));
-        }
-
     }
 
     protected boolean isAuthConfigurationExist() {
