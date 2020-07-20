@@ -62,6 +62,8 @@ import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
 
+    private static final int LIST_TRIGGERS_MAX_RETRY = 3;
+    private static final int LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS = 10;
     private static final String DEPLOY_START = "Trying to deploy the function app...";
     private static final String DEPLOY_FINISH =
         "Successfully deployed the function app at https://%s.azurewebsites.net.";
@@ -94,16 +96,14 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String FAILED_TO_GET_FUNCTION_APP_PRICING_TIER = "Failed to get function app pricing tier";
     private static final String FAILED_TO_LIST_TRIGGERS = "Deployment succeeded, but failed to list http trigger urls.";
     private static final String UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS = "Some http trigger urls cannot be displayed " +
-            "because they require an authentication token. Instead, you may get the value in portal'";
+            "because they require an authentication token. Instead, you may get the value in portal.";
     private static final String HTTP_TRIGGER_URLS = "HTTP Trigger Urls:";
-    private static final String NO_ANONYMOUS_HTTP_TRIGGER = "No anonymous HTTP Trigger found in deployed function app, skip list triggers.";
+    private static final String NO_ANONYMOUS_HTTP_TRIGGER = "No anonymous HTTP Triggers found in deployed function app, skip list triggers.";
     private static final String AUTH_LEVEL = "authLevel";
     private static final String HTTP_TRIGGER = "httpTrigger";
     private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app, " +
             "please check the staging folder and try deploy again.";
-    private static final String FAILED_TO_FETCH_FUNCTION_INFORMATION = "Failed to fetch function information, will retry in %d seconds(%d/%d).";
-    private static final int RETRY_PERIOD_SECONDS = 10;
-    private static final int LIST_TRIGGERS_MAX_RETRY = 3;
+    private static final String SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION = "Syncing triggers and fetch function information (Attempt %d/%d)...";
 
     //region Entry Point
     @Override
@@ -186,7 +186,7 @@ public class DeployMojo extends AbstractFunctionMojo {
      */
     protected void listHTTPTriggerUrls() {
         try {
-            final List<FunctionResource> triggers = listFunctionsInFunctionApp();
+            final List<FunctionResource> triggers = listFunctions();
             final List<FunctionResource> httpFunction = triggers.stream()
                     .filter(function -> function.getTrigger() != null &&
                             StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
@@ -214,16 +214,17 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     /**
      * Sync triggers and return function list of deployed function app
-     * Will retry LIST_TRIGGERS_MAX_RETRY times when get empty result
+     * Will retry when get empty result, the max retry times is LIST_TRIGGERS_MAX_RETRY
      * @return List of functions in deployed function app
      * @throws AzureExecutionException Throw if get empty result after LIST_TRIGGERS_MAX_RETRY times retry
      * @throws AzureAuthFailureException Throw if meet Authentication exception while getting Azure client or Function app
      * @throws InterruptedException Throw when thread was interrupted while sleeping between retry
      */
-    private List<FunctionResource> listFunctionsInFunctionApp() throws AzureExecutionException, AzureAuthFailureException, InterruptedException {
+    private List<FunctionResource> listFunctions() throws AzureExecutionException, AzureAuthFailureException, InterruptedException {
         final FunctionApp functionApp = getFunctionApp();
         for (int i = 0; i < LIST_TRIGGERS_MAX_RETRY; i++) {
-            Thread.sleep(RETRY_PERIOD_SECONDS * 1000);
+            Thread.sleep(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS * 1000);
+            Log.info(String.format(SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION, i + 1, LIST_TRIGGERS_MAX_RETRY));
             functionApp.syncTriggers();
             final List<FunctionResource> triggers = getAzureClient().appServices().functionApps()
                     .listFunctions(getResourceGroup(), getAppName()).stream()
@@ -233,7 +234,6 @@ public class DeployMojo extends AbstractFunctionMojo {
             if (CollectionUtils.isNotEmpty(triggers)) {
                 return triggers;
             }
-            Log.info(String.format(FAILED_TO_FETCH_FUNCTION_INFORMATION, RETRY_PERIOD_SECONDS, i + 1, 3));
         }
         throw new AzureExecutionException(NO_TRIGGERS_FOUNDED);
     }
