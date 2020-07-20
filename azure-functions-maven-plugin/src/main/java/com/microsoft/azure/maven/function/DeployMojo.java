@@ -96,14 +96,14 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String FAILED_TO_GET_FUNCTION_APP_PRICING_TIER = "Failed to get function app pricing tier";
     private static final String FAILED_TO_LIST_TRIGGERS = "Deployment succeeded, but failed to list http trigger urls.";
     private static final String UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS = "Some http trigger urls cannot be displayed " +
-            "because they require an authentication token. Instead, you may get the value in portal.";
+            "because they are non-anonymous. Instead, you may get the trigger url in portal.";
     private static final String HTTP_TRIGGER_URLS = "HTTP Trigger Urls:";
     private static final String NO_ANONYMOUS_HTTP_TRIGGER = "No anonymous HTTP Triggers found in deployed function app, skip list triggers.";
     private static final String AUTH_LEVEL = "authLevel";
     private static final String HTTP_TRIGGER = "httpTrigger";
     private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app, " +
-            "please check the staging folder and try deploy again.";
-    private static final String SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION = "Syncing triggers and fetch function information (Attempt %d/%d)...";
+            "please try recompile the project by `mvn clean package` and deploy again.";
+    private static final String SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION = "Syncing triggers and fetching function information (Attempt %d/%d)...";
 
     //region Entry Point
     @Override
