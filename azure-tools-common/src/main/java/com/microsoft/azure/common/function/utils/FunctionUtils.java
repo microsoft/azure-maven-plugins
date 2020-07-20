@@ -16,7 +16,6 @@ import com.microsoft.azure.common.function.template.BindingsTemplate;
 import com.microsoft.azure.common.function.template.FunctionTemplate;
 import com.microsoft.azure.common.function.template.FunctionTemplates;
 import com.microsoft.azure.common.logging.Log;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,7 +43,7 @@ public class FunctionUtils {
         try (final InputStream is = FunctionUtils.class.getResourceAsStream("/bindings.json")) {
             final String bindingsJsonStr = IOUtils.toString(is, "utf8");
             final BindingsTemplate bindingsTemplate = new ObjectMapper()
-                .readValue(bindingsJsonStr, BindingsTemplate.class);
+                    .readValue(bindingsJsonStr, BindingsTemplate.class);
             return bindingsTemplate.getBindingTemplateByName(type);
         } catch (IOException e) {
             Log.warn(LOAD_BINDING_TEMPLATES_FAIL);

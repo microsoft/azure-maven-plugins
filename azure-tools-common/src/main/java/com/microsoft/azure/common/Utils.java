@@ -9,6 +9,7 @@ package com.microsoft.azure.common;
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
@@ -42,5 +43,17 @@ public final class Utils {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static String getSegment(String id, String segment) {
+        if (StringUtils.isEmpty(id)) {
+            return null;
+        }
+        final String[] attributes = id.split("/");
+        int pos = ArrayUtils.indexOf(attributes, segment);
+        if (pos >= 0) {
+            return attributes[pos + 1];
+        }
+        return null;
     }
 }
