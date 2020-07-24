@@ -79,7 +79,7 @@ public class DeployMojoTest extends MojoTestBase {
         doCallRealMethod().when(mojoSpy).getAppName();
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
         doNothing().when(mojoSpy).updateFunctionApp(app);
-
+        doNothing().when(mojoSpy).listHTTPTriggerUrls();
         mojoSpy.doExecute();
         verify(mojoSpy, times(1)).createOrUpdateFunctionApp();
         verify(mojoSpy, times(1)).doExecute();
