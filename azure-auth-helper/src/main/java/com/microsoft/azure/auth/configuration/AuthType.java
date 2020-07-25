@@ -22,7 +22,7 @@ public enum AuthType {
         @Override
         public AzureTokenWrapper getAzureToken(AuthConfiguration configuration, AzureEnvironment environment) throws AzureLoginFailureException {
             try {
-                return AzureAuthHelper.getAzureCLICredential();
+                return AzureAuthHelper.getAzureCLICredential(environment);
             } catch (IOException e) {
                 throw new AzureLoginFailureException(e.getMessage());
             }

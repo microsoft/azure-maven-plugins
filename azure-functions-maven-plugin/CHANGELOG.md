@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.6.0](#160)
   - [1.5.0](#150)
   - [1.4.1](#141)
   - [1.4.0](#140)
@@ -13,6 +14,10 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
+
+## 1.6.0
+- Support Java 11 Azure Functions (Preview). [#1052](https://github.com/microsoft/azure-maven-plugins/issues/1052)
+- Support specify Azure environment for auth method 'azure_auth_maven_plugin'. [PR#1095](https://github.com/microsoft/azure-maven-plugins/pull/1095)
 
 ## 1.5.0
 - Support creating application insights while creating or updating function apps. [PR#1074](https://github.com/microsoft/azure-maven-plugins/pull/1074)

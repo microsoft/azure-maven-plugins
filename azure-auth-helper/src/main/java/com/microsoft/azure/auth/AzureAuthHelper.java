@@ -14,10 +14,10 @@ import com.microsoft.azure.auth.configuration.AuthType;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.common.utils.JsonUtils;
 import com.microsoft.azure.credentials.AzureCliCredentials;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.credentials.MSICredentials;
-import com.microsoft.azure.common.utils.JsonUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwt;
@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -38,7 +39,16 @@ import java.util.concurrent.ExecutionException;
 
 public class AzureAuthHelper {
 
+    private static final String UNKNOWN = "UNKNOWN";
     private static final AuthType[] AUTH_ORDER = {AuthType.SERVICE_PRINCIPAL, AuthType.AZURE_SECRET_FILE, AuthType.AZURE_CLI, AuthType.AZURE_AUTH_MAVEN_PLUGIN};
+    private static final Map<AzureEnvironment, String> AZURE_ENVIRONMENT_DISPLAY_NAME_MAP = new HashMap<>();
+
+    static {
+        AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.put(AzureEnvironment.AZURE, "AZURE");
+        AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.put(AzureEnvironment.AZURE_CHINA, "AZURE_CHINA");
+        AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.put(AzureEnvironment.AZURE_GERMANY, "AZURE_GERMANY");
+        AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.put(AzureEnvironment.AZURE_US_GOVERNMENT, "AZURE_US_GOVERNMENT");
+    }
 
     /**
      * Performs an OAuth 2.0 login.
@@ -106,6 +116,11 @@ public class AzureAuthHelper {
             default:
                 return AzureEnvironment.AZURE;
         }
+    }
+
+    public static String getAzureEnvironmentDisplayName(AzureEnvironment azureEnvironment) {
+        return AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.containsKey(azureEnvironment) ?
+                AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.get(azureEnvironment) : UNKNOWN;
     }
 
     /**
@@ -267,9 +282,9 @@ public class AzureAuthHelper {
         return azureTokenCredentials;
     }
 
-    public static AzureTokenWrapper getAzureCLICredential() throws IOException {
+    public static AzureTokenWrapper getAzureCLICredential(AzureEnvironment environment) throws IOException {
         if (isInCloudShell()) {
-            return new AzureTokenWrapper(AuthMethod.CLOUD_SHELL, new MSICredentials());
+            return new AzureTokenWrapper(AuthMethod.CLOUD_SHELL, new MSICredentials(environment));
         }
         final File credentialParent = getAzureConfigFolder();
         if (credentialParent.exists() && credentialParent.isDirectory()) {
@@ -353,7 +368,7 @@ public class AzureAuthHelper {
             return new AzureTokenWrapper(AuthMethod.CLOUD_SHELL, new MSICredentials());
         }
 
-        return getAzureCLICredential();
+        return getAzureCLICredential(AzureEnvironment.AZURE);
     }
 
     public static AzureTokenWrapper getAzureCredentialByOrder(AuthConfiguration authConfiguration, AzureEnvironment azureEnvironment) {

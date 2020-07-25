@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>azure-maven-plugin-lib</artifactId>
-    <version>1.2.16-SNAPSHOT</version>
+    <version>1.2.17-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
@@ -34,8 +34,8 @@
         <powermock.version>2.0.2</powermock.version>
         <jaxb.version>2.3.2</jaxb.version>
         <zeroturnaround.zip.version>1.13</zeroturnaround.zip.version>
-        <azure.auth.helper.version>0.4.0</azure.auth.helper.version>
-        <azure-tools-common.version>0.3.0</azure-tools-common.version>
+        <azure.auth.helper.version>0.5.1</azure.auth.helper.version>
+        <azure-tools-common.version>0.5.0</azure-tools-common.version>
         <commons.collections4.version>4.4</commons.collections4.version>
     </properties>
 

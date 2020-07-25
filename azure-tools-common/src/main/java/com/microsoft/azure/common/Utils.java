@@ -9,6 +9,7 @@ package com.microsoft.azure.common;
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
@@ -42,5 +43,20 @@ public final class Utils {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    // Copied from https://github.com/microsoft/azure-tools-for-java/blob/azure-intellij-toolkit-v3.39.0/Utils/
+    // azuretools-core/src/com/microsoft/azuretools/core/mvp/model/AzureMvpModel.java
+    // Todo: Remove duplicated utils function in azure-tools-for-java
+    public static String getSegment(String id, String segment) {
+        if (StringUtils.isEmpty(id)) {
+            return null;
+        }
+        final String[] attributes = id.split("/");
+        int pos = ArrayUtils.indexOf(attributes, segment);
+        if (pos >= 0) {
+            return attributes[pos + 1];
+        }
+        return null;
     }
 }
