@@ -22,6 +22,7 @@ import com.microsoft.azure.common.function.handlers.runtime.DockerFunctionRuntim
 import com.microsoft.azure.common.function.handlers.runtime.FunctionRuntimeHandler;
 import com.microsoft.azure.common.function.handlers.runtime.LinuxFunctionRuntimeHandler;
 import com.microsoft.azure.common.function.handlers.runtime.WindowsFunctionRuntimeHandler;
+import com.microsoft.azure.common.function.model.FunctionResource;
 import com.microsoft.azure.common.handlers.ArtifactHandler;
 import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
@@ -29,6 +30,7 @@ import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
+import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.ApplicationInsightsComponent;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
@@ -39,12 +41,15 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.microsoft.azure.common.appservice.DeploymentType.DOCKER;
 import static com.microsoft.azure.common.appservice.DeploymentType.EMPTY;
@@ -57,6 +62,8 @@ import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractFunctionMojo {
 
+    private static final int LIST_TRIGGERS_MAX_RETRY = 3;
+    private static final int LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS = 10;
     private static final String DEPLOY_START = "Trying to deploy the function app...";
     private static final String DEPLOY_FINISH =
         "Successfully deployed the function app at https://%s.azurewebsites.net.";
@@ -87,6 +94,16 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String INSTRUMENTATION_KEY_IS_NOT_VALID = "Instrumentation key is not valid, " +
             "please update the application insights configuration";
     private static final String FAILED_TO_GET_FUNCTION_APP_PRICING_TIER = "Failed to get function app pricing tier";
+    private static final String FAILED_TO_LIST_TRIGGERS = "Deployment succeeded, but failed to list http trigger urls.";
+    private static final String UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS = "Some http trigger urls cannot be displayed " +
+            "because they are non-anonymous. To access the non-anonymous triggers, please refer https://aka.ms/azure-functions-key.";
+    private static final String HTTP_TRIGGER_URLS = "HTTP Trigger Urls:";
+    private static final String NO_ANONYMOUS_HTTP_TRIGGER = "No anonymous HTTP Triggers found in deployed function app, skip list triggers.";
+    private static final String AUTH_LEVEL = "authLevel";
+    private static final String HTTP_TRIGGER = "httpTrigger";
+    private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app, " +
+            "please try recompile the project by `mvn clean package` and deploy again.";
+    private static final String SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION = "Syncing triggers and fetching function information (Attempt %d/%d)...";
 
     //region Entry Point
     @Override
@@ -107,6 +124,8 @@ public class DeployMojo extends AbstractFunctionMojo {
             getArtifactHandler().publish(deployTarget);
 
             Log.info(String.format(DEPLOY_FINISH, getAppName()));
+
+            listHTTPTriggerUrls();
         } catch (AzureAuthFailureException e) {
             throw new AzureExecutionException("Cannot auth to azure", e);
         }
@@ -160,6 +179,63 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (appSettings != null && !appSettings.isEmpty()) {
             withAppSettings.accept(appSettings);
         }
+    }
+
+    /**
+     * List anonymous HTTP Triggers url after deployment
+     */
+    protected void listHTTPTriggerUrls() {
+        try {
+            final List<FunctionResource> triggers = listFunctions();
+            final List<FunctionResource> httpFunction = triggers.stream()
+                    .filter(function -> function.getTrigger() != null &&
+                            StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
+                    .collect(Collectors.toList());
+            final List<FunctionResource> anonymousTriggers = httpFunction.stream()
+                    .filter(bindingResource -> bindingResource.getTrigger() != null &&
+                            StringUtils.equalsIgnoreCase((CharSequence) bindingResource.getTrigger().getProperty(AUTH_LEVEL),
+                                    AuthorizationLevel.ANONYMOUS.toString()))
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(httpFunction) || CollectionUtils.isEmpty(anonymousTriggers)) {
+                Log.info(NO_ANONYMOUS_HTTP_TRIGGER);
+                return;
+            }
+            Log.info(HTTP_TRIGGER_URLS);
+            anonymousTriggers.forEach(trigger -> Log.info(String.format("\t %s : %s", trigger.getName(), trigger.getTriggerUrl())));
+            if (anonymousTriggers.size() < httpFunction.size()) {
+                Log.info(UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS);
+            }
+        } catch (AzureAuthFailureException | InterruptedException e) {
+            Log.warn(FAILED_TO_LIST_TRIGGERS);
+        } catch (AzureExecutionException e) {
+            Log.warn(e.getMessage());
+        }
+    }
+
+    /**
+     * Sync triggers and return function list of deployed function app
+     * Will retry when get empty result, the max retry times is LIST_TRIGGERS_MAX_RETRY
+     * @return List of functions in deployed function app
+     * @throws AzureExecutionException Throw if get empty result after LIST_TRIGGERS_MAX_RETRY times retry
+     * @throws AzureAuthFailureException Throw if meet Authentication exception while getting Azure client or Function app
+     * @throws InterruptedException Throw when thread was interrupted while sleeping between retry
+     */
+    private List<FunctionResource> listFunctions() throws AzureExecutionException, AzureAuthFailureException, InterruptedException {
+        final FunctionApp functionApp = getFunctionApp();
+        for (int i = 0; i < LIST_TRIGGERS_MAX_RETRY; i++) {
+            Thread.sleep(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS * 1000);
+            Log.info(String.format(SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION, i + 1, LIST_TRIGGERS_MAX_RETRY));
+            functionApp.syncTriggers();
+            final List<FunctionResource> triggers = getAzureClient().appServices().functionApps()
+                    .listFunctions(getResourceGroup(), getAppName()).stream()
+                    .map(envelope -> FunctionResource.parseFunction(envelope))
+                    .filter(function -> function != null)
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(triggers)) {
+                return triggers;
+            }
+        }
+        throw new AzureExecutionException(NO_TRIGGERS_FOUNDED);
     }
 
     /**
