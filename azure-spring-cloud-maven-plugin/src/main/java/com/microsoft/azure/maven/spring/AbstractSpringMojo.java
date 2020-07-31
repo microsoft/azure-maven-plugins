@@ -17,6 +17,7 @@ import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.auth.exception.MavenDecryptException;
 import com.microsoft.azure.common.ConfigurationProblem;
 import com.microsoft.azure.common.ConfigurationProblem.Severity;
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.common.telemetry.MojoStatus;
@@ -126,7 +127,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
     protected Long timeStart;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() throws MojoFailureException {
         try {
             initExecution();
             doExecute();
@@ -251,7 +252,7 @@ public abstract class AbstractSpringMojo extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_IS_KEY_ENCRYPTED, "false");
     }
 
-    protected abstract void doExecute() throws MojoExecutionException, MojoFailureException;
+    protected abstract void doExecute() throws MojoExecutionException, MojoFailureException, AzureExecutionException;
 
     public boolean isPublic() {
         return isPublic;
