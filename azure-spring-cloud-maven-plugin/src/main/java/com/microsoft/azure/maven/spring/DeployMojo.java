@@ -116,7 +116,7 @@ public class DeployMojo extends AbstractSpringMojo {
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT);
         deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
         if (isNewSpringCloudApp) {
-            // Some App level configuration need be specify after deployment creation
+            // Some app level parameters need to be specified after its deployment was created
             springAppClient.createOrUpdateApp(configuration);
         }
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE);

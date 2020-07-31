@@ -35,13 +35,13 @@ public class SpringDeploymentClient extends AbstractSpringClient {
     private static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_8;
     private static final int SCALING_TIME_OUT = 10;
 
-    protected String appName;
-    protected String deploymentName;
-    protected SpringAppClient springAppClient;
+    private final String appName;
+    private final String deploymentName;
+    private final SpringAppClient springAppClient;
 
     public static class Builder extends AbstractSpringClient.Builder<Builder> {
-        protected String appName;
-        protected String deploymentName;
+        private String appName;
+        private String deploymentName;
 
         public Builder withAppName(String appName) {
             this.appName = appName;
@@ -62,10 +62,36 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         }
     }
 
+    public SpringDeploymentClient(Builder builder) {
+        super(builder);
+        this.appName = builder.appName;
+        this.deploymentName = builder.deploymentName;
+        this.springAppClient = springServiceClient.newSpringAppClient(subscriptionId, clusterName, appName);
+    }
+
+    public SpringDeploymentClient(SpringAppClient springAppClient, String deploymentName) {
+        super(springAppClient);
+        this.appName = springAppClient.appName;
+        this.deploymentName = deploymentName;
+        this.springAppClient = springAppClient;
+    }
+
     public DeploymentResourceInner createOrUpdateDeployment(Deployment configuration, ResourceUploadDefinitionInner resource) throws AzureExecutionException {
         final DeploymentResourceInner deployment = getDeployment();
         return deployment == null ? createDeployment(configuration, resource) :
                 updateDeployment(configuration, deployment, resource);
+    }
+
+    public DeploymentResourceInner getDeployment() {
+        return springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public String getDeploymentName() {
+        return deploymentName;
     }
 
     private DeploymentResourceInner createDeployment(Deployment deploymentConfiguration, ResourceUploadDefinitionInner resource) {
@@ -116,12 +142,6 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         return result;
     }
 
-    private boolean isResourceScaled(Deployment deploymentConfiguration, DeploymentSettings deploymentSettings) {
-        return !(Objects.equals(deploymentConfiguration.getCpu(), deploymentSettings.cpu()) &&
-                Objects.equals(deploymentConfiguration.getMemoryInGB(), deploymentSettings.memoryInGB()) &&
-                Objects.equals(deploymentConfiguration.getInstanceCount(), deploymentSettings.instanceCount()));
-    }
-
     private DeploymentResourceInner scaleDeployment(Deployment deploymentConfiguration) throws AzureExecutionException {
         final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties();
         final DeploymentSettings deploymentSettings = new DeploymentSettings();
@@ -134,11 +154,9 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         final ExecutorService executor = Executors.newSingleThreadExecutor();
         final Future<DeploymentResourceInner> future = executor.submit(() -> {
             DeploymentResourceInner result = springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
-            DeploymentResourceProvisioningState state = result.properties().provisioningState();
-            while (state != DeploymentResourceProvisioningState.SUCCEEDED && state != DeploymentResourceProvisioningState.FAILED) {
+            while (isStableDeploymentResourceProvisioningState(result.properties().provisioningState())) {
                 Thread.sleep(1000);
                 result = springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
-                state = result.properties().provisioningState();
             }
             return result;
         });
@@ -149,43 +167,27 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         }
     }
 
-    public DeploymentResourceInner getDeployment() {
-        return springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
+    private static boolean isResourceScaled(Deployment deploymentConfiguration, DeploymentSettings deploymentSettings) {
+        return !(Objects.equals(deploymentConfiguration.getCpu(), deploymentSettings.cpu()) &&
+                Objects.equals(deploymentConfiguration.getMemoryInGB(), deploymentSettings.memoryInGB()) &&
+                Objects.equals(deploymentConfiguration.getInstanceCount(), deploymentSettings.instanceCount()));
     }
 
-    public String getAppName() {
-        return appName;
+    private static boolean isStableDeploymentResourceProvisioningState(DeploymentResourceProvisioningState state) {
+        return state == DeploymentResourceProvisioningState.SUCCEEDED || state == DeploymentResourceProvisioningState.FAILED;
     }
 
-    public String getDeploymentName() {
-        return deploymentName;
-    }
-
-    public SpringDeploymentClient(Builder builder) {
-        super(builder);
-        this.appName = builder.appName;
-        this.deploymentName = builder.deploymentName;
-        this.springAppClient = springServiceClient.newSpringAppClient(subscriptionId, clusterName, appName);
-    }
-
-    public SpringDeploymentClient(SpringAppClient springAppClient, String deploymentName) {
-        super(springAppClient);
-        this.appName = springAppClient.appName;
-        this.deploymentName = deploymentName;
-        this.springAppClient = springAppClient;
-    }
-
-    private RuntimeVersion getRuntimeVersion(String runtimeVersion, RuntimeVersion previousRuntimeVersion) {
+    private static RuntimeVersion getRuntimeVersion(String runtimeVersion, RuntimeVersion previousRuntimeVersion) {
         if (StringUtils.isAllEmpty(runtimeVersion)) {
             return previousRuntimeVersion == null ? DEFAULT_RUNTIME_VERSION : previousRuntimeVersion;
         }
-        runtimeVersion = StringUtils.trim(runtimeVersion);
-        final Matcher matcher = Pattern.compile(RUNTIME_VERSION_PATTERN).matcher(runtimeVersion);
+        final String fixedRuntimeVersion = StringUtils.trim(runtimeVersion);
+        final Matcher matcher = Pattern.compile(RUNTIME_VERSION_PATTERN).matcher(fixedRuntimeVersion);
         if (matcher.matches()) {
             return StringUtils.equals(matcher.group(4), "8") ? RuntimeVersion.JAVA_8 : RuntimeVersion.JAVA_11;
         } else {
             Log.warn(String.format("%s is not a valid runtime version, supported values are Java 8 and Java 11," +
-                    " using Java 8 in this deployment.", runtimeVersion));
+                    " using Java 8 in this deployment.", fixedRuntimeVersion));
             return DEFAULT_RUNTIME_VERSION;
         }
     }
