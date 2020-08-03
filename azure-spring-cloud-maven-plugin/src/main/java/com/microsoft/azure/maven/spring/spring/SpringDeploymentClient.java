@@ -154,7 +154,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         final ExecutorService executor = Executors.newSingleThreadExecutor();
         final Future<DeploymentResourceInner> future = executor.submit(() -> {
             DeploymentResourceInner result = springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
-            while (isStableDeploymentResourceProvisioningState(result.properties().provisioningState())) {
+            while (!isStableDeploymentResourceProvisioningState(result.properties().provisioningState())) {
                 Thread.sleep(1000);
                 result = springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
             }
