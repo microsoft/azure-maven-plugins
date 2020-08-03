@@ -12,13 +12,38 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * Utility class
  */
 public final class Utils {
+
+    public static String getArtifactCompileVersion(File artifact) throws AzureExecutionException {
+        try (JarFile jarFile = new JarFile(artifact)) {
+            final JarEntry jarEntry = jarFile.stream().filter(entry -> StringUtils.endsWith(entry.getName(), ".class"))
+                    .findFirst()
+                    .orElseThrow(() -> new AzureExecutionException("Failed to parse artifact compile version, no class file founded in target artifact"));
+            // Read compile version from class file
+            // Refers https://en.wikipedia.org/wiki/Java_class_file#General_layout
+            final InputStream stream = jarFile.getInputStream(jarEntry);
+            final byte[] version = new byte[2];
+            stream.skip(6);
+            stream.read(version);
+            stream.close();
+            final int majorVersion = new BigInteger(version).intValueExact() - 44;
+            return majorVersion > 8 ? String.valueOf(majorVersion) : String.format("1.%d", majorVersion);
+        } catch (IOException e) {
+            throw new AzureExecutionException("Failed to parse artifact compile version.", e);
+        }
+    }
 
     public static OperatingSystemEnum parseOperationSystem(final String os) throws AzureExecutionException {
         if (StringUtils.isEmpty(os)) {
@@ -53,7 +78,7 @@ public final class Utils {
             return null;
         }
         final String[] attributes = id.split("/");
-        int pos = ArrayUtils.indexOf(attributes, segment);
+        final int pos = ArrayUtils.indexOf(attributes, segment);
         if (pos >= 0) {
             return attributes[pos + 1];
         }

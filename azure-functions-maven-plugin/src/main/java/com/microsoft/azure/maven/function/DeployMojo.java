@@ -23,6 +23,7 @@ import com.microsoft.azure.common.function.handlers.runtime.FunctionRuntimeHandl
 import com.microsoft.azure.common.function.handlers.runtime.LinuxFunctionRuntimeHandler;
 import com.microsoft.azure.common.function.handlers.runtime.WindowsFunctionRuntimeHandler;
 import com.microsoft.azure.common.function.model.FunctionResource;
+import com.microsoft.azure.common.function.utils.FunctionUtils;
 import com.microsoft.azure.common.handlers.ArtifactHandler;
 import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
@@ -36,16 +37,21 @@ import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
+import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -104,11 +110,24 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app, " +
             "please try recompile the project by `mvn clean package` and deploy again.";
     private static final String SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION = "Syncing triggers and fetching function information (Attempt %d/%d)...";
+    private static final String ARTIFACT_UNCOMPITABLE = "Your function app artifact compile version is higher than the java version in function host, " +
+            "please downgrade the project compile version and try again.";
 
-    //region Entry Point
+    private JavaVersion parsedJavaVersion;
+
+    @Override
+    public DeploymentType getDeploymentType() throws AzureExecutionException {
+        final DeploymentType deploymentType = super.getDeploymentType();
+        return deploymentType == EMPTY ? getDeploymentTypeByRuntime() : deploymentType;
+    }
+
     @Override
     protected void doExecute() throws AzureExecutionException {
         try {
+            parseConfiguration();
+
+            validateArtifactCompileVersion();
+
             createOrUpdateFunctionApp();
 
             final FunctionApp app = getFunctionApp();
@@ -131,10 +150,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    //endregion
-
     //region Create or update Azure Functions
-
     protected void createOrUpdateFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
         final FunctionApp app = getFunctionApp();
         if (app == null) {
@@ -210,6 +226,124 @@ public class DeployMojo extends AbstractFunctionMojo {
         } catch (AzureExecutionException e) {
             Log.warn(e.getMessage());
         }
+    }
+
+    protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws AzureAuthFailureException, AzureExecutionException {
+        final FunctionRuntimeHandler.Builder<?> builder;
+        final OperatingSystemEnum os = getOsEnum();
+        switch (os) {
+            case Windows:
+                builder = new WindowsFunctionRuntimeHandler.Builder();
+                break;
+            case Linux:
+                builder = new LinuxFunctionRuntimeHandler.Builder();
+                break;
+            case Docker:
+                final RuntimeConfiguration runtime = this.getRuntime();
+                builder = new DockerFunctionRuntimeHandler.Builder()
+                        .image(runtime.getImage())
+                        .dockerCredentialProvider(MavenDockerCredentialProvider.fromMavenSettings(this.getSettings(), runtime.getServerId()))
+                        .registryUrl(runtime.getRegistryUrl());
+                break;
+            default:
+                throw new AzureExecutionException(String.format("Unsupported runtime %s", os));
+        }
+        return builder.appName(getAppName())
+                .resourceGroup(getResourceGroup())
+                .runtime(getRuntime())
+                .region(Region.fromName(region))
+                .pricingTier(getPricingTier())
+                .servicePlanName(getAppServicePlanName())
+                .servicePlanResourceGroup(getAppServicePlanResourceGroup())
+                .functionExtensionVersion(getFunctionExtensionVersion())
+                .javaVersion(parsedJavaVersion)
+                .azure(getAzureClient())
+                .build();
+    }
+
+    protected OperatingSystemEnum getOsEnum() throws AzureExecutionException {
+        final String os = runtime == null ? null : runtime.getOs();
+        return StringUtils.isEmpty(os) ? RuntimeConfiguration.DEFAULT_OS : Utils.parseOperationSystem(os);
+    }
+
+    protected ArtifactHandler getArtifactHandler() throws AzureExecutionException {
+        final ArtifactHandlerBase.Builder builder;
+
+        final DeploymentType deploymentType = getDeploymentType();
+        getTelemetryProxy().addDefaultProperty(DEPLOYMENT_TYPE_KEY, deploymentType.toString());
+        switch (deploymentType) {
+            case MSDEPLOY:
+                builder = new MSDeployArtifactHandlerImpl.Builder().functionAppName(this.getAppName());
+                break;
+            case FTP:
+                builder = new FTPArtifactHandlerImpl.Builder();
+                break;
+            case ZIP:
+                builder = new ZIPArtifactHandlerImpl.Builder();
+                break;
+            case RUN_FROM_BLOB:
+                builder = new RunFromBlobArtifactHandlerImpl.Builder();
+                break;
+            case DOCKER:
+                builder = new DockerArtifactHandler.Builder();
+                break;
+            case EMPTY:
+            case RUN_FROM_ZIP:
+                builder = new RunFromZipArtifactHandlerImpl.Builder();
+                break;
+            default:
+                throw new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
+        }
+        return builder.project(ProjectUtils.convertCommonProject(this.getProject()))
+            .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
+            .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
+            .build();
+    }
+
+    protected DeploymentType getDeploymentTypeByRuntime() throws AzureExecutionException {
+        final OperatingSystemEnum operatingSystemEnum = getOsEnum();
+        switch (operatingSystemEnum) {
+            case Docker:
+                return DOCKER;
+            case Linux:
+                return isDedicatedPricingTier() ? RUN_FROM_ZIP : RUN_FROM_BLOB;
+            default:
+                return RUN_FROM_ZIP;
+        }
+    }
+
+    protected boolean isDedicatedPricingTier() throws AzureExecutionException {
+        try {
+            final FunctionApp functionApp = getFunctionApp();
+            final AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlanByAppService(functionApp);
+            final PricingTier functionPricingTier = appServicePlan.pricingTier();
+            return PricingTier.getAll().stream().anyMatch(pricingTier -> pricingTier.equals(functionPricingTier));
+        } catch (AzureAuthFailureException e) {
+            throw new AzureExecutionException(FAILED_TO_GET_FUNCTION_APP_PRICING_TIER, e);
+        }
+    }
+
+    protected void validateArtifactCompileVersion() throws AzureExecutionException {
+        if (getOsEnum() == OperatingSystemEnum.Docker) {
+            return;
+        }
+        final ComparableVersion runtimeVersion = new ComparableVersion(parsedJavaVersion.toString());
+        final ComparableVersion artifactVersion = new ComparableVersion(Utils.getArtifactCompileVersion(getArtifactToDeploy()));
+        if (runtimeVersion.compareTo(artifactVersion) < 0) {
+            throw new AzureExecutionException(ARTIFACT_UNCOMPITABLE);
+        }
+    }
+
+    protected void parseConfiguration() {
+        parsedJavaVersion = FunctionUtils.parseJavaVersion(getRuntime().getJavaVersion());
+    }
+
+    private File getArtifactToDeploy() throws AzureExecutionException {
+        final File stagingFolder = new File(getDeploymentStagingDirectoryPath());
+        return Arrays.stream(stagingFolder.listFiles())
+                .filter(jar -> StringUtils.equals(FilenameUtils.getBaseName(jar.getName()), project.getBuild().getFinalName()))
+                .findFirst()
+                .orElseThrow(() -> new AzureExecutionException("Failed to find function artifact, please re-package the project and try again."));
     }
 
     /**
@@ -308,108 +442,6 @@ public class DeployMojo extends AbstractFunctionMojo {
         } catch (Exception e) {
             Log.warn(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, e.getMessage()));
             return null;
-        }
-    }
-
-    //endregion
-
-    protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws AzureAuthFailureException, AzureExecutionException {
-        final FunctionRuntimeHandler.Builder<?> builder;
-        final OperatingSystemEnum os = getOsEnum();
-        switch (os) {
-            case Windows:
-                builder = new WindowsFunctionRuntimeHandler.Builder();
-                break;
-            case Linux:
-                builder = new LinuxFunctionRuntimeHandler.Builder();
-                break;
-            case Docker:
-                final RuntimeConfiguration runtime = this.getRuntime();
-                builder = new DockerFunctionRuntimeHandler.Builder()
-                        .image(runtime.getImage())
-                        .dockerCredentialProvider(MavenDockerCredentialProvider.fromMavenSettings(this.getSettings(), runtime.getServerId()))
-                        .registryUrl(runtime.getRegistryUrl());
-                break;
-            default:
-                throw new AzureExecutionException(String.format("Unsupported runtime %s", os));
-        }
-        return builder.appName(getAppName())
-                .resourceGroup(getResourceGroup())
-                .runtime(getRuntime())
-                .region(Region.fromName(region))
-                .pricingTier(getPricingTier())
-                .servicePlanName(getAppServicePlanName())
-                .servicePlanResourceGroup(getAppServicePlanResourceGroup())
-                .functionExtensionVersion(getFunctionExtensionVersion())
-                .azure(getAzureClient())
-                .build();
-    }
-
-    protected OperatingSystemEnum getOsEnum() throws AzureExecutionException {
-        final String os = runtime == null ? null : runtime.getOs();
-        return StringUtils.isEmpty(os) ? RuntimeConfiguration.DEFAULT_OS : Utils.parseOperationSystem(os);
-    }
-
-    protected ArtifactHandler getArtifactHandler() throws AzureExecutionException {
-        final ArtifactHandlerBase.Builder builder;
-
-        final DeploymentType deploymentType = getDeploymentType();
-        getTelemetryProxy().addDefaultProperty(DEPLOYMENT_TYPE_KEY, deploymentType.toString());
-        switch (deploymentType) {
-            case MSDEPLOY:
-                builder = new MSDeployArtifactHandlerImpl.Builder().functionAppName(this.getAppName());
-                break;
-            case FTP:
-                builder = new FTPArtifactHandlerImpl.Builder();
-                break;
-            case ZIP:
-                builder = new ZIPArtifactHandlerImpl.Builder();
-                break;
-            case RUN_FROM_BLOB:
-                builder = new RunFromBlobArtifactHandlerImpl.Builder();
-                break;
-            case DOCKER:
-                builder = new DockerArtifactHandler.Builder();
-                break;
-            case EMPTY:
-            case RUN_FROM_ZIP:
-                builder = new RunFromZipArtifactHandlerImpl.Builder();
-                break;
-            default:
-                throw new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
-        }
-        return builder.project(ProjectUtils.convertCommonProject(this.getProject()))
-            .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
-            .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
-            .build();
-    }
-
-    @Override
-    public DeploymentType getDeploymentType() throws AzureExecutionException {
-        final DeploymentType deploymentType = super.getDeploymentType();
-        return deploymentType == EMPTY ? getDeploymentTypeByRuntime() : deploymentType;
-    }
-
-    public DeploymentType getDeploymentTypeByRuntime() throws AzureExecutionException {
-        final OperatingSystemEnum operatingSystemEnum = getOsEnum();
-        switch (operatingSystemEnum) {
-            case Docker:
-                return DOCKER;
-            case Linux:
-                return isDedicatedPricingTier() ? RUN_FROM_ZIP : RUN_FROM_BLOB;
-            default:
-                return RUN_FROM_ZIP;
-        }
-    }
-
-    protected boolean isDedicatedPricingTier() throws AzureExecutionException {
-        try {
-            final FunctionApp functionApp = getFunctionApp();
-            final AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlanByAppService(functionApp);
-            final PricingTier functionPricingTier = appServicePlan.pricingTier();
-            return PricingTier.getAll().stream().anyMatch(pricingTier -> pricingTier.equals(functionPricingTier));
-        } catch (AzureAuthFailureException e) {
-            throw new AzureExecutionException(FAILED_TO_GET_FUNCTION_APP_PRICING_TIER, e);
         }
     }
 }

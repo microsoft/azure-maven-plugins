@@ -9,7 +9,6 @@ package com.microsoft.azure.common.function.handlers.runtime;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
-
 import com.microsoft.azure.management.appservice.JavaVersion;
 import org.apache.commons.lang3.StringUtils;
 

@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
+import com.microsoft.azure.common.Utils;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.function.bindings.BindingEnum;
 import com.microsoft.azure.common.function.configurations.FunctionConfiguration;
@@ -94,6 +95,8 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     @Override
     protected void doExecute() throws AzureExecutionException {
+        promptArtifactCompileVersion();
+
         final AnnotationHandler annotationHandler = getAnnotationHandler();
 
         Set<Method> methods = null;
@@ -369,6 +372,10 @@ public class PackageMojo extends AbstractFunctionMojo {
         }
     }
     // end region
+
+    protected void promptArtifactCompileVersion() throws AzureExecutionException {
+        Log.info(String.format("Artifact compile version : %s", Utils.getArtifactCompileVersion(project.getArtifact().getFile())));
+    }
 
     /**
      * Copy resources to target directory using Maven resource filtering so that we don't have to handle
