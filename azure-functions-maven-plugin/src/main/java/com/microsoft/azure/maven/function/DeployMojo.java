@@ -110,7 +110,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app, " +
             "please try recompile the project by `mvn clean package` and deploy again.";
     private static final String SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION = "Syncing triggers and fetching function information (Attempt %d/%d)...";
-    private static final String ARTIFACT_UNCOMPITABLE = "Your function app artifact compile version is higher than the java version in function host, " +
+    private static final String ARTIFACT_INCOMPATIBLE = "Your function app artifact compile version is higher than the java version in function host, " +
             "please downgrade the project compile version and try again.";
 
     private JavaVersion parsedJavaVersion;
@@ -330,7 +330,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         final ComparableVersion runtimeVersion = new ComparableVersion(parsedJavaVersion.toString());
         final ComparableVersion artifactVersion = new ComparableVersion(Utils.getArtifactCompileVersion(getArtifactToDeploy()));
         if (runtimeVersion.compareTo(artifactVersion) < 0) {
-            throw new AzureExecutionException(ARTIFACT_UNCOMPITABLE);
+            throw new AzureExecutionException(ARTIFACT_INCOMPATIBLE);
         }
     }
 
