@@ -37,8 +37,8 @@ public class RunMojo extends AbstractFunctionMojo {
             "\"-agentlib:jdwp=%s\"";
     private static final ComparableVersion JAVA_9 = new ComparableVersion("9");
     private static final ComparableVersion FUNC_3 = new ComparableVersion("3");
-    private static final ComparableVersion MINIMUM_JAVA_11_SUPPORTED_VERSION = new ComparableVersion("3.0.2630");
-    private static final ComparableVersion MINIMUM_JAVA_11_SUPPORTED_VERSION_V2 = new ComparableVersion("2.7.2628");
+    private static final ComparableVersion MINIMUM_JAVA_9_SUPPORTED_VERSION = new ComparableVersion("3.0.2630");
+    private static final ComparableVersion MINIMUM_JAVA_9_SUPPORTED_VERSION_V2 = new ComparableVersion("2.7.2628");
     private static final String FUNC_VERSION_CMD = "func -v";
     private static final String FUNCTION_CORE_TOOLS_OUT_OF_DATE = "Local function core tools didn't support java 9 or higher runtime, " +
             "to update it, see: https://aka.ms/azfunc-install.";
@@ -73,7 +73,7 @@ public class RunMojo extends AbstractFunctionMojo {
 
         checkRuntimeExistence(commandHandler);
 
-        validateJavaCompatibility(commandHandler);
+        checkRuntimeCompatibility(commandHandler);
 
         runFunctions(commandHandler);
     }
@@ -107,7 +107,7 @@ public class RunMojo extends AbstractFunctionMojo {
         );
     }
 
-    private void validateJavaCompatibility(final CommandHandler handler) throws AzureExecutionException {
+    private void checkRuntimeCompatibility(final CommandHandler handler) throws AzureExecutionException {
         // Maven will always refer JAVA_HOME, which is also adopted by function core tools
         // So we could get function core tools runtime by java.version
         final ComparableVersion javaVersion = new ComparableVersion(System.getProperty("java.version"));
@@ -116,8 +116,8 @@ public class RunMojo extends AbstractFunctionMojo {
             return;
         }
         final ComparableVersion funcVersion = new ComparableVersion(handler.runCommandAndGetOutput(FUNC_VERSION_CMD, false, null));
-        final ComparableVersion minimumVersion = funcVersion.compareTo(FUNC_3) >= 0 ? MINIMUM_JAVA_11_SUPPORTED_VERSION :
-                MINIMUM_JAVA_11_SUPPORTED_VERSION_V2;
+        final ComparableVersion minimumVersion = funcVersion.compareTo(FUNC_3) >= 0 ? MINIMUM_JAVA_9_SUPPORTED_VERSION :
+                MINIMUM_JAVA_9_SUPPORTED_VERSION_V2;
         if (funcVersion.compareTo(minimumVersion) < 0) {
             throw new AzureExecutionException(FUNCTION_CORE_TOOLS_OUT_OF_DATE);
         }

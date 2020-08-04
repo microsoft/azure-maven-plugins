@@ -126,7 +126,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         try {
             parseConfiguration();
 
-            validateArtifactCompileVersion();
+            checkArtifactCompileVersion();
 
             createOrUpdateFunctionApp();
 
@@ -323,7 +323,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void validateArtifactCompileVersion() throws AzureExecutionException {
+    protected void checkArtifactCompileVersion() throws AzureExecutionException {
         if (getOsEnum() == OperatingSystemEnum.Docker) {
             return;
         }
