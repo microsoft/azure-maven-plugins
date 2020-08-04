@@ -13,6 +13,7 @@ import com.microsoft.azure.common.function.utils.CommandUtils;
 import com.microsoft.azure.common.logging.Log;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -23,18 +24,24 @@ import java.io.File;
  */
 @Mojo(name = "run")
 public class RunMojo extends AbstractFunctionMojo {
-    public static final String STAGE_DIR_FOUND = "Azure Function App's staging directory found at: ";
-    public static final String STAGE_DIR_NOT_FOUND =
-            "Stage directory not found. Please run mvn package first.";
-    public static final String RUNTIME_FOUND = "Azure Functions Core Tools found.";
-    public static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
+    protected static final String FUNC_CMD = "func";
+    protected static final String FUNC_HOST_START_CMD = "func host start";
+    protected static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
+    protected static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
             "Please go to https://aka.ms/azfunc-install to install Azure Functions Core Tools first.";
-    public static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
-
-    public static final String FUNC_HOST_START_CMD = "func host start";
-    public static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start --language-worker -- " +
+    private static final String STAGE_DIR_FOUND = "Azure Function App's staging directory found at: ";
+    private static final String STAGE_DIR_NOT_FOUND =
+            "Stage directory not found. Please run mvn package first.";
+    private static final String RUNTIME_FOUND = "Azure Functions Core Tools found.";
+    private static final String FUNC_HOST_START_WITH_DEBUG_CMD = "func host start --language-worker -- " +
             "\"-agentlib:jdwp=%s\"";
-    public static final String FUNC_CMD = "func";
+    private static final ComparableVersion JAVA_9 = new ComparableVersion("9");
+    private static final ComparableVersion FUNC_3 = new ComparableVersion("3");
+    private static final ComparableVersion MINIMUM_JAVA_11_SUPPORTED_VERSION = new ComparableVersion("3.0.2630");
+    private static final ComparableVersion MINIMUM_JAVA_11_SUPPORTED_VERSION_V2 = new ComparableVersion("2.7.2628");
+    private static final String FUNC_VERSION_CMD = "func -v";
+    private static final String FUNCTION_CORE_TOOLS_OUT_OF_DATE = "Local function core tools didn't support java 9 or higher runtime, " +
+            "to update it, see: https://aka.ms/azfunc-install.";
 
     /**
      * Config String for local debug
@@ -66,6 +73,8 @@ public class RunMojo extends AbstractFunctionMojo {
 
         checkRuntimeExistence(commandHandler);
 
+        validateJavaCompatibility(commandHandler);
+
         runFunctions(commandHandler);
     }
 
@@ -96,6 +105,22 @@ public class RunMojo extends AbstractFunctionMojo {
                 CommandUtils.getValidReturnCodes(),
                 RUN_FUNCTIONS_FAILURE
         );
+    }
+
+    private void validateJavaCompatibility(final CommandHandler handler) throws AzureExecutionException {
+        // Maven will always refer JAVA_HOME, which is also adopted by function core tools
+        // So we could get function core tools runtime by java.version
+        final ComparableVersion javaVersion = new ComparableVersion(System.getProperty("java.version"));
+        if (javaVersion.compareTo(JAVA_9) < 0) {
+            // No need to check within java 8 or lower
+            return;
+        }
+        final ComparableVersion funcVersion = new ComparableVersion(handler.runCommandAndGetOutput(FUNC_VERSION_CMD, false, null));
+        final ComparableVersion minimumVersion = funcVersion.compareTo(FUNC_3) >= 0 ? MINIMUM_JAVA_11_SUPPORTED_VERSION :
+                MINIMUM_JAVA_11_SUPPORTED_VERSION_V2;
+        if (funcVersion.compareTo(minimumVersion) < 0) {
+            throw new AzureExecutionException(FUNCTION_CORE_TOOLS_OUT_OF_DATE);
+        }
     }
 
     //endregion

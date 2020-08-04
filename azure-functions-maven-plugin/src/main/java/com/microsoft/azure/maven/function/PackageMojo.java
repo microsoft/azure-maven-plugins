@@ -124,7 +124,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
             copyJarsToStageDirectory();
         } catch (IOException e) {
-            throw new AzureExecutionException("Canot perform IO operations due to error:" + e.getMessage(), e);
+            throw new AzureExecutionException("Cannot perform IO operations due to error:" + e.getMessage(), e);
         }
 
         final CommandHandler commandHandler = new CommandHandlerImpl();
