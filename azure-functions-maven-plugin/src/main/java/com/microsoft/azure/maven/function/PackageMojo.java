@@ -95,7 +95,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     @Override
     protected void doExecute() throws AzureExecutionException {
-        promptArtifactCompileVersion();
+        promptCompileInfo();
 
         final AnnotationHandler annotationHandler = getAnnotationHandler();
 
@@ -373,7 +373,8 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
     // end region
 
-    protected void promptArtifactCompileVersion() throws AzureExecutionException {
+    protected void promptCompileInfo() throws AzureExecutionException {
+        Log.info(String.format("Java home : %s", System.getenv("JAVA_HOME")));
         Log.info(String.format("Artifact compile version : %s", Utils.getArtifactCompileVersion(project.getArtifact().getFile())));
     }
 
