@@ -39,7 +39,7 @@ public class FunctionResource {
         if (config instanceof Map) {
             resource.scriptFile = (String) ((Map) config).get(SCRIPT_FILE);
             resource.entryPoint = (String) ((Map) config).get(ENTRY_POINT);
-            Object bindingListObject = ((Map) config).get(BINDINGS);
+            final Object bindingListObject = ((Map) config).get(BINDINGS);
             if (bindingListObject instanceof List) {
                 resource.bindingList = (List<BindingResource>) ((List) bindingListObject).stream()
                         .filter(item -> item instanceof Map)

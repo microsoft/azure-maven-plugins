@@ -80,6 +80,8 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
         doNothing().when(mojoSpy).updateFunctionApp(app);
         doNothing().when(mojoSpy).listHTTPTriggerUrls();
+        doNothing().when(mojoSpy).checkArtifactCompileVersion();
+        doNothing().when(mojoSpy).parseConfiguration();
         mojoSpy.doExecute();
         verify(mojoSpy, times(1)).createOrUpdateFunctionApp();
         verify(mojoSpy, times(1)).doExecute();

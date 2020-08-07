@@ -16,6 +16,7 @@ import com.microsoft.azure.common.function.template.BindingsTemplate;
 import com.microsoft.azure.common.function.template.FunctionTemplate;
 import com.microsoft.azure.common.function.template.FunctionTemplates;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.management.appservice.JavaVersion;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,11 +27,35 @@ import java.util.List;
 
 
 public class FunctionUtils {
+    private static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
+    private static final String INVALID_JAVA_VERSION = "Invalid java version %s, using default value java 8";
+    private static final String UNSUPPORTED_JAVA_VERSION = "Unsupported java version %s, using default value java 8";
     private static final String LOAD_TEMPLATES_FAIL = "Failed to load all function templates.";
     private static final String LOAD_BINDING_TEMPLATES_FAIL = "Failed to load function binding template.";
-
     private static final String INVALID_FUNCTION_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION is empty or invalid, " +
             "please check the configuration";
+
+    public static JavaVersion parseJavaVersion(String javaVersion) {
+        if (StringUtils.isEmpty(javaVersion)) {
+            return DEFAULT_JAVA_VERSION;
+        }
+        try {
+            final int version = Integer.valueOf(javaVersion);
+            switch (version) {
+                case 8:
+                    return JavaVersion.JAVA_8_NEWEST;
+                case 11:
+                    Log.info("Using Java 11 (Preview) runtime.");
+                    return JavaVersion.JAVA_11;
+                default:
+                    Log.warn(String.format(UNSUPPORTED_JAVA_VERSION, version));
+                    return DEFAULT_JAVA_VERSION;
+            }
+        } catch (NumberFormatException e) {
+            Log.warn(String.format(INVALID_JAVA_VERSION, javaVersion));
+            return DEFAULT_JAVA_VERSION;
+        }
+    }
 
     public static FunctionExtensionVersion parseFunctionExtensionVersion(String version) throws AzureExecutionException {
         return Arrays.stream(FunctionExtensionVersion.values())
