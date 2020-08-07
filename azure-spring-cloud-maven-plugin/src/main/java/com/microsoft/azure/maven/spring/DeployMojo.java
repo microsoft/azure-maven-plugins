@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.spring;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.prompt.DefaultPrompter;
 import com.microsoft.azure.common.prompt.IPrompter;
 import com.microsoft.azure.common.utils.TextUtils;
@@ -80,7 +81,7 @@ public class DeployMojo extends AbstractSpringMojo {
             Arrays.asList(DeploymentResourceStatus.COMPILING, DeploymentResourceStatus.ALLOCATING, DeploymentResourceStatus.UPGRADING);
 
     @Override
-    protected void doExecute() throws MojoExecutionException, MojoFailureException {
+    protected void doExecute() throws MojoExecutionException, MojoFailureException, AzureExecutionException {
         if (!checkProjectPackaging(project) || !checkConfiguration()) {
             return;
         }
@@ -98,6 +99,7 @@ public class DeployMojo extends AbstractSpringMojo {
         traceTelemetry(springAppClient, deploymentClient, configuration);
         // Create or update new App
         getLog().info(STATUS_CREATE_OR_UPDATE_APP);
+        final boolean isNewSpringCloudApp = springAppClient.getApp() == null;
         final AppResourceInner appResourceInner = springAppClient.createOrUpdateApp(configuration);
         final PersistentDisk persistentDisk = appResourceInner.properties().persistentDisk();
         if (persistentDisk != null) {
@@ -111,13 +113,11 @@ public class DeployMojo extends AbstractSpringMojo {
         final ResourceUploadDefinitionInner uploadDefinition = springAppClient.uploadArtifact(toDeploy);
         getLog().info(STATUS_UPLOADING_ARTIFACTS_DONE);
         // Create or update deployment
-        final boolean createNewDeployment = deploymentClient.getDeployment() == null;
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT);
-        final DeploymentResourceInner deploymentResourceInner =
-                deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
-        // Active deployment if no existing active deployment
-        if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName()) && createNewDeployment) {
-            springAppClient.activateDeployment(deploymentClient.getDeploymentName(), configuration);
+        deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
+        if (isNewSpringCloudApp) {
+            // Some app level parameters need to be specified after its deployment was created
+            springAppClient.createOrUpdateApp(configuration);
         }
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE);
         // Showing deployment status and public url
