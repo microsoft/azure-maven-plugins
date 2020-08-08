@@ -33,7 +33,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
 
     private static final String RUNTIME_VERSION_PATTERN = "(J|j)ava((\\s)?|_)(8|11)$";
     private static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_8;
-    private static final int SCALING_TIME_OUT = 10;
+    private static final int SCALING_TIME_OUT = 60; // Use same timeout as service
 
     private final String appName;
     private final String deploymentName;
