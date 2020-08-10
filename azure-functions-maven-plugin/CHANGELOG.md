@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.7.0](#170)
   - [1.6.0](#160)
   - [1.5.0](#150)
   - [1.4.1](#141)
@@ -14,6 +15,10 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
+
+## 1.7.0
+- Add runtime validation while package and deploy. [PR#1116](https://github.com/microsoft/azure-maven-plugins/pull/1116)
+- Register resource providers before function create. [#1101](https://github.com/microsoft/azure-maven-plugins/pull/1101)
 
 ## 1.6.0
 - Support Java 11 Azure Functions (Preview). [#1052](https://github.com/microsoft/azure-maven-plugins/issues/1052)
