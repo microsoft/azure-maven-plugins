@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.spring.spring;
 
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.AppPlatformManager;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 
 public abstract class AbstractSpringClient {
     protected String subscriptionId;

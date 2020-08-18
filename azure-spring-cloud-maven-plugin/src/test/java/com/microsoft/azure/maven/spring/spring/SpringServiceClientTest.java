@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.spring.spring;
 
 import com.microsoft.azure.credentials.AzureTokenCredentials;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ServiceResourceInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -7,11 +7,11 @@
 package com.microsoft.azure.maven.spring.spring;
 
 import com.microsoft.azure.PagedList;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.AppResourceProperties;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.PersistentDisk;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.AppResourceInner;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.DeploymentResourceInner;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.AppResourceProperties;
+import com.microsoft.azure.management.appplatform.v2020_07_01.PersistentDisk;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.utils.Utils;
 
@@ -62,11 +62,13 @@ public class SpringAppClient extends AbstractSpringClient {
                 : null;
         appResourceProperties.withPersistentDisk(persistentDisk);
         if (appResource == null) {
+            final AppResourceInner tempAppResource = new AppResourceInner();
+            tempAppResource.withProperties(appResourceProperties);
             return springManager.apps().inner().createOrUpdate(resourceGroup, clusterName, appName,
-                    appResourceProperties);
+                    tempAppResource);
         } else {
             appResourceProperties.withPublicProperty(configuration.isPublic());
-            return springManager.apps().inner().update(resourceGroup, clusterName, appName, appResourceProperties);
+            return springManager.apps().inner().update(resourceGroup, clusterName, appName, appResource);
         }
     }
 
@@ -76,7 +78,7 @@ public class SpringAppClient extends AbstractSpringClient {
 
         if (!deploymentName.equals(properties.activeDeploymentName())) {
             properties.withActiveDeploymentName(deploymentName);
-            return springManager.apps().inner().update(resourceGroup, clusterName, appName, properties);
+            return springManager.apps().inner().update(resourceGroup, clusterName, appName, appResourceInner);
         }
         return appResourceInner;
     }
