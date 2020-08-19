@@ -73,6 +73,31 @@ public class LocalAuthServerTest {
     }
 
     @Test
+    public void testErrorResultWithHtml() throws Exception {
+        final String url = localAuthServer.getURI().toString();
+        final String queryString = "access_denied&error_description=<p>the+user+canceled+the+authentication</p><script>alert(1)</script>&error=<h1>error1</h1>";
+        final URLConnection conn = new URL(url + "?" + queryString).openConnection();
+        final Runnable runnable = () -> {
+            try {
+                localAuthServer.waitForCode();
+                fail();
+            } catch (AzureLoginFailureException ex) {
+                // expected
+            } catch (InterruptedException e) {
+                fail("Unexpected InterruptedException:" + e.getMessage());
+            }
+        };
+        final Thread t = new Thread(runnable);
+        t.start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+            final String html = reader.lines().collect(Collectors.joining("\n"));
+            System.out.println(html);
+            assertTrue(html.contains("&lt;h1&gt;error1&lt;/h1&gt;"));
+            assertTrue(html.contains("&lt;p&gt;the user canceled the authentication&lt;/p&gt;&lt;script&gt;alert(1)&lt;/script&gt;"));
+        }
+    }
+
+    @Test
     public void testStart() throws IOException {
 
         // should be able to rest
