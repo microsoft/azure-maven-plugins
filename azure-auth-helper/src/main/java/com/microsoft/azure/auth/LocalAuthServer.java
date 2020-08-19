@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.auth;
 
+import com.google.common.escape.Escaper;
+import com.google.common.html.HtmlEscapers;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.AzureLoginTimeoutException;
 import com.nimbusds.jose.util.IOUtils;
@@ -46,7 +48,7 @@ public class LocalAuthServer {
         jettyServer = new Server();
         final ServerConnector connector = new ServerConnector(jettyServer);
         connector.setHost("localhost");
-        jettyServer.setConnectors(new Connector[]{ connector });
+        jettyServer.setConnectors(new Connector[]{connector});
         jettyServer.setHandler(new AbstractHandler() {
             @Override
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
@@ -67,10 +69,11 @@ public class LocalAuthServer {
                         if (isSuccess) {
                             writer.write(loginSuccessHTMLTemplate);
                         } else {
+                            final Escaper escaper = HtmlEscapers.htmlEscaper();
                             // only text is acceptable, escape html/xml markups to prevent potential XSS issues,
                             // although `errorDescription` and `error` are passed from Azure's own OAuth server, which should be trustable.
-                            errorDescription = StringUtils.isNotEmpty(errorDescription) ? LocalAuthServer.htmlEscape(errorDescription) : errorDescription;
-                            error = StringUtils.isNoneEmpty(error) ? LocalAuthServer.htmlEscape(error) : error;
+                            errorDescription = StringUtils.isNotEmpty(errorDescription) ? escaper.escape(errorDescription) : errorDescription;
+                            error = StringUtils.isNoneEmpty(error) ? escaper.escape(error) : error;
                             writer.write(String.format(loginErrorHTMLTemplate, error, errorDescription));
                         }
                         writer.flush();
@@ -153,27 +156,6 @@ public class LocalAuthServer {
         // don't use String.replace, which will do the regular expression replacement
         loginSuccessHTMLTemplate = StringUtils.replace(loadResource("success.html"), "${refresh_url}", Constants.LOGIN_LANDING_PAGE);
         loginErrorHTMLTemplate = StringUtils.replace(loadResource("failure.html"), "${refresh_url}", Constants.LOGIN_LANDING_PAGE);
-    }
-
-    /**
-     * escape html string
-     *
-     * @param strHtml string possibly containing xml/html markups(e.g. <code>&lt;script&gt;</code> blocks)
-     * @return the markup escaped string
-     * @see <a href="https://stackoverflow.com/questions/7381974/which-characters-need-to-be-escaped-in-html">
-     * Stackoverflow: Which characters need to be escaped in HTML?
-     * </a>
-     * @see <a href="https://www.w3.org/International/questions/qa-escapes#use">
-     * W3C: Using character escapes in markup and CSS
-     * </a>
-     */
-    static String htmlEscape(String strHtml) {
-        String escaped = strHtml.replaceAll("&", "&amp;");
-        escaped = escaped.replaceAll("<", "&lt;");
-        escaped = escaped.replaceAll(">", "&gt;");
-        escaped = escaped.replaceAll("\"", "&quot;");
-        escaped = escaped.replaceAll("'", "&#39;");
-        return escaped;
     }
 
     static String loadResource(String resourceName) throws IOException {
