@@ -7,8 +7,10 @@
 package com.microsoft.azure.maven.spring.spring;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 
 public abstract class AbstractSpringClient {
+    protected final ServiceResourceInner cluster;
     protected String subscriptionId;
     protected String resourceGroup;
     protected String clusterName;
@@ -47,7 +49,8 @@ public abstract class AbstractSpringClient {
         this.springServiceClient = builder.springServiceClient;
 
         this.springManager = springServiceClient.getSpringManager();
-        this.resourceGroup = springServiceClient.getResourceGroupByCluster(clusterName);
+        this.cluster = springServiceClient.getClusterByName(clusterName);
+        this.resourceGroup = springServiceClient.getResourceGroupByCluster(this.cluster);
     }
 
     protected AbstractSpringClient(AbstractSpringClient abstractSpringClient) {
@@ -55,7 +58,7 @@ public abstract class AbstractSpringClient {
         this.subscriptionId = abstractSpringClient.subscriptionId;
         this.springManager = abstractSpringClient.springManager;
         this.springServiceClient = abstractSpringClient.springServiceClient;
-
-        this.resourceGroup = springServiceClient.getResourceGroupByCluster(clusterName);
+        this.cluster = springServiceClient.getClusterByName(clusterName);
+        this.resourceGroup = springServiceClient.getResourceGroupByCluster(this.cluster);
     }
 }

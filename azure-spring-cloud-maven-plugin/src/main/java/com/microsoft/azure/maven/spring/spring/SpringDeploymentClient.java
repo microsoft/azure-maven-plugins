@@ -31,7 +31,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SpringDeploymentClient extends AbstractSpringClient {
-
     private static final String RUNTIME_VERSION_PATTERN = "(J|j)ava((\\s)?|_)(8|11)$";
     private static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_8;
     private static final int SCALING_TIME_OUT = 60; // Use same timeout as service
@@ -97,10 +96,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
 
     private DeploymentResourceInner createDeployment(Deployment deploymentConfiguration, ResourceUploadDefinitionInner resource) {
         final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties();
-
-        final SkuInner skuInner = new SkuInner();
-        skuInner.withCapacity(deploymentConfiguration.getInstanceCount());
-
+        final SkuInner skuInner = this.initDeploymentSku(deploymentConfiguration);
         final DeploymentSettings deploymentSettings = new DeploymentSettings();
         final RuntimeVersion runtimeVersion = getRuntimeVersion(deploymentConfiguration.getRuntimeVersion(), null);
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
@@ -151,10 +147,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
 
     private DeploymentResourceInner scaleDeployment(Deployment deploymentConfiguration) throws AzureExecutionException {
         final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties();
-
-        final SkuInner skuInner = new SkuInner();
-        skuInner.withCapacity(deploymentConfiguration.getInstanceCount());
-
+        final SkuInner skuInner = this.initDeploymentSku(deploymentConfiguration);
         final DeploymentSettings deploymentSettings = new DeploymentSettings();
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
                 .withMemoryInGB(deploymentConfiguration.getMemoryInGB());
@@ -179,6 +172,15 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new AzureExecutionException(String.format("Failed to scale deployment %s of spring cloud app %s", deploymentName, appName), e);
         }
+    }
+
+    private SkuInner initDeploymentSku(Deployment deploymentConfiguration) {
+        final SkuInner clusterSku = this.cluster.sku();
+        final SkuInner skuInner = new SkuInner();
+        skuInner.withName(clusterSku.name())
+                .withTier(clusterSku.tier())
+                .withCapacity(deploymentConfiguration.getInstanceCount());
+        return skuInner;
     }
 
     private static boolean isResourceScaled(Deployment deploymentConfiguration, DeploymentResourceInner deployment) {

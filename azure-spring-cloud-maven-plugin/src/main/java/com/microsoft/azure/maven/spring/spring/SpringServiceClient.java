@@ -68,6 +68,10 @@ public class SpringServiceClient {
 
     public String getResourceGroupByCluster(String clusterName) {
         final ServiceResourceInner cluster = getClusterByName(clusterName);
+        return this.getResourceGroupByCluster(cluster);
+    }
+
+    public String getResourceGroupByCluster(ServiceResourceInner cluster) {
         final String[] attributes = cluster.id().split("/");
         return attributes[ArrayUtils.indexOf(attributes, "resourceGroups") + 1];
     }
