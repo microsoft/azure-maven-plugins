@@ -6,6 +6,8 @@
 
 package com.microsoft.azure.auth;
 
+import com.google.common.escape.Escaper;
+import com.google.common.html.HtmlEscapers;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.AzureLoginTimeoutException;
 import com.nimbusds.jose.util.IOUtils;
@@ -46,7 +48,7 @@ public class LocalAuthServer {
         jettyServer = new Server();
         final ServerConnector connector = new ServerConnector(jettyServer);
         connector.setHost("localhost");
-        jettyServer.setConnectors(new Connector[]{ connector });
+        jettyServer.setConnectors(new Connector[]{connector});
         jettyServer.setHandler(new AbstractHandler() {
             @Override
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
@@ -64,7 +66,16 @@ public class LocalAuthServer {
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.setContentType(Constants.CONTENT_TYPE_TEXT_HTML);
                     try (final PrintWriter writer = response.getWriter()) {
-                        writer.write(isSuccess ? loginSuccessHTMLTemplate : String.format(loginErrorHTMLTemplate, error, errorDescription));
+                        if (isSuccess) {
+                            writer.write(loginSuccessHTMLTemplate);
+                        } else {
+                            final Escaper escaper = HtmlEscapers.htmlEscaper();
+                            // only text is acceptable, escape html/xml markups to prevent potential XSS issues,
+                            // although `errorDescription` and `error` are passed from Azure's own OAuth server, which should be trustable.
+                            errorDescription = StringUtils.isNotEmpty(errorDescription) ? escaper.escape(errorDescription) : errorDescription;
+                            error = StringUtils.isNotEmpty(error) ? escaper.escape(error) : error;
+                            writer.write(String.format(loginErrorHTMLTemplate, error, errorDescription));
+                        }
                         writer.flush();
                     }
                     response.flushBuffer();

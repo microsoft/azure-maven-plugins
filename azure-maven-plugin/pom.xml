@@ -34,6 +34,8 @@
         <surefire.version>2.22.0</surefire.version>
         <mockito.version>2.28.2</mockito.version>
         <jacoco.version>0.8.4</jacoco.version>
+        <azure.auth.helper.version>0.6.0-SNAPSHOT</azure.auth.helper.version>
+        <azure.tools.common.version>0.3.0</azure.tools.common.version>
     </properties>
 
     <licenses>
@@ -97,9 +99,13 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-auth-helper</artifactId>
-            <version>0.1.0</version>
+            <version>${azure.auth.helper.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-tools-common</artifactId>
+            <version>${azure.tools.common.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
