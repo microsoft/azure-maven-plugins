@@ -73,7 +73,7 @@ public class LocalAuthServer {
                             // only text is acceptable, escape html/xml markups to prevent potential XSS issues,
                             // although `errorDescription` and `error` are passed from Azure's own OAuth server, which should be trustable.
                             errorDescription = StringUtils.isNotEmpty(errorDescription) ? escaper.escape(errorDescription) : errorDescription;
-                            error = StringUtils.isNoneEmpty(error) ? escaper.escape(error) : error;
+                            error = StringUtils.isNotEmpty(error) ? escaper.escape(error) : error;
                             writer.write(String.format(loginErrorHTMLTemplate, error, errorDescription));
                         }
                         writer.flush();
