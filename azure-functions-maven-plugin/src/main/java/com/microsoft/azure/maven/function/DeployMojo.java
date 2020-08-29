@@ -341,9 +341,13 @@ public class DeployMojo extends AbstractFunctionMojo {
     private File getArtifactToDeploy() throws AzureExecutionException {
         final File stagingFolder = new File(getDeploymentStagingDirectoryPath());
         return Arrays.stream(stagingFolder.listFiles())
-                .filter(jar -> StringUtils.equals(FilenameUtils.getBaseName(jar.getName()), project.getBuild().getFinalName()))
+                .filter(jar -> StringUtils.equals(FilenameUtils.getBaseName(jar.getName()), this.getFinalName()))
                 .findFirst()
-                .orElseThrow(() -> new AzureExecutionException("Failed to find function artifact, please re-package the project and try again."));
+                .orElseThrow(() -> new AzureExecutionException(
+                        String.format("Failed to find function artifact '%s.jar' in folder '%s', please re-package the project and try again.",
+                        this.getFinalName(),
+                        stagingFolder))
+                );
     }
 
     /**
