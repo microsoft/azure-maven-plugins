@@ -15,6 +15,7 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.RuntimeVersion;
 import com.microsoft.azure.management.appplatform.v2020_07_01.UserSourceInfo;
 import com.microsoft.azure.management.appplatform.v2020_07_01.UserSourceType;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentsInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
@@ -76,12 +77,6 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         this.springAppClient = springAppClient;
     }
 
-    public DeploymentResourceInner createOrUpdateDeployment(Deployment configuration, ResourceUploadDefinitionInner resource) throws AzureExecutionException {
-        final DeploymentResourceInner deployment = getDeployment();
-        return deployment == null ? createDeployment(configuration, resource) :
-                updateDeployment(configuration, deployment, resource);
-    }
-
     public DeploymentResourceInner getDeployment() {
         return springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
     }
@@ -94,7 +89,7 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         return deploymentName;
     }
 
-    private DeploymentResourceInner createDeployment(Deployment deploymentConfiguration, ResourceUploadDefinitionInner resource) {
+    public DeploymentResourceInner createDeployment(Deployment deploymentConfiguration, ResourceUploadDefinitionInner resource) {
         final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties();
         final SkuInner skuInner = this.initDeploymentSku(deploymentConfiguration);
         final DeploymentSettings deploymentSettings = new DeploymentSettings();
@@ -111,14 +106,14 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         final DeploymentResourceInner tempDeploymentResource = new DeploymentResourceInner();
         tempDeploymentResource.withSku(skuInner).withProperties(deploymentProperties);
         // Create deployment
-        final DeploymentResourceInner deployment = springManager.deployments().inner()
-                .createOrUpdate(resourceGroup, clusterName, appName, deploymentName, tempDeploymentResource);
-        springManager.deployments().inner().start(resourceGroup, clusterName, appName, deploymentName);
+        final DeploymentsInner inner = springManager.deployments().inner();
+        final DeploymentResourceInner deployment = inner.createOrUpdate(resourceGroup, clusterName, appName, deploymentName, tempDeploymentResource);
+        inner.start(resourceGroup, clusterName, appName, deploymentName);
         return deployment;
     }
 
-    private DeploymentResourceInner updateDeployment(Deployment deploymentConfiguration, DeploymentResourceInner deployment,
-                                                     ResourceUploadDefinitionInner resource) throws AzureExecutionException {
+    public DeploymentResourceInner updateDeployment(DeploymentResourceInner deployment, Deployment deploymentConfiguration,
+                                                    ResourceUploadDefinitionInner resource) throws AzureExecutionException {
         final DeploymentSettings previousDeploymentSettings = deployment.properties().deploymentSettings();
         if (isResourceScaled(deploymentConfiguration, deployment)) {
             Log.info("Scaling deployment...");
