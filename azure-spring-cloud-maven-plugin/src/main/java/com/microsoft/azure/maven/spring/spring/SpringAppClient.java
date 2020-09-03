@@ -14,7 +14,6 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.Dep
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.utils.Utils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -54,7 +53,7 @@ public class SpringAppClient extends AbstractSpringClient {
         this.appName = builder.appName;
     }
 
-    public AppResourceInner createOrUpdateApp(SpringConfiguration configuration) {
+    public AppResourceInner createOrUpdateApp(SpringConfiguration configuration, String deploymentName) {
         final AppResourceInner appResource = getApp();
         final AppResourceProperties appResourceProperties = appResource == null ? new AppResourceProperties()
                 : appResource.properties();
@@ -67,6 +66,9 @@ public class SpringAppClient extends AbstractSpringClient {
             return springManager.apps().inner().createOrUpdate(resourceGroup, clusterName, appName,
                     tempAppResource);
         } else {
+            if (StringUtils.isNotEmpty(deploymentName) && StringUtils.isEmpty(this.getActiveDeploymentName())) {
+                appResourceProperties.withActiveDeploymentName(deploymentName);
+            }
             appResourceProperties.withPublicProperty(configuration.isPublic());
             return springManager.apps().inner().update(resourceGroup, clusterName, appName, appResource);
         }
@@ -141,6 +143,6 @@ public class SpringAppClient extends AbstractSpringClient {
     private static PersistentDisk getPersistentDiskOrDefault(AppResourceProperties appResourceProperties) {
         return appResourceProperties.persistentDisk() != null ? appResourceProperties.persistentDisk()
                 : new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE)
-                        .withMountPath(DEFAULT_PERSISTENT_DISK_MOUNT_PATH);
+                .withMountPath(DEFAULT_PERSISTENT_DISK_MOUNT_PATH);
     }
 }

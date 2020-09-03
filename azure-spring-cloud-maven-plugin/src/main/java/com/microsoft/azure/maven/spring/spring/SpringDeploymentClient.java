@@ -114,10 +114,6 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         final DeploymentResourceInner deployment = springManager.deployments().inner()
                 .createOrUpdate(resourceGroup, clusterName, appName, deploymentName, tempDeploymentResource);
         springManager.deployments().inner().start(resourceGroup, clusterName, appName, deploymentName);
-        // Active deployment
-        if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName())) {
-            springAppClient.activateDeployment(deployment.name());
-        }
         return deployment;
     }
 

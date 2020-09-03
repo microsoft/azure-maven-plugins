@@ -22,7 +22,6 @@ import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
 import com.microsoft.azure.maven.spring.utils.Utils;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -100,7 +99,8 @@ public class DeployMojo extends AbstractSpringMojo {
         // Create or update new App
         getLog().info(STATUS_CREATE_OR_UPDATE_APP);
         final boolean isNewSpringCloudApp = springAppClient.getApp() == null;
-        final AppResourceInner appResourceInner = springAppClient.createOrUpdateApp(configuration);
+        final boolean isNewDeployment = deploymentClient.getDeployment() == null;
+        final AppResourceInner appResourceInner = springAppClient.createOrUpdateApp(configuration, null);
         final PersistentDisk persistentDisk = appResourceInner.properties().persistentDisk();
         if (persistentDisk != null) {
             getLog().info(String.format(DEPLOYMENT_STORAGE_STATUS, persistentDisk.mountPath(), persistentDisk.sizeInGB()));
@@ -114,10 +114,11 @@ public class DeployMojo extends AbstractSpringMojo {
         getLog().info(STATUS_UPLOADING_ARTIFACTS_DONE);
         // Create or update deployment
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT);
-        deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
-        if (isNewSpringCloudApp) {
+        final DeploymentResourceInner deployment = deploymentClient.createOrUpdateDeployment(deploymentConfiguration, uploadDefinition);
+        final String deploymentName = isNewDeployment ? deployment.name() : null;
+        if (isNewSpringCloudApp || isNewDeployment) {
             // Some app level parameters need to be specified after its deployment was created
-            springAppClient.createOrUpdateApp(configuration);
+            springAppClient.createOrUpdateApp(configuration, deploymentName);
         }
         getLog().info(STATUS_CREATE_OR_UPDATE_DEPLOYMENT_DONE);
         // Showing deployment status and public url
