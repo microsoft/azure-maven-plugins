@@ -120,16 +120,21 @@ public class SpringDeploymentClient extends AbstractSpringClient {
             scaleDeployment(deploymentConfiguration);
             Log.info("Scaling deployment done.");
         }
-        final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties();
-        final DeploymentSettings newDeploymentSettings = new DeploymentSettings();
         final RuntimeVersion runtimeVersion = getRuntimeVersion(deploymentConfiguration.getRuntimeVersion(), previousDeploymentSettings.runtimeVersion());
         // Update deployment configuration, scale related parameters should be update in scaleDeployment()
-        newDeploymentSettings.withJvmOptions(deploymentConfiguration.getJvmOptions())
+        final DeploymentSettings newDeploymentSettings = new DeploymentSettings()
+                .withJvmOptions(deploymentConfiguration.getJvmOptions())
                 .withRuntimeVersion(runtimeVersion)
                 .withEnvironmentVariables(deploymentConfiguration.getEnvironment());
-        final UserSourceInfo userSourceInfo = new UserSourceInfo();
-        userSourceInfo.withType(UserSourceType.JAR).withRelativePath(resource.relativePath());
-        deploymentProperties.withSource(userSourceInfo).withDeploymentSettings(newDeploymentSettings);
+        final UserSourceInfo userSourceInfo = new UserSourceInfo()
+                .withType(UserSourceType.JAR)
+                .withRelativePath(resource.relativePath());
+        final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties()
+                .withSource(userSourceInfo)
+                .withDeploymentSettings(newDeploymentSettings);
+        deployment
+                .withProperties(deploymentProperties)
+                .withSku(null); // server cannot update and scale deployment at the same time
         final DeploymentResourceInner result = springManager.deployments().inner().update(resourceGroup, clusterName,
                 appName, deploymentName, deployment);
         springManager.deployments().inner().start(resourceGroup, clusterName, appName, deploymentName);
@@ -137,15 +142,15 @@ public class SpringDeploymentClient extends AbstractSpringClient {
     }
 
     private DeploymentResourceInner scaleDeployment(Deployment deploymentConfiguration) throws AzureExecutionException {
-        final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties();
         final SkuInner skuInner = this.initDeploymentSku(deploymentConfiguration);
-        final DeploymentSettings deploymentSettings = new DeploymentSettings();
-        deploymentSettings.withCpu(deploymentConfiguration.getCpu())
+        final DeploymentSettings deploymentSettings = new DeploymentSettings()
+                .withCpu(deploymentConfiguration.getCpu())
                 .withMemoryInGB(deploymentConfiguration.getMemoryInGB());
-        deploymentProperties.withDeploymentSettings(deploymentSettings);
-
-        final DeploymentResourceInner tempDeploymentResource = new DeploymentResourceInner();
-        tempDeploymentResource.withSku(skuInner).withProperties(deploymentProperties);
+        final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties()
+                .withDeploymentSettings(deploymentSettings);
+        final DeploymentResourceInner tempDeploymentResource = new DeploymentResourceInner()
+                .withSku(skuInner)
+                .withProperties(deploymentProperties);
 
         springManager.deployments().inner().update(resourceGroup, clusterName, appName, deploymentName, tempDeploymentResource);
         // Wait until deployment scaling done
@@ -167,11 +172,9 @@ public class SpringDeploymentClient extends AbstractSpringClient {
 
     private SkuInner initDeploymentSku(Deployment deploymentConfiguration) {
         final SkuInner clusterSku = this.cluster.sku();
-        final SkuInner skuInner = new SkuInner();
-        skuInner.withName(clusterSku.name())
+        return new SkuInner().withName(clusterSku.name())
                 .withTier(clusterSku.tier())
                 .withCapacity(deploymentConfiguration.getInstanceCount());
-        return skuInner;
     }
 
     private static boolean isResourceScaled(Deployment deploymentConfiguration, DeploymentResourceInner deployment) {
