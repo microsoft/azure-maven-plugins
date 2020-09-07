@@ -147,8 +147,8 @@ public class SpringAppClient extends AbstractSpringClient {
     }
 
     private static PersistentDisk getPersistentDiskOrDefault(AppResourceProperties appResourceProperties) {
-        return appResourceProperties.persistentDisk() != null ? appResourceProperties.persistentDisk()
-                : new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE)
-                .withMountPath(DEFAULT_PERSISTENT_DISK_MOUNT_PATH);
+        final PersistentDisk disk = appResourceProperties.persistentDisk();
+        return disk == null || disk.sizeInGB() <= 0 ? new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE)
+                .withMountPath(DEFAULT_PERSISTENT_DISK_MOUNT_PATH) : disk;
     }
 }
