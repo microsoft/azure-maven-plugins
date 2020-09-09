@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure App Service" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.10.0](#1100)
   - [1.9.1](#191)
   - [1.9.0](#190)
   - [1.8.0](#180)
@@ -17,6 +18,11 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.2.0](#120)
   - [1.1.0](#110)
   - [1.0.0](#100)
+
+## 1.10.0
+- Support set Azure environment in configuration (`<configuration> -> <auth> -> <environment>`)
+- Fixes : XSS issue in authentication [#1110](https://github.com/microsoft/azure-maven-plugins/issues/1110) 
+- Fixes : Resource Group name match uses case sensitive string comparison [#1056](https://github.com/microsoft/azure-maven-plugins/issues/1056)
 
 ## 1.9.1
 - Remove support for WildFly for Web App on Linux.
