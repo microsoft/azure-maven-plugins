@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins-pom</artifactId>
-        <version>1.0.3</version>
+        <version>1.0.4-SNAPSHOT</version>
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
     <artifactId>azure-maven-plugin</artifactId>
@@ -18,25 +18,7 @@
 
     <prerequisites>
         <maven>${maven.version}</maven>
-
     </prerequisites>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.version>3.3.3</maven.version>
-        <junit.version>4.12</junit.version>
-        <version.slf4j>1.7.25</version.slf4j>
-        <version.maven-core>3.3.3</version.maven-core>
-        <version.maven-plugin-annotations>3.3</version.maven-plugin-annotations>
-        <version.maven-plugin-plugin>3.3</version.maven-plugin-plugin>
-        <version.maven-plugin-testing-harness>3.3.0</version.maven-plugin-testing-harness>
-        <powermock.version>2.0.2</powermock.version>
-        <surefire.version>2.22.0</surefire.version>
-        <mockito.version>2.28.2</mockito.version>
-        <jacoco.version>0.8.4</jacoco.version>
-        <azure.auth.helper.version>0.6.0</azure.auth.helper.version>
-        <azure.tools.common.version>0.3.0</azure.tools.common.version>
-    </properties>
 
     <licenses>
         <license>
@@ -99,83 +81,69 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-auth-helper</artifactId>
-            <version>${azure.auth.helper.version}</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-tools-common</artifactId>
-            <version>${azure.tools.common.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
-            <version>${version.maven-core}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>3.3.3</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>${version.maven-plugin-annotations}</version>
             <scope>provided</scope>
         </dependency>
         <!-- TEST -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-compat</artifactId>
-            <version>${version.maven-core}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugin-testing</groupId>
             <artifactId>maven-plugin-testing-harness</artifactId>
-            <version>${version.maven-plugin-testing-harness}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-junit4</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito2</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-javaagent</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-junit4-rule-agent</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.agent</artifactId>
-            <version>${jacoco.version}</version>
             <classifier>runtime</classifier>
         </dependency>
     </dependencies>
@@ -194,7 +162,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -208,13 +175,11 @@
                         <jacoco-agent.destfile>${project.build.directory}/coverage.exec</jacoco-agent.destfile>
                     </systemPropertyVariables>
                 </configuration>
-                <version>${surefire.version}</version>
             </plugin>
 
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
                 <configuration>
                     <excludes>
                         <exclude>**/HelpMojo.*</exclude>
@@ -248,7 +213,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -265,7 +229,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
                 <configuration>
                     <show>private</show>
                     <failOnError>false</failOnError>
@@ -285,7 +248,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.6.0</version>
                 <configuration>
                     <goalPrefix>azure</goalPrefix>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
