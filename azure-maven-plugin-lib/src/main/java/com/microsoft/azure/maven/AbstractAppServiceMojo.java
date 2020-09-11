@@ -147,9 +147,6 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         ).toString();
     }
 
-    // Set method to get value from configuration.
-    // Required by maven plugin testing package when use @Parameter(alias="").
-    // And the name has to be "set<Alias>"
     public void setDeploymentSlot(DeploymentSlotSetting slotSetting) {
         this.deploymentSlotSetting = slotSetting;
     }
