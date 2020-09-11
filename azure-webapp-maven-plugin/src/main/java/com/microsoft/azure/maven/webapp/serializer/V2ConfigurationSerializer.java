@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.webapp.serializer;
 
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 

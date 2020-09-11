@@ -6,9 +6,15 @@
 
 package com.microsoft.azure.maven;
 
+import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.auth.AzureAuthHelper;
+import com.microsoft.azure.auth.AzureTokenWrapper;
+import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
+import com.microsoft.azure.management.appservice.WebAppBase;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -23,6 +29,8 @@ import java.util.Properties;
  */
 public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
+    protected static final String PORTAL_URL_PATTERN = "%s/#@%s/resource%s";
+
     /**
      * Resource group of App Service. It will be created if it doesn't exist.
      */
@@ -74,6 +82,13 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected String appServicePlanName;
 
     /**
+     * Deployment Slot. It will be created if it does not exist.
+     * It requires the web app exists already.
+     */
+    @Parameter(alias = "deploymentSlot")
+    protected DeploymentSlotSetting deploymentSlotSetting;
+
+    /**
      * Application settings of App Service, in the form of name-value pairs.
      * <pre>
      * {@code
@@ -116,6 +131,10 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         return DeploymentType.fromString(deploymentType);
     }
 
+    public DeploymentSlotSetting getDeploymentSlotSetting() {
+        return deploymentSlotSetting;
+    }
+
     public List<Resource> getResources() {
         return Collections.EMPTY_LIST;
     }
@@ -126,5 +145,30 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
             this.getBuildDirectoryAbsolutePath(),
             outputFolder, this.getAppName()
         ).toString();
+    }
+
+    // Set method to get value from configuration.
+    // Required by maven plugin testing package when use @Parameter(alias="").
+    // And the name has to be "set<Alias>"
+    public void setDeploymentSlot(DeploymentSlotSetting slotSetting) {
+        this.deploymentSlotSetting = slotSetting;
+    }
+
+    public String getResourcePortalUrl(WebAppBase resource) throws AzureAuthFailureException {
+        final AzureTokenWrapper azureTokenWrapper = getAzureTokenWrapper();
+        final AzureEnvironment environment = azureTokenWrapper == null ?
+                AzureAuthHelper.getAzureEnvironment(auth.getEnvironment()) : azureTokenWrapper.environment();
+        final String tenantId = getAzureClient().tenantId();
+        return String.format(PORTAL_URL_PATTERN, getPortalUrl(environment), tenantId, resource.id());
+    }
+
+    private static String getPortalUrl(AzureEnvironment azureEnvironment) {
+        if (azureEnvironment == AzureEnvironment.AZURE) {
+            return "https://ms.portal.azure.com";
+        } else if (azureEnvironment == AzureEnvironment.AZURE_CHINA) {
+            return "https://portal.azure.cn";
+        } else {
+            return azureEnvironment.portal();
+        }
     }
 }
