@@ -12,6 +12,7 @@ import com.microsoft.azure.common.docker.IDockerCredentialProvider;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.common.function.utils.FunctionUtils;
 import com.microsoft.azure.common.handlers.runtime.BaseRuntimeHandler;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
@@ -87,7 +88,8 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
             case PARENT:
                 return slot.withConfigurationFromParent();
             case OTHERS:
-                final FunctionDeploymentSlot configurationSourceSlot = functionApp.deploymentSlots().getByName(deploymentSlotSetting.getConfigurationSource());
+                final FunctionDeploymentSlot configurationSourceSlot =
+                        FunctionUtils.getFunctionDeploymentSlotByName(functionApp, deploymentSlotSetting.getConfigurationSource());
                 if (configurationSourceSlot == null) {
                     throw new AzureExecutionException(TARGET_CONFIGURATION_SOURCE_SLOT_NOT_EXIST);
                 }
