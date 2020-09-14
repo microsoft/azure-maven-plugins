@@ -6,17 +6,27 @@
 
 package com.microsoft.azure.common.function.handlers.runtime;
 
+import com.microsoft.azure.common.appservice.ConfigurationSourceType;
+import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.docker.IDockerCredentialProvider;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.common.function.utils.FunctionUtils;
 import com.microsoft.azure.common.handlers.runtime.BaseRuntimeHandler;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.resources.ResourceGroup;
 
 public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<FunctionApp> {
+
+    private static final String TARGET_CONFIGURATION_SOURCE_SLOT_NOT_EXIST =
+            "The deployment slot specified in <configurationSource> does not exist.";
+    private static final String UNKNOWN_CONFIGURATION_SOURCE = "Unknown <configurationSource> value for creating deployment slot. " +
+            "Please use 'NEW', 'PARENT' or specify an existing slot.";
 
     protected FunctionExtensionVersion functionExtensionVersion;
     protected RuntimeConfiguration runtimeConfiguration;
@@ -67,6 +77,27 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
 
     @Override
     public abstract FunctionApp.Update updateAppRuntime(FunctionApp app) throws AzureExecutionException;
+
+    public abstract WebAppBase.Update<FunctionDeploymentSlot> updateDeploymentSlot(FunctionDeploymentSlot deploymentSlot) throws AzureExecutionException;
+
+    public FunctionDeploymentSlot.DefinitionStages.WithCreate createDeploymentSlot(FunctionApp functionApp,
+                                                                                   DeploymentSlotSetting deploymentSlotSetting) throws AzureExecutionException {
+        final ConfigurationSourceType configurationSourceType = ConfigurationSourceType.fromString(deploymentSlotSetting.getConfigurationSource());
+        final FunctionDeploymentSlot.DefinitionStages.Blank slot = functionApp.deploymentSlots().define(deploymentSlotSetting.getName());
+        switch (configurationSourceType) {
+            case PARENT:
+                return slot.withConfigurationFromParent();
+            case OTHERS:
+                final FunctionDeploymentSlot configurationSourceSlot =
+                        FunctionUtils.getFunctionDeploymentSlotByName(functionApp, deploymentSlotSetting.getConfigurationSource());
+                if (configurationSourceSlot == null) {
+                    throw new AzureExecutionException(TARGET_CONFIGURATION_SOURCE_SLOT_NOT_EXIST);
+                }
+                return slot.withConfigurationFromDeploymentSlot(configurationSourceSlot);
+            default:
+                throw new AzureExecutionException(UNKNOWN_CONFIGURATION_SOURCE);
+        }
+    }
 
     @Override
     protected void changeAppServicePlan(FunctionApp app, AppServicePlan appServicePlan) throws AzureExecutionException {

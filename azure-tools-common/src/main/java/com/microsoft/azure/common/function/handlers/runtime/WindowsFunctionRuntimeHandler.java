@@ -9,7 +9,9 @@ package com.microsoft.azure.common.function.handlers.runtime;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.WebAppBase;
 import org.apache.commons.lang3.StringUtils;
 
 public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
@@ -84,6 +86,11 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
             update.withJavaVersion(javaVersion);
         }
         return update;
+    }
+
+    @Override
+    public WebAppBase.Update<FunctionDeploymentSlot> updateDeploymentSlot(FunctionDeploymentSlot deploymentSlot) {
+        return deploymentSlot.update().withJavaVersion(javaVersion).withWebContainer(null);
     }
 
 }
