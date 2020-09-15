@@ -9,6 +9,7 @@ package com.microsoft.azure.maven.function;
 import com.microsoft.azure.common.Utils;
 import com.microsoft.azure.common.applicationinsights.ApplicationInsightsManager;
 import com.microsoft.azure.common.appservice.DeployTargetType;
+import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.deploytarget.DeployTarget;
@@ -37,8 +38,10 @@ import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
+import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
@@ -70,14 +73,19 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     private static final int LIST_TRIGGERS_MAX_RETRY = 3;
     private static final int LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS = 10;
-    private static final String DEPLOY_START = "Trying to deploy the function app...";
+    private static final String DEPLOY_START = "Starting deployment...";
     private static final String DEPLOY_FINISH =
-        "Successfully deployed the function app at https://%s.azurewebsites.net.";
+        "Deployment done, you may access your resource through %s";
     private static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
         "Creating a new function app...";
     private static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s.";
+    private static final String FUNCTION_SLOT_CREATE_START = "The specified function slot does not exist. " +
+            "Creating a new slot...";
+    private static final String FUNCTION_SLOT_CREATED = "Successfully created the function slot: %s.";
     private static final String FUNCTION_APP_UPDATE = "Updating the specified function app...";
     private static final String FUNCTION_APP_UPDATE_DONE = "Successfully updated the function app: %s.";
+    private static final String FUNCTION_SLOT_UPDATE = "Updating the specified function slot...";
+    private static final String FUNCTION_SLOT_UPDATE_DONE = "Successfully updated the function slot: %s.";
     private static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
     private static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
             "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
@@ -112,6 +120,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION = "Syncing triggers and fetching function information (Attempt %d/%d)...";
     private static final String ARTIFACT_INCOMPATIBLE = "Your function app artifact compile version is higher than the java version in function host, " +
             "please downgrade the project compile version and try again.";
+    private static final String FUNCTION_APP_NOT_EXISTS = "Function App specified in pom.xml does not exist. " +
+            "Please make sure the Function App name is correct.";
 
     private JavaVersion parsedJavaVersion;
 
@@ -128,73 +138,83 @@ public class DeployMojo extends AbstractFunctionMojo {
 
             checkArtifactCompileVersion();
 
-            createOrUpdateFunctionApp();
+            final WebAppBase target = createOrUpdateResource();
 
-            final FunctionApp app = getFunctionApp();
-            if (app == null) {
+            if (target == null) {
                 throw new AzureExecutionException(
-                    String.format("Failed to get the function app with name: %s", getAppName()));
+                    String.format("Failed to get the deploy target with name: %s", getAppName()));
             }
 
-            final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
+            final DeployTarget deployTarget = new DeployTarget(target, DeployTargetType.FUNCTION);
 
             Log.info(DEPLOY_START);
-
             getArtifactHandler().publish(deployTarget);
+            Log.info(String.format(DEPLOY_FINISH, getResourcePortalUrl(target)));
 
-            Log.info(String.format(DEPLOY_FINISH, getAppName()));
-
-            listHTTPTriggerUrls();
+            if (!isDeployToSlot()) {
+                listHTTPTriggerUrls();
+            }
         } catch (AzureAuthFailureException e) {
             throw new AzureExecutionException("Cannot auth to azure", e);
         }
     }
 
-    //region Create or update Azure Functions
-    protected void createOrUpdateFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
+    protected WebAppBase createOrUpdateResource() throws AzureExecutionException, AzureAuthFailureException {
         final FunctionApp app = getFunctionApp();
-        if (app == null) {
-            createFunctionApp();
+        final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
+        if (isDeployToSlot()) {
+            if (app == null) {
+                throw new AzureExecutionException(FUNCTION_APP_NOT_EXISTS);
+            }
+            final FunctionDeploymentSlot deploymentSlot = FunctionUtils.getFunctionDeploymentSlotByName(app, getDeploymentSlotSetting().getName());
+            return deploymentSlot == null ? createDeploymentSlot(app, runtimeHandler) : updateDeploymentSlot(deploymentSlot, runtimeHandler);
         } else {
-            updateFunctionApp(app);
+            return app == null ? createFunctionApp(runtimeHandler) : updateFunctionApp(app, runtimeHandler);
         }
     }
 
-    protected void createFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
+    protected FunctionApp createFunctionApp(final FunctionRuntimeHandler runtimeHandler) throws AzureAuthFailureException, AzureExecutionException {
         Log.info(FUNCTION_APP_CREATE_START);
         validateApplicationInsightsConfiguration();
         final Map appSettings = getAppSettingsWithDefaultValue();
         // get/create ai instances only if user didn't specify ai connection string in app settings
         bindApplicationInsights(appSettings, true);
-        final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
-        withCreate.withAppSettings(appSettings).create();
+        final FunctionApp result = (FunctionApp) withCreate.withAppSettings(appSettings).create();
         Log.info(String.format(FUNCTION_APP_CREATED, getAppName()));
+        return result;
     }
 
-    protected void updateFunctionApp(final FunctionApp app) throws AzureAuthFailureException, AzureExecutionException {
+    protected FunctionApp updateFunctionApp(final FunctionApp app, final FunctionRuntimeHandler runtimeHandler)
+            throws AzureAuthFailureException, AzureExecutionException {
         Log.info(FUNCTION_APP_UPDATE);
-        final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         runtimeHandler.updateAppServicePlan(app);
         final Update update = runtimeHandler.updateAppRuntime(app);
-        validateApplicationInsightsConfiguration();
-        final Map appSettings = getAppSettingsWithDefaultValue();
-        if (isDisableAppInsights()) {
-            // Remove App Insights connection when `disableAppInsights` set to true
-            // Need to call `withoutAppSetting` as withAppSettings will only not remove parameters
-            update.withoutAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
-        } else {
-            bindApplicationInsights(appSettings, false);
-        }
-        configureAppSettings(update::withAppSettings, appSettings);
-        update.apply();
+        updateFunctionAppSettings(update);
+        final FunctionApp result = update.apply();
         Log.info(String.format(FUNCTION_APP_UPDATE_DONE, getAppName()));
+        return result;
     }
 
-    protected void configureAppSettings(final Consumer<Map> withAppSettings, final Map appSettings) {
-        if (appSettings != null && !appSettings.isEmpty()) {
-            withAppSettings.accept(appSettings);
-        }
+    protected FunctionDeploymentSlot createDeploymentSlot(final FunctionApp functionApp, final FunctionRuntimeHandler runtimeHandler)
+            throws AzureExecutionException, AzureAuthFailureException {
+        Log.info(FUNCTION_SLOT_CREATE_START);
+        final DeploymentSlotSetting slotSetting = getDeploymentSlotSetting();
+        final FunctionDeploymentSlot.DefinitionStages.WithCreate withCreate = runtimeHandler.createDeploymentSlot(functionApp, slotSetting);
+        // Call update after creation for app settings as we can't modify the app settings from creation source during deployment creation
+        final FunctionDeploymentSlot result = withCreate.create();
+        Log.info(String.format(FUNCTION_SLOT_CREATED, result.name()));
+        return updateDeploymentSlot(withCreate.create(), runtimeHandler);
+    }
+
+    protected FunctionDeploymentSlot updateDeploymentSlot(final FunctionDeploymentSlot deploymentSlot, final FunctionRuntimeHandler runtimeHandler)
+            throws AzureAuthFailureException, AzureExecutionException {
+        Log.info(FUNCTION_SLOT_UPDATE);
+        final WebAppBase.Update<FunctionDeploymentSlot> update = runtimeHandler.updateDeploymentSlot(deploymentSlot);
+        updateFunctionAppSettings(update);
+        final FunctionDeploymentSlot result = update.apply();
+        Log.info(String.format(FUNCTION_SLOT_UPDATE_DONE, result.name()));
+        return result;
     }
 
     /**
@@ -295,9 +315,9 @@ public class DeployMojo extends AbstractFunctionMojo {
                 throw new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE);
         }
         return builder.project(ProjectUtils.convertCommonProject(this.getProject()))
-            .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
-            .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
-            .build();
+                .stagingDirectoryPath(this.getDeploymentStagingDirectoryPath())
+                .buildDirectoryAbsolutePath(this.getBuildDirectoryAbsolutePath())
+                .build();
     }
 
     protected DeploymentType getDeploymentTypeByRuntime() throws AzureExecutionException {
@@ -336,6 +356,26 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected void parseConfiguration() {
         parsedJavaVersion = FunctionUtils.parseJavaVersion(getRuntime().getJavaVersion());
+    }
+
+    protected void configureAppSettings(final Consumer<Map> withAppSettings, final Map appSettings) {
+        if (appSettings != null && !appSettings.isEmpty()) {
+            withAppSettings.accept(appSettings);
+        }
+    }
+
+    private WebAppBase.Update updateFunctionAppSettings(WebAppBase.Update update) throws AzureExecutionException, AzureAuthFailureException {
+        validateApplicationInsightsConfiguration();
+        final Map appSettings = getAppSettingsWithDefaultValue();
+        if (isDisableAppInsights()) {
+            // Remove App Insights connection when `disableAppInsights` set to true
+            // Need to call `withoutAppSetting` as withAppSettings will only not remove parameters
+            update.withoutAppSetting(APPINSIGHTS_INSTRUMENTATION_KEY);
+        } else {
+            bindApplicationInsights(appSettings, false);
+        }
+        configureAppSettings(update::withAppSettings, appSettings);
+        return update;
     }
 
     private File getArtifactToDeploy() throws AzureExecutionException {
@@ -408,6 +448,11 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (isDisableAppInsights() && (StringUtils.isNotEmpty(getAppInsightsKey()) || StringUtils.isNotEmpty(getAppInsightsInstance()))) {
             throw new AzureExecutionException(APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT);
         }
+    }
+
+    private boolean isDeployToSlot() {
+        final DeploymentSlotSetting slotSetting = getDeploymentSlotSetting();
+        return slotSetting != null && StringUtils.isNoneEmpty(slotSetting.getName());
     }
 
     private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureAuthFailureException {

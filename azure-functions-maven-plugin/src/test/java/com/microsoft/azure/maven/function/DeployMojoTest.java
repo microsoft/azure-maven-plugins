@@ -7,23 +7,29 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.common.appservice.DeployTargetType;
+import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.common.function.handlers.runtime.FunctionRuntimeHandler;
 import com.microsoft.azure.common.function.handlers.runtime.WindowsFunctionRuntimeHandler;
+import com.microsoft.azure.common.function.utils.FunctionUtils;
 import com.microsoft.azure.common.handlers.ArtifactHandler;
 import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
 import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
+import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -49,7 +55,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({FunctionUtils.class})
 public class DeployMojoTest extends MojoTestBase {
     private DeployMojo mojo = null;
     private DeployMojo mojoSpy = null;
@@ -72,20 +79,22 @@ public class DeployMojoTest extends MojoTestBase {
     @Test
     public void doExecute() throws Exception {
         final ArtifactHandler handler = mock(ArtifactHandler.class);
+        final FunctionRuntimeHandler runtimeHandler = mock(FunctionRuntimeHandler.class);
         final FunctionApp app = mock(FunctionApp.class);
         doReturn(app).when(mojoSpy).getFunctionApp();
+        doReturn(app).when(mojoSpy).updateFunctionApp(app, runtimeHandler);
         doReturn(handler).when(mojoSpy).getArtifactHandler();
-        doCallRealMethod().when(mojoSpy).createOrUpdateFunctionApp();
-        doCallRealMethod().when(mojoSpy).getAppName();
+        doReturn(runtimeHandler).when(mojoSpy).getFunctionRuntimeHandler();
+        doCallRealMethod().when(mojoSpy).createOrUpdateResource();
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
-        doNothing().when(mojoSpy).updateFunctionApp(app);
         doNothing().when(mojoSpy).listHTTPTriggerUrls();
         doNothing().when(mojoSpy).checkArtifactCompileVersion();
         doNothing().when(mojoSpy).parseConfiguration();
+        doReturn(null).when(mojoSpy).getResourcePortalUrl(any());
         mojoSpy.doExecute();
-        verify(mojoSpy, times(1)).createOrUpdateFunctionApp();
+        verify(mojoSpy, times(1)).createOrUpdateResource();
         verify(mojoSpy, times(1)).doExecute();
-        verify(mojoSpy, times(1)).updateFunctionApp(any(FunctionApp.class));
+        verify(mojoSpy, times(1)).updateFunctionApp(any(FunctionApp.class), any());
         verify(handler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(handler);
     }
@@ -93,11 +102,12 @@ public class DeployMojoTest extends MojoTestBase {
     @Test
     public void createFunctionAppIfNotExist() throws Exception {
         doReturn(null).when(mojoSpy).getFunctionApp();
-        doNothing().when(mojoSpy).createFunctionApp();
+        doReturn(null).when(mojoSpy).getFunctionRuntimeHandler();
+        doReturn(null).when(mojoSpy).createFunctionApp(any());
 
-        mojoSpy.createOrUpdateFunctionApp();
+        mojoSpy.createOrUpdateResource();
 
-        verify(mojoSpy).createFunctionApp();
+        verify(mojoSpy).createFunctionApp(any());
     }
 
     @Test
@@ -106,9 +116,8 @@ public class DeployMojoTest extends MojoTestBase {
         final Update update = mock(Update.class);
         doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
         final FunctionRuntimeHandler functionRuntimeHandler = mock(WindowsFunctionRuntimeHandler.class);
-        doReturn(functionRuntimeHandler).when(mojoSpy).getFunctionRuntimeHandler();
         doReturn(update).when(functionRuntimeHandler).updateAppRuntime(app);
-        mojoSpy.updateFunctionApp(app);
+        mojoSpy.updateFunctionApp(app, functionRuntimeHandler);
 
         verify(update, times(1)).apply();
     }
@@ -199,6 +208,56 @@ public class DeployMojoTest extends MojoTestBase {
         // Docker
         doReturn(Docker).when(mojoSpy).getOsEnum();
         assertEquals(DOCKER, mojoSpy.getDeploymentTypeByRuntime());
+    }
+
+    @Test(expected = AzureExecutionException.class)
+    public void testDeploymentSlotThrowExceptionIfFunctionNotExists() throws AzureAuthFailureException, AzureExecutionException {
+        final DeploymentSlotSetting slotSetting = new DeploymentSlotSetting();
+        slotSetting.setName("Exception");
+        doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
+        doReturn(null).when(mojoSpy).getFunctionApp();
+        doReturn(null).when(mojoSpy).getFunctionRuntimeHandler();
+        doNothing().when(mojoSpy).parseConfiguration();
+        doNothing().when(mojoSpy).checkArtifactCompileVersion();
+        mojoSpy.doExecute();
+    }
+
+    @Test
+    public void testCreateDeploymentSlot() throws AzureAuthFailureException, AzureExecutionException {
+        final FunctionDeploymentSlot slot = mock(FunctionDeploymentSlot.class);
+        final DeploymentSlotSetting slotSetting = new DeploymentSlotSetting();
+        slotSetting.setName("Test");
+        doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
+
+        final FunctionRuntimeHandler runtimeHandler = mock(FunctionRuntimeHandler.class);
+        final FunctionDeploymentSlot.DefinitionStages.WithCreate mockWithCreate = mock(FunctionDeploymentSlot.DefinitionStages.WithCreate.class);
+        doReturn(slot).when(mockWithCreate).create();
+        doReturn(mockWithCreate).when(runtimeHandler).createDeploymentSlot(any(), any());
+        doReturn(runtimeHandler).when(mojoSpy).getFunctionRuntimeHandler();
+
+        final ArtifactHandler artifactHandler = mock(ArtifactHandler.class);
+        doNothing().when(artifactHandler).publish(any());
+        doReturn(artifactHandler).when(mojoSpy).getArtifactHandler();
+
+        final FunctionApp app = mock(FunctionApp.class);
+        doReturn(app).when(mojoSpy).getFunctionApp();
+        doNothing().when(mojoSpy).parseConfiguration();
+        doNothing().when(mojoSpy).checkArtifactCompileVersion();
+        doReturn(slot).when(mojoSpy).updateDeploymentSlot(any(), any());
+        doCallRealMethod().when(mojoSpy).createDeploymentSlot(any(), any());
+        doReturn(null).when(mojoSpy).getResourcePortalUrl(any());
+        PowerMockito.mockStatic(FunctionUtils.class);
+        PowerMockito.when(FunctionUtils.getFunctionDeploymentSlotByName(any(), any())).thenReturn(null);
+
+        mojoSpy.doExecute();
+
+        verify(mojoSpy, times(1)).doExecute();
+        verify(mojoSpy, times(1)).createOrUpdateResource();
+        verify(mojoSpy, times(1)).createDeploymentSlot(any(), any());
+        // Will call slot update while creation as we can't modify app settings during creation
+        verify(mojoSpy, times(1)).updateDeploymentSlot(any(), any());
+        verify(artifactHandler, times(1)).publish(any());
+        verifyNoMoreInteractions(artifactHandler);
     }
 
     private DeployMojo getMojoFromPom() throws Exception {
