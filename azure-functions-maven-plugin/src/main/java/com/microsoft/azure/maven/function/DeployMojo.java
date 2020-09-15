@@ -120,8 +120,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION = "Syncing triggers and fetching function information (Attempt %d/%d)...";
     private static final String ARTIFACT_INCOMPATIBLE = "Your function app artifact compile version is higher than the java version in function host, " +
             "please downgrade the project compile version and try again.";
-    private static final String FUNCTION_APP_NOT_EXISTS = "Function App specified in pom.xml does not exist. " +
-            "Please make sure the Function App name is correct.";
+    private static final String FUNCTION_APP_NOT_EXISTS = "Cannot find the Function App '%s' when creating deployment slot.";
 
     private JavaVersion parsedJavaVersion;
 
@@ -164,7 +163,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         final FunctionRuntimeHandler runtimeHandler = getFunctionRuntimeHandler();
         if (isDeployToSlot()) {
             if (app == null) {
-                throw new AzureExecutionException(FUNCTION_APP_NOT_EXISTS);
+                throw new AzureExecutionException(String.format(FUNCTION_APP_NOT_EXISTS, getAppName()));
             }
             final FunctionDeploymentSlot deploymentSlot = FunctionUtils.getFunctionDeploymentSlotByName(app, getDeploymentSlotSetting().getName());
             return deploymentSlot == null ? createDeploymentSlot(app, runtimeHandler) : updateDeploymentSlot(deploymentSlot, runtimeHandler);
@@ -452,7 +451,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     private boolean isDeployToSlot() {
         final DeploymentSlotSetting slotSetting = getDeploymentSlotSetting();
-        return slotSetting != null && StringUtils.isNoneEmpty(slotSetting.getName());
+        return slotSetting != null && StringUtils.isNotEmpty(slotSetting.getName());
     }
 
     private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureAuthFailureException {
