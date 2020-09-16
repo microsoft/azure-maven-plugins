@@ -8,8 +8,8 @@ package com.microsoft.azure.maven.spring.spring;
 
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.AppPlatformManager;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ServiceResourceInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.rest.LogLevel;
 
@@ -68,6 +68,10 @@ public class SpringServiceClient {
 
     public String getResourceGroupByCluster(String clusterName) {
         final ServiceResourceInner cluster = getClusterByName(clusterName);
+        return this.getResourceGroupByCluster(cluster);
+    }
+
+    public String getResourceGroupByCluster(ServiceResourceInner cluster) {
         final String[] attributes = cluster.id().split("/");
         return attributes[ArrayUtils.indexOf(attributes, "resourceGroups") + 1];
     }

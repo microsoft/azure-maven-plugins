@@ -11,7 +11,7 @@ import com.microsoft.azure.PagedList;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ServiceResourceInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.management.resources.Subscriptions;
 import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
