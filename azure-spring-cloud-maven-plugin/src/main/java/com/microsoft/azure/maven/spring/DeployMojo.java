@@ -66,7 +66,7 @@ public class DeployMojo extends AbstractSpringMojo {
     protected static final String STATUS_CREATE_APP_DONE = "Successfully created the app.";
     protected static final String STATUS_UPDATE_APP = "Updating the app...";
     protected static final String STATUS_UPDATE_APP_DONE = "Successfully updated the app.";
-    protected static final String STATUS_UPDATE_APP_WARNING = "# It may take some moments for the configuration to be applied at server side! #";
+    protected static final String STATUS_UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
     protected static final String STATUS_CREATE_DEPLOYMENT = "Creating the deployment...";
     protected static final String STATUS_CREATE_DEPLOYMENT_DONE = "Successfully created the deployment.";
     protected static final String STATUS_UPDATE_DEPLOYMENT = "Updating the deployment...";
@@ -147,9 +147,7 @@ public class DeployMojo extends AbstractSpringMojo {
         springAppClient.updateApp(app, configuration);
         getLog().info(STATUS_UPDATE_APP_DONE);
 
-        getLog().warn("################################################################################");
         getLog().warn(STATUS_UPDATE_APP_WARNING);
-        getLog().warn("################################################################################");
 
         // Showing deployment status and public url
         showDeploymentStatus(deploymentClient);
