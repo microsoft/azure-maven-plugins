@@ -16,7 +16,6 @@ import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
@@ -197,13 +196,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected String region;
 
     /**
-     * Deployment Slot. It will be created if it does not exist.
-     * It requires the web app exists already.
-     */
-    @Parameter(alias = "deploymentSlot")
-    protected DeploymentSlotSetting deploymentSlotSetting;
-
-    /**
      * Schema version, which will be used to indicate the version of settings schema to use.
      *
      * @since 2.0.0
@@ -247,10 +239,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Override
     public String getAppName() {
         return appName == null ? "" : appName;
-    }
-
-    public DeploymentSlotSetting getDeploymentSlotSetting() {
-        return deploymentSlotSetting;
     }
 
     @Override
@@ -365,17 +353,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         }
         return webAppConfiguration;
     }
-
-    //region Setter
-
-    // Set method to get value from configuration.
-    // Required by maven plugin testing package when use @Parameter(alias="").
-    // And the name has to be "set<Alias>"
-    public void setDeploymentSlot(DeploymentSlotSetting slotSetting) {
-        this.deploymentSlotSetting = slotSetting;
-    }
-
-    //endregion
 
     //region Telemetry Configuration Interface
 

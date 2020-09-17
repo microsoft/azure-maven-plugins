@@ -8,14 +8,16 @@ package com.microsoft.azure.maven.spring.spring;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentResourceProperties;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentResourceProvisioningState;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.DeploymentSettings;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.RuntimeVersion;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.UserSourceInfo;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.UserSourceType;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.DeploymentResourceInner;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ResourceUploadDefinitionInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceProperties;
+import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceProvisioningState;
+import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentSettings;
+import com.microsoft.azure.management.appplatform.v2020_07_01.RuntimeVersion;
+import com.microsoft.azure.management.appplatform.v2020_07_01.UserSourceInfo;
+import com.microsoft.azure.management.appplatform.v2020_07_01.UserSourceType;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentsInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,7 +32,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SpringDeploymentClient extends AbstractSpringClient {
-
     private static final String RUNTIME_VERSION_PATTERN = "(J|j)ava((\\s)?|_)(8|11)$";
     private static final RuntimeVersion DEFAULT_RUNTIME_VERSION = RuntimeVersion.JAVA_8;
     private static final int SCALING_TIME_OUT = 60; // Use same timeout as service
@@ -76,12 +77,6 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         this.springAppClient = springAppClient;
     }
 
-    public DeploymentResourceInner createOrUpdateDeployment(Deployment configuration, ResourceUploadDefinitionInner resource) throws AzureExecutionException {
-        final DeploymentResourceInner deployment = getDeployment();
-        return deployment == null ? createDeployment(configuration, resource) :
-                updateDeployment(configuration, deployment, resource);
-    }
-
     public DeploymentResourceInner getDeployment() {
         return springManager.deployments().inner().get(resourceGroup, clusterName, appName, deploymentName);
     }
@@ -94,12 +89,12 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         return deploymentName;
     }
 
-    private DeploymentResourceInner createDeployment(Deployment deploymentConfiguration, ResourceUploadDefinitionInner resource) {
+    public DeploymentResourceInner createDeployment(Deployment deploymentConfiguration, ResourceUploadDefinitionInner resource) {
         final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties();
+        final SkuInner skuInner = this.initDeploymentSku(deploymentConfiguration);
         final DeploymentSettings deploymentSettings = new DeploymentSettings();
         final RuntimeVersion runtimeVersion = getRuntimeVersion(deploymentConfiguration.getRuntimeVersion(), null);
         deploymentSettings.withCpu(deploymentConfiguration.getCpu())
-                .withInstanceCount(deploymentConfiguration.getInstanceCount())
                 .withJvmOptions(deploymentConfiguration.getJvmOptions())
                 .withMemoryInGB(deploymentConfiguration.getMemoryInGB())
                 .withRuntimeVersion(runtimeVersion)
@@ -107,49 +102,57 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         final UserSourceInfo userSourceInfo = new UserSourceInfo();
         userSourceInfo.withType(UserSourceType.JAR).withRelativePath(resource.relativePath());
         deploymentProperties.withSource(userSourceInfo).withDeploymentSettings(deploymentSettings);
+
+        final DeploymentResourceInner tempDeploymentResource = new DeploymentResourceInner();
+        tempDeploymentResource.withSku(skuInner).withProperties(deploymentProperties);
         // Create deployment
-        final DeploymentResourceInner deployment = springManager.deployments().inner()
-                .createOrUpdate(resourceGroup, clusterName, appName, deploymentName, deploymentProperties);
-        springManager.deployments().inner().start(resourceGroup, clusterName, appName, deploymentName);
-        // Active deployment
-        if (StringUtils.isEmpty(springAppClient.getActiveDeploymentName())) {
-            springAppClient.activateDeployment(deployment.name());
-        }
+        final DeploymentsInner inner = springManager.deployments().inner();
+        final DeploymentResourceInner deployment = inner.createOrUpdate(resourceGroup, clusterName, appName, deploymentName, tempDeploymentResource);
+        inner.start(resourceGroup, clusterName, appName, deploymentName);
         return deployment;
     }
 
-    private DeploymentResourceInner updateDeployment(Deployment deploymentConfiguration, DeploymentResourceInner deployment,
-                                                     ResourceUploadDefinitionInner resource) throws AzureExecutionException {
+    public DeploymentResourceInner updateDeployment(DeploymentResourceInner deployment, Deployment deploymentConfiguration,
+                                                    ResourceUploadDefinitionInner resource) throws AzureExecutionException {
         final DeploymentSettings previousDeploymentSettings = deployment.properties().deploymentSettings();
-        if (isResourceScaled(deploymentConfiguration, previousDeploymentSettings)) {
+        if (isResourceScaled(deploymentConfiguration, deployment)) {
             Log.info("Scaling deployment...");
             scaleDeployment(deploymentConfiguration);
             Log.info("Scaling deployment done.");
         }
-        final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties();
-        final DeploymentSettings newDeploymentSettings = new DeploymentSettings();
         final RuntimeVersion runtimeVersion = getRuntimeVersion(deploymentConfiguration.getRuntimeVersion(), previousDeploymentSettings.runtimeVersion());
         // Update deployment configuration, scale related parameters should be update in scaleDeployment()
-        newDeploymentSettings.withJvmOptions(deploymentConfiguration.getJvmOptions())
+        final DeploymentSettings newDeploymentSettings = new DeploymentSettings()
+                .withJvmOptions(deploymentConfiguration.getJvmOptions())
                 .withRuntimeVersion(runtimeVersion)
                 .withEnvironmentVariables(deploymentConfiguration.getEnvironment());
-        final UserSourceInfo userSourceInfo = new UserSourceInfo();
-        userSourceInfo.withType(UserSourceType.JAR).withRelativePath(resource.relativePath());
-        deploymentProperties.withSource(userSourceInfo).withDeploymentSettings(newDeploymentSettings);
+        final UserSourceInfo userSourceInfo = new UserSourceInfo()
+                .withType(UserSourceType.JAR)
+                .withRelativePath(resource.relativePath());
+        final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties()
+                .withSource(userSourceInfo)
+                .withDeploymentSettings(newDeploymentSettings);
+        deployment
+                .withProperties(deploymentProperties)
+                .withSku(null); // server cannot update and scale deployment at the same time
         final DeploymentResourceInner result = springManager.deployments().inner().update(resourceGroup, clusterName,
-                appName, deploymentName, deploymentProperties);
+                appName, deploymentName, deployment);
         springManager.deployments().inner().start(resourceGroup, clusterName, appName, deploymentName);
         return result;
     }
 
     private DeploymentResourceInner scaleDeployment(Deployment deploymentConfiguration) throws AzureExecutionException {
-        final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties();
-        final DeploymentSettings deploymentSettings = new DeploymentSettings();
-        deploymentSettings.withCpu(deploymentConfiguration.getCpu())
-                .withInstanceCount(deploymentConfiguration.getInstanceCount())
+        final SkuInner skuInner = this.initDeploymentSku(deploymentConfiguration);
+        final DeploymentSettings deploymentSettings = new DeploymentSettings()
+                .withCpu(deploymentConfiguration.getCpu())
                 .withMemoryInGB(deploymentConfiguration.getMemoryInGB());
-        deploymentProperties.withDeploymentSettings(deploymentSettings);
-        springManager.deployments().inner().update(resourceGroup, clusterName, appName, deploymentName, deploymentProperties);
+        final DeploymentResourceProperties deploymentProperties = new DeploymentResourceProperties()
+                .withDeploymentSettings(deploymentSettings);
+        final DeploymentResourceInner tempDeploymentResource = new DeploymentResourceInner()
+                .withSku(skuInner)
+                .withProperties(deploymentProperties);
+
+        springManager.deployments().inner().update(resourceGroup, clusterName, appName, deploymentName, tempDeploymentResource);
         // Wait until deployment scaling done
         final ExecutorService executor = Executors.newSingleThreadExecutor();
         final Future<DeploymentResourceInner> future = executor.submit(() -> {
@@ -167,10 +170,19 @@ public class SpringDeploymentClient extends AbstractSpringClient {
         }
     }
 
-    private static boolean isResourceScaled(Deployment deploymentConfiguration, DeploymentSettings deploymentSettings) {
+    private SkuInner initDeploymentSku(Deployment deploymentConfiguration) {
+        final SkuInner clusterSku = this.cluster.sku();
+        return new SkuInner().withName(clusterSku.name())
+                .withTier(clusterSku.tier())
+                .withCapacity(deploymentConfiguration.getInstanceCount());
+    }
+
+    private static boolean isResourceScaled(Deployment deploymentConfiguration, DeploymentResourceInner deployment) {
+        final DeploymentSettings deploymentSettings = deployment.properties().deploymentSettings();
         return !(Objects.equals(deploymentConfiguration.getCpu(), deploymentSettings.cpu()) &&
                 Objects.equals(deploymentConfiguration.getMemoryInGB(), deploymentSettings.memoryInGB()) &&
-                Objects.equals(deploymentConfiguration.getInstanceCount(), deploymentSettings.instanceCount()));
+                Objects.nonNull(deployment.sku()) &&
+                Objects.equals(deploymentConfiguration.getInstanceCount(), deployment.sku().capacity()));
     }
 
     private static boolean isStableDeploymentResourceProvisioningState(DeploymentResourceProvisioningState state) {

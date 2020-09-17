@@ -11,6 +11,7 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.function.Constants;
 import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.storage.CloudStorageAccount;
 
@@ -48,11 +49,13 @@ public class FunctionArtifactHelper {
 
     public static void updateAppSetting(final DeployTarget deployTarget, final String key, final String value) throws AzureExecutionException {
         final WebAppBase targetApp = deployTarget.getApp();
-        if (!(targetApp instanceof FunctionApp)) {
+        if (targetApp instanceof FunctionApp) {
+            ((FunctionApp) targetApp).update().withAppSetting(key, value).apply();
+        } else if (targetApp instanceof FunctionDeploymentSlot) {
+            ((FunctionDeploymentSlot) targetApp).update().withAppSetting(key, value).apply();
+        } else {
             throw new AzureExecutionException(UNSUPPORTED_DEPLOYMENT_TARGET);
         }
-        final FunctionApp functionApp = (FunctionApp) targetApp;
-        functionApp.update().withAppSetting(key, value).apply();
     }
 
     public static CloudStorageAccount getCloudStorageAccount(final DeployTarget target) throws AzureExecutionException {

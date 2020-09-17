@@ -11,8 +11,10 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.PricingTier;
 
+import com.microsoft.azure.management.appservice.WebAppBase;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
 
@@ -80,6 +82,26 @@ public class DockerFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHa
         checkConfiguration(imageType);
 
         final FunctionApp.Update update = app.update();
+        switch (imageType) {
+            case PUBLIC_DOCKER_HUB:
+                return update.withPublicDockerHubImage(image);
+            case PRIVATE_DOCKER_HUB:
+                return update.withPrivateDockerHubImage(image).withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
+            case PRIVATE_REGISTRY:
+                return update.withPrivateRegistryImage(image, registryUrl)
+                        .withCredentials(dockerCredentialProvider.getUsername(), dockerCredentialProvider.getPassword());
+            default:
+                throw new AzureExecutionException(INVALID_DOCKER_RUNTIME);
+        }
+    }
+
+    @Override
+    public WebAppBase.Update<FunctionDeploymentSlot> updateDeploymentSlot(FunctionDeploymentSlot deploymentSlot) throws AzureExecutionException {
+        final DockerImageType imageType = AppServiceUtils.getDockerImageType(image, dockerCredentialProvider != null, registryUrl);
+        checkFunctionExtensionVersion();
+        checkConfiguration(imageType);
+
+        final FunctionDeploymentSlot.Update update = deploymentSlot.update();
         switch (imageType) {
             case PUBLIC_DOCKER_HUB:
                 return update.withPublicDockerHubImage(image);

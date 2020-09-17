@@ -14,7 +14,7 @@ import com.microsoft.azure.management.appservice.DeploymentSlots;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting;
+import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 
 import org.junit.Before;
 import org.junit.Test;

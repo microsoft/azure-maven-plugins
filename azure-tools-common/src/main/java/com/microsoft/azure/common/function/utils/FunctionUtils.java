@@ -16,6 +16,8 @@ import com.microsoft.azure.common.function.template.BindingsTemplate;
 import com.microsoft.azure.common.function.template.FunctionTemplate;
 import com.microsoft.azure.common.function.template.FunctionTemplates;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 
 public class FunctionUtils {
@@ -54,6 +57,15 @@ public class FunctionUtils {
         } catch (NumberFormatException e) {
             Log.warn(String.format(INVALID_JAVA_VERSION, javaVersion));
             return DEFAULT_JAVA_VERSION;
+        }
+    }
+
+    // Workaround for SDK will throw exception when get nonexistent function slot
+    public static FunctionDeploymentSlot getFunctionDeploymentSlotByName(FunctionApp functionApp, String slotName) {
+        try {
+            return functionApp.deploymentSlots().getByName(slotName);
+        } catch (NoSuchElementException e) {
+            return null;
         }
     }
 

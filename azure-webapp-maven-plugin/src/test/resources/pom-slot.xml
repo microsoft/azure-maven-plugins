@@ -15,7 +15,7 @@
                     </authentication>
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
-                    <deploymentSlot implementation="com.microsoft.azure.maven.webapp.configuration.DeploymentSlotSetting">
+                    <deploymentSlot implementation="com.microsoft.azure.common.appservice.DeploymentSlotSetting">
                         <name>slot</name>
                         <configurationSource>test</configurationSource>
                     </deploymentSlot>
