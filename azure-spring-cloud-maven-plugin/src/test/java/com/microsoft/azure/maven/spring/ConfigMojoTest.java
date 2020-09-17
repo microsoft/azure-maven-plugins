@@ -12,7 +12,7 @@ import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.appplatform.v2019_05_01_preview.implementation.ServiceResourceInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.spring.configuration.AppSettings;
 import com.microsoft.azure.maven.spring.configuration.DeploymentSettings;
