@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>azure-functions-maven-plugin</artifactId>
-    <version>1.9.0-SNAPSHOT</version>
+    <version>1.9.0</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Functions</name>
     <description>Maven Plugin for Azure Functions</description>
@@ -27,7 +27,7 @@
         <maven.plugin-tools.version>3.2</maven.plugin-tools.version>
         <maven.plugin-testing.version>3.3.0</maven.plugin-testing.version>
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
-        <azure.maven-plugin-lib.version>1.3.0-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.3.0</azure.maven-plugin-lib.version>
         <azure.function.version>1.4.0</azure.function.version>
         <reflections.version>0.9.11</reflections.version>
         <junit.version>4.13</junit.version>
