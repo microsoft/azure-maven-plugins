@@ -27,7 +27,7 @@ public abstract class MavenPluginQueryer {
     public abstract void close();
 
     public String assureInputFromUser(String attribute, Enum defaultValue, String prompt) throws MojoFailureException {
-        final String defaultValueForAttribute = defaultValue.name();
+        final String defaultValueForAttribute = defaultValue.name().toLowerCase(Locale.ENGLISH);
         final Set<String> optionSet = new HashSet<>();
         for (final Enum option : defaultValue.getClass().getEnumConstants()) {
             optionSet.add(option.name().toLowerCase(Locale.ENGLISH));

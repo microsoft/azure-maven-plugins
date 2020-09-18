@@ -154,6 +154,12 @@
             <version>1.7.29</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.beryx</groupId>
+            <artifactId>text-io</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+
         <!-- JAXB For Application Insight Issue -->
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
