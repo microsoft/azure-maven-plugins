@@ -5,13 +5,13 @@
  */
 package com.microsoft.azure.maven.queryer;
 
-import java.util.List;
+import com.microsoft.azure.common.logging.Log;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.beryx.textio.TextIO;
 
-import com.microsoft.azure.common.logging.Log;
+import java.util.List;
 
 public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
     private static final String FOUND_VALID_VALUE = "Found valid value. Skip user input.";
@@ -31,7 +31,7 @@ public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
         }
         prompt = StringUtils.isEmpty(prompt) ? getPromptString(attribute) : prompt;
         return textIO.<String>newGenericInputReader(null)
-                .withNumberedPossibleValues(options).withDefaultValue(defaultValue).withEqualsFunc((s1, s2) -> s1.equalsIgnoreCase(s2)).read(prompt);
+                .withNumberedPossibleValues(options).withDefaultValue(defaultValue).withEqualsFunc(StringUtils::equalsIgnoreCase).read(prompt);
     }
 
     @Override
