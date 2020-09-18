@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 public abstract class MavenPluginQueryer {
@@ -27,10 +26,10 @@ public abstract class MavenPluginQueryer {
     public abstract void close();
 
     public String assureInputFromUser(String attribute, Enum defaultValue, String prompt) throws MojoFailureException {
-        final String defaultValueForAttribute = defaultValue.name().toLowerCase(Locale.ENGLISH);
+        final String defaultValueForAttribute = defaultValue.name();
         final Set<String> optionSet = new HashSet<>();
         for (final Enum option : defaultValue.getClass().getEnumConstants()) {
-            optionSet.add(option.name().toLowerCase(Locale.ENGLISH));
+            optionSet.add(option.name());
         }
         final ArrayList<String> options = new ArrayList<>(optionSet);
         return assureInputFromUser(attribute, defaultValueForAttribute, options, prompt);

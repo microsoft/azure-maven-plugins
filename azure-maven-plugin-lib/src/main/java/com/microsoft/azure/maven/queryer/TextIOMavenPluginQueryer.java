@@ -31,7 +31,7 @@ public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
         }
         prompt = StringUtils.isEmpty(prompt) ? getPromptString(attribute) : prompt;
         return textIO.<String>newGenericInputReader(null)
-                .withNumberedPossibleValues(options).withDefaultValue(defaultValue).read(prompt);
+                .withNumberedPossibleValues(options).withDefaultValue(defaultValue).withEqualsFunc((s1, s2) -> s1.equalsIgnoreCase(s2)).read(prompt);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class TextIOMavenPluginQueryer extends MavenPluginQueryer {
         }
 
         prompt = StringUtils.isEmpty(prompt) ? getPromptString(attribute) : prompt;
-        return textIO.newStringInputReader().withPattern(regex).withDefaultValue(defaultValue).read(prompt);
+        return textIO.newStringInputReader().withPattern(regex).withDefaultValue(defaultValue).withMinLength(0).read(prompt);
     }
 
     private String getPromptString(String attributeName) {
