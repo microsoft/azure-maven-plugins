@@ -60,7 +60,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     public static final String JAVA_11 = "11";
     public static final String JAVA_11_STRING = "java 11";
 
-    private static final String PRICE_TIER_NOT_AVAIL = "The price tier \"P1\", \"P2\", \"P3\" are only available for Windows runtime, use %s instead.";
+    private static final String PRICE_TIER_NOT_AVAIL = "The price tier \"P1\", \"P2\", \"P3\" are only available for Windows runtime, use \"%s\" instead.";
 
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
