@@ -9,12 +9,13 @@ package com.microsoft.azure.maven.spring.utils;
 import com.microsoft.azure.maven.spring.configuration.Deployment;
 import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.storage.file.CloudFile;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
+import rx.Observable;
+import rx.schedulers.Schedulers;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,11 +26,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
@@ -109,20 +108,27 @@ public class Utils {
         }
     }
 
-    public static <T> T executeCallableWithPrompt(Callable<T> callable, String prompt, int timeOutInSeconds) throws MojoExecutionException {
-        final ExecutorService executorService = Executors.newFixedThreadPool(2);
-        final Future<T> future = executorService.submit(callable);
-        final Future<T> wrappedFuture = executorService.submit(getWrappedCallable(prompt, future));
-        try {
-            return wrappedFuture.get(timeOutInSeconds, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            wrappedFuture.cancel(true);
-            return null;
-        } catch (Exception e) {
-            throw new MojoExecutionException(e.getMessage(), e);
-        } finally {
-            executorService.shutdown();
-        }
+    private static final int DEFAULT_INTERVAL = 1;
+
+    /**
+     * Get resource repeatedly until it match the predicate or timeout
+     * @param callable callable to get resource
+     * @param predicate function that evaluate the resource
+     * @param timeOutInSeconds max time for the method
+     * @return the first resource which fit the predicate or the last result before timeout
+     */
+    public static <T> T getResourceWithPrediction(Callable<T> callable, Predicate<T> predicate, int timeOutInSeconds) {
+        final AtomicInteger count = new AtomicInteger(0);
+        final int maxRetry = (int) Math.floor(timeOutInSeconds / DEFAULT_INTERVAL);
+        return Observable.interval(DEFAULT_INTERVAL, TimeUnit.SECONDS)
+                .flatMap(aLong -> {
+                    count.addAndGet(1);
+                    return Observable.fromCallable(callable).onErrorReturn(null);
+                })
+                .onErrorResumeNext(Observable.fromCallable(callable))
+                .subscribeOn(Schedulers.io())
+                .takeUntil(resource -> resource != null && predicate.test(resource) || count.get() > maxRetry)
+                .toBlocking().last();
     }
 
     private static List<File> getArtifacts(List<Resource> resources) {
@@ -143,25 +149,6 @@ public class Utils {
             }
         }
         return result;
-    }
-
-    private static <T> Callable<T> getWrappedCallable(String prompt, Future<T> future) {
-        return () -> {
-            System.out.print(prompt);
-            try {
-                for (int i = 0; !future.isDone(); i++) {
-                    System.out.print(PENDING_STRING_LIST[i % 4]);
-                    Thread.sleep(500);
-                    System.out.print("\b\b\b");
-                }
-                return future.get();
-            } catch (InterruptedException e) {
-                future.cancel(true);
-                return null;
-            } finally {
-                System.out.println();
-            }
-        };
     }
 
     private static File getRunnableArtifactFromFiles(Collection<File> files) throws MojoExecutionException {
