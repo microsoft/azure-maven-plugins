@@ -47,7 +47,7 @@ public class WebAppPomHandler {
         return mavenPlugin == null ? null : mavenPlugin.element("configuration");
     }
 
-    public void updatePluginConfiguration(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs)
+    public void updatePluginConfiguration(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs, String subscriptionId)
         throws IOException,
         MojoFailureException {
         Element pluginElement = getMavenPluginElement();
@@ -58,7 +58,7 @@ public class WebAppPomHandler {
         }
         final Element configuration = XMLUtils.getOrCreateSubElement("configuration", pluginElement);
         final ConfigurationSerializer serializer = new V2ConfigurationSerializer(newConfigs, oldConfigs);
-        serializer.saveToXML(configuration);
+        serializer.saveToXML(configuration, subscriptionId);
         XMLUtils.setNamespace(pluginElement, pluginElement.getNamespace());
         saveModel();
     }

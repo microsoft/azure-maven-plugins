@@ -60,12 +60,22 @@ public class ConfigMojo extends AbstractWebAppMojo {
     public static final String JAVA_11 = "11";
     public static final String JAVA_11_STRING = "java 11";
 
+    private static final String PRICE_TIER_NOT_AVAIL = "The price tier \"P1\", \"P2\", \"P3\" are only available for Windows runtime, use %s instead.";
+
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
     private static final String[] configTypes = {"Application", "Runtime", "DeploymentSlot"};
 
     @Override
     protected void doExecute() throws AzureExecutionException {
+        if (!(Utils.isPomPackagingProject(this.project.getPackaging()) ||
+                Utils.isJarPackagingProject(this.project.getPackaging()) ||
+                Utils.isWarPackagingProject(this.project.getPackaging()))) {
+            throw new UnsupportedOperationException(
+                    String.format("The project (%s) with packaging %s is not supported for azure app service.",
+                            this.project.getName(), this.project.getPackaging()));
+        }
+
         queryer = QueryFactory.getQueryer(settings);
         try {
             pomHandler = new WebAppPomHandler(project.getFile().getAbsolutePath());
@@ -98,7 +108,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             }
         } while (!confirmConfiguration(result));
         Log.info(SAVING_TO_POM);
-        pomHandler.updatePluginConfiguration(result, configuration);
+        pomHandler.updatePluginConfiguration(result, configuration, this.subscriptionId);
     }
 
     protected boolean confirmConfiguration(WebAppConfiguration configuration) throws AzureExecutionException,
@@ -136,7 +146,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             System.out.println("Slot name : " + slotSetting.getName());
             System.out.println("ConfigurationSource : " + slotSetting.getConfigurationSource());
         }
-        final String result = queryer.assureInputFromUser("confirm", "Y", BOOLEAN_REGEX, "Confirm (Y/N)? : ", null);
+        final String result = queryer.assureInputFromUser("confirm", "Y", BOOLEAN_REGEX, "Confirm (Y/N)", null);
         return result.equalsIgnoreCase("Y");
     }
 
@@ -163,7 +173,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     protected WebAppConfiguration updateConfiguration(WebAppConfiguration configuration)
         throws MojoFailureException, AzureExecutionException {
-        final String selection = queryer.assureInputFromUser("selection", null, Arrays.asList(configTypes),
+        final String selection = queryer.assureInputFromUser("selection", configTypes[0], Arrays.asList(configTypes),
             "Please choose which part to config");
         switch (selection) {
             case "Application":
@@ -196,9 +206,16 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
             null, null);
 
-        final String defaultPricingTier = configuration.getPricingTierOrDefault();
+        final String currentPricingTier = configuration.getPricingTierOrDefault();
+        final List<String> availablePriceList = getAvailablePricingTierList(configuration.getOs());
+        String defaultPricingTier = currentPricingTier;
+        if (availablePriceList.stream().noneMatch(price -> StringUtils.equalsIgnoreCase(price, currentPricingTier))) {
+            defaultPricingTier = AppServiceUtils.convertPricingTierToString(WebAppConfiguration.DEFAULT_PRICINGTIER);
+            Log.warn(String.format(PRICE_TIER_NOT_AVAIL, defaultPricingTier));
+        }
+
         final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier,
-            getAvailablePricingTierList(configuration.getOs()), null);
+            availablePriceList, String.format("Define value for pricingTier(%s):", defaultPricingTier));
         return builder.appName(appName)
             .resourceGroup(resourceGroup)
             .region(Region.fromName(region))
@@ -213,7 +230,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final DeploymentSlotSetting deploymentSlotSetting = configuration.getDeploymentSlotSetting();
         final String defaultIsSlotDeploy = deploymentSlotSetting == null ? "N" : "Y";
         final String isSlotDeploy = queryer.assureInputFromUser("isSlotDeploy", defaultIsSlotDeploy, BOOLEAN_REGEX,
-            "Deploy to slot?(Y/N): ", null);
+            "Deploy to slot?(Y/N)", null);
         if (isSlotDeploy.toLowerCase().equals("n")) {
             return builder.deploymentSlotSetting(null).build();
         }
@@ -240,7 +257,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         Log.warn(CHANGE_OS_WARNING);
         final OperatingSystemEnum defaultOs = configuration.getOs() == null ? OperatingSystemEnum.Linux :
             configuration.getOs();
-        final String os = queryer.assureInputFromUser("OS", defaultOs, null);
+        final String os = queryer.assureInputFromUser("OS", defaultOs, String.format("Define value for OS [%s]:", defaultOs.toString()));
         builder.os(Utils.parseOperationSystem(os));
 
         switch (os.toLowerCase()) {
@@ -359,7 +376,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return getProject().getPackaging().equalsIgnoreCase("jar");
     }
 
-    public WebAppConfiguration getWebAppConfigurationWithoutValidation() throws AzureExecutionException {
+    private WebAppConfiguration getWebAppConfigurationWithoutValidation() throws AzureExecutionException {
         return new V2NoValidationConfigurationParser(this, new V2ConfigurationValidator(this)).getWebAppConfiguration();
     }
 }

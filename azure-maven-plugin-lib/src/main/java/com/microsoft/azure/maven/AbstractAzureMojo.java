@@ -280,12 +280,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             if (azure == null) {
                 getTelemetryProxy().trackEvent(INIT_FAILURE);
                 throw new AzureAuthFailureException(AZURE_INIT_FAIL);
-            } else {
-                getTelemetryProxy().addDefaultProperty(AUTH_TYPE, authType);
-                getTelemetryProxy().addDefaultProperty(AUTH_METHOD, getAuthMethod());
-                // Repopulate subscriptionId in case it is not configured.
-                getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
             }
+            getTelemetryProxy().addDefaultProperty(AUTH_TYPE, authType);
+            getTelemetryProxy().addDefaultProperty(AUTH_METHOD, getAuthMethod());
+            // Repopulate subscriptionId in case it is not configured.
+            getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
+
         }
         return azure;
     }
@@ -300,10 +300,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 environment = AzureAuthHelper.getAzureEnvironment(auth.getEnvironment());
             }
             final String environmentName = AzureAuthHelper.getAzureEnvironmentDisplayName(environment);
-            if (environment != AzureEnvironment.AZURE) {
+            if (environment != AzureEnvironment.AZURE && azure == null) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
             }
             azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
+            if (azure == null) {
+                Log.info(azureTokenWrapper.getCredentialDescription());
+            }
             return azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
                     this.subscriptionId, getUserAgent());
         } catch (IOException | AzureLoginFailureException e) {

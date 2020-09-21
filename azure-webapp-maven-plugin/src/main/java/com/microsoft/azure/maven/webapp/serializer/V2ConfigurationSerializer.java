@@ -23,9 +23,10 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
     }
 
     @Override
-    public void saveToXML(Element configurationElement)
+    public void saveToXML(Element configurationElement, String subscriptionId)
         throws MojoFailureException {
         createOrUpdateAttribute("schemaVersion", "V2", oldConfigs.getSchemaVersion(), configurationElement);
+        createOrUpdateAttribute("subscriptionId", subscriptionId, null, configurationElement);
         createOrUpdateAttribute("resourceGroup", newConfigs.getResourceGroup(),
             oldConfigs.getResourceGroup(), configurationElement);
         createOrUpdateAttribute("appName", newConfigs.getAppName(), oldConfigs.getAppName(), configurationElement);
@@ -38,6 +39,10 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
             final String oldRegion = oldConfigs.getRegion() == null ? null : oldConfigs.getRegion().name();
             createOrUpdateAttribute("region", newConfigs.getRegion().name(), oldRegion, configurationElement);
         }
+
+        createOrUpdateAttribute("appServicePlanName", newConfigs.getServicePlanName(), oldConfigs.getServicePlanName(), configurationElement);
+        createOrUpdateAttribute("appServicePlanResourceGroup", newConfigs.getServicePlanResourceGroup(),
+                oldConfigs.getServicePlanResourceGroup(), configurationElement);
 
         if (newConfigs.getOs() != null) {
             updateRunTimeNode(newConfigs, oldConfigs, configurationElement);

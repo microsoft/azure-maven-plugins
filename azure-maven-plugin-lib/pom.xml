@@ -122,8 +122,7 @@
 
         <dependency>
             <groupId>org.beryx</groupId>
-            <artifactId>text-io</artifactId>
-            <version>3.4.1</version>
+            <artifactId>text-io</artifactId>            
         </dependency>
 
         <!-- JAXB For Application Insight Issue -->

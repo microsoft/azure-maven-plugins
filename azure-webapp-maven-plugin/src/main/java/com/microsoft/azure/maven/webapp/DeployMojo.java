@@ -6,17 +6,20 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.handlers.ArtifactHandler;
 import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.auth.AzureClientFactory;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
@@ -73,8 +76,10 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void doExecute() throws AzureExecutionException {
         // todo: use parser to getAzureClient from mojo configs
         try {
+            final Azure azure = getAzureClient();
+            AzureClientFactory.checkSubscription(azure, StringUtils.isNotBlank(this.subscriptionId) ? this.subscriptionId : azure.subscriptionId());
             final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(
-                    getWebAppConfiguration(), getAzureClient());
+                    getWebAppConfiguration(), azure);
             // todo: use parser to get web app from mojo configs
             final WebApp app = getWebApp();
             if (app == null) {
@@ -86,7 +91,7 @@ public class DeployMojo extends AbstractWebAppMojo {
                 updateWebApp(runtimeHandler, app);
             }
             deployArtifacts(getWebAppConfiguration());
-        } catch (IOException | AzureAuthFailureException | InterruptedException e) {
+        } catch (IOException | AzureAuthFailureException | InterruptedException | AzureLoginFailureException e) {
             throw new AzureExecutionException(
                     String.format("Encoutering error when deploying to azure: '%s'", e.getMessage()), e);
         }
