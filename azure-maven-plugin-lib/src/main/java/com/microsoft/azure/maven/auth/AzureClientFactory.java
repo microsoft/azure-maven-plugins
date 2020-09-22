@@ -21,8 +21,6 @@ import java.io.IOException;
 import java.util.Optional;
 
 public class AzureClientFactory {
-
-    private static final String SUBSCRIPTION_TEMPLATE = "Subscription : %s(%s)";
     public static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
     public static final String NO_AVAILABLE_SUBSCRIPTION = "No available subscription found in current account.";
     public static final String SUBSCRIPTION_NOT_SPECIFIED = "Subscription ID was not specified, using the first subscription in current account," +
@@ -31,17 +29,20 @@ public class AzureClientFactory {
     public static Azure getAzureClient(AzureTokenWrapper azureTokenCredentials, String subscriptionId,
                                        String userAgent) throws IOException, AzureLoginFailureException {
         Preconditions.checkNotNull(azureTokenCredentials, "The parameter 'azureTokenCredentials' cannot be null.");
+        Log.info(azureTokenCredentials.getCredentialDescription());
         final Authenticated authenticated = Azure.configure().withUserAgent(userAgent).authenticate(azureTokenCredentials);
         // For cloud shell, use subscription in profile as the default subscription.
         if (StringUtils.isEmpty(subscriptionId) && AzureAuthHelperLegacy.isInCloudShell()) {
             subscriptionId = AzureAuthHelperLegacy.getSubscriptionOfCloudShell();
         }
         subscriptionId = StringUtils.isEmpty(subscriptionId) ? azureTokenCredentials.defaultSubscriptionId() : subscriptionId;
-        return StringUtils.isEmpty(subscriptionId) ? authenticated.withDefaultSubscription() :
+        final Azure azureClient = StringUtils.isEmpty(subscriptionId) ? authenticated.withDefaultSubscription() :
                 authenticated.withSubscription(subscriptionId);
+        checkSubscription(azureClient, subscriptionId);
+        return azureClient;
     }
 
-    public static void checkSubscription(Azure azure, String targetSubscription) throws AzureLoginFailureException {
+    private static void checkSubscription(Azure azure, String targetSubscription) throws AzureLoginFailureException {
         final PagedList<Subscription> subscriptions = azure.subscriptions().list();
         subscriptions.loadAll();
         if (subscriptions.size() == 0) {
@@ -57,7 +58,5 @@ public class AzureClientFactory {
         if (!optionalSubscription.isPresent()) {
             throw new AzureLoginFailureException(String.format(SUBSCRIPTION_NOT_FOUND, targetSubscription));
         }
-        final Subscription subscription = azure.getCurrentSubscription();
-        Log.info(String.format(SUBSCRIPTION_TEMPLATE, subscription.displayName(), subscription.subscriptionId()));
     }
 }

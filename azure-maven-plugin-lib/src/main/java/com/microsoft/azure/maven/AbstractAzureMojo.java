@@ -20,6 +20,7 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.GetHashMac;
 import com.microsoft.azure.management.Azure;
+import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
@@ -85,6 +86,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             "supported values are %s. Will use 'auto' by default.";
     private static final String UNSUPPORTED_AZURE_ENVIRONMENT = "Unsupported Azure environment %s, using Azure by default.";
     private static final String USING_AZURE_ENVIRONMENT = "Using Azure environment : %s.";
+    private static final String SUBSCRIPTION_TEMPLATE = "Subscription : %s(%s)";
 
     //region Properties
 
@@ -300,15 +302,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 environment = AzureAuthHelper.getAzureEnvironment(auth.getEnvironment());
             }
             final String environmentName = AzureAuthHelper.getAzureEnvironmentDisplayName(environment);
-            if (environment != AzureEnvironment.AZURE && azure == null) {
+            if (environment != AzureEnvironment.AZURE) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
             }
             azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
-            if (azure == null) {
-                Log.info(azureTokenWrapper.getCredentialDescription());
-            }
-            return azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
+            Azure azure = azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
                     this.subscriptionId, getUserAgent());
+
+            return azure;
         } catch (IOException | AzureLoginFailureException e) {
             throw new AzureAuthFailureException(e.getMessage());
         }
@@ -380,6 +381,16 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 throw new AzureAuthFailureException(String.format("Unable to validate auth configuration due to the following errors: %s",
                         problems.stream().map(ConfigurationProblem::getErrorMessage).collect(Collectors.joining("\n"))));
             }
+        }
+    }
+
+    protected static void printCurrentSubscription(Azure azure) {
+        if (azure == null) {
+            return;
+        }
+        final Subscription subscription = azure.getCurrentSubscription();
+        if (subscription != null) {
+            Log.info(String.format(SUBSCRIPTION_TEMPLATE, subscription.displayName(), subscription.subscriptionId()));
         }
     }
 

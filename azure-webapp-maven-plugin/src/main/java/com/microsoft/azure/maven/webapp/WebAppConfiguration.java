@@ -34,6 +34,7 @@ public class WebAppConfiguration {
     public static final String DEFAULT_LINUX_WEB_CONTAINER = "TOMCAT 8.5";
 
     // artifact deploy related configurations
+    protected String subscriptionId;
     protected String appName;
     protected DeploymentSlotSetting deploymentSlotSetting;
     protected String resourceGroup;
@@ -61,6 +62,7 @@ public class WebAppConfiguration {
 
     private WebAppConfiguration(final Builder builder) {
         this.appName = builder.appName;
+        this.subscriptionId = builder.subscriptionId;
         this.resourceGroup = builder.resourceGroup;
         this.region = builder.region;
         this.pricingTier = builder.pricingTier;
@@ -86,6 +88,9 @@ public class WebAppConfiguration {
     }
 
     //region getters
+    public String getSubscriptionId() {
+        return this.subscriptionId;
+    }
     public String getAppName() {
         return this.appName;
     }
@@ -229,6 +234,7 @@ public class WebAppConfiguration {
 
     //region builder
     public static class Builder {
+        private String subscriptionId;
         private String appName;
         private String resourceGroup;
         private Region region;
@@ -258,6 +264,11 @@ public class WebAppConfiguration {
 
         public WebAppConfiguration build() {
             return new WebAppConfiguration(this);
+        }
+
+        public Builder subscriptionId(final String subscriptionId) {
+            this.subscriptionId = subscriptionId;
+            return self();
         }
 
         public Builder appName(final String value) {

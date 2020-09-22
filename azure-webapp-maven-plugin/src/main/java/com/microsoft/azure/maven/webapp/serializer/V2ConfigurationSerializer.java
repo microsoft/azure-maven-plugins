@@ -23,10 +23,10 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
     }
 
     @Override
-    public void saveToXML(Element configurationElement, String subscriptionId)
+    public void saveToXML(Element configurationElement)
         throws MojoFailureException {
         createOrUpdateAttribute("schemaVersion", "V2", oldConfigs.getSchemaVersion(), configurationElement);
-        createOrUpdateAttribute("subscriptionId", subscriptionId, null, configurationElement);
+        createOrUpdateAttribute("subscriptionId", newConfigs.getSubscriptionId(), oldConfigs.getSubscriptionId(), configurationElement);
         createOrUpdateAttribute("resourceGroup", newConfigs.getResourceGroup(),
             oldConfigs.getResourceGroup(), configurationElement);
         createOrUpdateAttribute("appName", newConfigs.getAppName(), oldConfigs.getAppName(), configurationElement);

@@ -27,7 +27,7 @@ public abstract class ConfigurationSerializer {
         this.oldConfigs = oldConfigs == null ? new WebAppConfiguration.Builder().build() : oldConfigs;
     }
 
-    public abstract void saveToXML(Element document, String subscriptionId)
+    public abstract void saveToXML(Element document)
         throws MojoFailureException;
 
     protected DOMElement createResourcesNode(List<Resource> resources) {

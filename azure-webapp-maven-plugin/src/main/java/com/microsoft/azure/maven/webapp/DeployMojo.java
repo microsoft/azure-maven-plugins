@@ -77,7 +77,6 @@ public class DeployMojo extends AbstractWebAppMojo {
         // todo: use parser to getAzureClient from mojo configs
         try {
             final Azure azure = getAzureClient();
-            AzureClientFactory.checkSubscription(azure, StringUtils.isNotBlank(this.subscriptionId) ? this.subscriptionId : azure.subscriptionId());
             final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(
                     getWebAppConfiguration(), azure);
             // todo: use parser to get web app from mojo configs
@@ -91,7 +90,7 @@ public class DeployMojo extends AbstractWebAppMojo {
                 updateWebApp(runtimeHandler, app);
             }
             deployArtifacts(getWebAppConfiguration());
-        } catch (IOException | AzureAuthFailureException | InterruptedException | AzureLoginFailureException e) {
+        } catch (IOException | AzureAuthFailureException | InterruptedException e) {
             throw new AzureExecutionException(
                     String.format("Encoutering error when deploying to azure: '%s'", e.getMessage()), e);
         }
