@@ -6,20 +6,17 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.handlers.ArtifactHandler;
 import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.auth.AzureClientFactory;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
@@ -76,9 +73,8 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void doExecute() throws AzureExecutionException {
         // todo: use parser to getAzureClient from mojo configs
         try {
-            final Azure azure = getAzureClient();
             final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(
-                    getWebAppConfiguration(), azure);
+                    getWebAppConfiguration(), getAzureClient());
             // todo: use parser to get web app from mojo configs
             final WebApp app = getWebApp();
             if (app == null) {

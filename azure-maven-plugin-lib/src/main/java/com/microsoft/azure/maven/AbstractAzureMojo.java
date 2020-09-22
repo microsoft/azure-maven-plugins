@@ -306,10 +306,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
             }
             azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
-            Azure azure = azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
+            final Azure azureClient = azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
                     this.subscriptionId, getUserAgent());
-
-            return azure;
+            printCurrentSubscription(azureClient);
+            return azureClient;
         } catch (IOException | AzureLoginFailureException e) {
             throw new AzureAuthFailureException(e.getMessage());
         }

@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
@@ -19,13 +20,11 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.queryer.MavenPluginQueryer;
 import com.microsoft.azure.maven.queryer.QueryFactory;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -108,7 +107,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             }
         } while (!confirmConfiguration(result));
         Log.info(SAVING_TO_POM);
-        pomHandler.updatePluginConfiguration(result, configuration, this.subscriptionId);
+        pomHandler.updatePluginConfiguration(result, configuration);
     }
 
     protected boolean confirmConfiguration(WebAppConfiguration configuration) throws AzureExecutionException,

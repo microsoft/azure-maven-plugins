@@ -91,6 +91,7 @@ public class WebAppConfiguration {
     public String getSubscriptionId() {
         return this.subscriptionId;
     }
+
     public String getAppName() {
         return this.appName;
     }
