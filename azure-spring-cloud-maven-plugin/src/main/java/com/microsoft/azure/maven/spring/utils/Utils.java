@@ -41,10 +41,10 @@ public class Utils {
     private static final String MEMORY_REGEX = "(\\d+(\\.\\d+)?)([a-zA-Z]+)";
     private static final Pattern MEMORY_PATTERN = Pattern.compile(MEMORY_REGEX);
     private static final String[] ARTIFACT_EXTENSIONS = {"jar"};
-    private static final String[] PENDING_STRING_LIST = {"   ", ".  ", ".. ", "..."};
-    protected static final String ARTIFACT_NOT_SUPPORTED = "Target file does not exist or is not executable, please " +
+    private static final int RESOURCE_INTERVAL = 1;
+    private static final String ARTIFACT_NOT_SUPPORTED = "Target file does not exist or is not executable, please " +
             "check the configuration.";
-    protected static final String MULTI_ARTIFACT = "Multiple artifacts(%s) could be deployed, please specify " +
+    private static final String MULTI_ARTIFACT = "Multiple artifacts(%s) could be deployed, please specify " +
             "the target artifact in plugin configurations.";
 
     public static int convertSizeStringToNumber(String memory) throws MojoExecutionException {
@@ -108,8 +108,6 @@ public class Utils {
         }
     }
 
-    private static final int DEFAULT_INTERVAL = 1;
-
     /**
      * Get resource repeatedly until it match the predicate or timeout
      * @param callable callable to get resource
@@ -119,8 +117,8 @@ public class Utils {
      */
     public static <T> T getResourceWithPrediction(Callable<T> callable, Predicate<T> predicate, int timeOutInSeconds) {
         final AtomicInteger count = new AtomicInteger(0);
-        final int maxRetry = (int) Math.floor(timeOutInSeconds / DEFAULT_INTERVAL);
-        return Observable.interval(DEFAULT_INTERVAL, TimeUnit.SECONDS)
+        final int maxRetry = (int) Math.floor(timeOutInSeconds / RESOURCE_INTERVAL);
+        return Observable.interval(RESOURCE_INTERVAL, TimeUnit.SECONDS)
                 .flatMap(aLong -> {
                     count.addAndGet(1);
                     return Observable.fromCallable(callable).onErrorReturn(null);
