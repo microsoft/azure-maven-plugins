@@ -82,6 +82,7 @@
         <reflections.version>0.9.11</reflections.version>
         <semver.version>0.9.0</semver.version>
         <slf4j-api.version>1.7.29</slf4j-api.version>
+        <text-io.version>3.4.1</text-io.version>
         <snakeyaml.version>1.26</snakeyaml.version>
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
         <zt.zip.version>1.14</zt.zip.version>
@@ -298,6 +299,11 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.beryx</groupId>
+                <artifactId>text-io</artifactId>
+                <version>${text-io.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>

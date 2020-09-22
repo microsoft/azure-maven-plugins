@@ -25,6 +25,9 @@ import java.util.jar.JarFile;
  * Utility class
  */
 public final class Utils {
+    private static final String POM = "pom";
+    private static final String JAR = "jar";
+    private static final String WAR = "war";
 
     public static String getArtifactCompileVersion(File artifact) throws AzureExecutionException {
         try (JarFile jarFile = new JarFile(artifact)) {
@@ -83,5 +86,17 @@ public final class Utils {
             return attributes[pos + 1];
         }
         return null;
+    }
+
+    public static boolean isPomPackagingProject(String packaging) {
+        return POM.equalsIgnoreCase(packaging);
+    }
+
+    public static boolean isJarPackagingProject(String packaging) {
+        return JAR.equalsIgnoreCase(packaging);
+    }
+
+    public static boolean isWarPackagingProject(String packaging) {
+        return WAR.equalsIgnoreCase(packaging);
     }
 }

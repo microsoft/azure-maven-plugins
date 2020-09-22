@@ -21,8 +21,6 @@ import java.io.IOException;
 import java.util.Optional;
 
 public class AzureClientFactory {
-
-    private static final String SUBSCRIPTION_TEMPLATE = "Subscription : %s(%s)";
     public static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
     public static final String NO_AVAILABLE_SUBSCRIPTION = "No available subscription found in current account.";
     public static final String SUBSCRIPTION_NOT_SPECIFIED = "Subscription ID was not specified, using the first subscription in current account," +
@@ -41,8 +39,6 @@ public class AzureClientFactory {
         final Azure azureClient = StringUtils.isEmpty(subscriptionId) ? authenticated.withDefaultSubscription() :
                 authenticated.withSubscription(subscriptionId);
         checkSubscription(azureClient, subscriptionId);
-        final Subscription subscription = azureClient.getCurrentSubscription();
-        Log.info(String.format(SUBSCRIPTION_TEMPLATE, subscription.displayName(), subscription.subscriptionId()));
         return azureClient;
     }
 
