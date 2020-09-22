@@ -22,6 +22,7 @@ import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
 import com.microsoft.azure.maven.spring.utils.Utils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -162,7 +163,7 @@ public class DeployMojo extends AbstractSpringMojo {
         getLog().info(GETTING_PUBLIC_URL);
         String publicUrl = springAppClient.getApplicationUrl();
         if (!noWait && StringUtils.isEmpty(publicUrl)) {
-            publicUrl = Utils.getResourceWithPrediction(springAppClient::getApplicationUrl, StringUtils::isNoneEmpty, GET_URL_TIMEOUT);
+            publicUrl = Utils.getResourceWithPredicate(springAppClient::getApplicationUrl, StringUtils::isNoneEmpty, GET_URL_TIMEOUT);
         }
         if (StringUtils.isEmpty(publicUrl)) {
             getLog().warn(GET_APP_URL_FAIL);
@@ -175,7 +176,7 @@ public class DeployMojo extends AbstractSpringMojo {
         getLog().info(GETTING_DEPLOYMENT_STATUS);
         DeploymentResourceInner deploymentResource = springDeploymentClient.getDeployment();
         if (!noWait && !isDeploymentDone(deploymentResource)) {
-            deploymentResource = Utils.getResourceWithPrediction(springDeploymentClient::getDeployment, this::isDeploymentDone, GET_STATUS_TIMEOUT);
+            deploymentResource = Utils.getResourceWithPredicate(springDeploymentClient::getDeployment, this::isDeploymentDone, GET_STATUS_TIMEOUT);
         }
         if (!isDeploymentDone(deploymentResource)) {
             getLog().warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
@@ -198,6 +199,9 @@ public class DeployMojo extends AbstractSpringMojo {
         }
         final String finalDiscoverStatus = BooleanUtils.isTrue(deploymentResource.properties().active()) ? "UP" : "OUT_OF_SERVICE";
         final List<DeploymentInstance> instanceList = deploymentResource.properties().instances();
+        if (CollectionUtils.isEmpty(instanceList)) {
+            return false;
+        }
         final boolean isInstanceDeployed = instanceList.stream().noneMatch(instance ->
                 StringUtils.equalsIgnoreCase(instance.status(), "waiting") || StringUtils.equalsIgnoreCase(instance.status(), "pending"));
         final boolean isInstanceDiscovered = instanceList.stream().allMatch(instance ->

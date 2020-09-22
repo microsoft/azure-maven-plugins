@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -115,17 +114,12 @@ public class Utils {
      * @param timeOutInSeconds max time for the method
      * @return the first resource which fit the predicate or the last result before timeout
      */
-    public static <T> T getResourceWithPrediction(Callable<T> callable, Predicate<T> predicate, int timeOutInSeconds) {
-        final AtomicInteger count = new AtomicInteger(0);
-        final int maxRetry = (int) Math.floor(timeOutInSeconds / RESOURCE_INTERVAL);
+    public static <T> T getResourceWithPredicate(Callable<T> callable, Predicate<T> predicate, int timeOutInSeconds) {
+        final long timeout = System.currentTimeMillis() + timeOutInSeconds * 1000;
         return Observable.interval(RESOURCE_INTERVAL, TimeUnit.SECONDS)
-                .flatMap(aLong -> {
-                    count.addAndGet(1);
-                    return Observable.fromCallable(callable).onErrorReturn(null);
-                })
-                .onErrorResumeNext(Observable.fromCallable(callable))
+                .flatMap(aLong -> Observable.fromCallable(callable))
                 .subscribeOn(Schedulers.io())
-                .takeUntil(resource -> resource != null && predicate.test(resource) || count.get() > maxRetry)
+                .takeUntil(resource -> predicate.test(resource) || System.currentTimeMillis() > timeout)
                 .toBlocking().last();
     }
 
