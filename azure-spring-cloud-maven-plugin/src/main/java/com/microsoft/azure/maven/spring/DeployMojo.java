@@ -185,6 +185,9 @@ public class DeployMojo extends AbstractSpringMojo {
     }
 
     protected void printDeploymentStatus(DeploymentResourceInner deploymentResource) {
+        if (deploymentResource == null) {
+            return;
+        }
         System.out.println(String.format("Deployment Status: %s", deploymentResource.properties().status()));
         for (final DeploymentInstance instance : deploymentResource.properties().instances()) {
             System.out.println(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s", instance.name(), instance.status()
@@ -193,6 +196,9 @@ public class DeployMojo extends AbstractSpringMojo {
     }
 
     protected boolean isDeploymentDone(DeploymentResourceInner deploymentResource) {
+        if (deploymentResource == null) {
+            return false;
+        }
         final DeploymentResourceStatus deploymentResourceStatus = deploymentResource.properties().status();
         if (DEPLOYMENT_PROCESSING_STATUS.contains(deploymentResourceStatus)) {
             return false;

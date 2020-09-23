@@ -108,7 +108,7 @@ public class Utils {
     }
 
     /**
-     * Get resource repeatedly until it match the predicate or timeout
+     * Get resource repeatedly until it match the predicate or timeout, will return null when meet exception
      * @param callable callable to get resource
      * @param predicate function that evaluate the resource
      * @param timeOutInSeconds max time for the method
@@ -117,6 +117,7 @@ public class Utils {
     public static <T> T getResourceWithPredicate(Callable<T> callable, Predicate<T> predicate, int timeOutInSeconds) {
         final long timeout = System.currentTimeMillis() + timeOutInSeconds * 1000;
         return Observable.interval(RESOURCE_INTERVAL, TimeUnit.SECONDS)
+                .timeout(timeOutInSeconds, TimeUnit.SECONDS)
                 .flatMap(aLong -> Observable.fromCallable(callable))
                 .subscribeOn(Schedulers.io())
                 .takeUntil(resource -> predicate.test(resource) || System.currentTimeMillis() > timeout)
