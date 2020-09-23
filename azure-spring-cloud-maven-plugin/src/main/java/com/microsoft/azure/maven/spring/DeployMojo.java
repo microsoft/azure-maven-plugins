@@ -22,6 +22,7 @@ import com.microsoft.azure.maven.spring.configuration.SpringConfiguration;
 import com.microsoft.azure.maven.spring.spring.SpringAppClient;
 import com.microsoft.azure.maven.spring.spring.SpringDeploymentClient;
 import com.microsoft.azure.maven.spring.utils.Utils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -45,45 +46,46 @@ import static com.microsoft.azure.maven.spring.TelemetryConstants.TELEMETRY_KEY_
 @Mojo(name = "deploy")
 public class DeployMojo extends AbstractSpringMojo {
 
+    private static final int GET_URL_TIMEOUT = 60;
+    private static final int GET_STATUS_TIMEOUT = 180;
+    private static final String GETTING_DEPLOYMENT_STATUS = "Getting deployment status...";
+    private static final String GETTING_PUBLIC_URL = "Getting public url...";
+    private static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
+    private static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
+    private static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
+            "packaging %s, only jar is supported";
+    private static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
+    private static final String GET_APP_URL_FAIL = "Fail to get application url";
+    private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
+            "you can check the app status from Azure Portal.";
+    private static final String STATUS_CREATE_APP = "Creating the app...";
+    private static final String STATUS_CREATE_APP_DONE = "Successfully created the app.";
+    private static final String STATUS_UPDATE_APP = "Updating the app...";
+    private static final String STATUS_UPDATE_APP_DONE = "Successfully updated the app.";
+    private static final String STATUS_UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
+    private static final String STATUS_CREATE_DEPLOYMENT = "Creating the deployment...";
+    private static final String STATUS_CREATE_DEPLOYMENT_DONE = "Successfully created the deployment.";
+    private static final String STATUS_UPDATE_DEPLOYMENT = "Updating the deployment...";
+    private static final String STATUS_UPDATE_DEPLOYMENT_DONE = "Successfully updated the deployment.";
+    private static final String DEPLOYMENT_STORAGE_STATUS = "Persistent storage path : %s, size : %s GB.";
+    private static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
+    private static final String STATUS_UPLOADING_ARTIFACTS_DONE = "Successfully uploaded the artifacts.";
+    private static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
+    private static final String CONFIRM_PROMPT_CREATE_NEW_APP = "Create new app [%s]";
+    private static final String CONFIRM_PROMPT_UPDATE_APP = "Update app [%s]";
+    private static final String CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT = "Create new deployment [%s] in app [%s]";
+    private static final String CONFIRM_PROMPT_UPDATE_DEPLOYMENT = "Update deployment [%s] in app [%s]";
+    private static final String CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT = "Set [%s] as the active deployment of app [%s]";
+    private static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
+
+    protected static final List<DeploymentResourceStatus> DEPLOYMENT_PROCESSING_STATUS =
+            Arrays.asList(DeploymentResourceStatus.COMPILING, DeploymentResourceStatus.ALLOCATING, DeploymentResourceStatus.UPGRADING);
+
     @Parameter(property = "noWait")
     private boolean noWait;
 
     @Parameter(property = "prompt")
     private boolean prompt;
-
-    protected static final int GET_URL_TIMEOUT = 60;
-    protected static final int GET_STATUS_TIMEOUT = 180;
-    protected static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
-    protected static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
-    protected static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
-            "packaging %s, only jar is supported";
-    protected static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
-    protected static final String GET_APP_URL_FAIL = "Fail to get application url";
-    protected static final String GET_APP_URL_FAIL_WITH_TIMEOUT = "Fail to get application url in %d s";
-    protected static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting " +
-            "after %d seconds, you can check the app status from Azure Portal.";
-    protected static final String STATUS_CREATE_APP = "Creating the app...";
-    protected static final String STATUS_CREATE_APP_DONE = "Successfully created the app.";
-    protected static final String STATUS_UPDATE_APP = "Updating the app...";
-    protected static final String STATUS_UPDATE_APP_DONE = "Successfully updated the app.";
-    protected static final String STATUS_UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
-    protected static final String STATUS_CREATE_DEPLOYMENT = "Creating the deployment...";
-    protected static final String STATUS_CREATE_DEPLOYMENT_DONE = "Successfully created the deployment.";
-    protected static final String STATUS_UPDATE_DEPLOYMENT = "Updating the deployment...";
-    protected static final String STATUS_UPDATE_DEPLOYMENT_DONE = "Successfully updated the deployment.";
-    protected static final String DEPLOYMENT_STORAGE_STATUS = "Persistent storage path : %s, size : %s GB.";
-    protected static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
-    protected static final String STATUS_UPLOADING_ARTIFACTS_DONE = "Successfully uploaded the artifacts.";
-    protected static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
-    protected static final String CONFIRM_PROMPT_CREATE_NEW_APP = "Create new app [%s]";
-    protected static final String CONFIRM_PROMPT_UPDATE_APP = "Update app [%s]";
-    protected static final String CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT = "Create new deployment [%s] in app [%s]";
-    protected static final String CONFIRM_PROMPT_UPDATE_DEPLOYMENT = "Update deployment [%s] in app [%s]";
-    protected static final String CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT = "Set [%s] as the active deployment of app [%s]";
-    protected static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
-
-    protected static final List<DeploymentResourceStatus> DEPLOYMENT_PROCESSING_STATUS =
-            Arrays.asList(DeploymentResourceStatus.COMPILING, DeploymentResourceStatus.ALLOCATING, DeploymentResourceStatus.UPGRADING);
 
     @Override
     protected void doExecute() throws MojoExecutionException, MojoFailureException, AzureExecutionException {
@@ -158,46 +160,34 @@ public class DeployMojo extends AbstractSpringMojo {
         if (!springAppClient.isPublic()) {
             return;
         }
+        getLog().info(GETTING_PUBLIC_URL);
         String publicUrl = springAppClient.getApplicationUrl();
-        if (!noWait) {
-            publicUrl = Utils.executeCallableWithPrompt(() -> {
-                String url = springAppClient.getApplicationUrl();
-                while (StringUtils.isEmpty(url) || StringUtils.equalsIgnoreCase(url, "pending")) {
-                    Thread.sleep(2000);
-                    url = springAppClient.getApplicationUrl();
-                }
-                return url;
-            }, "Getting the public url", GET_URL_TIMEOUT);
+        if (!noWait && StringUtils.isEmpty(publicUrl)) {
+            publicUrl = Utils.getResourceWithPredicate(springAppClient::getApplicationUrl, StringUtils::isNoneEmpty, GET_URL_TIMEOUT);
         }
         if (StringUtils.isEmpty(publicUrl)) {
-            final String message = noWait ? GET_APP_URL_FAIL :
-                    String.format(GET_APP_URL_FAIL_WITH_TIMEOUT, GET_URL_TIMEOUT);
-            getLog().warn(message);
+            getLog().warn(GET_APP_URL_FAIL);
         } else {
-            System.out.println(String.format(GET_APP_URL_SUCCESSFULLY, publicUrl));
+            getLog().info(String.format(GET_APP_URL_SUCCESSFULLY, publicUrl));
         }
     }
 
-    protected void showDeploymentStatus(SpringDeploymentClient springDeploymentClient) throws MojoExecutionException {
-        DeploymentResourceInner deploymentResource = null;
-        if (!noWait) {
-            deploymentResource = Utils.executeCallableWithPrompt(() -> {
-                DeploymentResourceInner deployment = springDeploymentClient.getDeployment();
-                while (!isDeploymentDone(deployment)) {
-                    Thread.sleep(2000);
-                    deployment = springDeploymentClient.getDeployment();
-                }
-                return deployment;
-            }, "Getting deployment status", GET_STATUS_TIMEOUT);
+    protected void showDeploymentStatus(SpringDeploymentClient springDeploymentClient) {
+        getLog().info(GETTING_DEPLOYMENT_STATUS);
+        DeploymentResourceInner deploymentResource = springDeploymentClient.getDeployment();
+        if (!noWait && !isDeploymentDone(deploymentResource)) {
+            deploymentResource = Utils.getResourceWithPredicate(springDeploymentClient::getDeployment, this::isDeploymentDone, GET_STATUS_TIMEOUT);
         }
-        if (deploymentResource == null) {
-            getLog().warn(String.format(GET_DEPLOYMENT_STATUS_TIMEOUT, GET_STATUS_TIMEOUT));
-            deploymentResource = springDeploymentClient.getDeployment();
+        if (!isDeploymentDone(deploymentResource)) {
+            getLog().warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
         }
         printDeploymentStatus(deploymentResource);
     }
 
     protected void printDeploymentStatus(DeploymentResourceInner deploymentResource) {
+        if (deploymentResource == null) {
+            return;
+        }
         System.out.println(String.format("Deployment Status: %s", deploymentResource.properties().status()));
         for (final DeploymentInstance instance : deploymentResource.properties().instances()) {
             System.out.println(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s", instance.name(), instance.status()
@@ -206,12 +196,18 @@ public class DeployMojo extends AbstractSpringMojo {
     }
 
     protected boolean isDeploymentDone(DeploymentResourceInner deploymentResource) {
+        if (deploymentResource == null) {
+            return false;
+        }
         final DeploymentResourceStatus deploymentResourceStatus = deploymentResource.properties().status();
         if (DEPLOYMENT_PROCESSING_STATUS.contains(deploymentResourceStatus)) {
             return false;
         }
         final String finalDiscoverStatus = BooleanUtils.isTrue(deploymentResource.properties().active()) ? "UP" : "OUT_OF_SERVICE";
         final List<DeploymentInstance> instanceList = deploymentResource.properties().instances();
+        if (CollectionUtils.isEmpty(instanceList)) {
+            return false;
+        }
         final boolean isInstanceDeployed = instanceList.stream().noneMatch(instance ->
                 StringUtils.equalsIgnoreCase(instance.status(), "waiting") || StringUtils.equalsIgnoreCase(instance.status(), "pending"));
         final boolean isInstanceDiscovered = instanceList.stream().allMatch(instance ->
