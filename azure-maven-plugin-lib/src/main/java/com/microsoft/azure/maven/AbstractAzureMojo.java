@@ -283,6 +283,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 getTelemetryProxy().trackEvent(INIT_FAILURE);
                 throw new AzureAuthFailureException(AZURE_INIT_FAIL);
             }
+            printCurrentSubscription(azure);
             getTelemetryProxy().addDefaultProperty(AUTH_TYPE, authType);
             getTelemetryProxy().addDefaultProperty(AUTH_METHOD, getAuthMethod());
             // Repopulate subscriptionId in case it is not configured.
@@ -308,7 +309,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
             final Azure azureClient = azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
                     this.subscriptionId, getUserAgent());
-            printCurrentSubscription(azureClient);
+
             return azureClient;
         } catch (IOException | AzureLoginFailureException e) {
             throw new AzureAuthFailureException(e.getMessage());

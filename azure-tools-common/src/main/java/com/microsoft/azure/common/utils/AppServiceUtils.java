@@ -13,6 +13,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,6 +22,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class AppServiceUtils {
 
@@ -124,4 +126,21 @@ public class AppServiceUtils {
             return hasCredential ? DockerImageType.PRIVATE_DOCKER_HUB : DockerImageType.PUBLIC_DOCKER_HUB;
         }
     }
+
+    public static RuntimeStack parseRuntimeStack(String linuxFxVersion) {
+        if (StringUtils.isEmpty(linuxFxVersion)) {
+            return null;
+        }
+        final String[] segments = linuxFxVersion.split(Pattern.quote("|"));
+        if (segments.length != 2) {
+            return null;
+        }
+        return new RuntimeStack(segments[0], segments[1]);
+    }
+
+    public static boolean isDockerAppService(WebAppBase webapp) {
+        final String linuxFxVersion = webapp.linuxFxVersion();
+        return StringUtils.containsIgnoreCase(linuxFxVersion, "DOCKER|");
+    }
+
 }

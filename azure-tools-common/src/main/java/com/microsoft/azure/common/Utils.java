@@ -8,7 +8,6 @@ package com.microsoft.azure.common;
 
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +27,7 @@ public final class Utils {
     private static final String POM = "pom";
     private static final String JAR = "jar";
     private static final String WAR = "war";
+    private static final String SUBSCRIPTIONS = "subscriptions";
 
     public static String getArtifactCompileVersion(File artifact) throws AzureExecutionException {
         try (JarFile jarFile = new JarFile(artifact)) {
@@ -80,12 +80,16 @@ public final class Utils {
         if (StringUtils.isEmpty(id)) {
             return null;
         }
-        final String[] attributes = id.split("/");
-        final int pos = ArrayUtils.indexOf(attributes, segment);
+        final String[] attributes = StringUtils.lowerCase(id).split("/");
+        final int pos = ArrayUtils.indexOf(attributes, StringUtils.lowerCase(segment));
         if (pos >= 0) {
             return attributes[pos + 1];
         }
         return null;
+    }
+
+    public static String getSubscriptionId(String resourceId) {
+        return getSegment(resourceId, SUBSCRIPTIONS);
     }
 
     public static boolean isPomPackagingProject(String packaging) {
