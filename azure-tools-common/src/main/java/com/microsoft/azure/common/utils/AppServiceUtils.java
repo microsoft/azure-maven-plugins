@@ -14,9 +14,7 @@ import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebAppBase;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
@@ -129,10 +127,6 @@ public class AppServiceUtils {
         }
     }
 
-    public static String getSubscriptionId(String resourceId) {
-        return getSegment(resourceId, "subscriptions");
-    }
-
     public static RuntimeStack parseRuntimeStack(String linuxFxVersion) {
         if (StringUtils.isEmpty(linuxFxVersion)) {
             return null;
@@ -144,17 +138,9 @@ public class AppServiceUtils {
         return new RuntimeStack(segments[0], segments[1]);
     }
 
-    public static boolean isDockerWebapp(WebApp webapp) {
+    public static boolean isDockerAppService(WebAppBase webapp) {
         final String linuxFxVersion = webapp.linuxFxVersion();
         return StringUtils.containsIgnoreCase(linuxFxVersion, "DOCKER|");
     }
 
-    private static String getSegment(String id, String segment) {
-        if (StringUtils.isEmpty(id)) {
-            return null;
-        }
-        final String[] attributes = StringUtils.lowerCase(id).split("/");
-        final int pos = ArrayUtils.indexOf(attributes, StringUtils.lowerCase(segment));
-        return pos >= 0 ? attributes[pos + 1] : null;
-    }
 }
