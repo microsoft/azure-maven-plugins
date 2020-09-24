@@ -82,12 +82,31 @@ public class WebAppOption implements Comparable<WebAppOption> {
     }
 
     public boolean isJavaWebApp() {
+        if (siteInner == null) {
+            return false;
+        }
         final OperatingSystem os = getOperatingSystem();
         final JavaVersion javaVersion = getJavaVersion();
         final String linuxFxVersion = getLinuxFxVersion();
         return (os == OperatingSystem.WINDOWS && javaVersion != JavaVersion.OFF) ||
-                os == OperatingSystem.LINUX && (StringUtils.containsIgnoreCase(linuxFxVersion, "jre8") ||
-                StringUtils.containsIgnoreCase(linuxFxVersion, "java11"));
+                os == OperatingSystem.LINUX && (StringUtils.containsIgnoreCase(linuxFxVersion, "-jre") ||
+                StringUtils.containsIgnoreCase(linuxFxVersion, "-java"));
+    }
+
+    public boolean isJavaSE() {
+        if (!isJavaWebApp() || isDockerWebapp()) {
+            return false;
+        }
+
+        final OperatingSystem os = getOperatingSystem();
+        if (os == OperatingSystem.WINDOWS) {
+            return StringUtils.startsWithIgnoreCase(siteConfig.javaContainer(), "java");
+        }
+        if (os == OperatingSystem.LINUX) {
+            final String linuxFxVersion = getLinuxFxVersion();
+            return StringUtils.startsWithIgnoreCase(linuxFxVersion, "java");
+        }
+        return false;
     }
 
     public String getLinuxFxVersion() {
@@ -125,12 +144,12 @@ public class WebAppOption implements Comparable<WebAppOption> {
         final OperatingSystem os = getOperatingSystem();
         if (os == OperatingSystem.WINDOWS) {
             if (StringUtils.isNotBlank(siteConfig.javaContainer())) {
-                return "windows," + siteConfig.javaContainer() + " " + siteConfig.javaContainerVersion();
+                return "windows, " + siteConfig.javaContainer() + " " + siteConfig.javaContainerVersion();
             } else {
-                return "windows,java " + siteConfig.javaVersion();
+                return "windows, java " + siteConfig.javaVersion();
             }
         } else {
-            return "linux," + AppServiceUtils.parseRuntimeStack(getLinuxFxVersion());
+            return "linux, " + AppServiceUtils.parseRuntimeStack(getLinuxFxVersion());
         }
     }
 }

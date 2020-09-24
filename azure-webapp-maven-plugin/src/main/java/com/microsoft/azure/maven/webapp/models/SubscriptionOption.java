@@ -18,6 +18,10 @@ public class SubscriptionOption implements Comparable<SubscriptionOption> {
         this.inner = inner;
     }
 
+    public Subscription getSubscription() {
+        return inner;
+    }
+
     public String getSubscriptionId() {
         return inner != null ? inner.subscriptionId() : null;
     }

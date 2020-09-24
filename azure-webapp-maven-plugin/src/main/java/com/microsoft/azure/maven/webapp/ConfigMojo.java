@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.APP_NAME_PATTERN;
 import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.RESOURCE_GROUP_PATTERN;
+import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.SUBSCRIPTION_ID_PATTERN;
 
 /**
  * Init or edit the configuration of azure webapp maven plugin.
@@ -146,6 +147,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
     protected boolean confirmConfiguration(WebAppConfiguration configuration) throws AzureExecutionException,
         MojoFailureException {
         System.out.println("Please confirm webapp properties");
+        if (StringUtils.isNotBlank(configuration.getSubscriptionId())) {
+            System.out.println("Subscription Id : " + configuration.getSubscriptionId());
+        }
         System.out.println("AppName : " + configuration.getAppName());
         System.out.println("ResourceGroup : " + configuration.getResourceGroup());
         System.out.println("Region : " + configuration.getRegion());
@@ -195,11 +199,13 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final Region defaultRegion = WebAppConfiguration.DEFAULT_REGION;
         final PricingTier pricingTier = WebAppConfiguration.DEFAULT_PRICINGTIER;
         return builder.appName(defaultName)
+            .subscriptionId(subscriptionId)
             .resourceGroup(resourceGroup)
             .region(defaultRegion)
             .pricingTier(pricingTier)
             .resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources())
             .schemaVersion(defaultSchemaVersion)
+            .subscriptionId(this.subscriptionId)
             .build();
     }
 
@@ -216,13 +222,17 @@ public class ConfigMojo extends AbstractWebAppMojo {
             case "DeploymentSlot":
                 return getSlotConfiguration(configuration);
             default:
-                throw new AzureExecutionException("Unknow webapp setting");
+                throw new AzureExecutionException("Unknown webapp setting");
         }
     }
 
     private WebAppConfiguration getWebAppConfiguration(WebAppConfiguration configuration)
-        throws MojoFailureException, AzureExecutionException {
+        throws MojoFailureException {
         final WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
+
+        final String defaultSubscriptionId = StringUtils.isNotBlank(configuration.subscriptionId) ? configuration.subscriptionId : null;
+        final String subscriptionId = StringUtils.isNotBlank(defaultSubscriptionId) ? queryer.assureInputFromUser("subscriptionId", defaultSubscriptionId,
+                SUBSCRIPTION_ID_PATTERN, null, null) : null;
 
         final String defaultAppName =
                 getDefaultValue(configuration.appName, getProject().getArtifactId(), APP_NAME_PATTERN);
@@ -249,7 +259,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier,
             availablePriceList, String.format("Define value for pricingTier(%s):", defaultPricingTier));
-        return builder.appName(appName)
+        return builder
+            .subscriptionId(subscriptionId)
+            .appName(appName)
             .resourceGroup(resourceGroup)
             .region(Region.fromName(region))
             .pricingTier(AppServiceUtils.getPricingTierFromString(pricingTier))
@@ -417,17 +429,19 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final Azure az = getAzureClientByAuthType();
         final TextIO textIO = TextIoFactory.getTextIO();
         final Subscription[] subscriptions = az.subscriptions().list().toArray(new Subscription[0]);
+        final Subscription targetSubscription;
         if (subscriptions.length == 0) {
             throw new AzureExecutionException("Cannot find any subscriptions in current account.");
         } else if (subscriptions.length == 1) {
             Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
                     TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
-            this.subscriptionId = subscriptions[0].subscriptionId();
+            targetSubscription = subscriptions[0];
         } else {
             final String defaultId = az.getCurrentSubscription() != null ? az.getCurrentSubscription().subscriptionId()
                     : null;
 
             final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption(t))
+                    .sorted()
                     .collect(Collectors.toList());
             final SubscriptionOption defaultValue = wrapSubs.stream()
                     .filter(t -> StringUtils.equalsIgnoreCase(t.getSubscriptionId(), defaultId)).findFirst().orElse(null);
@@ -439,8 +453,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
             if (subscriptionOptionSelected == null) {
                 throw new AzureExecutionException("You must select a subscription.");
             }
-            this.subscriptionId = subscriptionOptionSelected.getSubscriptionId();
+            targetSubscription = subscriptionOptionSelected.getSubscription();
         }
+        this.subscriptionId = targetSubscription.subscriptionId();
         // here is a walk around to solve the bad app service listing issue
         final WebAppsInner webappClient = az.webApps().manager().inner().withSubscriptionId(subscriptionId).webApps();
         final List<WebAppOption> siteInners = webappClient.list().stream()
@@ -459,7 +474,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         final List<WebAppOption> options = new ArrayList<>();
         options.add(WebAppOption.CREATE_NEW);
-        final List<WebAppOption> javaOrDockerWebapps = siteInners.stream().filter(t -> t.isJavaWebApp() || t.isDockerWebapp()).sorted()
+        final boolean isContainer = !Utils.isJarPackagingProject(this.project.getPackaging());
+        final boolean isDockerOnly = Utils.isPomPackagingProject(this.project.getPackaging());
+        final List<WebAppOption> javaOrDockerWebapps = siteInners.stream().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
+                .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
                 .collect(Collectors.toList());
 
         // check empty: second time
@@ -469,9 +487,17 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
         options.addAll(javaOrDockerWebapps);
 
+        final String webAppTypes;
+        if (isDockerOnly) {
+            webAppTypes = "Docker";
+        } else {
+            webAppTypes = isContainer ? "Web Container" : "JavaSE";
+        }
+
         final WebAppOption selectedApp = new CustomTextIoStringListReader<WebAppOption>(() -> textIO.getTextTerminal(), null)
-                .withCustomPrompt(String.format("Please choose a Web App%s: ", highlightDefaultValue(WebAppOption.CREATE_NEW.toString())))
-                .withNumberedPossibleValues(options).withDefaultValue(WebAppOption.CREATE_NEW).read("Please choose a Web App:");
+                .withCustomPrompt(String.format("Please choose a %s Web App%s: ", webAppTypes, highlightDefaultValue(WebAppOption.CREATE_NEW.toString())))
+                .withNumberedPossibleValues(options).withDefaultValue(WebAppOption.CREATE_NEW)
+                .read(String.format("%s Web Apps in subscription %s:", webAppTypes, TextUtils.blue(targetSubscription.displayName())));
         if (selectedApp == null || selectedApp.isCreateNew()) {
             return null;
         }
@@ -549,4 +575,19 @@ public class ConfigMojo extends AbstractWebAppMojo {
         segments = image.split(Pattern.quote("/"));
         return segments[segments.length - 1].trim();
     }
+
+    private static boolean checkWebAppVisible(boolean isContainer, boolean isDokerOnly, boolean isJavaSEWebApp, boolean isDockerWebapp) {
+        if (isDockerWebapp) {
+            return true;
+        }
+        if (isDokerOnly) {
+            return isDockerWebapp;
+        }
+        if (isContainer) {
+            return !isJavaSEWebApp;
+        } else {
+            return isJavaSEWebApp;
+        }
+    }
+
 }
