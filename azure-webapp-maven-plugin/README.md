@@ -3,15 +3,28 @@
 ## Overview
 [![Maven Central](https://img.shields.io/maven-central/v/com.microsoft.azure/azure-webapp-maven-plugin.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.microsoft.azure%22%20AND%20a%3A%22azure-webapp-maven-plugin%22)
 
-The Maven Plugin for Azure App Service provides seamless integration into Maven projects,
-and makes it easier for developers to deploy your applications to following types of [Azure App Service](https://docs.microsoft.com/en-us/azure/app-service/):
-  - [Web App on Linux](https://docs.microsoft.com/azure/app-service-web/app-service-linux-intro)
-  - [Web App on Windows](https://docs.microsoft.com/en-us/azure/app-service/app-service-web-overview)
-  - [Web App for Containers](https://docs.microsoft.com/en-us/azure/app-service/containers/tutorial-custom-docker-image)
+The Maven Plugin for Azure App Service helps Java developers to deploy Maven projects to [Azure App Service](https://docs.microsoft.com/en-us/azure/app-service/).
+
 
 ## Documentation
 
-:book: Visit our [Wiki](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Web-App) for detailed documentation.
+Please go through [Quickstart](https://docs.microsoft.com/en-us/azure/app-service/quickstart-java) to create your first Java app on Azure App Service, there are more [Java documents](https://github.com/microsoft/azure-maven-plugins/wiki/Java-App-Service-Documents-List) for Azure App Serice.
+
+:book: You can also visit our [Wiki](https://github.com/microsoft/azure-maven-plugins/wiki/Azure-Web-App) for detailed documentation about Maven Webapp plugin.
+
+
+## Quickstart
+You can prepare your application ready for Azure App Service easily with one command(y):
+
+```shell
+mvn com.microsoft.azure:azure-webapp-maven-plugin:1.11.0:config
+```
+
+This command adds a `azure-webapp-maven-plugin` plugin and related configuration by prompting you to select an existing Azure Web App or create a new one. Then you can deploy your Java app to Azure using the following command:
+```shell
+mvn package azure-webapp:deploy
+```
+
 
 ## Feedback and Questions
 To report bugs or request new features, file issues on [Issues](https://github.com/microsoft/azure-maven-plugins/issues). Or, ask questions on [Stack Overflow with tag azure-java-tools](https://stackoverflow.com/questions/tagged/azure-java-tools).
