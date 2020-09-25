@@ -10,7 +10,7 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureCredential;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
-import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
+import com.microsoft.azure.tools.exception.DesktopNotSupportedException;
 import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;

@@ -178,6 +178,10 @@
             <artifactId>azure-arm-client-runtime</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure.appplatform.v2020_07_01</groupId>
+            <artifactId>azure-mgmt-appplatform</artifactId>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

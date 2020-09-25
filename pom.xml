@@ -49,11 +49,11 @@
         <module>azure-auth-helper</module>
         <module>azure-tools-common</module>
         <module>azure-maven-plugin-lib</module>
-        <module>azure-maven-plugin-common</module>
         <module>azure-webapp-maven-plugin</module>
         <module>azure-functions-maven-plugin</module>
         <module>azure-sfmesh-maven-plugin</module>
         <module>azure-maven-plugin</module>
         <module>azure-spring-cloud-maven-plugin</module>
+        <module>azure-toolkit-libs</module>
     </modules>
 </project>
