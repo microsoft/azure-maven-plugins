@@ -182,6 +182,7 @@ public class WebAppConfiguration {
 
     public Builder getBuilderFromConfiguration() {
         return new Builder().appName(this.appName)
+            .subscriptionId(subscriptionId)
             .resourceGroup(this.resourceGroup)
             .region(this.region)
             .pricingTier(this.pricingTier)

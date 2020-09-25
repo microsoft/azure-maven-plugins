@@ -13,7 +13,7 @@ import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import org.apache.commons.lang3.StringUtils;
 
 public abstract class AbstractConfigurationValidator {
-
+    public static final String SUBSCRIPTION_ID_PATTERN = "[a-fA-F0-9\\-]{30,36}";
     public static final String APP_NAME_PATTERN = "[a-zA-Z0-9\\-]{2,60}";
     public static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9\\.\\_\\-\\(\\)]{1,90}";
     public static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
