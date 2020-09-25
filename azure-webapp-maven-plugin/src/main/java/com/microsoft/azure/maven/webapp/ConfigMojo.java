@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -429,32 +430,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final Azure az = getAzureClientByAuthType();
         final TextIO textIO = TextIoFactory.getTextIO();
         final Subscription[] subscriptions = az.subscriptions().list().toArray(new Subscription[0]);
-        final Subscription targetSubscription;
-        if (subscriptions.length == 0) {
-            throw new AzureExecutionException("Cannot find any subscriptions in current account.");
-        } else if (subscriptions.length == 1) {
-            Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
-                    TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
-            targetSubscription = subscriptions[0];
-        } else {
-            final String defaultId = az.getCurrentSubscription() != null ? az.getCurrentSubscription().subscriptionId()
-                    : null;
-
-            final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption(t))
-                    .sorted()
-                    .collect(Collectors.toList());
-            final SubscriptionOption defaultValue = wrapSubs.stream()
-                    .filter(t -> StringUtils.equalsIgnoreCase(t.getSubscriptionId(), defaultId)).findFirst().orElse(null);
-
-            final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(() -> textIO.getTextTerminal(), null)
-                    .withCustomPrompt(String.format("Please choose a subscription%s: ",
-                            highlightDefaultValue(defaultValue == null ? null : defaultValue.getSubscriptionName())))
-                    .withNumberedPossibleValues(wrapSubs).withDefaultValue(defaultValue).read("Available subscriptions:");
-            if (subscriptionOptionSelected == null) {
-                throw new AzureExecutionException("You must select a subscription.");
-            }
-            targetSubscription = subscriptionOptionSelected.getSubscription();
-        }
+        final Subscription targetSubscription = selectSubscription(az, textIO, subscriptions);
         this.subscriptionId = targetSubscription.subscriptionId();
         // here is a walk around to solve the bad app service listing issue
         final WebAppsInner webappClient = az.webApps().manager().inner().withSubscriptionId(subscriptionId).webApps();
@@ -472,32 +448,19 @@ public class ConfigMojo extends AbstractWebAppMojo {
         // load configuration to detecting java or docker
         Observable.from(siteInners).flatMap(WebAppOption::loadConfigurationSync, siteInners.size()).subscribeOn(Schedulers.io()).toBlocking().subscribe();
 
-        final List<WebAppOption> options = new ArrayList<>();
-        options.add(WebAppOption.CREATE_NEW);
         final boolean isContainer = !Utils.isJarPackagingProject(this.project.getPackaging());
         final boolean isDockerOnly = Utils.isPomPackagingProject(this.project.getPackaging());
         final List<WebAppOption> javaOrDockerWebapps = siteInners.stream().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
                 .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
                 .collect(Collectors.toList());
-
-        // check empty: second time
-        if (javaOrDockerWebapps.isEmpty()) {
-            Log.warn(NO_JAVA_WEB_APPS);
-            return null;
-        }
-        options.addAll(javaOrDockerWebapps);
-
-        final String webAppTypes;
+        final String webAppType;
         if (isDockerOnly) {
-            webAppTypes = "Docker";
+            webAppType = "Docker";
         } else {
-            webAppTypes = isContainer ? "Web Container" : "JavaSE";
+            webAppType = isContainer ? "Web Container" : "JavaSE";
         }
 
-        final WebAppOption selectedApp = new CustomTextIoStringListReader<WebAppOption>(() -> textIO.getTextTerminal(), null)
-                .withCustomPrompt(String.format("Please choose a %s Web App%s: ", webAppTypes, highlightDefaultValue(WebAppOption.CREATE_NEW.toString())))
-                .withNumberedPossibleValues(options).withDefaultValue(WebAppOption.CREATE_NEW)
-                .read(String.format("%s Web Apps in subscription %s:", webAppTypes, TextUtils.blue(targetSubscription.displayName())));
+        final WebAppOption selectedApp = selectAzureWebApp(textIO, javaOrDockerWebapps, webAppType, targetSubscription);
         if (selectedApp == null || selectedApp.isCreateNew()) {
             return null;
         }
@@ -514,6 +477,48 @@ public class ConfigMojo extends AbstractWebAppMojo {
             builder.resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources());
         }
         return getConfigurationFromExisting(webapp, servicePlan, builder);
+    }
+
+    private static Subscription selectSubscription(Azure az, TextIO textIO, Subscription[]subscriptions) throws AzureExecutionException {
+        if (subscriptions.length == 0) {
+            throw new AzureExecutionException("Cannot find any subscriptions in current account.");
+        } else if (subscriptions.length == 1) {
+            Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
+                    TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
+            return subscriptions[0];
+        } else {
+            final String defaultId = Optional.ofNullable(az.getCurrentSubscription()).map(Subscription::subscriptionId).orElse(null);
+
+            final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption(t))
+                    .sorted()
+                    .collect(Collectors.toList());
+            final SubscriptionOption defaultValue = wrapSubs.stream()
+                    .filter(t -> StringUtils.equalsIgnoreCase(t.getSubscriptionId(), defaultId)).findFirst().orElse(null);
+
+            final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(() -> textIO.getTextTerminal(), null)
+                    .withCustomPrompt(String.format("Please choose a subscription%s: ",
+                            highlightDefaultValue(defaultValue == null ? null : defaultValue.getSubscriptionName())))
+                    .withNumberedPossibleValues(wrapSubs).withDefaultValue(defaultValue).read("Available subscriptions:");
+            if (subscriptionOptionSelected == null) {
+                throw new AzureExecutionException("You must select a subscription.");
+            }
+            return subscriptionOptionSelected.getSubscription();
+        }
+    }
+
+    private static WebAppOption selectAzureWebApp(TextIO textIO, List<WebAppOption> javaOrDockerWebapps, String webAppType, Subscription targetSubscription) {
+        final List<WebAppOption> options = new ArrayList<>();
+        options.add(WebAppOption.CREATE_NEW);
+        // check empty: second time
+        if (javaOrDockerWebapps.isEmpty()) {
+            Log.warn(NO_JAVA_WEB_APPS);
+            return null;
+        }
+        options.addAll(javaOrDockerWebapps);
+        return new CustomTextIoStringListReader<WebAppOption>(() -> textIO.getTextTerminal(), null)
+                .withCustomPrompt(String.format("Please choose a %s Web App%s: ", webAppType, highlightDefaultValue(WebAppOption.CREATE_NEW.toString())))
+                .withNumberedPossibleValues(options).withDefaultValue(WebAppOption.CREATE_NEW)
+                .read(String.format("%s Web Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.displayName())));
     }
 
     private static WebAppConfiguration getConfigurationFromExisting(WebApp webapp, AppServicePlan servicePlan, WebAppConfiguration.Builder builder) {
