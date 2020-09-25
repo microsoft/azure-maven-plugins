@@ -453,14 +453,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final List<WebAppOption> javaOrDockerWebapps = siteInners.stream().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
                 .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
                 .collect(Collectors.toList());
-        final String webAppType;
-        if (isDockerOnly) {
-            webAppType = "Docker";
-        } else {
-            webAppType = isContainer ? "Web Container" : "JavaSE";
-        }
-
-        final WebAppOption selectedApp = selectAzureWebApp(textIO, javaOrDockerWebapps, webAppType, targetSubscription);
+        final WebAppOption selectedApp = selectAzureWebApp(textIO, javaOrDockerWebapps,
+                getWebAppTypeByPackaging(this.project.getPackaging()), targetSubscription);
         if (selectedApp == null || selectedApp.isCreateNew()) {
             return null;
         }
@@ -581,12 +575,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return segments[segments.length - 1].trim();
     }
 
-    private static boolean checkWebAppVisible(boolean isContainer, boolean isDokerOnly, boolean isJavaSEWebApp, boolean isDockerWebapp) {
+    private static boolean checkWebAppVisible(boolean isContainer, boolean isDockerOnly, boolean isJavaSEWebApp, boolean isDockerWebapp) {
         if (isDockerWebapp) {
             return true;
         }
-        if (isDokerOnly) {
-            return isDockerWebapp;
+        if (isDockerOnly) {
+            return false;
         }
         if (isContainer) {
             return !isJavaSEWebApp;
@@ -595,4 +589,15 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
     }
 
+    private static String getWebAppTypeByPackaging(String packaging) {
+        final boolean isContainer = !Utils.isJarPackagingProject(packaging);
+        final boolean isDockerOnly = Utils.isPomPackagingProject(packaging);
+        if (isDockerOnly) {
+            return "Docker";
+        } else if (isContainer) {
+            return "Web Container";
+        } else {
+            return "JavaSE";
+        }
+    }
 }
