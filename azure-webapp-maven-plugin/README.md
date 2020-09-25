@@ -49,8 +49,8 @@ Here is a typical configuration for Azure Web App Maven Plugin:
     <region>westus</region>
     <runtime>
       <os>linux</os>      
-      <webContainer>java se</webContainer>
-      <javaVersion>11</javaVersion>
+      <webContainer>Java SE</webContainer>
+      <javaVersion>Java 11</javaVersion>
     </runtime>
     <deployment>
       <resources>
@@ -74,9 +74,9 @@ Property | Required | Description
 `<appName>` | true | The name of your Web App. |
 `<pricingTier>`| false | The pricing tier for your Web App. The default value is **P1V2**.|
 `<region>`| false | Specifies the region where your Web App will be hosted; the default value is **westeurope**. All valid regions at [Supported Regions](#region) section. |
-`<runtime><os>`| false | Specifies the os, supported values are Linux, Windows and Docker. |
-`<runtime><webContainer>`| false | Specifies the os, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Java SE*, *JbossEAP 7.2*|
-`<runtime><javaVersion>`| false | Specifies the java version, values are: *Java 8* or *Java 11*|
+`<os>`| false | Specifies the os, supported values are Linux, Windows and Docker. |
+`<webContainer>`| false | Specifies the runtime stack, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Java SE*, *JbossEAP 7.2*|
+`<javaVersion>`| false | Specifies the java version, values are: *Java 8* or *Java 11*|
 `<deployment>`| false | Specifies the target file to be deployed |
 
 ## Feedback and Questions
