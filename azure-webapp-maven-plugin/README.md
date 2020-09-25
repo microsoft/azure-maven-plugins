@@ -75,8 +75,8 @@ Property | Required | Description
 `<pricingTier>`| false | The pricing tier for your Web App. The default value is **P1V2**.|
 `<region>`| false | Specifies the region where your Web App will be hosted; the default value is **westeurope**. All valid regions at [Supported Regions](#region) section. |
 `<runtime><os>`| false | Specifies the os, supported values are Linux, Windows and Docker. |
-`<runtime><webContainer>`| false | Specifies the os, values for Linux are: *tomcat 8.5*, *tomcat 9.0*, *java se*, *jbosseap 7.2*|
-`<runtime><javaVersion>`| false | Specifies the java version, values are: *8* or *11*|
+`<runtime><webContainer>`| false | Specifies the os, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Java SE*, *JbossEAP 7.2*|
+`<runtime><javaVersion>`| false | Specifies the java version, values are: *Java 8* or *Java 11*|
 `<deployment>`| false | Specifies the target file to be deployed |
 
 ## Feedback and Questions
