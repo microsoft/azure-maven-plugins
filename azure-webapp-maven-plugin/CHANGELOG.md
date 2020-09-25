@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure App Service" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.11.0](#1110)
   - [1.10.0](#1100)
   - [1.9.1](#191)
   - [1.9.0](#190)
@@ -18,6 +19,9 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.2.0](#120)
   - [1.1.0](#110)
   - [1.0.0](#100)
+
+## 1.11.0
+- Support selecte existing web app in `config` goal [#1161](https://github.com/microsoft/azure-maven-plugins/pull/1161)
 
 ## 1.10.0
 - Support set Azure environment in configuration (`<configuration> -> <auth> -> <environment>`)
