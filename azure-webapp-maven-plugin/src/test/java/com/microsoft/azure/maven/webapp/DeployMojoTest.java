@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
@@ -18,18 +19,17 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.DeploymentSlotHandler;
 import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
 import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
-
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
+import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -119,7 +119,7 @@ public class DeployMojoTest {
 
             @Override
             public DeploymentSlotHandler getDeploymentSlotHandler(AbstractWebAppMojo mojo)
-                    throws AzureExecutionException {
+                throws AzureExecutionException {
                 return deploymentSlotHandler;
             }
         });
@@ -294,9 +294,13 @@ public class DeployMojoTest {
         verifyNoMoreInteractions(artifactHandler);
     }
 
+    /**
+     * refer https://stackoverflow.com/questions/44009232/nosuchelementexception-thrown-while-testing-maven-plugin
+     */
     private DeployMojo getMojoFromPom(String filename) throws Exception {
         final File pom = new File(DeployMojoTest.class.getResource(filename).toURI());
-        final DeployMojo mojo = (DeployMojo) rule.lookupMojo("deploy", pom);
+        final PlexusConfiguration config = rule.extractPluginConfiguration("azure-webapp-maven-plugin", pom);
+        final DeployMojo mojo = (DeployMojo) rule.configureMojo(new DeployMojo(), config);
         assertNotNull(mojo);
         return mojo;
     }
