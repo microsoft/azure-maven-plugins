@@ -39,7 +39,7 @@
         <azure.maven-plugin-lib.version>1.4.0-SNAPSHOT</azure.maven-plugin-lib.version>
         <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
         <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
-        <azure.tools-common.version>0.8.0-SNAPSHOT</azure.tools-common.version>
+        <azure.tools-common.version>0.8.1-SNAPSHOT</azure.tools-common.version>
         <azure.version>1.36.2</azure.version>
 
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>

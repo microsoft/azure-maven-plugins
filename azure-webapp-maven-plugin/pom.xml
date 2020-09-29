@@ -7,12 +7,12 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins-pom</artifactId>
-        <version>1.0.4</version>
+        <version>1.0.5-SNAPSHOT</version>
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
     <artifactId>azure-webapp-maven-plugin</artifactId>
-    <version>1.11.0</version>
+    <version>1.11.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Maven Plugin for Azure Web Apps</name>
     <description>Maven Plugin for Azure Web Apps</description>
