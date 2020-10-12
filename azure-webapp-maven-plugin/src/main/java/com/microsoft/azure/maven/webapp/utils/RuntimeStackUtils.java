@@ -6,23 +6,24 @@
 
 package com.microsoft.azure.maven.webapp.utils;
 
-import com.microsoft.azure.management.appservice.RuntimeStack;
-
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.apache.commons.lang3.StringUtils;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import org.apache.commons.lang3.StringUtils;
+
+import com.microsoft.azure.management.appservice.RuntimeStack;
 
 public class RuntimeStackUtils {
 
-    private static final List<String> JAVA_STACKS = Arrays.asList("JAVA", "TOMCAT");
+    private static final List<String> JAVA_STACKS = Arrays.asList("JAVA", "TOMCAT", "JBOSSEAP");
     private static final List<RuntimeStack> RUNTIME_STACKS = new ArrayList<>();
     private static final BidiMap<String, String> JAVA_VERSIONS = new DualHashBidiMap<>();
 
@@ -71,7 +72,7 @@ public class RuntimeStackUtils {
             return getRuntimeStack(javaVersion);
         }
         for (final RuntimeStack runtimeStack : getValidRuntimeStacks()) {
-            if (getJavaVersionFromRuntimeStack(runtimeStack).equalsIgnoreCase(javaVersion) &&
+            if (equalsJavaVersion(getJavaVersionFromRuntimeStack(runtimeStack), javaVersion) &&
                     getWebContainerFromRuntimeStack(runtimeStack).equalsIgnoreCase(webContainer)) {
                 return runtimeStack;
             }
@@ -86,7 +87,7 @@ public class RuntimeStackUtils {
     public static List<String> getValidWebContainer(String javaVersion) {
         final Set<String> result = new HashSet<>();
         for (final RuntimeStack runtimeStack : getValidRuntimeStacks()) {
-            if (getJavaVersionFromRuntimeStack(runtimeStack).equalsIgnoreCase(javaVersion) &&
+            if (equalsJavaVersion(getJavaVersionFromRuntimeStack(runtimeStack), javaVersion) &&
                     !runtimeStack.stack().equals("JAVA")) {
                 result.add(getWebContainerFromRuntimeStack(runtimeStack));
             }
@@ -98,4 +99,19 @@ public class RuntimeStackUtils {
         return JAVA_VERSIONS;
     }
 
+    private static boolean equalsJavaVersion(String version1, String version2) {
+        return StringUtils.equals(normalizeJavaVersion(version1), normalizeJavaVersion(version2));
+    }
+
+    private static String normalizeJavaVersion(String javaVersion) {
+        if (Objects.isNull(javaVersion)) {
+            return null;
+        }
+        String version = StringUtils.lowerCase(javaVersion);
+
+        if (version.contains("jre")) {
+            version = version.replaceFirst("jre", "java");
+        }
+        return version;
+    }
 }
