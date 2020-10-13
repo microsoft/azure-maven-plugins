@@ -12,7 +12,7 @@ import org.apache.maven.plugin.MojoFailureException;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +27,7 @@ public abstract class MavenPluginQueryer {
 
     public String assureInputFromUser(String attribute, Enum defaultValue, String prompt) throws MojoFailureException {
         final String defaultValueForAttribute = defaultValue.name();
-        final Set<String> optionSet = new HashSet<>();
+        final Set<String> optionSet = new LinkedHashSet<>();
         for (final Enum option : defaultValue.getClass().getEnumConstants()) {
             optionSet.add(option.name());
         }
