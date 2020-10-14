@@ -39,7 +39,7 @@ Here is a typical configuration for Azure Web App Maven Plugin:
 <plugin> 
   <groupId>com.microsoft.azure</groupId>  
   <artifactId>azure-webapp-maven-plugin</artifactId>  
-  <version>1.11.0</version>  
+  <version>1.12.0</version>  
   <configuration>
     <schemaVersion>V2</schemaVersion>
     <subscriptionId>111111-11111-11111-1111111</subscriptionId>
