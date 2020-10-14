@@ -68,13 +68,13 @@ Here is a typical configuration for Azure Web App Maven Plugin:
 
 Property | Required | Description 
 ---|---|---
-`<schemaVersion>` | false | Specify the version of the configuration schema. The default value and recommended value is  `V2`  |
+`<schemaVersion>` | false | Specify the version of the configuration schema. The default value and recommended value is  `v2`  |
 `<subscriptionId>` | false | Specifies the target subscription.<br>Use this setting when you have multiple subscriptions in your authentication file.|
 `<resourceGroup>` | true | Azure Resource Group for your Web App. |
 `<appName>` | true | The name of your Web App. |
 `<pricingTier>`| false | The pricing tier for your Web App. The default value is **P1V2**.|
 `<region>`| false | Specifies the region where your Web App will be hosted; the default value is **westeurope**. All valid regions at [Supported Regions](#region) section. |
-`<os>`| false | Specifies the os, supported values are Linux, Windows and Docker. |
+`<os>`| false | Specifies the os, supported values are *Linux*, *Windows* and *Docker*. |
 `<webContainer>`| false | Specifies the runtime stack, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Java SE*, *JbossEAP 7.2*|
 `<javaVersion>`| false | Specifies the java version, values are: *Java 8* or *Java 11*|
 `<deployment>`| false | Specifies the target file to be deployed |
