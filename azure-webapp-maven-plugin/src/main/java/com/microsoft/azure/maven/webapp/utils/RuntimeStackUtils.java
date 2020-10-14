@@ -17,11 +17,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.microsoft.azure.maven.webapp.utils.JavaVersionUtils.JAVA;
+import static com.microsoft.azure.maven.webapp.utils.JavaVersionUtils.JAVA_11_STRING;
 import static com.microsoft.azure.maven.webapp.utils.JavaVersionUtils.JAVA_SE;
 import static com.microsoft.azure.maven.webapp.utils.JavaVersionUtils.equalsJavaVersion;
+import static com.microsoft.azure.maven.webapp.utils.JavaVersionUtils.formatJavaVersion;
 
 public class RuntimeStackUtils {
 
@@ -70,11 +73,14 @@ public class RuntimeStackUtils {
 
     public static RuntimeStack getRuntimeStack(String javaVersion, String webContainer) {
         if (StringUtils.isEmpty(webContainer) || JavaVersionUtils.getValidJavaVersions().contains(webContainer) ||
-                StringUtils.equalsIgnoreCase(JAVA_SE, webContainer)) {
+                (Objects.nonNull(JavaVersionUtils.parseJavaVersionEnum(webContainer)) ||
+                    Objects.nonNull(Utils.findStringInCollectionIgnoreCase(Arrays.asList(JAVA, JAVA_SE, JAVA_11_STRING),
+                        webContainer)))) {
             return getJavaSERuntimeStack(javaVersion);
         }
+        final String formattedJavaVersion = formatJavaVersion(javaVersion);
         for (final RuntimeStack runtimeStack : getValidRuntimeStacks()) {
-            if (getJavaVersionFromRuntimeStack(runtimeStack).equalsIgnoreCase(javaVersion) &&
+            if (getJavaVersionFromRuntimeStack(runtimeStack).equalsIgnoreCase(formattedJavaVersion) &&
                     getWebContainerFromRuntimeStack(runtimeStack).equalsIgnoreCase(webContainer)) {
                 return runtimeStack;
             }
