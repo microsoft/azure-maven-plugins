@@ -92,7 +92,7 @@ public class Utils {
         }
 
         final MavenResourcesExecution mavenResourcesExecution = new MavenResourcesExecution(resources,
-                new File(targetDirectory), project, "UTF-8", null, Collections.EMPTY_LIST, session);
+                new File(targetDirectory), project, "UTF-8", null, Collections.emptyList(), session);
 
         // Configure executor
         mavenResourcesExecution.setEscapeWindowsPaths(true);

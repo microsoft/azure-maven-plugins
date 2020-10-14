@@ -38,7 +38,7 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
     @Override
     public String validateOs() {
         final RuntimeSetting runtime = mojo.getRuntime();
-        final String os = runtime.getOs();
+        final String os = StringUtils.lowerCase(runtime.getOs());
         if (runtime.isEmpty()) {
             return null;
         } else if (StringUtils.isEmpty(os)) {
@@ -57,8 +57,8 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
             return null;
         }
         final RuntimeStack result = runtime.getLinuxRuntime();
-        return result == null ? String.format("Unsupported values for linux runtime, please refer %s " +
-                "more information", RUNTIME_CONFIG_REFERENCE) : null;
+        return result == null ? String.format("Unsupported value \"%s - %s\" for linux runtime, please refer %s " +
+                "more information", runtime.getWebContainerRaw(), runtime.getJavaVersionRaw(), RUNTIME_CONFIG_REFERENCE) : null;
     }
 
     @Override

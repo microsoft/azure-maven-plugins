@@ -23,11 +23,54 @@ import static com.microsoft.azure.maven.webapp.ConfigMojo.JAVA_11_STRING;
  */
 public class RuntimeSetting {
 
+    /**
+     * OS of Web App Below is the list of supported JVM versions:
+     * <ul>
+     * <li>Windows</li>
+     * <li>Linux</li>
+     * <li>Docker</li>
+     * </ul>
+     */
     protected String os;
+
+    /**
+     * Java version of Web App Below is the list of supported Java versions:
+     * <ul>
+     * <li>Java 8</li>
+     * <li>Java 11</li>
+     * </ul>
+     */
     protected String javaVersion;
+
+    /**
+     * Web container type and version within Web App. Below is the list of supported
+     * web container types(JBoss is only supported on java 8 and linux webapps):
+     * <ul>
+     * <li>Java SE</li>
+     * <li>Tomcat 7.0</li>
+     * <li>Tomcat 8.5</li>
+     * <li>Tomcat 9.0</li>
+     * <li>JBoss EAP 7.2</li>
+     * </ul>
+     */
     protected String webContainer;
+
+    /**
+     * Settings of docker image name within Web App. This only applies to Docker Web
+     * App.
+     */
     protected String image;
+
+    /**
+     * Settings of credentials to access docker image. Use it when you are using
+     * private Docker Hub
+     */
     protected String serverId;
+
+    /**
+     * Settings of specifies your docker image registry URL. Use it when you are
+     * using private registry.
+     */
     protected String registryUrl;
 
     public static final String RUNTIME_CONFIG_REFERENCE = "https://aka.ms/maven_webapp_runtime";
@@ -68,6 +111,14 @@ public class RuntimeSetting {
         return WebContainer.fromString(webContainer);
     }
 
+    public String getWebContainerRaw() {
+        return webContainer;
+    }
+
+    public String getJavaVersionRaw() {
+        return javaVersion;
+    }
+
     public String getImage() {
         return this.image;
     }
@@ -88,7 +139,7 @@ public class RuntimeSetting {
 
     protected boolean checkJavaVersion(String value) {
         for (final JavaVersion version : JavaVersion.values()) {
-            if (version.toString().equals(value)) {
+            if (StringUtils.equalsIgnoreCase(version.toString(), value)) {
                 return true;
             }
         }
@@ -97,7 +148,7 @@ public class RuntimeSetting {
 
     protected boolean checkWebContainer(String value) {
         for (final WebContainer container : WebContainer.values()) {
-            if (container.toString().equals(value)) {
+            if (StringUtils.equalsIgnoreCase(container.toString(), value)) {
                 return true;
             }
         }
