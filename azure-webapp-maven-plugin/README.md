@@ -48,7 +48,7 @@ Here is a typical configuration for Azure Web App Maven Plugin:
     <pricingTier>B2</pricingTier>
     <region>westus</region>
     <runtime>
-      <os>linux</os>      
+      <os>Linux</os>      
       <webContainer>Java SE</webContainer>
       <javaVersion>Java 11</javaVersion>
     </runtime>
