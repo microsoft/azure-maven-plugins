@@ -108,7 +108,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
 
     @Override
     protected String getSchemaVersion() {
-        return "V1";
+        return "v1";
     }
 
     @Override

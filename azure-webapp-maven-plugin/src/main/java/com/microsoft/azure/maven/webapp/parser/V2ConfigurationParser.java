@@ -92,7 +92,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
 
     @Override
     protected String getSchemaVersion() {
-        return "V2";
+        return "v2";
     }
 
     @Override

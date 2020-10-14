@@ -4,7 +4,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugins-pom</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Maven Plugins for Azure</name>
     <description>Maven plugins for Microsoft Azure services</description>
@@ -75,7 +75,7 @@
         <json.schema.validator.version>2.2.14</json.schema.validator.version>
         <jsonwebtoken.jjwt.version>0.9.1</jsonwebtoken.jjwt.version>
         <jtwig.core.version>5.87.0.RELEASE</jtwig.core.version>
-        <junit.version>4.13</junit.version>
+        <junit.version>4.13.1</junit.version>
         <maven3-model-jdom-support.version>1.6</maven3-model-jdom-support.version>
         <mockito.version>2.22.0</mockito.version>
         <powermock.version>2.0.2</powermock.version>
