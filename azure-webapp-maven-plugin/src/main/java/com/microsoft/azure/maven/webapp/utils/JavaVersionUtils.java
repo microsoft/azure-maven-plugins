@@ -127,9 +127,4 @@ public class JavaVersionUtils {
     public static String formatJavaVersion(String javaVersion) {
         return Objects.toString(parseJavaVersionEnum(javaVersion));
     }
-
-    public static void main(String... arg) {
-        System.out.println(toJavaVersionEnum(JavaVersion.JAVA_ZULU_11_0_2));
-    }
-
 }

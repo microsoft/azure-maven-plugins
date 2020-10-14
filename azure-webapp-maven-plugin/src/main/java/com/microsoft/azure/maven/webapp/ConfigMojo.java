@@ -341,27 +341,23 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
         final String javaVersion = queryer.assureInputFromUser("javaVersion", defaultJavaVersion,
                 JavaVersionUtils.getValidJavaVersions(), null);
-        // For project which package is jar, use java se runtime2
+        // For project which package is jar, use java se runtime
         if (isJarProject()) {
             return builder.runtimeStack(RuntimeStackUtils.getJavaSERuntimeStack(javaVersion));
         }
         final List<String> validRuntimeStacks = RuntimeStackUtils.getValidLinuxRuntimeStacksForJavaVersion(javaVersion);
-        String defaultLinuxRuntimeStack = StringUtils.capitalize(configuration.getLinuxRuntimeStackOrDefault());
+        String defaultLinuxRuntimeStack = configuration.getLinuxRuntimeStackOrDefault();
         // sometimes the combination of <javaVersion> and <webContainer> may not be valid, but
         // <webContainer> might be right
         if (Objects.isNull(configuration.getRuntimeStack()) && Objects.nonNull(this.getRuntime()) &&
                  StringUtils.isNotBlank(this.getRuntime().getWebContainerRaw())) {
-            final String validRuntStackFromExisting = findStringInCollectionIgnoreCase(validRuntimeStacks, this.getRuntime().getWebContainerRaw());
-            if (validRuntStackFromExisting == null) {
+            final String validRuntStackFromExistingConfiguration = findStringInCollectionIgnoreCase(validRuntimeStacks, this.getRuntime().getWebContainerRaw());
+            if (validRuntStackFromExistingConfiguration == null) {
                 Log.warn(String.format("'%s' is not supported in java version: %s",
                         this.getRuntime().getWebContainerRaw(), javaVersion));
             } else {
-                defaultLinuxRuntimeStack = validRuntStackFromExisting;
+                defaultLinuxRuntimeStack = validRuntStackFromExistingConfiguration;
             }
-        }
-        if (Objects.isNull(findStringInCollectionIgnoreCase(validRuntimeStacks, defaultLinuxRuntimeStack))) {
-            Log.warn(String.format("'%s' is not supported in java version: %s", defaultLinuxRuntimeStack, javaVersion));
-            defaultLinuxRuntimeStack = WebAppConfiguration.DEFAULT_LINUX_WEB_CONTAINER;
         }
         final String runtimeStack = queryer.assureInputFromUser("runtimeStack", defaultLinuxRuntimeStack,
                 validRuntimeStacks, null);
@@ -378,7 +374,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
 
         final String javaVersionInput = queryer.assureInputFromUser("javaVersion", defaultJavaVersion,
-                JavaVersionUtils.getValidJavaVersions(), null);
+                validJavaVersions, null);
         final JavaVersion javaVersion = JavaVersionUtils.toAzureSdkJavaVersion(javaVersionInput);
         // For project which package is jar, use java se runtime
         if (isJarProject()) {
