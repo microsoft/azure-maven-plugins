@@ -6,13 +6,17 @@
 
 package com.microsoft.azure.maven.webapp.serializer;
 
+import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
+import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 
 import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.plexus.util.StringUtils;
 import org.dom4j.Element;
 import org.dom4j.dom.DOMElement;
 
@@ -25,7 +29,7 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
     @Override
     public void saveToXML(Element configurationElement)
         throws MojoFailureException {
-        createOrUpdateAttribute("schemaVersion", "V2", oldConfigs.getSchemaVersion(), configurationElement);
+        createOrUpdateAttribute("schemaVersion", "v2", oldConfigs.getSchemaVersion(), configurationElement);
         createOrUpdateAttribute("subscriptionId", newConfigs.getSubscriptionId(), oldConfigs.getSubscriptionId(), configurationElement);
         createOrUpdateAttribute("resourceGroup", newConfigs.getResourceGroup(),
             oldConfigs.getResourceGroup(), configurationElement);
@@ -88,8 +92,8 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
 
     private void updateLinuxRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
                                         Element configurationElement) {
-        final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
-        createOrUpdateAttribute("os", "linux", oldOS, configurationElement);
+        final String oldOS = formatOperationSystem(oldConfigs.getOs());
+        createOrUpdateAttribute("os", "Linux", oldOS, configurationElement);
         if (newConfigs.getRuntimeStack() != null) {
             final String oldJavaVersion = oldConfigs.getRuntimeStack() == null ? null :
                     RuntimeStackUtils.getJavaVersionFromRuntimeStack(oldConfigs.getRuntimeStack());
@@ -109,26 +113,25 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
     private void updateWindowsRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
                                           Element configurationElement) {
 
-        final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
-        createOrUpdateAttribute("os", "windows", oldOS, configurationElement);
+        final String oldOS = formatOperationSystem(oldConfigs.getOs());
+        createOrUpdateAttribute("os", "Windows", oldOS, configurationElement);
         if (newConfigs.getJavaVersion() != null) {
             final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
-                    oldConfigs.getJavaVersion().toString();
-            createOrUpdateAttribute("javaVersion", newConfigs.getJavaVersion().toString(),
+                    JavaVersionUtils.formatJavaVersion(oldConfigs.getJavaVersion());
+            createOrUpdateAttribute("javaVersion", JavaVersionUtils.formatJavaVersion(newConfigs.getJavaVersion()),
                     oldJavaVersion, configurationElement);
         }
         if (newConfigs.getWebContainer() != null) {
-            final String oldWebContainer = oldConfigs.getWebContainer() == null ? null :
-                    oldConfigs.getWebContainer().toString();
-            createOrUpdateAttribute("webContainer", newConfigs.getWebContainer().toString(), oldWebContainer,
+            final String oldWebContainer = WebContainerUtils.formatWebContainer(oldConfigs.getWebContainer());
+            createOrUpdateAttribute("webContainer", WebContainerUtils.formatWebContainer(newConfigs.getWebContainer()), oldWebContainer,
                     configurationElement);
         }
     }
 
     private void updateDockerRunTimeNode(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs,
                                          Element configurationElement) {
-        final String oldOS = oldConfigs.getOs() == null ? null : oldConfigs.getOs().toString();
-        createOrUpdateAttribute("os", "docker", oldOS, configurationElement);
+        final String oldOS = formatOperationSystem(oldConfigs.getOs());
+        createOrUpdateAttribute("os", "Docker", oldOS, configurationElement);
         createOrUpdateAttribute("image", newConfigs.getImage(), oldConfigs.getImage(), configurationElement);
         createOrUpdateAttribute("serverId", newConfigs.getServerId(), oldConfigs.getServerId(), configurationElement);
         createOrUpdateAttribute("registryUrl", newConfigs.getRegistryUrl(), oldConfigs.getRegistryUrl(),
@@ -147,5 +150,9 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
         final DOMElement deploymentNode = new DOMElement("deployment");
         deploymentNode.add(createResourcesNode(webAppConfiguration.getResources()));
         return deploymentNode;
+    }
+
+    private static String formatOperationSystem(OperatingSystemEnum osEnum) {
+        return osEnum == null ? null : StringUtils.capitalise(osEnum.toString());
     }
 }

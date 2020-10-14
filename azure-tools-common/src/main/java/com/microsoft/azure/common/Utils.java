@@ -27,6 +27,7 @@ public final class Utils {
     private static final String POM = "pom";
     private static final String JAR = "jar";
     private static final String WAR = "war";
+    private static final String EAR = "ear";
     private static final String SUBSCRIPTIONS = "subscriptions";
 
     public static String getArtifactCompileVersion(File artifact) throws AzureExecutionException {
@@ -102,5 +103,9 @@ public final class Utils {
 
     public static boolean isWarPackagingProject(String packaging) {
         return WAR.equalsIgnoreCase(packaging);
+    }
+
+    public static boolean isEarPackagingProject(String packaging) {
+        return EAR.equalsIgnoreCase(packaging);
     }
 }

@@ -8,9 +8,8 @@ package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.management.appservice.RuntimeStack;
 
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -20,16 +19,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.microsoft.azure.maven.webapp.utils.JavaVersionUtils.JAVA;
+import static com.microsoft.azure.maven.webapp.utils.JavaVersionUtils.JAVA_SE;
+import static com.microsoft.azure.maven.webapp.utils.JavaVersionUtils.equalsJavaVersion;
+
 public class RuntimeStackUtils {
 
-    private static final List<String> JAVA_STACKS = Arrays.asList("JAVA", "TOMCAT");
+    private static final List<String> JAVA_STACKS = Arrays.asList(RuntimeStack.JAVA_8_JRE8.stack(),
+            RuntimeStack.TOMCAT_8_5_JRE8.stack(), RuntimeStack.JBOSS_EAP_7_2_JAVA8.stack());
     private static final List<RuntimeStack> RUNTIME_STACKS = new ArrayList<>();
-    private static final BidiMap<String, String> JAVA_VERSIONS = new DualHashBidiMap<>();
 
     static {
         // Init runtimeStack list
-        for (final Field field : RuntimeStack.class.getFields()) {
-            if (Modifier.isStatic(field.getModifiers())) {
+        for (final Field field : FieldUtils.getAllFieldsList(RuntimeStack.class)) {
+            if (Modifier.isStatic(field.getModifiers()) && field.getType().equals(RuntimeStack.class)) {
                 try {
                     final RuntimeStack runtimeStack = (RuntimeStack) field.get(null);
                     if (JAVA_STACKS.contains(runtimeStack.stack())) {
@@ -41,25 +44,24 @@ public class RuntimeStackUtils {
             }
         }
         // init map for java version and its displayname
-        JAVA_VERSIONS.put("Java 8", "jre8");
-        JAVA_VERSIONS.put("Java 11", "java11");
     }
 
     public static String getJavaVersionFromRuntimeStack(RuntimeStack runtimeStack) {
-        return runtimeStack.version().split("-")[1];
+        final String javaVersion = runtimeStack.version().split("-")[1];
+        return JavaVersionUtils.formatJavaVersion(javaVersion);
     }
 
     public static String getWebContainerFromRuntimeStack(RuntimeStack runtimeStack) {
-        final String stack = runtimeStack.stack();
+        final String stack = StringUtils.capitalize(StringUtils.lowerCase(runtimeStack.stack()));
         final String version = runtimeStack.version();
-        return stack.equalsIgnoreCase("JAVA") ?
-                version.split("-")[1] : stack + " " + version.split("-")[0];
+        return stack.equalsIgnoreCase(JAVA) ?
+                JAVA_SE : stack + " " + version.split("-")[0];
     }
 
-    public static RuntimeStack getRuntimeStack(String javaVersion) {
+    public static RuntimeStack getJavaSERuntimeStack(String javaVersion) {
         for (final RuntimeStack runtimeStack : getValidRuntimeStacks()) {
-            if (runtimeStack.stack().equals("JAVA") &&
-                    getJavaVersionFromRuntimeStack(runtimeStack).equalsIgnoreCase(javaVersion)) {
+            if (runtimeStack.stack().equals(JAVA) &&
+                    equalsJavaVersion(getJavaVersionFromRuntimeStack(runtimeStack), javaVersion)) {
                 return runtimeStack;
             }
         }
@@ -67,8 +69,9 @@ public class RuntimeStackUtils {
     }
 
     public static RuntimeStack getRuntimeStack(String javaVersion, String webContainer) {
-        if (StringUtils.isEmpty(webContainer) || getValidJavaVersions().containsValue(webContainer)) {
-            return getRuntimeStack(javaVersion);
+        if (StringUtils.isEmpty(webContainer) || JavaVersionUtils.getValidJavaVersions().contains(webContainer) ||
+                StringUtils.equalsIgnoreCase(JAVA_SE, webContainer)) {
+            return getJavaSERuntimeStack(javaVersion);
         }
         for (final RuntimeStack runtimeStack : getValidRuntimeStacks()) {
             if (getJavaVersionFromRuntimeStack(runtimeStack).equalsIgnoreCase(javaVersion) &&
@@ -83,19 +86,14 @@ public class RuntimeStackUtils {
         return new ArrayList<>(RUNTIME_STACKS);
     }
 
-    public static List<String> getValidWebContainer(String javaVersion) {
+    public static List<String> getValidLinuxRuntimeStacksForJavaVersion(String javaVersion) {
         final Set<String> result = new HashSet<>();
         for (final RuntimeStack runtimeStack : getValidRuntimeStacks()) {
-            if (getJavaVersionFromRuntimeStack(runtimeStack).equalsIgnoreCase(javaVersion) &&
-                    !runtimeStack.stack().equals("JAVA")) {
+            if (equalsJavaVersion(getJavaVersionFromRuntimeStack(runtimeStack), javaVersion) &&
+                    !runtimeStack.stack().equals(JAVA)) {
                 result.add(getWebContainerFromRuntimeStack(runtimeStack));
             }
         }
         return new ArrayList<>(result);
     }
-
-    public static BidiMap<String, String> getValidJavaVersions() {
-        return JAVA_VERSIONS;
-    }
-
 }

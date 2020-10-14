@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.JavaVersion;
@@ -13,8 +14,9 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.maven.webapp.models.JavaVersionEnum;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
+import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
@@ -30,8 +32,8 @@ public class WebAppConfiguration {
     public static final PricingTier DEFAULT_PRICINGTIER = PricingTier.PREMIUM_P1V2;
     public static final JavaVersion DEFAULT_WINDOWS_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
     public static final WebContainer DEFAULT_WINDOWS_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
-    public static final String DEFAULT_LINUX_JAVA_VERSION = "jre8";
-    public static final String DEFAULT_LINUX_WEB_CONTAINER = "TOMCAT 8.5";
+    public static final String DEFAULT_LINUX_JAVA_VERSION = JavaVersionEnum.JAVA_8.toString();
+    public static final String DEFAULT_LINUX_WEB_CONTAINER = WebContainerUtils.formatWebContainer(WebContainer.TOMCAT_8_5_NEWEST);
 
     // artifact deploy related configurations
     protected String subscriptionId;
