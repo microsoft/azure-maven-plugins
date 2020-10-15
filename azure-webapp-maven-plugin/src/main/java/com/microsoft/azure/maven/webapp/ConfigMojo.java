@@ -75,14 +75,18 @@ import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationVa
  */
 @Mojo(name = "config")
 public class ConfigMojo extends AbstractWebAppMojo {
-    public static final String NOT_EMPTY_REGEX = "[\\s\\S]+";
-    public static final String BOOLEAN_REGEX = "[YyNn]";
+    private static final String WEB_CONTAINER = "webContainer";
+    private static final String JAVA_VERSION = "javaVersion";
+    private static final String COMMON_PROMPT = "Define value for %s [%s]:";
+    private static final String PRICING_TIER_PROMPT = "Define value for pricingTier [%s]:";
+    private static final String NOT_EMPTY_REGEX = "[\\s\\S]+";
+    private static final String BOOLEAN_REGEX = "[YyNn]";
 
-    public static final String CONFIG_ONLY_SUPPORT_V2 = "Config only support V2 schema";
-    public static final String CHANGE_OS_WARNING = "The plugin may not work if you change the os of an existing " +
+    private static final String CONFIG_ONLY_SUPPORT_V2 = "Config only support V2 schema";
+    private static final String CHANGE_OS_WARNING = "The plugin may not work if you change the os of an existing " +
         "webapp.";
-    public static final String CONFIGURATION_NO_RUNTIME = "No runtime configuration, skip it.";
-    public static final String SAVING_TO_POM = "Saving configuration to pom.";
+    private static final String CONFIGURATION_NO_RUNTIME = "No runtime configuration, skip it.";
+    private static final String SAVING_TO_POM = "Saving configuration to pom.";
 
     private static final String PRICE_TIER_NOT_AVAIL = "The price tier \"P1\", \"P2\", \"P3\" are only available for Windows runtime, use \"%s\" instead.";
     private static final String NO_JAVA_WEB_APPS = "There are no Java Web Apps in current subscription, please follow the following steps to create a new one.";
@@ -165,12 +169,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
                     if (!StringUtils.equals(
                             JavaVersionUtils.formatJavaVersion(result.getJavaVersion()),
                             this.getRuntime().getJavaVersionRaw())) {
-                        FieldUtils.writeField(configuration, "javaVersion", null, true);
+                        FieldUtils.writeField(configuration, JAVA_VERSION, null, true);
                     }
                     if (!StringUtils.equals(
                             WebContainerUtils.formatWebContainer(result.getWebContainer()),
                             this.getRuntime().getWebContainerRaw())) {
-                        FieldUtils.writeField(configuration, "webContainer", null, true);
+                        FieldUtils.writeField(configuration, WEB_CONTAINER, null, true);
                     }
                     break;
                 default:
@@ -252,7 +256,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     protected WebAppConfiguration updateConfiguration(WebAppConfiguration configuration)
         throws MojoFailureException, AzureExecutionException {
         final String selection = queryer.assureInputFromUser("selection", configTypes[0], Arrays.asList(configTypes),
-            "Please choose which part to config");
+            String.format("Please choose which part to config [%s]:", configTypes[0]));
         switch (selection) {
             case "Application":
                 return getWebAppConfiguration(configuration);
@@ -298,7 +302,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
 
         final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier,
-            availablePriceList, String.format("Define value for pricingTier(%s):", defaultPricingTier));
+            availablePriceList, String.format(PRICING_TIER_PROMPT, defaultPricingTier));
         return builder
             .subscriptionId(subscriptionId)
             .appName(appName)
@@ -343,7 +347,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
             configuration.getOs();
         final String os = queryer.assureInputFromUser("OS", defaultOs, String.format("Define value for OS [%s]:", defaultOs.toString()));
         builder.os(Utils.parseOperationSystem(os));
-
+        final String defaultPricingTier = configuration.getPricingTierOrDefault();
+        final List<String> availablePriceList = getAvailablePricingTierList(Utils.parseOperationSystem(os));
+        final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier, availablePriceList,
+                String.format(PRICING_TIER_PROMPT, defaultPricingTier));
+        builder.pricingTier(AppServiceUtils.getPricingTierFromString(pricingTier));
         switch (os.toLowerCase()) {
             case "linux":
                 builder = getRuntimeConfigurationOfLinux(builder, configuration);
@@ -369,8 +377,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 Objects.nonNull(this.getRuntime().getJavaVersion())) {
             defaultJavaVersion = JavaVersionUtils.formatJavaVersion(this.getRuntime().getJavaVersion());
         }
-        final String javaVersion = queryer.assureInputFromUser("javaVersion", defaultJavaVersion,
-                JavaVersionUtils.getValidJavaVersions(), null);
+        final String javaVersion = queryer.assureInputFromUser(JAVA_VERSION, defaultJavaVersion,
+                JavaVersionUtils.getValidJavaVersions(), String.format(COMMON_PROMPT, JAVA_VERSION, defaultJavaVersion));
         // For project which package is jar, use java se runtime
         if (isJarProject()) {
             return builder.runtimeStack(RuntimeStackUtils.getJavaSERuntimeStack(javaVersion));
@@ -408,8 +416,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
             defaultJavaVersion = WebAppConfiguration.DEFAULT_LINUX_JAVA_VERSION;
         }
 
-        final String javaVersionInput = queryer.assureInputFromUser("javaVersion", defaultJavaVersion,
-                validJavaVersions, null);
+        final String javaVersionInput = queryer.assureInputFromUser(JAVA_VERSION, defaultJavaVersion,
+                validJavaVersions, String.format(COMMON_PROMPT, JAVA_VERSION, defaultJavaVersion));
         final JavaVersion javaVersion = JavaVersionUtils.toAzureSdkJavaVersion(javaVersionInput);
         // For project which package is jar, use java se runtime
         if (isJarProject()) {
@@ -421,8 +429,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
             return builder.javaVersion(javaVersion).webContainer(webContainer);
         }
         final String defaultWebContainer = configuration.getWebContainerOrDefault();
-        final String webContainerInput = queryer.assureInputFromUser("webContainer", defaultWebContainer,
-                WebContainerUtils.getAvailableWebContainer(), null);
+        final String webContainerInput = queryer.assureInputFromUser(WEB_CONTAINER, defaultWebContainer,
+                WebContainerUtils.getAvailableWebContainer(), String.format(COMMON_PROMPT, WEB_CONTAINER, defaultWebContainer));
         return builder.javaVersion(javaVersion).webContainer(WebContainer.fromString(webContainerInput));
     }
 
@@ -441,7 +449,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final List<PricingTier> availablePricingTier = AppServiceUtils.getAvailablePricingTiers(
                 operatingSystem == OperatingSystemEnum.Windows ? OperatingSystem.WINDOWS : OperatingSystem.LINUX);
         for (final PricingTier pricingTier : availablePricingTier) {
-            pricingTierSet.add(pricingTier.toSkuDescription().size().toLowerCase());
+            pricingTierSet.add(pricingTier.toSkuDescription().size());
         }
         final List<String> result = new ArrayList<>(pricingTierSet);
         Collections.sort(result);

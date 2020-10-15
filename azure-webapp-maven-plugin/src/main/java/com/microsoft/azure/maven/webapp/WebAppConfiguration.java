@@ -15,6 +15,7 @@ import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.models.JavaVersionEnum;
+import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 
@@ -25,6 +26,7 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 
 import java.util.List;
+import java.util.Objects;
 
 public class WebAppConfiguration {
 
@@ -227,11 +229,11 @@ public class WebAppConfiguration {
     }
 
     public String getJavaVersionOrDefault() {
-        return javaVersion != null ? javaVersion.toString() : DEFAULT_WINDOWS_JAVA_VERSION.toString();
+        return JavaVersionUtils.formatJavaVersion(Objects.nonNull(javaVersion) ? javaVersion : DEFAULT_WINDOWS_JAVA_VERSION);
     }
 
     public String getWebContainerOrDefault() {
-        return webContainer != null ? webContainer.toString() : DEFAULT_WINDOWS_WEB_CONTAINER.toString();
+        return WebContainerUtils.formatWebContainer(Objects.nonNull(webContainer) ? webContainer : DEFAULT_WINDOWS_WEB_CONTAINER);
     }
 
     // endregion

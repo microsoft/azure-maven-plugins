@@ -63,7 +63,7 @@ public class WebContainerUtils {
             if (!StringUtils.containsIgnoreCase(webContainer.toString(), JAVA) &&
                     !StringUtils.containsIgnoreCase(webContainer.toString(), "jetty") &&
                     fields.indexOf(webContainer) >= 0) {
-                result.add(webContainer.toString());
+                result.add(WebContainerUtils.formatWebContainer(webContainer));
             }
         }
         Collections.sort(result);
