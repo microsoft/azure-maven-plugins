@@ -41,6 +41,7 @@ import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.beryx.textio.TextIO;
@@ -74,7 +75,6 @@ import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationVa
  */
 @Mojo(name = "config")
 public class ConfigMojo extends AbstractWebAppMojo {
-
     public static final String NOT_EMPTY_REGEX = "[\\s\\S]+";
     public static final String BOOLEAN_REGEX = "[YyNn]";
 
@@ -117,7 +117,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             } else {
                 config(configuration);
             }
-        } catch (DocumentException | MojoFailureException | IOException e) {
+        } catch (DocumentException | MojoFailureException | IOException | IllegalAccessException e) {
             throw new AzureExecutionException(e.getMessage(), e);
         } finally {
             queryer.close();
@@ -129,7 +129,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     protected void config(WebAppConfiguration configuration) throws MojoFailureException, AzureExecutionException,
-        IOException {
+        IOException, IllegalAccessException {
         WebAppConfiguration result = null;
         do {
             if (configuration == null) {
@@ -148,6 +148,36 @@ public class ConfigMojo extends AbstractWebAppMojo {
             }
         } while (!confirmConfiguration(result));
         Log.info(SAVING_TO_POM);
+        // legacy code: to distinguish the non-value changes of javaVersion and webContainer: eg: jre8 to Java 8, jre8 -> Java SE
+        if (Objects.nonNull(result.getOs()) && Objects.nonNull(this.getRuntime())) {
+            switch (result.getOs()) {
+                case Linux:
+                    if (!StringUtils.equals(
+                            RuntimeStackUtils.getJavaVersionFromRuntimeStack(result.getRuntimeStack()),
+                            this.getRuntime().getJavaVersionRaw()) ||
+                        !StringUtils.equals(
+                                RuntimeStackUtils.getWebContainerFromRuntimeStack(result.getRuntimeStack()),
+                                this.getRuntime().getWebContainerRaw())) {
+                        FieldUtils.writeField(configuration, "runtimeStack", null, true);
+                    }
+                    break;
+                case Windows:
+                    if (!StringUtils.equals(
+                            JavaVersionUtils.formatJavaVersion(result.getJavaVersion()),
+                            this.getRuntime().getJavaVersionRaw())) {
+                        FieldUtils.writeField(configuration, "javaVersion", null, true);
+                    }
+                    if (!StringUtils.equals(
+                            WebContainerUtils.formatWebContainer(result.getWebContainer()),
+                            this.getRuntime().getWebContainerRaw())) {
+                        FieldUtils.writeField(configuration, "webContainer", null, true);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
         pomHandler.updatePluginConfiguration(result, configuration);
     }
 
@@ -353,10 +383,15 @@ public class ConfigMojo extends AbstractWebAppMojo {
                  StringUtils.isNotBlank(this.getRuntime().getWebContainerRaw())) {
             final String validRuntStackFromExistingConfiguration = findStringInCollectionIgnoreCase(validRuntimeStacks, this.getRuntime().getWebContainerRaw());
             if (validRuntStackFromExistingConfiguration == null) {
-                Log.warn(String.format("'%s' is not supported in java version: %s",
+                Log.warn(String.format("Invalid webContainer '%s' for java version: %s",
                         this.getRuntime().getWebContainerRaw(), javaVersion));
             } else {
                 defaultLinuxRuntimeStack = validRuntStackFromExistingConfiguration;
+            }
+        } else {
+            if (Objects.isNull(findStringInCollectionIgnoreCase(validRuntimeStacks, defaultLinuxRuntimeStack))) {
+                Log.warn(String.format("'%s' is not supported in java version: %s", defaultLinuxRuntimeStack, javaVersion));
+                defaultLinuxRuntimeStack = WebAppConfiguration.DEFAULT_LINUX_WEB_CONTAINER;
             }
         }
         final String runtimeStack = queryer.assureInputFromUser("runtimeStack", defaultLinuxRuntimeStack,

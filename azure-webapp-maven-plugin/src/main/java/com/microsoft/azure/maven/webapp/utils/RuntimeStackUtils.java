@@ -50,11 +50,17 @@ public class RuntimeStackUtils {
     }
 
     public static String getJavaVersionFromRuntimeStack(RuntimeStack runtimeStack) {
+        if (Objects.isNull(runtimeStack)) {
+            return null;
+        }
         final String javaVersion = runtimeStack.version().split("-")[1];
         return JavaVersionUtils.formatJavaVersion(javaVersion);
     }
 
     public static String getWebContainerFromRuntimeStack(RuntimeStack runtimeStack) {
+        if (Objects.isNull(runtimeStack)) {
+            return null;
+        }
         final String stack = StringUtils.capitalize(StringUtils.lowerCase(runtimeStack.stack()));
         final String version = runtimeStack.version();
         return stack.equalsIgnoreCase(JAVA) ?

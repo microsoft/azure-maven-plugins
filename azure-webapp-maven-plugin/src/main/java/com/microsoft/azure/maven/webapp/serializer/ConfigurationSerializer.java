@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.serializer;
 
+import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 
@@ -49,7 +50,7 @@ public abstract class ConfigurationSerializer {
 
     protected void createOrUpdateAttribute(String attribute, String value, String oldValue, Element element) {
         // if value is not changed, just return , in case overwrite ${} properties
-        if (value == null || value.equalsIgnoreCase(oldValue)) {
+        if (value == null || StringUtils.equals(value, oldValue)) {
             return;
         } else {
             XMLUtils.setChildValue(attribute, value, element);
