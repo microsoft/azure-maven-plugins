@@ -149,7 +149,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         } while (!confirmConfiguration(result));
         Log.info(SAVING_TO_POM);
         // legacy code: to distinguish the non-value changes of javaVersion and webContainer: eg: jre8 to Java 8, jre8 -> Java SE
-        if (Objects.nonNull(result.getOs()) && Objects.nonNull(this.getRuntime())) {
+        if (Objects.nonNull(configuration) && Objects.nonNull(result.getOs()) && Objects.nonNull(this.getRuntime())) {
             switch (result.getOs()) {
                 case Linux:
                     if (!StringUtils.equals(
