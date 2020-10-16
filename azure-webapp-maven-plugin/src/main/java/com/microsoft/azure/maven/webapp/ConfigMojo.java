@@ -433,10 +433,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
         // For project which package is jar, use java se runtime
         if (isJarProject()) {
             final WebContainer webContainer = WebContainerUtils.getJavaSEWebContainer();
-            if (Objects.isNull(webContainer)) {
-                throw new MojoFailureException(
-                        String.format("Java SE environment is not supported in %s", javaVersion.toString()));
-            }
             return builder.javaVersion(javaVersion).webContainer(webContainer);
         }
         final String defaultWebContainer = configuration.getWebContainerOrDefault();
