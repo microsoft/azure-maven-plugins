@@ -12,11 +12,13 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
-import static com.microsoft.azure.maven.webapp.ConfigMojo.JAVA_11_STRING;
+import java.util.Objects;
+
 
 /**
  * Runtime Setting
@@ -75,10 +77,6 @@ public class RuntimeSetting {
 
     public static final String RUNTIME_CONFIG_REFERENCE = "https://aka.ms/maven_webapp_runtime";
 
-    static {
-        WebContainer.fromString(JAVA_11_STRING); // Add Java 11 Enum as Fluent SDK had not added it yet
-    }
-
     public String getOs() {
         return this.os;
     }
@@ -92,8 +90,12 @@ public class RuntimeSetting {
     }
 
     public JavaVersion getJavaVersion() {
-        return (StringUtils.isEmpty(javaVersion) || !checkJavaVersion(javaVersion)) ?
-                null : JavaVersion.fromString(javaVersion);
+        final JavaVersion ver = JavaVersionUtils.toAzureSdkJavaVersion(this.javaVersion);
+        if (Objects.nonNull(ver)) {
+            return ver;
+        }
+        return (StringUtils.isEmpty(javaVersion) || !checkJavaVersion(javaVersion)) ? null
+                : JavaVersion.fromString(javaVersion);
     }
 
     public RuntimeStack getLinuxRuntime() {

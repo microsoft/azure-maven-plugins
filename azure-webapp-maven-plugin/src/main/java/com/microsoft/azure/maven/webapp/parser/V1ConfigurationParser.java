@@ -67,7 +67,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
         validate(validator.validateRuntimeStack());
         final String linuxRuntime = mojo.getLinuxRuntime();
         // JavaSE runtime
-        final RuntimeStack javaSERuntimeStack = RuntimeStackUtils.getRuntimeStack(linuxRuntime);
+        final RuntimeStack javaSERuntimeStack = RuntimeStackUtils.getJavaSERuntimeStack(linuxRuntime);
         if (javaSERuntimeStack != null) {
             return javaSERuntimeStack;
         }
