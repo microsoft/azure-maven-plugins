@@ -232,7 +232,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     protected WebAppConfiguration initConfig() throws MojoFailureException, AzureExecutionException {
         final WebAppConfiguration result = getDefaultConfiguration();
-        return getRuntimeConfiguration(result);
+        return getRuntimeConfiguration(result, true);
     }
 
     private WebAppConfiguration getDefaultConfiguration() throws AzureExecutionException {
@@ -262,7 +262,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 return getWebAppConfiguration(configuration);
             case "Runtime":
                 Log.warn(CHANGE_OS_WARNING);
-                return getRuntimeConfiguration(configuration);
+                return getRuntimeConfiguration(configuration, false);
             case "DeploymentSlot":
                 return getSlotConfiguration(configuration);
             default:
@@ -340,18 +340,24 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return builder.deploymentSlotSetting(result).build();
     }
 
-    private WebAppConfiguration getRuntimeConfiguration(WebAppConfiguration configuration)
+    private WebAppConfiguration getRuntimeConfiguration(WebAppConfiguration configuration, boolean initial)
         throws MojoFailureException, AzureExecutionException {
         WebAppConfiguration.Builder builder = configuration.getBuilderFromConfiguration();
         final OperatingSystemEnum defaultOs = configuration.getOs() == null ? OperatingSystemEnum.Linux :
             configuration.getOs();
         final String os = queryer.assureInputFromUser("OS", defaultOs, String.format("Define value for OS [%s]:", defaultOs.toString()));
         builder.os(Utils.parseOperationSystem(os));
-        final String defaultPricingTier = configuration.getPricingTierOrDefault();
-        final List<String> availablePriceList = getAvailablePricingTierList(Utils.parseOperationSystem(os));
-        final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier, availablePriceList,
-                String.format(PRICING_TIER_PROMPT, defaultPricingTier));
-        builder.pricingTier(AppServiceUtils.getPricingTierFromString(pricingTier));
+        if (initial || pricingTierNotSupport(Utils.parseOperationSystem(os), configuration.getPricingTier())) {
+            String defaultPricingTier = configuration.getPricingTierOrDefault();
+            final List<String> availablePriceList = getAvailablePricingTierList(Utils.parseOperationSystem(os));
+            if (!availablePriceList.contains(defaultPricingTier)) {
+                Log.warn(String.format("'%s' is not supported in '%s'", defaultPricingTier, os));
+                defaultPricingTier = AppServiceUtils.convertPricingTierToString(WebAppConfiguration.DEFAULT_PRICINGTIER);
+            }
+            final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier, availablePriceList,
+                    String.format(PRICING_TIER_PROMPT, defaultPricingTier));
+            builder.pricingTier(AppServiceUtils.getPricingTierFromString(pricingTier));
+        }
         switch (os.toLowerCase()) {
             case "linux":
                 builder = getRuntimeConfigurationOfLinux(builder, configuration);
@@ -366,6 +372,11 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 throw new AzureExecutionException("The value of <os> is unknown.");
         }
         return builder.build();
+    }
+
+    private static boolean pricingTierNotSupport(OperatingSystemEnum parseOperationSystem, PricingTier pricingTier) {
+        final List<String> availablePriceList = getAvailablePricingTierList(parseOperationSystem);
+        return Objects.isNull(findStringInCollectionIgnoreCase(availablePriceList, AppServiceUtils.convertPricingTierToString(pricingTier)));
     }
 
     private WebAppConfiguration.Builder getRuntimeConfigurationOfLinux(WebAppConfiguration.Builder builder,
@@ -568,6 +579,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         if (AppServiceUtils.isDockerAppService(webapp)) {
             builder.os(OperatingSystemEnum.Docker);
             final Map<String, AppSetting> settings = webapp.getAppSettings();
+
             final AppSetting imageSetting = settings.get(SETTING_DOCKER_IMAGE);
             if (imageSetting != null && StringUtils.isNotBlank(imageSetting.value())) {
                 builder.image(imageSetting.value());
@@ -588,8 +600,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
             builder.os(OperatingSystemEnum.Linux);
             final RuntimeStack runtimeStack = AppServiceUtils.parseRuntimeStack(webapp.linuxFxVersion());
             builder.runtimeStack(runtimeStack);
-            builder.javaVersion(JavaVersionUtils
-                    .toAzureSdkJavaVersion(RuntimeStackUtils.getJavaVersionFromRuntimeStack(runtimeStack)));
         } else {
             builder.os(OperatingSystemEnum.Windows);
             final WebContainer webContainer = WebContainer.fromString(webapp.javaContainer() + " " + webapp.javaContainerVersion());
