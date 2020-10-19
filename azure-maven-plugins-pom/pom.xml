@@ -4,7 +4,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugins-pom</artifactId>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.5</version>
     <packaging>pom</packaging>
     <name>Maven Plugins for Azure</name>
     <description>Maven plugins for Microsoft Azure services</description>
@@ -51,7 +51,7 @@
         <azure.maven-plugin-lib.version>1.4.0</azure.maven-plugin-lib.version>
         <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
         <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
-        <azure.tools-common.version>0.9.0-SNAPSHOT</azure.tools-common.version>
+        <azure.tools-common.version>0.9.0</azure.tools-common.version>
         <azure.version>1.36.3</azure.version>
 
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
