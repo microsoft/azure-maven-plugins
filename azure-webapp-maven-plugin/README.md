@@ -68,7 +68,7 @@ Here is a typical configuration for Azure Web App Maven Plugin:
 
 Property | Required | Description 
 ---|---|---
-`<schemaVersion>` | false | Specify the version of the configuration schema. The default value and recommended value is  `v2`  |
+`<schemaVersion>` | false | Specify the version of the configuration schema. The recommended value is  `v2`  |
 `<subscriptionId>` | false | Specifies the target subscription.<br>Use this setting when you have multiple subscriptions in your authentication file.|
 `<resourceGroup>` | true | Azure Resource Group for your Web App. |
 `<appName>` | true | The name of your Web App. |
