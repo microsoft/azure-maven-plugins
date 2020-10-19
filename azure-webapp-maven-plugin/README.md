@@ -22,7 +22,7 @@ Mavan plugins supports Azure Cli and some other auth methods, see [Authenticatio
 
 
 ## Quickstart
-You can prepare your application ready for Azure Web App easily with one command:
+You can prepare your application for Azure Web App easily with one command:
 
 ```shell
 mvn com.microsoft.azure:azure-webapp-maven-plugin:1.12.0:config
