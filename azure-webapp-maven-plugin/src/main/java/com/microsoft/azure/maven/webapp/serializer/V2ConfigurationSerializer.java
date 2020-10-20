@@ -100,8 +100,7 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
             createOrUpdateAttribute("javaVersion",
                     RuntimeStackUtils.getJavaVersionFromRuntimeStack(newConfigs.getRuntimeStack()), oldJavaVersion,
                     configurationElement);
-        }
-        if (newConfigs.getRuntimeStack() != null) {
+
             final String oldWebContainer = oldConfigs.getRuntimeStack() == null ? null :
                     RuntimeStackUtils.getWebContainerFromRuntimeStack(oldConfigs.getRuntimeStack());
             createOrUpdateAttribute("webContainer",

@@ -42,7 +42,7 @@ public class WebContainerUtils {
         if (Objects.isNull(webContainer)) {
             return null;
         }
-        if (StringUtils.equalsIgnoreCase(JAVA_11_STRING, webContainer.toString())) {
+        if (StringUtils.equalsIgnoreCase(JAVA_11_STRING, webContainer.toString()) || StringUtils.equalsIgnoreCase(JAVA_SE, webContainer.toString())) {
             // since java version information is set at javaVersion, for web container,
             // always return "Java SE"
             return JAVA_SE;
