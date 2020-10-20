@@ -6,7 +6,9 @@
 
 package com.microsoft.azure.maven.webapp.utils;
 
+import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.webapp.models.JavaVersionEnum;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -48,6 +50,59 @@ public class WebContainerUtils {
         return StringUtils.capitalize(webContainer.toString());
     }
 
+    public static boolean isJavaSeWebContainer(String webContainer) {
+        return (StringUtils.equalsIgnoreCase(JAVA_11_STRING, webContainer) ||
+                StringUtils.equalsIgnoreCase(WebContainer.JAVA_8.toString(), webContainer) ||
+                StringUtils.equalsIgnoreCase(JAVA_SE, webContainer) ||
+                StringUtils.equalsIgnoreCase(JAVA, webContainer));
+    }
+
+    public static WebContainer parseNonJavaSEWebContainer(String webContainer) {
+        final List<Object> fields = FieldUtils.getAllFieldsList(WebContainer.class).stream()
+                .filter(field -> Modifier.isStatic(field.getModifiers()) && field.getName().contains("NEWEST")).map(field -> {
+                    try {
+                        return FieldUtils.readStaticField(field);
+                    } catch (IllegalAccessException e) {
+                        return null;
+                    }
+                }).filter(field -> field instanceof WebContainer).collect(Collectors.toList());
+
+        for (final WebContainer webContainerEnum : WebContainer.values()) {
+            if (!StringUtils.containsIgnoreCase(webContainerEnum.toString(), JAVA) &&
+                    !StringUtils.containsIgnoreCase(webContainerEnum.toString(), "jetty") &&
+                    fields.indexOf(webContainerEnum) >= 0) {
+                if (StringUtils.equalsIgnoreCase(formatWebContainer(webContainerEnum), webContainer)) {
+                    return webContainerEnum;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static WebContainer parseWebContainer(String webContainer, JavaVersion javaVersion) {
+        if (StringUtils.isBlank(webContainer)) {
+            return null;
+        }
+
+        if (isJavaSeWebContainer(webContainer)) {
+            final JavaVersionEnum javaVersionEnum = JavaVersionUtils.toJavaVersionEnum(javaVersion);
+            if (Objects.nonNull(javaVersionEnum)) {
+                switch (javaVersionEnum) {
+                    case JAVA_8:
+                        return WebContainer.JAVA_8;
+                    case JAVA_11:
+                        return WebContainer.fromString(JAVA_11_STRING);
+                    default:
+                        // nerver enter this since java version is first checked.
+                        throw new IllegalArgumentException(String.format("Java version '%s' is not supported.", javaVersion));
+                }
+            }
+            return null;
+        } else {
+            return parseNonJavaSEWebContainer(webContainer);
+        }
+    }
+
     public static List<String> getAvailableWebContainer() {
         final List<String> result = new ArrayList<>();
         final List<Object> fields = FieldUtils.getAllFieldsList(WebContainer.class).stream()
@@ -63,7 +118,7 @@ public class WebContainerUtils {
             if (!StringUtils.containsIgnoreCase(webContainer.toString(), JAVA) &&
                     !StringUtils.containsIgnoreCase(webContainer.toString(), "jetty") &&
                     fields.indexOf(webContainer) >= 0) {
-                result.add(WebContainerUtils.formatWebContainer(webContainer));
+                result.add(formatWebContainer(webContainer));
             }
         }
         Collections.sort(result);
