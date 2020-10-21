@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
@@ -21,8 +22,10 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Utils {
@@ -92,7 +95,7 @@ public class Utils {
         }
 
         final MavenResourcesExecution mavenResourcesExecution = new MavenResourcesExecution(resources,
-                new File(targetDirectory), project, "UTF-8", null, Collections.EMPTY_LIST, session);
+                new File(targetDirectory), project, "UTF-8", null, Collections.emptyList(), session);
 
         // Configure executor
         mavenResourcesExecution.setEscapeWindowsPaths(true);
@@ -107,6 +110,13 @@ public class Utils {
         } catch (MavenFilteringException ex) {
             throw new IOException("Failed to copy resources", ex);
         }
+    }
+
+    public static String findStringInCollectionIgnoreCase(Collection<String> strs, String find) {
+        if (Objects.isNull(strs) || Objects.isNull(find)) {
+            return null;
+        }
+        return strs.stream().filter(str -> StringUtils.equalsIgnoreCase(str, find)).findFirst().orElse(null);
     }
 
     private Utils() {

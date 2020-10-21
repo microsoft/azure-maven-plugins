@@ -87,8 +87,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *     <li>1.8.0_102</li>
      * </ul>
      *
-     * @since 0.1.0
+     * @deprecated
      */
+    @Deprecated
     @Parameter(property = "webapp.javaVersion")
     protected String javaVersion;
 
@@ -109,8 +110,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *     <li>jetty 9.3.12.20161014</li>
      * </ul>
      *
-     * @since 0.1.0
+     * @deprecated
      */
+    @Deprecated
     @Parameter(property = "webapp.javaWebContainer", defaultValue = "tomcat 8.5")
     protected String javaWebContainer;
 
@@ -121,7 +123,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *     <li>tomcat 9.0-jre8</li>
      *     <li>jre8</li>
      * </ul>
+     * @deprecated
      */
+    @Deprecated
     @Parameter(property = "webapp.linuxRuntime")
     protected String linuxRuntime;
 
@@ -133,24 +137,27 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * image or private registry.<br/>
      * {@code <registryUrl>} specifies your docker image registry URL. Use it when you are using private registry.
      *
-     * @since 0.1.0
+     * @deprecated
      */
+    @Deprecated
     @Parameter
     protected ContainerSetting containerSettings;
 
     /**
      * Flag to control whether stop Web App during deployment.
      *
-     * @since 0.1.4
+     * @deprecated
      */
+    @Deprecated
     @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "false")
     protected boolean stopAppDuringDeployment;
 
     /**
      * Resources to deploy to Web App.
      *
-     * @since 0.1.0
+     * @deprecated
      */
+    @Deprecated
     @Parameter(property = "webapp.resources")
     protected List<Resource> resources;
 
@@ -166,8 +173,10 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * Location of the war file which is going to be deployed. If this field is not defined,
      * plugin will find the war file with the final name in the build directory.
      *
+     * @Deprecated
      * @since 1.1.0
      */
+    @Deprecated
     @Parameter(property = "webapp.warFile")
     protected String warFile;
 
@@ -175,8 +184,10 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * Location of the jar file which is going to be deployed. If this field is not defined,
      * plugin will find the jar file with the final name in the build directory.
      *
+     * @Deprecated
      * @since 1.3.0
      */
+    @Deprecated
     @Parameter(property = "webapp.jarFile")
     protected String jarFile;
 
@@ -184,8 +195,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * The context path for the deployment.
      * By default it will be deployed to '/', which is also known as the ROOT.
      *
-     * @since 1.1.0
+     * @Deprecated
      */
+    @Deprecated
     @Parameter(property = "webapp.path", defaultValue = "/")
     protected String path;
 
@@ -200,7 +212,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 2.0.0
      */
-    @Parameter(property = "schemaVersion", defaultValue = "v1")
+    @Parameter(property = "schemaVersion", defaultValue = "v2")
     protected String schemaVersion;
 
     /**
@@ -283,7 +295,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     @Override
     public List<Resource> getResources() {
-        return resources == null ? Collections.EMPTY_LIST : resources;
+        return resources == null ? Collections.emptyList() : resources;
     }
 
     public String getWarFile() {

@@ -20,8 +20,12 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.1.0](#110)
   - [1.0.0](#100)
 
+## 1.12.0
+- Support JBoss 7.2(EAP) within Linux Azure Web App
+- Support new runtime configuration style
+
 ## 1.11.0
-- Support selecte existing web app in `config` goal [#1161](https://github.com/microsoft/azure-maven-plugins/pull/1161)
+- Support select existing web app in `config` goal [#1161](https://github.com/microsoft/azure-maven-plugins/pull/1161)
 
 ## 1.10.0
 - Support set Azure environment in configuration (`<configuration> -> <auth> -> <environment>`)

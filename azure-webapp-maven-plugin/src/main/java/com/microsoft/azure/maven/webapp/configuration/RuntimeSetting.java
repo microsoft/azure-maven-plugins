@@ -12,29 +12,71 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
+import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
-import static com.microsoft.azure.maven.webapp.ConfigMojo.JAVA_11_STRING;
+import java.util.Objects;
+
 
 /**
  * Runtime Setting
  */
 public class RuntimeSetting {
 
+    /**
+     * OS of Web App Below is the list of supported JVM versions:
+     * <ul>
+     * <li>Windows</li>
+     * <li>Linux</li>
+     * <li>Docker</li>
+     * </ul>
+     */
     protected String os;
+
+    /**
+     * Java version of Web App Below is the list of supported Java versions:
+     * <ul>
+     * <li>Java 8</li>
+     * <li>Java 11</li>
+     * </ul>
+     */
     protected String javaVersion;
+
+    /**
+     * Web container type and version within Web App. Below is the list of supported
+     * web container types(JBoss is only supported on java 8 and linux webapps):
+     * <ul>
+     * <li>Java SE</li>
+     * <li>Tomcat 7.0</li>
+     * <li>Tomcat 8.5</li>
+     * <li>Tomcat 9.0</li>
+     * <li>JBoss EAP 7.2</li>
+     * </ul>
+     */
     protected String webContainer;
+
+    /**
+     * Settings of docker image name within Web App. This only applies to Docker Web
+     * App.
+     */
     protected String image;
+
+    /**
+     * Settings of credentials to access docker image. Use it when you are using
+     * private Docker Hub
+     */
     protected String serverId;
+
+    /**
+     * Settings of specifies your docker image registry URL. Use it when you are
+     * using private registry.
+     */
     protected String registryUrl;
 
     public static final String RUNTIME_CONFIG_REFERENCE = "https://aka.ms/maven_webapp_runtime";
-
-    static {
-        WebContainer.fromString(JAVA_11_STRING); // Add Java 11 Enum as Fluent SDK had not added it yet
-    }
 
     public String getOs() {
         return this.os;
@@ -49,8 +91,12 @@ public class RuntimeSetting {
     }
 
     public JavaVersion getJavaVersion() {
-        return (StringUtils.isEmpty(javaVersion) || !checkJavaVersion(javaVersion)) ?
-                null : JavaVersion.fromString(javaVersion);
+        final JavaVersion ver = JavaVersionUtils.toAzureSdkJavaVersion(this.javaVersion);
+        if (Objects.nonNull(ver)) {
+            return ver;
+        }
+        return (StringUtils.isEmpty(javaVersion) || !checkJavaVersion(javaVersion)) ? null
+                : JavaVersion.fromString(javaVersion);
     }
 
     public RuntimeStack getLinuxRuntime() {
@@ -62,10 +108,15 @@ public class RuntimeSetting {
         if (!checkWebContainer(webContainer)) {
             return null;
         }
-        if (StringUtils.isEmpty(webContainer)) {
-            return WebContainer.TOMCAT_8_5_NEWEST;
-        }
-        return WebContainer.fromString(webContainer);
+        return WebContainerUtils.parseWebContainer(webContainer, getJavaVersion());
+    }
+
+    public String getWebContainerRaw() {
+        return webContainer;
+    }
+
+    public String getJavaVersionRaw() {
+        return javaVersion;
     }
 
     public String getImage() {
@@ -88,7 +139,7 @@ public class RuntimeSetting {
 
     protected boolean checkJavaVersion(String value) {
         for (final JavaVersion version : JavaVersion.values()) {
-            if (version.toString().equals(value)) {
+            if (StringUtils.equalsIgnoreCase(version.toString(), value)) {
                 return true;
             }
         }
@@ -96,11 +147,8 @@ public class RuntimeSetting {
     }
 
     protected boolean checkWebContainer(String value) {
-        for (final WebContainer container : WebContainer.values()) {
-            if (container.toString().equals(value)) {
-                return true;
-            }
-        }
-        return false;
+        return StringUtils.isNotBlank(value) && (
+                WebContainerUtils.isJavaSeWebContainer(value) ||
+                        Objects.nonNull(WebContainerUtils.parseNonJavaSEWebContainer(value)));
     }
 }
