@@ -14,6 +14,7 @@ import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
+import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -107,10 +108,7 @@ public class RuntimeSetting {
         if (!checkWebContainer(webContainer)) {
             return null;
         }
-        if (StringUtils.isEmpty(webContainer)) {
-            return WebContainer.TOMCAT_8_5_NEWEST;
-        }
-        return WebContainer.fromString(webContainer);
+        return WebContainerUtils.parseWebContainer(webContainer, getJavaVersion());
     }
 
     public String getWebContainerRaw() {
@@ -149,11 +147,8 @@ public class RuntimeSetting {
     }
 
     protected boolean checkWebContainer(String value) {
-        for (final WebContainer container : WebContainer.values()) {
-            if (StringUtils.equalsIgnoreCase(container.toString(), value)) {
-                return true;
-            }
-        }
-        return false;
+        return StringUtils.isNotBlank(value) && (
+                WebContainerUtils.isJavaSeWebContainer(value) ||
+                        Objects.nonNull(WebContainerUtils.parseNonJavaSEWebContainer(value)));
     }
 }
