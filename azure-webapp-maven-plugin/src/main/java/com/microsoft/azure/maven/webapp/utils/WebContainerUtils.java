@@ -51,10 +51,7 @@ public class WebContainerUtils {
     }
 
     public static boolean isJavaSeWebContainer(String webContainer) {
-        return (StringUtils.equalsIgnoreCase(JAVA_11_STRING, webContainer) ||
-                StringUtils.equalsIgnoreCase(WebContainer.JAVA_8.toString(), webContainer) ||
-                StringUtils.equalsIgnoreCase(JAVA_SE, webContainer) ||
-                StringUtils.equalsIgnoreCase(JAVA, webContainer));
+        return StringUtils.equalsAnyIgnoreCase(webContainer, JAVA_11_STRING, JAVA_SE, JAVA, WebContainer.JAVA_8.toString());
     }
 
     public static WebContainer parseNonJavaSEWebContainer(String webContainer) {
