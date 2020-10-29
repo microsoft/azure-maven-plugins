@@ -13,7 +13,7 @@ import com.microsoft.azure.auth.Constants;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.resources.Subscriptions;
-import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
+import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;

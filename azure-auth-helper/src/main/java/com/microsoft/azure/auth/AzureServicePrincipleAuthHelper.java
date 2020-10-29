@@ -12,7 +12,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.configuration.AuthConfiguration;
-import com.microsoft.azure.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import org.apache.commons.io.FileUtils;
