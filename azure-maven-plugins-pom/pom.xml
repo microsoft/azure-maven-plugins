@@ -42,13 +42,12 @@
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
         <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
         <azure.arm-client-runtime.version>1.7.5</azure.arm-client-runtime.version>
-        <azure.auth-helper.version>0.6.0</azure.auth-helper.version>
+        <azure.auth-helper.version>0.7.0-SNAPSHOT</azure.auth-helper.version>
         <azure.client-authentication.version>1.7.5</azure.client-authentication.version>
         <azure.eventhubs.version>1.2.0</azure.eventhubs.version>
         <azure.eventhubs-eph.version>2.0.1</azure.eventhubs-eph.version>
         <azure.function.version>1.4.0</azure.function.version>
-        <azure.maven-plugin-common.version>0.2.0</azure.maven-plugin-common.version>
-        <azure.maven-plugin-lib.version>1.4.0</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.5.0-SNAPSHOT</azure.maven-plugin-lib.version>
         <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
         <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
         <azure.tools-common.version>0.9.0</azure.tools-common.version>
@@ -103,6 +102,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-springcloud-lib</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
             <!-- https://mvnrepository.com/artifact/com.microsoft.azure.applicationinsights.v2015_05_01/azure-mgmt-insights -->
             <dependency>
                 <groupId>com.microsoft.azure.applicationinsights.v2015_05_01</groupId>
@@ -123,11 +128,6 @@
                 <groupId>org.zeroturnaround</groupId>
                 <artifactId>zt-zip</artifactId>
                 <version>${zt.zip.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-maven-plugin-common</artifactId>
-                <version>${azure.maven-plugin-common.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.maven</groupId>
@@ -443,7 +443,19 @@
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
+                <artifactId>powermock-core</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
                 <artifactId>powermock-module-junit4</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-reflect</artifactId>
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -494,6 +506,11 @@
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>${maven.clean-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.1.2</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>

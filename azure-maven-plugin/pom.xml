@@ -146,6 +146,10 @@
             <artifactId>org.jacoco.agent</artifactId>
             <classifier>runtime</classifier>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-maven-plugin-lib</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

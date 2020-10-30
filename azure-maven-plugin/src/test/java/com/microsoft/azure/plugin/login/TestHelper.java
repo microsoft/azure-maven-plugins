@@ -16,7 +16,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.management.resources.Subscriptions;
-import com.microsoft.azure.maven.common.telemetry.AppInsightHelper;
+import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.rest.RestException;
 import org.apache.commons.lang3.SystemUtils;
 import org.mockito.ArgumentMatchers;
