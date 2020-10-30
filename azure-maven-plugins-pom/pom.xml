@@ -41,9 +41,8 @@
         <azure.ai.version>2.6.1</azure.ai.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
         <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
-        <azure.arm-client-runtime.version>1.7.5</azure.arm-client-runtime.version>
+        <azure.client.version>1.7.8</azure.client.version>
         <azure.auth-helper.version>0.7.0-SNAPSHOT</azure.auth-helper.version>
-        <azure.client-authentication.version>1.7.5</azure.client-authentication.version>
         <azure.eventhubs.version>1.2.0</azure.eventhubs.version>
         <azure.eventhubs-eph.version>2.0.1</azure.eventhubs-eph.version>
         <azure.function.version>1.4.0</azure.function.version>
@@ -118,11 +117,33 @@
                 <groupId>com.google.errorprone</groupId>
                 <artifactId>error_prone_core</artifactId>
                 <version>${error.prone.core.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-arm-client-runtime</artifactId>
-                <version>${azure.arm-client-runtime.version}</version>
+                <version>${azure.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-client-runtime</artifactId>
+                <version>${azure.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.rest</groupId>
+                <artifactId>client-runtime</artifactId>
+                <version>${azure.client.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.zeroturnaround</groupId>
@@ -134,6 +155,16 @@
                 <artifactId>maven-core</artifactId>
                 <version>${maven.version}</version>
                 <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
@@ -159,6 +190,27 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure</artifactId>
                 <version>${azure.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpcore</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-mgmt-resources</artifactId>
+                <version>${azure.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpcore</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
@@ -168,7 +220,7 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-client-authentication</artifactId>
-                <version>${azure.client-authentication.version}</version>
+                <version>${azure.client.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -209,8 +261,19 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.maven</groupId>
+                <artifactId>maven-settings-builder</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
                 <artifactId>maven-model</artifactId>
                 <version>${maven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-model-builder</artifactId>
+                <version>${maven.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
@@ -231,6 +294,12 @@
                 <groupId>org.reflections</groupId>
                 <artifactId>reflections</artifactId>
                 <version>${reflections.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.github.zafarkhaja</groupId>
@@ -284,6 +353,16 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.maven.shared</groupId>
@@ -313,6 +392,11 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
+                <version>${jackson.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
                 <version>${jackson.core.version}</version>
             </dependency>
             <dependency>

@@ -20,12 +20,6 @@
         <dependency>
             <groupId>com.microsoft.azure.appplatform.v2020_07_01</groupId>
             <artifactId>azure-mgmt-appplatform</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.microsoft.rest</groupId>
-                    <artifactId>client-runtime</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
