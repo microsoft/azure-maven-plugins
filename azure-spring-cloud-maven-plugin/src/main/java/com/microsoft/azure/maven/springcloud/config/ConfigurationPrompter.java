@@ -249,7 +249,7 @@ public class ConfigurationPrompter {
             }
 
             final String errorMessage = validator.validateSingleProperty(resourceName, propertyName, value);
-            return errorMessage == null ? InputValidateResult.wrap(input) : InputValidateResult.error(errorMessage);
+            return errorMessage == null ? InputValidateResult.wrap(value) : InputValidateResult.error(errorMessage);
 
         }, TemplateUtils.evalBoolean("required", variables));
     }
