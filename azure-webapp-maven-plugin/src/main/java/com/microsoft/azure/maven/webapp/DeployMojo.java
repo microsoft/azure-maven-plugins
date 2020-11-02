@@ -6,17 +6,22 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.google.common.base.Preconditions;
 import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.handlers.ArtifactHandler;
 import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.management.appservice.DeployOptions;
+import com.microsoft.azure.management.appservice.DeployType;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.Update;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.deploy.Deployer;
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
@@ -38,6 +43,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -147,7 +154,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             if (isV1Schema) {
                 handleV1Artifact(target, this.resources, artifactHandler);
             } else {
-                final List<Resource> v2Resources = this.deployment == null ? null : this.deployment.getResources();
+                final List<? extends Resource> v2Resources = this.deployment == null ? null : this.deployment.getResources();
                 handleV2Artifact(target, v2Resources, artifactHandler);
             }
         } finally {
@@ -155,10 +162,16 @@ public class DeployMojo extends AbstractWebAppMojo {
         }
     }
 
-    private void handleV2Artifact(final DeployTarget target, List<Resource> v2Resources, ArtifactHandler artifactHandler)
+    private void handleV2Artifact(final DeployTarget target, List<? extends Resource> v2Resources, ArtifactHandler artifactHandler)
             throws IOException, AzureExecutionException {
         if (v2Resources == null || v2Resources.isEmpty()) {
             Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
+            return;
+        }
+        // handle deploy by One Deploy API
+        if (artifactHandler instanceof Deployer && v2Resources.get(0) instanceof DeploymentResource) {
+            final List<DeploymentResource> resources = v2Resources.stream().map(e -> (DeploymentResource) e).collect(Collectors.toList());
+            handleV2ArtifactWithOneDeploy(target, resources, (Deployer) artifactHandler);
             return;
         }
         final Map<Boolean, List<Resource>> resourceMap = v2Resources.stream()
@@ -170,6 +183,92 @@ public class DeployMojo extends AbstractWebAppMojo {
             return;
         }
         artifactHandler.publish(target);
+    }
+
+    private void handleV2ArtifactWithOneDeploy(final DeployTarget target, List<DeploymentResource> v2Resources, Deployer deployer)
+            throws IOException, AzureExecutionException {
+        // set default values for type and path
+        for (final DeploymentResource resource : v2Resources) {
+            if (StringUtils.isBlank(resource.getType())) {
+                resource.setType(this.project.getPackaging());
+            }
+            if (DeployType.WAR.toString().equalsIgnoreCase(resource.getType())) {
+                if (StringUtils.isBlank(resource.getTargetDirectory())) {
+                    // set default path
+                    resource.setTargetDirectory("ROOT");
+                }
+                resource.setTargetDirectory("webapps/" + resource.getTargetDirectory());
+                Preconditions.checkArgument(StringUtils.startsWith(resource.getTargetDirectory(), "webapps/"),
+                        "Only allowed path when type=War is webapps/<directory-name>.");
+            } else if (DeployType.JAR.toString().equalsIgnoreCase(resource.getType()) || DeployType.EAR.toString().equalsIgnoreCase(resource.getType())) {
+                // path is always ignored.
+            } else if (DeployType.JAR_LIB.toString().equalsIgnoreCase(resource.getType())) {
+                // Preconditions.checkArgument(StringUtils.isNotBlank(resource.getPath()), "Path must be defined for type='lib'");
+                Preconditions.checkArgument(!StringUtils.startsWith(resource.getTargetDirectory(), "/"),
+                        "Path cannot start with '/', '/home/site/libs' is the base directory for any lib file.");
+            } else if (DeployType.STATIC.toString().equalsIgnoreCase(resource.getType())) {
+                // Preconditions.checkArgument(StringUtils.isNotBlank(resource.getPath()), "Path must be defined for type='Static'.");
+                Preconditions.checkArgument(!StringUtils.startsWith(resource.getTargetDirectory(), "/"),
+                        "Path cannot start with '/', '/home/site/wwwroot' is the base directory for any lib file.");
+            } else if (DeployType.ZIP.toString().equalsIgnoreCase(resource.getType())) {
+                // path is optional.
+                Preconditions.checkArgument(!StringUtils.startsWith(resource.getTargetDirectory(), "/"),
+                        "Path cannot start with '/', '/home/site/wwwroot' is the base directory for any zip inner file.");
+            } else if (DeployType.SCRIPT_STARTUP.toString().equalsIgnoreCase(resource.getType())) {
+                // path is always ignored. and any file will be renamed to startup.cmd (linux) or startup.sh (linux).
+            }
+        }
+        // handle these resources of deployment.
+        final Map<String, List<DeploymentResource>> resourceMap =
+                v2Resources.stream().collect(Collectors.groupingBy(DeploymentResource::getType, LinkedHashMap::new, Collectors.toList()));
+        final String lastDeploymentResource = findoutLastDeploymentResource(resourceMap);
+        for (final Map.Entry<String, List<DeploymentResource>> entry : resourceMap.entrySet()) {
+            if (!StringUtils.equals(lastDeploymentResource, entry.getKey())) {
+                Log.info(String.format("Deploying [%s] resources to [%s]...", entry.getKey(), target.getName()));
+                handleSingleTypeResourcesWithOneDeploy(target, entry.getValue(), deployer, false);
+                Log.info(String.format("Successfully Deployed [%s] resources to [%s]...", entry.getKey(), target.getName()));
+            }
+        }
+        Log.info(String.format("Deploying [%s] resources to [%s] and then restarting...", lastDeploymentResource, target.getName()));
+        handleSingleTypeResourcesWithOneDeploy(target, resourceMap.get(lastDeploymentResource), deployer, true);
+        Log.info(String.format("Successfully Deployed and restarted [%s] resources to [%s]...", lastDeploymentResource, target.getName()));
+
+        Log.info("All resources are already deployed.");
+    }
+
+    private void handleSingleTypeResourcesWithOneDeploy(DeployTarget target, List<DeploymentResource> resources, Deployer deployer, boolean restart)
+            throws IOException, AzureExecutionException {
+        final String baseStagingDirectory = Paths.get(getDeploymentStagingDirectoryPath(), resources.get(0).getType()).toString();
+        int count = 1;
+        for (final DeploymentResource resource : resources) {
+            final String stagingDirectoryPath = resources.size() == 1 ?
+                    baseStagingDirectory : Paths.get(baseStagingDirectory, String.valueOf(count)).toString();
+            final List<Resource> tempResourceList = new ArrayList<>();
+            tempResourceList.add(resource);
+            Utils.prepareResources(this.getProject(), this.getSession(), this.getMavenResourcesFiltering(), tempResourceList, stagingDirectoryPath);
+            boolean restartSite = restart;
+            if (resources.size() > 1 && count++ != resources.size()) {
+                restartSite = false;
+            }
+            final DeployOptions options = new DeployOptions()
+                    .withRestartSite(restartSite).withCleanDeployment(resource.getClean()).withPath(resource.getTargetDirectory());
+            deployer.deploy(target, stagingDirectoryPath, DeployType.fromString(resource.getType()), options);
+        }
+    }
+
+    private String findoutLastDeploymentResource(Map<String, List<DeploymentResource>> resourceMap) {
+        for (final Map.Entry<String, List<DeploymentResource>> entry : resourceMap.entrySet()) {
+            if (DeployType.WAR.toString().equalsIgnoreCase(entry.getKey()) ||
+                    DeployType.JAR.toString().equalsIgnoreCase(entry.getKey()) ||
+                    DeployType.EAR.toString().equalsIgnoreCase(entry.getKey())) {
+                return entry.getKey();
+            }
+        }
+        String lastDeploymentResource = StringUtils.EMPTY;
+        for (final Map.Entry<String, List<DeploymentResource>> entry : resourceMap.entrySet()) {
+            lastDeploymentResource = entry.getKey();
+        }
+        return lastDeploymentResource;
     }
 
     private void handleV1Artifact(final DeployTarget target, List<Resource> v1Resources, final ArtifactHandler artifactHandler)

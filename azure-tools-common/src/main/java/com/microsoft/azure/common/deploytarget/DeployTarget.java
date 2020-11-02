@@ -8,6 +8,8 @@ package com.microsoft.azure.common.deploytarget;
 
 import com.microsoft.azure.common.appservice.DeployTargetType;
 import com.microsoft.azure.management.appservice.AppSetting;
+import com.microsoft.azure.management.appservice.DeployOptions;
+import com.microsoft.azure.management.appservice.DeployType;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.management.appservice.WebAppBase;
 
@@ -58,5 +60,9 @@ public class DeployTarget<T extends WebAppBase> {
 
     public T getApp() {
         return this.app;
+    }
+
+    public void deploy(DeployType type, File file, DeployOptions deployOptions) {
+        throw new UnsupportedOperationException("calling com.microsoft.azure.common.deploytarget.DeployTarget.deploy is unsupported currently.");
     }
 }

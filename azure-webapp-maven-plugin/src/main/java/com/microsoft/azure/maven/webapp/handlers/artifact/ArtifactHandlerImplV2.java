@@ -11,6 +11,10 @@ import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.management.appservice.DeployOptions;
+import com.microsoft.azure.management.appservice.DeployType;
+import com.microsoft.azure.maven.deploy.Deployer;
+import com.microsoft.azure.maven.deploy.OneDeployerImpl;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 import org.apache.commons.io.FileUtils;
@@ -33,7 +37,7 @@ import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandler
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.hasWarFiles;
 import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.performActionWithRetry;
 
-public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
+public class ArtifactHandlerImplV2 extends ArtifactHandlerBase implements Deployer {
     private static final int MAX_RETRY_TIMES = 3;
     private static final String ALWAYS_DEPLOY_PROPERTY = "alwaysDeploy";
 
@@ -46,6 +50,12 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
     private static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
     private RuntimeSetting runtimeSetting;
+    private Deployer deployer = new OneDeployerImpl();
+
+    @Override
+    public void deploy(DeployTarget deployTarget, String deplpoyDir, DeployType deployType, DeployOptions options) throws AzureExecutionException {
+        deployer.deploy(deployTarget, deplpoyDir, deployType, options);
+    }
 
     public static class Builder extends ArtifactHandlerBase.Builder<ArtifactHandlerImplV2.Builder> {
 
