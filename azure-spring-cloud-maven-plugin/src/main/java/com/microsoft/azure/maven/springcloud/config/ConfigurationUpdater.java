@@ -8,8 +8,6 @@ package com.microsoft.azure.maven.springcloud.config;
 
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.maven.utils.PomUtils;
-import com.microsoft.azure.tools.springcloud.AppConfig;
-import com.microsoft.azure.tools.springcloud.AppDeploymentConfig;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -25,7 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ConfigurationUpdater {
-    public static void updateAppConfigToPom(AppConfig config, MavenProject project, PluginDescriptor plugin) throws DocumentException, IOException {
+    public static void updateAppConfigToPom(AppRawConfig config, MavenProject project, PluginDescriptor plugin) throws DocumentException, IOException {
         final File pom = project.getFile();
         final Element pluginConfigNode = PomUtils.getPluginConfigNode(plugin, pom);
         Element newNode = config != null ? createOrUpdateAppConfigNode(pluginConfigNode, config) : pluginConfigNode;
@@ -37,7 +35,7 @@ public class ConfigurationUpdater {
         FileUtils.fileWrite(pom, PomUtils.formatNode(FileUtils.fileRead(pom), (PomUtils.LocationAwareElement) newNode.getParent(), newNode));
     }
 
-    private static Element createOrUpdateAppConfigNode(Element pluginNode, AppConfig config) {
+    private static Element createOrUpdateAppConfigNode(Element pluginNode, AppRawConfig config) {
         final Element appConfigNode = PomUtils.getOrCreateNode(pluginNode, "configuration");
         PomUtils.updateNode(appConfigNode, ConfigurationUpdater.toMap(config));
         if (Objects.nonNull(config.getDeployment())) {
@@ -46,14 +44,14 @@ public class ConfigurationUpdater {
         return appConfigNode;
     }
 
-    private static Element createOrUpdateDeploymentConfigNode(Element appConfigNode, AppDeploymentConfig config) {
+    private static Element createOrUpdateDeploymentConfigNode(Element appConfigNode, AppDeploymentRawConfig config) {
         final Element deploymentConfigNode = PomUtils.getOrCreateNode(appConfigNode, "deployment");
         PomUtils.updateNode(deploymentConfigNode, ConfigurationUpdater.toMap(config));
         MavenConfigUtils.addResourcesConfig(deploymentConfigNode, MavenConfigUtils.getDefaultResources());
         return deploymentConfigNode;
     }
 
-    public static Map<String, Object> toMap(AppConfig app) {
+    public static Map<String, Object> toMap(AppRawConfig app) {
         return MapUtils.putAll(new LinkedHashMap<>(), new Map.Entry[]{
             new DefaultMapEntry<>("subscriptionId", app.getSubscriptionId()),
             new DefaultMapEntry<>("clusterName", app.getClusterName()),
@@ -62,7 +60,7 @@ public class ConfigurationUpdater {
         });
     }
 
-    public static Map<String, Object> toMap(AppDeploymentConfig deployment) {
+    public static Map<String, Object> toMap(AppDeploymentRawConfig deployment) {
         return MapUtils.putAll(new LinkedHashMap<>(), new Map.Entry[]{
             new DefaultMapEntry<>("cpu", deployment.getCpu()),
             new DefaultMapEntry<>("memoryInGB", deployment.getMemoryInGB()),

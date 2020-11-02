@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.maven.springcloud.configuration;
 
+import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.PomUtils;
-import com.microsoft.azure.tools.springcloud.AppDeploymentConfig;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -19,54 +19,54 @@ import static org.junit.Assert.assertEquals;
 public class SpringCloudAppDeploymentSettingsTest {
     @Test
     public void testSetCpu() {
-        final AppDeploymentConfig deploy = new AppDeploymentConfig();
-        deploy.withCpu(1);
-        assertEquals(Integer.valueOf(1), deploy.getCpu());
+        final AppDeploymentRawConfig deploy = new AppDeploymentRawConfig();
+        deploy.setCpu("1");
+        assertEquals("1", deploy.getCpu());
     }
 
     @Test
     public void testSetMemoryInGB() {
-        final AppDeploymentConfig deploy = new AppDeploymentConfig();
-        deploy.withMemoryInGB(2);
-        assertEquals(Integer.valueOf(2), deploy.getMemoryInGB());
+        final AppDeploymentRawConfig deploy = new AppDeploymentRawConfig();
+        deploy.setMemoryInGB("2");
+        assertEquals("2", deploy.getMemoryInGB());
     }
 
     @Test
     public void testSetInstanceCount() {
-        final AppDeploymentConfig deploy = new AppDeploymentConfig();
-        deploy.withInstanceCount(3);
-        assertEquals(Integer.valueOf(3), deploy.getInstanceCount());
+        final AppDeploymentRawConfig deploy = new AppDeploymentRawConfig();
+        deploy.setInstanceCount("3");
+        assertEquals("3", deploy.getInstanceCount());
     }
 
     @Test
     public void testSetDeploymentName() {
-        final AppDeploymentConfig deploy = new AppDeploymentConfig();
-        deploy.withDeploymentName("deploymentName1");
+        final AppDeploymentRawConfig deploy = new AppDeploymentRawConfig();
+        deploy.setDeploymentName("deploymentName1");
         assertEquals("deploymentName1", deploy.getDeploymentName());
     }
 
     @Test
     public void testSetJvmOptions() {
-        final AppDeploymentConfig deploy = new AppDeploymentConfig();
-        deploy.withJvmOptions("jvmOptions1");
+        final AppDeploymentRawConfig deploy = new AppDeploymentRawConfig();
+        deploy.setJvmOptions("jvmOptions1");
         assertEquals("jvmOptions1", deploy.getJvmOptions());
     }
 
     @Test
     public void testSetRuntimeVersion() {
-        final AppDeploymentConfig deploy = new AppDeploymentConfig();
-        deploy.withRuntimeVersion("8");
+        final AppDeploymentRawConfig deploy = new AppDeploymentRawConfig();
+        deploy.setRuntimeVersion("8");
         assertEquals("8", deploy.getRuntimeVersion());
     }
 
     @Test
     public void testSaveToXml() {
-        final AppDeploymentConfig deploy = new AppDeploymentConfig();
-        deploy.withCpu(1);
-        deploy.withMemoryInGB(2);
-        deploy.withInstanceCount(3);
-        deploy.withRuntimeVersion("8");
-        deploy.withJvmOptions("jvmOptions1");
+        final AppDeploymentRawConfig deploy = new AppDeploymentRawConfig();
+        deploy.setCpu("1");
+        deploy.setMemoryInGB("2");
+        deploy.setInstanceCount("3");
+        deploy.setRuntimeVersion("8");
+        deploy.setJvmOptions("jvmOptions1");
         final Document document = DocumentHelper.createDocument();
         final Element root = document.addElement("test");
         PomUtils.updateNode(root, ConfigurationUpdater.toMap(deploy));

@@ -13,10 +13,10 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 import com.microsoft.azure.management.resources.Subscription;
+import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
+import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
-import com.microsoft.azure.tools.springcloud.AppConfig;
-import com.microsoft.azure.tools.springcloud.AppDeploymentConfig;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -82,12 +82,12 @@ public class ConfigMojo extends AbstractMojoBase {
     /**
      * The app settings collected from user.
      */
-    private AppConfig appSettings;
+    private AppRawConfig appSettings;
 
     /**
      * The deployment settings collected from user.
      */
-    private AppDeploymentConfig deploymentSettings;
+    private AppDeploymentRawConfig deploymentSettings;
 
     /**
      * The maven variable used to evaluate maven expression.
@@ -116,8 +116,8 @@ public class ConfigMojo extends AbstractMojoBase {
             getLog().warn(String.format("Project (%s) is already configured and won't be affected by this command.", this.project.getName()));
             return;
         }
-        appSettings = new AppConfig();
-        deploymentSettings = new AppDeploymentConfig();
+        appSettings = new AppRawConfig();
+        deploymentSettings = new AppDeploymentRawConfig();
         parentMode = MavenConfigUtils.isPomPackaging(this.project);
         if (parentMode && advancedOptions) {
             throw new UnsupportedOperationException("The \"advancedOptions\" mode is not supported at parent folder.");
@@ -197,23 +197,23 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void configureJavaVersion() throws IOException, InvalidConfigurationException {
-        this.deploymentSettings.withRuntimeVersion(this.wrapper.handle("configure-java-version", autoUseDefault()));
+        this.deploymentSettings.setRuntimeVersion(this.wrapper.handle("configure-java-version", autoUseDefault()));
     }
 
     private void configureJvmOptions() throws IOException, InvalidConfigurationException {
-        this.deploymentSettings.withJvmOptions(this.wrapper.handle("configure-jvm-options", autoUseDefault()));
+        this.deploymentSettings.setJvmOptions(this.wrapper.handle("configure-jvm-options", autoUseDefault()));
     }
 
     private void configureCpu() throws IOException, InvalidConfigurationException {
-        this.deploymentSettings.withCpu(Integer.valueOf(this.wrapper.handle("configure-cpu", autoUseDefault())));
+        this.deploymentSettings.setCpu(this.wrapper.handle("configure-cpu", autoUseDefault()));
     }
 
     private void configureMemory() throws IOException, InvalidConfigurationException {
-        this.deploymentSettings.withMemoryInGB(Integer.valueOf(this.wrapper.handle("configure-memory", autoUseDefault())));
+        this.deploymentSettings.setMemoryInGB(this.wrapper.handle("configure-memory", autoUseDefault()));
     }
 
     private void configureInstanceCount() throws IOException, InvalidConfigurationException {
-        this.deploymentSettings.withInstanceCount(Integer.valueOf(this.wrapper.handle("configure-instance-count", autoUseDefault())));
+        this.deploymentSettings.setInstanceCount(this.wrapper.handle("configure-instance-count", autoUseDefault()));
     }
 
     private boolean autoUseDefault() {
@@ -237,10 +237,10 @@ public class ConfigMojo extends AbstractMojoBase {
             this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
         } else {
             changesToConfirm.put("App name", this.appSettings.getAppName());
-            changesToConfirm.put("Public access", String.valueOf(this.appSettings.getIsPublic()));
-            changesToConfirm.put("Instance count", String.valueOf(this.deploymentSettings.getInstanceCount()));
-            changesToConfirm.put("CPU count", String.valueOf(this.deploymentSettings.getCpu()));
-            changesToConfirm.put("Memory size(GB)", String.valueOf(this.deploymentSettings.getMemoryInGB()));
+            changesToConfirm.put("Public access", this.appSettings.getIsPublic());
+            changesToConfirm.put("Instance count", this.deploymentSettings.getInstanceCount());
+            changesToConfirm.put("CPU count", this.deploymentSettings.getCpu());
+            changesToConfirm.put("Memory size(GB)", this.deploymentSettings.getMemoryInGB());
             changesToConfirm.put("JVM options", this.deploymentSettings.getJvmOptions());
             changesToConfirm.put("Runtime Java version", this.deploymentSettings.getRuntimeVersion());
             this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
@@ -249,13 +249,13 @@ public class ConfigMojo extends AbstractMojoBase {
 
     private Integer saveConfigurationToPom() {
         telemetries.put(TELEMETRY_KEY_POM_FILE_MODIFIED, String.valueOf(true));
-        this.appSettings.withSubscriptionId(this.subscriptionId);
+        this.appSettings.setSubscriptionId(this.subscriptionId);
         try {
             for (final MavenProject proj : targetProjects) {
 
                 if (this.parentMode) {
-                    this.appSettings.withAppName(this.appNameByProject.get(proj));
-                    this.appSettings.withPublic(publicProjects != null && publicProjects.contains(proj));
+                    this.appSettings.setAppName(this.appNameByProject.get(proj));
+                    this.appSettings.setIsPublic((publicProjects != null && publicProjects.contains(proj)) ? "true" : "false");
                 }
                 saveConfigurationToProject(proj);
             }
@@ -270,7 +270,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void saveConfigurationToProject(MavenProject proj) throws DocumentException, IOException {
-        this.appSettings.withDeployment(this.deploymentSettings);
+        this.appSettings.setDeployment(this.deploymentSettings);
         ConfigurationUpdater.updateAppConfigToPom(this.appSettings, proj, plugin);
     }
 
@@ -278,7 +278,7 @@ public class ConfigMojo extends AbstractMojoBase {
         if (this.parentMode) {
             publicProjects = this.wrapper.handleMultipleCase("configure-public-list", targetProjects, MavenProject::getName);
         } else {
-            this.appSettings.withPublic(Boolean.valueOf(this.wrapper.handle("configure-public", false)));
+            this.appSettings.setIsPublic(this.wrapper.handle("configure-public", false));
         }
 
     }
@@ -304,7 +304,7 @@ public class ConfigMojo extends AbstractMojoBase {
                 throw new InvalidConfigurationException(String.format("Cannot apply default appName due to duplicate: %s", duplicateAppNames));
             }
         } else {
-            this.appSettings.withAppName(this.wrapper.handle("configure-app-name", false, this.appName));
+            this.appSettings.setAppName(this.wrapper.handle("configure-app-name", false, this.appName));
         }
 
     }
@@ -318,7 +318,7 @@ public class ConfigMojo extends AbstractMojoBase {
                     .orElse(null);
             if (clusterByName != null) {
 
-                this.appSettings.withClusterName(clusterByName.name());
+                this.appSettings.setClusterName(clusterByName.name());
                 return;
             }
             getLog().warn(String.format("Cannot find Azure Spring Cloud Service with name: %s.", TextUtils.yellow(this.clusterName)));
@@ -326,7 +326,7 @@ public class ConfigMojo extends AbstractMojoBase {
 
         final ServiceResourceInner targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, ServiceResourceInner::name);
         if (targetAppCluster != null) {
-            this.appSettings.withClusterName(targetAppCluster.name());
+            this.appSettings.setClusterName(targetAppCluster.name());
             getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.name())));
         }
     }
