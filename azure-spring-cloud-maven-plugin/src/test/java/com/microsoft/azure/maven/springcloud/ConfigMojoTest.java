@@ -12,6 +12,8 @@ import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
+import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
+import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
@@ -232,7 +234,7 @@ public class ConfigMojoTest {
         mojo.execute();
 
         ConfigurationUpdater.updateAppConfigToPom(any(), any(), any());
-        final AppConfig app = (AppConfig) FieldUtils.readField(mojo, "appSettings", true);
+        final AppRawConfig app = (AppRawConfig) FieldUtils.readField(mojo, "appSettings", true);
         assertEquals("new_subs_id2", app.getSubscriptionId());
         assertEquals("testCluster1", app.getClusterName());
         assertEquals("service", app.getAppName());
@@ -256,11 +258,11 @@ public class ConfigMojoTest {
         mojo.execute();
 
         ConfigurationUpdater.updateAppConfigToPom(any(), any(), any());
-        final AppConfig app = (AppConfig) FieldUtils.readField(mojo, "appSettings", true);
+        final AppRawConfig app = (AppRawConfig) FieldUtils.readField(mojo, "appSettings", true);
         assertEquals("new_subs_id2", app.getSubscriptionId());
         assertEquals("testCluster3", app.getClusterName());
         assertEquals("core", app.getAppName());
-        assertEquals(Boolean.TRUE, app.getIsPublic());
+        assertEquals("true", app.getIsPublic());
     }
 
     @Test
@@ -286,15 +288,15 @@ public class ConfigMojoTest {
         mojo.isTelemetryAllowed = false;
         initMockPromptWrapper();
         mojo.execute();
-        final AppConfig app = (AppConfig) FieldUtils.readField(mojo, "appSettings", true);
-        final AppDeploymentConfig deploy = (AppDeploymentConfig) FieldUtils.readField(mojo, "deploymentSettings", true);
+        final AppRawConfig app = (AppRawConfig) FieldUtils.readField(mojo, "appSettings", true);
+        final AppDeploymentRawConfig deploy = (AppDeploymentRawConfig) FieldUtils.readField(mojo, "deploymentSettings", true);
         assertEquals("new_subs_id", app.getSubscriptionId());
         assertEquals("testCluster2", app.getClusterName());
         assertEquals("${eval}", app.getAppName());
-        assertEquals(Boolean.TRUE, app.getIsPublic());
-        assertEquals(Integer.valueOf(1), deploy.getCpu());
-        assertEquals(Integer.valueOf(1), deploy.getMemoryInGB());
-        assertEquals(Integer.valueOf(1), deploy.getInstanceCount());
+        assertEquals("true", app.getIsPublic());
+        assertEquals("1", deploy.getCpu());
+        assertEquals("1", deploy.getMemoryInGB());
+        assertEquals("1", deploy.getInstanceCount());
         assertNull(deploy.getJvmOptions());
     }
 
@@ -322,15 +324,15 @@ public class ConfigMojoTest {
         mojo.isTelemetryAllowed = false;
         initMockPromptWrapper();
         mojo.execute();
-        final AppConfig app = (AppConfig) FieldUtils.readField(mojo, "appSettings", true);
-        final AppDeploymentConfig deploy = (AppDeploymentConfig) FieldUtils.readField(mojo, "deploymentSettings", true);
+        final AppRawConfig app = (AppRawConfig) FieldUtils.readField(mojo, "appSettings", true);
+        final AppDeploymentRawConfig deploy = (AppDeploymentRawConfig) FieldUtils.readField(mojo, "deploymentSettings", true);
         assertEquals("new_subs_id", app.getSubscriptionId());
         assertEquals("testCluster2", app.getClusterName());
         assertEquals("${eval}", app.getAppName());
-        assertEquals(Boolean.TRUE, app.getIsPublic());
-        assertEquals(Integer.valueOf(1), deploy.getCpu());
-        assertEquals(Integer.valueOf(1), deploy.getMemoryInGB());
-        assertEquals(Integer.valueOf(2), deploy.getInstanceCount());
+        assertEquals("true", app.getIsPublic());
+        assertEquals("1", deploy.getCpu());
+        assertEquals("1", deploy.getMemoryInGB());
+        assertEquals("2", deploy.getInstanceCount());
         assertNull(deploy.getJvmOptions());
     }
 
