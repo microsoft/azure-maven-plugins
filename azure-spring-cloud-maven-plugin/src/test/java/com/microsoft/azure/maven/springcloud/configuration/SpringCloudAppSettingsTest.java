@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.maven.springcloud.configuration;
 
+import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.PomUtils;
-import com.microsoft.azure.tools.springcloud.AppConfig;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -19,39 +19,39 @@ import static org.junit.Assert.assertEquals;
 public class SpringCloudAppSettingsTest {
     @Test
     public void testSetSubscriptionId() {
-        final AppConfig app = new AppConfig();
-        app.withSubscriptionId("subscriptionId1");
+        final AppRawConfig app = new AppRawConfig();
+        app.setSubscriptionId("subscriptionId1");
         assertEquals("subscriptionId1", app.getSubscriptionId());
     }
 
     @Test
     public void testSetClusterName() {
-        final AppConfig app = new AppConfig();
-        app.withClusterName("clusterName1");
+        final AppRawConfig app = new AppRawConfig();
+        app.setClusterName("clusterName1");
         assertEquals("clusterName1", app.getClusterName());
     }
 
     @Test
     public void testSetAppName() {
-        final AppConfig app = new AppConfig();
-        app.withAppName("appName1");
+        final AppRawConfig app = new AppRawConfig();
+        app.setAppName("appName1");
         assertEquals("appName1", app.getAppName());
     }
 
     @Test
     public void testSetIsPublic() {
-        final AppConfig app = new AppConfig();
-        app.withPublic(true);
-        assertEquals(Boolean.TRUE, app.getIsPublic());
+        final AppRawConfig app = new AppRawConfig();
+        app.setIsPublic("true");
+        assertEquals("true", app.getIsPublic());
     }
 
     @Test
     public void testSaveToDom4j() {
-        final AppConfig app = new AppConfig();
-        app.withSubscriptionId("subscriptionId1");
-        app.withClusterName("clusterName1");
-        app.withAppName("appName1");
-        app.withPublic(true);
+        final AppRawConfig app = new AppRawConfig();
+        app.setSubscriptionId("subscriptionId1");
+        app.setClusterName("clusterName1");
+        app.setAppName("appName1");
+        app.setIsPublic("true");
         final Document document = DocumentHelper.createDocument();
         final Element root = document.addElement("test");
         PomUtils.updateNode(root, ConfigurationUpdater.toMap(app));
@@ -62,15 +62,15 @@ public class SpringCloudAppSettingsTest {
             "<isPublic>true</isPublic></test>";
         assertEquals(xml, root.asXML());
 
-        app.withPublic(null);
+        app.setIsPublic(null);
     }
 
     @Test
     public void testSaveToDom4jNullProperty() {
-        final AppConfig app = new AppConfig();
-        app.withSubscriptionId("subscriptionId1");
-        app.withClusterName("clusterName1");
-        app.withAppName("appName1");
+        final AppRawConfig app = new AppRawConfig();
+        app.setSubscriptionId("subscriptionId1");
+        app.setClusterName("clusterName1");
+        app.setAppName("appName1");
         final Document document = DocumentHelper.createDocument();
         final Element root = document.addElement("test");
         PomUtils.updateNode(root, ConfigurationUpdater.toMap(app));
