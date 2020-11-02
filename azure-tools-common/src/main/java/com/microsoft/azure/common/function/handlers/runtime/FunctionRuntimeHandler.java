@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.common.function.handlers.runtime;
 
+import com.microsoft.azure.arm.utils.SdkContext;
 import com.microsoft.azure.common.appservice.ConfigurationSourceType;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.docker.IDockerCredentialProvider;
@@ -20,6 +21,8 @@ import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.resources.ResourceGroup;
+import com.microsoft.azure.management.storage.StorageAccountSkuType;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<FunctionApp> {
 
@@ -73,7 +76,11 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
     }
 
     @Override
-    public abstract FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException;
+    public WebAppBase.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
+        return defineFunctionApp().withNewStorageAccount(SdkContext.randomResourceName(StringUtils.replace(appName, "-", ""), 20), StorageAccountSkuType.STANDARD_GRS);
+    }
+
+    public abstract FunctionApp.DefinitionStages.WithCreate defineFunctionApp() throws AzureExecutionException;
 
     @Override
     public abstract FunctionApp.Update updateAppRuntime(FunctionApp app) throws AzureExecutionException;
