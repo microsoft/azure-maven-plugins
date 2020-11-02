@@ -122,7 +122,11 @@
 
         <dependency>
             <groupId>org.beryx</groupId>
-            <artifactId>text-io</artifactId>            
+            <artifactId>text-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
 
         <!-- JAXB For Application Insight Issue -->
@@ -154,6 +158,14 @@
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-junit4</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jtwig</groupId>
+            <artifactId>jtwig-core</artifactId>
         </dependency>
     </dependencies>
 

@@ -13,7 +13,7 @@ import com.microsoft.aad.adal4j.DeviceCode;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.auth.exception.AzureLoginFailureException;
 import com.microsoft.azure.auth.exception.AzureLoginTimeoutException;
-import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
+import com.microsoft.azure.tools.exception.DesktopNotSupportedException;
 import com.microsoft.azure.common.utils.TextUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;

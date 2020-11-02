@@ -10,7 +10,7 @@ import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.aad.adal4j.AuthenticationResult;
 import com.microsoft.aad.adal4j.DeviceCode;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.auth.exception.DesktopNotSupportedException;
+import com.microsoft.azure.tools.exception.DesktopNotSupportedException;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Test;

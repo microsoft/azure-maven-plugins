@@ -41,17 +41,17 @@
         <azure.ai.version>2.6.1</azure.ai.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
         <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
-        <azure.arm-client-runtime.version>1.7.5</azure.arm-client-runtime.version>
-        <azure.auth-helper.version>0.6.0</azure.auth-helper.version>
-        <azure.client-authentication.version>1.7.5</azure.client-authentication.version>
+        <azure.client.version>1.7.8</azure.client.version>
+        <azure.auth-helper.version>0.7.0-SNAPSHOT</azure.auth-helper.version>
         <azure.eventhubs.version>1.2.0</azure.eventhubs.version>
         <azure.eventhubs-eph.version>2.0.1</azure.eventhubs-eph.version>
         <azure.function.version>1.4.0</azure.function.version>
         <azure.maven-plugin-common.version>0.2.0</azure.maven-plugin-common.version>
         <azure.maven-plugin-lib.version>1.5.0-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.5.0-SNAPSHOT</azure.maven-plugin-lib.version>
         <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
         <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
-        <azure.tools-common.version>0.9.0</azure.tools-common.version>
+        <azure.tools-common.version>0.10.0-SNAPSHOT</azure.tools-common.version>
         <azure.version>1.37.0</azure.version>
 
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
@@ -76,6 +76,7 @@
         <jsonwebtoken.jjwt.version>0.9.1</jsonwebtoken.jjwt.version>
         <jtwig.core.version>5.87.0.RELEASE</jtwig.core.version>
         <junit.version>4.13.1</junit.version>
+        <lombok.version>1.18.8</lombok.version>
         <maven3-model-jdom-support.version>1.6</maven3-model-jdom-support.version>
         <mockito.version>2.22.0</mockito.version>
         <powermock.version>2.0.2</powermock.version>
@@ -103,6 +104,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-springcloud-lib</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
             <!-- https://mvnrepository.com/artifact/com.microsoft.azure.applicationinsights.v2015_05_01/azure-mgmt-insights -->
             <dependency>
                 <groupId>com.microsoft.azure.applicationinsights.v2015_05_01</groupId>
@@ -113,11 +120,33 @@
                 <groupId>com.google.errorprone</groupId>
                 <artifactId>error_prone_core</artifactId>
                 <version>${error.prone.core.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-arm-client-runtime</artifactId>
-                <version>${azure.arm-client-runtime.version}</version>
+                <version>${azure.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-client-runtime</artifactId>
+                <version>${azure.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.rest</groupId>
+                <artifactId>client-runtime</artifactId>
+                <version>${azure.client.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.zeroturnaround</groupId>
@@ -125,15 +154,20 @@
                 <version>${zt.zip.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-maven-plugin-common</artifactId>
-                <version>${azure.maven-plugin-common.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.maven</groupId>
                 <artifactId>maven-core</artifactId>
                 <version>${maven.version}</version>
                 <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
@@ -159,6 +193,27 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure</artifactId>
                 <version>${azure.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpcore</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-mgmt-resources</artifactId>
+                <version>${azure.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpcore</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
@@ -168,7 +223,7 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-client-authentication</artifactId>
-                <version>${azure.client-authentication.version}</version>
+                <version>${azure.client.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -209,8 +264,19 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.maven</groupId>
+                <artifactId>maven-settings-builder</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
                 <artifactId>maven-model</artifactId>
                 <version>${maven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-model-builder</artifactId>
+                <version>${maven.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
@@ -231,6 +297,12 @@
                 <groupId>org.reflections</groupId>
                 <artifactId>reflections</artifactId>
                 <version>${reflections.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.github.zafarkhaja</groupId>
@@ -284,6 +356,22 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.maven.shared</groupId>
@@ -313,6 +401,11 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
+                <version>${jackson.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
                 <version>${jackson.core.version}</version>
             </dependency>
             <dependency>
@@ -443,7 +536,19 @@
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
+                <artifactId>powermock-core</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
                 <artifactId>powermock-module-junit4</artifactId>
+                <version>${powermock.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-reflect</artifactId>
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -494,6 +599,11 @@
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>${maven.clean-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.1.2</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>

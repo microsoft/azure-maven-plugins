@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.auth.exception;
 
+import com.microsoft.azure.tools.exception.DesktopNotSupportedException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
