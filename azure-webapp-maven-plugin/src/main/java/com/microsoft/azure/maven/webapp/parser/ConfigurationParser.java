@@ -71,7 +71,7 @@ public abstract class ConfigurationParser {
 
     protected abstract WebContainer getWebContainer() throws AzureExecutionException;
 
-    protected abstract List<Resource> getResources() throws AzureExecutionException;
+    protected abstract List<? extends Resource> getResources() throws AzureExecutionException;
 
     protected void validate(String errorMessage) throws AzureExecutionException {
         if (errorMessage != null) {

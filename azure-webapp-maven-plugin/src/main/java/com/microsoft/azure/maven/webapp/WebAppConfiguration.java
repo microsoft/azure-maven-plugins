@@ -57,7 +57,7 @@ public class WebAppConfiguration {
     protected String schemaVersion;
 
     // web app runtime related configurations
-    protected List<Resource> resources;
+    protected List<? extends Resource> resources;
     protected String stagingDirectoryPath;
     protected String buildDirectoryAbsolutePath;
     protected MavenProject project;
@@ -152,7 +152,7 @@ public class WebAppConfiguration {
         return registryUrl;
     }
 
-    public List<Resource> getResources() {
+    public List<? extends Resource> getResources() {
         return resources;
     }
 
@@ -255,7 +255,7 @@ public class WebAppConfiguration {
         private String image;
         private String serverId;
         private String registryUrl;
-        private List<Resource> resources;
+        private List<? extends Resource> resources;
         private String stagingDirectoryPath;
         private String buildDirectoryAbsolutePath;
         private MavenProject project;
@@ -347,7 +347,7 @@ public class WebAppConfiguration {
             return self();
         }
 
-        public Builder resources(final List<Resource> values) {
+        public Builder resources(final List<? extends Resource> values) {
             this.resources = values;
             return self();
         }
