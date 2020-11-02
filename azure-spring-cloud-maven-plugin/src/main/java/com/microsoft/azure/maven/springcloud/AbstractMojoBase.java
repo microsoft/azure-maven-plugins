@@ -17,7 +17,7 @@ import com.microsoft.azure.common.ConfigurationProblem;
 import com.microsoft.azure.common.ConfigurationProblem.Severity;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
-import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
+import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
@@ -95,7 +95,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     protected String runtimeVersion;
 
     @Parameter(property = "deployment")
-    protected AppDeploymentRawConfig deployment;
+    protected AppDeploymentMavenConfig deployment;
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
@@ -270,7 +270,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return runtimeVersion;
     }
 
-    public AppDeploymentRawConfig getDeployment() {
+    public AppDeploymentMavenConfig getDeployment() {
         return deployment;
     }
 
