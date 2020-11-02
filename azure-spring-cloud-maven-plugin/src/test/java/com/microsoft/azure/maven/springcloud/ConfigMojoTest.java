@@ -19,7 +19,6 @@ import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.springcloud.AppConfig;
-import com.microsoft.azure.tools.springcloud.AppDeploymentConfig;
 import com.microsoft.azure.tools.springcloud.ServiceClient;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.execution.MavenSession;
