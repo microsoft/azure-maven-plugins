@@ -38,7 +38,7 @@ public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHan
     }
 
     @Override
-    public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() {
+    public FunctionApp.DefinitionStages.WithCreate defineFunctionApp() {
         checkFunctionExtensionVersion();
         final FunctionApp.DefinitionStages.WithDockerContainerImage withDockerContainerImage = defineLinuxFunction();
         return withDockerContainerImage.withBuiltInImage(getRuntimeStack());

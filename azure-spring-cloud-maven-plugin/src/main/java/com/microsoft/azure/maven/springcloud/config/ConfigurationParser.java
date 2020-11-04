@@ -13,7 +13,7 @@ import com.microsoft.azure.tools.springcloud.AppDeploymentConfig;
 
 public class ConfigurationParser {
     public AppConfig parse(AbstractMojoBase springMojo) {
-        final AppDeploymentRawConfig rawConfig = springMojo.getDeployment();
+        final AppDeploymentMavenConfig rawConfig = springMojo.getDeployment();
         final AppDeploymentConfig config = ConfigurationParser.toDeploymentConfig(rawConfig);
         return new AppConfig()
             .withAppName(springMojo.getAppName())
@@ -24,7 +24,7 @@ public class ConfigurationParser {
             .withSubscriptionId(springMojo.getSubscriptionId());
     }
 
-    private static AppDeploymentConfig toDeploymentConfig(AppDeploymentRawConfig rawConfig) {
+    private static AppDeploymentConfig toDeploymentConfig(AppDeploymentMavenConfig rawConfig) {
         return new AppDeploymentConfig()
             .withCpu(rawConfig.getCpu())
             .withDeploymentName(rawConfig.getDeploymentName())

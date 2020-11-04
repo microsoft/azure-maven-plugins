@@ -39,7 +39,7 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
     }
 
     @Override
-    public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() {
+    public FunctionApp.DefinitionStages.WithCreate defineFunctionApp() {
         final AppServicePlan appServicePlan = getAppServicePlan();
         final FunctionApp.DefinitionStages.Blank functionApp = defineFunction();
         FunctionApp.DefinitionStages.WithCreate appWithCreate;
