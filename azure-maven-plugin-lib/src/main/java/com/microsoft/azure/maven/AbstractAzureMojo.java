@@ -58,7 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 /**
@@ -549,13 +548,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void executeWithTimeRecorder(RunnableWithException operation, String name) throws AzureExecutionException {
-        long startTime = System.currentTimeMillis();
+        final long startTime = System.currentTimeMillis();
         try {
             operation.run();
         } catch (Exception e) {
             throw new AzureExecutionException(e.getMessage(), e);
         } finally {
-            long endTime = System.currentTimeMillis();
+            final long endTime = System.currentTimeMillis();
             getTelemetryProxy().addDefaultProperty(String.format("%s-cost", name), String.valueOf(endTime - startTime));
         }
     }
