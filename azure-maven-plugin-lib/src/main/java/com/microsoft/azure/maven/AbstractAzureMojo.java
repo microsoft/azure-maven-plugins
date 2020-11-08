@@ -49,13 +49,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 /**
@@ -67,12 +70,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public static final String INSTALLATION_ID_KEY = "installationId";
     public static final String SESSION_ID_KEY = "sessionId";
     public static final String SUBSCRIPTION_ID_KEY = "subscriptionId";
-    public static final String AUTH_TYPE = "authType";
-    public static final String AUTH_METHOD = "authMethod";
-    public static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
-    public static final String INIT_FAILURE = "InitFailure";
-    public static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
-    public static final String FAILURE_REASON = "failureReason";
+    protected static final String DEPLOY = "deploy";
+    private static final String AUTH_TYPE = "authType";
+    private static final String AUTH_METHOD = "authMethod";
+    private static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
+    private static final String INIT_FAILURE = "InitFailure";
+    private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
+    private static final String FAILURE_REASON = "failureReason";
+    private static final String JVM_UP_TIME = "jvmUpTime";
     private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
             ".azure", "mavenplugins.properties").toString();
     private static final String FIRST_RUN_KEY = "first.run";
@@ -510,13 +515,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void trackMojoSuccess() {
-        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".success");
+        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".success", getJvmUpTime());
     }
 
     protected void trackMojoFailure(final String message) {
-        final HashMap<String, String> failureReason = new HashMap<>();
-        failureReason.put(FAILURE_REASON, message);
-        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".failure", failureReason);
+        final HashMap<String, String> failureParameters = new HashMap<>();
+        failureParameters.put(FAILURE_REASON, message);
+        failureParameters.putAll(getJvmUpTime());
+        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".failure", failureParameters);
     }
 
     //endregion
@@ -534,6 +540,23 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             throw new MojoExecutionException(message, exception);
         } else {
             Log.error(message);
+        }
+    }
+
+    protected Map<String, String> getJvmUpTime() {
+        final long jvmUpTime = ManagementFactory.getRuntimeMXBean().getUptime();
+        return Collections.singletonMap(JVM_UP_TIME, String.valueOf(jvmUpTime));
+    }
+
+    protected void executeWithTimeRecorder(RunnableWithException operation, String name) throws AzureExecutionException {
+        long startTime = System.currentTimeMillis();
+        try {
+            operation.run();
+        } catch (Exception e) {
+            throw new AzureExecutionException(e.getMessage(), e);
+        } finally {
+            long endTime = System.currentTimeMillis();
+            getTelemetryProxy().addDefaultProperty(String.format("%s-cost", name), String.valueOf(endTime - startTime));
         }
     }
 
@@ -587,5 +610,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
+    protected interface RunnableWithException {
+        void run() throws Exception;
+    }
     //endregion
 }
