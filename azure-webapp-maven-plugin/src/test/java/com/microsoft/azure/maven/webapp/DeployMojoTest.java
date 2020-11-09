@@ -19,6 +19,7 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.handlers.DeploymentSlotHandler;
@@ -237,7 +238,9 @@ public class DeployMojoTest {
         final MavenProject project = mock(MavenProject.class);
         doReturn(new File("target/..")).when(project).getBasedir();
         doReturn(project).when(mojoSpy).getProject();
-
+        final TelemetryProxy telemetryProxy = mock(TelemetryProxy.class);
+        doNothing().when(telemetryProxy).addDefaultProperty(any(), any());
+        doReturn(telemetryProxy).when(mojoSpy).getTelemetryProxy();
         mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
     }
 
@@ -259,6 +262,9 @@ public class DeployMojoTest {
         doReturn(new File("target/..")).when(project).getBasedir();
         doReturn(project).when(mojoSpy).getProject();
         final DeployTarget deployTarget = new WebAppDeployTarget(app);
+        final TelemetryProxy telemetryProxy = mock(TelemetryProxy.class);
+        doNothing().when(telemetryProxy).addDefaultProperty(any(), any());
+        doReturn(telemetryProxy).when(mojoSpy).getTelemetryProxy();
         mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
 
         verify(artifactHandler, times(1)).publish(refEq(deployTarget));
@@ -286,7 +292,9 @@ public class DeployMojoTest {
         final MavenProject project = mock(MavenProject.class);
         doReturn(new File("target/..")).when(project).getBasedir();
         doReturn(project).when(mojoSpy).getProject();
-
+        final TelemetryProxy telemetryProxy = mock(TelemetryProxy.class);
+        doNothing().when(telemetryProxy).addDefaultProperty(any(), any());
+        doReturn(telemetryProxy).when(mojoSpy).getTelemetryProxy();
         final DeployTarget deployTarget = new DeploymentSlotDeployTarget(slot);
         mojoSpy.deployArtifacts(mojoSpy.getWebAppConfiguration());
 

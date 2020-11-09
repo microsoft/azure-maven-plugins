@@ -169,23 +169,21 @@ public class DeployMojo extends AbstractWebAppMojo {
             Log.info("All external resources are already deployed.");
             return;
         }
-        artifactHandler.publish(target);
+        executeWithTimeRecorder(() -> artifactHandler.publish(target), DEPLOY);
     }
 
     private void handleV1Artifact(final DeployTarget target, List<Resource> v1Resources, final ArtifactHandler artifactHandler)
             throws AzureExecutionException, IOException {
         if (v1Resources == null || v1Resources.isEmpty()) {
             // TODO: v1 schema will be deprecated, so this legacy code will be removed in future
-            if (!(artifactHandler instanceof NONEArtifactHandlerImpl ||
-                    artifactHandler instanceof JarArtifactHandlerImpl ||
-                    artifactHandler instanceof WarArtifactHandlerImpl
-                    )) {
+            if (!(artifactHandler instanceof NONEArtifactHandlerImpl || artifactHandler instanceof JarArtifactHandlerImpl ||
+                    artifactHandler instanceof WarArtifactHandlerImpl)) {
                 throw new AzureExecutionException(NO_RESOURCES_CONFIG);
             }
         } else {
             copyArtifactsToStagingDirectory(v1Resources);
         }
-        artifactHandler.publish(target);
+        executeWithTimeRecorder(() -> artifactHandler.publish(target), DEPLOY);
     }
 
     private HandlerFactory getFactory() {

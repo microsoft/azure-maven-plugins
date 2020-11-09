@@ -144,11 +144,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                     String.format("Failed to get the deploy target with name: %s", getAppName()));
             }
 
-            final DeployTarget deployTarget = new DeployTarget(target, DeployTargetType.FUNCTION);
-
-            Log.info(DEPLOY_START);
-            getArtifactHandler().publish(deployTarget);
-            Log.info(String.format(DEPLOY_FINISH, getResourcePortalUrl(target)));
+            deployArtifact(new DeployTarget(target, DeployTargetType.FUNCTION));
 
             if (!isDeployToSlot()) {
                 listHTTPTriggerUrls();
@@ -156,6 +152,13 @@ public class DeployMojo extends AbstractFunctionMojo {
         } catch (AzureAuthFailureException e) {
             throw new AzureExecutionException("Cannot auth to azure", e);
         }
+    }
+
+    private void deployArtifact(DeployTarget deployTarget) throws AzureExecutionException, AzureAuthFailureException {
+        Log.info(DEPLOY_START);
+        final ArtifactHandler artifactHandler = getArtifactHandler();
+        executeWithTimeRecorder(() -> artifactHandler.publish(deployTarget), DEPLOY);
+        Log.info(String.format(DEPLOY_FINISH, getResourcePortalUrl(deployTarget.getApp())));
     }
 
     protected WebAppBase createOrUpdateResource() throws AzureExecutionException, AzureAuthFailureException {
