@@ -154,7 +154,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void deployArtifact(DeployTarget deployTarget) throws AzureExecutionException, AzureAuthFailureException {
+    private void deployArtifact(DeployTarget deployTarget) throws AzureExecutionException, AzureAuthFailureException {
         Log.info(DEPLOY_START);
         final ArtifactHandler artifactHandler = getArtifactHandler();
         executeWithTimeRecorder(() -> artifactHandler.publish(deployTarget), DEPLOY);

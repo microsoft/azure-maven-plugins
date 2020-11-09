@@ -52,7 +52,6 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -514,14 +513,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void trackMojoSuccess() {
-        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".success", getJvmUpTime());
+        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".success", recordJvmUpTime(new HashMap<>()));
     }
 
     protected void trackMojoFailure(final String message) {
-        final HashMap<String, String> failureParameters = new HashMap<>();
+        final Map<String, String> failureParameters = new HashMap<>();
         failureParameters.put(FAILURE_REASON, message);
-        failureParameters.putAll(getJvmUpTime());
-        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".failure", failureParameters);
+        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".failure", recordJvmUpTime(failureParameters));
     }
 
     //endregion
@@ -542,11 +540,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    protected Map<String, String> getJvmUpTime() {
-        final long jvmUpTime = ManagementFactory.getRuntimeMXBean().getUptime();
-        return Collections.singletonMap(JVM_UP_TIME, String.valueOf(jvmUpTime));
-    }
-
     protected void executeWithTimeRecorder(RunnableWithException operation, String name) throws AzureExecutionException {
         final long startTime = System.currentTimeMillis();
         try {
@@ -557,6 +550,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             final long endTime = System.currentTimeMillis();
             getTelemetryProxy().addDefaultProperty(String.format("%s-cost", name), String.valueOf(endTime - startTime));
         }
+    }
+
+    private Map<String, String> recordJvmUpTime(Map<String, String> properties) {
+        final long jvmUpTime = ManagementFactory.getRuntimeMXBean().getUptime();
+        properties.put(JVM_UP_TIME, String.valueOf(jvmUpTime));
+        return properties;
     }
 
     private boolean isFirstRun(Properties prop) {
