@@ -35,6 +35,12 @@ public class RunFromZipArtifactHandlerImpl extends ZIPArtifactHandlerImpl {
     @Override
     public void publish(DeployTarget target) throws AzureExecutionException {
         FunctionArtifactHelper.updateAppSetting(target, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, RUN_FROM_PACKAGE_VALUE);
+        try {
+            // work around for issue https://dev.azure.com/msazure/Unified%20Platform%20KPIs/_workitems/edit/7481871
+            Thread.sleep(20 * 1000);
+        } catch (InterruptedException e) {
+            // Sorrow exception here as we just wait for 20s for kudu app settings update, which is not required in normal cases
+        }
         super.publish(target);
     }
 }
