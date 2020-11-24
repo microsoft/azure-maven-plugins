@@ -91,6 +91,9 @@ public class DeployMojoTest extends MojoTestBase {
         doNothing().when(mojoSpy).checkArtifactCompileVersion();
         doNothing().when(mojoSpy).parseConfiguration();
         doReturn(null).when(mojoSpy).getResourcePortalUrl(any());
+        final TelemetryProxy telemetryProxy = mock(TelemetryProxy.class);
+        doNothing().when(telemetryProxy).addDefaultProperty(any(), any());
+        doReturn(telemetryProxy).when(mojoSpy).getTelemetryProxy();
         mojoSpy.doExecute();
         verify(mojoSpy, times(1)).createOrUpdateResource();
         verify(mojoSpy, times(1)).doExecute();
@@ -248,7 +251,9 @@ public class DeployMojoTest extends MojoTestBase {
         doReturn(null).when(mojoSpy).getResourcePortalUrl(any());
         PowerMockito.mockStatic(FunctionUtils.class);
         PowerMockito.when(FunctionUtils.getFunctionDeploymentSlotByName(any(), any())).thenReturn(null);
-
+        final TelemetryProxy telemetryProxy = mock(TelemetryProxy.class);
+        doNothing().when(telemetryProxy).addDefaultProperty(any(), any());
+        doReturn(telemetryProxy).when(mojoSpy).getTelemetryProxy();
         mojoSpy.doExecute();
 
         verify(mojoSpy, times(1)).doExecute();
