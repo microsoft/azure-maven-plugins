@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure App Service" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.12.0](#1120)
   - [1.11.0](#1110)
   - [1.10.0](#1100)
   - [1.9.1](#191)
