@@ -36,39 +36,51 @@ mvn package azure-webapp:deploy
 ## Configuration
 Here is a typical configuration for Azure Web App Maven Plugin:
 ```xml
-<plugin> 
-  <groupId>com.microsoft.azure</groupId>  
-  <artifactId>azure-webapp-maven-plugin</artifactId>  
-  <version>1.12.0</version>  
+<plugin>
+  <groupId>com.microsoft.azure</groupId>
+  <artifactId>azure-webapp-maven-plugin</artifactId>
+  <version>2.0.0</version>
   <configuration>
-    <schemaVersion>V2</schemaVersion>
-    <subscriptionId>111111-11111-11111-1111111</subscriptionId>
+    <!-- <authType>service_principal</authType>
+    <auth>
+        <client>111111-11111-11111-1111111</client>
+        <tenant>222222-22222-22222-2222222</tenant>
+        <key>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</key>
+        <environment>AZURE</environment>
+    </auth> -->
+    <subscriptionId>333333-33333-33333-3333333</subscriptionId>
     <resourceGroup>spring-boot-xxxxxxxxxx-rg</resourceGroup>
     <appName>spring-boot-xxxxxxxxxx</appName>
     <pricingTier>B2</pricingTier>
     <region>westus</region>
     <runtime>
-      <os>Linux</os>      
+      <os>Linux</os>
       <webContainer>Java SE</webContainer>
       <javaVersion>Java 11</javaVersion>
     </runtime>
-    <deployment>
-      <resources>
-        <resource>
-          <directory>${project.basedir}/target</directory>
-          <includes>
-            <include>*.jar</include>
-          </includes>
-        </resource>
-      </resources>
-    </deployment>
+
+    <!-- <deploymentSlot>
+        <name>${SLOT_NAME}</name>
+        <configurationSource>parent</configurationSource>
+    </deploymentSlot> -->
+
+    <deployables>
+        <deployable>
+            <!-- <context>/</context>  only for war, default for "/" -->
+            <file>${project.basedir}/target/*.war</file>
+        </deployable>
+        <deployable>
+            <type>lib</type>
+            <file>${project.basedir}/.script/*.jar</file>
+            <!-- <todir>/home/mysql/driver</todir> -->
+          </deployable>
+    </deployables>
   </configuration>
-</plugin> 
+</plugin>
 ```
 
-Property | Required | Description 
+Property | Required | Description
 ---|---|---
-`<schemaVersion>` | false | Specify the version of the configuration schema. The recommended value is  `v2`  |
 `<subscriptionId>` | false | Specifies the target subscription.<br>Use this setting when you have multiple subscriptions in your authentication file.|
 `<resourceGroup>` | true | Azure Resource Group for your Web App. |
 `<appName>` | true | The name of your Web App. |
@@ -77,7 +89,10 @@ Property | Required | Description
 `<os>`| false | Specifies the os, supported values are *Linux*, *Windows* and *Docker*. |
 `<webContainer>`| false | Specifies the runtime stack, values for Linux are: *Tomcat 8.5*, *Tomcat 9.0*, *Java SE*, *JbossEAP 7.2*|
 `<javaVersion>`| false | Specifies the java version, values are: *Java 8* or *Java 11*|
-`<deployment>`| false | Specifies the target file to be deployed |
+`<deployables>`| false | Specifies the <deployables> list to be deployed |
+`<type>`| false | Specifies the resource types, valid values are: *war*, *jar*, *ear*, *static*, *startup*, *zip*. |
+`<context>` | false | Specifies the context path,  Only valid for war/ear types for example, if you specifiy the context to *hello1*, then you can navigate the page through *https://<your webapp name>.azurewebsites.net/helllo1*. |
+`<todir>` | false | Specifies the target path the deployment will copy to,please be aware this property is not supported by *jar* *ear* and *startup*, and you are limited to certain parent folder for each type:, for *static*, it should be a subdirectory of *home/site/scripts*, for *lib*, it should be a subdirectory of *home/site/libs*  |
 
 ## Feedback and Questions
 To report bugs or request new features, file issues on [Issues](https://github.com/microsoft/azure-maven-plugins/issues). Or, ask questions on [Stack Overflow with tag azure-java-tools](https://stackoverflow.com/questions/tagged/azure-java-tools).

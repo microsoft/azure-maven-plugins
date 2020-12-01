@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure App Service" will be documented in this file.
 - [Change Log](#change-log)
+  - [2.0.0](#210)
   - [1.12.0](#1120)
   - [1.11.0](#1110)
   - [1.10.0](#1100)
@@ -21,6 +22,11 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.1.0](#110)
   - [1.0.0](#100)
 
+## 2.0.0
+- Deprecate deployment <resources>
+- Support one deploy api
+- Remove V1 Schema
+
 ## 1.12.0
 - Support JBoss 7.2(EAP) within Linux Azure Web App
 - Support new runtime configuration style
@@ -30,7 +36,7 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
 
 ## 1.10.0
 - Support set Azure environment in configuration (`<configuration> -> <auth> -> <environment>`)
-- Fixes : XSS issue in authentication [#1110](https://github.com/microsoft/azure-maven-plugins/issues/1110) 
+- Fixes : XSS issue in authentication [#1110](https://github.com/microsoft/azure-maven-plugins/issues/1110)
 - Fixes : Resource Group name match uses case sensitive string comparison [#1056](https://github.com/microsoft/azure-maven-plugins/issues/1056)
 
 ## 1.9.1
