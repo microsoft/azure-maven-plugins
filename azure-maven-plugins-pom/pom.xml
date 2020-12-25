@@ -4,7 +4,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugins-pom</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Maven Plugins for Azure</name>
     <description>Maven plugins for Microsoft Azure services</description>
