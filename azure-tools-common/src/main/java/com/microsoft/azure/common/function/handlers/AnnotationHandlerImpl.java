@@ -11,7 +11,10 @@ import com.microsoft.azure.common.function.bindings.Binding;
 import com.microsoft.azure.common.function.bindings.BindingEnum;
 import com.microsoft.azure.common.function.bindings.BindingFactory;
 import com.microsoft.azure.common.function.configurations.FunctionConfiguration;
+import com.microsoft.azure.common.function.configurations.Retry;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.functions.annotation.ExponentialBackoffRetry;
+import com.microsoft.azure.functions.annotation.FixedDelayRetry;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.StorageAccount;
 
@@ -30,12 +33,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class AnnotationHandlerImpl implements AnnotationHandler {
+
+    private static final String MULTI_RETRY_ANNOTATION = "Fixed delay retry and exponential backoff retry is not compatible, " +
+            "please use either of them for one trigger";
+
     @Override
     public Set<Method> findFunctions(final List<URL> urls) {
         return new Reflections(
@@ -74,7 +82,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     }
 
     @Override
-    public FunctionConfiguration generateConfiguration(final Method method) {
+    public FunctionConfiguration generateConfiguration(final Method method) throws AzureExecutionException {
         final FunctionConfiguration config = new FunctionConfiguration();
         final List<Binding> bindings = config.getBindings();
 
@@ -84,8 +92,23 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
 
         patchStorageBinding(method, bindings);
 
+        config.setRetry(getRetryConfigurationFromMethod(method));
         config.setEntryPoint(method.getDeclaringClass().getCanonicalName() + "." + method.getName());
         return config;
+    }
+
+    private Retry getRetryConfigurationFromMethod(Method method) throws AzureExecutionException {
+        final FixedDelayRetry fixedDelayRetry = method.getDeclaredAnnotation(FixedDelayRetry.class);
+        final ExponentialBackoffRetry exponentialBackoffRetry = method.getDeclaredAnnotation(ExponentialBackoffRetry.class);
+        if (!Objects.isNull(fixedDelayRetry) && !Objects.isNull(exponentialBackoffRetry)) {
+            throw new AzureExecutionException(MULTI_RETRY_ANNOTATION);
+        } else if (fixedDelayRetry != null) {
+            return Retry.createFixedDelayRetryFromAnnotation(fixedDelayRetry);
+        } else if (exponentialBackoffRetry != null) {
+            return Retry.createExponentialBackoffRetryFromAnnotation(exponentialBackoffRetry);
+        } else {
+            return null;
+        }
     }
 
     protected void processParameterAnnotations(final Method method, final List<Binding> bindings) {

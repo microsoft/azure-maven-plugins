@@ -77,7 +77,8 @@ public abstract class FunctionRuntimeHandler extends BaseRuntimeHandler<Function
 
     @Override
     public FunctionApp.DefinitionStages.WithCreate defineAppWithRuntime() throws AzureExecutionException {
-        return defineFunctionApp().withNewStorageAccount(SdkContext.randomResourceName(StringUtils.replace(appName, "-", ""), 20), StorageAccountSkuType.STANDARD_GRS);
+        return defineFunctionApp().withNewStorageAccount(SdkContext.randomResourceName(StringUtils.replace(appName, "-", ""), 20),
+                StorageAccountSkuType.STANDARD_GRS);
     }
 
     public abstract FunctionApp.DefinitionStages.WithCreate defineFunctionApp() throws AzureExecutionException;

@@ -33,6 +33,13 @@ public class FunctionConfiguration {
 
     private List<Binding> bindings = new ArrayList<>();
 
+    private Retry retry;
+
+    @JsonGetter("retry")
+    public Retry getRetry() {
+        return retry;
+    }
+
     @JsonGetter("scriptFile")
     public String getScriptFile() {
         return scriptFile;
@@ -58,6 +65,10 @@ public class FunctionConfiguration {
 
     public void setBindings(List<Binding> bindings) {
         this.bindings = bindings;
+    }
+
+    public void setRetry(Retry retry) {
+        this.retry = retry;
     }
 
     public void validate() {
