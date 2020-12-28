@@ -41,7 +41,7 @@ import java.util.function.Supplier;
 
 public class AnnotationHandlerImpl implements AnnotationHandler {
 
-    private static final String MULTI_RETRY_ANNOTATION = "Fixed delay retry and exponential backoff retry is not compatible, " +
+    private static final String MULTI_RETRY_ANNOTATION = "Fixed delay retry and exponential backoff retry are not compatible, " +
             "please use either of them for one trigger";
 
     @Override
@@ -100,7 +100,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     private Retry getRetryConfigurationFromMethod(Method method) throws AzureExecutionException {
         final FixedDelayRetry fixedDelayRetry = method.getDeclaredAnnotation(FixedDelayRetry.class);
         final ExponentialBackoffRetry exponentialBackoffRetry = method.getDeclaredAnnotation(ExponentialBackoffRetry.class);
-        if (!Objects.isNull(fixedDelayRetry) && !Objects.isNull(exponentialBackoffRetry)) {
+        if (fixedDelayRetry != null && exponentialBackoffRetry != null) {
             throw new AzureExecutionException(MULTI_RETRY_ANNOTATION);
         } else if (fixedDelayRetry != null) {
             return Retry.createFixedDelayRetryFromAnnotation(fixedDelayRetry);

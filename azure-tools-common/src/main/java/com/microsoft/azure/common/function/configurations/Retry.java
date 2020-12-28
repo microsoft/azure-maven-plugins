@@ -8,11 +8,11 @@ package com.microsoft.azure.common.function.configurations;
 
 import com.microsoft.azure.functions.annotation.ExponentialBackoffRetry;
 import com.microsoft.azure.functions.annotation.FixedDelayRetry;
-import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
+@Getter()
 @SuperBuilder(toBuilder = true)
-@Data
 public class Retry {
     private String strategy;
     private int maxRetryCount;
