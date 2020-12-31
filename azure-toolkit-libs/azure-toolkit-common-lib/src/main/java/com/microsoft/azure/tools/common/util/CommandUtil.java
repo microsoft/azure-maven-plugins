@@ -8,6 +8,7 @@ package com.microsoft.azure.tools.common.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 
@@ -22,9 +23,9 @@ public class CommandUtil {
         final Process p = Runtime.getRuntime().exec(cmds, null, cwd);
         final int exitCode = p.waitFor();
         if (exitCode != 0) {
-            String errorLog = IOUtils.toString(p.getErrorStream(), "utf8");
+            String errorLog = IOUtils.toString(p.getErrorStream(), StandardCharsets.UTF_8);
             throw new CommandExecuteException(String.format("Cannot execute '%s' due to error: %s", cmd, errorLog));
         }
-        return IOUtils.toString(p.getInputStream(), "utf8");
+        return IOUtils.toString(p.getInputStream(), StandardCharsets.UTF_8);
     }
 }
