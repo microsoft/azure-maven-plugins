@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-libs</artifactId>
@@ -11,6 +11,8 @@
     <description>Wrapped libs for Microsoft Azure Toolkits</description>
 
     <modules>
+        <module>azure-toolkit-common-lib</module>
+        <module>azure-toolkit-auth-lib</module>
         <module>azure-toolkit-springcloud-lib</module>
     </modules>
 
@@ -30,12 +32,10 @@
         <azure.ai.version>2.6.1</azure.ai.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
         <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
-        <azure.client.version>1.7.8</azure.client.version>
-        <azure.auth-helper.version>0.7.0-SNAPSHOT</azure.auth-helper.version>
+        <azure.client.version>1.7.9</azure.client.version>
         <azure.eventhubs.version>1.2.0</azure.eventhubs.version>
         <azure.eventhubs-eph.version>2.0.1</azure.eventhubs-eph.version>
         <azure.function.version>1.4.0</azure.function.version>
-        <azure.maven-plugin-lib.version>1.5.0-SNAPSHOT</azure.maven-plugin-lib.version>
         <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
         <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
         <azure.tools-common.version>0.10.0</azure.tools-common.version>
@@ -74,6 +74,7 @@
         <spring-test.version>4.1.6.RELEASE</spring-test.version>
         <zt.zip.version>1.14</zt.zip.version>
 
+        <gson.version>2.8.6</gson.version>
         <maven.clean-plugin.version>3.1.0</maven.clean-plugin.version>
         <maven.resources-plugin.version>3.0.2</maven.resources-plugin.version>
         <maven.source-plugin.version>2.2.1</maven.source-plugin.version>
@@ -89,6 +90,10 @@
 
         <google.jsr305.version>3.0.0</google.jsr305.version>
         <azure.azure-mgmt-appplatform.version>1.0.0-beta</azure.azure-mgmt-appplatform.version>
+        <azure.toolkit.common.lib.version>0.0.1-SNAPSHOT</azure.toolkit.common.lib.version>
+        <azure-identity.version>1.2.1</azure-identity.version>
+        <azure.version>1.36.3</azure.version>
+        <lombok.version>1.18.8</lombok.version>
     </properties>
 
     <dependencyManagement>
@@ -98,7 +103,7 @@
                 <artifactId>azure-tools-common</artifactId>
                 <version>${azure.tools-common.version}</version>
             </dependency>
-            <!-- azure lib for spring cloud-->
+            <!-- azure lib for spring cloud -->
             <dependency>
                 <groupId>com.microsoft.azure.appplatform.v2020_07_01</groupId>
                 <artifactId>azure-mgmt-appplatform</artifactId>
@@ -129,6 +134,33 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.fusesource.jansi</groupId>
+                <artifactId>jansi</artifactId>
+                <version>${jansi.version}</version>
+            </dependency>
 
             <!-- javax annotations e.g. @Nonnull -->
             <dependency>
@@ -141,6 +173,44 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons.lang3.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- azure sdk -->
+
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-client-runtime</artifactId>
+                <version>{azure.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager</artifactId>
+                <version>${azure.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-identity</artifactId>
+                <version>${azure-identity.version}</version>
+            </dependency>
+
+            <!-- azure toolkit libs -->
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-common-lib</artifactId>
+                <version>${azure.toolkit.common.lib.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
