@@ -102,13 +102,14 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         final ExponentialBackoffRetry exponentialBackoffRetry = method.getDeclaredAnnotation(ExponentialBackoffRetry.class);
         if (fixedDelayRetry != null && exponentialBackoffRetry != null) {
             throw new AzureExecutionException(MULTI_RETRY_ANNOTATION);
-        } else if (fixedDelayRetry != null) {
-            return Retry.createFixedDelayRetryFromAnnotation(fixedDelayRetry);
-        } else if (exponentialBackoffRetry != null) {
-            return Retry.createExponentialBackoffRetryFromAnnotation(exponentialBackoffRetry);
-        } else {
-            return null;
         }
+        if (fixedDelayRetry != null) {
+            return Retry.createFixedDelayRetryFromAnnotation(fixedDelayRetry);
+        }
+        if (exponentialBackoffRetry != null) {
+            return Retry.createExponentialBackoffRetryFromAnnotation(exponentialBackoffRetry);
+        }
+        return null;
     }
 
     protected void processParameterAnnotations(final Method method, final List<Binding> bindings) {
