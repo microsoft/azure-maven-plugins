@@ -46,34 +46,12 @@ public class AuthHelper {
         if (environment == null) {
             environment = AzureEnvironment.AZURE;
         }
+        // change the default azure env after it is initialized in azure identity
+        // see code at
+        // https://github.com/Azure/azure-sdk-for-java/blob/32f8f7ca8b44035b2e5520c5e10455f42500a778/sdk/identity/azure-identity/src/main/java/com/azure/identity/implementation/IdentityClientOptions.java#L42
         Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, environment.activeDirectoryEndpoint());
     }
 
-    public static AuthType parseAuthType(String type) {
-        if (StringUtils.isBlank(type)) {
-            return AuthType.AUTO;
-        }
-        switch (type.toLowerCase().trim()) {
-            case "azure_cli":
-                return AuthType.AZURE_CLI;
-            case "intellij":
-                return AuthType.INTELLIJ_IDEA;
-            case "vscode":
-                return AuthType.VSCODE;
-            case "device_code":
-                return AuthType.DEVICE_CODE;
-            case "managed_identity":
-                return AuthType.MANAGED_IDENTITY;
-            case "oauth2":
-                return AuthType.OAUTH2;
-            case "visual_studio":
-                return AuthType.VISUAL_STUDIO;
-            case "auto":
-                return AuthType.AUTO;
-        }
-        throw new UnsupportedOperationException(String.format("Invalid auth type '%s', supported values are: %s.", type,
-                StringUtils.join(Arrays.stream(AuthType.values()).map(t -> StringUtils.lowerCase(t.toString())), ",")));
-    }
 
     /**
      * Validate the azure environment.
