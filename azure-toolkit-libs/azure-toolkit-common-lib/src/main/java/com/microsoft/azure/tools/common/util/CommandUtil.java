@@ -19,7 +19,7 @@ public class CommandUtil {
 
     public static String executeCommandAndGetOutput(final String cmd, File cwd)
             throws IOException, InterruptedException {
-        final String[] cmds = new String[]{isWindows ? "cmd.exe" : "bash", "/c", cmd};
+        final String[] cmds = new String[]{isWindows ? "cmd.exe" : "bash", isWindows ? "/c" : "-c", cmd};
         final Process p = Runtime.getRuntime().exec(cmds, null, cwd);
         final int exitCode = p.waitFor();
         if (exitCode != 0) {
