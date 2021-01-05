@@ -51,7 +51,7 @@ public class MavenAuthConfiguration {
             }
         }
 
-        final String messagePostfix = StringUtils.isNotBlank(serverId) ? (" in <server>: \"" + serverId + "\" at maven settings.xml.")
+        final String messagePostfix = StringUtils.isNotBlank(serverId) ? (" in server: '" + serverId + "' at maven settings.xml.")
                 : " in <auth> configuration.";
         if (Objects.nonNull(messagePrefix)) {
             throw new InvalidConfigurationException(messagePrefix + messagePostfix);
