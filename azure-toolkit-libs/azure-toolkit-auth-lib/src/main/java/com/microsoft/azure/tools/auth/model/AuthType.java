@@ -15,8 +15,10 @@ import org.apache.commons.lang3.StringUtils;
  */
 public enum AuthType {
     AUTO,
-    AZURE_CLI,
+    SERVICE_PRINCIPAL,
+    AZURE_AUTH_MAVEN_PLUGIN,
     MANAGED_IDENTITY,
+    AZURE_CLI,
     VSCODE,
     INTELLIJ_IDEA,
     VISUAL_STUDIO,
@@ -28,24 +30,30 @@ public enum AuthType {
             return AUTO;
         }
         switch (type.toLowerCase().trim()) {
-            case "azure_cli":
-                return AZURE_CLI;
-            case "intellij":
-                return INTELLIJ_IDEA;
-            case "vscode":
-                return VSCODE;
-            case "device_code":
-                return DEVICE_CODE;
+            case "auto":
+                return AUTO;
+            case "service_principal":
+                return SERVICE_PRINCIPAL;
             case "managed_identity":
                 return MANAGED_IDENTITY;
+            case "azure_cli":
+                return AZURE_CLI;
+            case "vscode":
+                return VSCODE;
+            case "intellij":
+                return INTELLIJ_IDEA;
+            case "azure_auth_maven_plugin":
+                return AZURE_AUTH_MAVEN_PLUGIN;
+            case "device_code":
+                return DEVICE_CODE;
             case "oauth2":
                 return OAUTH2;
             case "visual_studio":
                 return VISUAL_STUDIO;
-            case "auto":
-                return AUTO;
+            default:
+                throw new UnsupportedOperationException(String.format("Invalid auth type '%s', supported values are: %s.", type,
+                        StringUtils.join(Arrays.stream(values()).map(t -> StringUtils.lowerCase(t.toString())), ",")));
         }
-        throw new UnsupportedOperationException(String.format("Invalid auth type '%s', supported values are: %s.", type,
-                StringUtils.join(Arrays.stream(values()).map(t -> StringUtils.lowerCase(t.toString())), ",")));
+
     }
 }
