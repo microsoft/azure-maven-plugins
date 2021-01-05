@@ -8,6 +8,7 @@ package com.microsoft.azure.tools.auth.model;
 
 import java.util.Arrays;
 
+import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -25,7 +26,7 @@ public enum AuthType {
     DEVICE_CODE,
     OAUTH2;
 
-    public static AuthType parseAuthType(String type) {
+    public static AuthType parseAuthType(String type) throws InvalidConfigurationException {
         if (StringUtils.isBlank(type)) {
             return AUTO;
         }
@@ -51,7 +52,7 @@ public enum AuthType {
             case "visual_studio":
                 return VISUAL_STUDIO;
             default:
-                throw new UnsupportedOperationException(String.format("Invalid auth type '%s', supported values are: %s.", type,
+                throw new InvalidConfigurationException(String.format("Invalid auth type '%s', supported values are: %s.", type,
                         StringUtils.join(Arrays.stream(values()).map(t -> StringUtils.lowerCase(t.toString())), ",")));
         }
 
