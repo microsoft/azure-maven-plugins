@@ -68,7 +68,7 @@ public class MavenSettingHelper {
     /**
      * Get string value from server configuration section in settings.xml.
      *
-     * @param configuration the <i>Xpp3Dom</i> object representing the configuration in &gt;server&gt;'.
+     * @param configuration the <code>Xpp3Dom</code> object representing the configuration in &lt;server&gt;.
      * @param property           the property name
      * @return String value if property exists; otherwise, return null.
      */
