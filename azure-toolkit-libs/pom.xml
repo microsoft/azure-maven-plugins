@@ -94,10 +94,63 @@
         <azure-identity.version>1.2.1</azure-identity.version>
         <azure.version>1.36.3</azure.version>
         <lombok.version>1.18.8</lombok.version>
+        <free.port.finder.version>1.0</free.port.finder.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-core</artifactId>
+                <version>${maven.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-api</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.plugin-tools</groupId>
+                <artifactId>maven-plugin-annotations</artifactId>
+                <version>${maven.plugin-tools.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-settings</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-settings-builder</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-model</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-model-builder</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-utils</artifactId>
+                <version>${codehaus.plexus-utils.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-tools-common</artifactId>
@@ -188,12 +241,18 @@
                 <scope>provided</scope>
             </dependency>
 
+            <dependency>
+                <groupId>me.alexpanov</groupId>
+                <artifactId>free-port-finder</artifactId>
+                <version>${free.port.finder.version}</version>
+            </dependency>
+
             <!-- azure sdk -->
 
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-client-runtime</artifactId>
-                <version>{azure.client.version}</version>
+                <version>${azure.client.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
