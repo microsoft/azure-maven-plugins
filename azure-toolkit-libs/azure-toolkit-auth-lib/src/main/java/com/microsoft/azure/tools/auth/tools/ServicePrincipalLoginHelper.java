@@ -4,13 +4,15 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth;
+package com.microsoft.azure.tools.auth.tools;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
+import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.maven.MavenSettingHelper;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
@@ -33,6 +35,16 @@ public class ServicePrincipalLoginHelper {
         if (StringUtils.isNoneBlank(configuration.getClient(), configuration.getTenant())) {
             configuration.validate();
             return mavenSettingLogin(AuthMethod.MAVEN_CONFIGURATION, configuration);
+        }
+
+        // if we cannot login through maven configuration, we should validate on user's
+        // incomplete configuration
+        if (!StringUtils.isAllBlank(configuration.getClient(), configuration.getTenant(),
+                configuration.getCertificate(), configuration.getKey(), configuration.getCertificatePassword(),
+                configuration.getHttpProxyHost(), configuration.getHttpProxyPort())) {
+            throw new InvalidConfigurationException(
+                    "Incomplete auth configurations in maven configuration, " +
+                            "please refer to https://github.com/microsoft/azure-maven-plugins/wiki/Authentication");
         }
         return null;
     }
