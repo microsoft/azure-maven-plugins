@@ -41,7 +41,8 @@ public class MavenAuthConfiguration {
             messagePrefix = "It is wrong to specify both 'key' and 'certificate'";
         } else if (StringUtils.isNotBlank(environment) && !AuthHelper.validateEnvironment(environment)) {
             messagePrefix = "Invalid environment string '%s'";
-        } else if (StringUtils.isNotBlank(httpProxyHost) && StringUtils.isBlank(httpProxyPort)) {
+        } else if ((StringUtils.isNotBlank(httpProxyHost) && StringUtils.isBlank(httpProxyPort)) ||
+                (StringUtils.isBlank(httpProxyHost) && StringUtils.isNotBlank(httpProxyPort))) {
             messagePrefix = "if you want to use proxy, 'httpProxyHost' and 'httpProxyPort' must both be set";
         } else if (StringUtils.isNotBlank(httpProxyPort)) {
             if (!StringUtils.isNumeric(httpProxyPort)) {
