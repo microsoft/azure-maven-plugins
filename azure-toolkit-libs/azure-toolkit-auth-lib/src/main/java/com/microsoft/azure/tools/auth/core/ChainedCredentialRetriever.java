@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.tools;
+package com.microsoft.azure.tools.auth.core;
 
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;

@@ -13,7 +13,7 @@ import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthType;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.auth.model.MavenAuthConfiguration;
-import com.microsoft.azure.tools.auth.tools.*;
+import com.microsoft.azure.tools.auth.core.*;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import rx.Single;

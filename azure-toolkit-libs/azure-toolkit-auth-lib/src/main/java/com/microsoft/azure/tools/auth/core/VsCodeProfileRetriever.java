@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.tools;
+package com.microsoft.azure.tools.auth.core;
 
 import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.implementation.VisualStudioCacheAccessor;
