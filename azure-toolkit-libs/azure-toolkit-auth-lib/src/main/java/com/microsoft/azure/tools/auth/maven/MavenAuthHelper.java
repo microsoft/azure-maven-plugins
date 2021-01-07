@@ -40,7 +40,7 @@ public class MavenAuthHelper {
         if (env == null) {
             env = AzureEnvironment.AZURE;
         }
-        ChainedCredentialRetriever retriever = new ChainedCredentialRetriever();
+        ChainedCredentialRetriever retrievers = new ChainedCredentialRetriever();
 
         AuthType authType = AuthType.parseAuthType(configuration.getAuthType());
         if (authType.equals(AuthType.AUTO)) {
@@ -53,36 +53,36 @@ public class MavenAuthHelper {
                 return Single.just(credentialFromSP);
             }
 
-            retriever.addRetriever(new ManagedIdentityCredentialRetriever()::retrieve);
-            retriever.addRetriever(new AzureCliCredentialRetriever()::retrieve);
-            retriever.addRetriever(new VsCodeCredentialRetriever()::retrieve);
-            retriever.addRetriever(new OAuthCredentialRetriever(env)::retrieve);
-            retriever.addRetriever(new DeviceCodeCredentialRetriever(env)::retrieve);
+            retrievers.addRetriever(new ManagedIdentityCredentialRetriever()::retrieve);
+            retrievers.addRetriever(new AzureCliCredentialRetriever()::retrieve);
+            retrievers.addRetriever(new VsCodeCredentialRetriever()::retrieve);
+            retrievers.addRetriever(new OAuthCredentialRetriever(env)::retrieve);
+            retrievers.addRetriever(new DeviceCodeCredentialRetriever(env)::retrieve);
         } else {
             MavenAuthConfiguration finalConfiguration = configuration;
             // for specific auth type:
             switch (authType) {
                 case SERVICE_PRINCIPAL: // will get configuration from maven settings or maven configuration
-                    retriever.addRetriever(() -> ServicePrincipalLoginHelper.login(finalConfiguration, session, settingsDecrypter));
+                    retrievers.addRetriever(() -> ServicePrincipalLoginHelper.login(finalConfiguration, session, settingsDecrypter));
                     break;
                 case MANAGED_IDENTITY:
-                    retriever.addRetriever(new ManagedIdentityCredentialRetriever()::retrieve);
+                    retrievers.addRetriever(new ManagedIdentityCredentialRetriever()::retrieve);
                     break;
                 case AZURE_CLI:
-                    retriever.addRetriever(new AzureCliCredentialRetriever()::retrieve);
+                    retrievers.addRetriever(new AzureCliCredentialRetriever()::retrieve);
                     break;
                 case DEVICE_CODE:
-                    retriever.addRetriever(new OAuthCredentialRetriever(env)::retrieve);
+                    retrievers.addRetriever(new OAuthCredentialRetriever(env)::retrieve);
                     break;
                 case OAUTH2:
-                    retriever.addRetriever(new DeviceCodeCredentialRetriever(env)::retrieve);
+                    retrievers.addRetriever(new DeviceCodeCredentialRetriever(env)::retrieve);
                     break;
                 default:
                     return Single.error(new UnsupportedOperationException(String.format("authType '%s' not supported.", authType)));
             }
-            // add last pure error virtual retriever to show reasonable error instead of showing the last error
-            retriever.addRetriever(() -> Single.error(new LoginFailureException(String.format("Cannot get credentials from authType '%s'.", authType))));
+            // add last pure error fake retriever to show reasonable error instead of showing the last error
+            retrievers.addRetriever(() -> Single.error(new LoginFailureException(String.format("Cannot get credentials from authType '%s'.", authType))));
         }
-        return retriever.retrieve();
+        return retrievers.retrieve();
     }
 }
