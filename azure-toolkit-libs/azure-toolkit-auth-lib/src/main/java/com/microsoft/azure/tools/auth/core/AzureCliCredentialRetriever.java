@@ -33,11 +33,10 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
         }
         AzureEnvironment envFromCli = AuthHelper.parseAzureEnvironment(accountInfo.getEnvironment());
         AzureCliCredential cliCredential = new AzureCliCredentialBuilder().build();
-        AzureCredentialWrapper credentialWrapper = new AzureCredentialWrapper(
-                isInCloudShell() ? AuthMethod.CLOUD_SHELL : AuthMethod.AZURE_CLI, cliCredential, envFromCli);
-        credentialWrapper.setDefaultSubscriptionId(accountInfo.getSubscriptionId());
-        credentialWrapper.setTenantId(accountInfo.getTenantId());
-        return credentialWrapper;
+        return new AzureCredentialWrapper(
+                isInCloudShell() ? AuthMethod.CLOUD_SHELL : AuthMethod.AZURE_CLI, cliCredential, envFromCli)
+                .withDefaultSubscriptionId(accountInfo.getSubscriptionId())
+                .withTenantId(accountInfo.getTenantId());
     }
 
     private static AzureCliAccountProfile getProfile() {

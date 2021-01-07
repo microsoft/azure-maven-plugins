@@ -31,11 +31,9 @@ public class AzureCredentialWrapper {
     private AzureEnvironment env;
 
     @Getter
-    @Setter
     private String defaultSubscriptionId;
 
     @Getter
-    @Setter
     private String tenantId;
 
 
@@ -46,6 +44,16 @@ public class AzureCredentialWrapper {
         this.authMethod = method;
         this.tokenCredential = tokenCredential;
         this.env = env;
+    }
+
+    public AzureCredentialWrapper withDefaultSubscriptionId(String defaultSubscriptionId) {
+        this.defaultSubscriptionId = defaultSubscriptionId;
+        return this;
+    }
+
+    public AzureCredentialWrapper withTenantId(String tenantId) {
+        this.tenantId = tenantId;
+        return this;
     }
 
     public String getCredentialDescription() {

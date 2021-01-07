@@ -29,6 +29,8 @@ public class VsCodeCredentialRetriever extends AbstractCredentialRetriever {
     private static AzureCredentialWrapper vsCodeLogin(VsCodeAccountProfile[] profiles) {
         VisualStudioCodeCredential visualStudioCodeCredential = new VisualStudioCodeCredentialBuilder().build();
         String env = profiles[0].getEnvironment();
-        return new AzureCredentialWrapper(AuthMethod.VSCODE, visualStudioCodeCredential, AuthHelper.parseAzureEnvironment(env));
+        return new AzureCredentialWrapper(AuthMethod.VSCODE, visualStudioCodeCredential, AuthHelper.parseAzureEnvironment(env))
+                .withTenantId(profiles[0].getTenantId())
+                .withDefaultSubscriptionId(profiles[0].getSubscriptionId());
     }
 }
