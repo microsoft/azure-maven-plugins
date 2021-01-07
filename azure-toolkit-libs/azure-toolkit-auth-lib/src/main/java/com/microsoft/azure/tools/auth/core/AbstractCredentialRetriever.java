@@ -10,14 +10,14 @@ import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import rx.Single;
 
-public abstract class AbstractCredentialRetriever {
-    public Single<AzureCredentialWrapper> retrieveAsync() {
+public abstract class AbstractCredentialRetriever implements ICredentialRetriever {
+    public Single<AzureCredentialWrapper> retrieve() {
         try {
-            return Single.just(retrieve());
+            return Single.just(retrieveInternal());
         } catch (LoginFailureException ex) {
             return Single.error(ex);
         }
     }
 
-    public abstract AzureCredentialWrapper retrieve() throws LoginFailureException;
+    public abstract AzureCredentialWrapper retrieveInternal() throws LoginFailureException;
 }

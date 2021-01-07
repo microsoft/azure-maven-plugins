@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ChainedCredentialRetriever {
+public class ChainedCredentialRetriever implements ICredentialRetriever {
     public interface RetrieveCredentialFunction<T> extends Function {
         T call() throws AzureLoginException;
     }
@@ -28,7 +28,7 @@ public class ChainedCredentialRetriever {
             try {
                 return Objects.requireNonNull(func1.call());
             } catch (AzureLoginException ex) {
-                throw Exceptions.propagate(e);
+                throw Exceptions.propagate(ex);
             }
         });
 

@@ -15,6 +15,7 @@ import com.microsoft.azure.tools.common.util.JsonUtils;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -30,8 +31,8 @@ public class MavenLegacyCredentialRetriever extends AbstractCredentialRetriever 
     private static final String AZURE_FOLDER = ".azure";
     private static final String USER_HOME = "user.home";
 
-    public AzureCredentialWrapper retrieve() throws LoginFailureException {
-        return null;
+    public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
+        throw new NotImplementedException("The support for legacy maven login.");
     }
 
     public static AzureCredentialWrapper getAzureMavenPluginCredential() throws LoginFailureException {

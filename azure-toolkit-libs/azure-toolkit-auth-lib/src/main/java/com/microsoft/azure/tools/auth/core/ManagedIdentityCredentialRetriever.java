@@ -16,7 +16,7 @@ import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 
 public class ManagedIdentityCredentialRetriever extends AbstractCredentialRetriever {
-    public AzureCredentialWrapper retrieve() throws LoginFailureException {
+    public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         try {
             ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder().build();
             // test the token

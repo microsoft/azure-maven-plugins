@@ -25,7 +25,7 @@ public class OAuthCredentialRetriever extends AbstractCredentialRetriever {
         this.env = env;
     }
 
-    public AzureCredentialWrapper retrieve() throws LoginFailureException {
+    public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         if (!isBrowserAvailable()) {
             throw new DesktopNotSupportedException("Not able to launch a browser to log you in.");
         }

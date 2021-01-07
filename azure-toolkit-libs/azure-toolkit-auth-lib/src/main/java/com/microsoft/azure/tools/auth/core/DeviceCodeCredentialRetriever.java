@@ -22,7 +22,7 @@ public class DeviceCodeCredentialRetriever extends AbstractCredentialRetriever {
         this.env = env;
     }
 
-    public AzureCredentialWrapper retrieve() {
+    public AzureCredentialWrapper retrieveInternal() {
         DeviceCodeCredential deviceCodeCredential = new DeviceCodeCredentialBuilder().clientId(AZURE_TOOLKIT_CLIENT_ID)
                 .challengeConsumer(challenge -> System.out.println(StringUtils.replace(challenge.getMessage(), challenge.getDeviceCode(),
                         TextUtils.blue(challenge.getDeviceCode())))).build();

@@ -25,7 +25,7 @@ import java.io.IOException;
 public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
     private static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
 
-    public AzureCredentialWrapper retrieve() throws LoginFailureException {
+    public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         AzureCliAccountProfile accountInfo = getProfile();
 
         if (accountInfo == null) {

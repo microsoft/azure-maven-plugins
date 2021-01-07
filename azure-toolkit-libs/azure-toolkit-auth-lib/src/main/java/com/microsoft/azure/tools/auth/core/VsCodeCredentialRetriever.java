@@ -17,7 +17,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class VsCodeCredentialRetriever extends AbstractCredentialRetriever {
 
-    public AzureCredentialWrapper retrieve() throws LoginFailureException {
+    public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         VsCodeAccountProfile[] vscodeProfiles = VsCodeProfileRetriever.getProfiles();
         if (ArrayUtils.isEmpty(vscodeProfiles)) {
             throw new LoginFailureException("Cannot get azure credentials from VSCode, please verify that you have signed-in in VSCode Azure Account plugin.");

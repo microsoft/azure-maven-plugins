@@ -52,9 +52,9 @@ public class MavenAuthHelper {
             if (credentialWrapper != null) {
                 return Single.just(credentialWrapper);
             }
-            retriever.addRetrieveFunction(new ManagedIdentityCredentialRetriever()::retrieveAsync);
-            retriever.addRetrieveFunction(new AzureCliCredentialRetriever()::retrieveAsync);
-            retriever.addRetrieveFunction(new VsCodeCredentialRetriever()::retrieveAsync);
+            retriever.addRetrieveFunction(new ManagedIdentityCredentialRetriever()::retrieve);
+            retriever.addRetrieveFunction(new AzureCliCredentialRetriever()::retrieve);
+            retriever.addRetrieveFunction(new VsCodeCredentialRetriever()::retrieve);
         } else {
             MavenAuthConfiguration finalConfiguration = configuration;
             // for specific auth type:
@@ -63,16 +63,16 @@ public class MavenAuthHelper {
                     retriever.addRetrieveFunction(() -> Single.just(ServicePrincipalLoginHelper.login(finalConfiguration, session, settingsDecrypter)));
                     break;
                 case MANAGED_IDENTITY:
-                    retriever.addRetrieveFunction(new ManagedIdentityCredentialRetriever()::retrieveAsync);
+                    retriever.addRetrieveFunction(new ManagedIdentityCredentialRetriever()::retrieve);
                     break;
                 case AZURE_CLI:
-                    retriever.addRetrieveFunction(new AzureCliCredentialRetriever()::retrieveAsync);
+                    retriever.addRetrieveFunction(new AzureCliCredentialRetriever()::retrieve);
                     break;
                 case DEVICE_CODE:
-                    retriever.addRetrieveFunction(new OAuthCredentialRetriever(env)::retrieveAsync);
+                    retriever.addRetrieveFunction(new OAuthCredentialRetriever(env)::retrieve);
                     break;
                 case OAUTH2:
-                    retriever.addRetrieveFunction(new DeviceCodeCredentialRetriever(env)::retrieveAsync);
+                    retriever.addRetrieveFunction(new DeviceCodeCredentialRetriever(env)::retrieve);
                     break;
                 default:
                     throw new UnsupportedOperationException(String.format("authType '%s' not supported.", authType));
