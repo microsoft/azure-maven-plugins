@@ -80,9 +80,9 @@ public class MavenAuthHelper {
                 default:
                     return Single.error(new UnsupportedOperationException(String.format("authType '%s' not supported.", authType)));
             }
-            // add last pure error fake retriever to show reasonable error instead of showing the last error
-            retrievers.addRetriever(() -> Single.error(new LoginFailureException(String.format("Cannot get credentials from authType '%s'.", authType))));
         }
-        return retrievers.retrieve();
+        return retrievers.retrieve().onErrorResumeNext(e ->
+                Single.error(new LoginFailureException(String.format("Cannot get credentials from authType '%s' due to error: %s", authType, e.getMessage())))
+        );
     }
 }
