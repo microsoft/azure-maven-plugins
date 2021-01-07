@@ -71,10 +71,13 @@ public class MavenAuthHelper {
                 case AZURE_CLI:
                     retrievers.addRetriever(new AzureCliCredentialRetriever()::retrieve);
                     break;
-                case DEVICE_CODE:
-                    retrievers.addRetriever(new OAuthCredentialRetriever(env)::retrieve);
+                case VSCODE:
+                    retrievers.addRetriever(new VsCodeCredentialRetriever()::retrieve);
                     break;
                 case OAUTH2:
+                    retrievers.addRetriever(new OAuthCredentialRetriever(env)::retrieve);
+                    break;
+                case DEVICE_CODE:
                     retrievers.addRetriever(new DeviceCodeCredentialRetriever(env)::retrieve);
                     break;
                 default:
