@@ -11,8 +11,8 @@ import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.AuthHelper;
-import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.tools.auth.exception.MavenDecryptException;
 import com.microsoft.azure.tools.auth.maven.MavenSettingHelper;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
@@ -20,33 +20,38 @@ import com.microsoft.azure.tools.auth.model.MavenAuthConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
+import rx.Single;
+import rx.exceptions.Exceptions;
 
 public class ServicePrincipalLoginHelper {
-    public static AzureCredentialWrapper login(MavenAuthConfiguration configuration, MavenSession session, SettingsDecrypter settingsDecrypter)
-            throws AzureLoginException {
+    public static Single<AzureCredentialWrapper> login(MavenAuthConfiguration configuration, MavenSession session, SettingsDecrypter settingsDecrypter) {
         // 1. check maven configuration: server id
-        if (StringUtils.isNotBlank(configuration.getServerId())) {
-            MavenAuthConfiguration serverIdConfiguration = MavenSettingHelper.getAuthConfigurationFromServer(session, settingsDecrypter,
-                    configuration.getServerId());
-            return mavenSettingLogin(AuthMethod.MAVEN_SETTINGS, serverIdConfiguration);
-        }
+        try {
+            if (StringUtils.isNotBlank(configuration.getServerId())) {
+                MavenAuthConfiguration serverIdConfiguration = MavenSettingHelper.getAuthConfigurationFromServer(session, settingsDecrypter,
+                        configuration.getServerId());
+                return Single.just(mavenSettingLogin(AuthMethod.MAVEN_SETTINGS, serverIdConfiguration));
+            }
 
-        // 2. check maven configuration: client, tenant
-        if (StringUtils.isNoneBlank(configuration.getClient(), configuration.getTenant())) {
-            configuration.validate();
-            return mavenSettingLogin(AuthMethod.MAVEN_CONFIGURATION, configuration);
-        }
+            // 2. check maven configuration: client, tenant
+            if (StringUtils.isNoneBlank(configuration.getClient(), configuration.getTenant())) {
+                configuration.validate();
+                return Single.just(mavenSettingLogin(AuthMethod.MAVEN_CONFIGURATION, configuration));
+            }
 
-        // if we cannot login through maven configuration, we should validate on user's
-        // incomplete configuration
-        if (!StringUtils.isAllBlank(configuration.getClient(), configuration.getTenant(),
-                configuration.getCertificate(), configuration.getKey(), configuration.getCertificatePassword(),
-                configuration.getHttpProxyHost(), configuration.getHttpProxyPort())) {
-            throw new InvalidConfigurationException(
-                    "Incomplete auth configurations in maven configuration, " +
-                            "please refer to https://github.com/microsoft/azure-maven-plugins/wiki/Authentication");
+            // if we cannot login through maven configuration, we should validate on user's
+            // incomplete configuration
+            if (!StringUtils.isAllBlank(configuration.getClient(), configuration.getTenant(),
+                    configuration.getCertificate(), configuration.getKey(), configuration.getCertificatePassword(),
+                    configuration.getHttpProxyHost(), configuration.getHttpProxyPort())) {
+                throw new InvalidConfigurationException(
+                        "Incomplete auth configurations in maven configuration, " +
+                                "please refer to https://github.com/microsoft/azure-maven-plugins/wiki/Authentication");
+            }
+            return Single.just(null);
+        } catch (InvalidConfigurationException | MavenDecryptException ex) {
+            throw Exceptions.propagate(ex);
         }
-        return null;
     }
 
     private static AzureCredentialWrapper mavenSettingLogin(AuthMethod method, MavenAuthConfiguration configuration) {

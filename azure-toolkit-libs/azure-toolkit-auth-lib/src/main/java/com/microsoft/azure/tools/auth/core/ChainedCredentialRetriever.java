@@ -9,28 +9,16 @@ package com.microsoft.azure.tools.auth.core;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import rx.Single;
-import rx.exceptions.Exceptions;
-import rx.functions.Func1;
-import rx.functions.Function;
+import rx.functions.Func0;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class ChainedCredentialRetriever implements ICredentialRetriever {
-    public interface RetrieveCredentialFunction<T> extends Function {
-        T call() throws AzureLoginException;
-    }
-    private List<Func1<Throwable, Single<AzureCredentialWrapper>>> retrieveFunctions = new ArrayList<>();
+    private List<Func0<Single<AzureCredentialWrapper>>> retrieveFunctions = new ArrayList<>();
 
-    public void addRetrieveFunction(RetrieveCredentialFunction<Single<AzureCredentialWrapper>> func1) {
-        this.retrieveFunctions.add((e) -> {
-            try {
-                return Objects.requireNonNull(func1.call());
-            } catch (AzureLoginException ex) {
-                throw Exceptions.propagate(ex);
-            }
-        });
+    public void addRetriever(ICredentialRetriever credentialRetriever) {
+        this.retrieveFunctions.add(credentialRetriever::retrieve);
 
     }
 
@@ -38,9 +26,10 @@ public class ChainedCredentialRetriever implements ICredentialRetriever {
         if (retrieveFunctions.isEmpty()) {
             return Single.error(new AzureLoginException("No retrievers are defined to get azure credentials."));
         }
-        Single<AzureCredentialWrapper> function = retrieveFunctions.get(0).call(null);
+        Single<AzureCredentialWrapper> function = retrieveFunctions.get(0).call();
         for (int i = 1; i < retrieveFunctions.size(); i++) {
-            function = function.onErrorResumeNext(retrieveFunctions.get(i));
+            Func0<Single<AzureCredentialWrapper>> func = retrieveFunctions.get(i);
+            function = function.onErrorResumeNext(e -> func.call());
         }
         return function;
     }

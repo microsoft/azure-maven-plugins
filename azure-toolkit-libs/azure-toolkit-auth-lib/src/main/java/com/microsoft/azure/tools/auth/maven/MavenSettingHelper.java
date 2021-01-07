@@ -33,7 +33,7 @@ public class MavenSettingHelper {
      * @throws AzureLoginException when there are errors decrypting maven generated password
      */
     public static MavenAuthConfiguration getAuthConfigurationFromServer(MavenSession session, SettingsDecrypter settingsDecrypter, String serverId)
-            throws AzureLoginException {
+            throws InvalidConfigurationException, MavenDecryptException {
         if (StringUtils.isBlank(serverId)) {
             throw new IllegalArgumentException("Parameter 'serverId' cannot be null or empty.");
         }
