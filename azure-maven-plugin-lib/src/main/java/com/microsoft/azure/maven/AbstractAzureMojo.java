@@ -11,6 +11,7 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.GetHashMac;
+import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
@@ -18,9 +19,11 @@ import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.auth.AzureAuthHelperLegacy;
 import com.microsoft.azure.maven.auth.AzureClientFactory;
+import com.microsoft.azure.maven.model.SubscriptionOption;
 import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
+import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenUtils;
 import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
@@ -38,6 +41,8 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
+import org.beryx.textio.TextIO;
+import org.beryx.textio.TextIoFactory;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
@@ -48,10 +53,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Base abstract class for all Azure Mojos.
@@ -266,14 +276,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return httpProxyPort;
     }
 
-    public Azure getAzureClient() throws AzureAuthFailureException {
+    public Azure getAzureClient() throws AzureAuthFailureException, AzureExecutionException {
         if (azure == null) {
             if (this.authentication != null && (this.authentication.getFile() != null || StringUtils.isNotBlank(authentication.getServerId()))) {
                 // TODO: remove the old way of authentication
                 Log.warn("You are using an old way of authentication which will be deprecated in future versions, please change your configurations.");
                 azure = new AzureAuthHelperLegacy(this).getAzureClient();
             } else {
-                azure = getAzureClientByAuthType();
+                azure = createAzureClient();
             }
             if (azure == null) {
                 getTelemetryProxy().trackEvent(INIT_FAILURE);
@@ -289,20 +299,58 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return azure;
     }
 
-    protected Azure getAzureClientByAuthType() throws AzureAuthFailureException {
+    protected Subscription selectSubscription(Azure az, TextIO textIO, Subscription[]subscriptions) throws AzureExecutionException {
+        if (subscriptions.length == 0) {
+            throw new AzureExecutionException("Cannot find any subscriptions in current account.");
+        }
+        if (subscriptions.length == 1) {
+            Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
+                    TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
+            return subscriptions[0];
+        }
+        final String defaultId = Optional.ofNullable(az.getCurrentSubscription()).map(Subscription::subscriptionId).orElse(null);
+
+        final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption(t))
+                .sorted()
+                .collect(Collectors.toList());
+        final SubscriptionOption defaultValue = wrapSubs.stream()
+                .filter(t -> StringUtils.equalsIgnoreCase(t.getSubscriptionId(), defaultId)).findFirst().orElse(null);
+
+        final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(() -> textIO.getTextTerminal(), null)
+                .withCustomPrompt(String.format("Please choose a subscription%s: ",
+                        highlightDefaultValue(defaultValue == null ? null : defaultValue.getSubscriptionName())))
+                .withNumberedPossibleValues(wrapSubs).withDefaultValue(defaultValue).read("Available subscriptions:");
+        if (subscriptionOptionSelected == null) {
+            throw new AzureExecutionException("You must select a subscription.");
+        }
+        return subscriptionOptionSelected.getSubscription();
+    }
+
+    protected Azure createAzureClient() throws AzureAuthFailureException, AzureExecutionException {
         try {
             azureTokenWrapper = MavenAuthHelper.getAzureToken(this.auth, this.session, this.settingsDecrypter).toBlocking().value();
-            if (azureTokenWrapper != null) {
-                final AzureEnvironment env = azureTokenWrapper.getEnv();
-                final String environmentName = AuthHelper.getAzureEnvironmentDisplayName(env);
-                if (env != AzureEnvironment.AZURE) {
-                    Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
+            if (Objects.isNull(azureTokenWrapper)) {
+                return null;
+            }
+            final AzureEnvironment env = azureTokenWrapper.getEnv();
+            final String environmentName = AuthHelper.getAzureEnvironmentDisplayName(env);
+            if (env != AzureEnvironment.AZURE) {
+                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
+            }
+            if (StringUtils.isBlank(this.subscriptionId)) {
+                if (StringUtils.isNotBlank(azureTokenWrapper.getDefaultSubscriptionId())) {
+                    this.subscriptionId = azureTokenWrapper.getDefaultSubscriptionId();
+                } else {
+
+                    final TextIO textIO = TextIoFactory.getTextIO();
+                    final Azure tempAzure = Azure.configure()
+                            .authenticate(azureTokenWrapper.getAzureTokenCredentials()).withDefaultSubscription();
+                    final Subscription[] subscriptions = tempAzure.subscriptions().list().toArray(new Subscription[0]);;
+                    final Subscription targetSubscription = selectSubscription(tempAzure, textIO, subscriptions);
+                    this.subscriptionId = targetSubscription.subscriptionId();
                 }
             }
-
-            final Azure azureClient = azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
-                    this.subscriptionId, getUserAgent());
-            return azureClient;
+            return AzureClientFactory.getAzureClient(azureTokenWrapper, this.subscriptionId, getUserAgent());
         } catch (AzureLoginException | IOException e) {
             throw new AzureAuthFailureException(e.getMessage());
         }
@@ -328,7 +376,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     //endregion
-
     protected static void printCurrentSubscription(Azure azure) {
         if (azure == null) {
             return;
@@ -466,6 +513,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     //endregion
 
     //region Helper methods
+
+    protected static String highlightDefaultValue(String defaultValue) {
+        return StringUtils.isBlank(defaultValue) ? "" : String.format(" [%s]", TextUtils.blue(defaultValue));
+    }
 
     protected void handleException(final Exception exception) throws MojoExecutionException {
         String message = exception.getMessage();

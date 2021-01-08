@@ -150,7 +150,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         this.deploymentSlotSetting = slotSetting;
     }
 
-    public String getResourcePortalUrl(WebAppBase resource) throws AzureAuthFailureException {
+    public String getResourcePortalUrl(WebAppBase resource) throws AzureAuthFailureException, AzureExecutionException {
         final AzureCredentialWrapper azureTokenWrapper = getAzureTokenWrapper();
         final AzureEnvironment environment = azureTokenWrapper.getEnv();
         final String tenantId = getAzureClient().tenantId();

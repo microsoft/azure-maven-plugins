@@ -19,7 +19,7 @@ import org.apache.commons.lang3.ArrayUtils;
 public class VsCodeCredentialRetriever extends AbstractCredentialRetriever {
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
-        VsCodeAccountProfile[] vscodeProfiles = VsCodeProfileRetriever.getProfiles();
+        final VsCodeAccountProfile[] vscodeProfiles = VsCodeProfileRetriever.getProfiles();
         if (ArrayUtils.isEmpty(vscodeProfiles)) {
             throw new LoginFailureException("Cannot get azure credentials from VSCode, please verify that you have signed-in in VSCode Azure Account plugin.");
         }
@@ -28,10 +28,10 @@ public class VsCodeCredentialRetriever extends AbstractCredentialRetriever {
     }
 
     private static AzureCredentialWrapper vsCodeLogin(VsCodeAccountProfile[] profiles) {
-        VisualStudioCodeCredential visualStudioCodeCredential = new VisualStudioCodeCredentialBuilder().build();
-        String env = profiles[0].getEnvironment();
+        final VisualStudioCodeCredential visualStudioCodeCredential = new VisualStudioCodeCredentialBuilder().build();
+        final String env = profiles[0].getEnvironment();
         return new AzureCredentialWrapper(AuthMethod.VSCODE, visualStudioCodeCredential, AuthHelper.parseAzureEnvironment(env))
                 .withTenantId(profiles[0].getTenantId())
-                .withDefaultSubscriptionId(profiles[0].getSubscriptionId());
+                .withDefaultSubscriptionId(profiles.length > 1 ? null : profiles[0].getSubscriptionId());
     }
 }

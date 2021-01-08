@@ -31,10 +31,9 @@ import com.microsoft.azure.maven.queryer.QueryFactory;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
-import com.microsoft.azure.maven.webapp.models.SubscriptionOption;
 import com.microsoft.azure.maven.webapp.models.WebAppOption;
 import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
-import com.microsoft.azure.maven.webapp.utils.CustomTextIoStringListReader;
+import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
@@ -59,7 +58,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -134,7 +132,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     protected void config(WebAppConfiguration configuration) throws MojoFailureException, AzureExecutionException,
         IOException, IllegalAccessException {
-        WebAppConfiguration result = null;
+        WebAppConfiguration result;
         do {
             if (configuration == null) {
                 try {
@@ -477,7 +475,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private WebAppConfiguration chooseExistingWebappForConfiguration()
             throws AzureExecutionException, AzureAuthFailureException {
-        final Azure az = getAzureClientByAuthType();
+        final Azure az = createAzureClient();
         final TextIO textIO = TextIoFactory.getTextIO();
         final Subscription[] subscriptions = az.subscriptions().list().toArray(new Subscription[0]);
         final Subscription targetSubscription = selectSubscription(az, textIO, subscriptions);
@@ -521,33 +519,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
             builder.resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources());
         }
         return getConfigurationFromExisting(webapp, servicePlan, builder);
-    }
-
-    private static Subscription selectSubscription(Azure az, TextIO textIO, Subscription[]subscriptions) throws AzureExecutionException {
-        if (subscriptions.length == 0) {
-            throw new AzureExecutionException("Cannot find any subscriptions in current account.");
-        } else if (subscriptions.length == 1) {
-            Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
-                    TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
-            return subscriptions[0];
-        } else {
-            final String defaultId = Optional.ofNullable(az.getCurrentSubscription()).map(Subscription::subscriptionId).orElse(null);
-
-            final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption(t))
-                    .sorted()
-                    .collect(Collectors.toList());
-            final SubscriptionOption defaultValue = wrapSubs.stream()
-                    .filter(t -> StringUtils.equalsIgnoreCase(t.getSubscriptionId(), defaultId)).findFirst().orElse(null);
-
-            final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(() -> textIO.getTextTerminal(), null)
-                    .withCustomPrompt(String.format("Please choose a subscription%s: ",
-                            highlightDefaultValue(defaultValue == null ? null : defaultValue.getSubscriptionName())))
-                    .withNumberedPossibleValues(wrapSubs).withDefaultValue(defaultValue).read("Available subscriptions:");
-            if (subscriptionOptionSelected == null) {
-                throw new AzureExecutionException("You must select a subscription.");
-            }
-            return subscriptionOptionSelected.getSubscription();
-        }
     }
 
     private static WebAppOption selectAzureWebApp(TextIO textIO, List<WebAppOption> javaOrDockerWebapps, String webAppType, Subscription targetSubscription) {
@@ -608,10 +579,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
             builder.servicePlanResourceGroup(servicePlan.resourceGroupName());
         }
         return builder.build();
-    }
-
-    private static String highlightDefaultValue(String defaultValue) {
-        return StringUtils.isBlank(defaultValue) ? "" : String.format(" [%s]", TextUtils.blue(defaultValue));
     }
 
     private static String getDockerImageName(String linuxFxVersion) {

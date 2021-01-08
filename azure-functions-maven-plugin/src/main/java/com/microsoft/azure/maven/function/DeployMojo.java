@@ -461,7 +461,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         return slotSetting != null && StringUtils.isNotEmpty(slotSetting.getName());
     }
 
-    private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureAuthFailureException {
+    private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureAuthFailureException, AzureExecutionException {
         final AzureCredentialWrapper credentials = getAzureTokenWrapper();
         if (credentials == null) {
             Log.warn(APPLICATION_INSIGHTS_NOT_SUPPORTED);

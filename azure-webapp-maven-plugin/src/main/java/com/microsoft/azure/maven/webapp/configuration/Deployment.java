@@ -9,14 +9,13 @@ package com.microsoft.azure.maven.webapp.configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class Deployment {
     private static final String DEFAULT_DIRECTORY = "${project.basedir}/target";
     private static final String DEFAULT_INCLUDE = "*.%s";
-    private static final String DEFAULT_DEPLOYTYPE = "jar";
+    private static final String DEFAULT_DEPLOY_TYPE = "jar";
 
     protected List<Resource> resources = Collections.emptyList();
 
@@ -31,12 +30,12 @@ public class Deployment {
     public static Deployment getDefaultDeploymentConfiguration(String deployType) {
         final Deployment result = new Deployment();
         final Resource resource = new Resource();
-        deployType = StringUtils.isEmpty(deployType) ? DEFAULT_DEPLOYTYPE : deployType;
+        deployType = StringUtils.isEmpty(deployType) ? DEFAULT_DEPLOY_TYPE : deployType;
 
         resource.setDirectory(DEFAULT_DIRECTORY);
         resource.addInclude(String.format(DEFAULT_INCLUDE, deployType));
 
-        result.setResources(Arrays.asList(resource));
+        result.setResources(Collections.singletonList(resource));
         return result;
     }
 }
