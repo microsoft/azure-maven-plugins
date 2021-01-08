@@ -249,12 +249,6 @@
             </dependency>
 
             <!-- azure sdk -->
-
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-client-runtime</artifactId>
-                <version>${azure.client.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager</artifactId>

@@ -8,14 +8,6 @@ package com.microsoft.azure.maven;
 
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.auth.AzureAuthHelper;
-import com.microsoft.azure.auth.AzureTokenWrapper;
-import com.microsoft.azure.auth.MavenSettingHelper;
-import com.microsoft.azure.auth.configuration.AuthType;
-import com.microsoft.azure.auth.exception.AzureLoginFailureException;
-import com.microsoft.azure.auth.exception.MavenDecryptException;
-import com.microsoft.azure.common.ConfigurationProblem;
-import com.microsoft.azure.common.ConfigurationProblem.Severity;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.GetHashMac;
@@ -30,6 +22,11 @@ import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import com.microsoft.azure.maven.utils.MavenUtils;
+import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.exception.AzureLoginException;
+import com.microsoft.azure.tools.auth.maven.MavenAuthHelper;
+import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.tools.auth.model.MavenAuthConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -51,13 +48,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Base abstract class for all Azure Mojos.
@@ -179,7 +173,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     protected String authType;
 
     @Parameter(property = "auth")
-    protected com.microsoft.azure.auth.configuration.AuthConfiguration auth;
+    protected MavenAuthConfiguration auth;
 
     @Component
     protected SettingsDecrypter settingsDecrypter;
@@ -188,7 +182,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     private TelemetryProxy telemetryProxy;
 
-    private AzureTokenWrapper azureTokenWrapper;
+    private AzureCredentialWrapper azureTokenWrapper;
 
     private String sessionId = UUID.randomUUID().toString();
 
@@ -279,7 +273,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 Log.warn("You are using an old way of authentication which will be deprecated in future versions, please change your configurations.");
                 azure = new AzureAuthHelperLegacy(this).getAzureClient();
             } else {
-                initAuth();
                 azure = getAzureClientByAuthType();
             }
             if (azure == null) {
@@ -298,46 +291,25 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     protected Azure getAzureClientByAuthType() throws AzureAuthFailureException {
         try {
-            final AzureEnvironment environment;
-            if (!AzureAuthHelper.validateEnvironment(auth.getEnvironment())) {
-                Log.prompt(String.format(UNSUPPORTED_AZURE_ENVIRONMENT, auth.getEnvironment()));
-                environment = AzureEnvironment.AZURE;
-            } else {
-                environment = AzureAuthHelper.getAzureEnvironment(auth.getEnvironment());
+            azureTokenWrapper = MavenAuthHelper.getAzureToken(this.auth, this.session, this.settingsDecrypter).toBlocking().value();
+            if (azureTokenWrapper != null) {
+                AzureEnvironment environment = azureTokenWrapper.getEnv();
+                final String environmentName = AuthHelper.getAzureEnvironmentDisplayName(environment);
+                if (environment != AzureEnvironment.AZURE) {
+                    Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
+                }
             }
-            final String environmentName = AzureAuthHelper.getAzureEnvironmentDisplayName(environment);
-            if (environment != AzureEnvironment.AZURE) {
-                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
-            }
-            azureTokenWrapper = getAuthTypeEnum().getAzureToken(isAuthConfigurationExist() ? this.auth : null, environment);
+
             final Azure azureClient = azureTokenWrapper == null ? null : AzureClientFactory.getAzureClient(azureTokenWrapper,
                     this.subscriptionId, getUserAgent());
-
             return azureClient;
-        } catch (IOException | AzureLoginFailureException e) {
+        } catch (AzureLoginException | IOException e) {
             throw new AzureAuthFailureException(e.getMessage());
         }
     }
 
-    protected AzureTokenWrapper getAzureTokenWrapper() {
+    protected AzureCredentialWrapper getAzureTokenWrapper() {
         return azureTokenWrapper;
-    }
-
-    protected AuthType getAuthTypeEnum() {
-        if (StringUtils.isEmpty(authType)) {
-            return AuthType.AUTO;
-        }
-        AuthType result = Arrays.stream(AuthType.getValidAuthTypes())
-                .filter(authTypeEnum -> StringUtils.equalsAnyIgnoreCase(authTypeEnum.name(), authType))
-                .findFirst().orElse(null);
-        if (result == null) {
-            final String validAuthTypes = Arrays.stream(AuthType.getValidAuthTypes())
-                    .map(authType -> String.format("'%s'", StringUtils.lowerCase(authType.name())))
-                    .collect(Collectors.joining(", "));
-            Log.warn(String.format(INVALID_AUTH_TYPE, authType, validAuthTypes));
-            result = AuthType.AUTO;
-        }
-        return result;
     }
 
     public TelemetryProxy getTelemetryProxy() {
@@ -355,38 +327,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    protected void initAuth() throws AzureAuthFailureException {
-        initializeAuthConfiguration();
-    }
-
     //endregion
-
-    protected void initializeAuthConfiguration() throws AzureAuthFailureException {
-        if (authInitialized) {
-            return;
-        }
-        authInitialized = true;
-        if (!isAuthConfigurationExist()) {
-            return;
-        }
-        if (StringUtils.isNotBlank(auth.getServerId())) {
-            if (this.settings.getServer(auth.getServerId()) != null) {
-                try {
-                    auth = MavenSettingHelper.getAuthConfigurationFromServer(session, settingsDecrypter, auth.getServerId());
-                } catch (MavenDecryptException e) {
-                    throw new AzureAuthFailureException(e.getMessage());
-                }
-            } else {
-                throw new AzureAuthFailureException(String.format("Unable to get server('%s') from settings.xml.", auth.getServerId()));
-            }
-        } else if (getAuthTypeEnum() == AuthType.SERVICE_PRINCIPAL) {
-            final List<ConfigurationProblem> problems = auth.validate();
-            if (problems.stream().anyMatch(problem -> problem.getSeverity() == Severity.ERROR)) {
-                throw new AzureAuthFailureException(String.format("Unable to validate auth configuration due to the following errors: %s",
-                        problems.stream().map(ConfigurationProblem::getErrorMessage).collect(Collectors.joining("\n"))));
-            }
-        }
-    }
 
     protected static void printCurrentSubscription(Azure azure) {
         if (azure == null) {
