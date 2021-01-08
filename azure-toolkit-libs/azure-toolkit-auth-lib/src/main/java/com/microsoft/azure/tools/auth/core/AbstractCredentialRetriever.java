@@ -6,11 +6,17 @@
 
 package com.microsoft.azure.tools.auth.core;
 
+import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import lombok.Setter;
 import rx.Single;
 
 public abstract class AbstractCredentialRetriever implements ICredentialRetriever {
+
+    @Setter
+    protected AzureEnvironment env;
+
     public Single<AzureCredentialWrapper> retrieve() {
         try {
             return Single.just(retrieveInternal());

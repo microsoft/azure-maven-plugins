@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.core;
+package com.microsoft.azure.tools.auth.core.profile;
 
 import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.implementation.VisualStudioCacheAccessor;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-class VsCodeProfileRetriever {
+public class VsCodeProfileRetriever {
     private static final String PLATFORM_NOT_SUPPORTED_ERROR = "Platform could not be determined for VS Code credential authentication.";
 
     public static VsCodeAccountProfile[] getProfiles() {

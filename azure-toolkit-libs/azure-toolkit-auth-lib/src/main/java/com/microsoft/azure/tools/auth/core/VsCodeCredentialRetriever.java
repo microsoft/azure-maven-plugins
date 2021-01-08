@@ -9,6 +9,7 @@ package com.microsoft.azure.tools.auth.core;
 import com.azure.identity.VisualStudioCodeCredential;
 import com.azure.identity.VisualStudioCodeCredentialBuilder;
 import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.core.profile.VsCodeProfileRetriever;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;

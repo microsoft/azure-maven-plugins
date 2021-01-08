@@ -9,11 +9,10 @@ package com.microsoft.azure.tools.auth.core;
 import com.azure.core.credential.TokenCredential;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
+import com.microsoft.azure.tools.auth.maven.MavenAzureCredential;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.common.util.JsonUtils;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +48,7 @@ public class MavenLegacyCredentialRetriever extends AbstractCredentialRetriever 
      * @throws LoginFailureException when there are login errors.
      */
     public static TokenCredential getMavenAzureLoginCredentials() throws LoginFailureException {
-        final AzureCredential credentials;
+        final MavenAzureCredential credentials;
         File file = getAzureSecretFile();
         try {
             credentials = readAzureCredentials(file);
@@ -61,12 +60,12 @@ public class MavenLegacyCredentialRetriever extends AbstractCredentialRetriever 
     }
 
     /**
-     * Get azure credential from AzureCredential instance.
+     * Get azure credential from MavenAzureCredential instance.
      *
      * @param credentials the azure credential
      * @return the azure token credential can be used in Azure SDK.
      */
-    private static TokenCredential getMavenAzureLoginCredentials(AzureCredential credentials) {
+    private static TokenCredential getMavenAzureLoginCredentials(MavenAzureCredential credentials) {
         throw new UnsupportedOperationException("This operation is not implemented yet.");
     }
 
@@ -77,12 +76,12 @@ public class MavenLegacyCredentialRetriever extends AbstractCredentialRetriever 
      * @return the saved credential
      * @throws IOException if there is any IO error.
      */
-    public static AzureCredential readAzureCredentials(File file) throws IOException {
+    public static MavenAzureCredential readAzureCredentials(File file) throws IOException {
         if (file == null) {
             throw new IllegalArgumentException("Parameter 'file' cannot be null.");
         }
         final String jsonStr = FileUtils.readFileToString(file, "utf8");
-        return JsonUtils.fromJson(jsonStr, AzureCredential.class);
+        return JsonUtils.fromJson(jsonStr, MavenAzureCredential.class);
     }
 
     /**
@@ -106,36 +105,6 @@ public class MavenLegacyCredentialRetriever extends AbstractCredentialRetriever 
     private static boolean existsAzureSecretFile() {
         final File azureSecretFile = getAzureSecretFile();
         return azureSecretFile.exists() && azureSecretFile.isFile() && azureSecretFile.length() > 0;
-    }
-
-    static class AzureCredential {
-        @Setter
-        @Getter
-        private String accessTokenType;
-        @Setter
-        @Getter
-        private String idToken;
-        @Setter
-        @Getter
-        private String accessToken;
-        @Setter
-        @Getter
-        private String refreshToken;
-        private boolean isMultipleResourceRefreshToken;
-        @Setter
-        @Getter
-        private String defaultSubscription;
-        @Setter
-        @Getter
-        private String environment;
-
-        public boolean isMultipleResourceRefreshToken() {
-            return isMultipleResourceRefreshToken;
-        }
-
-        public void setMultipleResourceRefreshToken(boolean isMultipleResourceRefreshToken) {
-            this.isMultipleResourceRefreshToken = isMultipleResourceRefreshToken;
-        }
     }
 
 }

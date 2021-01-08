@@ -12,7 +12,6 @@ import com.microsoft.azure.tools.auth.AzureIdentityCredentialTokenCredentials;
 import com.microsoft.azure.tools.common.util.TextUtils;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;

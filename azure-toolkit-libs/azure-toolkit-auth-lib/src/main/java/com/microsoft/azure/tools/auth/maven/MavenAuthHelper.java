@@ -53,7 +53,7 @@ public class MavenAuthHelper {
                 return Single.just(credentialFromSP);
             }
 
-            retrievers.addRetriever(new ManagedIdentityCredentialRetriever()::retrieve);
+            retrievers.addRetriever(new ManagedIdentityCredentialRetriever(env)::retrieve);
             retrievers.addRetriever(new AzureCliCredentialRetriever()::retrieve);
             retrievers.addRetriever(new VsCodeCredentialRetriever()::retrieve);
             retrievers.addRetriever(new OAuthCredentialRetriever(env)::retrieve);
@@ -66,7 +66,7 @@ public class MavenAuthHelper {
                     retrievers.addRetriever(() -> ServicePrincipalLoginHelper.login(finalConfiguration, session, settingsDecrypter));
                     break;
                 case MANAGED_IDENTITY:
-                    retrievers.addRetriever(new ManagedIdentityCredentialRetriever()::retrieve);
+                    retrievers.addRetriever(new ManagedIdentityCredentialRetriever(env)::retrieve);
                     break;
                 case AZURE_CLI:
                     retrievers.addRetriever(new AzureCliCredentialRetriever()::retrieve);
