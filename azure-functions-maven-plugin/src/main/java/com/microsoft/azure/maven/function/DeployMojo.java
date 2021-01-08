@@ -31,7 +31,6 @@ import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
 import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
-import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.ApplicationInsightsComponent;
 import com.microsoft.azure.management.appservice.AppServicePlan;
@@ -46,6 +45,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -462,13 +462,14 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureAuthFailureException {
-        final AzureTokenCredentials credentials = getAzureTokenWrapper();
+        final AzureCredentialWrapper credentials = getAzureTokenWrapper();
         if (credentials == null) {
             Log.warn(APPLICATION_INSIGHTS_NOT_SUPPORTED);
             return null;
         }
         final String subscriptionId = getAzureClient().subscriptionId();
-        final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials, subscriptionId, getUserAgent());
+        final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials.getAzureTokenCredentials(),
+                subscriptionId, getUserAgent());
         return StringUtils.isNotEmpty(getAppInsightsInstance()) ?
                 getApplicationInsights(applicationInsightsManager, getAppInsightsInstance()) :
                 enableCreation ? createApplicationInsights(applicationInsightsManager, getAppName()) : null;

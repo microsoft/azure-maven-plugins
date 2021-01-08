@@ -293,9 +293,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         try {
             azureTokenWrapper = MavenAuthHelper.getAzureToken(this.auth, this.session, this.settingsDecrypter).toBlocking().value();
             if (azureTokenWrapper != null) {
-                AzureEnvironment environment = azureTokenWrapper.getEnv();
-                final String environmentName = AuthHelper.getAzureEnvironmentDisplayName(environment);
-                if (environment != AzureEnvironment.AZURE) {
+                final AzureEnvironment env = azureTokenWrapper.getEnv();
+                final String environmentName = AuthHelper.getAzureEnvironmentDisplayName(env);
+                if (env != AzureEnvironment.AZURE) {
                     Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
                 }
             }
