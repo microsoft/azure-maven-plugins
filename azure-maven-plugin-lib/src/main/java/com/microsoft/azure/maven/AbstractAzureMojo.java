@@ -174,8 +174,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     protected int httpProxyPort;
 
     /**
-     * Authentication type, could be OAuth, DeviceLogin, Azure_CLI, Azure_Secret_File
-     * If this is not set, maven plugin try all available auth methods with default order
+     * Authentication type, could be oauth2, device_code, azure_cli,..., see <code>AuthType</code>
+     * If this is not set, maven plugin try all available auth methods with certain order
      *
      * @since 1.2.13
      */
@@ -197,8 +197,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     private String sessionId = UUID.randomUUID().toString();
 
     private String installationId = GetHashMac.getHashMac();
-
-    private boolean authInitialized = false;
 
     //endregion
 
@@ -290,13 +288,16 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 throw new AzureAuthFailureException(AZURE_INIT_FAIL);
             }
             printCurrentSubscription(azure);
-            getTelemetryProxy().addDefaultProperty(AUTH_TYPE, authType);
+            getTelemetryProxy().addDefaultProperty(AUTH_TYPE, getAuthType());
             getTelemetryProxy().addDefaultProperty(AUTH_METHOD, getAuthMethod());
             // Repopulate subscriptionId in case it is not configured.
             getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
-
         }
         return azure;
+    }
+
+    protected String getAuthType() {
+        return StringUtils.firstNonBlank(auth == null ? null : auth.getAuthType(), authType);
     }
 
     protected Subscription selectSubscription(Azure az, TextIO textIO, Subscription[]subscriptions) throws AzureExecutionException {
@@ -328,6 +329,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     protected Azure createAzureClient() throws AzureAuthFailureException, AzureExecutionException {
         try {
+            if (this.auth == null) {
+                this.auth = new MavenAuthConfiguration();
+                this.auth.setAuthType(getAuthType());
+            }
             azureTokenWrapper = MavenAuthHelper.getAzureToken(this.auth, this.session, this.settingsDecrypter).toBlocking().value();
             if (Objects.isNull(azureTokenWrapper)) {
                 return null;
