@@ -6,8 +6,6 @@
 
 package com.microsoft.azure.tools.auth.core;
 
-import com.azure.core.credential.TokenRequestContext;
-import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.ManagedIdentityCredential;
 import com.azure.identity.ManagedIdentityCredentialBuilder;
 import com.microsoft.azure.AzureEnvironment;
@@ -22,14 +20,8 @@ public class ManagedIdentityCredentialRetriever extends AbstractCredentialRetrie
     }
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
-        try {
-            ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder().build();
-            // test the token
-            managedIdentityCredential.getToken(new TokenRequestContext().addScopes(
-                    (env == null ? AzureEnvironment.AZURE : env).resourceManagerEndpoint() + "/.default")).block();
-            return new AzureCredentialWrapper(AuthMethod.MANAGED_IDENTITY, managedIdentityCredential, env);
-        } catch (CredentialUnavailableException ex) {
-            throw new LoginFailureException(ex.getMessage(), ex);
-        }
+        ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder().build();
+        validateTokenCredential(managedIdentityCredential);
+        return new AzureCredentialWrapper(AuthMethod.MANAGED_IDENTITY, managedIdentityCredential, env);
     }
 }
