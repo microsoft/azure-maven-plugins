@@ -346,7 +346,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 if (StringUtils.isNotBlank(azureTokenWrapper.getDefaultSubscriptionId())) {
                     this.subscriptionId = azureTokenWrapper.getDefaultSubscriptionId();
                 } else {
-
                     final TextIO textIO = TextIoFactory.getTextIO();
                     final Azure tempAzure = Azure.configure()
                             .authenticate(azureTokenWrapper.getAzureTokenCredentials()).withDefaultSubscription();

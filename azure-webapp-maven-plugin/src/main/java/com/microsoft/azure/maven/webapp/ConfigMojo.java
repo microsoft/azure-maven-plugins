@@ -476,10 +476,17 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private WebAppConfiguration chooseExistingWebappForConfiguration()
             throws AzureExecutionException, AzureAuthFailureException {
         final Azure az = createAzureClient();
+        if (Objects.isNull(az)) {
+            return null;
+        }
+        if (StringUtils.isBlank(this.subscriptionId)) {
+            return null;
+        }
         final TextIO textIO = TextIoFactory.getTextIO();
-        final Subscription[] subscriptions = az.subscriptions().list().toArray(new Subscription[0]);
-        final Subscription targetSubscription = selectSubscription(az, textIO, subscriptions);
-        this.subscriptionId = targetSubscription.subscriptionId();
+        final Subscription targetSubscription = az.subscriptions().getById(this.subscriptionId);
+        if (Objects.isNull(targetSubscription)) {
+            return null;
+        }
         // here is a walk around to solve the bad app service listing issue
         final WebAppsInner webappClient = az.webApps().manager().inner().withSubscriptionId(subscriptionId).webApps();
         final List<WebAppOption> siteInners = webappClient.list().stream()

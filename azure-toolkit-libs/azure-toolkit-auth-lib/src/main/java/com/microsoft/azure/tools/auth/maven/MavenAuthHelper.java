@@ -14,6 +14,7 @@ import com.microsoft.azure.tools.auth.model.AuthType;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.auth.model.MavenAuthConfiguration;
 import com.microsoft.azure.tools.auth.core.*;
+import com.microsoft.azure.tools.auth.util.ServicePrincipalLoginUtil;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import rx.Single;
@@ -48,7 +49,7 @@ public class MavenAuthHelper {
             // Please be aware that if there are incomplete <auth> configurations, it will stop here reporting an user error
             // in other words, in AUTO mode, if you want to use other auth method like vscode, azure cli, the maven auth configuration
             // must be empty.
-            AzureCredentialWrapper credentialFromSP = ServicePrincipalLoginHelper.login(configuration, session, settingsDecrypter).toBlocking().value();
+            AzureCredentialWrapper credentialFromSP = ServicePrincipalLoginUtil.login(configuration, session, settingsDecrypter).toBlocking().value();
             if (credentialFromSP != null) {
                 return Single.just(credentialFromSP);
             }
@@ -63,7 +64,7 @@ public class MavenAuthHelper {
             // for specific auth type:
             switch (authType) {
                 case SERVICE_PRINCIPAL: // will get configuration from maven settings or maven configuration
-                    retrievers.addRetriever(() -> ServicePrincipalLoginHelper.login(finalConfiguration, session, settingsDecrypter));
+                    retrievers.addRetriever(() -> ServicePrincipalLoginUtil.login(finalConfiguration, session, settingsDecrypter));
                     break;
                 case MANAGED_IDENTITY:
                     retrievers.addRetriever(new ManagedIdentityCredentialRetriever(env)::retrieve);

@@ -17,9 +17,10 @@ public abstract class AbstractCredentialRetriever implements ICredentialRetrieve
     @Setter
     protected AzureEnvironment env;
 
+    @Override
     public Single<AzureCredentialWrapper> retrieve() {
         try {
-            return Single.just(retrieveInternal());
+             return Single.just(retrieveInternal());
         } catch (LoginFailureException ex) {
             return Single.error(ex);
         }

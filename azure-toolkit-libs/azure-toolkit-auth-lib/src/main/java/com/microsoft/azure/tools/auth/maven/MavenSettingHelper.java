@@ -10,6 +10,7 @@ import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.exception.MavenDecryptException;
 import com.microsoft.azure.tools.auth.model.MavenAuthConfiguration;
+import com.microsoft.azure.tools.auth.util.ValidationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.Server;
@@ -62,7 +63,7 @@ public class MavenSettingHelper {
         configurationFromServer.setServerId(serverId);
 
         // validate configuration
-        return configurationFromServer.validateAndReturn();
+        return ValidationUtil.validateMavenAuthConfiguration(configurationFromServer);
     }
 
     /**
@@ -78,7 +79,7 @@ public class MavenSettingHelper {
     }
 
     private static boolean isValueEncrypted(String value) {
-        return value != null && value.startsWith("{") && value.endsWith("}");
+        return StringUtils.startsWith(value, "{") && StringUtils.endsWith(value, "}");
     }
 
     private static String decryptMavenProtectedValue(SettingsDecrypter settingsDecrypter, String propertyName, String value) throws MavenDecryptException {

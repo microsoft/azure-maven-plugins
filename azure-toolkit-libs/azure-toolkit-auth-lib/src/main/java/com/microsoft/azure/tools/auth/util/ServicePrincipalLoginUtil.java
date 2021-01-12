@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.core;
+package com.microsoft.azure.tools.auth.util;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientCertificateCredentialBuilder;
@@ -23,7 +23,7 @@ import org.apache.maven.settings.crypto.SettingsDecrypter;
 import rx.Single;
 import rx.exceptions.Exceptions;
 
-public class ServicePrincipalLoginHelper {
+public class ServicePrincipalLoginUtil {
     public static Single<AzureCredentialWrapper> login(MavenAuthConfiguration configuration, MavenSession session, SettingsDecrypter settingsDecrypter) {
         // 1. check maven configuration: server id
         try {
@@ -35,7 +35,7 @@ public class ServicePrincipalLoginHelper {
 
             // 2. check maven configuration: client, tenant
             if (StringUtils.isNoneBlank(configuration.getClient(), configuration.getTenant())) {
-                configuration.validate();
+                ValidationUtil.validateMavenAuthConfiguration(configuration);
                 return Single.just(mavenSettingLogin(AuthMethod.MAVEN_CONFIGURATION, configuration));
             }
 
@@ -56,9 +56,8 @@ public class ServicePrincipalLoginHelper {
 
     private static AzureCredentialWrapper mavenSettingLogin(AuthMethod method, MavenAuthConfiguration configuration) {
         AzureEnvironment env = AuthHelper.parseAzureEnvironment(configuration.getEnvironment());
-        TokenCredential clientSecretCredential = StringUtils.isNotBlank(configuration.getCertificate())
-                ? new ClientCertificateCredentialBuilder().clientId(configuration.getClient())
-                .pfxCertificate(configuration.getCertificate(), configuration.getCertificatePassword())
+        TokenCredential clientSecretCredential = StringUtils.isNotBlank(configuration.getCertificate()) ?
+                new ClientCertificateCredentialBuilder().clientId(configuration.getClient()).pfxCertificate(configuration.getCertificate(), configuration.getCertificatePassword())
                 .tenantId(configuration.getTenant()).build()
 
                 : new ClientSecretCredentialBuilder().clientId(configuration.getClient())
