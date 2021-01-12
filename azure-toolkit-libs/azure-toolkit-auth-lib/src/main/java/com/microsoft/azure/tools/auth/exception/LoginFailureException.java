@@ -13,4 +13,8 @@ public class LoginFailureException extends AzureLoginException {
         super(message);
     }
 
+    public LoginFailureException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

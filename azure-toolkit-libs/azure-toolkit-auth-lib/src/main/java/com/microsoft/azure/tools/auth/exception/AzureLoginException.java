@@ -10,4 +10,8 @@ public class AzureLoginException extends Exception {
     public AzureLoginException(String message) {
         super(message);
     }
+
+    public AzureLoginException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

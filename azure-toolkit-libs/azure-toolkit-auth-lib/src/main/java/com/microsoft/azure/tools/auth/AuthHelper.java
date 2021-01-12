@@ -8,11 +8,9 @@ package com.microsoft.azure.tools.auth;
 
 import com.azure.core.util.Configuration;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.tools.auth.model.AuthType;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -41,17 +39,16 @@ public class AuthHelper {
                 AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.get(azureEnvironment) : UNKNOWN;
     }
 
-
     public static void setupAzureEnvironment(AzureEnvironment environment) {
-        if (environment == null) {
-            environment = AzureEnvironment.AZURE;
+        AzureEnvironment env = environment;
+        if (env == null) {
+            env = AzureEnvironment.AZURE;
         }
         // change the default azure env after it is initialized in azure identity
         // see code at
         // https://github.com/Azure/azure-sdk-for-java/blob/32f8f7ca8b44035b2e5520c5e10455f42500a778/sdk/identity/azure-identity/src/main/java/com/azure/identity/implementation/IdentityClientOptions.java#L42
-        Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, environment.activeDirectoryEndpoint());
+        Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.activeDirectoryEndpoint());
     }
-
 
     /**
      * Validate the azure environment.
