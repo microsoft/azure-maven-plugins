@@ -27,9 +27,8 @@ public class ManagedIdentityCredentialRetriever extends AbstractCredentialRetrie
             ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder().build();
             // test the token
             managedIdentityCredential.getToken(new TokenRequestContext().addScopes(
-                    (env == null ? AzureEnvironment.AZURE : env).managementEndpoint() + "/.default")).block();
-            return new AzureCredentialWrapper(AuthMethod.MANAGED_IDENTITY, managedIdentityCredential,
-                    AuthHelper.parseAzureEnvironment(null));
+                    (env == null ? AzureEnvironment.AZURE : env).resourceManagerEndpoint() + "/.default")).block();
+            return new AzureCredentialWrapper(AuthMethod.MANAGED_IDENTITY, managedIdentityCredential, env);
         } catch (CredentialUnavailableException ex) {
             throw new LoginFailureException(ex.getMessage(), ex);
         }
