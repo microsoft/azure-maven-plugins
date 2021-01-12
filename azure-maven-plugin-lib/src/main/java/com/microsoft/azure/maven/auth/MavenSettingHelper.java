@@ -4,12 +4,12 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.maven;
+package com.microsoft.azure.maven.auth;
 
+import com.microsoft.azure.maven.exception.MavenDecryptException;
+import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
-import com.microsoft.azure.tools.auth.exception.MavenDecryptException;
-import com.microsoft.azure.tools.auth.model.MavenAuthConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.Server;
@@ -24,7 +24,7 @@ import java.util.Objects;
 
 public class MavenSettingHelper {
     /**
-     * Get auth configuration from serverId.
+     * Build maven auth configuration from serverId.
      *
      * @param session           the maven session
      * @param settingsDecrypter the decrypter
@@ -32,8 +32,8 @@ public class MavenSettingHelper {
      * @return the auth configuration
      * @throws AzureLoginException when there are errors decrypting maven generated password
      */
-    public static MavenAuthConfiguration getAuthConfigurationFromServer(MavenSession session, SettingsDecrypter settingsDecrypter, String serverId)
-            throws AzureLoginException {
+    public static MavenAuthConfiguration buildAuthConfigurationByServerId(MavenSession session, SettingsDecrypter settingsDecrypter, String serverId)
+            throws InvalidConfigurationException, MavenDecryptException {
         if (StringUtils.isBlank(serverId)) {
             throw new IllegalArgumentException("Parameter 'serverId' cannot be null or empty.");
         }
@@ -47,22 +47,20 @@ public class MavenSettingHelper {
         if (configuration == null) {
             return configurationFromServer;
         }
-        configurationFromServer.setTenant(getConfiguration(configuration, "tenant"));
-        configurationFromServer.setClient(getConfiguration(configuration, "client"));
-        final String rawKey = getConfiguration(configuration, "key");
-        configurationFromServer.setKey(isValueEncrypted(rawKey) ? decryptMavenProtectedValue(settingsDecrypter, "key", rawKey) : rawKey);
-        configurationFromServer.setCertificate(getConfiguration(configuration, "certificate"));
-        final String rawCertificatePassword = getConfiguration(configuration, "certificatePassword");
-        configurationFromServer.setCertificatePassword(isValueEncrypted(rawCertificatePassword) ?
-                decryptMavenProtectedValue(settingsDecrypter, "certificatePassword", rawCertificatePassword) :
+        configurationFromServer.setTenant(getPropertyValue(configuration, "tenant"));
+        configurationFromServer.setClient(getPropertyValue(configuration, "client"));
+        final String rawKey = getPropertyValue(configuration, "key");
+        configurationFromServer.setKey(isPropertyEncrypted(rawKey) ? decryptMavenSettingProperty(settingsDecrypter, "key", rawKey) : rawKey);
+        configurationFromServer.setCertificate(getPropertyValue(configuration, "certificate"));
+        final String rawCertificatePassword = getPropertyValue(configuration, "certificatePassword");
+        configurationFromServer.setCertificatePassword(isPropertyEncrypted(rawCertificatePassword) ?
+                decryptMavenSettingProperty(settingsDecrypter, "certificatePassword", rawCertificatePassword) :
                 rawCertificatePassword);
-        configurationFromServer.setEnvironment(getConfiguration(configuration, "environment"));
-        configurationFromServer.setHttpProxyHost(getConfiguration(configuration, "httpProxyHost"));
-        configurationFromServer.setHttpProxyPort(getConfiguration(configuration, "httpProxyPort"));
+        configurationFromServer.setEnvironment(getPropertyValue(configuration, "environment"));
+        configurationFromServer.setHttpProxyHost(getPropertyValue(configuration, "httpProxyHost"));
+        configurationFromServer.setHttpProxyPort(getPropertyValue(configuration, "httpProxyPort"));
         configurationFromServer.setServerId(serverId);
-
-        // validate configuration
-        return configurationFromServer.validateAndReturn();
+        return configurationFromServer;
     }
 
     /**
@@ -72,16 +70,16 @@ public class MavenSettingHelper {
      * @param property           the property name
      * @return String value if property exists; otherwise, return null.
      */
-    private static String getConfiguration(final Xpp3Dom configuration, final String property) {
+    private static String getPropertyValue(final Xpp3Dom configuration, final String property) {
         final Xpp3Dom node = configuration.getChild(property);
         return Objects.isNull(node) ? null : node.getValue();
     }
 
-    private static boolean isValueEncrypted(String value) {
+    private static boolean isPropertyEncrypted(String value) {
         return value != null && value.startsWith("{") && value.endsWith("}");
     }
 
-    private static String decryptMavenProtectedValue(SettingsDecrypter settingsDecrypter, String propertyName, String value) throws MavenDecryptException {
+    private static String decryptMavenSettingProperty(SettingsDecrypter settingsDecrypter, String propertyName, String value) throws MavenDecryptException {
         final Server server = new Server();
         server.setPassword(value);
         final SettingsDecryptionRequest request = new DefaultSettingsDecryptionRequest(server);
@@ -89,7 +87,8 @@ public class MavenSettingHelper {
         for (final SettingsProblem problem : result.getProblems()) {
             if (problem.getSeverity() == SettingsProblem.Severity.ERROR || problem.getSeverity() == SettingsProblem.Severity.FATAL) {
                 // for java 8+, it is ok to use operator '+' for string concatenation
-                throw new MavenDecryptException(propertyName, value, "Unable to decrypt value(" + value + ") from settings.xml: " + problem);
+                throw new MavenDecryptException(String.format("Unable to decrypt property(%s), value(%s) from maven settings.xml due to error: %s",
+                        propertyName, value, problem.toString()));
             }
         }
         return result.getServer().getPassword();

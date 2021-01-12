@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.tools.auth.exception;
 
-public class DesktopNotSupportedException extends AzureLoginException {
+public class DesktopNotSupportedException extends LoginFailureException {
     private static final long serialVersionUID = 6774808712719406687L;
 
     public DesktopNotSupportedException(String message) {
