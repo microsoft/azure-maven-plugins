@@ -50,7 +50,7 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
             String userName = accountObject.get("user").getAsJsonObject().get("name").getAsString();
             String userType = accountObject.get("user").getAsJsonObject().get("type").getAsString();
             return new AzureCliAccountProfile(tenantId, environment, userName, userType, subscriptionId);
-        } catch (InterruptedException | IOException | JsonParseException | CommandExecuteException e) {
+        } catch (InterruptedException | IOException | JsonParseException | CommandExecuteException | NullPointerException e) {
             // Return null when azure cli is not signed in
             return null;
         }
