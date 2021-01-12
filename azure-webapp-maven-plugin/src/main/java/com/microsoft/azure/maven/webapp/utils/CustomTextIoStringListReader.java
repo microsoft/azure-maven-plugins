@@ -47,8 +47,7 @@ public class CustomTextIoStringListReader<T> extends GenericInputReader<T> {
         if (possibleValues == null) {
             if (promptAdjustments && defaultValue != null) {
                 textTerminal.print(" [" + valueFormatter.apply(defaultValue) + "]: ");
-            }
-            else {
+            } else {
                 textTerminal.print(useColon ? ": " : " ");
             }
         } else if (promptAdjustments) {

@@ -7,6 +7,7 @@
 package com.microsoft.azure.tools.auth.model;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -53,8 +54,7 @@ public enum AuthType {
                 return VISUAL_STUDIO;
             default:
                 throw new InvalidConfigurationException(String.format("Invalid auth type '%s', supported values are: %s.", type,
-                        StringUtils.join(Arrays.stream(values()).map(t -> StringUtils.lowerCase(t.toString())), ",")));
+                        Arrays.stream(values()).map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", "))));
         }
-
     }
 }

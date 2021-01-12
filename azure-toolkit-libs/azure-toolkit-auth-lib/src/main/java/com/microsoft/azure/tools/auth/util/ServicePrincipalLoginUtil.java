@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.tools;
+package com.microsoft.azure.tools.auth.util;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientCertificateCredentialBuilder;
@@ -13,28 +13,18 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
-import com.microsoft.azure.tools.auth.maven.MavenSettingHelper;
+import com.microsoft.azure.tools.auth.model.AuthConfiguration;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
-import com.microsoft.azure.tools.auth.model.MavenAuthConfiguration;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.settings.crypto.SettingsDecrypter;
 
-public class ServicePrincipalLoginHelper {
-    public static AzureCredentialWrapper login(MavenAuthConfiguration configuration, MavenSession session, SettingsDecrypter settingsDecrypter)
+public class ServicePrincipalLoginUtil {
+    public static AzureCredentialWrapper login(AuthConfiguration configuration)
             throws AzureLoginException {
-        // 1. check maven configuration: server id
-        if (StringUtils.isNotBlank(configuration.getServerId())) {
-            MavenAuthConfiguration serverIdConfiguration = MavenSettingHelper.getAuthConfigurationFromServer(session, settingsDecrypter,
-                    configuration.getServerId());
-            return mavenSettingLogin(AuthMethod.MAVEN_SETTINGS, serverIdConfiguration);
-        }
-
-        // 2. check maven configuration: client, tenant
+        // check maven configuration: client, tenant
         if (StringUtils.isNoneBlank(configuration.getClient(), configuration.getTenant())) {
-            configuration.validate();
-            return mavenSettingLogin(AuthMethod.MAVEN_CONFIGURATION, configuration);
+            ValidationUtil.validateMavenAuthConfiguration(configuration);
+            return mavenSettingLogin(AuthMethod.SERVICE_PRINCIPAL, configuration);
         }
 
         // if we cannot login through maven configuration, we should validate on user's
@@ -49,10 +39,10 @@ public class ServicePrincipalLoginHelper {
         return null;
     }
 
-    private static AzureCredentialWrapper mavenSettingLogin(AuthMethod method, MavenAuthConfiguration configuration) {
+    private static AzureCredentialWrapper mavenSettingLogin(AuthMethod method, AuthConfiguration configuration) {
         AzureEnvironment env = AuthHelper.parseAzureEnvironment(configuration.getEnvironment());
-        TokenCredential clientSecretCredential = StringUtils.isNotBlank(configuration.getCertificate())
-                ? new ClientCertificateCredentialBuilder().clientId(configuration.getClient())
+        TokenCredential clientSecretCredential = StringUtils.isNotBlank(configuration.getCertificate()) ?
+                new ClientCertificateCredentialBuilder().clientId(configuration.getClient())
                 .pfxCertificate(configuration.getCertificate(), configuration.getCertificatePassword())
                 .tenantId(configuration.getTenant()).build()
 
