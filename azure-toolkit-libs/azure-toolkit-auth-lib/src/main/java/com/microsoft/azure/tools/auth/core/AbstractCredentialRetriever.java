@@ -20,7 +20,7 @@ public abstract class AbstractCredentialRetriever implements ICredentialRetrieve
     @Override
     public Single<AzureCredentialWrapper> retrieve() {
         try {
-             return Single.just(retrieveInternal());
+            return Single.just(retrieveInternal());
         } catch (LoginFailureException ex) {
             return Single.error(ex);
         }
