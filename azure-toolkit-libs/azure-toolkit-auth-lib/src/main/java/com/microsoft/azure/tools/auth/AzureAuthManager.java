@@ -30,12 +30,18 @@ import java.util.Map;
 
 public class AzureAuthManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(AzureAuthManager.class);
-    private static final String FALLBACK_TO_AZURE_ENVIRONMENT = "Unsupported Azure environment %s, using Azure by default.";
+    private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
+            "\"AzureCloud\",  \"AzureChinaCloud\",  \"AzureUSGovernment\",  \"AzureGermanCloud\".";
     private static final String FALLBACK_TO_AUTO_AUTH_TYPE = "Will use 'auto' by default.";
 
     public static Single<AzureCredentialWrapper> getAzureCredentialWrapper(AuthConfiguration configuration) {
         AuthConfiguration auth = configuration == null ? new AuthConfiguration() : configuration;
-        AzureEnvironment env = getAzureEnvironmentFromString(auth.getEnvironment());
+        AzureEnvironment env;
+        try {
+            env = getAzureEnvironmentFromString(auth.getEnvironment());
+        } catch (InvalidConfigurationException e) {
+            return Single.error(e);
+        }
         ChainedCredentialRetriever retrievers = new ChainedCredentialRetriever();
         AuthType authType = getAuthTypeFromString(auth.getType());
         Map<AuthType, ICredentialRetriever> retrieverMap = buildCredentialRetrievers(env);
@@ -74,10 +80,9 @@ public class AzureAuthManager {
         return map;
     }
 
-    private static AzureEnvironment getAzureEnvironmentFromString(String envString) {
+    private static AzureEnvironment getAzureEnvironmentFromString(String envString) throws InvalidConfigurationException {
         if (!AuthHelper.validateEnvironment(envString)) {
-            LOGGER.warn(String.format(FALLBACK_TO_AZURE_ENVIRONMENT, envString));
-            return AzureEnvironment.AZURE;
+            throw new InvalidConfigurationException(String.format(INVALID_AZURE_ENVIRONMENT, envString));
         }
         return AuthHelper.parseAzureEnvironment(envString);
     }
