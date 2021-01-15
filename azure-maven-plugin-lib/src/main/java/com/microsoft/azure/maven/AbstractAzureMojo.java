@@ -35,6 +35,7 @@ import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.model.AuthType;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.auth.util.ValidationUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -49,7 +50,6 @@ import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
-import org.codehaus.plexus.util.CollectionUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
@@ -60,8 +60,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -241,6 +243,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     @Override
     public String getSubscriptionId() {
+        if (azureCredentialWrapper != null && StringUtils.isBlank(azureCredentialWrapper.getDefaultSubscriptionId())) {
+            return azureCredentialWrapper.getDefaultSubscriptionId();
+        }
         return subscriptionId;
     }
 
@@ -368,30 +373,21 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                     .authenticate(azureCredentialWrapper.getAzureTokenCredentials()).withDefaultSubscription();
             final PagedList<Subscription> subscriptions = tempAzure.subscriptions().list();
             subscriptions.loadAll();
-            final List<String> subsIdList = subscriptions.stream().map(Subscription::subscriptionId).map(StringUtils::lowerCase).collect(Collectors.toList());
-            String defaultSubscriptionId = selectDefaultSubscriptionId(
-                    subsIdList, this.subscriptionId, azureCredentialWrapper.getDefaultSubscriptionId());
+            final List<String> subsIdList = subscriptions.stream().map(Subscription::subscriptionId).collect(Collectors.toList());
+            String defaultSubscriptionId = firstNonBlankString(this.subscriptionId, azureCredentialWrapper.getDefaultSubscriptionId());
+
             if (StringUtils.isBlank(defaultSubscriptionId) && ArrayUtils.isNotEmpty(azureCredentialWrapper.getFilteredSubscriptionIds())) {
-                final Collection<String> filteredSubscriptions = filterSubscriptionIds(subsIdList,
-                        Arrays.stream(azureCredentialWrapper.getFilteredSubscriptionIds()).map(StringUtils::lowerCase).collect(Collectors.toList()));
+                final Collection<String> filteredSubscriptions = intersectionListsIgnoreCase(subsIdList,
+                        Arrays.asList(azureCredentialWrapper.getFilteredSubscriptionIds()));
                 if (filteredSubscriptions.size() == 1) {
                     defaultSubscriptionId = filteredSubscriptions.iterator().next();
                 }
             }
             if (StringUtils.isBlank(defaultSubscriptionId) && subsIdList.size() == 1) {
-                defaultSubscriptionId = subsIdList.iterator().next();
-            }
-            if (StringUtils.isNotBlank(this.subscriptionId) &&
-                    !StringUtils.equalsIgnoreCase(defaultSubscriptionId, this.subscriptionId)) {
-                if (StringUtils.isBlank(defaultSubscriptionId)) {
-                    Log.warn(String.format("The subscription with id '%s' cannot be found.", this.subscriptionId));
-                } else {
-                    Log.warn(String.format("The subscription with id '%s' cannot be found, will use '%s' instead.",
-                            this.subscriptionId, defaultSubscriptionId));
-                }
+                defaultSubscriptionId = subsIdList.get(0);
             }
 
-            if (StringUtils.isBlank(defaultSubscriptionId)) {
+            if (StringUtils.isAllBlank(this.subscriptionId, defaultSubscriptionId)) {
                 defaultSubscriptionId = selectSubscription(tempAzure, subscriptions.toArray(new Subscription[0]));
             }
 
@@ -666,39 +662,48 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    private static String selectDefaultSubscriptionId(List<String> subscriptionIds, String... idOptions) {
-        for (final String optionId : idOptions) {
-            if (StringUtils.isNotBlank(optionId) && subscriptionIds.stream().anyMatch(s -> s.equalsIgnoreCase(optionId))) {
-                return optionId;
+    private static Collection<String> intersectionListsIgnoreCase(List<String> list1, List<String> list2) {
+        final List<String> intersection = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(list1) && CollectionUtils.isNotEmpty(list2)) {
+            for (final String str : list2) {
+                if (existInListIgnoreCase(list1, str)) {
+                    intersection.add(str);
+                }
             }
+            return intersection;
         }
-        return null;
+        return Collections.emptyList();
     }
 
-    private static Collection<String> filterSubscriptionIds(List<String> subscriptionIds, List<String> idOptions) {
-        if (idOptions == null) {
-            return subscriptionIds;
-        }
-        final Collection<String> intersection = CollectionUtils.intersection(subscriptionIds, idOptions);
-        if (intersection.isEmpty()) {
-            return subscriptionIds;
-        }
-        return intersection;
-    }
-
-    private static void checkSubscription(List<Subscription> subscriptions , String targetSubscription) throws AzureLoginException {
+    private static void checkSubscription(List<Subscription> subscriptions, String targetSubscriptionId) throws AzureLoginException {
         if (subscriptions.size() == 0) {
             throw new AzureLoginException(NO_AVAILABLE_SUBSCRIPTION);
         }
-        if (StringUtils.isEmpty(targetSubscription)) {
+        if (StringUtils.isEmpty(targetSubscriptionId)) {
             Log.warn(SUBSCRIPTION_NOT_SPECIFIED);
             return;
         }
         final Optional<Subscription> optionalSubscription = subscriptions.stream()
-                .filter(subscription -> StringUtils.equals(subscription.subscriptionId(), targetSubscription))
+                .filter(subscription -> StringUtils.equals(subscription.subscriptionId(), targetSubscriptionId))
                 .findAny();
         if (!optionalSubscription.isPresent()) {
-            throw new AzureLoginException(String.format(SUBSCRIPTION_NOT_FOUND, targetSubscription));
+            throw new AzureLoginException(String.format(SUBSCRIPTION_NOT_FOUND, targetSubscriptionId));
         }
+    }
+
+    private static boolean existInListIgnoreCase(List<String> list, String target) {
+        if (StringUtils.isNotBlank(target) && CollectionUtils.isNotEmpty(list)) {
+            return list.stream().anyMatch(str -> StringUtils.equalsIgnoreCase(str, target));
+        }
+        return false;
+    }
+
+    private static String firstNonBlankString(String... list) {
+        for (final String str : list) {
+            if (StringUtils.isNotBlank(str)) {
+                return str;
+            }
+        }
+        return null;
     }
 }

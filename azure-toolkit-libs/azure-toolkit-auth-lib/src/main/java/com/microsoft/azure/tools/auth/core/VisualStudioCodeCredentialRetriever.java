@@ -15,14 +15,10 @@ import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.auth.model.VisualStudioCodeAccountProfile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
 public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetriever {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VisualStudioCodeCredentialRetriever.class);
-
     public VisualStudioCodeCredentialRetriever(AzureEnvironment env) {
         super(env);
     }
@@ -35,8 +31,8 @@ public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetri
         AzureEnvironment envFromVSCode = AuthHelper.parseAzureEnvironment(vscodeProfile.getEnvironment());
         if (envFromVSCode != null && env != null && envFromVSCode != env) {
             final String envNameFromVSCode = AuthHelper.getAzureEnvironmentDisplayName(envFromVSCode);
-            LOGGER.warn(String.format("The azure cloud from vscode '%s' doesn't match with the auth configuration: %s, will use '%s' instead, " +
-                            "you can change it by changing vscode setting cloud by key 'azure.cloud'.",
+            throw new LoginFailureException(String.format("The azure cloud from vscode '%s' doesn't match with your auth configuration: %s, " +
+                            "you can change it by press F1 and find \">azure: sign in to Azure Cloud\" command to change azure cloud in vscode.",
                     envNameFromVSCode,
                     AuthHelper.getAzureEnvironmentDisplayName(env),
                     envNameFromVSCode

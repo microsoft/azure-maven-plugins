@@ -21,7 +21,6 @@ import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthConfiguration;
 import com.microsoft.azure.tools.auth.model.AuthType;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Single;
@@ -41,17 +40,13 @@ public class AzureAuthManager {
         AuthType authType = getAuthTypeFromString(auth.getType());
         Map<AuthType, ICredentialRetriever> retrieverMap = buildCredentialRetrievers(env);
         if (authType.equals(AuthType.AUTO)) {
-            if (!StringUtils.isAllBlank(auth.getCertificate(), auth.getKey(), auth.getCertificatePassword())) {
-                retrievers.addRetriever(new ServicePrincipalCredentialRetriever(auth, env));
-            } else {
-                retrievers.addRetriever(retrieverMap.get(AuthType.MANAGED_IDENTITY));
-                retrievers.addRetriever(retrieverMap.get(AuthType.AZURE_CLI));
-                retrievers.addRetriever(retrieverMap.get(AuthType.VSCODE));
-                retrievers.addRetriever(retrieverMap.get(AuthType.VISUAL_STUDIO));
-                retrievers.addRetriever(retrieverMap.get(AuthType.OAUTH2));
-                retrievers.addRetriever(retrieverMap.get(AuthType.DEVICE_CODE));
-            }
-
+            retrievers.addRetriever(new ServicePrincipalCredentialRetriever(auth, env));
+            retrievers.addRetriever(retrieverMap.get(AuthType.MANAGED_IDENTITY));
+            retrievers.addRetriever(retrieverMap.get(AuthType.AZURE_CLI));
+            retrievers.addRetriever(retrieverMap.get(AuthType.VSCODE));
+            retrievers.addRetriever(retrieverMap.get(AuthType.VISUAL_STUDIO));
+            retrievers.addRetriever(retrieverMap.get(AuthType.OAUTH2));
+            retrievers.addRetriever(retrieverMap.get(AuthType.DEVICE_CODE));
         } else {
             // for specific auth type:
             if (AuthType.SERVICE_PRINCIPAL == authType) {
