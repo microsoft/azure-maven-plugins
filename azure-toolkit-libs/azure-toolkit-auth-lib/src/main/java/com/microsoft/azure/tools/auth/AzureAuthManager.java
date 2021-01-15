@@ -10,6 +10,7 @@ import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.core.AzureCliCredentialRetriever;
 import com.microsoft.azure.tools.auth.core.ChainedCredentialRetriever;
 import com.microsoft.azure.tools.auth.core.DeviceCodeCredentialRetriever;
+import com.microsoft.azure.tools.auth.core.ICredentialRetriever;
 import com.microsoft.azure.tools.auth.core.ManagedIdentityCredentialRetriever;
 import com.microsoft.azure.tools.auth.core.OAuthCredentialRetriever;
 import com.microsoft.azure.tools.auth.core.ServicePrincipalCredentialRetriever;
@@ -25,54 +26,47 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Single;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class AzureAuthManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(AzureAuthManager.class);
     private static final String FALLBACK_TO_AZURE_ENVIRONMENT = "Unsupported Azure environment %s, using Azure by default.";
     private static final String FALLBACK_TO_AUTO_AUTH_TYPE = "Will use 'auto' by default.";
 
-    public static Single<AzureCredentialWrapper> getAzureCredentialWrapper(final AuthConfiguration configuration) {
-        AzureEnvironment env = getAzureEnvironmentFromConfiguration(configuration);
+    public static Single<AzureCredentialWrapper> getAzureCredentialWrapper(AuthConfiguration configuration) {
+        AuthConfiguration auth = configuration == null ? new AuthConfiguration() : configuration;
+        AzureEnvironment env = getAzureEnvironmentFromString(auth.getEnvironment());
         ChainedCredentialRetriever retrievers = new ChainedCredentialRetriever();
-
-        AuthType authType = getAuthTypeFromConfiguration(configuration);
+        AuthType authType = getAuthTypeFromString(auth.getType());
+        Map<AuthType, ICredentialRetriever> retrieverMap = buildCredentialRetrievers(env);
         if (authType.equals(AuthType.AUTO)) {
-            if (!StringUtils.isAllBlank(configuration.getCertificate(), configuration.getKey(), configuration.getCertificatePassword())) {
-                retrievers.addRetriever(new ServicePrincipalCredentialRetriever(configuration)::retrieve);
+            if (!StringUtils.isAllBlank(auth.getCertificate(), auth.getKey(), auth.getCertificatePassword())) {
+                retrievers.addRetriever(new ServicePrincipalCredentialRetriever(auth, env));
             } else {
-                retrievers.addRetriever(new ManagedIdentityCredentialRetriever(env)::retrieve);
-                retrievers.addRetriever(new AzureCliCredentialRetriever()::retrieve);
-                retrievers.addRetriever(new VisualStudioCodeCredentialRetriever()::retrieve);
-                retrievers.addRetriever(new VisualStudioCredentialRetriever(env)::retrieve);
-                retrievers.addRetriever(new OAuthCredentialRetriever(env)::retrieve);
-                retrievers.addRetriever(new DeviceCodeCredentialRetriever(env)::retrieve);
+                retrievers.addRetriever(retrieverMap.get(AuthType.MANAGED_IDENTITY));
+                retrievers.addRetriever(retrieverMap.get(AuthType.AZURE_CLI));
+                retrievers.addRetriever(retrieverMap.get(AuthType.VSCODE));
+                retrievers.addRetriever(retrieverMap.get(AuthType.VISUAL_STUDIO));
+                retrievers.addRetriever(retrieverMap.get(AuthType.OAUTH2));
+                retrievers.addRetriever(retrieverMap.get(AuthType.DEVICE_CODE));
+
+                retrievers.addRetriever(new AzureCliCredentialRetriever(env));
+                retrievers.addRetriever(new VisualStudioCodeCredentialRetriever(env));
+                retrievers.addRetriever(new VisualStudioCredentialRetriever(env));
+                retrievers.addRetriever(new OAuthCredentialRetriever(env));
+                retrievers.addRetriever(new DeviceCodeCredentialRetriever(env));
             }
 
         } else {
             // for specific auth type:
-            switch (authType) {
-                case SERVICE_PRINCIPAL: // will get configuration from auth configuration
-                    retrievers.addRetriever(new ServicePrincipalCredentialRetriever(configuration));
-                    break;
-                case MANAGED_IDENTITY:
-                    retrievers.addRetriever(new ManagedIdentityCredentialRetriever(env)::retrieve);
-                    break;
-                case AZURE_CLI:
-                    retrievers.addRetriever(new AzureCliCredentialRetriever()::retrieve);
-                    break;
-                case VSCODE:
-                    retrievers.addRetriever(new VisualStudioCodeCredentialRetriever()::retrieve);
-                    break;
-                case VISUAL_STUDIO:
-                    retrievers.addRetriever(new VisualStudioCredentialRetriever(env)::retrieve);
-                    break;
-                case OAUTH2:
-                    retrievers.addRetriever(new OAuthCredentialRetriever(env)::retrieve);
-                    break;
-                case DEVICE_CODE:
-                    retrievers.addRetriever(new DeviceCodeCredentialRetriever(env)::retrieve);
-                    break;
-                default:
+            if (AuthType.SERVICE_PRINCIPAL == authType) {
+                retrievers.addRetriever(new ServicePrincipalCredentialRetriever(auth, env));
+            } else {
+                if (!retrieverMap.containsKey(authType)) {
                     return Single.error(new UnsupportedOperationException(String.format("authType '%s' not supported.", authType)));
+                }
+                retrievers.addRetriever(retrieverMap.get(authType));
             }
         }
         return retrievers.retrieve().onErrorResumeNext(e ->
@@ -80,21 +74,29 @@ public class AzureAuthManager {
         );
     }
 
-    private static AzureEnvironment getAzureEnvironmentFromConfiguration(AuthConfiguration configuration) {
-        AzureEnvironment env = AuthHelper.parseAzureEnvironment(configuration.getEnvironment());
-        if (env == null) {
-            env = AzureEnvironment.AZURE;
-            if (!AuthHelper.validateEnvironment(configuration.getEnvironment())) {
-                LOGGER.warn(String.format(FALLBACK_TO_AZURE_ENVIRONMENT, configuration.getEnvironment()));
-            }
-        }
-        return env;
+    private static Map<AuthType, ICredentialRetriever> buildCredentialRetrievers(AzureEnvironment env) {
+        Map<AuthType, ICredentialRetriever> map = new HashMap<>();
+        map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityCredentialRetriever(env));
+        map.put(AuthType.AZURE_CLI, new AzureCliCredentialRetriever(env));
+        map.put(AuthType.VSCODE, new VisualStudioCodeCredentialRetriever(env));
+        map.put(AuthType.VISUAL_STUDIO, new VisualStudioCredentialRetriever(env));
+        map.put(AuthType.OAUTH2, new OAuthCredentialRetriever(env));
+        map.put(AuthType.DEVICE_CODE, new DeviceCodeCredentialRetriever(env));
+        return map;
     }
 
-    private static AuthType getAuthTypeFromConfiguration(AuthConfiguration configuration) {
+    private static AzureEnvironment getAzureEnvironmentFromString(String envString) {
+        if (!AuthHelper.validateEnvironment(envString)) {
+            LOGGER.warn(String.format(FALLBACK_TO_AZURE_ENVIRONMENT, envString));
+            return AzureEnvironment.AZURE;
+        }
+        return AuthHelper.parseAzureEnvironment(envString);
+    }
+
+    private static AuthType getAuthTypeFromString(String authTypeString) {
         AuthType authType;
         try {
-            authType = AuthType.parseAuthType(configuration.getType());
+            authType = AuthType.parseAuthType(authTypeString);
         } catch (InvalidConfigurationException e) {
             LOGGER.warn(e.getMessage());
             LOGGER.warn(FALLBACK_TO_AUTO_AUTH_TYPE);

@@ -18,7 +18,7 @@ public class VisualStudioCredentialRetriever extends AbstractCredentialRetriever
     private static final String AZURE_CLI_CLIENT_ID = "04b07795-8ddb-461a-bbee-02f9e1bf7b46";
 
     public VisualStudioCredentialRetriever(AzureEnvironment env) {
-        this.env = env;
+        super(env);
     }
 
     @Override

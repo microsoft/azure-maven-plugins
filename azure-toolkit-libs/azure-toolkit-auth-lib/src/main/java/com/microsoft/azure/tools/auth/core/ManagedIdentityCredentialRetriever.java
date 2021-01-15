@@ -17,7 +17,7 @@ import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 public class ManagedIdentityCredentialRetriever extends AbstractCredentialRetriever {
 
     public ManagedIdentityCredentialRetriever(AzureEnvironment env) {
-        this.env = env;
+        super(env);
     }
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {

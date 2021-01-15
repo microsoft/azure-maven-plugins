@@ -20,6 +20,10 @@ public abstract class AbstractCredentialRetriever implements ICredentialRetrieve
     @Setter
     protected AzureEnvironment env;
 
+    public AbstractCredentialRetriever(AzureEnvironment env) {
+        this.env = env;
+    }
+
     @Override
     public Single<AzureCredentialWrapper> retrieve() {
         return Single.fromCallable(this::retrieveInternal);
