@@ -50,12 +50,6 @@ public class AzureAuthManager {
                 retrievers.addRetriever(retrieverMap.get(AuthType.VISUAL_STUDIO));
                 retrievers.addRetriever(retrieverMap.get(AuthType.OAUTH2));
                 retrievers.addRetriever(retrieverMap.get(AuthType.DEVICE_CODE));
-
-                retrievers.addRetriever(new AzureCliCredentialRetriever(env));
-                retrievers.addRetriever(new VisualStudioCodeCredentialRetriever(env));
-                retrievers.addRetriever(new VisualStudioCredentialRetriever(env));
-                retrievers.addRetriever(new OAuthCredentialRetriever(env));
-                retrievers.addRetriever(new DeviceCodeCredentialRetriever(env));
             }
 
         } else {
