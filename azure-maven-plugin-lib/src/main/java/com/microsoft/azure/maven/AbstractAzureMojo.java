@@ -311,23 +311,22 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return StringUtils.firstNonBlank(auth == null ? null : auth.getType(), authType);
     }
 
-    protected Subscription selectSubscription(Azure az, TextIO textIO, Subscription[] subscriptions) throws AzureExecutionException {
+    protected String selectSubscription(Azure az, Subscription[] subscriptions) throws AzureExecutionException {
         if (subscriptions.length == 0) {
             throw new AzureExecutionException("Cannot find any subscriptions in current account.");
         }
         if (subscriptions.length == 1) {
             Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
                     TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
-            return subscriptions[0];
+            return subscriptions[0].subscriptionId();
         }
         final String defaultId = Optional.ofNullable(az.getCurrentSubscription()).map(Subscription::subscriptionId).orElse(null);
-
         final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption(t))
                 .sorted()
                 .collect(Collectors.toList());
         final SubscriptionOption defaultValue = wrapSubs.stream()
                 .filter(t -> StringUtils.equalsIgnoreCase(t.getSubscriptionId(), defaultId)).findFirst().orElse(null);
-
+        final TextIO textIO = TextIoFactory.getTextIO();
         final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(() -> textIO.getTextTerminal(), null)
                 .withCustomPrompt(String.format("Please choose a subscription%s: ",
                         highlightDefaultValue(defaultValue == null ? null : defaultValue.getSubscriptionName())))
@@ -335,7 +334,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (subscriptionOptionSelected == null) {
             throw new AzureExecutionException("You must select a subscription.");
         }
-        return subscriptionOptionSelected.getSubscription();
+        return subscriptionOptionSelected.getSubscription().subscriptionId();
     }
 
     protected Azure createAzureClient() throws AzureAuthFailureException, AzureExecutionException {
@@ -397,9 +396,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 if (StringUtils.isNotBlank(azureCredentialWrapper.getDefaultSubscriptionId())) {
                     this.subscriptionId = azureCredentialWrapper.getDefaultSubscriptionId();
                 } else {
-                    final TextIO textIO = TextIoFactory.getTextIO();
-                    final Subscription targetSubscription = selectSubscription(tempAzure, textIO, subscriptions.toArray(new Subscription[0]));
-                    this.subscriptionId = targetSubscription.subscriptionId();
+                    this.subscriptionId = selectSubscription(tempAzure, subscriptions.toArray(new Subscription[0]));
                 }
             }
 

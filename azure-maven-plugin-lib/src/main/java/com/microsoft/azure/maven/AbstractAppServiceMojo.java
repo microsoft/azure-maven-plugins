@@ -44,7 +44,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
 
     /**
      * Deployment type to deploy Web App or Function App.
-     *
+     * <p>
      * Supported values for Web App:
      * <ul>
      *      <li>FTP - {@code <resources>} specifies configurations for this kind of deployment.</li>
@@ -55,7 +55,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      *      <li>NONE - does nothing</li>
      *      <li>* defaults to AUTO if nothing is specified</li>
      * </ul>
-     *
+     * <p>
      * Supported values for Function App:
      * <ul>
      *      <li>MSDEPLOY</li>
@@ -63,6 +63,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      *      <li>ZIP</li>
      *      <li>* defaults to ZIP if nothing is specified</li>
      * </ul>
+     *
      * @since 0.1.0
      */
     @Parameter(property = "deploymentType")
@@ -158,12 +159,12 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     }
 
     private static String getPortalUrl(AzureEnvironment azureEnvironment) {
-        if (azureEnvironment == AzureEnvironment.AZURE) {
+        if (azureEnvironment == null || azureEnvironment == AzureEnvironment.AZURE) {
             return "https://ms.portal.azure.com";
-        } else if (azureEnvironment == AzureEnvironment.AZURE_CHINA) {
-            return "https://portal.azure.cn";
-        } else {
-            return azureEnvironment.portal();
         }
+        if (azureEnvironment == AzureEnvironment.AZURE_CHINA) {
+            return "https://portal.azure.cn";
+        }
+        return azureEnvironment.portal();
     }
 }
