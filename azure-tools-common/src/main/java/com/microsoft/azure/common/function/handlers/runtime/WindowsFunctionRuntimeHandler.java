@@ -67,6 +67,7 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
                 appWithCreate = appWithExistingServicePlan.withExistingResourceGroup(resourceGroup);
             }
         }
+
         appWithCreate.withJavaVersion(javaVersion).withWebContainer(null);
         return appWithCreate;
     }

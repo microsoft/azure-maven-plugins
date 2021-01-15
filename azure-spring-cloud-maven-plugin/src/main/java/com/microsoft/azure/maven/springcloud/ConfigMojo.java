@@ -11,13 +11,14 @@ import com.microsoft.azure.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
@@ -109,8 +110,8 @@ public class ConfigMojo extends AbstractMojoBase {
 
         if (!MavenConfigUtils.isPomPackaging(this.project) && !MavenConfigUtils.isJarPackaging(this.project)) {
             throw new UnsupportedOperationException(
-                    String.format("The project (%s) with packaging %s is not supported for azure spring cloud service.", this.project.getName(),
-                            this.project.getPackaging()));
+                String.format("The project (%s) with packaging %s is not supported for azure spring cloud service.", this.project.getName(),
+                    this.project.getPackaging()));
         }
         if (isProjectConfigured(this.project)) {
             getLog().warn(String.format("Project (%s) is already configured and won't be affected by this command.", this.project.getName()));
@@ -139,7 +140,7 @@ public class ConfigMojo extends AbstractMojoBase {
             configCommon();
             confirmAndSave();
         } catch (IOException | InvalidConfigurationException |
-                UnsupportedOperationException e) {
+            UnsupportedOperationException e) {
             throw new MojoFailureException(e.getMessage());
         } finally {
             if (this.wrapper != null) {
@@ -166,7 +167,7 @@ public class ConfigMojo extends AbstractMojoBase {
     private void selectProjects() throws IOException, InvalidConfigurationException {
         if (this.parentMode) {
             final List<MavenProject> allProjects = session.getAllProjects().stream().filter(MavenConfigUtils::isJarPackaging)
-                    .collect(Collectors.toList());
+                .collect(Collectors.toList());
             final List<MavenProject> configuredProjects = new ArrayList<>();
             for (final MavenProject proj : allProjects) {
                 if (isProjectConfigured(proj)) {
@@ -178,7 +179,7 @@ public class ConfigMojo extends AbstractMojoBase {
             this.wrapper.putCommonVariable("projects", targetProjects);
             if (!configuredProjects.isEmpty()) {
                 getLog().warn(String.format("The following child %s %s already configured: ", English.plural("module", configuredProjects.size()),
-                        configuredProjects.size() > 1 ? "are" : "is"));
+                    configuredProjects.size() > 1 ? "are" : "is"));
                 for (final MavenProject proj : configuredProjects) {
                     System.out.println("    " + TextUtils.yellow(proj.getName()));
                 }
@@ -228,11 +229,11 @@ public class ConfigMojo extends AbstractMojoBase {
         if (this.parentMode) {
             if (this.publicProjects != null && this.publicProjects.size() > 0) {
                 changesToConfirm.put("Public " + English.plural("app", this.publicProjects.size()),
-                        publicProjects.stream().map(MavenProject::getName).collect(Collectors.joining(",")));
+                    publicProjects.stream().map(MavenProject::getName).collect(Collectors.joining(",")));
             }
 
             changesToConfirm.put("App " + English.plural("name", this.appNameByProject.size()),
-                    String.join(",", appNameByProject.values()));
+                String.join(",", appNameByProject.values()));
 
             this.wrapper.confirmChanges(changesToConfirm, this::saveConfigurationToPom);
         } else {
@@ -297,8 +298,8 @@ public class ConfigMojo extends AbstractMojoBase {
             this.wrapper.putCommonVariable("project", this.project);
             // handle duplicate app name
             final String duplicateAppNames = this.appNameByProject.values().stream()
-                    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())).entrySet().stream().filter(t -> t.getValue() > 1)
-                    .map(Map.Entry::getKey).collect(Collectors.joining(","));
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())).entrySet().stream().filter(t -> t.getValue() > 1)
+                .map(Map.Entry::getKey).collect(Collectors.joining(","));
 
             if (StringUtils.isNotBlank(duplicateAppNames)) {
                 throw new InvalidConfigurationException(String.format("Cannot apply default appName due to duplicate: %s", duplicateAppNames));
@@ -310,24 +311,21 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void selectAppCluster() throws IOException, InvalidConfigurationException {
-        final List<ServiceResourceInner> clusters = getSpringServiceClient().getAvailableClusters();
-
-        this.wrapper.putCommonVariable("clusters", clusters);
+        final AzureSpringCloud az = AzureSpringCloud.az(this.getClient());
         if (StringUtils.isNotBlank(clusterName)) {
-            final ServiceResourceInner clusterByName = clusters.stream().filter(t -> StringUtils.equals(this.clusterName, t.name())).findFirst()
-                    .orElse(null);
-            if (clusterByName != null) {
-
-                this.appSettings.setClusterName(clusterByName.name());
+            final SpringCloudCluster cluster = az.cluster(this.clusterName);
+            if (cluster.exists()) {
+                this.appSettings.setClusterName(cluster.entity().getName());
                 return;
             }
             getLog().warn(String.format("Cannot find Azure Spring Cloud Service with name: %s.", TextUtils.yellow(this.clusterName)));
         }
-
-        final ServiceResourceInner targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, ServiceResourceInner::name);
+        final List<SpringCloudCluster> clusters = az.clusters();
+        this.wrapper.putCommonVariable("clusters", clusters);
+        final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, c -> c.entity().getName());
         if (targetAppCluster != null) {
-            this.appSettings.setClusterName(targetAppCluster.name());
-            getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.name())));
+            this.appSettings.setClusterName(targetAppCluster.entity().getName());
+            getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.entity().getName())));
         }
     }
 
@@ -336,7 +334,7 @@ public class ConfigMojo extends AbstractMojoBase {
         azure = Azure.configure().authenticate(azureTokenCredentials);
         if (StringUtils.isBlank(subscriptionId)) {
             subscriptionId = StringUtils.isBlank(azureTokenCredentials.defaultSubscriptionId()) ? promptSubscription() :
-                    azureTokenCredentials.defaultSubscriptionId();
+                azureTokenCredentials.defaultSubscriptionId();
         }
     }
 
