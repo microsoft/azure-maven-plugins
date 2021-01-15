@@ -59,7 +59,7 @@ public class AzureCredentialWrapper {
         List<String> details = new ArrayList<>();
         details.add(String.format("Auth method: %s", TextUtils.green(authMethod.toString())));
         if (StringUtils.isNotBlank(tenantId)) {
-            details.add(String.format("TenantId: %s", TextUtils.green(tenantId)));
+            details.add(String.format("Tenant id: %s", TextUtils.green(tenantId)));
         }
         if (StringUtils.isNotBlank(defaultSubscriptionId)) {
             details.add(String.format("Default subscription: %s", TextUtils.green(defaultSubscriptionId)));

@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for
  * license information.
  */
+
 package com.microsoft.azure.tools.auth;
 
 
@@ -60,7 +61,7 @@ public class AuthHelper {
         if (StringUtils.isBlank(environment)) {
             return true;
         }
-        switch (environment.toUpperCase(Locale.ENGLISH)) {
+        switch (environment.toLowerCase(Locale.ENGLISH)) {
             case AZURE_CHINA:
             case AZURE_CHINA_CLOUD:
             case AZURE_GERMANY:

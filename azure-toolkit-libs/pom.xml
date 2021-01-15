@@ -153,6 +153,16 @@
                 <version>${codehaus.plexus-utils.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.core.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-tools-common</artifactId>
                 <version>${azure.tools-common.version}</version>
@@ -250,11 +260,6 @@
 
             <!-- azure sdk -->
 
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-client-runtime</artifactId>
-                <version>${azure.client.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager</artifactId>

@@ -42,6 +42,10 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.microsoft.azure</groupId>
@@ -62,6 +66,7 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-common-lib</artifactId>
         </dependency>
+
     </dependencies>
 
     <build>
