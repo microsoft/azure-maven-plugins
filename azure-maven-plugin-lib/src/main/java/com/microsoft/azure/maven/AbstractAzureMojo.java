@@ -389,15 +389,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                     Log.warn(String.format("The subscription with id '%s' cannot be found, will use '%s' instead.",
                             this.subscriptionId, defaultSubscriptionId));
                 }
-
             }
 
             if (StringUtils.isBlank(defaultSubscriptionId)) {
-                if (StringUtils.isNotBlank(azureCredentialWrapper.getDefaultSubscriptionId())) {
-                    this.subscriptionId = azureCredentialWrapper.getDefaultSubscriptionId();
-                } else {
-                    this.subscriptionId = selectSubscription(tempAzure, subscriptions.toArray(new Subscription[0]));
-                }
+                defaultSubscriptionId = selectSubscription(tempAzure, subscriptions.toArray(new Subscription[0]));
             }
 
             checkSubscription(subscriptions, defaultSubscriptionId);
