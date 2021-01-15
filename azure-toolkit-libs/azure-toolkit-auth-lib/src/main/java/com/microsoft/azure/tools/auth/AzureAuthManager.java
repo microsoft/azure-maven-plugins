@@ -42,20 +42,20 @@ public class AzureAuthManager {
         Map<AuthType, ICredentialRetriever> retrieverMap = buildCredentialRetrievers(env);
         if (authType.equals(AuthType.AUTO)) {
             if (!StringUtils.isAllBlank(auth.getCertificate(), auth.getKey(), auth.getCertificatePassword())) {
-                retrievers.addRetriever(new ServicePrincipalCredentialRetriever(auth, env)::retrieve);
+                retrievers.addRetriever(new ServicePrincipalCredentialRetriever(auth, env));
             } else {
-                retrievers.addRetriever(retrieverMap.get(AuthType.MANAGED_IDENTITY)::retrieve);
-                retrievers.addRetriever(retrieverMap.get(AuthType.AZURE_CLI)::retrieve);
-                retrievers.addRetriever(retrieverMap.get(AuthType.VSCODE)::retrieve);
-                retrievers.addRetriever(retrieverMap.get(AuthType.VISUAL_STUDIO)::retrieve);
-                retrievers.addRetriever(retrieverMap.get(AuthType.OAUTH2)::retrieve);
-                retrievers.addRetriever(retrieverMap.get(AuthType.DEVICE_CODE)::retrieve);
+                retrievers.addRetriever(retrieverMap.get(AuthType.MANAGED_IDENTITY));
+                retrievers.addRetriever(retrieverMap.get(AuthType.AZURE_CLI));
+                retrievers.addRetriever(retrieverMap.get(AuthType.VSCODE));
+                retrievers.addRetriever(retrieverMap.get(AuthType.VISUAL_STUDIO));
+                retrievers.addRetriever(retrieverMap.get(AuthType.OAUTH2));
+                retrievers.addRetriever(retrieverMap.get(AuthType.DEVICE_CODE));
 
-                retrievers.addRetriever(new AzureCliCredentialRetriever(env)::retrieve);
-                retrievers.addRetriever(new VisualStudioCodeCredentialRetriever(env)::retrieve);
-                retrievers.addRetriever(new VisualStudioCredentialRetriever(env)::retrieve);
-                retrievers.addRetriever(new OAuthCredentialRetriever(env)::retrieve);
-                retrievers.addRetriever(new DeviceCodeCredentialRetriever(env)::retrieve);
+                retrievers.addRetriever(new AzureCliCredentialRetriever(env));
+                retrievers.addRetriever(new VisualStudioCodeCredentialRetriever(env));
+                retrievers.addRetriever(new VisualStudioCredentialRetriever(env));
+                retrievers.addRetriever(new OAuthCredentialRetriever(env));
+                retrievers.addRetriever(new DeviceCodeCredentialRetriever(env));
             }
 
         } else {
