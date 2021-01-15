@@ -28,6 +28,10 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
     private static final Logger LOGGER = LoggerFactory.getLogger(AzureCliCredentialRetriever.class);
     private static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
 
+    public AzureCliCredentialRetriever(AzureEnvironment env) {
+        super(env);
+    }
+
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         AzureCliAccountProfile accountInfo = getProfile();
         if (accountInfo == null) {
@@ -35,8 +39,13 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
         }
         AzureEnvironment envFromCli = AuthHelper.parseAzureEnvironment(accountInfo.getEnvironment());
         if (envFromCli != null && env != null && envFromCli != env) {
+            final String envNameFromCli = AuthHelper.getAzureEnvironmentDisplayName(envFromCli);
             LOGGER.warn(String.format("The azure cloud from azure cli '%s' doesn't match with the auth configuration: %s, will use '%s' instead, " +
-                    "you can change it by executing 'az cloud set --name=XXXCloud' to change the cloud in azure cli."));
+                    "you can change it by executing 'az cloud set --name=XXXCloud' to change the cloud in azure cli.",
+                    envNameFromCli,
+                    AuthHelper.getAzureEnvironmentDisplayName(env),
+                    envNameFromCli
+            ));
         }
         this.env = envFromCli;
         AuthHelper.setupAzureEnvironment(env);

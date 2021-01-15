@@ -22,7 +22,7 @@ public class OAuthCredentialRetriever extends AbstractCredentialRetriever {
     private static final String AZURE_TOOLKIT_CLIENT_ID = "777acee8-5286-4d6e-8b05-f7c851d8ed0a";
 
     public OAuthCredentialRetriever(AzureEnvironment env) {
-        this.env = env;
+        super(env);
     }
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {

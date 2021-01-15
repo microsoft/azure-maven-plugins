@@ -6,12 +6,51 @@
 
 package com.microsoft.azure.tools.auth.core;
 
+import com.azure.identity.VisualStudioCodeCredential;
+import com.azure.identity.VisualStudioCodeCredentialBuilder;
+import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.core.profile.VisualStudioCodeProfileRetriever;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
+import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.tools.auth.model.VisualStudioCodeAccountProfile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetriever {
+    private static final Logger LOGGER = LoggerFactory.getLogger(VisualStudioCodeCredentialRetriever.class);
+
+    public VisualStudioCodeCredentialRetriever(AzureEnvironment env) {
+        super(env);
+    }
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
-        throw new UnsupportedOperationException("Fix me");
+        final VisualStudioCodeAccountProfile vscodeProfile = VisualStudioCodeProfileRetriever.getProfile();
+        if (Objects.isNull(vscodeProfile)) {
+            throw new LoginFailureException("Cannot get azure credentials from VSCode, please verify that you have signed-in in VSCode Azure Account plugin.");
+        }
+        AzureEnvironment envFromVSCode = AuthHelper.parseAzureEnvironment(vscodeProfile.getEnvironment());
+        if (envFromVSCode != null && env != null && envFromVSCode != env) {
+            final String envNameFromVSCode = AuthHelper.getAzureEnvironmentDisplayName(envFromVSCode);
+            LOGGER.warn(String.format("The azure cloud from vscode '%s' doesn't match with the auth configuration: %s, will use '%s' instead, " +
+                            "you can change it by changing vscode setting cloud by key 'azure.cloud'.",
+                    envNameFromVSCode,
+                    AuthHelper.getAzureEnvironmentDisplayName(env),
+                    envNameFromVSCode
+            ));
+        }
+        this.env = envFromVSCode;
+        AuthHelper.setupAzureEnvironment(env);
+        return vsCodeLogin(vscodeProfile);
+    }
+
+    private AzureCredentialWrapper vsCodeLogin(VisualStudioCodeAccountProfile profile) throws LoginFailureException {
+        final VisualStudioCodeCredential visualStudioCodeCredential = new VisualStudioCodeCredentialBuilder().build();
+        validateTokenCredential(visualStudioCodeCredential);
+        return new AzureCredentialWrapper(AuthMethod.VSCODE, visualStudioCodeCredential, env)
+                .withFilteredSubscriptionIds(profile.getFilteredSubscriptions());
     }
 }

@@ -9,6 +9,7 @@ package com.microsoft.azure.tools.auth.core;
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
+import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
@@ -16,15 +17,17 @@ import com.microsoft.azure.tools.auth.model.AuthConfiguration;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.auth.util.ValidationUtil;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
-@AllArgsConstructor
 public class ServicePrincipalCredentialRetriever extends AbstractCredentialRetriever {
-
     @Getter
     private AuthConfiguration auth;
+
+    public ServicePrincipalCredentialRetriever(AuthConfiguration auth, AzureEnvironment env) {
+        super(env);
+        this.auth = auth;
+    }
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         if (auth == null) {

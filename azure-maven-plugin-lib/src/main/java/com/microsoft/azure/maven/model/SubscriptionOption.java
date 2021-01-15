@@ -5,7 +5,7 @@
  */
 
 
-package com.microsoft.azure.maven.webapp.models;
+package com.microsoft.azure.maven.model;
 
 import com.microsoft.azure.management.resources.Subscription;
 import org.apache.commons.lang3.StringUtils;

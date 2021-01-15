@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.utils;
+package com.microsoft.azure.maven.utils;
 
 import java.util.Arrays;
 import java.util.List;
