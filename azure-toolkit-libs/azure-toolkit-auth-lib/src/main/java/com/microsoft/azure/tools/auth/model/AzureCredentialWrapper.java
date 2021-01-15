@@ -33,6 +33,9 @@ public class AzureCredentialWrapper {
     private String defaultSubscriptionId;
 
     @Getter
+    private String[] filteredSubscriptionIds;
+
+    @Getter
     private String tenantId;
 
 
@@ -52,6 +55,11 @@ public class AzureCredentialWrapper {
 
     public AzureCredentialWrapper withTenantId(String tenantId) {
         this.tenantId = tenantId;
+        return this;
+    }
+
+    public AzureCredentialWrapper withFilteredSubscriptionIds(String[] filteredSubscriptionIds) {
+        this.filteredSubscriptionIds = filteredSubscriptionIds;
         return this;
     }
 

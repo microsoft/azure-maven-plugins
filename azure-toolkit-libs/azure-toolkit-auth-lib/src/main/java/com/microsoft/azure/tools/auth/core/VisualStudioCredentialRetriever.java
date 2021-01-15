@@ -9,6 +9,7 @@ package com.microsoft.azure.tools.auth.core;
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.SharedTokenCacheCredentialBuilder;
 import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
@@ -22,8 +23,9 @@ public class VisualStudioCredentialRetriever extends AbstractCredentialRetriever
 
     @Override
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
+        AuthHelper.setupAzureEnvironment(env);
         final TokenCredential credential = new SharedTokenCacheCredentialBuilder().clientId(AZURE_CLI_CLIENT_ID).build();
         validateTokenCredential(credential);
-        return new AzureCredentialWrapper(AuthMethod.VISUAL_STUDIO, credential, env);
+        return new AzureCredentialWrapper(AuthMethod.VISUAL_STUDIO, credential, getAzureEnvironment());
     }
 }

@@ -19,22 +19,31 @@ import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.common.exception.CommandExecuteException;
 import com.microsoft.azure.tools.common.util.CommandUtil;
 import com.microsoft.azure.tools.common.util.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AzureCliCredentialRetriever.class);
     private static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         AzureCliAccountProfile accountInfo = getProfile();
-
         if (accountInfo == null) {
             throw new LoginFailureException("Please run `az login` to login your Azure Cli.");
         }
         AzureEnvironment envFromCli = AuthHelper.parseAzureEnvironment(accountInfo.getEnvironment());
+        if (envFromCli != null && env != null && envFromCli != env) {
+            LOGGER.warn(String.format("The azure cloud from azure cli '%s' doesn't match with the auth configuration: %s, will use '%s' instead, " +
+                    "you can change it by executing 'az cloud set --name=XXXCloud' to change the cloud in azure cli."));
+        }
+        this.env = envFromCli;
+        AuthHelper.setupAzureEnvironment(env);
         AzureCliCredential cliCredential = new AzureCliCredentialBuilder().build();
+        validateTokenCredential(cliCredential);
         return new AzureCredentialWrapper(
-                isInCloudShell() ? AuthMethod.CLOUD_SHELL : AuthMethod.AZURE_CLI, cliCredential, envFromCli)
+                isInCloudShell() ? AuthMethod.CLOUD_SHELL : AuthMethod.AZURE_CLI, cliCredential, getAzureEnvironment())
                 .withDefaultSubscriptionId(accountInfo.getSubscriptionId())
                 .withTenantId(accountInfo.getTenantId());
     }
