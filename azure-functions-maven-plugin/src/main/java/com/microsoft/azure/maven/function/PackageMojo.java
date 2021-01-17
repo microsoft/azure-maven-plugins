@@ -93,7 +93,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
     private static final String EXTENSION_BUNDLE_ID = "Microsoft.Azure.Functions.ExtensionBundle";
     private static final String SKIP_INSTALL_EXTENSIONS_BUNDLE = "Extension bundle specified, skip install extension";
-    private static final String CAN_NOT_FIND_ARTIFACT = "Can not find the maven artifact, please run mvn package first.";
+    private static final String CAN_NOT_FIND_ARTIFACT = "Cannot find the maven artifact, please run `mvn package` first.";
     //region Entry Point
 
     @Override
@@ -379,10 +379,10 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void promptCompileInfo() throws AzureExecutionException {
         Log.info(String.format("Java home : %s", System.getenv("JAVA_HOME")));
-        Log.info(String.format("Artifact compile version : %s", Utils.getArtifactCompileVersion(getArtifact())));
+        Log.info(String.format("Artifact compile version : %s", Utils.getArtifactCompileVersion(getArtifactFile())));
     }
 
-    private File getArtifact() throws AzureExecutionException {
+    private File getArtifactFile() throws AzureExecutionException {
         final Artifact artifact = project.getArtifact();
         if (artifact.getFile() != null) {
             return artifact.getFile();
