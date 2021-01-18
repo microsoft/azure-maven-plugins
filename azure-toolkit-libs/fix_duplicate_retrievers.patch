@@ -1,0 +1,21 @@
+Index: azure-toolkit-libs/azure-toolkit-auth-lib/src/main/java/com/microsoft/azure/tools/auth/AzureAuthManager.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/azure-toolkit-libs/azure-toolkit-auth-lib/src/main/java/com/microsoft/azure/tools/auth/AzureAuthManager.java b/azure-toolkit-libs/azure-toolkit-auth-lib/src/main/java/com/microsoft/azure/tools/auth/AzureAuthManager.java
+--- a/azure-toolkit-libs/azure-toolkit-auth-lib/src/main/java/com/microsoft/azure/tools/auth/AzureAuthManager.java	(revision 9f80fa2a789767bf98d33ee67b618403313bdb66)
++++ b/azure-toolkit-libs/azure-toolkit-auth-lib/src/main/java/com/microsoft/azure/tools/auth/AzureAuthManager.java	(revision 9f1eff9472c7cd86f9f990414e0bb8e232794b46)
+@@ -50,12 +50,6 @@
+                 retrievers.addRetriever(retrieverMap.get(AuthType.VISUAL_STUDIO));
+                 retrievers.addRetriever(retrieverMap.get(AuthType.OAUTH2));
+                 retrievers.addRetriever(retrieverMap.get(AuthType.DEVICE_CODE));
+-
+-                retrievers.addRetriever(new AzureCliCredentialRetriever(env));
+-                retrievers.addRetriever(new VisualStudioCodeCredentialRetriever(env));
+-                retrievers.addRetriever(new VisualStudioCredentialRetriever(env));
+-                retrievers.addRetriever(new OAuthCredentialRetriever(env));
+-                retrievers.addRetriever(new DeviceCodeCredentialRetriever(env));
+             }
+ 
+         } else {
