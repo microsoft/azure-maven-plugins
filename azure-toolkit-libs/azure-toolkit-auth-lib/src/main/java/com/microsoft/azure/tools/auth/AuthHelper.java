@@ -121,7 +121,7 @@ public class AuthHelper {
             return environment;
         }
         String formattedEnvironment = StringUtils.trim(StringUtils.lowerCase(environment));
-        if (StringUtils.equals(environment, AZURE)) {
+        if (StringUtils.equals(formattedEnvironment, AZURE)) {
             return AZURE;
         }
         for (String startToRemove : Arrays.asList("azure-", "azure_", "azure")) {

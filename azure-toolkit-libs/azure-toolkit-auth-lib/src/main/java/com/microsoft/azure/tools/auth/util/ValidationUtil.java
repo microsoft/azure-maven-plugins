@@ -21,8 +21,6 @@ public class ValidationUtil {
         String key = config.getKey();
         String certificate = config.getCertificate();
         String environment = config.getEnvironment();
-        String httpProxyHost = config.getHttpProxyHost();
-        String httpProxyPort = config.getHttpProxyPort();
         String errorMessage = null;
         if (StringUtils.isBlank(tenant)) {
             errorMessage = "Cannot find 'tenant'";
@@ -34,20 +32,26 @@ public class ValidationUtil {
             errorMessage = "It is wrong to specify both 'key' and 'certificate'";
         } else if (StringUtils.isNotBlank(environment) && !AuthHelper.validateEnvironment(environment)) {
             errorMessage = String.format("Invalid environment string '%s'", environment);
-        } else if ((StringUtils.isNotBlank(httpProxyHost) && StringUtils.isBlank(httpProxyPort)) ||
-                (StringUtils.isBlank(httpProxyHost) && StringUtils.isNotBlank(httpProxyPort))) {
-            errorMessage = "if you want to use proxy, 'httpProxyHost' and 'httpProxyPort' must both be set";
-        } else if (StringUtils.isNotBlank(httpProxyPort)) {
-            if (!StringUtils.isNumeric(httpProxyPort)) {
-                errorMessage = String.format("Invalid integer number for httpProxyPort: '%s'", httpProxyPort);
-            } else if (NumberUtils.toInt(httpProxyPort) <= 0 || NumberUtils.toInt(httpProxyPort) > 65535) {
-                errorMessage = String.format("Invalid range of httpProxyPort: '%s', it should be a number between %d and %d", httpProxyPort, 1, 65535);
-            }
         }
-
         if (Objects.nonNull(errorMessage)) {
             throw new InvalidConfigurationException(errorMessage);
         }
+        validateHttpProxy(config.getHttpProxyHost(), config.getHttpProxyPort());
         return config;
+    }
+
+    public static void validateHttpProxy(String httpProxyHost, String httpProxyPort) throws InvalidConfigurationException {
+        if ((StringUtils.isNotBlank(httpProxyHost) && StringUtils.isBlank(httpProxyPort)) ||
+                (StringUtils.isBlank(httpProxyHost) && StringUtils.isNotBlank(httpProxyPort))) {
+            throw new InvalidConfigurationException("if you want to use proxy, 'httpProxyHost' and 'httpProxyPort' must both be set");
+        } else if (StringUtils.isNotBlank(httpProxyPort)) {
+            if (!StringUtils.isNumeric(httpProxyPort)) {
+                throw new InvalidConfigurationException(String.format("Invalid integer number for httpProxyPort: '%s'", httpProxyPort));
+            } else if (NumberUtils.toInt(httpProxyPort) <= 0 || NumberUtils.toInt(httpProxyPort) > 65535) {
+                throw new InvalidConfigurationException(
+                        String.format("Invalid range of httpProxyPort: '%s', it should be a number between %d and %d", httpProxyPort, 1, 65535));
+            }
+        }
+
     }
 }
