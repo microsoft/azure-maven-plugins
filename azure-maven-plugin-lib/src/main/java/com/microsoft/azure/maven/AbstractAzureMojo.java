@@ -36,8 +36,10 @@ import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.model.AuthType;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.auth.util.ValidationUtil;
+import com.microsoft.azure.tools.common.util.ProxyUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -59,6 +61,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
+import java.net.Proxy;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
@@ -175,14 +178,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     /**
      * Use a HTTP proxy host for the Azure Auth Client
      */
-    @Parameter(property = "httpProxyHost", readonly = false, required = false)
+    @Parameter(property = "httpProxyHost")
     protected String httpProxyHost;
 
     /**
      * Use a HTTP proxy port for the Azure Auth Client
      */
-    @Parameter(property = "httpProxyPort", defaultValue = "80")
-    protected int httpProxyPort;
+    @Parameter(property = "httpProxyPort")
+    protected String httpProxyPort;
 
     /**
      * Authentication type, could be oauth2, device_code, azure_cli,..., see <code>AuthType</code>
@@ -285,7 +288,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     @Override
     public int getHttpProxyPort() {
-        return httpProxyPort;
+        return NumberUtils.toInt(httpProxyPort, 0);
     }
 
     public Azure getAzureClient() throws AzureAuthFailureException, AzureExecutionException {
@@ -295,7 +298,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 Log.warn("You are using an old way of authentication which will be deprecated in future versions, please change your configurations.");
                 azure = new AzureAuthHelperLegacy(this).getAzureClient();
             } else {
-                azure = createAzureClient();
+                azure = getOrCreateAzureClient();
             }
             if (azure == null) {
                 getTelemetryProxy().trackEvent(INIT_FAILURE);
@@ -340,12 +343,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return subscriptionOptionSelected.getSubscription().subscriptionId();
     }
 
-    protected Azure createAzureClient() throws AzureAuthFailureException, AzureExecutionException {
+    protected Azure getOrCreateAzureClient() throws AzureAuthFailureException, AzureExecutionException {
         try {
             MavenAuthConfiguration authConfiguration = auth;
             if (authConfiguration == null) {
                 authConfiguration = new MavenAuthConfiguration();
             }
+
             authConfiguration.setType(getAuthType());
             final String serverId = authConfiguration.getServerId();
             if (StringUtils.isNotBlank(serverId)) {
@@ -358,6 +362,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                         : "in <auth> configuration.";
                 throw new AzureExecutionException(String.format("%s %s", ex.getMessage(), messagePostfix));
             }
+            injectHttpProxy(authConfiguration);
             azureCredentialWrapper = AzureAuthManager.getAzureCredentialWrapper(authConfiguration).toBlocking().value();
             if (Objects.isNull(azureCredentialWrapper)) {
                 return null;
@@ -367,7 +372,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             if (env != AzureEnvironment.AZURE) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
             }
+            final Proxy proxy = ProxyUtils.createHttpProxy(azureCredentialWrapper.getHttpProxyHost(), azureCredentialWrapper.getHttpProxyPort());
             final Azure tempAzure = Azure.configure()
+                    .withProxy(proxy)
                     .authenticate(azureCredentialWrapper.getAzureTokenCredentials()).withDefaultSubscription();
             final PagedList<Subscription> subscriptions = tempAzure.subscriptions().list();
             subscriptions.loadAll();
@@ -395,6 +402,19 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         } catch (AzureLoginException | IOException e) {
             throw new AzureAuthFailureException(e.getMessage());
         }
+    }
+
+    protected void injectHttpProxy(MavenAuthConfiguration authConfiguration) throws InvalidConfigurationException {
+        if (StringUtils.isAllBlank(this.httpProxyHost, this.httpProxyPort,
+                authConfiguration.getHttpProxyHost(), authConfiguration.getHttpProxyPort())) {
+            return;
+        }
+        if (StringUtils.isNotBlank(this.httpProxyHost)) {
+            authConfiguration.setHttpProxyHost(this.httpProxyHost);
+            authConfiguration.setHttpProxyPort(this.httpProxyPort);
+        }
+        ValidationUtil.validateHttpProxy(authConfiguration.getHttpProxyHost(),
+                authConfiguration.getHttpProxyPort());
     }
 
     protected AzureCredentialWrapper getAzureCredentialWrapper() {
@@ -675,5 +695,4 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             throw new AzureLoginException(String.format(SUBSCRIPTION_NOT_FOUND, targetSubscriptionId));
         }
     }
-
 }

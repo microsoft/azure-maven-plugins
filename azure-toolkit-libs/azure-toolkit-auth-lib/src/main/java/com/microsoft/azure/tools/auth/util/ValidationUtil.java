@@ -41,17 +41,18 @@ public class ValidationUtil {
     }
 
     public static void validateHttpProxy(String httpProxyHost, String httpProxyPort) throws InvalidConfigurationException {
-        if ((StringUtils.isNotBlank(httpProxyHost) && StringUtils.isBlank(httpProxyPort)) ||
-                (StringUtils.isBlank(httpProxyHost) && StringUtils.isNotBlank(httpProxyPort))) {
-            throw new InvalidConfigurationException("if you want to use proxy, 'httpProxyHost' and 'httpProxyPort' must both be set");
-        } else if (StringUtils.isNotBlank(httpProxyPort)) {
-            if (!StringUtils.isNumeric(httpProxyPort)) {
-                throw new InvalidConfigurationException(String.format("Invalid integer number for httpProxyPort: '%s'", httpProxyPort));
-            } else if (NumberUtils.toInt(httpProxyPort) <= 0 || NumberUtils.toInt(httpProxyPort) > 65535) {
-                throw new InvalidConfigurationException(
-                        String.format("Invalid range of httpProxyPort: '%s', it should be a number between %d and %d", httpProxyPort, 1, 65535));
-            }
+        if (StringUtils.isAllBlank(httpProxyHost, httpProxyPort)) {
+            return;
         }
-
+        if (!StringUtils.isNoneBlank(httpProxyHost, httpProxyPort)) {
+            throw new InvalidConfigurationException("if you want to use proxy, 'httpProxyHost' and 'httpProxyPort' must both be set");
+        }
+        if (!StringUtils.isNumeric(httpProxyPort)) {
+            throw new InvalidConfigurationException(String.format("Invalid integer number for httpProxyPort: '%s'", httpProxyPort));
+        }
+        if (NumberUtils.toInt(httpProxyPort) <= 0 || NumberUtils.toInt(httpProxyPort) > 65535) {
+            throw new InvalidConfigurationException(
+                    String.format("Invalid range of httpProxyPort: '%s', it should be a number between %d and %d", httpProxyPort, 1, 65535));
+        }
     }
 }

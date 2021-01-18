@@ -12,6 +12,7 @@ import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.tools.common.util.ProxyUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -23,7 +24,9 @@ public class AzureClientFactory {
         Log.info(azureTokenCredentials.getCredentialDescription());
         final String defaultSubscriptionId = azureTokenCredentials.getDefaultSubscriptionId();
 
-        final Authenticated authenticated = Azure.configure().withUserAgent(userAgent).authenticate(azureTokenCredentials.getAzureTokenCredentials());
+        final Authenticated authenticated = Azure.configure().withUserAgent(userAgent)
+                .withProxy(ProxyUtils.createHttpProxy(azureTokenCredentials.getHttpProxyHost(), azureTokenCredentials.getHttpProxyPort()))
+                .authenticate(azureTokenCredentials.getAzureTokenCredentials());
 
         return StringUtils.isEmpty(defaultSubscriptionId) ? authenticated.withDefaultSubscription() :
                 authenticated.withSubscription(defaultSubscriptionId);

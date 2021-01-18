@@ -496,7 +496,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private WebAppConfiguration chooseExistingWebappForConfiguration()
             throws AzureExecutionException, AzureAuthFailureException {
-        final Azure az = createAzureClient();
+        final Azure az = getOrCreateAzureClient();
         if (Objects.isNull(az)) {
             return null;
         }

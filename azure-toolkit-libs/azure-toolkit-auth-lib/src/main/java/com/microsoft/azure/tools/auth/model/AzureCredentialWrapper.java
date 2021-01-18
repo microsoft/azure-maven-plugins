@@ -38,6 +38,12 @@ public class AzureCredentialWrapper {
     @Getter
     private String tenantId;
 
+    @Getter
+    private String httpProxyHost;
+
+    @Getter
+    private String httpProxyPort;
+
 
     public AzureCredentialWrapper(AuthMethod method, TokenCredential tokenCredential, AzureEnvironment env) {
         Objects.requireNonNull(method, "authMethod is null");
@@ -55,6 +61,12 @@ public class AzureCredentialWrapper {
 
     public AzureCredentialWrapper withTenantId(String tenantId) {
         this.tenantId = tenantId;
+        return this;
+    }
+
+    public AzureCredentialWrapper withProxy(String httpProxyHost, String httpProxyPort) {
+        this.httpProxyHost = httpProxyHost;
+        this.httpProxyPort = httpProxyPort;
         return this;
     }
 

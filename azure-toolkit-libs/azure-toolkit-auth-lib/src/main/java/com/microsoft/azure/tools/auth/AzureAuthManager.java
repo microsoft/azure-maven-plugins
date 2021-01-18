@@ -21,6 +21,7 @@ import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthConfiguration;
 import com.microsoft.azure.tools.auth.model.AuthType;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Single;
@@ -41,6 +42,10 @@ public class AzureAuthManager {
             env = getAzureEnvironmentFromString(auth.getEnvironment());
         } catch (InvalidConfigurationException e) {
             return Single.error(e);
+        }
+        // setup proxy
+        if (StringUtils.isNotBlank(configuration.getHttpProxyHost())) {
+            AuthHelper.setupAuthProxy(configuration.getHttpProxyHost(), configuration.getHttpProxyPort());
         }
         ChainedCredentialRetriever retrievers = new ChainedCredentialRetriever();
         AuthType authType = getAuthTypeFromString(auth.getType());
@@ -66,7 +71,11 @@ public class AzureAuthManager {
         }
         return retrievers.retrieve().onErrorResumeNext(e ->
                 Single.error(new LoginFailureException(String.format("Cannot get credentials from authType '%s' due to error: %s", authType, e.getMessage())))
-        );
+        ).doOnSuccess(credentialWrapper -> {
+            if (StringUtils.isNotBlank(configuration.getHttpProxyHost())) {
+                credentialWrapper.withProxy(configuration.getHttpProxyHost(), configuration.getHttpProxyPort());
+            }
+        });
     }
 
     private static Map<AuthType, ICredentialRetriever> buildCredentialRetrievers(AzureEnvironment env) {

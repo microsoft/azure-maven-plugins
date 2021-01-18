@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.auth.MavenSettingHelper;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
@@ -122,6 +123,18 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     @Parameter(property = "authType")
     protected String authType;
 
+    /**
+     * Use a HTTP proxy host for the Azure Auth Client
+     */
+    @Parameter(property = "httpProxyHost")
+    protected String httpProxyHost;
+
+    /**
+     * Use a HTTP proxy port for the Azure Auth Client
+     */
+    @Parameter(property = "httpProxyPort")
+    protected String httpProxyPort;
+
     @Override
     public void execute() throws MojoFailureException {
         try {
@@ -136,6 +149,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected void initExecution() throws MojoFailureException, com.microsoft.azure.tools.auth.exception.InvalidConfigurationException, MavenDecryptException {
         // Init telemetries
+        setupProxy();
         initTelemetry();
         trackMojoExecution(MojoStatus.Start);
 
@@ -154,6 +168,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
             throw new MojoFailureException(String.format("%s %s", ex.getMessage(), messagePostfix));
         }
         authConfiguration.setType(getAuthType());
+        injectHttpProxy(authConfiguration);
         this.azureTokenCredentials = AzureAuthManager.getAzureCredentialWrapper(authConfiguration).toBlocking().value();
         // Use oauth if no existing credentials
         if (Objects.isNull(azureTokenCredentials)) {
@@ -300,6 +315,24 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return telemetries;
     }
 
+    protected void setupProxy() throws com.microsoft.azure.tools.auth.exception.InvalidConfigurationException {
+        if (StringUtils.isAllBlank(this.httpProxyHost, this.httpProxyPort)) {
+            if (auth != null && StringUtils.isNotBlank(auth.getHttpProxyHost())) {
+                this.httpProxyHost = auth.getHttpProxyHost();
+                this.httpProxyPort = auth.getHttpProxyPort();
+            }
+        }
+        if (StringUtils.isNotBlank(this.httpProxyHost)) {
+            ValidationUtil.validateHttpProxy(this.httpProxyHost, this.httpProxyPort);
+            if (StringUtils.isAllBlank(System.getProperty("http.proxyHost"), System.getProperty("http.proxyPort"))) {
+                System.setProperty("http.proxyHost", this.httpProxyHost);
+                System.setProperty("http.proxyPort", this.httpProxyPort);
+            } else {
+                Log.warn(String.format("'http.proxyHost' and 'http.proxyPort' are already set, ignore proxy settings for Application Insights."));
+            }
+        }
+    }
+
     public ServiceClient getSpringServiceClient() {
         if (springServiceClient == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
@@ -327,5 +360,10 @@ public abstract class AbstractMojoBase extends AbstractMojo {
                 ValidationUtil.validateMavenAuthConfiguration(auth);
             }
         }
+    }
+
+    private void injectHttpProxy(MavenAuthConfiguration authConfiguration) {
+        authConfiguration.setHttpProxyHost(this.httpProxyHost);
+        authConfiguration.setHttpProxyPort(this.httpProxyPort);
     }
 }

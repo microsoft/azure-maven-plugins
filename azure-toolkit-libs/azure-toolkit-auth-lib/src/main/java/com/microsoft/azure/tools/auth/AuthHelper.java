@@ -64,7 +64,13 @@ public class AuthHelper {
             // change the default azure env after it is initialized in azure identity
             // see code at
             // https://github.com/Azure/azure-sdk-for-java/blob/32f8f7ca8b44035b2e5520c5e10455f42500a778/sdk/identity/azure-identity/src/main/java/com/azure/identity/implementation/IdentityClientOptions.java#L42
-            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.activeDirectoryEndpoint());
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.managementEndpoint());
+        }
+    }
+
+    public static void setupAuthProxy(String httpProxyHost, String httpProxyPort) {
+        if (StringUtils.isNotBlank(httpProxyHost)) {
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, String.format("http://%s:%s", httpProxyHost, httpProxyPort));
         }
     }
 
