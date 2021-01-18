@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class AuthHelper {
     private static final String AZURE_CHINA = "china";
@@ -37,6 +38,17 @@ public class AuthHelper {
     public static String getAzureEnvironmentDisplayName(AzureEnvironment azureEnvironment) {
         return AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.containsKey(azureEnvironment) ?
                 AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.get(azureEnvironment) : UNKNOWN;
+    }
+
+    public static String getAzureCliCloudName(AzureEnvironment azureEnvironment) {
+        if (azureEnvironment == null) {
+            return null;
+        }
+        if (Objects.equals(azureEnvironment, AzureEnvironment.AZURE_GERMANY)) {
+            return "azuregermancloud";
+        }
+        String displayName = getAzureEnvironmentDisplayName(azureEnvironment);
+        return StringUtils.equals(displayName, UNKNOWN) ? UNKNOWN : StringUtils.lowerCase(StringUtils.remove(displayName, "_")) + "cloud";
     }
 
     public static void setupAzureEnvironment(AzureEnvironment env) {
