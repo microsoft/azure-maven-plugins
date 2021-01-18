@@ -12,9 +12,10 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.UserSourceInfo;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
 import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
-import com.microsoft.azure.toolkit.lib.springcloud.model.JavaRuntimeVersion;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudRuntimeVersion;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentService;
 import com.microsoft.azure.tools.utils.RxUtils;
 import lombok.Getter;
@@ -30,7 +31,7 @@ interface ISpringCloudDeploymentUpdater {
 
     ISpringCloudDeploymentUpdater configScaleSettings(ScaleSettings settings);
 
-    ISpringCloudDeploymentUpdater configRuntimeVersion(JavaRuntimeVersion runtimeVersion);
+    ISpringCloudDeploymentUpdater configRuntimeVersion(SpringCloudRuntimeVersion runtimeVersion);
 
     ISpringCloudDeploymentUpdater configAppArtifactPath(String path);
 }
@@ -40,12 +41,12 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     private final SpringCloudApp app;
     private final SpringCloudDeploymentEntity local;
     private SpringCloudDeploymentEntity remote;
-    private final SpringCloudDeploymentService service;
+    private final SpringCloudDeploymentService deploymentService;
 
     public SpringCloudDeployment(SpringCloudDeploymentEntity deployment, SpringCloudApp app) {
         this.app = app;
         this.local = deployment;
-        this.service = new SpringCloudDeploymentService(app.getCluster().getClient());
+        this.deploymentService = new SpringCloudDeploymentService(app.getCluster().getClient());
     }
 
     public boolean exists() {
@@ -62,13 +63,15 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     }
 
     public SpringCloudDeployment start() {
-        this.service.start(this.entity());
+        this.deploymentService.start(this.entity());
         return this;
     }
 
     @Nonnull
     public SpringCloudDeployment reload() {
-        this.remote = this.service.reload(this.entity());
+        final String deploymentName = this.entity().getName();
+        final SpringCloudAppEntity app = this.app.entity();
+        this.remote = this.deploymentService.get(deploymentName, app);
         return this;
     }
 
@@ -101,7 +104,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     }
 
     @Override
-    public SpringCloudDeployment configRuntimeVersion(JavaRuntimeVersion runtimeVersion) {
+    public SpringCloudDeployment configRuntimeVersion(SpringCloudRuntimeVersion runtimeVersion) {
         return this.update().configRuntimeVersion(runtimeVersion).commit();
     }
 
@@ -143,7 +146,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         @Override
-        public Updater configRuntimeVersion(JavaRuntimeVersion version) {
+        public Updater configRuntimeVersion(SpringCloudRuntimeVersion version) {
             final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
             settings.withRuntimeVersion(RuntimeVersion.fromString(version.toString()));
             return this;
@@ -157,7 +160,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         public SpringCloudDeployment commit() {
-            this.deployment.remote = this.deployment.service.update(this.resource, this.deployment.entity());
+            this.deployment.remote = this.deployment.deploymentService.update(this.resource, this.deployment.entity());
             return this.deployment.start();
         }
     }
@@ -168,7 +171,9 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         public SpringCloudDeployment commit() {
-            this.deployment.remote = this.deployment.service.create(this.resource, this.deployment.entity());
+            final String deploymentName = this.deployment.entity().getName();
+            final SpringCloudAppEntity app = this.deployment.app.entity();
+            this.deployment.remote = this.deployment.deploymentService.create(this.resource, deploymentName, app);
             return this.deployment.start();
         }
     }

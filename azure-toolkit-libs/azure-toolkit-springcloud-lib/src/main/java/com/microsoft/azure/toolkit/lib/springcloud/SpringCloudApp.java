@@ -13,6 +13,7 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.App
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudAppService;
 import lombok.Getter;
@@ -24,23 +25,22 @@ interface ISpringCloudAppUpdater {
 
     ISpringCloudAppUpdater activate(String deploymentName);
 
-    ISpringCloudAppUpdater setPublic(boolean isPublic);
+    ISpringCloudAppUpdater setPublic(Boolean isPublic);
 
-    ISpringCloudAppUpdater enablePersistentDisk(boolean enable);
+    ISpringCloudAppUpdater enablePersistentDisk(Boolean enable);
 }
 
 public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManager<SpringCloudAppEntity> {
     @Getter
     private final SpringCloudCluster cluster;
-    private final SpringCloudAppService service;
+    private final SpringCloudAppService appService;
     private final SpringCloudAppEntity local;
     private SpringCloudAppEntity remote;
-    private ResourceUploadDefinitionInner uploadDefinition;
 
     public SpringCloudApp(SpringCloudAppEntity app, SpringCloudCluster cluster) {
         this.local = app;
         this.cluster = cluster;
-        this.service = new SpringCloudAppService(cluster.getClient());
+        this.appService = new SpringCloudAppService(cluster.getClient());
     }
 
     @Override
@@ -57,47 +57,50 @@ public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManag
         return new SpringCloudDeployment(deployment, this);
     }
 
+    public SpringCloudDeployment deployment(final String name) {
+        final SpringCloudAppEntity app = this.entity();
+        return new SpringCloudDeployment(SpringCloudDeploymentEntity.fromName(name, app), this);
+    }
+
     public SpringCloudCluster cluster() {
         return this.cluster;
     }
 
     public SpringCloudApp start() {
-        this.service.start(this.entity());
+        this.appService.start(this.entity());
         return this;
     }
 
     public SpringCloudApp stop() {
-        this.service.stop(this.entity());
+        this.appService.stop(this.entity());
         return this;
     }
 
     public SpringCloudApp restart() {
-        this.service.restart(this.entity());
+        this.appService.restart(this.entity());
         return this;
     }
 
     public SpringCloudApp remove() {
-        this.service.remove(this.entity());
+        this.appService.remove(this.entity());
         return this;
     }
 
     @Nonnull
     @Override
     public SpringCloudApp reload() {
-        this.remote = this.service.get(this.entity());
+        final SpringCloudAppEntity app = this.entity();
+        final SpringCloudClusterEntity cluster = this.cluster.entity();
+        this.remote = this.appService.get(app.getName(), cluster);
         return this;
     }
 
-    public SpringCloudApp uploadArtifact(String path) throws AzureExecutionException {
-        this.uploadDefinition = this.service.uploadArtifact(path, this.entity());
-        return this;
+    public String uploadArtifact(String path) throws AzureExecutionException {
+        return this.appService.uploadArtifact(path, this.entity()).relativePath();
     }
 
     public ResourceUploadDefinitionInner getUploadDefinition() {
-        if (Objects.isNull(this.uploadDefinition)) {
-            this.uploadDefinition = this.service.getUploadDefinition(this.entity());
-        }
-        return this.uploadDefinition;
+        return this.appService.getUploadDefinition(this.entity());
     }
 
     public Creator create() {
@@ -113,11 +116,11 @@ public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManag
         return this.update().activate(deploymentName).commit();
     }
 
-    public SpringCloudApp setPublic(boolean isPublic) {
+    public SpringCloudApp setPublic(Boolean isPublic) {
         return this.update().setPublic(isPublic).commit();
     }
 
-    public SpringCloudApp enablePersistentDisk(boolean enable) {
+    public SpringCloudApp enablePersistentDisk(Boolean enable) {
         return this.update().enablePersistentDisk(enable).commit();
     }
 
@@ -136,16 +139,16 @@ public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManag
             return this;
         }
 
-        public Updater setPublic(boolean isPublic) {
+        public Updater setPublic(Boolean isPublic) {
             final AppResourceProperties properties = AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app);
             properties.withPublicProperty(isPublic);
             return this;
         }
 
-        public Updater enablePersistentDisk(boolean enable) {
+        public Updater enablePersistentDisk(Boolean enable) {
             final AppResourceProperties properties = AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app);
             if (enable) {
-                final PersistentDisk disk = AzureSpringCloudConfigUtils.getPersistentDiskOrDefault(this.app.local.inner().properties());
+                final PersistentDisk disk = AzureSpringCloudConfigUtils.getPersistentDiskOrDefault(this.app.local.getInner().properties());
                 properties.withPersistentDisk(disk);
             } else {
                 properties.withPersistentDisk(null);
@@ -154,7 +157,7 @@ public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManag
         }
 
         public SpringCloudApp commit() {
-            this.app.remote = this.app.service.update(this.resource, this.app.entity());
+            this.app.remote = this.app.appService.update(this.resource, this.app.entity());
             return this.app;
         }
     }
@@ -165,7 +168,9 @@ public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManag
         }
 
         public SpringCloudApp commit() {
-            this.app.remote = this.app.service.create(this.resource, this.app.entity());
+            final String appName = this.app.entity().getName();
+            final SpringCloudClusterEntity cluster = this.app.cluster.entity();
+            this.app.remote = this.app.appService.create(this.resource, appName, cluster);
             return this.app;
         }
     }

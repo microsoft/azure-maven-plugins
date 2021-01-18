@@ -25,7 +25,6 @@ package com.microsoft.azure.toolkit.lib.springcloud.model;
 import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentInstance;
 import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
 import com.microsoft.azure.toolkit.lib.common.IAzureEntity;
 import lombok.Getter;
 
@@ -34,23 +33,28 @@ import java.util.List;
 
 @Getter
 public class SpringCloudDeploymentEntity implements IAzureEntity {
-    private SpringCloudAppEntity app;
-    private String name;
-    private SkuInner sku;
+    private final SpringCloudAppEntity app;
+    private final String name;
     DeploymentResourceInner inner;
 
+    private SpringCloudDeploymentEntity(final String name, SpringCloudAppEntity app) {
+        this.name = name;
+        this.app = app;
+    }
+
+    private SpringCloudDeploymentEntity(DeploymentResourceInner resource, SpringCloudAppEntity app) {
+        this.inner = resource;
+        this.name = resource.name();
+        this.app = app;
+    }
+
     @Nonnull
-    public static SpringCloudDeploymentEntity fromResource(DeploymentResourceInner resource) {
-        return null;
+    public static SpringCloudDeploymentEntity fromResource(DeploymentResourceInner resource, final SpringCloudAppEntity app) {
+        return new SpringCloudDeploymentEntity(resource, app);
     }
 
-    public DeploymentResourceInner inner() {
-        return this.inner;
-    }
-
-    public SpringCloudDeploymentEntity inner(DeploymentResourceInner inner) {
-        this.inner = inner;
-        return this;
+    public static SpringCloudDeploymentEntity fromName(String name, SpringCloudAppEntity app) {
+        return new SpringCloudDeploymentEntity(name, app);
     }
 
     public DeploymentResourceStatus getStatus() {

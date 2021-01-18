@@ -9,17 +9,15 @@ package com.microsoft.azure.maven.springcloud;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
-import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
-import com.microsoft.azure.toolkit.lib.springcloud.model.JavaRuntimeVersion;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudRuntimeVersion;
 import com.microsoft.azure.tools.utils.RxUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -31,6 +29,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Mojo(name = "deploy")
 public class DeployMojo extends AbstractMojoBase {
@@ -80,39 +79,41 @@ public class DeployMojo extends AbstractMojoBase {
         }
         // Init spring clients, and prompt users to confirm
         final SpringCloudAppConfig appConfig = this.getConfiguration();
-        final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
         final File artifact = isArtifactsSpecified(appConfig) ?
             getArtifactFromConfiguration(appConfig) : MavenArtifactUtils.getArtifactFromTargetFolder(project);
         final boolean enableDisk = appConfig.getDeployment() != null && appConfig.getDeployment().isEnablePersistentStorage();
-        final String activeDeploymentName = appConfig.getActiveDeploymentName();
+        final String clusterName = appConfig.getClusterName();
+        final String appName = appConfig.getAppName();
+
+        final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
         final Map<String, String> env = deploymentConfig.getEnvironment();
         final String jvmOptions = deploymentConfig.getJvmOptions();
         final ScaleSettings scaleSettings = deploymentConfig.getScaleSettings();
-        final JavaRuntimeVersion runtimeVersion = deploymentConfig.getJavaVersion();
+        final SpringCloudRuntimeVersion runtimeVersion = deploymentConfig.getJavaVersion();
+        final String deploymentName = Optional.ofNullable(deploymentConfig.getDeploymentName()).orElse("default");
 
-        final SpringCloudClusterEntity dataCluster = new SpringCloudClusterEntity(appConfig.getClusterName());
-        final SpringCloudAppEntity dataApp = new SpringCloudAppEntity();
-        final SpringCloudDeploymentEntity dataDeployment = new SpringCloudDeploymentEntity();
-
-        final SpringCloudApp app = AzureSpringCloud.az(this.getClient()).cluster(dataCluster).app(dataApp);
-        final SpringCloudDeployment deployment = app.deployment(dataDeployment);
+        final AzureSpringCloud az = AzureSpringCloud.az(this.getClient());
+        final SpringCloudCluster cluster = az.cluster(clusterName);
+        final SpringCloudApp app = cluster.app(appName);
+        final SpringCloudDeployment deployment = app.deployment(deploymentName);
 
         if (!app.exists()) {
             app.create().commit();
         }
 
-        app.uploadArtifact(artifact.getPath());
+        final String artifactPath = app.uploadArtifact(artifact.getPath());
 
         (!deployment.exists() ? deployment.create() : deployment.update())
             .configEnvironmentVariables(env)
             .configJvmOptions(jvmOptions)
             .configScaleSettings(scaleSettings)
             .configRuntimeVersion(runtimeVersion)
-            .configAppArtifactPath(app.getUploadDefinition().relativePath())
+            .configAppArtifactPath(artifactPath)
             .commit();
 
         app.update()
-            .activate(activeDeploymentName)
+            .activate(Optional.ofNullable(appConfig.getActiveDeploymentName()).orElse(deploymentName))
+            .setPublic(appConfig.isPublic())
             .enablePersistentDisk(enableDisk)
             .commit();
 

@@ -9,7 +9,10 @@ package com.microsoft.azure.toolkit.lib.springcloud.service;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
+
+import java.util.Optional;
 
 public class SpringCloudDeploymentService {
 
@@ -36,18 +39,20 @@ public class SpringCloudDeploymentService {
     }
 
     public void start(String deployment, final SpringCloudAppEntity app) {
+        final SpringCloudClusterEntity cluster = app.getCluster();
         this.client.deployments().startAsync(
-            app.getCluster().getResourceGroup(),
-            app.getCluster().getName(),
+            cluster.getResourceGroup(),
+            cluster.getName(),
             app.getName(),
             deployment
         ).await();
     }
 
     public void stop(String deployment, final SpringCloudAppEntity app) {
+        final SpringCloudClusterEntity cluster = app.getCluster();
         this.client.deployments().stopAsync(
-            app.getCluster().getResourceGroup(),
-            app.getCluster().getName(),
+            cluster.getResourceGroup(),
+            cluster.getName(),
             app.getName(),
             deployment
         ).await();
@@ -70,33 +75,35 @@ public class SpringCloudDeploymentService {
             deployment).await();
     }
 
-    public SpringCloudDeploymentEntity reload(final SpringCloudDeploymentEntity deployment) {
+    public SpringCloudDeploymentEntity get(final String deploymentName, final SpringCloudAppEntity app) {
         final DeploymentResourceInner resource = this.client.deployments().inner().get(
-            deployment.getApp().getCluster().getResourceGroup(),
-            deployment.getApp().getCluster().getName(),
-            deployment.getApp().getName(),
-            deployment.getName()
+            app.getCluster().getResourceGroup(),
+            app.getCluster().getName(),
+            app.getName(),
+            deploymentName
         );
-        return SpringCloudDeploymentEntity.fromResource(resource);
+        return Optional.ofNullable(resource).map(r -> SpringCloudDeploymentEntity.fromResource(r, app)).orElse(null);
     }
 
-    public SpringCloudDeploymentEntity create(DeploymentResourceInner resource, final SpringCloudDeploymentEntity deployment) {
-        final DeploymentResourceInner result = this.client.deployments().inner().createOrUpdate(
-            deployment.getApp().getCluster().getResourceGroup(),
-            deployment.getApp().getCluster().getName(),
-            deployment.getApp().getName(),
-            deployment.getName(),
-            resource);
-        return SpringCloudDeploymentEntity.fromResource(result);
+    public SpringCloudDeploymentEntity create(DeploymentResourceInner inner, final String deploymentName, final SpringCloudAppEntity app) {
+        final DeploymentResourceInner resource = this.client.deployments().inner().createOrUpdate(
+            app.getCluster().getResourceGroup(),
+            app.getCluster().getName(),
+            app.getName(),
+            deploymentName,
+            inner);
+        return Optional.ofNullable(resource).map(r -> SpringCloudDeploymentEntity.fromResource(r, app)).orElse(null);
     }
 
-    public SpringCloudDeploymentEntity update(DeploymentResourceInner resource, final SpringCloudDeploymentEntity deployment) {
-        final DeploymentResourceInner result = this.client.deployments().inner().update(
-            deployment.getApp().getCluster().getResourceGroup(),
-            deployment.getApp().getCluster().getName(),
-            deployment.getApp().getName(),
-            deployment.getName(),
-            resource);
-        return SpringCloudDeploymentEntity.fromResource(result);
+    public SpringCloudDeploymentEntity update(DeploymentResourceInner inner, final SpringCloudDeploymentEntity deployment) {
+        final SpringCloudAppEntity app = deployment.getApp();
+        final String deploymentName = deployment.getName();
+        final DeploymentResourceInner resource = this.client.deployments().inner().update(
+            app.getCluster().getResourceGroup(),
+            app.getCluster().getName(),
+            app.getName(),
+            deploymentName,
+            inner);
+        return Optional.ofNullable(resource).map(r -> SpringCloudDeploymentEntity.fromResource(r, app)).orElse(null);
     }
 }

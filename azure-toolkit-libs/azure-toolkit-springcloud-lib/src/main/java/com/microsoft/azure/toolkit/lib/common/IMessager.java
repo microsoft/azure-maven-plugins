@@ -22,16 +22,12 @@
 
 package com.microsoft.azure.toolkit.lib.common;
 
-public interface Messager {
+public interface IMessager {
     void info(String message);
 
-    void warn(String message);
+    void warning(String message);
 
     void error(String message);
 
-    void confirm(String message);
-
-    void alert(String message);
-
-    void progress(String message);
+    void success(String message);
 }

@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.model;
 
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils;
 import lombok.Builder;
 import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
@@ -39,7 +40,7 @@ public class SpringCloudDeploymentConfig {
             .build();
     }
 
-    public JavaRuntimeVersion getJavaVersion() {
-        return JavaRuntimeVersion.fromString(runtimeVersion);
+    public SpringCloudRuntimeVersion getJavaVersion() {
+        return AzureSpringCloudConfigUtils.parse(runtimeVersion);
     }
 }

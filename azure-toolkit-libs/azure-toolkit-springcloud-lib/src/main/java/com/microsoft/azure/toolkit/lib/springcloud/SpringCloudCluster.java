@@ -16,14 +16,14 @@ import java.util.Objects;
 
 public class SpringCloudCluster implements IAzureEntityManager<SpringCloudClusterEntity> {
     private final AppPlatformManager client;
-    private final SpringCloudClusterService service;
+    private final SpringCloudClusterService clusterService;
     private final SpringCloudClusterEntity local;
     private SpringCloudClusterEntity remote;
 
     public SpringCloudCluster(SpringCloudClusterEntity cluster, AppPlatformManager client) {
         this.local = cluster;
         this.client = client;
-        this.service = new SpringCloudClusterService(client);
+        this.clusterService = new SpringCloudClusterService(client);
     }
 
     @Override
@@ -40,8 +40,14 @@ public class SpringCloudCluster implements IAzureEntityManager<SpringCloudCluste
         return new SpringCloudApp(app, this);
     }
 
+    public SpringCloudApp app(final String name) {
+        final SpringCloudClusterEntity cluster = this.entity();
+        return new SpringCloudApp(SpringCloudAppEntity.fromName(name, cluster), this);
+    }
+
     public SpringCloudCluster reload() {
-        this.remote = this.service.reload(this.local);
+        final SpringCloudClusterEntity local = this.local;
+        this.remote = this.clusterService.get(local.getName(), local.getResourceGroup());
         return this;
     }
 

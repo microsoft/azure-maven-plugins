@@ -15,16 +15,16 @@ import java.util.Collection;
 /**
  * Defines values for JavaRuntimeVersion.
  */
-public final class JavaRuntimeVersion extends ExpandableStringEnum<JavaRuntimeVersion> {
+public final class SpringCloudRuntimeVersion extends ExpandableStringEnum<SpringCloudRuntimeVersion> {
     /**
      * Static value Java_8 for JavaRuntimeVersion.
      */
-    public static final JavaRuntimeVersion JAVA_8 = fromString("Java_8");
+    public static final SpringCloudRuntimeVersion JAVA_8 = fromString("Java_8");
 
     /**
      * Static value Java_11 for JavaRuntimeVersion.
      */
-    public static final JavaRuntimeVersion JAVA_11 = fromString("Java_11");
+    public static final SpringCloudRuntimeVersion JAVA_11 = fromString("Java_11");
 
     /**
      * Creates or finds a JavaRuntimeVersion from its string representation.
@@ -33,14 +33,14 @@ public final class JavaRuntimeVersion extends ExpandableStringEnum<JavaRuntimeVe
      * @return the corresponding JavaRuntimeVersion
      */
     @JsonCreator
-    public static JavaRuntimeVersion fromString(String name) {
-        return fromString(name, JavaRuntimeVersion.class);
+    public static SpringCloudRuntimeVersion fromString(String name) {
+        return fromString(name, SpringCloudRuntimeVersion.class);
     }
 
     /**
      * @return known JavaRuntimeVersion values
      */
-    public static Collection<JavaRuntimeVersion> values() {
-        return values(JavaRuntimeVersion.class);
+    public static Collection<SpringCloudRuntimeVersion> values() {
+        return values(SpringCloudRuntimeVersion.class);
     }
 }

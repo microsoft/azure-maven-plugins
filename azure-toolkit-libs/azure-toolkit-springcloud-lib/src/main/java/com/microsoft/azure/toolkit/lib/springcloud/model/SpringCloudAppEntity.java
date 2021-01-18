@@ -30,22 +30,29 @@ import javax.annotation.Nonnull;
 
 @Getter
 public class SpringCloudAppEntity implements IAzureEntity {
-    private SpringCloudClusterEntity cluster;
-    private String name;
+    private final SpringCloudClusterEntity cluster;
+    private final String name;
     AppResourceInner inner;
 
+    private SpringCloudAppEntity(String name, SpringCloudClusterEntity cluster) {
+        this.name = name;
+        this.cluster = cluster;
+    }
+
+    private SpringCloudAppEntity(AppResourceInner resource, SpringCloudClusterEntity cluster) {
+        this.inner = resource;
+        this.name = resource.name();
+        this.cluster = cluster;
+    }
+
     @Nonnull
-    public static SpringCloudAppEntity fromResource(AppResourceInner app) {
-        return null;
+    public static SpringCloudAppEntity fromResource(final AppResourceInner resource, final SpringCloudClusterEntity cluster) {
+        return new SpringCloudAppEntity(resource, cluster);
     }
 
-    public AppResourceInner inner() {
-        return inner;
-    }
-
-    public SpringCloudAppEntity inner(AppResourceInner inner) {
-        this.inner = inner;
-        return this;
+    @Nonnull
+    public static SpringCloudAppEntity fromName(final String name, final SpringCloudClusterEntity cluster) {
+        return new SpringCloudAppEntity(name, cluster);
     }
 
     public boolean isPublic() {

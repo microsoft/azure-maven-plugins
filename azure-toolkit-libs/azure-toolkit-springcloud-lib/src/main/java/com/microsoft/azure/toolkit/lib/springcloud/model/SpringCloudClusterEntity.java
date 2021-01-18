@@ -33,24 +33,31 @@ import org.apache.commons.lang3.ArrayUtils;
 @Getter
 @Setter(AccessLevel.PRIVATE)
 public class SpringCloudClusterEntity implements IAzureEntity {
-    private String name;
-    private SkuInner sku;
+    private final String resourceGroup;
+    private final String name;
     private ServiceResourceInner inner;
 
-    public SpringCloudClusterEntity(String name) {
-        this.name = name;
-    }
-
-    public static SpringCloudClusterEntity from(ServiceResourceInner service) {
-        final SpringCloudClusterEntity entity = new SpringCloudClusterEntity(service.name());
-        entity.setName(service.name());
-        entity.setSku(service.sku());
-        entity.setInner(service);
-        return entity;
-    }
-
-    public String getResourceGroup() {
+    private SpringCloudClusterEntity(ServiceResourceInner resource) {
+        this.inner = resource;
         final String[] attributes = this.inner.id().split("/");
-        return attributes[ArrayUtils.indexOf(attributes, "resourceGroups") + 1];
+        this.resourceGroup = attributes[ArrayUtils.indexOf(attributes, "resourceGroups") + 1];
+        this.name = resource.name();
+    }
+
+    public SpringCloudClusterEntity(String name, String resourceGroup) {
+        this.name = name;
+        this.resourceGroup = resourceGroup;
+    }
+
+    public static SpringCloudClusterEntity fromResource(ServiceResourceInner resource) {
+        return new SpringCloudClusterEntity(resource);
+    }
+
+    public static SpringCloudClusterEntity fromName(final String name, final String resourceGroup) {
+        return new SpringCloudClusterEntity(name, resourceGroup);
+    }
+
+    public SkuInner getSku() {
+        return this.inner.sku();
     }
 }

@@ -210,7 +210,7 @@ public class ConfigMojoTest {
 
         final SpringCloudClusterService mockClusterService = mock(SpringCloudClusterService.class);
         final List<SpringCloudClusterEntity> serviceList = TestHelper.createServiceList();
-        when(mockClusterService.getAllClusters()).thenReturn(serviceList);
+        when(mockClusterService.getAll()).thenReturn(serviceList);
         whenNew(SpringCloudClusterService.class).withAnyArguments().thenReturn(mockClusterService);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(0));
 
@@ -227,7 +227,7 @@ public class ConfigMojoTest {
 
         final SpringCloudClusterService mockClusterService = mock(SpringCloudClusterService.class);
         final List<SpringCloudClusterEntity> serviceList = TestHelper.createServiceList();
-        when(mockClusterService.getAllClusters()).thenReturn(serviceList);
+        when(mockClusterService.getAll()).thenReturn(serviceList);
         whenNew(SpringCloudClusterService.class).withAnyArguments().thenReturn(mockClusterService);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
 
@@ -248,7 +248,7 @@ public class ConfigMojoTest {
 
         final SpringCloudClusterService mockClusterService = mock(SpringCloudClusterService.class);
         final List<SpringCloudClusterEntity> serviceList = TestHelper.createServiceList();
-        when(mockClusterService.getAllClusters()).thenReturn(serviceList);
+        when(mockClusterService.getAll()).thenReturn(serviceList);
         whenNew(SpringCloudClusterService.class).withAnyArguments().thenReturn(mockClusterService);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
         // 1. select project(service);
@@ -277,7 +277,7 @@ public class ConfigMojoTest {
 
         final SpringCloudClusterService mockClusterService = mock(SpringCloudClusterService.class);
         final List<SpringCloudClusterEntity> serviceList = TestHelper.createServiceList();
-        when(mockClusterService.getAllClusters()).thenReturn(serviceList);
+        when(mockClusterService.getAll()).thenReturn(serviceList);
         whenNew(SpringCloudClusterService.class).withAnyArguments().thenReturn(mockClusterService);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
         // 1. for subs
@@ -312,7 +312,7 @@ public class ConfigMojoTest {
 
         final SpringCloudClusterService mockClusterService = mock(SpringCloudClusterService.class);
         final List<SpringCloudClusterEntity> serviceList = TestHelper.createServiceList();
-        when(mockClusterService.getAllClusters()).thenReturn(serviceList);
+        when(mockClusterService.getAll()).thenReturn(serviceList);
         whenNew(SpringCloudClusterService.class).withAnyArguments().thenReturn(mockClusterService);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
         // 1. for subs

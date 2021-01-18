@@ -26,32 +26,43 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.App
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudClusterService;
 
+import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class AzureSpringCloud {
     private final AppPlatformManager client;
+    private final SpringCloudClusterService clusterService;
 
     private AzureSpringCloud(AppPlatformManager client) {
         this.client = client;
+        this.clusterService = new SpringCloudClusterService(this.client);
     }
 
     public static AzureSpringCloud az(AppPlatformManager client) {
         return new AzureSpringCloud(client);
     }
 
-    public SpringCloudCluster cluster(SpringCloudClusterEntity cluster) {
+    @Nonnull
+    public SpringCloudCluster cluster(@Nonnull SpringCloudClusterEntity cluster) {
         return new SpringCloudCluster(cluster, this.client);
     }
 
+    public SpringCloudCluster cluster(String name, String resourceGroup) {
+        final SpringCloudClusterEntity cluster = this.clusterService.get(name, resourceGroup);
+        Objects.requireNonNull(cluster, String.format("cluster(%s) is not found in resource group(%s)", name, resourceGroup));
+        return this.cluster(cluster);
+    }
+
     public SpringCloudCluster cluster(String name) {
-        final SpringCloudClusterService service = new SpringCloudClusterService(this.client);
-        return this.cluster(service.getCluster(name));
+        final SpringCloudClusterEntity cluster = this.clusterService.get(name);
+        Objects.requireNonNull(cluster, String.format("cluster(%s) is not found", name));
+        return this.cluster(cluster);
     }
 
     public List<SpringCloudCluster> clusters() {
-        final SpringCloudClusterService service = new SpringCloudClusterService(this.client);
-        return service.getAllClusters().stream().map(this::cluster).collect(Collectors.toList());
+        final List<SpringCloudClusterEntity> clusters = this.clusterService.getAll();
+        return clusters.stream().map(this::cluster).collect(Collectors.toList());
     }
-
 }

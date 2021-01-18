@@ -114,7 +114,7 @@ public class TestHelper {
     private static SpringCloudClusterEntity createMockAppClusterResourceInner(String name) {
         final ServiceResourceInner mockResource = mock(ServiceResourceInner.class);
         when(mockResource.name()).thenReturn(name);
-        return SpringCloudClusterEntity.from(mockResource);
+        return SpringCloudClusterEntity.fromResource(mockResource);
     }
 
     private static MavenProject createProject(final File pomFile) throws IOException {
