@@ -166,6 +166,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 0.1.4
      */
+    @Deprecated
     @Parameter(property = "webapp.skip", defaultValue = "false")
     protected boolean skip;
 

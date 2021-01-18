@@ -28,6 +28,7 @@ import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenUtils;
+import com.microsoft.azure.maven.utils.Utils;
 import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.AzureAuthManager;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
@@ -35,7 +36,6 @@ import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.model.AuthType;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.auth.util.ValidationUtil;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -60,10 +60,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -374,10 +372,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             final PagedList<Subscription> subscriptions = tempAzure.subscriptions().list();
             subscriptions.loadAll();
             final List<String> subsIdList = subscriptions.stream().map(Subscription::subscriptionId).collect(Collectors.toList());
-            String defaultSubscriptionId = firstNonBlankString(this.subscriptionId, azureCredentialWrapper.getDefaultSubscriptionId());
+            String defaultSubscriptionId = StringUtils.firstNonBlank(this.subscriptionId, azureCredentialWrapper.getDefaultSubscriptionId());
 
             if (StringUtils.isBlank(defaultSubscriptionId) && ArrayUtils.isNotEmpty(azureCredentialWrapper.getFilteredSubscriptionIds())) {
-                final Collection<String> filteredSubscriptions = intersectionListsIgnoreCase(subsIdList,
+                final Collection<String> filteredSubscriptions = Utils.intersectIgnoreCase(subsIdList,
                         Arrays.asList(azureCredentialWrapper.getFilteredSubscriptionIds()));
                 if (filteredSubscriptions.size() == 1) {
                     defaultSubscriptionId = filteredSubscriptions.iterator().next();
@@ -662,19 +660,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    private static Collection<String> intersectionListsIgnoreCase(List<String> list1, List<String> list2) {
-        final List<String> intersection = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(list1) && CollectionUtils.isNotEmpty(list2)) {
-            for (final String str : list2) {
-                if (existInListIgnoreCase(list1, str)) {
-                    intersection.add(str);
-                }
-            }
-            return intersection;
-        }
-        return Collections.emptyList();
-    }
-
     private static void checkSubscription(List<Subscription> subscriptions, String targetSubscriptionId) throws AzureLoginException {
         if (subscriptions.size() == 0) {
             throw new AzureLoginException(NO_AVAILABLE_SUBSCRIPTION);
@@ -691,19 +676,4 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    private static boolean existInListIgnoreCase(List<String> list, String target) {
-        if (StringUtils.isNotBlank(target) && CollectionUtils.isNotEmpty(list)) {
-            return list.stream().anyMatch(str -> StringUtils.equalsIgnoreCase(str, target));
-        }
-        return false;
-    }
-
-    private static String firstNonBlankString(String... list) {
-        for (final String str : list) {
-            if (StringUtils.isNotBlank(str)) {
-                return str;
-            }
-        }
-        return null;
-    }
 }

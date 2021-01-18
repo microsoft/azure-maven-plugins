@@ -66,6 +66,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      *
      * @since 0.1.0
      */
+    @Deprecated
     @Parameter(property = "deploymentType")
     protected String deploymentType;
 

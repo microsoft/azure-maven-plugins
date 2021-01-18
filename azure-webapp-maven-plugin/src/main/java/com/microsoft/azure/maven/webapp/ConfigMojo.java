@@ -28,6 +28,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.queryer.MavenPluginQueryer;
 import com.microsoft.azure.maven.queryer.QueryFactory;
+import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
@@ -45,6 +46,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.dom4j.DocumentException;
 
 import rx.Observable;
@@ -95,6 +97,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static final String SETTING_REGISTRY_USERNAME = "DOCKER_REGISTRY_SERVER_USERNAME";
     private static final String SERVER_ID_TEMPLATE = "Please add a server in Maven settings.xml related to username: %s and put the serverId here";
 
+    private static final List<String> WEB_APP_PROPERTIES = Arrays.asList("subscriptionId", "resourceGroup", "appName", "runtime", "deployment", "region",
+            "appServicePlanResourceGroup", "appServicePlanName", "deploymentSlot");
+
     private MavenPluginQueryer queryer;
     private WebAppPomHandler pomHandler;
 
@@ -130,11 +135,27 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return configuration == null || schemaVersion.equalsIgnoreCase(SchemaVersion.V2.toString());
     }
 
+    private boolean isProjectConfigured() {
+        final String pluginIdentifier = plugin.getPluginLookupKey();
+        final Xpp3Dom configuration = MavenConfigUtils.getPluginConfiguration(getProject(), pluginIdentifier);
+
+        if (configuration == null) {
+            return false;
+        }
+
+        for (final Xpp3Dom child : configuration.getChildren()) {
+            if (WEB_APP_PROPERTIES.contains(child.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected void config(WebAppConfiguration configuration) throws MojoFailureException, AzureExecutionException,
             IOException, IllegalAccessException {
         WebAppConfiguration result;
         do {
-            if (configuration == null) {
+            if (configuration == null || !isProjectConfigured()) {
                 try {
                     result = chooseExistingWebappForConfiguration();
                     if (result == null) {
@@ -479,16 +500,15 @@ public class ConfigMojo extends AbstractWebAppMojo {
         if (Objects.isNull(az)) {
             return null;
         }
-        if (StringUtils.isBlank(this.subscriptionId)) {
-            return null;
-        }
-        final TextIO textIO = TextIoFactory.getTextIO();
-        final Subscription targetSubscription = az.subscriptions().getById(this.subscriptionId);
+
+        final Subscription targetSubscription = az.getCurrentSubscription();
         if (Objects.isNull(targetSubscription)) {
             return null;
         }
+        // get user selected sub id to persistent it in pom.xml
+        this.subscriptionId = targetSubscription.subscriptionId();
         // here is a walk around to solve the bad app service listing issue
-        final WebAppsInner webappClient = az.webApps().manager().inner().withSubscriptionId(subscriptionId).webApps();
+        final WebAppsInner webappClient = az.webApps().manager().inner().webApps();
         final List<WebAppOption> siteInners = webappClient.list().stream()
                 .filter(site -> site.kind() != null && !Arrays.asList(site.kind().split(",")).contains("functionapp"))
                 .map(t -> new WebAppOption(t, webappClient)).sorted().collect(Collectors.toList());
@@ -508,6 +528,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final List<WebAppOption> javaOrDockerWebapps = siteInners.stream().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
                 .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
                 .collect(Collectors.toList());
+        final TextIO textIO = TextIoFactory.getTextIO();
         final WebAppOption selectedApp = selectAzureWebApp(textIO, javaOrDockerWebapps,
                 getWebAppTypeByPackaging(this.project.getPackaging()), targetSubscription);
         if (selectedApp == null || selectedApp.isCreateNew()) {
