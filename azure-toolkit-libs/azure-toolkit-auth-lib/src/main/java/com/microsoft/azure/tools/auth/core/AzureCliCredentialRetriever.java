@@ -19,22 +19,36 @@ import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.common.exception.CommandExecuteException;
 import com.microsoft.azure.tools.common.util.CommandUtil;
 import com.microsoft.azure.tools.common.util.JsonUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 
 public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
     private static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
 
+    public AzureCliCredentialRetriever(AzureEnvironment env) {
+        super(env);
+    }
+
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         AzureCliAccountProfile accountInfo = getProfile();
-
         if (accountInfo == null) {
             throw new LoginFailureException("Please run `az login` to login your Azure Cli.");
         }
         AzureEnvironment envFromCli = AuthHelper.parseAzureEnvironment(accountInfo.getEnvironment());
+        if (envFromCli != null && env != null && envFromCli != env) {
+            throw new LoginFailureException(String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration: %s, " +
+                    "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
+                    AuthHelper.getAzureEnvironmentDisplayName(envFromCli),
+                    AuthHelper.getAzureEnvironmentDisplayName(env),
+                    AuthHelper.getAzureCliCloudName(env)));
+        }
+        this.env = envFromCli;
+        AuthHelper.setupAzureEnvironment(env);
         AzureCliCredential cliCredential = new AzureCliCredentialBuilder().build();
+        validateTokenCredential(cliCredential);
         return new AzureCredentialWrapper(
-                isInCloudShell() ? AuthMethod.CLOUD_SHELL : AuthMethod.AZURE_CLI, cliCredential, envFromCli)
+                isInCloudShell() ? AuthMethod.CLOUD_SHELL : AuthMethod.AZURE_CLI, cliCredential, getAzureEnvironment())
                 .withDefaultSubscriptionId(accountInfo.getSubscriptionId())
                 .withTenantId(accountInfo.getTenantId());
     }
@@ -57,6 +71,6 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
     }
 
     private static boolean isInCloudShell() {
-        return System.getenv(CLOUD_SHELL_ENV_KEY) != null;
+        return StringUtils.isNotBlank(System.getenv(CLOUD_SHELL_ENV_KEY));
     }
 }
