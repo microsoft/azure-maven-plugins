@@ -30,13 +30,11 @@ public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetri
         }
         AzureEnvironment envFromVSCode = AuthHelper.parseAzureEnvironment(vscodeProfile.getEnvironment());
         if (envFromVSCode != null && env != null && envFromVSCode != env) {
-            final String envNameFromVSCode = AuthHelper.getAzureEnvironmentDisplayName(envFromVSCode);
+            final String envNameFromVSCode = AuthHelper.getAzureCloudDisplayName(envFromVSCode);
             throw new LoginFailureException(String.format("The azure cloud from vscode '%s' doesn't match with your auth configuration: %s, " +
                             "you can change it by press F1 and find \">azure: sign in to Azure Cloud\" command to change azure cloud in vscode.",
                     envNameFromVSCode,
-                    AuthHelper.getAzureEnvironmentDisplayName(env),
-                    envNameFromVSCode
-            ));
+                    AuthHelper.getAzureCloudDisplayName(env)));
         }
         this.env = envFromVSCode;
         AuthHelper.setupAzureEnvironment(env);

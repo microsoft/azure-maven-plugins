@@ -12,18 +12,17 @@ import com.microsoft.azure.AzureEnvironment;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class AuthHelper {
-    private static final String AZURE_CHINA = "azurechina";
-    private static final String AZURE_CHINA_CLOUD = "azurechinacloud";
-    private static final String AZURE_GERMANY = "azuregermany";
-    private static final String AZURE_GERMAN_CLOUD = "azuregermancloud";
-    private static final String AZURE_US_GOVERNMENT = "azureusgovernment";
+    private static final String AZURE_CHINA = "china";
+    private static final String AZURE_GERMANY = "germany";
+    private static final String AZURE_GERMAN = "german";
+    private static final String AZURE_US_GOVERNMENT = "usgovernment";
+    private static final String AZURE_US_GOVERNMENT2 = "us_government";
     private static final String AZURE = "azure";
-    private static final String AZURE_CLOUD = "azurecloud";
     private static final String UNKNOWN = "UNKNOWN";
 
     private static final Map<AzureEnvironment, String> AZURE_ENVIRONMENT_DISPLAY_NAME_MAP = new HashMap<>();
@@ -35,9 +34,29 @@ public class AuthHelper {
         AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.put(AzureEnvironment.AZURE_US_GOVERNMENT, "AZURE_US_GOVERNMENT");
     }
 
-    public static String getAzureEnvironmentDisplayName(AzureEnvironment azureEnvironment) {
+    public static String getAzureCloudDisplayName(AzureEnvironment azureEnvironment) {
         return AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.containsKey(azureEnvironment) ?
                 AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.get(azureEnvironment) : UNKNOWN;
+    }
+
+    public static String getAzureCloudName(AzureEnvironment azureEnvironment) {
+        if (azureEnvironment == null) {
+            return null;
+        }
+        // cannot switch since AzureEnvironment is not enum
+        if (AZURE.equals(azureEnvironment)) {
+            return "AzureCloud";
+        }
+        if (AZURE_CHINA.equals(azureEnvironment)) {
+            return "AzureChinaCloud";
+        }
+        if (AZURE_GERMANY.equals(azureEnvironment)) {
+            return "AzureGermanCloud";
+        }
+        if (AZURE_US_GOVERNMENT.equals(azureEnvironment)) {
+            return "AzureUSGovernment";
+        }
+        throw new IllegalArgumentException("Unknown azure environment.");
     }
 
     public static void setupAzureEnvironment(AzureEnvironment env) {
@@ -59,16 +78,16 @@ public class AuthHelper {
         if (StringUtils.isBlank(environment)) {
             return true;
         }
-        switch (StringUtils.remove(environment.toLowerCase(Locale.ENGLISH), "_")) {
+        switch (preprocessAzureEnvironment(environment)) {
             case AZURE_CHINA:
-            case AZURE_CHINA_CLOUD:
             case AZURE_GERMANY:
-            case AZURE_GERMAN_CLOUD:
+            case AZURE_GERMAN:
             case AZURE_US_GOVERNMENT:
+            case AZURE_US_GOVERNMENT2:
             case AZURE:
-            case AZURE_CLOUD:
                 return true;
-            default : return false;
+            default:
+                return false;
         }
     }
 
@@ -83,17 +102,41 @@ public class AuthHelper {
             return null;
         }
 
-        switch (StringUtils.remove(environment.toLowerCase(Locale.ENGLISH), "_")) {
+        switch (preprocessAzureEnvironment(environment)) {
             case AZURE_CHINA:
-            case AZURE_CHINA_CLOUD: // this value comes from azure cli
                 return AzureEnvironment.AZURE_CHINA;
             case AZURE_GERMANY:
-            case AZURE_GERMAN_CLOUD: // the TYPO comes from azure cli: https://docs.microsoft.com/en-us/azure/germany/germany-get-started-connect-with-cli
+            case AZURE_GERMAN: // the TYPO comes from azure cli: https://docs.microsoft.com/en-us/azure/germany/germany-get-started-connect-with-cli
                 return AzureEnvironment.AZURE_GERMANY;
             case AZURE_US_GOVERNMENT:
+            case AZURE_US_GOVERNMENT2:
                 return AzureEnvironment.AZURE_US_GOVERNMENT;
             default:
                 return AzureEnvironment.AZURE;
         }
+    }
+
+    private static String preprocessAzureEnvironment(String environment) {
+        if (StringUtils.isEmpty(environment)) {
+            return environment;
+        }
+        String formattedEnvironment = StringUtils.trim(StringUtils.lowerCase(environment));
+        if (StringUtils.equals(environment, AZURE)) {
+            return AZURE;
+        }
+        for (String startToRemove : Arrays.asList("azure-", "azure_", "azure")) {
+            if (StringUtils.startsWith(formattedEnvironment, startToRemove)) {
+                formattedEnvironment = StringUtils.removeStart(formattedEnvironment, startToRemove);
+                break;
+            }
+        }
+        for (String endToRemove : Arrays.asList("-cloud", "_cloud", "cloud")) {
+            if (StringUtils.endsWith(formattedEnvironment, endToRemove)) {
+                formattedEnvironment = StringUtils.removeEnd(formattedEnvironment, endToRemove);
+                break;
+            }
+        }
+
+        return formattedEnvironment;
     }
 }

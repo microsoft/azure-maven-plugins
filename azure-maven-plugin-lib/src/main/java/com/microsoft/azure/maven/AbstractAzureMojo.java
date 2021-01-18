@@ -365,7 +365,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 return null;
             }
             final AzureEnvironment env = azureCredentialWrapper.getEnv();
-            final String environmentName = AuthHelper.getAzureEnvironmentDisplayName(env);
+            final String environmentName = AuthHelper.getAzureCloudDisplayName(env);
             if (env != AzureEnvironment.AZURE) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, environmentName));
             }

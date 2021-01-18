@@ -38,9 +38,10 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
         AzureEnvironment envFromCli = AuthHelper.parseAzureEnvironment(accountInfo.getEnvironment());
         if (envFromCli != null && env != null && envFromCli != env) {
             throw new LoginFailureException(String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration: %s, " +
-                    "you can change it by executing 'az cloud set --name=' command to change the cloud in azure cli.",
-                    AuthHelper.getAzureEnvironmentDisplayName(envFromCli),
-                    AuthHelper.getAzureEnvironmentDisplayName(env)));
+                            "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
+                    AuthHelper.getAzureCloudDisplayName(envFromCli),
+                    AuthHelper.getAzureCloudDisplayName(env),
+                    AuthHelper.getAzureCloudName(env)));
         }
         this.env = envFromCli;
         AuthHelper.setupAzureEnvironment(env);
