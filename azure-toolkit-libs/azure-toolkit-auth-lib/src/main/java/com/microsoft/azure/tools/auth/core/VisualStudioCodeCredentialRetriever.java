@@ -44,7 +44,7 @@ public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetri
     private AzureCredentialWrapper vsCodeLogin(VisualStudioCodeAccountProfile profile) throws LoginFailureException {
         final VisualStudioCodeCredential visualStudioCodeCredential = new VisualStudioCodeCredentialBuilder().build();
         validateTokenCredential(visualStudioCodeCredential);
-        return new AzureCredentialWrapper(AuthMethod.VSCODE, visualStudioCodeCredential, env)
+        return new AzureCredentialWrapper(AuthMethod.VSCODE, visualStudioCodeCredential, getAzureEnvironment())
                 .withFilteredSubscriptionIds(profile.getFilteredSubscriptions());
     }
 }
