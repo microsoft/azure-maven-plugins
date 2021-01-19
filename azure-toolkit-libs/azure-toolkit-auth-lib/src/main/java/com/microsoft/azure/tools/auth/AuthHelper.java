@@ -9,46 +9,51 @@ package com.microsoft.azure.tools.auth;
 
 import com.azure.core.util.Configuration;
 import com.microsoft.azure.AzureEnvironment;
-
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class AuthHelper {
-    private static final String AZURE_CHINA = "china";
-    private static final String AZURE_GERMANY = "germany";
-    private static final String AZURE_GERMAN = "german";
-    private static final String AZURE_US_GOVERNMENT = "usgovernment";
-    private static final String AZURE_US_GOVERNMENT2 = "us_government";
-    private static final String AZURE = "azure";
     private static final String UNKNOWN = "UNKNOWN";
 
-    private static final Map<AzureEnvironment, String> AZURE_ENVIRONMENT_DISPLAY_NAME_MAP = new HashMap<>();
+    private static final Map<AzureEnvironment, String> AZURE_CLOUD_DISPLAY_NAME_MAP = new HashMap<>();
+    private static final Map<String, AzureEnvironment> AZURE_CLOUD_ALIAS_MAP = new CaseInsensitiveMap<>();
 
     static {
-        AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.put(AzureEnvironment.AZURE, "AZURE");
-        AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.put(AzureEnvironment.AZURE_CHINA, "AZURE_CHINA");
-        AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.put(AzureEnvironment.AZURE_GERMANY, "AZURE_GERMANY");
-        AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.put(AzureEnvironment.AZURE_US_GOVERNMENT, "AZURE_US_GOVERNMENT");
+        putAliasMap(AzureEnvironment.AZURE, "AzureCloud", "azure");
+        putAliasMap(AzureEnvironment.AZURE_CHINA, "AzureChinaCloud", "azure_china");
+        // the TYPO:azure_german comes from azure cli: https://docs.microsoft.com/en-us/azure/germany/germany-get-started-connect-with-cli
+        putAliasMap(AzureEnvironment.AZURE_GERMANY, "AzureGermanCloud", "azure_germany", "azure_german");
+        putAliasMap(AzureEnvironment.AZURE_US_GOVERNMENT, "AzureUSGovernment", "azure_us_government");
     }
 
-    public static String getAzureEnvironmentDisplayName(AzureEnvironment azureEnvironment) {
-        return AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.containsKey(azureEnvironment) ?
-                AZURE_ENVIRONMENT_DISPLAY_NAME_MAP.get(azureEnvironment) : UNKNOWN;
+    public static String getAzureCloudDisplayName(AzureEnvironment azureEnvironment) {
+        return AZURE_CLOUD_DISPLAY_NAME_MAP.containsKey(azureEnvironment) ?
+                AZURE_CLOUD_DISPLAY_NAME_MAP.get(azureEnvironment) : UNKNOWN;
     }
 
-    public static String getAzureCliCloudName(AzureEnvironment azureEnvironment) {
+    public static String getAzureCloudName(AzureEnvironment azureEnvironment) {
         if (azureEnvironment == null) {
             return null;
         }
-        if (Objects.equals(azureEnvironment, AzureEnvironment.AZURE_GERMANY)) {
-            return "azuregermancloud";
+        // cannot switch since AzureEnvironment is not enum
+        if (AzureEnvironment.AZURE.equals(azureEnvironment)) {
+            return "AzureCloud";
         }
-        String displayName = getAzureEnvironmentDisplayName(azureEnvironment);
-        return StringUtils.equals(displayName, UNKNOWN) ? UNKNOWN : StringUtils.lowerCase(StringUtils.remove(displayName, "_")) + "cloud";
+        if (AzureEnvironment.AZURE_CHINA.equals(azureEnvironment)) {
+            return "AzureChinaCloud";
+        }
+        if (AzureEnvironment.AZURE_GERMANY.equals(azureEnvironment)) {
+            return "AzureGermanCloud";
+        }
+        if (AzureEnvironment.AZURE_US_GOVERNMENT.equals(azureEnvironment)) {
+            return "AzureUSGovernment";
+        }
+        throw new IllegalArgumentException("Unknown azure environment.");
     }
 
     public static void setupAzureEnvironment(AzureEnvironment env) {
@@ -67,20 +72,7 @@ public class AuthHelper {
      * @return true if the environment string is a valid azure environment
      */
     public static boolean validateEnvironment(String environment) {
-        if (StringUtils.isBlank(environment)) {
-            return true;
-        }
-        switch (preprocessAzureEnvironment(environment)) {
-            case AZURE_CHINA:
-            case AZURE_GERMANY:
-            case AZURE_GERMAN:
-            case AZURE_US_GOVERNMENT:
-            case AZURE_US_GOVERNMENT2:
-            case AZURE:
-                return true;
-            default:
-                return false;
-        }
+        return AZURE_CLOUD_ALIAS_MAP.containsKey(environment);
     }
 
     /**
@@ -90,45 +82,33 @@ public class AuthHelper {
      * @return the AzureEnvironment instance
      */
     public static AzureEnvironment parseAzureEnvironment(String environment) {
-        if (StringUtils.isEmpty(environment)) {
-            return null;
+        if (AZURE_CLOUD_ALIAS_MAP.containsKey(environment)) {
+            return AZURE_CLOUD_ALIAS_MAP.get(environment);
         }
+        return null;
+    }
 
-        switch (preprocessAzureEnvironment(environment)) {
-            case AZURE_CHINA:
-                return AzureEnvironment.AZURE_CHINA;
-            case AZURE_GERMANY:
-            case AZURE_GERMAN: // the TYPO comes from azure cli: https://docs.microsoft.com/en-us/azure/germany/germany-get-started-connect-with-cli
-                return AzureEnvironment.AZURE_GERMANY;
-            case AZURE_US_GOVERNMENT:
-            case AZURE_US_GOVERNMENT2:
-                return AzureEnvironment.AZURE_US_GOVERNMENT;
-            default:
-                return AzureEnvironment.AZURE;
+    private static void putAliasMap(AzureEnvironment env, String... aliases) {
+        if (Objects.isNull(aliases) || aliases.length < 2) {
+            throw new IllegalArgumentException("Expect at least two aliases for azure environment.");
+        }
+        boolean endsWithCloud = StringUtils.endsWithIgnoreCase(aliases[0], "cloud");
+        AZURE_CLOUD_ALIAS_MAP.put(aliases[0], env);
+        AZURE_CLOUD_DISPLAY_NAME_MAP.put(env, aliases[1]);
+        for (String alias : ArrayUtils.subarray(aliases, 1, aliases.length)) {
+            AZURE_CLOUD_ALIAS_MAP.put(alias, env);
+            if (endsWithCloud) {
+                AZURE_CLOUD_ALIAS_MAP.put(alias + "_cloud", env);
+                AZURE_CLOUD_ALIAS_MAP.put(StringUtils.replace(alias + "_cloud", "-", "_"), env);
+            }
         }
     }
 
-    private static String preprocessAzureEnvironment(String environment) {
-        if (StringUtils.isEmpty(environment)) {
-            return environment;
+    public static void main(String[] args) {
+        for (String key : AZURE_CLOUD_ALIAS_MAP.keySet()) {
+            System.out.println(key + " = " + getAzureCloudName(AZURE_CLOUD_ALIAS_MAP.get(key))
+                    + "\n\tAzureCli : " + getAzureCloudName(parseAzureEnvironment(key)) + "\n\tDisplay Name : "
+                    + getAzureCloudDisplayName(parseAzureEnvironment(key)));
         }
-        String formattedEnvironment = StringUtils.trim(StringUtils.lowerCase(environment));
-        if (StringUtils.equals(environment, AZURE)) {
-            return AZURE;
-        }
-        for (String startToRemove : Arrays.asList("azure-", "azure_", "azure")) {
-            if (StringUtils.startsWith(formattedEnvironment, startToRemove)) {
-                formattedEnvironment = StringUtils.removeStart(formattedEnvironment, startToRemove);
-                break;
-            }
-        }
-        for (String endToRemove : Arrays.asList("-cloud", "_cloud", "cloud")) {
-            if (StringUtils.endsWith(formattedEnvironment, endToRemove)) {
-                formattedEnvironment = StringUtils.removeEnd(formattedEnvironment, endToRemove);
-                break;
-            }
-        }
-
-        return formattedEnvironment;
     }
 }

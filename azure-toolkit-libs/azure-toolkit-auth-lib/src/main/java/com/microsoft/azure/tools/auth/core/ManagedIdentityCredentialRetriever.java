@@ -24,6 +24,6 @@ public class ManagedIdentityCredentialRetriever extends AbstractCredentialRetrie
         AuthHelper.setupAzureEnvironment(env);
         ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder().build();
         validateTokenCredential(managedIdentityCredential);
-        return new AzureCredentialWrapper(AuthMethod.MANAGED_IDENTITY, managedIdentityCredential, env);
+        return new AzureCredentialWrapper(AuthMethod.MANAGED_IDENTITY, managedIdentityCredential, getAzureEnvironment());
     }
 }

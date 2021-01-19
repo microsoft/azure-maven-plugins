@@ -46,13 +46,13 @@ public class AzureAuthManager {
         AuthType authType = getAuthTypeFromString(auth.getType());
         Map<AuthType, ICredentialRetriever> retrieverMap = buildCredentialRetrievers(env);
         if (authType.equals(AuthType.AUTO)) {
-                retrievers.addRetriever(new ServicePrincipalCredentialRetriever(auth, env));
-                retrievers.addRetriever(retrieverMap.get(AuthType.MANAGED_IDENTITY));
-                retrievers.addRetriever(retrieverMap.get(AuthType.AZURE_CLI));
-                retrievers.addRetriever(retrieverMap.get(AuthType.VSCODE));
-                retrievers.addRetriever(retrieverMap.get(AuthType.VISUAL_STUDIO));
-                retrievers.addRetriever(retrieverMap.get(AuthType.OAUTH2));
-                retrievers.addRetriever(retrieverMap.get(AuthType.DEVICE_CODE));
+            retrievers.addRetriever(new ServicePrincipalCredentialRetriever(auth, env));
+            retrievers.addRetriever(retrieverMap.get(AuthType.MANAGED_IDENTITY));
+            retrievers.addRetriever(retrieverMap.get(AuthType.AZURE_CLI));
+            retrievers.addRetriever(retrieverMap.get(AuthType.VSCODE));
+            retrievers.addRetriever(retrieverMap.get(AuthType.VISUAL_STUDIO));
+            retrievers.addRetriever(retrieverMap.get(AuthType.OAUTH2));
+            retrievers.addRetriever(retrieverMap.get(AuthType.DEVICE_CODE));
         } else {
             // for specific auth type:
             if (AuthType.SERVICE_PRINCIPAL == authType) {
