@@ -7,9 +7,7 @@
 package com.microsoft.azure.toolkits.appservice.model;
 
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
-import com.microsoft.azure.toolkits.appservice.utils.ConvertUtils;
-import com.microsoft.azure.tools.common.model.ResourceGroup;
-import com.microsoft.azure.tools.common.model.Subscription;
+import com.microsoft.azure.toolkits.appservice.utils.Utils;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
@@ -21,10 +19,10 @@ public class WebAppDeploymentSlot {
     private String id;
     private String name;
     private String webappName;
-    private ResourceGroup resourceGroup;
-    private Subscription subscription;
+    private String resourceGroup;
+    private String subscriptionId;
+    private String appServicePlanId;
     private Runtime runtime;
-    private AppServicePlan appServicePlan;
     private Map<String, String> appSettings;
 
     public static WebAppDeploymentSlot createFromServiceModel(DeploymentSlot deploymentSlot) {
@@ -32,11 +30,11 @@ public class WebAppDeploymentSlot {
                 .name(deploymentSlot.name())
                 .webappName(deploymentSlot.parent().name())
                 .id(deploymentSlot.id())
-                .resourceGroup(ResourceGroup.builder().name(deploymentSlot.resourceGroupName()).build()) // todo: Resource Group Pojo
-                .subscription(Subscription.builder().id(deploymentSlot.id()).build()) // todo: Subscription Pojo
+                .resourceGroup(deploymentSlot.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
                 .runtime(Runtime.createFromServiceInstance(deploymentSlot))
-                .appServicePlan(AppServicePlan.builder().id(deploymentSlot.appServicePlanId()).build())
-                .appSettings(ConvertUtils.normalizeAppSettings(deploymentSlot.getAppSettings()))
+                .appServicePlanId(deploymentSlot.appServicePlanId())
+                .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
                 .build();
     }
 }

@@ -12,7 +12,9 @@ import com.microsoft.azure.toolkits.appservice.model.AppServicePlan;
 import java.util.Map;
 
 public interface AppServiceUpdatable<T> {
-    AppServiceUpdatable<T> withAppServicePlan(AppServicePlan subscription);
+    AppServiceUpdatable<T> withAppServicePlan(String appServicePlanId);
+
+    AppServiceUpdatable<T> withAppServicePlan(String resourceGroup, String planName);
 
     AppServiceUpdatable<T> withRuntime(Runtime runtime);
 

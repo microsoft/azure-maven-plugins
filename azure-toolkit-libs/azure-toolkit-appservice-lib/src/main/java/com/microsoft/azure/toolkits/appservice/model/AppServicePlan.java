@@ -5,7 +5,6 @@
  */
 package com.microsoft.azure.toolkits.appservice.model;
 
-import com.microsoft.azure.tools.common.model.ResourceGroup;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -16,14 +15,26 @@ public class AppServicePlan {
     private String id;
     private String name;
     private String region;
-    private ResourceGroup resourceGroup;
+    private String resourceGroup;
     private PricingTier pricingTier;
     private OperatingSystem operatingSystem;
 
-    public static boolean equals(AppServicePlan first, AppServicePlan second) {
-        return StringUtils.equals(first.getId(), second.getId()) ||
-                StringUtils.equals(first.getResourceGroup().getName(), second.getResourceGroup().getName()) &&
-                        StringUtils.equals(first.getName(), second.getName());
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof AppServicePlan)) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        final AppServicePlan target = (AppServicePlan) obj;
+        return StringUtils.equals(target.getId(), this.getId()) ||
+                StringUtils.equals(target.getResourceGroup(), this.getResourceGroup()) && StringUtils.equals(target.getName(), this.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
     public static AppServicePlan createFromServiceModel(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
@@ -31,7 +42,7 @@ public class AppServicePlan {
                 .id(appServicePlan.id())
                 .name(appServicePlan.name())
                 .region(appServicePlan.regionName())
-                .resourceGroup(ResourceGroup.builder().name(appServicePlan.resourceGroupName()).build())
+                .resourceGroup(appServicePlan.resourceGroupName())
                 .pricingTier(PricingTier.createFromServiceModel(appServicePlan.pricingTier()))
                 .operatingSystem(OperatingSystem.getFromServiceModel(appServicePlan.operatingSystem()))
                 .build();

@@ -6,6 +6,9 @@
 package com.microsoft.azure.toolkits.appservice;
 
 import com.azure.resourcemanager.AzureResourceManager;
+import com.microsoft.azure.toolkits.appservice.model.AppServicePlan;
+import com.microsoft.azure.toolkits.appservice.model.WebApp;
+import com.microsoft.azure.toolkits.appservice.model.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkits.appservice.service.AppServicePlanManager;
 import com.microsoft.azure.toolkits.appservice.service.AppServicePlansManager;
 import com.microsoft.azure.toolkits.appservice.service.WebAppDeploymentSlotManager;
@@ -16,10 +19,6 @@ import com.microsoft.azure.toolkits.appservice.service.serviceplan.AppServicePla
 import com.microsoft.azure.toolkits.appservice.service.serviceplan.AppServicePlansManagerImpl;
 import com.microsoft.azure.toolkits.appservice.service.webapp.WebAppManagerImpl;
 import com.microsoft.azure.toolkits.appservice.service.webapp.WebAppsManagerImpl;
-import com.microsoft.azure.toolkits.appservice.model.AppServicePlan;
-import com.microsoft.azure.toolkits.appservice.model.WebApp;
-import com.microsoft.azure.toolkits.appservice.model.WebAppDeploymentSlot;
-import com.microsoft.azure.tools.common.model.ResourceGroup;
 
 public class AppService {
 
@@ -43,9 +42,7 @@ public class AppService {
     }
 
     public WebAppManager webapp(String resourceGroup, String name) {
-        final WebApp webApp = WebApp.builder()
-                .resourceGroup(ResourceGroup.builder().name(resourceGroup).build())
-                .name(name).build();
+        final WebApp webApp = WebApp.builder().resourceGroup(resourceGroup).name(name).build();
         return webapp(webApp);
     }
 
@@ -68,7 +65,7 @@ public class AppService {
 
     public AppServicePlanManager appServicePlan(String resourceGroup, String name) {
         final AppServicePlan appServicePlan = AppServicePlan.builder()
-                .resourceGroup(ResourceGroup.builder().name(resourceGroup).build())
+                .resourceGroup(resourceGroup)
                 .name(name).build();
         return appServicePlan(appServicePlan);
     }

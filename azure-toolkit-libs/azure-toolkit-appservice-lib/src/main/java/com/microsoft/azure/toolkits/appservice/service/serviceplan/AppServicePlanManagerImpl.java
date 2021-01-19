@@ -48,7 +48,7 @@ public class AppServicePlanManagerImpl implements AppServicePlanManager {
         if (planService == null || force) {
             planService = StringUtils.isEmpty(appServicePlan.getId()) ?
                     azureResourceManager.appServicePlans().getById(appServicePlan.getId()) :
-                    azureResourceManager.appServicePlans().getByResourceGroup(appServicePlan.getResourceGroup().getName(), appServicePlan.getName());
+                    azureResourceManager.appServicePlans().getByResourceGroup(appServicePlan.getResourceGroup(), appServicePlan.getName());
         }
         return planService;
     }

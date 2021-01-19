@@ -66,7 +66,7 @@ public class WebAppDeploymentSlotManagerImpl implements WebAppDeploymentSlotMana
         if (deploymentSlotService == null || force) {
             final WebApp webAppService = StringUtils.isNotEmpty(slot.getId()) ?
                     azureResourceManager.webApps().getById(slot.getId().substring(0, slot.getId().indexOf("/slots"))) :
-                    azureResourceManager.webApps().getByResourceGroup(slot.getResourceGroup().getName(), slot.getWebappName());
+                    azureResourceManager.webApps().getByResourceGroup(slot.getResourceGroup(), slot.getWebappName());
             this.deploymentSlotService = StringUtils.isNotEmpty(slot.getId()) ? webAppService.deploymentSlots().getById(slot.getId()) :
                     webAppService.deploymentSlots().getByName(slot.getName());
             this.slot = WebAppDeploymentSlot.createFromServiceModel(this.deploymentSlotService);

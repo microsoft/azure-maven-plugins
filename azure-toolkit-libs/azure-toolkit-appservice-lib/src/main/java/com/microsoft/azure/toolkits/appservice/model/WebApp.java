@@ -8,10 +8,8 @@ package com.microsoft.azure.toolkits.appservice.model;
 
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
-import com.microsoft.azure.toolkits.appservice.utils.ConvertUtils;
+import com.microsoft.azure.toolkits.appservice.utils.Utils;
 import com.microsoft.azure.tools.common.model.Region;
-import com.microsoft.azure.tools.common.model.ResourceGroup;
-import com.microsoft.azure.tools.common.model.Subscription;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
@@ -23,21 +21,21 @@ public class WebApp {
     private String name;
     private String id;
     private Region region;
-    private ResourceGroup resourceGroup;
-    private Subscription subscription;
+    private String resourceGroup;
+    private String subscriptionId;
     private Runtime runtime;
-    private AppServicePlan appServicePlan;
+    private String appServicePlanId;
     private Map<String, String> appSettings;
 
     public static WebApp createFromWebAppBase(WebAppBase webAppBase) {
         return builder().name(webAppBase.name())
                 .id(webAppBase.id())
                 .region(Region.fromName(webAppBase.regionName()))
-                .resourceGroup(ResourceGroup.builder().name(webAppBase.resourceGroupName()).build())
-                .subscription(Subscription.builder().id(webAppBase.id()).build())
+                .resourceGroup(webAppBase.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(webAppBase.id()))
                 .runtime(Runtime.createFromServiceInstance(webAppBase))
-                .appServicePlan(AppServicePlan.builder().id(webAppBase.appServicePlanId()).build())
-                .appSettings(ConvertUtils.normalizeAppSettings(webAppBase.getAppSettings()))
+                .appServicePlanId(webAppBase.appServicePlanId())
+                .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()))
                 .build();
     }
 
@@ -45,9 +43,9 @@ public class WebApp {
         return builder().name(webAppBasic.name())
                 .id(webAppBasic.id())
                 .region(Region.fromName(webAppBasic.regionName()))
-                .resourceGroup(ResourceGroup.builder().name(webAppBasic.resourceGroupName()).build())
-                .subscription(Subscription.builder().id(webAppBasic.id()).build())
-                .appServicePlan(AppServicePlan.builder().id(webAppBasic.appServicePlanId()).build())
+                .resourceGroup(webAppBasic.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(webAppBasic.id()))
+                .appServicePlanId(webAppBasic.appServicePlanId())
                 .build();
     }
 }

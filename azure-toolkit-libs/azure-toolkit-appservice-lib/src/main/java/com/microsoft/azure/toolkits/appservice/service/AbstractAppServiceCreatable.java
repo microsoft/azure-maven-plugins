@@ -5,9 +5,9 @@
  */
 package com.microsoft.azure.toolkits.appservice.service;
 
+import com.microsoft.azure.toolkits.appservice.model.AppServicePlan;
 import com.microsoft.azure.toolkits.appservice.model.PricingTier;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
-import com.microsoft.azure.toolkits.appservice.model.AppServicePlan;
 import com.microsoft.azure.tools.common.model.Region;
 import com.microsoft.azure.tools.common.model.ResourceGroup;
 import com.microsoft.azure.tools.common.model.Subscription;
@@ -40,20 +40,26 @@ public abstract class AbstractAppServiceCreatable<T> implements AppServiceCreata
     }
 
     @Override
-    public WithResourceGroup<T> withSubscription(Subscription subscription) {
-        this.subscription = subscription;
+    public WithResourceGroup<T> withSubscription(String subscriptionId) {
+        this.subscription = Subscription.builder().id(subscriptionId).build();
         return this;
     }
 
     @Override
-    public WithAppServicePlan<T> withResourceGroup(ResourceGroup resourceGroup) {
-        this.resourceGroup = resourceGroup;
+    public WithAppServicePlan<T> withResourceGroup(String resourceGroupName) {
+        this.resourceGroup = ResourceGroup.builder().name(resourceGroupName).build();
         return this;
     }
 
     @Override
-    public WithRuntime<T> withAppServicePlan(AppServicePlan appServicePlan) {
-        this.appServicePlan = appServicePlan;
+    public WithRuntime<T> withAppServicePlan(String appServicePlanId) {
+        this.appServicePlan = AppServicePlan.builder().id(appServicePlanId).build();
+        return this;
+    }
+
+    @Override
+    public WithRuntime<T> withAppServicePlan(String resourceGroup, String planName) {
+        this.appServicePlan = AppServicePlan.builder().resourceGroup(resourceGroup).name(planName).build();
         return this;
     }
 

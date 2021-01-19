@@ -7,24 +7,23 @@ package com.microsoft.azure.toolkits.appservice.service;
 
 import com.microsoft.azure.toolkits.appservice.model.PricingTier;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
-import com.microsoft.azure.toolkits.appservice.model.AppServicePlan;
 import com.microsoft.azure.tools.common.model.Region;
-import com.microsoft.azure.tools.common.model.ResourceGroup;
-import com.microsoft.azure.tools.common.model.Subscription;
 
 import java.util.Map;
 
 public interface AppServiceCreatable<T> {
     interface WithSubscription<T> {
-        WithResourceGroup<T> withSubscription(Subscription subscription);
+        WithResourceGroup<T> withSubscription(String subscriptionId);
     }
 
     interface WithResourceGroup<T> {
-        WithAppServicePlan<T> withResourceGroup(ResourceGroup resourceGroup);
+        WithAppServicePlan<T> withResourceGroup(String resourceGroupName);
     }
 
     interface WithAppServicePlan<T> {
-        WithRuntime<T> withAppServicePlan(AppServicePlan appServicePlan);
+        WithRuntime<T> withAppServicePlan(String appServicePlanId);
+
+        WithRuntime<T> withAppServicePlan(String resourceGroup, String planName);
     }
 
     interface WithRuntime<T> {

@@ -21,8 +21,14 @@ public abstract class AbstractAppServiceUpdatable<T> implements AppServiceUpdata
     private Optional<Map<String, String>> appSettings = null;
 
     @Override
-    public AppServiceUpdatable<T> withAppServicePlan(AppServicePlan appServicePlan) {
-        this.appServicePlan = Optional.of(appServicePlan);
+    public AppServiceUpdatable withAppServicePlan(String appServicePlanId) {
+        appServicePlan = Optional.of(AppServicePlan.builder().id(appServicePlanId).build());
+        return this;
+    }
+
+    @Override
+    public AppServiceUpdatable withAppServicePlan(String resourceGroup, String planName) {
+        appServicePlan = Optional.of(AppServicePlan.builder().resourceGroup(resourceGroup).name(planName).build());
         return this;
     }
 

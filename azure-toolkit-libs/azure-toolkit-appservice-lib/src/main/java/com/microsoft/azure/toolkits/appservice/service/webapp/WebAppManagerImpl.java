@@ -11,18 +11,19 @@ import com.azure.resourcemanager.appservice.models.JavaVersion;
 import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.WebApp.Update;
 import com.azure.resourcemanager.appservice.models.WebContainer;
-import com.microsoft.azure.toolkits.appservice.model.PublishingProfile;
-import com.microsoft.azure.toolkits.appservice.service.WebAppDeploymentSlotsManager;
-import com.microsoft.azure.toolkits.appservice.service.WebAppManager;
-import com.microsoft.azure.toolkits.appservice.service.deploymentslot.WebAppDeploymentSlotsManagerImpl;
 import com.microsoft.azure.toolkits.appservice.AppService;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
+import com.microsoft.azure.toolkits.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
 import com.microsoft.azure.toolkits.appservice.model.WebApp;
 import com.microsoft.azure.toolkits.appservice.service.AbstractAppServiceUpdatable;
+import com.microsoft.azure.toolkits.appservice.service.WebAppDeploymentSlotsManager;
+import com.microsoft.azure.toolkits.appservice.service.WebAppManager;
+import com.microsoft.azure.toolkits.appservice.service.deploymentslot.WebAppDeploymentSlotsManagerImpl;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.util.Objects;
 
 public class WebAppManagerImpl implements WebAppManager {
 
@@ -101,7 +102,7 @@ public class WebAppManagerImpl implements WebAppManager {
         if (webAppService == null || force) {
             this.webAppService = StringUtils.isEmpty(webApp.getId()) ?
                     azureResourceManager.webApps().getById(webApp.getId()) :
-                    azureResourceManager.webApps().getByResourceGroup(webApp.getResourceGroup().getName(), webApp.getName());
+                    azureResourceManager.webApps().getByResourceGroup(webApp.getResourceGroup(), webApp.getName());
             this.webApp = WebApp.createFromWebAppBase(webAppService);
         }
         return webAppService;
@@ -131,8 +132,9 @@ public class WebAppManagerImpl implements WebAppManager {
         }
 
         private Update updateAppServicePlan(Update update, com.microsoft.azure.toolkits.appservice.model.AppServicePlan newServicePlan) {
-            final com.microsoft.azure.toolkits.appservice.model.AppServicePlan currentServicePlan = WebAppManagerImpl.this.webApp.getAppServicePlan();
-            if (com.microsoft.azure.toolkits.appservice.model.AppServicePlan.equals(currentServicePlan, newServicePlan)) {
+            com.microsoft.azure.toolkits.appservice.model.AppServicePlan currentServicePlan =
+                    appService.appServicePlan(getWebAppService().appServicePlanId()).get();
+            if (Objects.equals(currentServicePlan, newServicePlan)) {
                 return update;
             }
             final AppServicePlan newPlanServiceModel = appService.appServicePlan(newServicePlan).getPlanService();
@@ -155,7 +157,8 @@ public class WebAppManagerImpl implements WebAppManager {
                 case WINDOWS:
                     final Runtime.Windows windows = (Runtime.Windows) newRuntime;
                     final JavaVersion javaVersion = com.microsoft.azure.toolkits.appservice.model.JavaVersion.convertToServiceModel(windows.getJavaVersion());
-                    final WebContainer webContainer = com.microsoft.azure.toolkits.appservice.model.WebContainer.convertToServiceModel(windows.getWebContainer());
+                    final WebContainer webContainer =
+                            com.microsoft.azure.toolkits.appservice.model.WebContainer.convertToServiceModel(windows.getWebContainer());
                     return (Update) update.withJavaVersion(javaVersion).withWebContainer(webContainer);
                 case DOCKER:
                     final Runtime.Docker docker = (Runtime.Docker) newRuntime;
