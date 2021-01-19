@@ -4,10 +4,11 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.appservice.model;
+package com.microsoft.azure.toolkits.appservice.model;
 
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
+import com.microsoft.azure.toolkits.appservice.utils.ConvertUtils;
 import com.microsoft.azure.tools.common.model.Region;
 import com.microsoft.azure.tools.common.model.ResourceGroup;
 import com.microsoft.azure.tools.common.model.Subscription;
@@ -36,6 +37,7 @@ public class WebApp {
                 .subscription(Subscription.builder().id(webAppBase.id()).build())
                 .runtime(Runtime.createFromServiceInstance(webAppBase))
                 .appServicePlan(AppServicePlan.builder().id(webAppBase.appServicePlanId()).build())
+                .appSettings(ConvertUtils.normalizeAppSettings(webAppBase.getAppSettings()))
                 .build();
     }
 
