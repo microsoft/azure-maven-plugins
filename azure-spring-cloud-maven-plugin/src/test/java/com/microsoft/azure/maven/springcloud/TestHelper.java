@@ -113,7 +113,10 @@ public class TestHelper {
 
     private static SpringCloudClusterEntity createMockAppClusterResourceInner(String name) {
         final ServiceResourceInner mockResource = mock(ServiceResourceInner.class);
+        final String id = "https://ms.portal.azure.com/#@microsoft.onmicrosoft.com/resource/" +
+            "subscriptions/demoSubscriptionId/resourceGroups/demoResourceGroup/providers/Microsoft.AppPlatform/Spring/" + name;
         when(mockResource.name()).thenReturn(name);
+        when(mockResource.id()).thenReturn(id);
         return SpringCloudClusterEntity.fromResource(mockResource);
     }
 

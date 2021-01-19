@@ -18,6 +18,7 @@ import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudClusterManager;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
@@ -65,7 +66,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.security.*"})
 @PrepareForTest({AzureAuthHelper.class, AppInsightHelper.class, TelemetryClient.class, ConfigMojo.class, AbstractMojoBase.class, Azure.class,
-    ServiceResourceInner.class, ProxyResource.class, SpringCloudClusterManager.class, ConfigurationUpdater.class})
+    ServiceResourceInner.class, ProxyResource.class, SpringCloudClusterManager.class, ConfigurationUpdater.class, AzureSpringCloud.class})
 public class ConfigMojoTest {
     @Rule
     private MojoRule rule = new MojoRule();
