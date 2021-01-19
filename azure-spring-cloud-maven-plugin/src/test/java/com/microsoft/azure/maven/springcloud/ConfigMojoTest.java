@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.ProxyResource;
 import com.microsoft.azure.auth.AzureAuthHelper;
 import com.microsoft.azure.auth.AzureTokenWrapper;
@@ -17,9 +18,10 @@ import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudClusterManager;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
-import com.microsoft.azure.tools.springcloud.AppConfig;
-import com.microsoft.azure.tools.springcloud.ServiceClient;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Model;
@@ -63,7 +65,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.security.*"})
 @PrepareForTest({AzureAuthHelper.class, AppInsightHelper.class, TelemetryClient.class, ConfigMojo.class, AbstractMojoBase.class, Azure.class,
-    ServiceResourceInner.class, ProxyResource.class, ServiceClient.class, ConfigurationUpdater.class})
+    ServiceResourceInner.class, ProxyResource.class, SpringCloudClusterManager.class, ConfigurationUpdater.class})
 public class ConfigMojoTest {
     @Rule
     private MojoRule rule = new MojoRule();
@@ -111,6 +113,7 @@ public class ConfigMojoTest {
 
         mockStatic(AzureAuthHelper.class);
         final AzureTokenWrapper mockTokenCred = mock(AzureTokenWrapper.class);
+        when(mockTokenCred.environment()).thenReturn(AzureEnvironment.AZURE);
         when(AzureAuthHelper.getAzureTokenCredentials(null)).thenReturn(mockTokenCred);
 
         reader = mock(BufferedReader.class);
@@ -119,7 +122,7 @@ public class ConfigMojoTest {
 
         PowerMockito.mockStatic(ConfigurationUpdater.class);
         PowerMockito.doNothing().when(ConfigurationUpdater.class, "updateAppConfigToPom",
-            any(AppConfig.class), any(MavenProject.class), any(PluginDescriptor.class));
+            any(SpringCloudAppConfig.class), any(MavenProject.class), any(PluginDescriptor.class));
 
     }
 
@@ -205,10 +208,10 @@ public class ConfigMojoTest {
     public void testSelectNoSubscription() throws Exception {
         initializeParentChildModel();
 
-        final ServiceClient mockServiceClient = mock(ServiceClient.class);
-        final List<ServiceResourceInner> serviceList = TestHelper.createServiceList();
-        when(mockServiceClient.getAvailableClusters()).thenReturn(serviceList);
-        whenNew(ServiceClient.class).withAnyArguments().thenReturn(mockServiceClient);
+        final SpringCloudClusterManager mockClusterService = mock(SpringCloudClusterManager.class);
+        final List<SpringCloudClusterEntity> serviceList = TestHelper.createServiceList();
+        when(mockClusterService.getAll()).thenReturn(serviceList);
+        whenNew(SpringCloudClusterManager.class).withAnyArguments().thenReturn(mockClusterService);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(0));
 
         try {
@@ -222,10 +225,10 @@ public class ConfigMojoTest {
     public void testAcceptDefault() throws Exception {
         initializeParentChildModel();
 
-        final ServiceClient mockServiceClient = mock(ServiceClient.class);
-        final List<ServiceResourceInner> serviceList = TestHelper.createServiceList();
-        when(mockServiceClient.getAvailableClusters()).thenReturn(serviceList);
-        whenNew(ServiceClient.class).withAnyArguments().thenReturn(mockServiceClient);
+        final SpringCloudClusterManager mockClusterService = mock(SpringCloudClusterManager.class);
+        final List<SpringCloudClusterEntity> serviceList = TestHelper.createServiceList();
+        when(mockClusterService.getAll()).thenReturn(serviceList);
+        whenNew(SpringCloudClusterManager.class).withAnyArguments().thenReturn(mockClusterService);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
 
         when(reader.readLine()).thenReturn("1-2").thenReturn("2").thenReturn("");
@@ -243,10 +246,10 @@ public class ConfigMojoTest {
     public void testSingleProjectInParent() throws Exception {
         initializeParentChildModel();
 
-        final ServiceClient mockServiceClient = mock(ServiceClient.class);
-        final List<ServiceResourceInner> serviceList = TestHelper.createServiceList();
-        when(mockServiceClient.getAvailableClusters()).thenReturn(serviceList);
-        whenNew(ServiceClient.class).withAnyArguments().thenReturn(mockServiceClient);
+        final SpringCloudClusterManager mockClusterService = mock(SpringCloudClusterManager.class);
+        final List<SpringCloudClusterEntity> serviceList = TestHelper.createServiceList();
+        when(mockClusterService.getAll()).thenReturn(serviceList);
+        whenNew(SpringCloudClusterManager.class).withAnyArguments().thenReturn(mockClusterService);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
         // 1. select project(service);
         // 2. select subscription
@@ -272,10 +275,10 @@ public class ConfigMojoTest {
         whenNew(PluginParameterExpressionEvaluator.class).withAnyArguments().thenReturn(pluginParameterExpressionEvaluator);
         mojo.project = TestHelper.createChildProject("service");
 
-        final ServiceClient mockServiceClient = mock(ServiceClient.class);
-        final List<ServiceResourceInner> serviceList = TestHelper.createServiceList();
-        when(mockServiceClient.getAvailableClusters()).thenReturn(serviceList);
-        whenNew(ServiceClient.class).withAnyArguments().thenReturn(mockServiceClient);
+        final SpringCloudClusterManager mockClusterService = mock(SpringCloudClusterManager.class);
+        final List<SpringCloudClusterEntity> serviceList = TestHelper.createServiceList();
+        when(mockClusterService.getAll()).thenReturn(serviceList);
+        whenNew(SpringCloudClusterManager.class).withAnyArguments().thenReturn(mockClusterService);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
         // 1. for subs
         // 2. cluster
@@ -307,10 +310,10 @@ public class ConfigMojoTest {
         whenNew(PluginParameterExpressionEvaluator.class).withAnyArguments().thenReturn(pluginParameterExpressionEvaluator);
         mojo.project = TestHelper.createChildProject("service");
 
-        final ServiceClient mockServiceClient = mock(ServiceClient.class);
-        final List<ServiceResourceInner> serviceList = TestHelper.createServiceList();
-        when(mockServiceClient.getAvailableClusters()).thenReturn(serviceList);
-        whenNew(ServiceClient.class).withAnyArguments().thenReturn(mockServiceClient);
+        final SpringCloudClusterManager mockClusterService = mock(SpringCloudClusterManager.class);
+        final List<SpringCloudClusterEntity> serviceList = TestHelper.createServiceList();
+        when(mockClusterService.getAll()).thenReturn(serviceList);
+        whenNew(SpringCloudClusterManager.class).withAnyArguments().thenReturn(mockClusterService);
         TestHelper.mockAzureWithSubs(TestHelper.createMockSubscriptions(2));
         // 1. for subs
         // 2. cluster

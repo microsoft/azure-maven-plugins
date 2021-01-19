@@ -16,7 +16,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class SpringCloudAppDeploymentSettingsTest {
+public class SpringCloudDeploymentRawConfigTest {
     @Test
     public void testSetCpu() {
         final AppDeploymentRawConfig deploy = new AppDeploymentRawConfig();

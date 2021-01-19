@@ -131,10 +131,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
         </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
         <!-- maven expressing evaluation -->
         <!--        <dependency>-->
         <!--            <groupId>org.eclipse.sisu</groupId>-->
@@ -227,7 +223,7 @@
                             <goal>analyze-only</goal>
                         </goals>
                         <configuration>
-                            <failOnWarning>true</failOnWarning>
+                            <failOnWarning>false</failOnWarning>
                             <ignoreNonCompile>true</ignoreNonCompile>
                             <ignoredDependencies>
                                 <ignoredDependency>org.eclipse.sisu:org.eclipse.sisu.plexus</ignoredDependency>
