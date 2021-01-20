@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudRuntimeVersion;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
 import com.microsoft.azure.tools.utils.RxUtils;
 import lombok.Getter;
@@ -105,9 +105,9 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
             return this;
         }
 
-        public Updater configRuntimeVersion(SpringCloudRuntimeVersion version) {
+        public Updater configRuntimeVersion(String version) {
             final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
-            settings.withRuntimeVersion(RuntimeVersion.fromString(version.toString()));
+            settings.withRuntimeVersion(RuntimeVersion.fromString(version));
             return this;
         }
 

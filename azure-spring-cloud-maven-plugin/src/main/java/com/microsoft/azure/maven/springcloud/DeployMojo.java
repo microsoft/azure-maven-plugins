@@ -17,7 +17,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudRuntimeVersion;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import com.microsoft.azure.tools.utils.RxUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -89,7 +89,7 @@ public class DeployMojo extends AbstractMojoBase {
         final Map<String, String> env = deploymentConfig.getEnvironment();
         final String jvmOptions = deploymentConfig.getJvmOptions();
         final ScaleSettings scaleSettings = deploymentConfig.getScaleSettings();
-        final SpringCloudRuntimeVersion runtimeVersion = deploymentConfig.getJavaVersion();
+        final String runtimeVersion = deploymentConfig.getJavaVersion();
         final String deploymentName = Optional.ofNullable(deploymentConfig.getDeploymentName()).orElse("default");
 
         final AzureSpringCloud az = AzureSpringCloud.az(this.getClient());

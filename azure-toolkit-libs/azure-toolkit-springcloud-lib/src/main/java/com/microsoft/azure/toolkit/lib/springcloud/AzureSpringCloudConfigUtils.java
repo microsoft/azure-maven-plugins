@@ -34,7 +34,7 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.UserSourceType;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudRuntimeVersion;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +57,7 @@ public class AzureSpringCloudConfigUtils {
     private static final int DEFAULT_SKU_CAPACITY = 1;
     private static final int DEFAULT_MEMORY_IN_GB = 1;
 
-    private static final SpringCloudRuntimeVersion DEFAULT_RUNTIME_VERSION = SpringCloudRuntimeVersion.JAVA_8;
+    private static final String DEFAULT_RUNTIME_VERSION = SpringCloudJavaVersion.JAVA_8;
 
     private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11)$";
     private static final int TIMEOUT_SCALING = 60; // Use same timeout as service
@@ -90,14 +90,14 @@ public class AzureSpringCloudConfigUtils {
         return isInstanceDeployed && isInstanceDiscovered;
     }
 
-    public static SpringCloudRuntimeVersion parse(String runtimeVersion) {
+    public static String normalize(String runtimeVersion) {
         if (StringUtils.isEmpty(runtimeVersion)) {
             return DEFAULT_RUNTIME_VERSION;
         }
         final String fixedRuntimeVersion = StringUtils.trim(runtimeVersion);
         final Matcher matcher = Pattern.compile(RUNTIME_VERSION_PATTERN).matcher(fixedRuntimeVersion);
         if (matcher.matches()) {
-            return Objects.equals(matcher.group(3), "8") ? SpringCloudRuntimeVersion.JAVA_8 : SpringCloudRuntimeVersion.JAVA_11;
+            return Objects.equals(matcher.group(3), "8") ? SpringCloudJavaVersion.JAVA_8 : SpringCloudJavaVersion.JAVA_11;
         } else {
             Log.warn(String.format("%s is not a valid runtime version, supported values are Java 8 and Java 11," +
                 " using Java 8 in this deployment.", fixedRuntimeVersion));
