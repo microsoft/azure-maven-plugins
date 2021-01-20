@@ -23,39 +23,35 @@ import com.microsoft.azure.tools.auth.model.AuthType;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import rx.Single;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class AzureAuthManager {
     public static Single<AzureCredentialWrapper> getAzureCredentialWrapper(AuthConfiguration configuration) {
         AuthConfiguration auth = MoreObjects.firstNonNull(configuration, new AuthConfiguration());
         AuthHelper.setupAzureEnvironment(auth.getEnvironment());
-        ChainedCredentialRetriever retrievers = new ChainedCredentialRetriever();
+        ChainedCredentialRetriever chainedCredentialRetriever = new ChainedCredentialRetriever();
         AuthType authType = MoreObjects.firstNonNull(auth.getType(), AuthType.AUTO);
-        Map<AuthType, ICredentialRetriever> retrieverMap = buildCredentialRetrievers(configuration);
+        Map<AuthType, ICredentialRetriever> allRetrievers = buildCredentialRetrievers(configuration);
         if (authType.equals(AuthType.AUTO)) {
-            retrievers.addRetriever(retrieverMap.get(AuthType.SERVICE_PRINCIPAL));
-            retrievers.addRetriever(retrieverMap.get(AuthType.MANAGED_IDENTITY));
-            retrievers.addRetriever(retrieverMap.get(AuthType.AZURE_CLI));
-            retrievers.addRetriever(retrieverMap.get(AuthType.VSCODE));
-            retrievers.addRetriever(retrieverMap.get(AuthType.VISUAL_STUDIO));
-            retrievers.addRetriever(retrieverMap.get(AuthType.OAUTH2));
-            retrievers.addRetriever(retrieverMap.get(AuthType.DEVICE_CODE));
+            for (ICredentialRetriever retriever : allRetrievers.values()) {
+                chainedCredentialRetriever.addRetriever(retriever);
+            }
         } else {
             // for specific auth type:
-            if (!retrieverMap.containsKey(authType)) {
+            if (!allRetrievers.containsKey(authType)) {
                 return Single.error(new UnsupportedOperationException(String.format("authType '%s' not supported.", authType)));
             }
-            retrievers.addRetriever(retrieverMap.get(authType));
+            chainedCredentialRetriever.addRetriever(allRetrievers.get(authType));
         }
-        return retrievers.retrieve().onErrorResumeNext(e ->
+        return chainedCredentialRetriever.retrieve().onErrorResumeNext(e ->
                 Single.error(new LoginFailureException(String.format("Cannot get credentials from authType '%s' due to error: %s", authType, e.getMessage())))
         );
     }
 
     private static Map<AuthType, ICredentialRetriever> buildCredentialRetrievers(AuthConfiguration auth) {
         AzureEnvironment env = auth.getEnvironment();
-        Map<AuthType, ICredentialRetriever> map = new HashMap<>();
+        Map<AuthType, ICredentialRetriever> map = new LinkedHashMap<>();
         map.put(AuthType.SERVICE_PRINCIPAL, new ServicePrincipalCredentialRetriever(auth, env));
         map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityCredentialRetriever(env));
         map.put(AuthType.AZURE_CLI, new AzureCliCredentialRetriever(env));
