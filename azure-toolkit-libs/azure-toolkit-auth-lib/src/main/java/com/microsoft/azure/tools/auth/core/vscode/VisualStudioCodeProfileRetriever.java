@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.core.profile;
+package com.microsoft.azure.tools.auth.core.vscode;
 
 import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.implementation.VisualStudioCacheAccessor;
@@ -12,11 +12,11 @@ import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
-import com.microsoft.azure.tools.auth.model.VisualStudioCodeAccountProfile;
 import com.sun.jna.Platform;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,23 +32,19 @@ public class VisualStudioCodeProfileRetriever {
     private static final String CLOUD = "cloud";
     private static final String AZURE_RESOURCE_FILTER = "azure.resourceFilter";
 
-    public static VisualStudioCodeAccountProfile getProfile() {
-        try {
-            VisualStudioCacheAccessor accessor = new VisualStudioCacheAccessor();
+    public static VisualStudioCodeAccountProfile getProfile() throws CredentialUnavailableException, InvalidConfigurationException {
+        VisualStudioCacheAccessor accessor = new VisualStudioCacheAccessor();
 
-            JsonNode userSettings = getUserSettings();
-            if (Objects.isNull(userSettings)) {
-                return null;
-            }
-            Map<String, String> details = getUserSettingsDetails(userSettings);
-            String cloud = details.get(CLOUD);
-            if (StringUtils.isBlank(accessor.getCredentials("VS Code Azure", cloud))) {
-                return null;
-            }
-            return getVsCodeAccountProfile(userSettings, cloud);
-        } catch (CredentialUnavailableException | InvalidConfigurationException exception) {
+        JsonNode userSettings = getUserSettings();
+        if (Objects.isNull(userSettings)) {
             return null;
         }
+        Map<String, String> details = getUserSettingsDetails(userSettings);
+        String cloud = details.get(CLOUD);
+        if (StringUtils.isBlank(accessor.getCredentials("VS Code Azure", cloud))) {
+            return null;
+        }
+        return getVsCodeAccountProfile(userSettings, cloud);
     }
 
     private static Map<String, String> getUserSettingsDetails(JsonNode userSettings) {
@@ -83,7 +79,8 @@ public class VisualStudioCodeProfileRetriever {
     }
 
     /**
-     * Code copied from https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/identity/azure-identity/src/main/java/com/azure/identity/implementation/VisualStudioCacheAccessor.java#L32
+     * Code copied from https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/identity/azure-identity/src/
+     * main/java/com/azure/identity/implementation/VisualStudioCacheAccessor.java#L32
      * , since it doesn't support profile, we need to get the setting for user
      * selected subscription
      */
@@ -108,11 +105,10 @@ public class VisualStudioCodeProfileRetriever {
                 throw new CredentialUnavailableException(PLATFORM_NOT_SUPPORTED_ERROR);
             }
             File settingsFile = new File(settingsPath);
-            output = mapper.readTree(settingsFile);
-        } catch (Exception e) {
+            return mapper.readTree(settingsFile);
+        } catch (IOException e) {
             return null;
         }
-        return output;
     }
 }
 

@@ -4,13 +4,13 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.core;
+package com.microsoft.azure.tools.auth.core.serviceprincipal;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthConfiguration;
@@ -31,7 +31,8 @@ public class ServicePrincipalCredentialRetriever extends AbstractCredentialRetri
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         if (auth == null) {
-            throw new LoginFailureException("There are no auth configurations, please refer to https://github.com/microsoft/azure-maven-plugins/wiki/Authentication");
+            throw new LoginFailureException("There are no auth configurations, " +
+                    "please refer to https://github.com/microsoft/azure-maven-plugins/wiki/Authentication");
         }
         try {
             ValidationUtil.validateMavenAuthConfiguration(auth);
@@ -42,8 +43,6 @@ public class ServicePrincipalCredentialRetriever extends AbstractCredentialRetri
     }
 
     private AzureCredentialWrapper mavenSettingLogin(AuthMethod method, AuthConfiguration configuration) throws LoginFailureException {
-        env = AuthHelper.parseAzureEnvironment(auth.getEnvironment());
-        AuthHelper.setupAzureEnvironment(env);
         TokenCredential clientSecretCredential = StringUtils.isNotBlank(configuration.getCertificate()) ?
                 new ClientCertificateCredentialBuilder().clientId(configuration.getClient())
                 .pfxCertificate(configuration.getCertificate(), configuration.getCertificatePassword())

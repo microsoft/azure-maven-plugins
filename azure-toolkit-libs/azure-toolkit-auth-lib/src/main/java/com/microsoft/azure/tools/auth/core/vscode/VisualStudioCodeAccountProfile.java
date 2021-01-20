@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.model;
+package com.microsoft.azure.tools.auth.core.vscode;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,10 +13,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @AllArgsConstructor
-public class AzureCliAccountProfile {
-    private String tenantId;
+public class VisualStudioCodeAccountProfile {
     private String environment;
-    private String userName;
-    private String userType;
-    private String subscriptionId;
+    private String[] filteredSubscriptions;
 }

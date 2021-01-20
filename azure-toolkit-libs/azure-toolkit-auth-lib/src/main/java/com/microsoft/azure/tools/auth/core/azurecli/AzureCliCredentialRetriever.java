@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.core;
+package com.microsoft.azure.tools.auth.core.azurecli;
 
 import com.azure.identity.AzureCliCredential;
 import com.azure.identity.AzureCliCredentialBuilder;
@@ -12,9 +12,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
-import com.microsoft.azure.tools.auth.model.AzureCliAccountProfile;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.common.exception.CommandExecuteException;
 import com.microsoft.azure.tools.common.util.CommandUtil;
@@ -22,6 +22,7 @@ import com.microsoft.azure.tools.common.util.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
     private static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
@@ -31,29 +32,26 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
     }
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
-        AzureCliAccountProfile accountInfo = getProfile();
-        if (accountInfo == null) {
-            throw new LoginFailureException("Please run `az login` to login your Azure Cli.");
-        }
-        AzureEnvironment envFromCli = AuthHelper.parseAzureEnvironment(accountInfo.getEnvironment());
-        if (envFromCli != null && env != null && envFromCli != env) {
-            throw new LoginFailureException(String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration: %s, " +
-                            "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
-                    AuthHelper.getAzureCloudDisplayName(envFromCli),
-                    AuthHelper.getAzureCloudDisplayName(env),
-                    AuthHelper.getAzureCloudName(env)));
-        }
-        this.env = envFromCli;
-        AuthHelper.setupAzureEnvironment(env);
         AzureCliCredential cliCredential = new AzureCliCredentialBuilder().build();
         validateTokenCredential(cliCredential);
+        AzureCliAccountProfile accountInfo = getProfile();
+        checkAzureEnvironmentConflict(env, AuthHelper.stringToAzureEnvironment(accountInfo.getEnvironment()));
         return new AzureCredentialWrapper(
                 isInCloudShell() ? AuthMethod.CLOUD_SHELL : AuthMethod.AZURE_CLI, cliCredential, getAzureEnvironment())
                 .withDefaultSubscriptionId(accountInfo.getSubscriptionId())
                 .withTenantId(accountInfo.getTenantId());
     }
 
-    private static AzureCliAccountProfile getProfile() {
+    private static void checkAzureEnvironmentConflict(AzureEnvironment env, AzureEnvironment envCli) throws LoginFailureException {
+        if (env != null && envCli != null && !Objects.equals(env, envCli)) {
+            throw new LoginFailureException(String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
+                            "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
+                    AuthHelper.azureEnvironmentToString(envCli),
+                    AuthHelper.getCloudNameForAzureCli(env)));
+        }
+    }
+
+    private static AzureCliAccountProfile getProfile() throws LoginFailureException {
         final String accountInfo;
         try {
             accountInfo = CommandUtil.executeCommandAndGetOutput("az account show", null);
@@ -64,9 +62,9 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
             String userName = accountObject.get("user").getAsJsonObject().get("name").getAsString();
             String userType = accountObject.get("user").getAsJsonObject().get("type").getAsString();
             return new AzureCliAccountProfile(tenantId, environment, userName, userType, subscriptionId);
-        } catch (InterruptedException | IOException | JsonParseException | CommandExecuteException | NullPointerException e) {
-            // Return null when azure cli is not signed in
-            return null;
+        } catch (InterruptedException | IOException | CommandExecuteException | JsonParseException | NullPointerException ex) {
+            throw new LoginFailureException(String.format("Cannot get account info from azure cli through `az account show`, " +
+                            "please run `az login` to login your Azure Cli, detailed error: %s", ex.getMessage()));
         }
     }
 
