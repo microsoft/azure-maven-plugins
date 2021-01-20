@@ -139,12 +139,29 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         public SpringCloudDeployment commit() {
+            // FIXME: start workaround for bug: can not scale when updating other properties
+            final ScaleSettings scaleSettings = AzureSpringCloudConfigUtils.getScaleSettings(this.resource);
+            if (Objects.nonNull(scaleSettings) && !AzureSpringCloudConfigUtils.isEmpty(scaleSettings)) {
+                this.scale(scaleSettings);
+            }
+            // end workaround;
             if (Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.sku())) {
                 log.info("skip updating deployment({}) since its properties is not changed.", this.deployment.entity().getName());
                 return this.deployment;
             }
             this.deployment.remote = this.deployment.deploymentManager.update(this.resource, this.deployment.entity());
             return this.deployment.start();
+        }
+
+        private void scale(@Nonnull ScaleSettings scaleSettings) {
+            log.info("begin scaling deployment({})", this.deployment.entity().getName());
+            final DeploymentResourceInner tempResource = new DeploymentResourceInner();
+            AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(tempResource, this.deployment)
+                .withCpu(scaleSettings.getCpu()).withMemoryInGB(scaleSettings.getMemoryInGB());
+            AzureSpringCloudConfigUtils.getOrCreateSku(tempResource, this.deployment)
+                .withCapacity(scaleSettings.getCapacity());
+            this.deployment.remote = this.deployment.deploymentManager.update(tempResource, this.deployment.entity());
+            log.info("successfully scaled deployment({})", this.deployment.entity().getName());
         }
     }
 
