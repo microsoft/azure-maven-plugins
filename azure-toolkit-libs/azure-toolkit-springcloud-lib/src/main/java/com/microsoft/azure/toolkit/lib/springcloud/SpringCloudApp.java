@@ -7,7 +7,6 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.management.appplatform.v2020_07_01.AppResourceProperties;
 import com.microsoft.azure.management.appplatform.v2020_07_01.PersistentDisk;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
@@ -17,10 +16,14 @@ import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntit
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudAppManager;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.Optional;
 
+@Slf4j
 public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity> {
     @Getter
     private final SpringCloudCluster cluster;
@@ -113,30 +116,40 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         }
 
         public Updater activate(String deploymentName) {
-            final AppResourceProperties properties = AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app);
-            properties.withActiveDeploymentName(deploymentName);
+            final String oldDeploymentName = Optional.ofNullable(this.app.remote).map(e -> e.getInner().properties().activeDeploymentName()).orElse(null);
+            if (StringUtils.isNoneEmpty(deploymentName) && !Objects.equals(oldDeploymentName, deploymentName)) {
+                AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
+                    .withActiveDeploymentName(deploymentName);
+            }
             return this;
         }
 
         public Updater setPublic(Boolean isPublic) {
-            final AppResourceProperties properties = AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app);
-            properties.withPublicProperty(isPublic);
+            final Boolean oldPublic = Optional.ofNullable(this.app.remote).map(e -> e.getInner().properties().publicProperty()).orElse(null);
+            if (Objects.nonNull(isPublic) && !Objects.equals(oldPublic, isPublic)) {
+                AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
+                    .withPublicProperty(isPublic);
+            }
             return this;
         }
 
         public Updater enablePersistentDisk(Boolean enable) {
-            final AppResourceProperties properties = AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app);
-            if (enable) {
-                final PersistentDisk disk = AzureSpringCloudConfigUtils.getPersistentDiskOrDefault(this.app.local.getInner().properties());
-                properties.withPersistentDisk(disk);
-            } else {
-                properties.withPersistentDisk(null);
+            final boolean enabled = Optional.ofNullable(this.app.remote).map(e -> e.getInner().properties().persistentDisk())
+                .filter(d -> d.sizeInGB() > 0).isPresent();
+            if (Objects.nonNull(enable) && !Objects.equals(enable, enabled)) {
+                final PersistentDisk newDisk = enable ? AzureSpringCloudConfigUtils.getOrCreatePersistentDisk(this.resource, this.app) : null;
+                AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
+                    .withPersistentDisk(newDisk);
             }
             return this;
         }
 
         public SpringCloudApp commit() {
-            this.app.remote = this.app.appManager.update(this.resource, this.app.entity());
+            if (Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.location())) {
+                log.info("skip updating app({}) since its properties is not changed.", this.app.entity().getName());
+            } else {
+                this.app.remote = this.app.appManager.update(this.resource, this.app.entity());
+            }
             return this.app;
         }
     }

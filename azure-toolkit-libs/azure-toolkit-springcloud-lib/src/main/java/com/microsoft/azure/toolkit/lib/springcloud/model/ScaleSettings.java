@@ -23,10 +23,12 @@
 package com.microsoft.azure.toolkit.lib.springcloud.model;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @Builder
+@EqualsAndHashCode
 public class ScaleSettings {
     private final Integer cpu;
     private final Integer memoryInGB;

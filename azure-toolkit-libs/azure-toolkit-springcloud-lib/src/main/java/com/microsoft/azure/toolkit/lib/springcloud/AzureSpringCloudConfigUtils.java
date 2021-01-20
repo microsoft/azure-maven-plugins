@@ -34,6 +34,7 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.UserSourceType;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
+import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -47,15 +48,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AzureSpringCloudConfigUtils {
-    private static final String DEFAULT_SKU_NAME = "S0";
-    private static final String DEFAULT_SKU_TIER = "Standard";
-    private static final String DEFAULT_DEPLOYMENT_NAME = "default";
-    private static final String DEFAULT_ARTIFACT_RELATIVE_PATH = "<default>";
-    private static final String DEFAULT_PERSISTENT_DISK_MOUNT_PATH = "/persistent";
+    public static final String DEFAULT_DEPLOYMENT_NAME = "default";
+    public static final String DEFAULT_ARTIFACT_RELATIVE_PATH = "<default>";
+    public static final String DEFAULT_PERSISTENT_DISK_MOUNT_PATH = "/persistent";
 
-    private static final int DEFAULT_PERSISTENT_DISK_SIZE = 50;
-    private static final int DEFAULT_SKU_CAPACITY = 1;
-    private static final int DEFAULT_MEMORY_IN_GB = 1;
+    public static final int DEFAULT_PERSISTENT_DISK_SIZE = 50;
+    public static final int DEFAULT_SKU_CAPACITY = 1;
+    public static final int DEFAULT_MEMORY_IN_GB = 1;
 
     private static final String DEFAULT_RUNTIME_VERSION = SpringCloudJavaVersion.JAVA_8;
 
@@ -63,12 +62,6 @@ public class AzureSpringCloudConfigUtils {
     private static final int TIMEOUT_SCALING = 60; // Use same timeout as service
     protected static final List<DeploymentResourceStatus> DEPLOYMENT_PROCESSING_STATUS =
         Arrays.asList(DeploymentResourceStatus.COMPILING, DeploymentResourceStatus.ALLOCATING, DeploymentResourceStatus.UPGRADING);
-
-    public static PersistentDisk getPersistentDiskOrDefault(AppResourceProperties appResourceProperties) {
-        final PersistentDisk disk = appResourceProperties.persistentDisk();
-        return disk == null || disk.sizeInGB() <= 0 ? new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE)
-            .withMountPath(DEFAULT_PERSISTENT_DISK_MOUNT_PATH) : disk;
-    }
 
     public static boolean isDeploymentDone(SpringCloudDeployment deployment) {
         if (deployment == null) {
@@ -115,6 +108,19 @@ public class AzureSpringCloudConfigUtils {
             resource.withProperties(properties);
         }
         return properties;
+    }
+
+    public static PersistentDisk getOrCreatePersistentDisk(
+        @Nonnull final AppResourceInner resource,
+        @Nonnull final SpringCloudApp app
+    ) {
+        final AppResourceProperties properties = getOrCreateProperties(resource, app);
+        PersistentDisk disk = properties.persistentDisk();
+        if (Objects.isNull(disk) || disk.sizeInGB() <= 0) {
+            disk = new PersistentDisk().withSizeInGB(DEFAULT_PERSISTENT_DISK_SIZE).withMountPath(DEFAULT_PERSISTENT_DISK_MOUNT_PATH);
+            properties.withPersistentDisk(disk);
+        }
+        return disk;
     }
 
     public static DeploymentResourceProperties getOrCreateProperties(
@@ -166,5 +172,20 @@ public class AzureSpringCloudConfigUtils {
             properties.withSource(source);
         }
         return source;
+    }
+
+    public static boolean isEmpty(ScaleSettings scale) {
+        return Objects.isNull(scale.getCapacity()) && Objects.isNull(scale.getMemoryInGB()) && Objects.isNull(scale.getCpu());
+    }
+
+    public static ScaleSettings getScaleSettings(DeploymentResourceInner inner) {
+        if (Objects.nonNull(inner)) {
+            return ScaleSettings.builder()
+                .cpu(inner.properties().deploymentSettings().cpu())
+                .memoryInGB(inner.properties().deploymentSettings().memoryInGB())
+                .capacity(inner.sku().capacity())
+                .build();
+        }
+        return null;
     }
 }

@@ -6,24 +6,25 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentSettings;
 import com.microsoft.azure.management.appplatform.v2020_07_01.RuntimeVersion;
-import com.microsoft.azure.management.appplatform.v2020_07_01.UserSourceInfo;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
 import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
 import com.microsoft.azure.tools.utils.RxUtils;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
+@Slf4j
 public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDeploymentEntity> {
     @Getter
     private final SpringCloudApp app;
@@ -86,38 +87,62 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         public Updater configEnvironmentVariables(Map<String, String> env) {
-            final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
-            settings.withEnvironmentVariables(env);
+            final Map<String, String> oldEnv = Optional.ofNullable(this.deployment.remote)
+                .map(e -> e.getInner().properties().deploymentSettings().environmentVariables()).orElse(null);
+            if (MapUtils.isNotEmpty(env) && !Objects.equals(env, oldEnv)) {
+                AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
+                    .withEnvironmentVariables(env);
+            }
             return this;
         }
 
         public Updater configJvmOptions(String jvmOptions) {
-            final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
-            settings.withJvmOptions(jvmOptions);
-            return this;
-        }
-
-        public Updater configScaleSettings(ScaleSettings scale) {
-            final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
-            final SkuInner sku = AzureSpringCloudConfigUtils.getOrCreateSku(this.resource, this.deployment);
-            settings.withCpu(scale.getCpu()).withMemoryInGB(scale.getMemoryInGB());
-            sku.withCapacity(scale.getCapacity());
+            final String oldJvmOptions = Optional.ofNullable(this.deployment.remote)
+                .map(e -> e.getInner().properties().deploymentSettings().jvmOptions()).orElse(null);
+            if (StringUtils.isNotEmpty(jvmOptions) && !Objects.equals(jvmOptions, oldJvmOptions)) {
+                AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
+                    .withJvmOptions(jvmOptions.trim());
+            }
             return this;
         }
 
         public Updater configRuntimeVersion(String version) {
-            final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
-            settings.withRuntimeVersion(RuntimeVersion.fromString(version));
+            final RuntimeVersion oldRuntimeVersion = Optional.ofNullable(this.deployment.remote)
+                .map(e -> e.getInner().properties().deploymentSettings().runtimeVersion()).orElse(null);
+            if (Objects.nonNull(version) && !Objects.equals(RuntimeVersion.fromString(version), oldRuntimeVersion)) {
+                AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
+                    .withRuntimeVersion(RuntimeVersion.fromString(version));
+            }
             return this;
         }
 
         public Updater configAppArtifactPath(String path) {
-            final UserSourceInfo source = AzureSpringCloudConfigUtils.getOrCreateSource(this.resource, this.deployment);
-            source.withRelativePath(path);
+            final String oldPath = Optional.ofNullable(this.deployment.remote)
+                .map(e -> e.getInner().properties().source().relativePath()).orElse(null);
+            if (Objects.nonNull(path) && !Objects.equals(path, oldPath)) {
+                AzureSpringCloudConfigUtils.getOrCreateSource(this.resource, this.deployment)
+                    .withRelativePath(path);
+            }
+            return this;
+        }
+
+        public Updater configScaleSettings(ScaleSettings newSettings) {
+            final ScaleSettings oldSettings = Optional.ofNullable(this.deployment.remote)
+                .map(SpringCloudDeploymentEntity::getInner).map(AzureSpringCloudConfigUtils::getScaleSettings).orElse(null);
+            if (!AzureSpringCloudConfigUtils.isEmpty(newSettings) && !Objects.equals(newSettings, oldSettings)) {
+                AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
+                    .withCpu(newSettings.getCpu()).withMemoryInGB(newSettings.getMemoryInGB());
+                AzureSpringCloudConfigUtils.getOrCreateSku(this.resource, this.deployment)
+                    .withCapacity(newSettings.getCapacity());
+            }
             return this;
         }
 
         public SpringCloudDeployment commit() {
+            if (Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.sku())) {
+                log.info("skip updating deployment({}) since its properties is not changed.", this.deployment.entity().getName());
+                return this.deployment;
+            }
             this.deployment.remote = this.deployment.deploymentManager.update(this.resource, this.deployment.entity());
             return this.deployment.start();
         }
