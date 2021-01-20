@@ -6,10 +6,9 @@
 package com.microsoft.azure.toolkits.appservice.service;
 
 import com.microsoft.azure.toolkits.appservice.model.PricingTier;
-import com.microsoft.azure.toolkits.appservice.service.serviceplan.AppServicePlan;
 
 public interface IAppServicePlanUpdater {
     IAppServicePlanUpdater withPricingTier(PricingTier pricingTier);
 
-    AppServicePlan apply();
+    IAppServicePlan commit();
 }

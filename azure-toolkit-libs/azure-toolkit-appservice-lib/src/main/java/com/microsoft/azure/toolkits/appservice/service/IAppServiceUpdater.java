@@ -11,9 +11,9 @@ import com.microsoft.azure.toolkits.appservice.model.Runtime;
 import java.util.Map;
 
 public interface IAppServiceUpdater<T> {
-    IAppServiceUpdater<T> withAppServicePlan(String appServicePlanId);
+    IAppServiceUpdater<T> withPlan(String appServicePlanId);
 
-    IAppServiceUpdater<T> withAppServicePlan(String resourceGroup, String planName);
+    IAppServiceUpdater<T> withPlan(String resourceGroup, String planName);
 
     IAppServiceUpdater<T> withRuntime(Runtime runtime);
 
@@ -21,5 +21,5 @@ public interface IAppServiceUpdater<T> {
 
     IAppServiceUpdater<T> withAppSettings(Map<String, String> appSettings);
 
-    T apply();
+    T commit();
 }

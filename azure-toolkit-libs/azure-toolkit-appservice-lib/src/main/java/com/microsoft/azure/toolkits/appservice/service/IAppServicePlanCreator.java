@@ -6,10 +6,8 @@
 package com.microsoft.azure.toolkits.appservice.service;
 
 
-import com.azure.resourcemanager.appservice.models.AppServicePlan;
-
 public interface IAppServicePlanCreator {
     IAppServicePlanCreator withResourceGroup(String name);
 
-    AppServicePlan create();
+    IAppServicePlan create();
 }

@@ -6,9 +6,7 @@
 package com.microsoft.azure.toolkits.appservice.service;
 
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
-import com.microsoft.azure.toolkits.appservice.model.PricingTier;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
-import com.microsoft.azure.tools.common.model.Region;
 
 import java.util.Map;
 
@@ -19,9 +17,9 @@ public interface IAppServiceCreator<T> {
 
     IAppServiceCreator<T> withResourceGroup(String resourceGroupName);
 
-    IAppServiceCreator<T> withAppServicePlan(String appServicePlanId);
+    IAppServiceCreator<T> withPlan(String appServicePlanId);
 
-    IAppServiceCreator<T> withAppServicePlan(String resourceGroup, String planName);
+    IAppServiceCreator<T> withPlan(String resourceGroup, String planName);
 
     IAppServiceCreator<T> withRuntime(Runtime runtime);
 
