@@ -20,6 +20,8 @@ import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import java.util.Objects;
 
 public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetriever {
+    private AzureEnvironment envFromVscode;
+
     public VisualStudioCodeCredentialRetriever(AzureEnvironment env) {
         super(env);
     }
@@ -27,7 +29,7 @@ public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetri
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         try {
             final VisualStudioCodeAccountProfile vscodeProfile = VisualStudioCodeProfileRetriever.getProfile();
-            AzureEnvironment envFromVscode = AuthHelper.stringToAzureEnvironment(vscodeProfile.getEnvironment());
+            envFromVscode = AuthHelper.stringToAzureEnvironment(vscodeProfile.getEnvironment());
             checkAzureEnvironmentConflict(env, envFromVscode);
             AuthHelper.setupAzureEnvironment(envFromVscode);
             final VisualStudioCodeCredential visualStudioCodeCredential = new VisualStudioCodeCredentialBuilder().build();
@@ -43,8 +45,16 @@ public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetri
     private static void checkAzureEnvironmentConflict(AzureEnvironment env, AzureEnvironment envVSCode) throws LoginFailureException {
         if (env != null && envVSCode != null && !Objects.equals(env, envVSCode)) {
             throw new LoginFailureException(String.format("The azure cloud from vscode '%s' doesn't match with your auth configuration: %s, " +
-                            "you can change it by press F1 and find \">azure: sign in to Azure Cloud\" command to change azure cloud in vscode.",
+                            "you can change it by pressing F1 in VSCode and find \">azure: sign in to Azure Cloud\" command to change azure cloud in vscode.",
                     AuthHelper.azureEnvironmentToString(envVSCode), AuthHelper.azureEnvironmentToString(env)));
         }
+    }
+
+    /**
+     * We need to override
+     * @return
+     */
+    protected AzureEnvironment getAzureEnvironment() {
+        return MoreObjects.firstNonNull(envFromVscode, AzureEnvironment.AZURE);
     }
 }

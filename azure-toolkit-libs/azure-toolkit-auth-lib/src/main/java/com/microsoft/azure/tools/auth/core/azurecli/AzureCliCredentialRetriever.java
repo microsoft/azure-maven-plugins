@@ -32,10 +32,10 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
     }
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
-        AzureCliCredential cliCredential = new AzureCliCredentialBuilder().build();
-        validateTokenCredential(cliCredential);
         AzureCliAccountProfile accountInfo = getProfile();
         checkAzureEnvironmentConflict(env, AuthHelper.stringToAzureEnvironment(accountInfo.getEnvironment()));
+        AzureCliCredential cliCredential = new AzureCliCredentialBuilder().build();
+        validateTokenCredential(cliCredential);
         return new AzureCredentialWrapper(
                 isInCloudShell() ? AuthMethod.CLOUD_SHELL : AuthMethod.AZURE_CLI, cliCredential, getAzureEnvironment())
                 .withDefaultSubscriptionId(accountInfo.getSubscriptionId())
