@@ -14,6 +14,7 @@
         <module>azure-toolkit-common-lib</module>
         <module>azure-toolkit-auth-lib</module>
         <module>azure-toolkit-springcloud-lib</module>
+        <module>azure-toolkit-appservice-lib</module>
     </modules>
 
     <properties>
@@ -91,10 +92,12 @@
         <google.jsr305.version>3.0.0</google.jsr305.version>
         <azure.azure-mgmt-appplatform.version>1.0.0-beta</azure.azure-mgmt-appplatform.version>
         <azure.toolkit.common.lib.version>0.0.1-SNAPSHOT</azure.toolkit.common.lib.version>
+        <azure.toolkit.auth.lib.version>0.0.1-SNAPSHOT</azure.toolkit.auth.lib.version>
         <azure-identity.version>1.2.1</azure-identity.version>
         <azure.version>1.36.3</azure.version>
-        <lombok.version>1.18.8</lombok.version>
+        <lombok.version>1.18.16</lombok.version>
         <free.port.finder.version>1.0</free.port.finder.version>
+        <azure.resourcemanager.version>2.1.0</azure.resourcemanager.version>
     </properties>
 
     <dependencyManagement>
@@ -248,7 +251,6 @@
             </dependency>
 
             <!-- azure sdk -->
-
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-client-runtime</artifactId>
@@ -257,7 +259,7 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager</artifactId>
-                <version>${azure.version}</version>
+                <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure</groupId>
@@ -270,6 +272,11 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-common-lib</artifactId>
                 <version>${azure.toolkit.common.lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-auth-lib</artifactId>
+                <version>${azure.toolkit.auth.lib.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
