@@ -9,7 +9,6 @@ import com.microsoft.azure.toolkits.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
-import com.microsoft.azure.toolkits.appservice.service.webapp.WebApp;
 
 import java.io.File;
 import java.util.List;
@@ -29,11 +28,11 @@ public interface IWebApp {
 
     boolean exists();
 
-    WebAppEntity get();
+    WebAppEntity entity();
 
-    WebApp.WebAppCreator create();
+    IAppServiceCreator<? extends IWebApp> create();
 
-    WebApp.WebAppUpdater update();
+    IAppServiceUpdater<? extends IWebApp> update();
 
     Runtime getRuntime();
 

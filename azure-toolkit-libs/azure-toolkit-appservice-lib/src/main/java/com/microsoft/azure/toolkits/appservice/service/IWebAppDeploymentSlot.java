@@ -27,5 +27,5 @@ public interface IWebAppDeploymentSlot {
 
     boolean exists();
 
-    WebAppDeploymentSlotEntity get();
+    WebAppDeploymentSlotEntity entity();
 }

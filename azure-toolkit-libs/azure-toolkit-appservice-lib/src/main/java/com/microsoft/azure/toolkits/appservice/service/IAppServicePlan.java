@@ -14,7 +14,5 @@ public interface IAppServicePlan {
 
     boolean exists();
 
-    AppServicePlanEntity get();
-
-    com.azure.resourcemanager.appservice.models.AppServicePlan getAppServicePlanClient();
+    AppServicePlanEntity entity();
 }

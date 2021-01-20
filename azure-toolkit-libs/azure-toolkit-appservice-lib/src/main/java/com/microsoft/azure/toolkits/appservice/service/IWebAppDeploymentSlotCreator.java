@@ -6,8 +6,6 @@
 
 package com.microsoft.azure.toolkits.appservice.service;
 
-import com.microsoft.azure.toolkits.appservice.entity.WebAppDeploymentSlotEntity;
-
 import java.util.Map;
 
 public interface IWebAppDeploymentSlotCreator {
@@ -18,5 +16,5 @@ public interface IWebAppDeploymentSlotCreator {
 
     IWebAppDeploymentSlotCreator withConfigurationSource(String source);
 
-    WebAppDeploymentSlotEntity create();
+    IWebAppDeploymentSlot commit();
 }
