@@ -52,8 +52,8 @@ public class AzureAuthManager {
     private static Map<AuthType, ICredentialRetriever> buildCredentialRetrievers(AuthConfiguration auth) {
         AzureEnvironment env = auth.getEnvironment();
         Map<AuthType, ICredentialRetriever> map = new LinkedHashMap<>();
-        map.put(AuthType.SERVICE_PRINCIPAL, new ServicePrincipalCredentialRetriever(auth, env));
-        map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityCredentialRetriever(env));
+        map.put(AuthType.SERVICE_PRINCIPAL, new ServicePrincipalCredentialRetriever(auth));
+        map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityCredentialRetriever(auth));
         map.put(AuthType.AZURE_CLI, new AzureCliCredentialRetriever(env));
         map.put(AuthType.VSCODE, new VisualStudioCodeCredentialRetriever(env));
         map.put(AuthType.VISUAL_STUDIO, new VisualStudioCredentialRetriever(env));

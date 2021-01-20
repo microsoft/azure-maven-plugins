@@ -20,20 +20,18 @@ import com.microsoft.azure.tools.auth.util.ValidationUtil;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
+
 public class ServicePrincipalCredentialRetriever extends AbstractCredentialRetriever {
     @Getter
     private AuthConfiguration auth;
 
-    public ServicePrincipalCredentialRetriever(AuthConfiguration auth, AzureEnvironment env) {
-        super(env);
+    public ServicePrincipalCredentialRetriever(@Nonnull AuthConfiguration auth) {
+        super(auth.getEnvironment());
         this.auth = auth;
     }
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
-        if (auth == null) {
-            throw new LoginFailureException("There are no auth configurations, " +
-                    "please refer to https://github.com/microsoft/azure-maven-plugins/wiki/Authentication");
-        }
         try {
             ValidationUtil.validateMavenAuthConfiguration(auth);
         } catch (InvalidConfigurationException e) {
