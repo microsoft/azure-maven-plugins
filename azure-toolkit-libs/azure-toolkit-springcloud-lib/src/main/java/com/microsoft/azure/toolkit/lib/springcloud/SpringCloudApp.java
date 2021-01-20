@@ -95,10 +95,6 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         return new Uploader(path, this);
     }
 
-    public ResourceUploadDefinitionInner getUploadDefinition() {
-        return this.appManager.getUploadDefinition(this.entity());
-    }
-
     public Creator create() {
         return new Creator(this);
     }
@@ -142,7 +138,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
 
         public Updater activate(String deploymentName) {
             final String oldDeploymentName = Optional.ofNullable(this.app.remote).map(e -> e.getInner().properties().activeDeploymentName()).orElse(null);
-            if (StringUtils.isNoneEmpty(deploymentName) && !Objects.equals(oldDeploymentName, deploymentName)) {
+            if (StringUtils.isNotBlank(deploymentName) && !Objects.equals(oldDeploymentName, deploymentName)) {
                 AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
                     .withActiveDeploymentName(deploymentName);
             }

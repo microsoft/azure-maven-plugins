@@ -73,7 +73,7 @@ public class AzureTask<T> {
         this.modality = modality;
     }
 
-    public T go() {
+    public T execute() {
         return this.supplier.get();
     }
 

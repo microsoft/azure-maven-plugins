@@ -298,7 +298,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return telemetries;
     }
 
-    public AppPlatformManager getClient() {
+    public AppPlatformManager getAppPlatformManager() {
         if (this.manager == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
             this.manager = AppPlatformManager.configure()

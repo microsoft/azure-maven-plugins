@@ -93,7 +93,7 @@ public class DeployMojo extends AbstractMojoBase {
         final String runtimeVersion = deploymentConfig.getJavaVersion();
         final String deploymentName = Optional.ofNullable(deploymentConfig.getDeploymentName()).orElse(DEFAULT_DEPLOYMENT_NAME);
 
-        final AzureSpringCloud az = AzureSpringCloud.az(this.getClient());
+        final AzureSpringCloud az = AzureSpringCloud.az(this.getAppPlatformManager());
         final SpringCloudCluster cluster = az.cluster(clusterName);
         final SpringCloudApp app = cluster.app(appName);
         final SpringCloudDeployment deployment = app.deployment(deploymentName);
@@ -157,14 +157,14 @@ public class DeployMojo extends AbstractMojoBase {
             printPublicUrl(app);
         }));
         if (this.confirmDeploy(tasks)) {
-            tasks.forEach(AzureTask::go);
+            tasks.forEach(AzureTask::execute);
         }
     }
 
     protected boolean confirmDeploy(List<AzureTask<?>> tasks) throws MojoFailureException {
         try (IPrompter prompter = new DefaultPrompter()) {
             getLog().info(CONFIRM_PROMPT_START);
-            tasks.stream().filter(t -> StringUtils.isNotEmpty(t.getTitle())).forEach((t) -> System.out.printf("\t*  %s%n", t.getTitle()));
+            tasks.stream().filter(t -> StringUtils.isNotBlank(t.getTitle())).forEach((t) -> System.out.printf("\t*  %s%n", t.getTitle()));
             return prompter.promoteYesNo(CONFIRM_PROMPT_CONFIRM, true, true);
         } catch (IOException e) {
             throw new MojoFailureException(e.getMessage());
@@ -178,7 +178,7 @@ public class DeployMojo extends AbstractMojoBase {
         getLog().info(GET_APP_URL_DOING);
         String publicUrl = app.entity().getApplicationUrl();
         if (!noWait && StringUtils.isEmpty(publicUrl)) {
-            publicUrl = RxUtils.pollUntil(() -> app.refresh().entity().getApplicationUrl(), StringUtils::isNoneEmpty, GET_URL_TIMEOUT);
+            publicUrl = RxUtils.pollUntil(() -> app.refresh().entity().getApplicationUrl(), StringUtils::isNotBlank, GET_URL_TIMEOUT);
         }
         if (StringUtils.isEmpty(publicUrl)) {
             getLog().warn(GET_APP_URL_FAILURE);

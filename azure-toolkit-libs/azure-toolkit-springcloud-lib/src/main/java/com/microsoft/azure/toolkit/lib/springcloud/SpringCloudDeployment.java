@@ -106,7 +106,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         public Updater configJvmOptions(String jvmOptions) {
             final String oldJvmOptions = Optional.ofNullable(this.deployment.remote)
                 .map(e -> e.getInner().properties().deploymentSettings().jvmOptions()).orElse(null);
-            if (StringUtils.isNotEmpty(jvmOptions) && !Objects.equals(jvmOptions, oldJvmOptions)) {
+            if (StringUtils.isNotBlank(jvmOptions) && !Objects.equals(jvmOptions, oldJvmOptions)) {
                 AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
                     .withJvmOptions(jvmOptions.trim());
             }
