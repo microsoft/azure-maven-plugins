@@ -8,7 +8,9 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.RuntimeVersion;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
+import com.microsoft.azure.toolkit.lib.common.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.ICommittable;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
@@ -77,9 +79,14 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         return new Updater(this);
     }
 
-    public static class Updater {
+    public SpringCloudDeployment scale(final ScaleSettings scaleSettings) {
+        return this.update().configScaleSettings(scaleSettings).commit();
+    }
+
+    public static class Updater implements ICommittable<SpringCloudDeployment> {
         protected final DeploymentResourceInner resource;
         protected final SpringCloudDeployment deployment;
+        protected AzureRemotableArtifact delayableArtifact;
 
         public Updater(SpringCloudDeployment deployment) {
             this.deployment = deployment;
@@ -116,12 +123,13 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
             return this;
         }
 
-        public Updater configAppArtifactPath(String path) {
+        public Updater configArtifact(AzureRemotableArtifact artifact) {
+            this.delayableArtifact = artifact;
             final String oldPath = Optional.ofNullable(this.deployment.remote)
                 .map(e -> e.getInner().properties().source().relativePath()).orElse(null);
-            if (Objects.nonNull(path) && !Objects.equals(path, oldPath)) {
+            if (Objects.nonNull(artifact) && Objects.nonNull(artifact.getRemotePath()) && !Objects.equals(artifact.getRemotePath(), oldPath)) {
                 AzureSpringCloudConfigUtils.getOrCreateSource(this.resource, this.deployment)
-                    .withRelativePath(path);
+                    .withRelativePath(artifact.getRemotePath());
             }
             return this;
         }
@@ -145,6 +153,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
                 this.scale(scaleSettings);
             }
             // end workaround;
+            this.configArtifact(this.delayableArtifact);
             if (Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.sku())) {
                 log.info("skip updating deployment({}) since its properties is not changed.", this.deployment.entity().getName());
                 return this.deployment;
@@ -171,6 +180,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         public SpringCloudDeployment commit() {
+            this.configArtifact(this.delayableArtifact);
             final String deploymentName = this.deployment.entity().getName();
             final SpringCloudAppEntity app = this.deployment.app.entity();
             this.deployment.remote = this.deployment.deploymentManager.create(this.resource, deploymentName, app);

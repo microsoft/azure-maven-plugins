@@ -6,16 +6,18 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appplatform.v2020_07_01.PersistentDisk;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
+import com.microsoft.azure.toolkit.lib.common.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.ICommittable;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudAppManager;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -89,8 +91,8 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         return this;
     }
 
-    public String uploadArtifact(String path) throws AzureExecutionException {
-        return this.appManager.uploadArtifact(path, this.entity()).relativePath();
+    public Uploader uploadArtifact(String path) {
+        return new Uploader(path, this);
     }
 
     public ResourceUploadDefinitionInner getUploadDefinition() {
@@ -106,7 +108,30 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         return new Updater(this);
     }
 
-    public static class Updater {
+    public static class Uploader implements ICommittable<SpringCloudApp> {
+
+        private final SpringCloudApp app;
+        private final String path;
+        @Getter
+        private final AzureRemotableArtifact artifact;
+
+        public Uploader(String path, SpringCloudApp app) {
+            this.path = path;
+            this.app = app;
+            this.artifact = new AzureRemotableArtifact(this.path);
+        }
+
+        @SneakyThrows
+        @Override
+        public SpringCloudApp commit() {
+            final ResourceUploadDefinitionInner definition = this.app.appManager.uploadArtifact(this.path, this.app.entity());
+            this.artifact.setRemotePath(definition.relativePath());
+            this.artifact.setUploadUrl(definition.uploadUrl());
+            return this.app;
+        }
+    }
+
+    public static class Updater implements ICommittable<SpringCloudApp> {
         protected final SpringCloudApp app;
         protected final AppResourceInner resource;
 
@@ -144,13 +169,18 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
             return this;
         }
 
+        @Override
         public SpringCloudApp commit() {
-            if (Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.location())) {
+            if (this.isSkippable()) {
                 log.info("skip updating app({}) since its properties is not changed.", this.app.entity().getName());
             } else {
                 this.app.remote = this.app.appManager.update(this.resource, this.app.entity());
             }
             return this.app;
+        }
+
+        public boolean isSkippable() {
+            return Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.location());
         }
     }
 
