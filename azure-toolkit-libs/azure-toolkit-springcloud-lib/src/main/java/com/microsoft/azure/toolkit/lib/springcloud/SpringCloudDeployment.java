@@ -24,19 +24,7 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Objects;
 
-interface ISpringCloudDeploymentUpdater {
-    ISpringCloudDeploymentUpdater configEnvironmentVariables(Map<String, String> env);
-
-    ISpringCloudDeploymentUpdater configJvmOptions(String jvmOptions);
-
-    ISpringCloudDeploymentUpdater configScaleSettings(ScaleSettings settings);
-
-    ISpringCloudDeploymentUpdater configRuntimeVersion(SpringCloudRuntimeVersion runtimeVersion);
-
-    ISpringCloudDeploymentUpdater configAppArtifactPath(String path);
-}
-
-public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDeploymentEntity>, ISpringCloudDeploymentUpdater {
+public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDeploymentEntity> {
     @Getter
     private final SpringCloudApp app;
     private final SpringCloudDeploymentEntity local;
@@ -88,32 +76,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         return new Updater(this);
     }
 
-    @Override
-    public SpringCloudDeployment configEnvironmentVariables(Map<String, String> env) {
-        return this.update().configEnvironmentVariables(env).commit();
-    }
-
-    @Override
-    public SpringCloudDeployment configJvmOptions(String jvmOptions) {
-        return this.update().configJvmOptions(jvmOptions).commit();
-    }
-
-    @Override
-    public SpringCloudDeployment configScaleSettings(ScaleSettings settings) {
-        return this.update().configScaleSettings(settings).commit();
-    }
-
-    @Override
-    public SpringCloudDeployment configRuntimeVersion(SpringCloudRuntimeVersion runtimeVersion) {
-        return this.update().configRuntimeVersion(runtimeVersion).commit();
-    }
-
-    @Override
-    public SpringCloudDeployment configAppArtifactPath(String path) {
-        return this.update().configAppArtifactPath(path).commit();
-    }
-
-    public static class Updater implements ISpringCloudDeploymentUpdater {
+    public static class Updater {
         protected final DeploymentResourceInner resource;
         protected final SpringCloudDeployment deployment;
 
@@ -122,21 +85,18 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
             this.resource = new DeploymentResourceInner();
         }
 
-        @Override
         public Updater configEnvironmentVariables(Map<String, String> env) {
             final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
             settings.withEnvironmentVariables(env);
             return this;
         }
 
-        @Override
         public Updater configJvmOptions(String jvmOptions) {
             final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
             settings.withJvmOptions(jvmOptions);
             return this;
         }
 
-        @Override
         public Updater configScaleSettings(ScaleSettings scale) {
             final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
             final SkuInner sku = AzureSpringCloudConfigUtils.getOrCreateSku(this.resource, this.deployment);
@@ -145,14 +105,12 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
             return this;
         }
 
-        @Override
         public Updater configRuntimeVersion(SpringCloudRuntimeVersion version) {
             final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
             settings.withRuntimeVersion(RuntimeVersion.fromString(version.toString()));
             return this;
         }
 
-        @Override
         public Updater configAppArtifactPath(String path) {
             final UserSourceInfo source = AzureSpringCloudConfigUtils.getOrCreateSource(this.resource, this.deployment);
             source.withRelativePath(path);

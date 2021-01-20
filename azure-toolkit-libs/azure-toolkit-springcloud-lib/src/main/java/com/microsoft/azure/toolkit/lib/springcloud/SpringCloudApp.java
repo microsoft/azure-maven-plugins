@@ -21,16 +21,7 @@ import lombok.Getter;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-interface ISpringCloudAppUpdater {
-
-    ISpringCloudAppUpdater activate(String deploymentName);
-
-    ISpringCloudAppUpdater setPublic(Boolean isPublic);
-
-    ISpringCloudAppUpdater enablePersistentDisk(Boolean enable);
-}
-
-public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManager<SpringCloudAppEntity> {
+public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity> {
     @Getter
     private final SpringCloudCluster cluster;
     private final SpringCloudAppManager appManager;
@@ -112,19 +103,7 @@ public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManag
         return new Updater(this);
     }
 
-    public SpringCloudApp activate(String deploymentName) {
-        return this.update().activate(deploymentName).commit();
-    }
-
-    public SpringCloudApp setPublic(Boolean isPublic) {
-        return this.update().setPublic(isPublic).commit();
-    }
-
-    public SpringCloudApp enablePersistentDisk(Boolean enable) {
-        return this.update().enablePersistentDisk(enable).commit();
-    }
-
-    public static class Updater implements ISpringCloudAppUpdater {
+    public static class Updater {
         protected final SpringCloudApp app;
         protected final AppResourceInner resource;
 
