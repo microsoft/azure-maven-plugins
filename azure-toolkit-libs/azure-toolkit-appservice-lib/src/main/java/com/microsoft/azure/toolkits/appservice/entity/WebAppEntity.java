@@ -26,6 +26,7 @@ public class WebAppEntity {
     private String subscriptionId;
     private Runtime runtime;
     private String appServicePlanId;
+    private String defaultHostName;
     private Map<String, String> appSettings;
 
     public static WebAppEntity createFromWebAppBase(WebAppBase webAppBase) {
@@ -36,6 +37,7 @@ public class WebAppEntity {
                 .subscriptionId(Utils.getSubscriptionId(webAppBase.id()))
                 .runtime(null)
                 .appServicePlanId(webAppBase.appServicePlanId())
+                .defaultHostName(webAppBase.defaultHostname())
                 .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()))
                 .build();
     }
@@ -47,6 +49,7 @@ public class WebAppEntity {
                 .resourceGroup(webAppBasic.resourceGroupName())
                 .subscriptionId(Utils.getSubscriptionId(webAppBasic.id()))
                 .appServicePlanId(webAppBasic.appServicePlanId())
+                .defaultHostName(webAppBasic.defaultHostname())
                 .build();
     }
 }

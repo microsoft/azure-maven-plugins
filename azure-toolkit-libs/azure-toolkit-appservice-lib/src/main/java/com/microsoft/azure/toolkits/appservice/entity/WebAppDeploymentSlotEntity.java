@@ -24,6 +24,7 @@ public class WebAppDeploymentSlotEntity {
     private String subscriptionId;
     private String appServicePlanId;
     private Runtime runtime;
+    private String defaultHostName;
     private Map<String, String> appSettings;
 
     public static WebAppDeploymentSlotEntity createFromServiceModel(DeploymentSlot deploymentSlot) {
@@ -35,6 +36,7 @@ public class WebAppDeploymentSlotEntity {
                 .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
                 .runtime(null)
                 .appServicePlanId(deploymentSlot.appServicePlanId())
+                .defaultHostName(deploymentSlot.defaultHostname())
                 .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
                 .build();
     }

@@ -11,5 +11,6 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder(toBuilder = true)
 public class ResourceGroup {
+    private String id;
     private String name;
 }
