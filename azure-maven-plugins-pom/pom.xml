@@ -4,7 +4,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugins-pom</artifactId>
-    <version>1.0.6-SNAPSHOT</version>
+    <version>1.0.6</version>
     <packaging>pom</packaging>
     <name>Maven Plugins for Azure</name>
     <description>Maven plugins for Microsoft Azure services</description>
@@ -42,14 +42,14 @@
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
         <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
         <azure.client.version>1.7.8</azure.client.version>
-        <azure.auth-helper.version>0.7.0-SNAPSHOT</azure.auth-helper.version>
+        <azure.auth-helper.version>0.7.0</azure.auth-helper.version>
         <azure.eventhubs.version>1.2.0</azure.eventhubs.version>
         <azure.eventhubs-eph.version>2.0.1</azure.eventhubs-eph.version>
         <azure.function.version>1.4.0</azure.function.version>
-        <azure.maven-plugin-lib.version>1.5.0-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.5.0</azure.maven-plugin-lib.version>
         <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
         <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
-        <azure.tools-common.version>0.10.1-SNAPSHOT</azure.tools-common.version>
+        <azure.tools-common.version>0.10.1</azure.tools-common.version>
         <azure.version>1.36.3</azure.version>
 
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
