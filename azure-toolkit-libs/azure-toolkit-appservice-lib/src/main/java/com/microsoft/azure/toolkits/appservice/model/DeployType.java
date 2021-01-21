@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkits.appservice.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +26,13 @@ public class DeployType {
 
     private String value;
 
-    public List<DeployType> values() {
+    public static List<DeployType> values() {
         return Arrays.asList(WAR, JAR, EAR, JAR_LIB, STATIC, SCRIPT_STARTUP, ZIP);
+    }
+
+    public static DeployType fromString(String input) {
+        return values().stream()
+                .filter(deployType -> StringUtils.equalsIgnoreCase(deployType.getValue(), input))
+                .findFirst().orElse(null);
     }
 }

@@ -43,6 +43,12 @@ public class PricingTier {
                 PREMIUM_P2V2, PREMIUM_P3V2, PREMIUM_P1V3, PREMIUM_P2V3, PREMIUM_P3V3, FREE_F1, SHARED_D1);
     }
 
+    public static PricingTier fromString(String input) {
+        return values().stream()
+                .filter(pricingTier -> org.codehaus.plexus.util.StringUtils.equalsIgnoreCase(input, pricingTier.size))
+                .findFirst().orElse(null);
+    }
+
     public static com.azure.resourcemanager.appservice.models.PricingTier convertToServiceModel(PricingTier pricingTier) {
         final SkuDescription skuDescription = new SkuDescription().withTier(pricingTier.getTier()).withSize(pricingTier.getSize());
         return com.azure.resourcemanager.appservice.models.PricingTier.fromSkuDescription(skuDescription);

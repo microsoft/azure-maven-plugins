@@ -23,7 +23,7 @@ import java.util.List;
 @AllArgsConstructor
 public abstract class AbstractConfigParser {
 
-    private AbstractWebAppMojo mojo;
+    protected AbstractWebAppMojo mojo;
 
     public String getAppName() {
         return mojo.getAppName();

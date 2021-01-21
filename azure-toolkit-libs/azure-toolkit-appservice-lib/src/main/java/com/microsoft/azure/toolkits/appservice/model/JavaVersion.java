@@ -49,6 +49,12 @@ public class JavaVersion {
                 JAVA_11, JAVA_ZULU_11_0_2);
     }
 
+    public static JavaVersion fromString(String input) {
+        return values().stream()
+                .filter(javaVersion -> StringUtils.equalsIgnoreCase(input, javaVersion.getValue()))
+                .findFirst().orElse(null);
+    }
+
     public static JavaVersion createFromServiceModel(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
         return values().stream()
                 .filter(value -> StringUtils.equals(value.value, javaVersion.toString()))
