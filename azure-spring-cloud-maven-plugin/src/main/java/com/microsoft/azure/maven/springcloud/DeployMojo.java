@@ -8,6 +8,8 @@ package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.common.prompt.DefaultPrompter;
 import com.microsoft.azure.common.prompt.IPrompter;
+import com.microsoft.azure.common.utils.TextUtils;
+import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -20,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.tools.utils.RxUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -38,6 +41,7 @@ import java.util.Optional;
 import static com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils.DEFAULT_DEPLOYMENT_NAME;
 
 @Mojo(name = "deploy")
+@Slf4j
 public class DeployMojo extends AbstractMojoBase {
 
     private static final int GET_URL_TIMEOUT = 60;
@@ -46,24 +50,9 @@ public class DeployMojo extends AbstractMojoBase {
     private static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     private static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
         "packaging %s, only jar is supported";
-    private static final String CREATE_APP_DOING = "Creating the app...";
-    private static final String CREATE_APP_DONE = "Successfully created the app.";
-    private static final String DEPLOYMENT_STORAGE_STATUS = "Persistent storage path : %s, size : %s GB.";
-    private static final String UPLOAD_ARTIFACT_DOING = "Uploading artifacts...";
-    private static final String UPLOAD_ARTIFACT_DONE = "Successfully uploaded the artifacts.";
-    private static final String CREATE_DEPLOYMENT_DOING = "Creating the deployment...";
-    private static final String CREATE_DEPLOYMENT_DONE = "Successfully created the deployment.";
-    private static final String UPDATE_DEPLOYMENT_DOING = "Updating the deployment...";
-    private static final String UPDATE_DEPLOYMENT_DONE = "Successfully updated the deployment.";
-    private static final String UPDATE_APP_DOING = "Updating the app...";
-    private static final String UPDATE_APP_DONE = "Successfully updated the app.";
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
-    private static final String GET_DEPLOYMENT_STATUS_DOING = "Getting deployment status...";
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
         "you can check the app status from Azure Portal.";
-    private static final String GET_APP_URL_DOING = "Getting public url...";
-    private static final String GET_APP_URL_SUCCESS = "Application url : %s";
-    private static final String GET_APP_URL_FAILURE = "Failed to get application url";
     private static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
     private static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
 
@@ -98,11 +87,11 @@ public class DeployMojo extends AbstractMojoBase {
         final SpringCloudApp app = cluster.app(appName);
         final SpringCloudDeployment deployment = app.deployment(deploymentName);
 
-        final String CREATE_APP_TITLE = String.format("create new app(%s) on service(%s)", appName, clusterName);
-        final String UPDATE_APP_TITLE = String.format("update app(%s) of service(%s)", appName, clusterName);
-        final String CREATE_DEPLOYMENT_TITLE = String.format("create new deployment(%s) in app(%s)", deploymentName, appName);
-        final String UPDATE_DEPLOYMENT_TITLE = String.format("update deployment(%s) of app(%s)", deploymentName, appName);
-        final String UPLOAD_ARTIFACT_TITLE = String.format("upload artifact(%s) to app(%s)", artifact.getPath(), appName);
+        final String CREATE_APP_TITLE = String.format("Create new app(%s) on service(%s)", TextUtils.cyan(appName), TextUtils.cyan(clusterName));
+        final String UPDATE_APP_TITLE = String.format("Update app(%s) of service(%s)", TextUtils.cyan(appName), TextUtils.cyan(clusterName));
+        final String CREATE_DEPLOYMENT_TITLE = String.format("Create new deployment(%s) in app(%s)", TextUtils.cyan(deploymentName), TextUtils.cyan(appName));
+        final String UPDATE_DEPLOYMENT_TITLE = String.format("Update deployment(%s) of app(%s)", TextUtils.cyan(deploymentName), TextUtils.cyan(appName));
+        final String UPLOAD_ARTIFACT_TITLE = String.format("Upload artifact(%s) to app(%s)", TextUtils.cyan(artifact.getPath()), TextUtils.cyan(appName));
 
         final boolean toCreateApp = !app.exists();
         final boolean toCreateDeployment = !deployment.exists();
@@ -122,35 +111,35 @@ public class DeployMojo extends AbstractMojoBase {
 
         if (toCreateApp) {
             tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, () -> {
-                getLog().info(CREATE_APP_DOING);
+                log.info("Creating app({})...", TextUtils.cyan(appName));
                 appCreator.commit();
-                getLog().info(CREATE_APP_DONE);
+                log.info("Successfully created the app.");
             }));
         }
         tasks.add(new AzureTask<Void>(UPLOAD_ARTIFACT_TITLE, () -> {
-            getLog().info(UPLOAD_ARTIFACT_DOING);
+            log.info("Uploading artifact({}) to Azure...", TextUtils.cyan(artifact.getPath()));
             artifactUploader.commit();
-            getLog().info(UPLOAD_ARTIFACT_DONE);
+            log.info("Successfully uploaded the artifact.");
         }));
         tasks.add(new AzureTask<Void>(toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE, () -> {
-            getLog().info(toCreateDeployment ? CREATE_DEPLOYMENT_DOING : UPDATE_DEPLOYMENT_DOING);
+            log.info(toCreateDeployment ? "Creating deployment({})..." : "Updating deployment({})...", TextUtils.cyan(deploymentName));
             deploymentModifier.commit();
-            getLog().info(toCreateDeployment ? CREATE_DEPLOYMENT_DONE : UPDATE_DEPLOYMENT_DONE);
+            log.info(toCreateDeployment ? "Successfully created the deployment" : "Successfully updated the deployment");
         }));
         if (!appUpdater.isSkippable()) {
             tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
-                getLog().info(UPDATE_APP_DOING);
+                log.info("Updating app({})...", TextUtils.cyan(appName));
                 appUpdater.commit();
-                getLog().info(UPDATE_APP_DONE);
-                getLog().warn(UPDATE_APP_WARNING);
+                log.info("Successfully updated the app.");
+                log.warn(UPDATE_APP_WARNING);
             }));
         }
 
         tasks.add(new AzureTask<Void>(() -> {
             if (!noWait) {
-                getLog().info(GET_DEPLOYMENT_STATUS_DOING);
+                log.info("Getting deployment status...");
                 if (!deployment.waitUntilReady(GET_STATUS_TIMEOUT)) {
-                    getLog().warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
+                    log.warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
                 }
             }
             printStatus(deployment);
@@ -163,8 +152,10 @@ public class DeployMojo extends AbstractMojoBase {
 
     protected boolean confirmDeploy(List<AzureTask<?>> tasks) throws MojoFailureException {
         try (IPrompter prompter = new DefaultPrompter()) {
-            getLog().info(CONFIRM_PROMPT_START);
-            tasks.stream().filter(t -> StringUtils.isNotBlank(t.getTitle())).forEach((t) -> System.out.printf("\t*  %s%n", t.getTitle()));
+            final StringBuilder confirms = new StringBuilder(CONFIRM_PROMPT_START);
+            tasks.stream().filter(t -> StringUtils.isNotBlank(t.getTitle())).forEach((t) ->
+                confirms.append(System.lineSeparator()).append("\t- ").append(t.getTitle()));
+            log.info(confirms.toString());
             return prompter.promoteYesNo(CONFIRM_PROMPT_CONFIRM, true, true);
         } catch (IOException e) {
             throw new MojoFailureException(e.getMessage());
@@ -175,33 +166,48 @@ public class DeployMojo extends AbstractMojoBase {
         if (!app.entity().isPublic()) {
             return;
         }
-        getLog().info(GET_APP_URL_DOING);
+        log.info("Getting public url of app({})...", TextUtils.cyan(app.name()));
         String publicUrl = app.entity().getApplicationUrl();
         if (!noWait && StringUtils.isEmpty(publicUrl)) {
             publicUrl = RxUtils.pollUntil(() -> app.refresh().entity().getApplicationUrl(), StringUtils::isNotBlank, GET_URL_TIMEOUT);
         }
         if (StringUtils.isEmpty(publicUrl)) {
-            getLog().warn(GET_APP_URL_FAILURE);
+            log.warn("Failed to get application url");
         } else {
-            getLog().info(String.format(GET_APP_URL_SUCCESS, publicUrl));
+            log.info("Application url: {}", TextUtils.green(publicUrl));
         }
     }
 
     protected void printStatus(SpringCloudDeployment deployment) {
         if (!AzureSpringCloudConfigUtils.isDeploymentDone(deployment)) {
-            getLog().warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
+            log.warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
         }
-        getLog().info(String.format("Deployment Status: %s", deployment.entity().getStatus()));
+        final DeploymentResourceStatus status = deployment.entity().getStatus();
+        log.info("Deployment Status: {}", color(status.toString()));
         deployment.entity().getInstances().forEach(instance ->
-            getLog().info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
-                instance.name(), instance.status(), instance.reason(), instance.discoveryStatus())));
+            log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
+                instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
+    }
+
+    private static String color(String status) {
+        switch (status.toUpperCase()) {
+            case "RUNNING":
+                return TextUtils.green(status);
+            case "FAILED":
+            case "STOPPED":
+                return TextUtils.red(status);
+            case "UNKNOWN":
+                return status;
+            default:
+                return TextUtils.blue(status);
+        }
     }
 
     protected boolean checkProjectPackaging(MavenProject project) throws MojoExecutionException {
         if (MavenConfigUtils.isJarPackaging(project)) {
             return true;
         } else if (MavenConfigUtils.isPomPackaging(project)) {
-            getLog().info(PROJECT_SKIP);
+            log.info(PROJECT_SKIP);
             return false;
         } else {
             throw new MojoExecutionException(String.format(PROJECT_NOT_SUPPORT, project.getPackaging()));
@@ -212,7 +218,7 @@ public class DeployMojo extends AbstractMojoBase {
         final String pluginKey = plugin.getPluginLookupKey();
         final Xpp3Dom pluginDom = MavenConfigUtils.getPluginConfiguration(project, pluginKey);
         if (pluginDom == null || pluginDom.getChildren().length == 0) {
-            getLog().warn(PROJECT_NO_CONFIGURATION);
+            log.warn(PROJECT_NO_CONFIGURATION);
             return false;
         } else {
             return true;

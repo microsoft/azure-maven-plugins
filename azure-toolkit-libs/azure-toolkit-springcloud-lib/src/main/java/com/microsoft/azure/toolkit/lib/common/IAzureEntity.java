@@ -23,4 +23,5 @@
 package com.microsoft.azure.toolkit.lib.common;
 
 public interface IAzureEntity {
+    String getName();
 }

@@ -44,6 +44,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -180,10 +181,11 @@ public class AzureSpringCloudConfigUtils {
 
     public static ScaleSettings getScaleSettings(DeploymentResourceInner inner) {
         if (Objects.nonNull(inner)) {
+            final Optional<DeploymentSettings> settings = Optional.ofNullable(inner.properties()).map(DeploymentResourceProperties::deploymentSettings);
             return ScaleSettings.builder()
-                .cpu(inner.properties().deploymentSettings().cpu())
-                .memoryInGB(inner.properties().deploymentSettings().memoryInGB())
-                .capacity(inner.sku().capacity())
+                .cpu(settings.map(DeploymentSettings::cpu).orElse(null))
+                .memoryInGB(settings.map(DeploymentSettings::memoryInGB).orElse(null))
+                .capacity(Optional.ofNullable(inner.sku()).map(SkuInner::capacity).orElse(null))
                 .build();
         }
         return null;

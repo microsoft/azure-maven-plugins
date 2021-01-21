@@ -60,7 +60,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
 
     @Nonnull
     public SpringCloudDeployment refresh() {
-        final String deploymentName = this.entity().getName();
+        final String deploymentName = this.name();
         final SpringCloudAppEntity app = this.app.entity();
         this.remote = this.deploymentManager.get(deploymentName, app);
         return this;
@@ -155,7 +155,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
             // end workaround;
             this.configArtifact(this.delayableArtifact);
             if (Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.sku())) {
-                log.info("skip updating deployment({}) since its properties is not changed.", this.deployment.entity().getName());
+                log.info("Skip updating deployment({}) since its properties is not changed.", this.deployment.name());
                 return this.deployment;
             }
             this.deployment.remote = this.deployment.deploymentManager.update(this.resource, this.deployment.entity());
@@ -163,14 +163,14 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         private void scale(@Nonnull ScaleSettings scaleSettings) {
-            log.info("begin scaling deployment({})", this.deployment.entity().getName());
+            log.info("Scaling deployment({})...", this.deployment.name());
             final DeploymentResourceInner tempResource = new DeploymentResourceInner();
             AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(tempResource, this.deployment)
                 .withCpu(scaleSettings.getCpu()).withMemoryInGB(scaleSettings.getMemoryInGB());
             AzureSpringCloudConfigUtils.getOrCreateSku(tempResource, this.deployment)
                 .withCapacity(scaleSettings.getCapacity());
             this.deployment.remote = this.deployment.deploymentManager.update(tempResource, this.deployment.entity());
-            log.info("successfully scaled deployment({})", this.deployment.entity().getName());
+            log.info("Successfully scaled deployment({})", this.deployment.name());
         }
     }
 
@@ -181,7 +181,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
 
         public SpringCloudDeployment commit() {
             this.configArtifact(this.delayableArtifact);
-            final String deploymentName = this.deployment.entity().getName();
+            final String deploymentName = this.deployment.name();
             final SpringCloudAppEntity app = this.deployment.app.entity();
             this.deployment.remote = this.deployment.deploymentManager.create(this.resource, deploymentName, app);
             return this.deployment.start();

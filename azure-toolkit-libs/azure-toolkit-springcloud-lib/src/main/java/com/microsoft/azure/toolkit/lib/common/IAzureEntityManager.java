@@ -28,4 +28,8 @@ public interface IAzureEntityManager<T extends IAzureEntity> {
     boolean exists();
 
     T entity();
+
+    default String name() {
+        return this.entity().getName();
+    }
 }

@@ -315,17 +315,17 @@ public class ConfigMojo extends AbstractMojoBase {
         if (StringUtils.isNotBlank(clusterName)) {
             final SpringCloudCluster cluster = az.cluster(this.clusterName);
             if (cluster.exists()) {
-                this.appSettings.setClusterName(cluster.entity().getName());
+                this.appSettings.setClusterName(cluster.name());
                 return;
             }
             getLog().warn(String.format("Cannot find Azure Spring Cloud Service with name: %s.", TextUtils.yellow(this.clusterName)));
         }
         final List<SpringCloudCluster> clusters = az.clusters();
         this.wrapper.putCommonVariable("clusters", clusters);
-        final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, c -> c.entity().getName());
+        final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, c -> c.name());
         if (targetAppCluster != null) {
-            this.appSettings.setClusterName(targetAppCluster.entity().getName());
-            getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.entity().getName())));
+            this.appSettings.setClusterName(targetAppCluster.name());
+            getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.name())));
         }
     }
 

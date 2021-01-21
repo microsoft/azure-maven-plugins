@@ -168,7 +168,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         @Override
         public SpringCloudApp commit() {
             if (this.isSkippable()) {
-                log.info("skip updating app({}) since its properties is not changed.", this.app.entity().getName());
+                log.info("skip updating app({}) since its properties is not changed.", this.app.name());
             } else {
                 this.app.remote = this.app.appManager.update(this.resource, this.app.entity());
             }
@@ -186,7 +186,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         }
 
         public SpringCloudApp commit() {
-            final String appName = this.app.entity().getName();
+            final String appName = this.app.name();
             final SpringCloudClusterEntity cluster = this.app.cluster.entity();
             this.app.remote = this.app.appManager.create(this.resource, appName, cluster);
             return this.app;
