@@ -6,37 +6,28 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentSettings;
 import com.microsoft.azure.management.appplatform.v2020_07_01.RuntimeVersion;
-import com.microsoft.azure.management.appplatform.v2020_07_01.UserSourceInfo;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
+import com.microsoft.azure.toolkit.lib.common.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.ICommittable;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudRuntimeVersion;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
 import com.microsoft.azure.tools.utils.RxUtils;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
-interface ISpringCloudDeploymentUpdater {
-    ISpringCloudDeploymentUpdater configEnvironmentVariables(Map<String, String> env);
-
-    ISpringCloudDeploymentUpdater configJvmOptions(String jvmOptions);
-
-    ISpringCloudDeploymentUpdater configScaleSettings(ScaleSettings settings);
-
-    ISpringCloudDeploymentUpdater configRuntimeVersion(SpringCloudRuntimeVersion runtimeVersion);
-
-    ISpringCloudDeploymentUpdater configAppArtifactPath(String path);
-}
-
-public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDeploymentEntity>, ISpringCloudDeploymentUpdater {
+@Slf4j
+public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDeploymentEntity> {
     @Getter
     private final SpringCloudApp app;
     private final SpringCloudDeploymentEntity local;
@@ -88,80 +79,98 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         return new Updater(this);
     }
 
-    @Override
-    public SpringCloudDeployment configEnvironmentVariables(Map<String, String> env) {
-        return this.update().configEnvironmentVariables(env).commit();
+    public SpringCloudDeployment scale(final ScaleSettings scaleSettings) {
+        return this.update().configScaleSettings(scaleSettings).commit();
     }
 
-    @Override
-    public SpringCloudDeployment configJvmOptions(String jvmOptions) {
-        return this.update().configJvmOptions(jvmOptions).commit();
-    }
-
-    @Override
-    public SpringCloudDeployment configScaleSettings(ScaleSettings settings) {
-        return this.update().configScaleSettings(settings).commit();
-    }
-
-    @Override
-    public SpringCloudDeployment configRuntimeVersion(SpringCloudRuntimeVersion runtimeVersion) {
-        return this.update().configRuntimeVersion(runtimeVersion).commit();
-    }
-
-    @Override
-    public SpringCloudDeployment configAppArtifactPath(String path) {
-        return this.update().configAppArtifactPath(path).commit();
-    }
-
-    public static class Updater implements ISpringCloudDeploymentUpdater {
+    public static class Updater implements ICommittable<SpringCloudDeployment> {
         protected final DeploymentResourceInner resource;
         protected final SpringCloudDeployment deployment;
+        protected AzureRemotableArtifact delayableArtifact;
 
         public Updater(SpringCloudDeployment deployment) {
             this.deployment = deployment;
             this.resource = new DeploymentResourceInner();
         }
 
-        @Override
         public Updater configEnvironmentVariables(Map<String, String> env) {
-            final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
-            settings.withEnvironmentVariables(env);
+            final Map<String, String> oldEnv = Optional.ofNullable(this.deployment.remote)
+                .map(e -> e.getInner().properties().deploymentSettings().environmentVariables()).orElse(null);
+            if (MapUtils.isNotEmpty(env) && !Objects.equals(env, oldEnv)) {
+                AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
+                    .withEnvironmentVariables(env);
+            }
             return this;
         }
 
-        @Override
         public Updater configJvmOptions(String jvmOptions) {
-            final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
-            settings.withJvmOptions(jvmOptions);
+            final String oldJvmOptions = Optional.ofNullable(this.deployment.remote)
+                .map(e -> e.getInner().properties().deploymentSettings().jvmOptions()).orElse(null);
+            if (StringUtils.isNotBlank(jvmOptions) && !Objects.equals(jvmOptions, oldJvmOptions)) {
+                AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
+                    .withJvmOptions(jvmOptions.trim());
+            }
             return this;
         }
 
-        @Override
-        public Updater configScaleSettings(ScaleSettings scale) {
-            final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
-            final SkuInner sku = AzureSpringCloudConfigUtils.getOrCreateSku(this.resource, this.deployment);
-            settings.withCpu(scale.getCpu()).withMemoryInGB(scale.getMemoryInGB());
-            sku.withCapacity(scale.getCapacity());
+        public Updater configRuntimeVersion(String version) {
+            final RuntimeVersion oldRuntimeVersion = Optional.ofNullable(this.deployment.remote)
+                .map(e -> e.getInner().properties().deploymentSettings().runtimeVersion()).orElse(null);
+            if (Objects.nonNull(version) && !Objects.equals(RuntimeVersion.fromString(version), oldRuntimeVersion)) {
+                AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
+                    .withRuntimeVersion(RuntimeVersion.fromString(version));
+            }
             return this;
         }
 
-        @Override
-        public Updater configRuntimeVersion(SpringCloudRuntimeVersion version) {
-            final DeploymentSettings settings = AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment);
-            settings.withRuntimeVersion(RuntimeVersion.fromString(version.toString()));
+        public Updater configArtifact(AzureRemotableArtifact artifact) {
+            this.delayableArtifact = artifact;
+            final String oldPath = Optional.ofNullable(this.deployment.remote)
+                .map(e -> e.getInner().properties().source().relativePath()).orElse(null);
+            if (Objects.nonNull(artifact) && Objects.nonNull(artifact.getRemotePath()) && !Objects.equals(artifact.getRemotePath(), oldPath)) {
+                AzureSpringCloudConfigUtils.getOrCreateSource(this.resource, this.deployment)
+                    .withRelativePath(artifact.getRemotePath());
+            }
             return this;
         }
 
-        @Override
-        public Updater configAppArtifactPath(String path) {
-            final UserSourceInfo source = AzureSpringCloudConfigUtils.getOrCreateSource(this.resource, this.deployment);
-            source.withRelativePath(path);
+        public Updater configScaleSettings(ScaleSettings newSettings) {
+            final ScaleSettings oldSettings = Optional.ofNullable(this.deployment.remote)
+                .map(SpringCloudDeploymentEntity::getInner).map(AzureSpringCloudConfigUtils::getScaleSettings).orElse(null);
+            if (!AzureSpringCloudConfigUtils.isEmpty(newSettings) && !Objects.equals(newSettings, oldSettings)) {
+                AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
+                    .withCpu(newSettings.getCpu()).withMemoryInGB(newSettings.getMemoryInGB());
+                AzureSpringCloudConfigUtils.getOrCreateSku(this.resource, this.deployment)
+                    .withCapacity(newSettings.getCapacity());
+            }
             return this;
         }
 
         public SpringCloudDeployment commit() {
+            // FIXME: start workaround for bug: can not scale when updating other properties
+            final ScaleSettings scaleSettings = AzureSpringCloudConfigUtils.getScaleSettings(this.resource);
+            if (Objects.nonNull(scaleSettings) && !AzureSpringCloudConfigUtils.isEmpty(scaleSettings)) {
+                this.scale(scaleSettings);
+            }
+            // end workaround;
+            this.configArtifact(this.delayableArtifact);
+            if (Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.sku())) {
+                log.info("skip updating deployment({}) since its properties is not changed.", this.deployment.entity().getName());
+                return this.deployment;
+            }
             this.deployment.remote = this.deployment.deploymentManager.update(this.resource, this.deployment.entity());
             return this.deployment.start();
+        }
+
+        private void scale(@Nonnull ScaleSettings scaleSettings) {
+            log.info("begin scaling deployment({})", this.deployment.entity().getName());
+            final DeploymentResourceInner tempResource = new DeploymentResourceInner();
+            AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(tempResource, this.deployment)
+                .withCpu(scaleSettings.getCpu()).withMemoryInGB(scaleSettings.getMemoryInGB());
+            AzureSpringCloudConfigUtils.getOrCreateSku(tempResource, this.deployment)
+                .withCapacity(scaleSettings.getCapacity());
+            this.deployment.remote = this.deployment.deploymentManager.update(tempResource, this.deployment.entity());
+            log.info("successfully scaled deployment({})", this.deployment.entity().getName());
         }
     }
 
@@ -171,6 +180,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         public SpringCloudDeployment commit() {
+            this.configArtifact(this.delayableArtifact);
             final String deploymentName = this.deployment.entity().getName();
             final SpringCloudAppEntity app = this.deployment.app.entity();
             this.deployment.remote = this.deployment.deploymentManager.create(this.resource, deploymentName, app);

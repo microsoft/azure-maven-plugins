@@ -104,6 +104,12 @@
         <dependencies>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-common-lib</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-springcloud-lib</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
             </dependency>

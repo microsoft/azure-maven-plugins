@@ -6,31 +6,27 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.management.appplatform.v2020_07_01.AppResourceProperties;
 import com.microsoft.azure.management.appplatform.v2020_07_01.PersistentDisk;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
+import com.microsoft.azure.toolkit.lib.common.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.ICommittable;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudAppManager;
 import lombok.Getter;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.Optional;
 
-interface ISpringCloudAppUpdater {
-
-    ISpringCloudAppUpdater activate(String deploymentName);
-
-    ISpringCloudAppUpdater setPublic(Boolean isPublic);
-
-    ISpringCloudAppUpdater enablePersistentDisk(Boolean enable);
-}
-
-public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManager<SpringCloudAppEntity> {
+@Slf4j
+public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity> {
     @Getter
     private final SpringCloudCluster cluster;
     private final SpringCloudAppManager appManager;
@@ -95,12 +91,8 @@ public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManag
         return this;
     }
 
-    public String uploadArtifact(String path) throws AzureExecutionException {
-        return this.appManager.uploadArtifact(path, this.entity()).relativePath();
-    }
-
-    public ResourceUploadDefinitionInner getUploadDefinition() {
-        return this.appManager.getUploadDefinition(this.entity());
+    public Uploader uploadArtifact(String path) {
+        return new Uploader(path, this);
     }
 
     public Creator create() {
@@ -112,19 +104,30 @@ public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManag
         return new Updater(this);
     }
 
-    public SpringCloudApp activate(String deploymentName) {
-        return this.update().activate(deploymentName).commit();
+    public static class Uploader implements ICommittable<SpringCloudApp> {
+
+        private final SpringCloudApp app;
+        private final String path;
+        @Getter
+        private final AzureRemotableArtifact artifact;
+
+        public Uploader(String path, SpringCloudApp app) {
+            this.path = path;
+            this.app = app;
+            this.artifact = new AzureRemotableArtifact(this.path);
+        }
+
+        @SneakyThrows
+        @Override
+        public SpringCloudApp commit() {
+            final ResourceUploadDefinitionInner definition = this.app.appManager.uploadArtifact(this.path, this.app.entity());
+            this.artifact.setRemotePath(definition.relativePath());
+            this.artifact.setUploadUrl(definition.uploadUrl());
+            return this.app;
+        }
     }
 
-    public SpringCloudApp setPublic(Boolean isPublic) {
-        return this.update().setPublic(isPublic).commit();
-    }
-
-    public SpringCloudApp enablePersistentDisk(Boolean enable) {
-        return this.update().enablePersistentDisk(enable).commit();
-    }
-
-    public static class Updater implements ISpringCloudAppUpdater {
+    public static class Updater implements ICommittable<SpringCloudApp> {
         protected final SpringCloudApp app;
         protected final AppResourceInner resource;
 
@@ -134,31 +137,46 @@ public class SpringCloudApp implements ISpringCloudAppUpdater, IAzureEntityManag
         }
 
         public Updater activate(String deploymentName) {
-            final AppResourceProperties properties = AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app);
-            properties.withActiveDeploymentName(deploymentName);
-            return this;
-        }
-
-        public Updater setPublic(Boolean isPublic) {
-            final AppResourceProperties properties = AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app);
-            properties.withPublicProperty(isPublic);
-            return this;
-        }
-
-        public Updater enablePersistentDisk(Boolean enable) {
-            final AppResourceProperties properties = AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app);
-            if (enable) {
-                final PersistentDisk disk = AzureSpringCloudConfigUtils.getPersistentDiskOrDefault(this.app.local.getInner().properties());
-                properties.withPersistentDisk(disk);
-            } else {
-                properties.withPersistentDisk(null);
+            final String oldDeploymentName = Optional.ofNullable(this.app.remote).map(e -> e.getInner().properties().activeDeploymentName()).orElse(null);
+            if (StringUtils.isNotBlank(deploymentName) && !Objects.equals(oldDeploymentName, deploymentName)) {
+                AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
+                    .withActiveDeploymentName(deploymentName);
             }
             return this;
         }
 
+        public Updater setPublic(Boolean isPublic) {
+            final Boolean oldPublic = Optional.ofNullable(this.app.remote).map(e -> e.getInner().properties().publicProperty()).orElse(null);
+            if (Objects.nonNull(isPublic) && !Objects.equals(oldPublic, isPublic)) {
+                AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
+                    .withPublicProperty(isPublic);
+            }
+            return this;
+        }
+
+        public Updater enablePersistentDisk(Boolean enable) {
+            final boolean enabled = Optional.ofNullable(this.app.remote).map(e -> e.getInner().properties().persistentDisk())
+                .filter(d -> d.sizeInGB() > 0).isPresent();
+            if (Objects.nonNull(enable) && !Objects.equals(enable, enabled)) {
+                final PersistentDisk newDisk = enable ? AzureSpringCloudConfigUtils.getOrCreatePersistentDisk(this.resource, this.app) : null;
+                AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
+                    .withPersistentDisk(newDisk);
+            }
+            return this;
+        }
+
+        @Override
         public SpringCloudApp commit() {
-            this.app.remote = this.app.appManager.update(this.resource, this.app.entity());
+            if (this.isSkippable()) {
+                log.info("skip updating app({}) since its properties is not changed.", this.app.entity().getName());
+            } else {
+                this.app.remote = this.app.appManager.update(this.resource, this.app.entity());
+            }
             return this.app;
+        }
+
+        public boolean isSkippable() {
+            return Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.location());
         }
     }
 

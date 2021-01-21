@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.springcloud.config;
 
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudRuntimeVersion;
 import lombok.Builder;
 import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
@@ -42,7 +41,7 @@ public class SpringCloudDeploymentConfig {
             .build();
     }
 
-    public SpringCloudRuntimeVersion getJavaVersion() {
-        return AzureSpringCloudConfigUtils.parse(runtimeVersion);
+    public String getJavaVersion() {
+        return AzureSpringCloudConfigUtils.normalize(runtimeVersion);
     }
 }
