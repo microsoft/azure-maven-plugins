@@ -31,7 +31,7 @@ public enum AuthType {
         if (StringUtils.isBlank(type)) {
             return AUTO;
         }
-        switch (type.toLowerCase().trim()) {
+        switch (StringUtils.replace(type.toLowerCase().trim(), "-", "_")) {
             case "auto":
                 return AUTO;
             case "service_principal":

@@ -4,12 +4,12 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.core;
+package com.microsoft.azure.tools.auth.core.devicecode;
 
 import com.azure.identity.DeviceCodeCredential;
 import com.azure.identity.DeviceCodeCredentialBuilder;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.common.util.TextUtils;
@@ -23,7 +23,6 @@ public class DeviceCodeCredentialRetriever extends AbstractCredentialRetriever {
     }
 
     public AzureCredentialWrapper retrieveInternal() {
-        AuthHelper.setupAzureEnvironment(env);
         DeviceCodeCredential deviceCodeCredential = new DeviceCodeCredentialBuilder().clientId(AZURE_TOOLKIT_CLIENT_ID)
                 .challengeConsumer(challenge -> System.out.println(StringUtils.replace(challenge.getMessage(), challenge.getDeviceCode(),
                         TextUtils.blue(challenge.getDeviceCode())))).build();

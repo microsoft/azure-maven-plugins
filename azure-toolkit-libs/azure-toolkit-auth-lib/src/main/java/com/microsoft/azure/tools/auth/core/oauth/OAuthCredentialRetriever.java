@@ -4,12 +4,12 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.core;
+package com.microsoft.azure.tools.auth.core.oauth;
 
 import com.azure.identity.InteractiveBrowserCredential;
 import com.azure.identity.InteractiveBrowserCredentialBuilder;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.tools.auth.exception.DesktopNotSupportedException;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
@@ -29,7 +29,6 @@ public class OAuthCredentialRetriever extends AbstractCredentialRetriever {
         if (!isBrowserAvailable()) {
             throw new DesktopNotSupportedException("Not able to launch a browser to log you in.");
         }
-        AuthHelper.setupAzureEnvironment(env);
         InteractiveBrowserCredential interactiveBrowserCredential = new InteractiveBrowserCredentialBuilder()
                 .clientId(AZURE_TOOLKIT_CLIENT_ID).redirectUrl("http://localhost:" + FreePortFinder.findFreeLocalPort())
                 .build();

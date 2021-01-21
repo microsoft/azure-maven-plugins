@@ -9,6 +9,7 @@ package com.microsoft.azure.tools.auth.core;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.exception.ClientAuthenticationException;
+import com.google.common.base.MoreObjects;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
@@ -41,6 +42,6 @@ public abstract class AbstractCredentialRetriever implements ICredentialRetrieve
     }
 
     protected AzureEnvironment getAzureEnvironment() {
-        return env == null ? AzureEnvironment.AZURE : env;
+        return MoreObjects.firstNonNull(env, AzureEnvironment.AZURE);
     }
 }

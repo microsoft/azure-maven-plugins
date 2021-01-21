@@ -4,26 +4,34 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.core;
+package com.microsoft.azure.tools.auth.core.managedidentity;
 
 import com.azure.identity.ManagedIdentityCredential;
 import com.azure.identity.ManagedIdentityCredentialBuilder;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
+import com.microsoft.azure.tools.auth.model.AuthConfiguration;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 
+import javax.annotation.Nonnull;
+
 public class ManagedIdentityCredentialRetriever extends AbstractCredentialRetriever {
 
-    public ManagedIdentityCredentialRetriever(AzureEnvironment env) {
-        super(env);
+    private String clientId;
+
+    public ManagedIdentityCredentialRetriever(@Nonnull AuthConfiguration configuration) {
+        super(configuration.getEnvironment());
+        // it allows null when it is a System Managed Identity
+        clientId = configuration.getClient();
     }
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         AuthHelper.setupAzureEnvironment(env);
-        ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder().build();
+        ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder().clientId(clientId).build();
         validateTokenCredential(managedIdentityCredential);
-        return new AzureCredentialWrapper(AuthMethod.MANAGED_IDENTITY, managedIdentityCredential, env);
+        return new AzureCredentialWrapper(AuthMethod.MANAGED_IDENTITY, managedIdentityCredential, getAzureEnvironment());
     }
 }
