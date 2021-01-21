@@ -116,7 +116,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         public Updater configRuntimeVersion(String version) {
             final RuntimeVersion oldRuntimeVersion = Optional.ofNullable(this.deployment.remote)
                 .map(e -> e.getInner().properties().deploymentSettings().runtimeVersion()).orElse(null);
-            if (Objects.nonNull(version) && !Objects.equals(RuntimeVersion.fromString(version), oldRuntimeVersion)) {
+            if (Objects.nonNull(version) && !Objects.equals(oldRuntimeVersion, RuntimeVersion.fromString(version))) {
                 AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
                     .withRuntimeVersion(RuntimeVersion.fromString(version));
             }
