@@ -42,7 +42,6 @@
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
         <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
         <azure.client.version>1.7.8</azure.client.version>
-        <azure.auth-helper.version>0.7.0-SNAPSHOT</azure.auth-helper.version>
         <azure.eventhubs.version>1.2.0</azure.eventhubs.version>
         <azure.eventhubs-eph.version>2.0.1</azure.eventhubs-eph.version>
         <azure.function.version>1.4.2-SNAPSHOT</azure.function.version>
@@ -306,11 +305,6 @@
                 <groupId>com.github.zafarkhaja</groupId>
                 <artifactId>java-semver</artifactId>
                 <version>${semver.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-auth-helper</artifactId>
-                <version>${azure.auth-helper.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>

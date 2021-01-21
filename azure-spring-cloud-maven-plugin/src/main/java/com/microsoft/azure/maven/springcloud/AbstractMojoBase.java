@@ -145,7 +145,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         // Init telemetries
         initTelemetry();
         trackMojoExecution(MojoStatus.Start);
-        MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
+        final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
         mavenAuthConfiguration.setType(getAuthType());
         this.azureTokenCredentials = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
         // Use oauth if no existing credentials
