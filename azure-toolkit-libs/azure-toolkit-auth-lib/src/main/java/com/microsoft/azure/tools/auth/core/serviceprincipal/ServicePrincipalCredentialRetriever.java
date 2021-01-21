@@ -9,7 +9,6 @@ package com.microsoft.azure.tools.auth.core.serviceprincipal;
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
-import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;

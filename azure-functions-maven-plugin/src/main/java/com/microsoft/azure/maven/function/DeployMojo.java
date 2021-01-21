@@ -31,7 +31,6 @@ import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
 import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
-import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.ApplicationInsightsComponent;
 import com.microsoft.azure.management.appservice.AppServicePlan;
@@ -46,6 +45,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -75,9 +75,9 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final int LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS = 10;
     private static final String DEPLOY_START = "Starting deployment...";
     private static final String DEPLOY_FINISH =
-        "Deployment done, you may access your resource through %s";
+            "Deployment done, you may access your resource through %s";
     private static final String FUNCTION_APP_CREATE_START = "The specified function app does not exist. " +
-        "Creating a new function app...";
+            "Creating a new function app...";
     private static final String FUNCTION_APP_CREATED = "Successfully created the function app: %s.";
     private static final String FUNCTION_SLOT_CREATE_START = "The specified function slot does not exist. " +
             "Creating a new slot...";
@@ -141,7 +141,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
             if (target == null) {
                 throw new AzureExecutionException(
-                    String.format("Failed to get the deploy target with name: %s", getAppName()));
+                        String.format("Failed to get the deploy target with name: %s", getAppName()));
             }
 
             deployArtifact(new DeployTarget(target, DeployTargetType.FUNCTION));
@@ -387,8 +387,8 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .findFirst()
                 .orElseThrow(() -> new AzureExecutionException(
                         String.format("Failed to find function artifact '%s.jar' in folder '%s', please re-package the project and try again.",
-                        this.getFinalName(),
-                        stagingFolder))
+                                this.getFinalName(),
+                                stagingFolder))
                 );
     }
 
@@ -461,14 +461,15 @@ public class DeployMojo extends AbstractFunctionMojo {
         return slotSetting != null && StringUtils.isNotEmpty(slotSetting.getName());
     }
 
-    private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureAuthFailureException {
-        final AzureTokenCredentials credentials = getAzureTokenWrapper();
+    private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureAuthFailureException, AzureExecutionException {
+        final AzureCredentialWrapper credentials = getAzureCredentialWrapper();
         if (credentials == null) {
             Log.warn(APPLICATION_INSIGHTS_NOT_SUPPORTED);
             return null;
         }
         final String subscriptionId = getAzureClient().subscriptionId();
-        final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials, subscriptionId, getUserAgent());
+        final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials.getAzureTokenCredentials(),
+                subscriptionId, getUserAgent());
         return StringUtils.isNotEmpty(getAppInsightsInstance()) ?
                 getApplicationInsights(applicationInsightsManager, getAppInsightsInstance()) :
                 enableCreation ? createApplicationInsights(applicationInsightsManager, getAppName()) : null;
