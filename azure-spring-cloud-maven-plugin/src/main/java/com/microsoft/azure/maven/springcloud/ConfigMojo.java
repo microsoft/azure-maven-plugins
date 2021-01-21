@@ -344,7 +344,7 @@ public class ConfigMojo extends AbstractMojoBase {
         final PagedList<Subscription> subscriptions = azure.subscriptions().list();
         this.wrapper.putCommonVariable("subscriptions", subscriptions);
         final Subscription select = this.wrapper.handleSelectOne("select-subscriptions", subscriptions, null,
-                t -> String.format("%s (%s)", t.displayName(), t.subscriptionId()));
+            t -> String.format("%s (%s)", t.displayName(), t.subscriptionId()));
         return select.subscriptionId();
     }
 
