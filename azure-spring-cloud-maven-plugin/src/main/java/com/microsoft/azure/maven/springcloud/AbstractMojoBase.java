@@ -17,15 +17,15 @@ import com.microsoft.azure.common.ConfigurationProblem;
 import com.microsoft.azure.common.ConfigurationProblem.Severity;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
 import com.microsoft.azure.maven.utils.MavenUtils;
-import com.microsoft.azure.tools.springcloud.AppConfig;
-import com.microsoft.azure.tools.springcloud.ServiceClient;
 import com.microsoft.azure.tools.exception.DesktopNotSupportedException;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -119,9 +119,8 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected AzureTokenCredentials azureTokenCredentials;
 
-    protected ServiceClient springServiceClient;
-
     protected Long timeStart;
+    private AppPlatformManager manager;
 
     @Override
     public void execute() throws MojoFailureException {
@@ -230,7 +229,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_JAVA_VERSION, javaVersion);
     }
 
-    protected void traceConfiguration(AppConfig configuration) {
+    protected void traceConfiguration(SpringCloudAppConfig configuration) {
         telemetries.put(TELEMETRY_KEY_PUBLIC, String.valueOf(configuration.isPublic()));
         telemetries.put(TELEMETRY_KEY_RUNTIME_VERSION, configuration.getRuntimeVersion());
         telemetries.put(TELEMETRY_KEY_CPU, String.valueOf(configuration.getDeployment().getCpu()));
@@ -290,7 +289,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return plugin;
     }
 
-    public AppConfig getConfiguration() {
+    public SpringCloudAppConfig getConfiguration() {
         final ConfigurationParser parser = ConfigurationParser.getInstance();
         return parser.parse(this);
     }
@@ -299,12 +298,15 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return telemetries;
     }
 
-    public ServiceClient getSpringServiceClient() {
-        if (springServiceClient == null) {
+    public AppPlatformManager getAppPlatformManager() {
+        if (this.manager == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-            springServiceClient = new ServiceClient(azureTokenCredentials, subscriptionId, getUserAgent(), logLevel);
+            this.manager = AppPlatformManager.configure()
+                .withLogLevel(logLevel)
+                .withUserAgent(getUserAgent())
+                .authenticate(azureTokenCredentials, subscriptionId);
         }
-        return springServiceClient;
+        return this.manager;
     }
 
     public String getUserAgent() {
