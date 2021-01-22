@@ -13,6 +13,8 @@ import java.util.List;
 public interface IWebApp extends IAppService {
     WebAppEntity entity();
 
+    IAppServicePlan appServicePlan();
+
     IAppServiceCreator<? extends IWebApp> create();
 
     IAppServiceUpdater<? extends IWebApp> update();

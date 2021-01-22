@@ -93,7 +93,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private IAppService getDeployTarget(final WebAppConfig config) throws AzureExecutionException {
-        final IWebApp webApp = getAppServiceClient().webapp(config.getResourceGroup(), config.getAppName());
+        final IWebApp webApp = az.webapp(config.getResourceGroup(), config.getAppName());
         final boolean isDeploymentSlot = StringUtils.isNotEmpty(config.getDeploymentSlotName());
         if (isDeploymentSlot && !webApp.exists()) {
             throw new AzureExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
@@ -105,9 +105,8 @@ public class DeployMojo extends AbstractWebAppMojo {
         // todo: get or create Resource Group
         final ResourceGroup resourceGroup = null;
         // Get or create App Service Plan
-        final IAppServicePlan appServicePlan = getAppServiceClient()
-                .appServicePlan(webAppConfig.getServicePlanResourceGroup(), webAppConfig.getServicePlanName());
-        if (appServicePlan.exists()) {
+        final IAppServicePlan appServicePlan = az.appServicePlan(webAppConfig.getServicePlanResourceGroup(), webAppConfig.getServicePlanName());
+        if (!appServicePlan.exists()) {
             appServicePlan.create()
                     .withName(webAppConfig.getServicePlanName())
                     .withResourceGroup(resourceGroup.getName())
@@ -128,11 +127,12 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private IWebApp updateWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) throws AzureExecutionException {
         // update app service plan
-        final IAppServicePlan currentPlan = getAppServiceClient().appServicePlan(webApp.entity().getAppServicePlanId());
+        final IAppServicePlan currentPlan = webApp.appServicePlan();
         final IAppServicePlan targetServicePlan = StringUtils.isEmpty(webAppConfig.getServicePlanName()) ? currentPlan :
-                getAppServiceClient().appServicePlan(webAppConfig.getServicePlanResourceGroup(), webAppConfig.getServicePlanName());
+                az.appServicePlan(webAppConfig.getServicePlanResourceGroup(), webAppConfig.getServicePlanName());
         if (!targetServicePlan.exists()) {
-            throw new AzureExecutionException("App service plan %s was not exists");
+            throw new AzureExecutionException(String.format("App service plan %s was not found in resource group %s",
+                    webAppConfig.getServicePlanName(), webAppConfig.getServicePlanResourceGroup()));
         }
         targetServicePlan.update().withPricingTier(webAppConfig.getPricingTier()).commit();
         return webApp.update().withPlan(targetServicePlan.entity().getId())
@@ -160,6 +160,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         for (final Pair<File, DeployType> file : config.getResources()) {
             target.deploy(file.getRight(), file.getLeft());
         }
+
     }
 
     protected void createWebApp(final RuntimeHandler runtimeHandler) throws AzureExecutionException {

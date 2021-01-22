@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkits.appservice.service;
 import com.microsoft.azure.toolkits.appservice.entity.WebAppDeploymentSlotEntity;
 
 public interface IWebAppDeploymentSlot extends IAppService {
+    IWebApp webApp();
+
     IWebAppDeploymentSlotCreator create();
 
     WebAppDeploymentSlotEntity entity();

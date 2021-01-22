@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkits.appservice.service;
 
 import com.microsoft.azure.toolkits.appservice.entity.AppServicePlanEntity;
 
+import java.util.List;
+
 public interface IAppServicePlan {
     IAppServicePlanCreator create();
 
@@ -15,4 +17,6 @@ public interface IAppServicePlan {
     boolean exists();
 
     AppServicePlanEntity entity();
+
+    List<IWebApp> webapps();
 }

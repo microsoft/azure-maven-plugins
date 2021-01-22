@@ -236,6 +236,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     private WebAppConfiguration webAppConfiguration;
 
     protected File stagingDirectory;
+
+    protected AzureAppService az;
     //endregion
 
     //region Getter
@@ -402,10 +404,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
         }
         return map;
-    }
-
-    protected AzureAppService getAppServiceClient() {
-        return null;
     }
 
     protected WebAppConfig getWebAppConfig() throws AzureExecutionException {
