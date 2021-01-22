@@ -32,6 +32,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
     private final SpringCloudAppManager appManager;
     private final SpringCloudAppEntity local;
     private SpringCloudAppEntity remote;
+    private boolean refreshed;
 
     public SpringCloudApp(SpringCloudAppEntity app, SpringCloudCluster cluster) {
         this.local = app;
@@ -41,7 +42,9 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
 
     @Override
     public boolean exists() {
-        this.refresh();
+        if (!this.refreshed) {
+            this.refresh();
+        }
         return Objects.nonNull(this.remote);
     }
 
@@ -88,6 +91,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         final SpringCloudAppEntity app = this.entity();
         final SpringCloudClusterEntity cluster = this.cluster.entity();
         this.remote = this.appManager.get(app.getName(), cluster);
+        this.refreshed = true;
         return this;
     }
 
@@ -102,6 +106,13 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
     @Nonnull
     public Updater update() {
         return new Updater(this);
+    }
+
+    public String getActiveDeploymentName() {
+        if (!this.refreshed) {
+            this.refresh();
+        }
+        return Optional.ofNullable(this.remote).map(r -> this.remote.getInner().properties().activeDeploymentName()).orElse(null);
     }
 
     public static class Uploader implements ICommittable<SpringCloudApp> {

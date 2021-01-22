@@ -8,13 +8,12 @@ package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.common.prompt.DefaultPrompter;
 import com.microsoft.azure.common.prompt.IPrompter;
-import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
-import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
@@ -36,7 +35,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils.DEFAULT_DEPLOYMENT_NAME;
 
@@ -80,11 +78,11 @@ public class DeployMojo extends AbstractMojoBase {
         final String jvmOptions = deploymentConfig.getJvmOptions();
         final ScaleSettings scaleSettings = deploymentConfig.getScaleSettings();
         final String runtimeVersion = deploymentConfig.getJavaVersion();
-        final String deploymentName = Optional.ofNullable(deploymentConfig.getDeploymentName()).orElse(DEFAULT_DEPLOYMENT_NAME);
 
         final AzureSpringCloud az = AzureSpringCloud.az(this.getAppPlatformManager());
         final SpringCloudCluster cluster = az.cluster(clusterName);
         final SpringCloudApp app = cluster.app(appName);
+        final String deploymentName = StringUtils.firstNonBlank(appConfig.getActiveDeploymentName(), app.getActiveDeploymentName(), DEFAULT_DEPLOYMENT_NAME);
         final SpringCloudDeployment deployment = app.deployment(deploymentName);
 
         final String CREATE_APP_TITLE = String.format("Create new app(%s) on service(%s)", TextUtils.cyan(appName), TextUtils.cyan(clusterName));
@@ -105,7 +103,7 @@ public class DeployMojo extends AbstractMojoBase {
             .configRuntimeVersion(runtimeVersion)
             .configArtifact(artifactUploader.getArtifact());
         final SpringCloudApp.Updater appUpdater = app.update()
-            .activate(Optional.ofNullable(appConfig.getActiveDeploymentName()).orElse(deploymentName))
+            .activate(StringUtils.firstNonBlank(app.getActiveDeploymentName(), deploymentName)) // active deployment should keep active.
             .setPublic(appConfig.isPublic())
             .enablePersistentDisk(enableDisk);
 
@@ -152,10 +150,8 @@ public class DeployMojo extends AbstractMojoBase {
 
     protected boolean confirmDeploy(List<AzureTask<?>> tasks) throws MojoFailureException {
         try (IPrompter prompter = new DefaultPrompter()) {
-            final StringBuilder confirms = new StringBuilder(CONFIRM_PROMPT_START);
-            tasks.stream().filter(t -> StringUtils.isNotBlank(t.getTitle())).forEach((t) ->
-                confirms.append(System.lineSeparator()).append("\t- ").append(t.getTitle()));
-            log.info(confirms.toString());
+            log.info(CONFIRM_PROMPT_START);
+            tasks.stream().filter(t -> StringUtils.isNotBlank(t.getTitle())).forEach((t) -> System.out.printf("\t- %s%n", t.getTitle()));
             return prompter.promoteYesNo(CONFIRM_PROMPT_CONFIRM, true, true);
         } catch (IOException e) {
             throw new MojoFailureException(e.getMessage());
@@ -179,9 +175,6 @@ public class DeployMojo extends AbstractMojoBase {
     }
 
     protected void printStatus(SpringCloudDeployment deployment) {
-        if (!AzureSpringCloudConfigUtils.isDeploymentDone(deployment)) {
-            log.warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
-        }
         final DeploymentResourceStatus status = deployment.entity().getStatus();
         log.info("Deployment Status: {}", color(status.toString()));
         deployment.entity().getInstances().forEach(instance ->
