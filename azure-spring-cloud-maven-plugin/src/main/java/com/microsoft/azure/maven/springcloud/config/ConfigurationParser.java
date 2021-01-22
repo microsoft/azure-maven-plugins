@@ -8,33 +8,35 @@ package com.microsoft.azure.maven.springcloud.config;
 
 import com.microsoft.azure.maven.springcloud.AbstractMojoBase;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
-import com.microsoft.azure.tools.springcloud.AppConfig;
-import com.microsoft.azure.tools.springcloud.AppDeploymentConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 
 public class ConfigurationParser {
-    public AppConfig parse(AbstractMojoBase springMojo) {
+    public SpringCloudAppConfig parse(AbstractMojoBase springMojo) {
         final AppDeploymentMavenConfig rawConfig = springMojo.getDeployment();
-        final AppDeploymentConfig config = ConfigurationParser.toDeploymentConfig(rawConfig);
-        return new AppConfig()
-            .withAppName(springMojo.getAppName())
-            .withClusterName(springMojo.getClusterName())
-            .withDeployment(config)
-            .withRuntimeVersion(springMojo.getRuntimeVersion())
-            .withPublic(springMojo.isPublic())
-            .withSubscriptionId(springMojo.getSubscriptionId());
+        final SpringCloudDeploymentConfig config = ConfigurationParser.toDeploymentConfig(rawConfig);
+        return SpringCloudAppConfig.builder()
+            .appName(springMojo.getAppName())
+            .clusterName(springMojo.getClusterName())
+            .deployment(config)
+            .runtimeVersion(springMojo.getRuntimeVersion())
+            .isPublic(springMojo.isPublic())
+            .subscriptionId(springMojo.getSubscriptionId())
+            .build();
     }
 
-    private static AppDeploymentConfig toDeploymentConfig(AppDeploymentMavenConfig rawConfig) {
-        return new AppDeploymentConfig()
-            .withCpu(rawConfig.getCpu())
-            .withDeploymentName(rawConfig.getDeploymentName())
-            .withArtifacts(MavenArtifactUtils.getArtifacts(rawConfig.getResources()))
-            .withEnablePersistentStorage(rawConfig.isEnablePersistentStorage())
-            .withEnvironment(rawConfig.getEnvironment())
-            .withInstanceCount(rawConfig.getInstanceCount())
-            .withJvmOptions(rawConfig.getJvmOptions())
-            .withMemoryInGB(rawConfig.getMemoryInGB())
-            .withRuntimeVersion(rawConfig.getRuntimeVersion());
+    private static SpringCloudDeploymentConfig toDeploymentConfig(AppDeploymentMavenConfig rawConfig) {
+        return SpringCloudDeploymentConfig.builder()
+            .cpu(rawConfig.getCpu())
+            .deploymentName(rawConfig.getDeploymentName())
+            .artifacts(MavenArtifactUtils.getArtifacts(rawConfig.getResources()))
+            .enablePersistentStorage(rawConfig.isEnablePersistentStorage())
+            .environment(rawConfig.getEnvironment())
+            .instanceCount(rawConfig.getInstanceCount())
+            .jvmOptions(rawConfig.getJvmOptions())
+            .memoryInGB(rawConfig.getMemoryInGB())
+            .runtimeVersion(rawConfig.getRuntimeVersion())
+            .build();
     }
 
     public static ConfigurationParser getInstance() {
