@@ -16,6 +16,7 @@ import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.tools.common.util.ProxyUtils;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.rest.LogLevel;
@@ -32,6 +33,7 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 
 import java.io.File;
+import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -140,13 +142,14 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         }
     }
 
-    protected void initExecution() throws MojoFailureException, MavenDecryptException, AzureExecutionException {
+    protected void initExecution() throws MojoFailureException, MavenDecryptException, AzureExecutionException,
+            com.microsoft.azure.tools.auth.exception.InvalidConfigurationException {
         // Init telemetries
         initTelemetry();
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
         mavenAuthConfiguration.setType(getAuthType());
-        this.azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
+        this.azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration, this.httpProxyHost, this.httpProxyPort);
         if (Objects.isNull(azureCredentialWrapper)) {
             AppInsightHelper.INSTANCE.trackEvent(INIT_FAILURE);
             throw new MojoFailureException(AZURE_INIT_FAIL);
@@ -267,9 +270,11 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     public AppPlatformManager getAppPlatformManager() {
         if (this.manager == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
+            final Proxy proxy = ProxyUtils.createHttpProxy(this.httpProxyHost, this.httpProxyHost);
             this.manager = AppPlatformManager.configure()
                 .withLogLevel(logLevel)
                 .withUserAgent(getUserAgent())
+                .withProxy(proxy)
                 .authenticate(azureCredentialWrapper.getAzureTokenCredentials(), subscriptionId);
         }
         return this.manager;

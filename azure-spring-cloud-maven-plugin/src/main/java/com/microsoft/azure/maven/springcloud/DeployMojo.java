@@ -174,7 +174,7 @@ public class DeployMojo extends AbstractMojoBase {
         if (StringUtils.isEmpty(publicUrl)) {
             log.warn("Failed to get application url");
         } else {
-            log.info("Application url: {}", TextUtils.green(publicUrl));
+            log.info("Application url: {}", TextUtils.cyan(publicUrl));
         }
     }
 

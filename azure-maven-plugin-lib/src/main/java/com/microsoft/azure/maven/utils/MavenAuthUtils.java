@@ -30,13 +30,17 @@ public class MavenAuthUtils {
     private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
         "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
 
-    public static AzureCredentialWrapper login(MavenSession session, SettingsDecrypter settingsDecrypter, @Nonnull MavenAuthConfiguration auth)
-            throws AzureExecutionException, MavenDecryptException {
+    public static AzureCredentialWrapper login(MavenSession session, SettingsDecrypter settingsDecrypter, @Nonnull MavenAuthConfiguration auth,
+                                               String httpProxyHost, String httpProxyPort)
+            throws AzureExecutionException, MavenDecryptException, InvalidConfigurationException {
         final String serverId = auth.getServerId();
         final AuthConfiguration authConfiguration;
         try {
             authConfiguration = convertToAuthConfiguration(StringUtils.isNotBlank(auth.getServerId()) ?
                     buildAuthConfigurationByServerId(session, settingsDecrypter, serverId) : auth);
+            ValidationUtil.validateHttpProxy(httpProxyHost, httpProxyPort);
+            authConfiguration.setHttpProxyHost(httpProxyHost);
+            authConfiguration.setHttpProxyPort(NumberUtils.toInt(httpProxyPort));
         } catch (InvalidConfigurationException ex) {
             final String messagePostfix = StringUtils.isNotBlank(serverId) ? ("in server: '" + serverId + "' at maven settings.xml.")
                     : "in <auth> configuration.";
@@ -56,14 +60,9 @@ public class MavenAuthUtils {
         authConfiguration.setCertificate(mavenAuthConfiguration.getCertificate());
         authConfiguration.setCertificatePassword(mavenAuthConfiguration.getCertificatePassword());
         authConfiguration.setKey(mavenAuthConfiguration.getKey());
-        authConfiguration.setHttpProxyHost(mavenAuthConfiguration.getHttpProxyHost());
+
         final String authTypeStr = mavenAuthConfiguration.getType();
         authConfiguration.setType(AuthType.parseAuthType(authTypeStr));
-
-        if (Objects.nonNull(mavenAuthConfiguration.getHttpProxyPort()) && !NumberUtils.isCreatable(mavenAuthConfiguration.getHttpProxyPort())) {
-            throw new InvalidConfigurationException(String.format("Invalid integer number for httpProxyPort: '%s'", mavenAuthConfiguration.getHttpProxyPort()));
-        }
-        authConfiguration.setHttpProxyPort(NumberUtils.toInt(mavenAuthConfiguration.getHttpProxyPort()));
 
         authConfiguration.setEnvironment(AuthHelper.stringToAzureEnvironment(mavenAuthConfiguration.getEnvironment()));
         if (StringUtils.isNotBlank(mavenAuthConfiguration.getEnvironment()) && Objects.isNull(authConfiguration.getEnvironment())) {
@@ -75,11 +74,12 @@ public class MavenAuthUtils {
         if (StringUtils.isBlank(mavenAuthConfiguration.getType())) {
             if (!StringUtils.isAllBlank(mavenAuthConfiguration.getCertificate(), mavenAuthConfiguration.getKey(),
                     mavenAuthConfiguration.getCertificatePassword())) {
-                ValidationUtil.validateMavenAuthConfiguration(authConfiguration);
+                ValidationUtil.validateAuthConfiguration(authConfiguration);
             }
         } else if (authConfiguration.getType() == AuthType.SERVICE_PRINCIPAL) {
-            ValidationUtil.validateMavenAuthConfiguration(authConfiguration);
+            ValidationUtil.validateAuthConfiguration(authConfiguration);
         }
+
         return authConfiguration;
     }
 }
