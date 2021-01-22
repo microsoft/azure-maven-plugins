@@ -12,6 +12,7 @@ import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.AzureAuthManager;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.tools.auth.model.AuthConfiguration;
 import com.microsoft.azure.tools.auth.model.AuthType;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.auth.util.ValidationUtil;
@@ -29,47 +30,12 @@ public class MavenAuthUtils {
     private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
         "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
 
-    public static com.microsoft.azure.tools.auth.model.AuthConfiguration convertToAuthConfiguration(MavenAuthConfiguration auth)
-            throws InvalidConfigurationException {
-        if (Objects.isNull(auth)) {
-            return new com.microsoft.azure.tools.auth.model.AuthConfiguration();
-        }
-        final com.microsoft.azure.tools.auth.model.AuthConfiguration authConfiguration = new com.microsoft.azure.tools.auth.model.AuthConfiguration();
-        authConfiguration.setClient(auth.getClient());
-        authConfiguration.setTenant(auth.getTenant());
-        authConfiguration.setCertificate(auth.getCertificate());
-        authConfiguration.setCertificatePassword(auth.getCertificatePassword());
-        authConfiguration.setKey(auth.getKey());
-        authConfiguration.setHttpProxyHost(auth.getHttpProxyHost());
-        final String authTypeStr = auth.getType();
-        authConfiguration.setType(AuthType.parseAuthType(authTypeStr));
-        authConfiguration.setEnvironment(AuthHelper.stringToAzureEnvironment(auth.getEnvironment()));
-        if (Objects.nonNull(auth.getHttpProxyPort()) && !NumberUtils.isCreatable(auth.getHttpProxyPort())) {
-            throw new InvalidConfigurationException(String.format("Invalid integer number for httpProxyPort: '%s'", auth.getHttpProxyPort()));
-        }
-        authConfiguration.setHttpProxyPort(NumberUtils.toInt(auth.getHttpProxyPort()));
-
-        if (StringUtils.isNotBlank(auth.getEnvironment()) && Objects.isNull(authConfiguration.getEnvironment())) {
-            throw new InvalidConfigurationException(String.format(INVALID_AZURE_ENVIRONMENT, auth.getEnvironment()));
-        }
-        // if user specify 'auto', and there are SP configuration errors, it will fail back to other auth types
-        // if user doesn't specify any authType
-        if (StringUtils.isBlank(auth.getType())) {
-            if (!StringUtils.isAllBlank(auth.getCertificate(), auth.getKey(), auth.getCertificatePassword())) {
-                ValidationUtil.validateMavenAuthConfiguration(authConfiguration);
-            }
-        } else if (authConfiguration.getType() == AuthType.SERVICE_PRINCIPAL) {
-            ValidationUtil.validateMavenAuthConfiguration(authConfiguration);
-        }
-        return authConfiguration;
-    }
-
     public static AzureCredentialWrapper login(MavenSession session, SettingsDecrypter settingsDecrypter, @Nonnull MavenAuthConfiguration auth)
             throws AzureExecutionException, MavenDecryptException {
         final String serverId = auth.getServerId();
-        final com.microsoft.azure.tools.auth.model.AuthConfiguration authConfiguration;
+        final AuthConfiguration authConfiguration;
         try {
-            authConfiguration = MavenAuthUtils.convertToAuthConfiguration(StringUtils.isNotBlank(auth.getServerId()) ?
+            authConfiguration = convertToAuthConfiguration(StringUtils.isNotBlank(auth.getServerId()) ?
                     buildAuthConfigurationByServerId(session, settingsDecrypter, serverId) : auth);
         } catch (InvalidConfigurationException ex) {
             final String messagePostfix = StringUtils.isNotBlank(serverId) ? ("in server: '" + serverId + "' at maven settings.xml.")
@@ -79,4 +45,41 @@ public class MavenAuthUtils {
         return AzureAuthManager.getAzureCredentialWrapper(authConfiguration).toBlocking().value();
     }
 
+    private static AuthConfiguration convertToAuthConfiguration(MavenAuthConfiguration mavenAuthConfiguration)
+            throws InvalidConfigurationException {
+        if (Objects.isNull(mavenAuthConfiguration)) {
+            return new AuthConfiguration();
+        }
+        final AuthConfiguration authConfiguration = new AuthConfiguration();
+        authConfiguration.setClient(mavenAuthConfiguration.getClient());
+        authConfiguration.setTenant(mavenAuthConfiguration.getTenant());
+        authConfiguration.setCertificate(mavenAuthConfiguration.getCertificate());
+        authConfiguration.setCertificatePassword(mavenAuthConfiguration.getCertificatePassword());
+        authConfiguration.setKey(mavenAuthConfiguration.getKey());
+        authConfiguration.setHttpProxyHost(mavenAuthConfiguration.getHttpProxyHost());
+        final String authTypeStr = mavenAuthConfiguration.getType();
+        authConfiguration.setType(AuthType.parseAuthType(authTypeStr));
+
+        if (Objects.nonNull(mavenAuthConfiguration.getHttpProxyPort()) && !NumberUtils.isCreatable(mavenAuthConfiguration.getHttpProxyPort())) {
+            throw new InvalidConfigurationException(String.format("Invalid integer number for httpProxyPort: '%s'", mavenAuthConfiguration.getHttpProxyPort()));
+        }
+        authConfiguration.setHttpProxyPort(NumberUtils.toInt(mavenAuthConfiguration.getHttpProxyPort()));
+
+        authConfiguration.setEnvironment(AuthHelper.stringToAzureEnvironment(mavenAuthConfiguration.getEnvironment()));
+        if (StringUtils.isNotBlank(mavenAuthConfiguration.getEnvironment()) && Objects.isNull(authConfiguration.getEnvironment())) {
+            throw new InvalidConfigurationException(String.format(INVALID_AZURE_ENVIRONMENT, mavenAuthConfiguration.getEnvironment()));
+        }
+
+        // if user specify 'auto', and there are SP configuration errors, it will fail back to other auth types
+        // if user doesn't specify any authType
+        if (StringUtils.isBlank(mavenAuthConfiguration.getType())) {
+            if (!StringUtils.isAllBlank(mavenAuthConfiguration.getCertificate(), mavenAuthConfiguration.getKey(),
+                    mavenAuthConfiguration.getCertificatePassword())) {
+                ValidationUtil.validateMavenAuthConfiguration(authConfiguration);
+            }
+        } else if (authConfiguration.getType() == AuthType.SERVICE_PRINCIPAL) {
+            ValidationUtil.validateMavenAuthConfiguration(authConfiguration);
+        }
+        return authConfiguration;
+    }
 }

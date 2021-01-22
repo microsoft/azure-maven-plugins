@@ -148,7 +148,6 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
         mavenAuthConfiguration.setType(getAuthType());
         this.azureTokenCredentials = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
-        // Use oauth if no existing credentials
         if (Objects.isNull(azureTokenCredentials)) {
             AppInsightHelper.INSTANCE.trackEvent(INIT_FAILURE);
             throw new MojoFailureException(AZURE_INIT_FAIL);

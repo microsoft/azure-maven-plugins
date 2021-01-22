@@ -354,26 +354,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                     .authenticate(azureCredentialWrapper.getAzureTokenCredentials()).withDefaultSubscription();
             final PagedList<Subscription> subscriptions = tempAzure.subscriptions().list();
             subscriptions.loadAll();
-            final List<String> subsIdList = subscriptions.stream().map(Subscription::subscriptionId).collect(Collectors.toList());
-            String defaultSubscriptionId = StringUtils.firstNonBlank(this.subscriptionId, azureCredentialWrapper.getDefaultSubscriptionId());
-
-            if (StringUtils.isBlank(defaultSubscriptionId) && ArrayUtils.isNotEmpty(azureCredentialWrapper.getFilteredSubscriptionIds())) {
-                final Collection<String> filteredSubscriptions = StringListUtils.intersectIgnoreCase(subsIdList,
-                        Arrays.asList(azureCredentialWrapper.getFilteredSubscriptionIds()));
-                if (filteredSubscriptions.size() == 1) {
-                    defaultSubscriptionId = filteredSubscriptions.iterator().next();
-                }
-            }
-            if (StringUtils.isBlank(defaultSubscriptionId) && subsIdList.size() == 1) {
-                defaultSubscriptionId = subsIdList.get(0);
-            }
-
-            if (StringUtils.isAllBlank(this.subscriptionId, defaultSubscriptionId)) {
-                defaultSubscriptionId = selectSubscription(tempAzure, subscriptions.toArray(new Subscription[0]));
-            }
-
-            checkSubscription(subscriptions, defaultSubscriptionId);
-            azureCredentialWrapper.withDefaultSubscriptionId(defaultSubscriptionId);
+            final String targetSubscriptionId = getTargetSubscriptionId(tempAzure, subscriptions);
+            checkSubscription(subscriptions, targetSubscriptionId);
+            azureCredentialWrapper.withDefaultSubscriptionId(targetSubscriptionId);
             return AzureClientFactory.getAzureClient(azureCredentialWrapper, getUserAgent());
         } catch (AzureLoginException | IOException e) {
             throw new AzureAuthFailureException(e.getMessage());
@@ -629,11 +612,25 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
     //endregion
 
-    private static void checkSubscription(List<Subscription> subscriptions, String targetSubscriptionId) throws AzureLoginException {
-        if (subscriptions.size() == 0) {
-            throw new AzureLoginException(NO_AVAILABLE_SUBSCRIPTION);
+    private String getTargetSubscriptionId(Azure azure2, PagedList<Subscription> subscriptions) throws IOException, AzureExecutionException {
+        final List<String> subsIdList = subscriptions.stream().map(Subscription::subscriptionId).collect(Collectors.toList());
+        String targetSubscriptionId = StringUtils.firstNonBlank(this.subscriptionId, azureCredentialWrapper.getDefaultSubscriptionId());
+
+        if (StringUtils.isBlank(targetSubscriptionId) && ArrayUtils.isNotEmpty(azureCredentialWrapper.getFilteredSubscriptionIds())) {
+            final Collection<String> filteredSubscriptions = StringListUtils.intersectIgnoreCase(subsIdList,
+                    Arrays.asList(azureCredentialWrapper.getFilteredSubscriptionIds()));
+            if (filteredSubscriptions.size() == 1) {
+                targetSubscriptionId = filteredSubscriptions.iterator().next();
+            }
         }
 
+        if (StringUtils.isBlank(targetSubscriptionId)) {
+            return selectSubscription(azure2, subscriptions.toArray(new Subscription[0]));
+        }
+        return targetSubscriptionId;
+    }
+
+    private static void checkSubscription(List<Subscription> subscriptions, String targetSubscriptionId) throws AzureLoginException {
         if (StringUtils.isEmpty(targetSubscriptionId)) {
             Log.warn(SUBSCRIPTION_NOT_SPECIFIED);
             return;
