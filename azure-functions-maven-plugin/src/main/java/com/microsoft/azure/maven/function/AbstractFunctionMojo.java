@@ -168,7 +168,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     }
 
     @Nullable
-    public FunctionApp getFunctionApp() throws AzureAuthFailureException {
+    public FunctionApp getFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
         return getAzureClient().appServices().functionApps().getByResourceGroup(getResourceGroup(), getAppName());
     }
 

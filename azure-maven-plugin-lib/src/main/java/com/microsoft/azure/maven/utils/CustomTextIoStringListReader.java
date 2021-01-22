@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.utils;
+package com.microsoft.azure.maven.utils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,8 +47,7 @@ public class CustomTextIoStringListReader<T> extends GenericInputReader<T> {
         if (possibleValues == null) {
             if (promptAdjustments && defaultValue != null) {
                 textTerminal.print(" [" + valueFormatter.apply(defaultValue) + "]: ");
-            }
-            else {
+            } else {
                 textTerminal.print(useColon ? ": " : " ");
             }
         } else if (promptAdjustments) {
