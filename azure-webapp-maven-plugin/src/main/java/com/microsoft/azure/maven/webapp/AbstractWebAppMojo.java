@@ -18,11 +18,13 @@ import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
+import com.microsoft.azure.maven.webapp.parser.AbstractConfigParser;
 import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+import com.microsoft.azure.toolkits.appservice.AzureAppService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -400,6 +402,15 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
         }
         return map;
+    }
+
+    protected AzureAppService getAppServiceClient() {
+        return null;
+    }
+
+    protected WebAppConfig getWebAppConfig() throws AzureExecutionException {
+        final AbstractConfigParser parser = null;
+        return parser.getWebAppConfig();
     }
 
     @Override

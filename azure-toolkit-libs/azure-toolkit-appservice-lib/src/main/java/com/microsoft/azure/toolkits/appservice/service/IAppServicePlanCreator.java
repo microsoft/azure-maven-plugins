@@ -6,8 +6,20 @@
 package com.microsoft.azure.toolkits.appservice.service;
 
 
+import com.microsoft.azure.toolkits.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkits.appservice.model.PricingTier;
+import com.microsoft.azure.tools.common.model.Region;
+
 public interface IAppServicePlanCreator {
-    IAppServicePlanCreator withResourceGroup(String name);
+    IAppServicePlanCreator withName(String name);
+
+    IAppServicePlanCreator withRegion(Region region);
+
+    IAppServicePlanCreator withResourceGroup(String resourceGroupName);
+
+    IAppServicePlanCreator withPricingTier(PricingTier pricingTier);
+
+    IAppServicePlanCreator withOperatingSystem(OperatingSystem operatingSystem);
 
     IAppServicePlan commit();
 }

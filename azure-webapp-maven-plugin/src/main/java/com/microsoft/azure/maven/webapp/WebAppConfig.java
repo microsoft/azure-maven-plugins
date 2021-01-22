@@ -5,25 +5,23 @@
  */
 package com.microsoft.azure.maven.webapp;
 
-import com.azure.resourcemanager.appservice.models.DeployType;
+import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkits.appservice.model.PricingTier;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
 import com.microsoft.azure.tools.common.model.Region;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Resource;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.filtering.MavenResourcesFiltering;
+import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @SuperBuilder(toBuilder = true)
 public class WebAppConfig {
-    private String schemaVersion;
-
     private String subscriptionId;
     private String resourceGroup;
     private String appName;
@@ -32,16 +30,10 @@ public class WebAppConfig {
     private Region region;
     private PricingTier pricingTier;
     private Runtime runtime;
-    private DeployType deployType;
     private DockerConfiguration dockerConfiguration;
     private String deploymentSlotName;
     private String deploymentSlotConfigurationSource;
-
-    // web app runtime related configurations
-    private List<Resource> resources;
-    private String stagingDirectoryPath;
-    private String buildDirectoryAbsolutePath;
-    private MavenProject project;
-    private MavenSession session;
-    private MavenResourcesFiltering filtering;
+    private Map<String, String> appSettings;
+    // resources
+    private List<Pair<File, DeployType>> resources = new ArrayList<>();
 }
