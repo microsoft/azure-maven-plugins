@@ -32,6 +32,10 @@ public class TextUtils {
         return applyColorToText(message, Color.BLUE);
     }
 
+    public static String cyan(String message) {
+        return applyColorToText(message, Color.CYAN);
+    }
+
     public static String red(String message) {
         return applyColorToText(message, Color.RED);
     }

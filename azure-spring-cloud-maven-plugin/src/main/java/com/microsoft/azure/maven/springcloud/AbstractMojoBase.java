@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
@@ -16,8 +17,7 @@ import com.microsoft.azure.maven.telemetry.MojoStatus;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
-import com.microsoft.azure.tools.springcloud.AppConfig;
-import com.microsoft.azure.tools.springcloud.ServiceClient;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -108,11 +108,10 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
-    protected AzureCredentialWrapper azureTokenCredentials;
-
-    protected ServiceClient springServiceClient;
+    protected AzureCredentialWrapper azureCredentialWrapper;
 
     protected Long timeStart;
+    private AppPlatformManager manager;
 
     @Parameter(property = "authType")
     protected String authType;
@@ -147,8 +146,8 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
         mavenAuthConfiguration.setType(getAuthType());
-        this.azureTokenCredentials = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
-        if (Objects.isNull(azureTokenCredentials)) {
+        this.azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
+        if (Objects.isNull(azureCredentialWrapper)) {
             AppInsightHelper.INSTANCE.trackEvent(INIT_FAILURE);
             throw new MojoFailureException(AZURE_INIT_FAIL);
         }
@@ -196,7 +195,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_JAVA_VERSION, javaVersion);
     }
 
-    protected void traceConfiguration(AppConfig configuration) {
+    protected void traceConfiguration(SpringCloudAppConfig configuration) {
         telemetries.put(TELEMETRY_KEY_PUBLIC, String.valueOf(configuration.isPublic()));
         telemetries.put(TELEMETRY_KEY_RUNTIME_VERSION, configuration.getRuntimeVersion());
         telemetries.put(TELEMETRY_KEY_CPU, String.valueOf(configuration.getDeployment().getCpu()));
@@ -256,7 +255,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return plugin;
     }
 
-    public AppConfig getConfiguration() {
+    public SpringCloudAppConfig getConfiguration() {
         final ConfigurationParser parser = ConfigurationParser.getInstance();
         return parser.parse(this);
     }
@@ -265,12 +264,15 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return telemetries;
     }
 
-    public ServiceClient getSpringServiceClient() {
-        if (springServiceClient == null) {
+    public AppPlatformManager getAppPlatformManager() {
+        if (this.manager == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-            springServiceClient = new ServiceClient(azureTokenCredentials.getAzureTokenCredentials(), subscriptionId, getUserAgent(), logLevel);
+            this.manager = AppPlatformManager.configure()
+                .withLogLevel(logLevel)
+                .withUserAgent(getUserAgent())
+                .authenticate(azureCredentialWrapper.getAzureTokenCredentials(), subscriptionId);
         }
-        return springServiceClient;
+        return this.manager;
     }
 
     private String getUserAgent() {
