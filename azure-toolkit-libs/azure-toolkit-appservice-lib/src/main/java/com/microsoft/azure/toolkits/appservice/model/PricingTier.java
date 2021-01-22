@@ -7,15 +7,15 @@
 package com.microsoft.azure.toolkits.appservice.model;
 
 import com.azure.resourcemanager.appservice.models.SkuDescription;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class PricingTier {
     public static final PricingTier BASIC_B1 = new PricingTier("Basic", "B1");
     public static final PricingTier BASIC_B2 = new PricingTier("Basic", "B2");
@@ -35,8 +35,8 @@ public class PricingTier {
     public static final PricingTier FREE_F1 = new PricingTier("Free", "F1");
     public static final PricingTier SHARED_D1 = new PricingTier("Shared", "D1");
 
-    private String tier;
-    private String size;
+    private final String tier;
+    private final String size;
 
     public static List<PricingTier> values() {
         return Arrays.asList(BASIC_B1, BASIC_B2, BASIC_B3, STANDARD_S1, STANDARD_S2, STANDARD_S3, PREMIUM_P1, PREMIUM_P2, PREMIUM_P3, PREMIUM_P1V2,
@@ -45,7 +45,7 @@ public class PricingTier {
 
     public static PricingTier fromString(String input) {
         return values().stream()
-                .filter(pricingTier -> org.codehaus.plexus.util.StringUtils.equalsIgnoreCase(input, pricingTier.size))
+                .filter(pricingTier -> StringUtils.equalsIgnoreCase(input, pricingTier.size))
                 .findFirst().orElse(null);
     }
 

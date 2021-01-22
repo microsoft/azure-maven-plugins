@@ -6,15 +6,15 @@
 
 package com.microsoft.azure.toolkits.appservice.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.codehaus.plexus.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DeployType {
     public static final DeployType WAR = new DeployType("war");
     public static final DeployType JAR = new DeployType("jar");
@@ -24,7 +24,7 @@ public class DeployType {
     public static final DeployType SCRIPT_STARTUP = new DeployType("startup");
     public static final DeployType ZIP = new DeployType("zip");
 
-    private String value;
+    private final String value;
 
     public static List<DeployType> values() {
         return Arrays.asList(WAR, JAR, EAR, JAR_LIB, STATIC, SCRIPT_STARTUP, ZIP);
