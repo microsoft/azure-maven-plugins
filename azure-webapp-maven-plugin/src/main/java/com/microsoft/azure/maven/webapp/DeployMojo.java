@@ -6,46 +6,32 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.common.handlers.ArtifactHandler;
-import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.PublishingProfile;
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
-import com.microsoft.azure.management.appservice.WebApp.Update;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
-import com.microsoft.azure.maven.webapp.deploytarget.DeploymentSlotDeployTarget;
-import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
-import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
-import com.microsoft.azure.maven.webapp.handlers.artifact.JarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.artifact.NONEArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.handlers.artifact.WarArtifactHandlerImpl;
-import com.microsoft.azure.maven.webapp.utils.FTPUtils;
+import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
+import com.microsoft.azure.toolkits.appservice.model.WebContainer;
 import com.microsoft.azure.toolkits.appservice.service.IAppService;
 import com.microsoft.azure.toolkits.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkits.appservice.service.IWebApp;
 import com.microsoft.azure.toolkits.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.tools.common.model.ResourceGroup;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.net.ftp.FTPClient;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -73,13 +59,11 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist. " +
             "Please check if any error message during creation.";
 
-    protected DeploymentUtil util = new DeploymentUtil();
-
     @Override
     protected void doExecute() throws AzureExecutionException {
         final WebAppConfig config = getWebAppConfig();
         final IAppService target = createOrUpdateResource(config);
-        deployArtifacts(target, config);
+        deploy(target, config);
     }
 
     private IAppService createOrUpdateResource(final WebAppConfig config) throws AzureExecutionException {
@@ -149,192 +133,107 @@ public class DeployMojo extends AbstractWebAppMojo {
                 .commit();
     }
 
+    private void deploy(IAppService target, WebAppConfig config) throws AzureExecutionException {
+        final DeploymentUtil deploymentUtil = new DeploymentUtil(target);
+        try {
+            deploymentUtil.beforeDeployArtifacts();
+            deployArtifacts(target, config);
+            deployExternalResources(target);
+        } finally {
+            deploymentUtil.afterDeployArtifacts();
+        }
+    }
+
     // update existing slot is not supported in current version, will implement it later
     private IWebAppDeploymentSlot updateDeploymentSLot(final IWebAppDeploymentSlot slot, final WebAppConfig webAppConfig) {
         return slot;
     }
 
-    private void deployArtifacts(IAppService target, WebAppConfig config) {
+    private void deployArtifacts(IAppService target, WebAppConfig config) throws AzureExecutionException {
         // This is the codes for one deploy API, for current release, will replace it with zip all files and deploy with zip deploy
         final List<Pair<File, DeployType>> resources = config.getResources();
-        for (final Pair<File, DeployType> file : config.getResources()) {
-            target.deploy(file.getRight(), file.getLeft());
+        if (CollectionUtils.isEmpty(resources)) {
+            return;
         }
-
+        // call correspond deploy method when deploy artifact only
+        if (resources.size() == 1) {
+            final Pair<File, DeployType> resource = resources.get(0);
+            target.deploy(resource.getRight(), resource.getLeft());
+            return;
+        }
+        // package all resource and do zip deploy
+        // todo: migrate to use one deploy
+        final List<File> files = resources.stream().map(pair -> pair.getLeft()).collect(Collectors.toList());
+        deployResourcesWithZipDeploy(target, files);
     }
 
-    protected void createWebApp(final RuntimeHandler runtimeHandler) throws AzureExecutionException {
-        Log.info(WEBAPP_NOT_EXIST);
-
-        final WithCreate withCreate = (WithCreate) runtimeHandler.defineAppWithRuntime();
-        getFactory().getSettingsHandler(this).processSettings(withCreate);
-        withCreate.create();
-
-        Log.info(WEBAPP_CREATED);
+    private void deployResourcesWithZipDeploy(IAppService target, List<File> files) throws AzureExecutionException {
+        final File stagingDirectory = prepareStagingDirectory(files);
+        // Rename jar once java_se runtime
+        if (target.getRuntime().getWebContainer() == WebContainer.JAVA_SE) {
+            DeployUtils.prepareJavaSERuntime(files, project.getBuild().getFinalName());
+        }
+        final File zipFile = Utils.createTempFile(appName + UUID.randomUUID().toString(), ".zip");
+        ZipUtil.pack(stagingDirectory, zipFile);
+        // Deploy zip with zip deploy
+        target.deploy(DeployType.ZIP, zipFile);
     }
 
-    protected void updateWebApp(final RuntimeHandler runtimeHandler, final WebApp app) throws AzureExecutionException, AzureAuthFailureException {
-        // Update App Service Plan
-        runtimeHandler.updateAppServicePlan(app);
-        // Update Web App
-        final Update update = (Update) runtimeHandler.updateAppRuntime(app);
-        if (update == null) {
-            Log.info(UPDATE_WEBAPP_SKIP);
-        } else {
-            Log.info(UPDATE_WEBAPP);
-            getFactory().getSettingsHandler(this).processSettings(update);
-            update.apply();
-            Log.info(UPDATE_WEBAPP_DONE);
-        }
-
-        if (isDeployToDeploymentSlot()) {
-            Log.info(CREATE_DEPLOYMENT_SLOT);
-
-            getFactory().getDeploymentSlotHandler(this).createDeploymentSlotIfNotExist();
-
-            Log.info(CREATE_DEPLOYMENT_SLOT_DONE);
-        }
-    }
-
-    protected void deployArtifacts(WebAppConfiguration webAppConfiguration)
-            throws AzureAuthFailureException, InterruptedException, AzureExecutionException, IOException {
+    private File prepareStagingDirectory(List<File> files) throws AzureExecutionException {
+        final File stagingDirectory = FileUtils.getTempDirectory();
         try {
-            util.beforeDeployArtifacts();
-            final WebApp app = getWebApp();
-            final DeployTarget target;
-
-            if (this.isDeployToDeploymentSlot()) {
-                final String slotName = getDeploymentSlotSetting().getName();
-                final DeploymentSlot slot = getDeploymentSlot(app, slotName);
-                if (slot == null) {
-                    throw new AzureExecutionException(SLOT_SHOULD_EXIST_NOW);
-                }
-                target = new DeploymentSlotDeployTarget(slot);
-            } else {
-                target = new WebAppDeployTarget(app);
+            FileUtils.forceDeleteOnExit(stagingDirectory);
+            // Copy resources to staging folder
+            for (final File file : files) {
+                FileUtils.copyFileToDirectory(file, stagingDirectory);
             }
-            final ArtifactHandler artifactHandler = getFactory().getArtifactHandler(this);
-            final boolean isV1Schema = SchemaVersion.fromString(this.getSchemaVersion()) == SchemaVersion.V1;
-            if (isV1Schema) {
-                handleV1Artifact(target, this.resources, artifactHandler);
-            } else {
-                final List<Resource> v2Resources = this.deployment == null ? null : this.deployment.getResources();
-                handleV2Artifact(target, v2Resources, artifactHandler);
-            }
-        } finally {
-            util.afterDeployArtifacts();
-        }
-    }
-
-    private void handleV2Artifact(final DeployTarget target, List<Resource> v2Resources, ArtifactHandler artifactHandler)
-            throws IOException, AzureExecutionException {
-        if (v2Resources == null || v2Resources.isEmpty()) {
-            Log.warn("No <resources> is found in <deployment> element in pom.xml, skip deployment.");
-            return;
-        }
-        final Map<Boolean, List<Resource>> resourceMap = v2Resources.stream()
-                .collect(Collectors.partitioningBy(DeployMojo::isExternalResource));
-        deployExternalResources(target, resourceMap.get(true));
-        copyArtifactsToStagingDirectory(resourceMap.get(false));
-        if (resourceMap.get(false).isEmpty()) {
-            Log.info("All external resources are already deployed.");
-            return;
-        }
-        executeWithTimeRecorder(() -> artifactHandler.publish(target), DEPLOY);
-    }
-
-    private void handleV1Artifact(final DeployTarget target, List<Resource> v1Resources, final ArtifactHandler artifactHandler)
-            throws AzureExecutionException, IOException {
-        if (v1Resources == null || v1Resources.isEmpty()) {
-            // TODO: v1 schema will be deprecated, so this legacy code will be removed in future
-            if (!(artifactHandler instanceof NONEArtifactHandlerImpl || artifactHandler instanceof JarArtifactHandlerImpl ||
-                    artifactHandler instanceof WarArtifactHandlerImpl)) {
-                throw new AzureExecutionException(NO_RESOURCES_CONFIG);
-            }
-        } else {
-            copyArtifactsToStagingDirectory(v1Resources);
-        }
-        executeWithTimeRecorder(() -> artifactHandler.publish(target), DEPLOY);
-    }
-
-    private HandlerFactory getFactory() {
-        return HandlerFactory.getInstance();
-    }
-
-    private void copyArtifactsToStagingDirectory(List<Resource> resourceList) throws IOException, AzureExecutionException {
-        if (resourceList.isEmpty()) {
-            return;
-        }
-        Utils.prepareResources(this.getProject(), this.getSession(), this.getMavenResourcesFiltering(),
-                resourceList, getDeploymentStagingDirectoryPath());
-    }
-
-    private void deployExternalResources(DeployTarget deployTarget, List<Resource> externalResources) throws AzureExecutionException {
-        if (externalResources.isEmpty()) {
-            return;
-        }
-        final PublishingProfile publishingProfile = deployTarget.getPublishingProfile();
-        final String serverUrl = publishingProfile.ftpUrl().split("/", 2)[0];
-        try {
-            final FTPClient ftpClient = FTPUtils.getFTPClient(serverUrl, publishingProfile.ftpUsername(), publishingProfile.ftpPassword());
-            for (final Resource externalResource : externalResources) {
-                uploadResource(externalResource, ftpClient);
-            }
+            return stagingDirectory;
         } catch (IOException e) {
-            throw new AzureExecutionException(e.getMessage(), e);
+            throw new AzureExecutionException("Failed to package resources", e);
         }
     }
 
-    private void uploadResource(Resource resource, FTPClient ftpClient) throws IOException {
-        final List<File> files = Utils.getArtifacts(resource);
-        final String target = getAbsoluteTargetPath(resource.getTargetPath());
-        for (final File file : files) {
-            FTPUtils.uploadFile(ftpClient, file.getPath(), target);
-        }
-    }
-
-    private static String getAbsoluteTargetPath(String targetPath) {
-        // convert null to empty string
-        targetPath = StringUtils.defaultString(targetPath);
-        return StringUtils.startsWith(targetPath, "/") ? targetPath :
-                FTP_ROOT.resolve(Paths.get(targetPath)).normalize().toString();
+    private void deployExternalResources(IAppService target) throws AzureExecutionException {
+        final List<Resource> resources = this.deployment == null ? null : this.deployment.getResources();
+        final List<Resource> externalResources = resources.stream().filter(DeployMojo::isExternalResource).collect(Collectors.toList());
+        DeployUtils.deployResourcesWithFtp(target, externalResources);
     }
 
     private static boolean isExternalResource(Resource resource) {
-        final Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
+        final Path target = Paths.get(DeployUtils.getAbsoluteTargetPath(resource.getTargetPath()));
         return !target.startsWith(FTP_ROOT);
     }
 
     class DeploymentUtil {
+        private IAppService target;
         boolean isAppStopped = false;
 
-        public void beforeDeployArtifacts() throws AzureAuthFailureException, InterruptedException {
+        private DeploymentUtil(IAppService target) {
+            this.target = target;
+        }
+
+        public void beforeDeployArtifacts() {
             if (isStopAppDuringDeployment()) {
                 Log.info(STOP_APP);
-
-                getWebApp().stop();
-
+                target.stop();
                 // workaround for the resources release problem.
                 // More details: https://github.com/Microsoft/azure-maven-plugins/issues/191
-                TimeUnit.SECONDS.sleep(10 /* 10 seconds */);
-
+                try {
+                    TimeUnit.SECONDS.sleep(10 /* 10 seconds */);
+                } catch (InterruptedException e) {
+                    // swallow exception
+                }
                 isAppStopped = true;
-
                 Log.info(STOP_APP_DONE);
             }
         }
 
-        public void afterDeployArtifacts() throws AzureAuthFailureException, IOException {
+        public void afterDeployArtifacts() {
             if (isAppStopped) {
                 Log.info(START_APP);
-
-                getWebApp().start();
+                target.start();
                 isAppStopped = false;
-
                 Log.info(START_APP_DONE);
-            }
-            if (stagingDirectory != null) {
-                FileUtils.forceDeleteOnExit(stagingDirectory);
             }
         }
     }

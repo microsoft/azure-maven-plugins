@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkits.appservice.service;
 
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
+import com.microsoft.azure.toolkits.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
 
 import java.io.File;
@@ -26,4 +27,6 @@ public interface IAppService {
     boolean exists();
 
     Runtime getRuntime();
+
+    PublishingProfile getPublishingProfile();
 }

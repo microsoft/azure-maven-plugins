@@ -19,8 +19,6 @@ public interface IWebApp extends IAppService {
 
     IAppServiceUpdater<? extends IWebApp> update();
 
-    PublishingProfile getPublishingProfile();
-
     IWebAppDeploymentSlot deploymentSlot(String slotName);
 
     List<IWebAppDeploymentSlot> deploymentSlots();
