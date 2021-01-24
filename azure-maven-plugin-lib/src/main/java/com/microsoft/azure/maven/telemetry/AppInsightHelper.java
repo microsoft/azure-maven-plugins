@@ -54,9 +54,14 @@ public enum AppInsightHelper implements TelemetryProxy {
         if (!isEnabled) {
             return;
         }
-        final Map<String, String> properties = mergeProperties(customProperties, overrideDefaultProperties);
-        client.trackEvent(eventName, properties, null);
-        client.flush();
+        try {
+            final Map<String, String> properties = mergeProperties(customProperties, overrideDefaultProperties);
+            client.trackEvent(eventName, properties, null);
+            client.flush();
+        } catch (Exception ex) {
+            // swallow this exception
+            ex.printStackTrace();
+        }
     }
 
     // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step

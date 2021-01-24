@@ -308,7 +308,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     class DeploymentUtil {
         boolean isAppStopped = false;
 
-        public void beforeDeployArtifacts() throws AzureAuthFailureException, InterruptedException {
+        public void beforeDeployArtifacts() throws AzureAuthFailureException, InterruptedException, AzureExecutionException {
             if (isStopAppDuringDeployment()) {
                 Log.info(STOP_APP);
 
@@ -324,7 +324,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             }
         }
 
-        public void afterDeployArtifacts() throws AzureAuthFailureException, IOException {
+        public void afterDeployArtifacts() throws AzureAuthFailureException, IOException, AzureExecutionException {
             if (isAppStopped) {
                 Log.info(START_APP);
 

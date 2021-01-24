@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkits.appservice.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;

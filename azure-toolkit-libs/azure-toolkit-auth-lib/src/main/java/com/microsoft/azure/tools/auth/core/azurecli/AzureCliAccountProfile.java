@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.model;
+package com.microsoft.azure.tools.auth.core.azurecli;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

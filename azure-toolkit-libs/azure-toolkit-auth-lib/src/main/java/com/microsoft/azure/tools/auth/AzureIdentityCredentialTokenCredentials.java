@@ -24,12 +24,8 @@ public class AzureIdentityCredentialTokenCredentials extends AzureTokenCredentia
     private final Map<String, AccessToken> accessTokenCache = new ConcurrentHashMap<>();
     private final String[] scopes;
 
-    public AzureIdentityCredentialTokenCredentials(String tenantId, TokenCredential tokenCredential) {
-        this(AzureEnvironment.AZURE, tenantId, tokenCredential, new String[]{ AzureEnvironment.AZURE.resourceManagerEndpoint() });
-    }
-
     public AzureIdentityCredentialTokenCredentials(AzureEnvironment environment, String tenantId, TokenCredential tokenCredential) {
-        this(environment, tenantId, tokenCredential, new String[]{ environment.resourceManagerEndpoint() + ".default" });
+        this(environment, tenantId, tokenCredential, new String[]{ environment.managementEndpoint() + "/.default" });
     }
 
     public AzureIdentityCredentialTokenCredentials(AzureEnvironment environment, String tenantId,

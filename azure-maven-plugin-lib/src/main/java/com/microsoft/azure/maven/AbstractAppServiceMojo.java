@@ -7,14 +7,13 @@
 package com.microsoft.azure.maven;
 
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.auth.AzureAuthHelper;
-import com.microsoft.azure.auth.AzureTokenWrapper;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -142,8 +141,8 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     public String getDeploymentStagingDirectoryPath() {
         final String outputFolder = this.getPluginName().replaceAll(MAVEN_PLUGIN_POSTFIX, "");
         return Paths.get(
-            this.getBuildDirectoryAbsolutePath(),
-            outputFolder, this.getAppName()
+                this.getBuildDirectoryAbsolutePath(),
+                outputFolder, this.getAppName()
         ).toString();
     }
 
@@ -151,21 +150,20 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         this.deploymentSlotSetting = slotSetting;
     }
 
-    public String getResourcePortalUrl(WebAppBase resource) throws AzureAuthFailureException {
-        final AzureTokenWrapper azureTokenWrapper = getAzureTokenWrapper();
-        final AzureEnvironment environment = azureTokenWrapper == null ?
-                AzureAuthHelper.getAzureEnvironment(auth.getEnvironment()) : azureTokenWrapper.environment();
+    public String getResourcePortalUrl(WebAppBase resource) throws AzureAuthFailureException, AzureExecutionException {
+        final AzureCredentialWrapper azureCredentialWrapper = getAzureCredentialWrapper();
+        final AzureEnvironment environment = azureCredentialWrapper.getEnv();
         final String tenantId = getAzureClient().tenantId();
         return String.format(PORTAL_URL_PATTERN, getPortalUrl(environment), tenantId, resource.id());
     }
 
     private static String getPortalUrl(AzureEnvironment azureEnvironment) {
-        if (azureEnvironment == AzureEnvironment.AZURE) {
+        if (azureEnvironment == null || azureEnvironment == AzureEnvironment.AZURE) {
             return "https://ms.portal.azure.com";
-        } else if (azureEnvironment == AzureEnvironment.AZURE_CHINA) {
-            return "https://portal.azure.cn";
-        } else {
-            return azureEnvironment.portal();
         }
+        if (azureEnvironment == AzureEnvironment.AZURE_CHINA) {
+            return "https://portal.azure.cn";
+        }
+        return azureEnvironment.portal();
     }
 }
