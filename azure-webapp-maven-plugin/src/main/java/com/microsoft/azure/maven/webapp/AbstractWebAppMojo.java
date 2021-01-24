@@ -314,7 +314,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return path;
     }
 
-    public WebApp getWebApp() throws AzureAuthFailureException {
+    public WebApp getWebApp() throws AzureAuthFailureException, AzureExecutionException {
         return getAzureClient().webApps().getByResourceGroup(getResourceGroup(), getAppName());
     }
 

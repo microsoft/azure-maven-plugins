@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth.model;
+package com.microsoft.azure.maven.model;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,14 +12,14 @@ import lombok.Setter;
 @Setter
 @Getter
 public class MavenAuthConfiguration {
-    private String authType;
+    private String serverId;
+    private String type;
+    private String environment;
     private String client;
     private String tenant;
     private String key;
     private String certificate;
     private String certificatePassword;
-    private String environment;
-    private String serverId;
     private String httpProxyHost;
     private String httpProxyPort;
 }
