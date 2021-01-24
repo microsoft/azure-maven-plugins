@@ -331,10 +331,10 @@ public class ConfigMojo extends AbstractMojoBase {
 
     private void selectSubscription() throws IOException, InvalidConfigurationException {
         // TODO: getAzureTokenCredentials will check auth for null, but maven will always map a default AuthConfiguration
-        azure = Azure.configure().authenticate(azureTokenCredentials);
+        azure = Azure.configure().authenticate(azureCredentialWrapper.getAzureTokenCredentials());
         if (StringUtils.isBlank(subscriptionId)) {
-            subscriptionId = StringUtils.isBlank(azureTokenCredentials.defaultSubscriptionId()) ? promptSubscription() :
-                    azureTokenCredentials.defaultSubscriptionId();
+            subscriptionId = StringUtils.isBlank(azureCredentialWrapper.getDefaultSubscriptionId()) ? promptSubscription() :
+                    azureCredentialWrapper.getDefaultSubscriptionId();
         }
     }
 
