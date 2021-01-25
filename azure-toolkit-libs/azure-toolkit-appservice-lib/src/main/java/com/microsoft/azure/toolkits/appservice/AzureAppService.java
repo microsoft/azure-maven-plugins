@@ -70,6 +70,14 @@ public class AzureAppService {
                 .collect(Collectors.toList());
     }
 
+    public IWebAppDeploymentSlot deploymentSlot(String id) {
+        return deploymentSlot(WebAppDeploymentSlotEntity.builder().id(id).build());
+    }
+
+    public IWebAppDeploymentSlot deploymentSlot(String resourceGroup, String appName, String slotName) {
+        return deploymentSlot(WebAppDeploymentSlotEntity.builder().resourceGroup(resourceGroup).webappName(appName).name(slotName).build());
+    }
+
     public IWebAppDeploymentSlot deploymentSlot(WebAppDeploymentSlotEntity deploymentSlot) {
         return null;
     }

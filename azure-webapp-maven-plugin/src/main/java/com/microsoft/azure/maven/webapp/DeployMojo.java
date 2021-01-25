@@ -83,22 +83,26 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private IAppService createOrUpdateResource(final WebAppConfig config) throws AzureExecutionException {
-        final IAppService target = getDeployTarget(config);
-        if (target instanceof IWebApp) {
-            return target.exists() ? updateWebApp((IWebApp) target, config) : createWebApp((IWebApp) target, config);
+        if (StringUtils.isNotEmpty(config.getDeploymentSlotName())) {
+            final IWebApp target = getWebApp(config);
+            return target.exists() ? updateWebApp(target, config) : createWebApp(target, config);
         } else {
-            return target.exists() ? updateDeploymentSLot((IWebAppDeploymentSlot) target, config) :
-                    createDeploymentSlot((IWebAppDeploymentSlot) target, config);
+            final IWebAppDeploymentSlot target = getDeploymentSlot(config);
+            return target.exists() ? updateDeploymentSlot(target, config) : createDeploymentSlot(target, config);
         }
     }
 
-    private IAppService getDeployTarget(final WebAppConfig config) throws AzureExecutionException {
-        final IWebApp webApp = az.webapp(config.getResourceGroup(), config.getAppName());
+    private IWebApp getWebApp(final WebAppConfig config) {
+        return az.webapp(config.getResourceGroup(), config.getAppName());
+    }
+
+    private IWebAppDeploymentSlot getDeploymentSlot(final WebAppConfig config) throws AzureExecutionException {
+        final IWebApp webApp = getWebApp(config);
         final boolean isDeploymentSlot = StringUtils.isNotEmpty(config.getDeploymentSlotName());
         if (isDeploymentSlot && !webApp.exists()) {
             throw new AzureExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
         }
-        return isDeploymentSlot ? webApp.deploymentSlot(config.getDeploymentSlotName()) : webApp;
+        return webApp.deploymentSlot(config.getDeploymentSlotName());
     }
 
     private IWebApp createWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) {
@@ -127,7 +131,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private IWebApp updateWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) throws AzureExecutionException {
         // update app service plan
-        final IAppServicePlan currentPlan = webApp.appServicePlan();
+        final IAppServicePlan currentPlan = webApp.plan();
         final IAppServicePlan targetServicePlan = StringUtils.isEmpty(webAppConfig.getServicePlanName()) ? currentPlan :
                 az.appServicePlan(webAppConfig.getServicePlanResourceGroup(), webAppConfig.getServicePlanName());
         if (!targetServicePlan.exists()) {
@@ -150,7 +154,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     // update existing slot is not supported in current version, will implement it later
-    private IWebAppDeploymentSlot updateDeploymentSLot(final IWebAppDeploymentSlot slot, final WebAppConfig webAppConfig) {
+    private IWebAppDeploymentSlot updateDeploymentSlot(final IWebAppDeploymentSlot slot, final WebAppConfig webAppConfig) {
         return slot;
     }
 

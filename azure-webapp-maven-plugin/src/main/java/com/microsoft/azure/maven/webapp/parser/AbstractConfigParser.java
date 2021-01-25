@@ -52,11 +52,13 @@ public abstract class AbstractConfigParser {
         return PricingTier.fromString(mojo.getPricingTier());
     }
 
-    public String getAppServicePlanName() {
+    public String getAppServicePlanName() throws AzureExecutionException {
+        validate(validator::validateAppServicePlan);
         return mojo.getAppServicePlanName();
     }
 
-    public String getAppServicePlanResourceGroup() {
+    public String getAppServicePlanResourceGroup() throws AzureExecutionException {
+        validate(validator::validateResourceGroup);
         return mojo.getAppServicePlanResourceGroup();
     }
 
