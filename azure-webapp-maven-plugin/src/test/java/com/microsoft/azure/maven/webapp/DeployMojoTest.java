@@ -11,15 +11,11 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.handlers.ArtifactHandler;
 import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.common.utils.AppServiceUtils;
-import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.maven.webapp.handlers.DeploymentSlotHandler;
-import com.microsoft.azure.maven.webapp.handlers.HandlerFactory;
-import com.microsoft.azure.maven.webapp.handlers.SettingsHandler;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
@@ -33,14 +29,12 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.Map;
 
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DEPLOYMENT_TYPE_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DOCKER_IMAGE_TYPE_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_VERSION_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_WEB_CONTAINER_KEY;
-import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.LINUX_RUNTIME_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.OS_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -75,43 +69,9 @@ public class DeployMojoTest {
     @Mock
     protected RuntimeHandler runtimeHandler;
 
-    @Mock
-    protected SettingsHandler settingsHandler;
-
-    @Mock
-    protected DeploymentSlotHandler deploymentSlotHandler;
-
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        setupHandlerFactory();
-    }
-
-    protected void setupHandlerFactory() throws Exception {
-        final Field f = HandlerFactory.class.getDeclaredField("instance");
-        f.setAccessible(true);
-        f.set(null, new HandlerFactory() {
-            @Override
-            public RuntimeHandler getRuntimeHandler(WebAppConfiguration config, Azure azureClient) {
-                return runtimeHandler;
-            }
-
-            @Override
-            public SettingsHandler getSettingsHandler(AbstractWebAppMojo mojo) throws AzureExecutionException {
-                return settingsHandler;
-            }
-
-            @Override
-            public ArtifactHandler getArtifactHandler(AbstractWebAppMojo mojo) throws AzureExecutionException {
-                return artifactHandler;
-            }
-
-            @Override
-            public DeploymentSlotHandler getDeploymentSlotHandler(AbstractWebAppMojo mojo)
-                throws AzureExecutionException {
-                return deploymentSlotHandler;
-            }
-        });
     }
 
     @Test
@@ -166,12 +126,11 @@ public class DeployMojoTest {
 
         final Map map = mojo.getTelemetryProperties();
 
-        assertEquals(12, map.size());
+        assertEquals(11, map.size());
         assertTrue(map.containsKey(JAVA_VERSION_KEY));
         assertTrue(map.containsKey(JAVA_WEB_CONTAINER_KEY));
         assertTrue(map.containsKey(DOCKER_IMAGE_TYPE_KEY));
         assertTrue(map.containsKey(DEPLOYMENT_TYPE_KEY));
-        assertTrue(map.containsKey(LINUX_RUNTIME_KEY));
         assertTrue(map.containsKey(OS_KEY));
     }
 

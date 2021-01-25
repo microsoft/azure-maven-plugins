@@ -24,11 +24,9 @@ import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.maven.webapp.handlers.artifact.ArtifactHandlerUtils.DEFAULT_APP_SERVICE_JAR_NAME;
-
 public class DeployUtils {
     private static final Path FTP_ROOT = Paths.get("/site/wwwroot");
-
+    private static final String DEFAULT_APP_SERVICE_JAR_NAME = "app.jar";
     private static final String WEB_CONFIG = "web.config";
     private static final String RENAMING_MESSAGE = "Renaming %s to %s";
     private static final String RENAMING_FAILED_MESSAGE = "Failed to rename artifact to %s, which is required in Java SE environment, " +
