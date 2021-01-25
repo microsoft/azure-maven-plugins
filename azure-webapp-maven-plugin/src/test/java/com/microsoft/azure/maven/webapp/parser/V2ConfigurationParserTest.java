@@ -174,6 +174,7 @@ public class V2ConfigurationParserTest {
         }
 
         doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(runtime).getWebContainer();
+        doReturn(WebContainer.TOMCAT_8_5_NEWEST.toString()).when(runtime).getWebContainerRaw();
         assertEquals(WebContainer.TOMCAT_8_5_NEWEST, parser.getWebContainer());
     }
 
@@ -195,6 +196,7 @@ public class V2ConfigurationParserTest {
             assertEquals(e.getMessage(), "The configuration <javaVersion> in pom.xml is not correct.");
         }
         doReturn(JavaVersion.JAVA_8_NEWEST).when(runtime).getJavaVersion();
+        doReturn(JavaVersion.JAVA_8_NEWEST.toString()).when(runtime).getJavaVersionRaw();
         assertEquals(JavaVersion.JAVA_8_NEWEST, parser.getJavaVersion());
     }
 

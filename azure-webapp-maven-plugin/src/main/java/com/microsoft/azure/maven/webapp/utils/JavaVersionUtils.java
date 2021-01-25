@@ -74,7 +74,7 @@ public class JavaVersionUtils {
         if (StringUtils.isEmpty(input)) {
             return null;
         }
-        com.microsoft.azure.toolkits.appservice.model.JavaVersion javaVersion =
+        final com.microsoft.azure.toolkits.appservice.model.JavaVersion javaVersion =
                 com.microsoft.azure.toolkits.appservice.model.JavaVersion.fromString(input);
         if (javaVersion == null) {
             final JavaVersionEnum javaVersionEnum = JavaVersionUtils.parseJavaVersionEnum(input);
