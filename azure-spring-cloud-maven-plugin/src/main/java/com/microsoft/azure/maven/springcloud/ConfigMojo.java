@@ -11,13 +11,14 @@ import com.microsoft.azure.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
@@ -310,21 +311,18 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void selectAppCluster() throws IOException, InvalidConfigurationException {
-        final List<ServiceResourceInner> clusters = getSpringServiceClient().getAvailableClusters();
-
-        this.wrapper.putCommonVariable("clusters", clusters);
+        final AzureSpringCloud az = AzureSpringCloud.az(this.getAppPlatformManager());
         if (StringUtils.isNotBlank(clusterName)) {
-            final ServiceResourceInner clusterByName = clusters.stream().filter(t -> StringUtils.equals(this.clusterName, t.name())).findFirst()
-                    .orElse(null);
-            if (clusterByName != null) {
-
-                this.appSettings.setClusterName(clusterByName.name());
+            final SpringCloudCluster cluster = az.cluster(this.clusterName);
+            if (cluster.exists()) {
+                this.appSettings.setClusterName(cluster.name());
                 return;
             }
             getLog().warn(String.format("Cannot find Azure Spring Cloud Service with name: %s.", TextUtils.yellow(this.clusterName)));
         }
-
-        final ServiceResourceInner targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, ServiceResourceInner::name);
+        final List<SpringCloudCluster> clusters = az.clusters();
+        this.wrapper.putCommonVariable("clusters", clusters);
+        final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, c -> c.name());
         if (targetAppCluster != null) {
             this.appSettings.setClusterName(targetAppCluster.name());
             getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.name())));
@@ -333,10 +331,10 @@ public class ConfigMojo extends AbstractMojoBase {
 
     private void selectSubscription() throws IOException, InvalidConfigurationException {
         // TODO: getAzureTokenCredentials will check auth for null, but maven will always map a default AuthConfiguration
-        azure = Azure.configure().authenticate(azureTokenCredentials);
+        azure = Azure.configure().authenticate(azureCredentialWrapper.getAzureTokenCredentials());
         if (StringUtils.isBlank(subscriptionId)) {
-            subscriptionId = StringUtils.isBlank(azureTokenCredentials.defaultSubscriptionId()) ? promptSubscription() :
-                    azureTokenCredentials.defaultSubscriptionId();
+            subscriptionId = StringUtils.isBlank(azureCredentialWrapper.getDefaultSubscriptionId()) ? promptSubscription() :
+                    azureCredentialWrapper.getDefaultSubscriptionId();
         }
     }
 

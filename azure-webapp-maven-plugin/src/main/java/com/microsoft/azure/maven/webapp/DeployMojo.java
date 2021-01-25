@@ -26,7 +26,6 @@ import com.microsoft.azure.maven.webapp.handlers.artifact.NONEArtifactHandlerImp
 import com.microsoft.azure.maven.webapp.handlers.artifact.WarArtifactHandlerImpl;
 import com.microsoft.azure.maven.webapp.utils.FTPUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
@@ -71,7 +70,6 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     @Override
     protected void doExecute() throws AzureExecutionException {
-        // todo: use parser to getAzureClient from mojo configs
         try {
             final RuntimeHandler runtimeHandler = getFactory().getRuntimeHandler(
                     getWebAppConfiguration(), getAzureClient());
@@ -88,7 +86,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             deployArtifacts(getWebAppConfiguration());
         } catch (IOException | AzureAuthFailureException | InterruptedException e) {
             throw new AzureExecutionException(
-                    String.format("Encoutering error when deploying to azure: '%s'", e.getMessage()), e);
+                    String.format("Encountering error when deploying to azure: '%s'", e.getMessage()), e);
         }
     }
 
@@ -126,7 +124,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     protected void deployArtifacts(WebAppConfiguration webAppConfiguration)
-        throws AzureAuthFailureException, InterruptedException, AzureExecutionException, IOException {
+            throws AzureAuthFailureException, InterruptedException, AzureExecutionException, IOException {
         try {
             util.beforeDeployArtifacts();
             final WebApp app = getWebApp();
@@ -237,7 +235,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     class DeploymentUtil {
         boolean isAppStopped = false;
 
-        public void beforeDeployArtifacts() throws AzureAuthFailureException, InterruptedException {
+        public void beforeDeployArtifacts() throws AzureAuthFailureException, InterruptedException, AzureExecutionException {
             if (isStopAppDuringDeployment()) {
                 Log.info(STOP_APP);
 
@@ -253,7 +251,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             }
         }
 
-        public void afterDeployArtifacts() throws AzureAuthFailureException, IOException {
+        public void afterDeployArtifacts() throws AzureAuthFailureException, IOException, AzureExecutionException {
             if (isAppStopped) {
                 Log.info(START_APP);
 
