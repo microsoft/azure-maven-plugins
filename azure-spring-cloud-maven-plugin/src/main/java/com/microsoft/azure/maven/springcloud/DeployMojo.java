@@ -150,7 +150,7 @@ public class DeployMojo extends AbstractMojoBase {
 
     protected boolean confirmDeploy(List<AzureTask<?>> tasks) throws MojoFailureException {
         try (IPrompter prompter = new DefaultPrompter()) {
-            log.info(CONFIRM_PROMPT_START);
+            System.out.println(CONFIRM_PROMPT_START);
             tasks.stream().filter(t -> StringUtils.isNotBlank(t.getTitle())).forEach((t) -> System.out.printf("\t- %s%n", t.getTitle()));
             return prompter.promoteYesNo(CONFIRM_PROMPT_CONFIRM, true, true);
         } catch (IOException e) {

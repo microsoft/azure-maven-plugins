@@ -23,7 +23,7 @@
 package com.microsoft.azure.toolkit.lib.springcloud.model;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
-import com.microsoft.azure.toolkit.lib.common.IAzureEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntity;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
