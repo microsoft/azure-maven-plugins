@@ -7,9 +7,9 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
+import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.WebContainer;
 import com.microsoft.azure.toolkits.appservice.service.IAppService;
@@ -32,7 +32,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -50,10 +49,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     public static final String UPDATE_WEBAPP = "Updating target Web App...";
     public static final String UPDATE_WEBAPP_SKIP = "No runtime configured. Skip the update.";
     public static final String UPDATE_WEBAPP_DONE = "Successfully updated Web App.";
-    public static final String STOP_APP = "Stopping Web App before deploying artifacts...";
-    public static final String START_APP = "Starting Web App after deploying artifacts...";
-    public static final String STOP_APP_DONE = "Successfully stopped Web App.";
-    public static final String START_APP_DONE = "Successfully started Web App.";
+
     public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "The Web App specified in pom.xml does not exist. " +
             "Please make sure the Web App name is correct.";
     public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist. " +
@@ -134,13 +130,14 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deploy(IAppService target, WebAppConfig config) throws AzureExecutionException {
-        final DeploymentUtil deploymentUtil = new DeploymentUtil(target);
         try {
-            deploymentUtil.beforeDeployArtifacts();
+            if (isStopAppDuringDeployment()) {
+                WebAppUtils.stopAppService(target);
+            }
             deployArtifacts(target, config);
             deployExternalResources(target);
         } finally {
-            deploymentUtil.afterDeployArtifacts();
+            WebAppUtils.startAppService(target);
         }
     }
 
@@ -171,7 +168,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         final File stagingDirectory = prepareStagingDirectory(files);
         // Rename jar once java_se runtime
         if (target.getRuntime().getWebContainer() == WebContainer.JAVA_SE) {
-            DeployUtils.prepareJavaSERuntime(files, project.getBuild().getFinalName());
+            DeployUtils.prepareJavaSERuntimeJarArtifact(files, project.getBuild().getFinalName());
         }
         final File zipFile = Utils.createTempFile(appName + UUID.randomUUID().toString(), ".zip");
         ZipUtil.pack(stagingDirectory, zipFile);
@@ -179,7 +176,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         target.deploy(DeployType.ZIP, zipFile);
     }
 
-    private File prepareStagingDirectory(List<File> files) throws AzureExecutionException {
+    private static File prepareStagingDirectory(List<File> files) throws AzureExecutionException {
         final File stagingDirectory = FileUtils.getTempDirectory();
         try {
             FileUtils.forceDeleteOnExit(stagingDirectory);
@@ -202,39 +199,5 @@ public class DeployMojo extends AbstractWebAppMojo {
     private static boolean isExternalResource(Resource resource) {
         final Path target = Paths.get(DeployUtils.getAbsoluteTargetPath(resource.getTargetPath()));
         return !target.startsWith(FTP_ROOT);
-    }
-
-    class DeploymentUtil {
-        private IAppService target;
-        boolean isAppStopped = false;
-
-        private DeploymentUtil(IAppService target) {
-            this.target = target;
-        }
-
-        public void beforeDeployArtifacts() {
-            if (isStopAppDuringDeployment()) {
-                Log.info(STOP_APP);
-                target.stop();
-                // workaround for the resources release problem.
-                // More details: https://github.com/Microsoft/azure-maven-plugins/issues/191
-                try {
-                    TimeUnit.SECONDS.sleep(10 /* 10 seconds */);
-                } catch (InterruptedException e) {
-                    // swallow exception
-                }
-                isAppStopped = true;
-                Log.info(STOP_APP_DONE);
-            }
-        }
-
-        public void afterDeployArtifacts() {
-            if (isAppStopped) {
-                Log.info(START_APP);
-                target.start();
-                isAppStopped = false;
-                Log.info(START_APP_DONE);
-            }
-        }
     }
 }

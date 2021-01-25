@@ -71,7 +71,7 @@ public class DeployUtils {
     /**
      * Rename project jar to app.jar for java se app service
      */
-    public static void prepareJavaSERuntime(final List<File> artifacts, final String finalName) throws AzureExecutionException {
+    public static void prepareJavaSERuntimeJarArtifact(final List<File> artifacts, final String finalName) throws AzureExecutionException {
         if (existsWebConfig(artifacts)) {
             return;
         }

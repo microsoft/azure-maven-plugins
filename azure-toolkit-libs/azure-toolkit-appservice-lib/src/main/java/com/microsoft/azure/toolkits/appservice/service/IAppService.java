@@ -26,6 +26,8 @@ public interface IAppService {
 
     boolean exists();
 
+    String state();
+
     Runtime getRuntime();
 
     PublishingProfile getPublishingProfile();
