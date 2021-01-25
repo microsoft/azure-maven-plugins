@@ -13,8 +13,6 @@ import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.model.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
 import com.microsoft.azure.tools.utils.RxUtils;
 import lombok.Getter;
@@ -58,7 +56,8 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     }
 
     public SpringCloudDeployment start() {
-        this.deploymentManager.start(this.entity());
+        final SpringCloudDeploymentEntity deployment = this.entity();
+        this.deploymentManager.start(deployment.getName(), deployment.getApp());
         return this;
     }
 

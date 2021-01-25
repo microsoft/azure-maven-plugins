@@ -20,52 +20,52 @@
  * SOFTWARE.
  */
 
-package com.microsoft.azure.toolkit.lib.springcloud.model;
+package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentInstance;
-import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntity;
+import lombok.AccessLevel;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 @Getter
-public class SpringCloudDeploymentEntity implements IAzureEntity {
-    private final SpringCloudAppEntity app;
+public class SpringCloudAppEntity implements IAzureEntity {
+    private final SpringCloudClusterEntity cluster;
     private final String name;
-    DeploymentResourceInner inner;
+    @Getter(AccessLevel.PACKAGE)
+    private AppResourceInner inner;
 
-    private SpringCloudDeploymentEntity(final String name, SpringCloudAppEntity app) {
+    private SpringCloudAppEntity(String name, SpringCloudClusterEntity cluster) {
         this.name = name;
-        this.app = app;
+        this.cluster = cluster;
     }
 
-    private SpringCloudDeploymentEntity(DeploymentResourceInner resource, SpringCloudAppEntity app) {
+    private SpringCloudAppEntity(AppResourceInner resource, SpringCloudClusterEntity cluster) {
         this.inner = resource;
         this.name = resource.name();
-        this.app = app;
+        this.cluster = cluster;
     }
 
     @Nonnull
-    public static SpringCloudDeploymentEntity fromResource(DeploymentResourceInner resource, final SpringCloudAppEntity app) {
-        return new SpringCloudDeploymentEntity(resource, app);
+    public static SpringCloudAppEntity fromResource(final AppResourceInner resource, final SpringCloudClusterEntity cluster) {
+        return new SpringCloudAppEntity(resource, cluster);
     }
 
-    public static SpringCloudDeploymentEntity fromName(String name, SpringCloudAppEntity app) {
-        return new SpringCloudDeploymentEntity(name, app);
+    @Nonnull
+    public static SpringCloudAppEntity fromName(final String name, final SpringCloudClusterEntity cluster) {
+        return new SpringCloudAppEntity(name, cluster);
     }
 
-    public DeploymentResourceStatus getStatus() {
-        return this.inner.properties().status();
+    public boolean isPublic() {
+        return this.inner.properties().publicProperty();
     }
 
-    public List<DeploymentInstance> getInstances() {
-        return this.inner.properties().instances();
+    public String getApplicationUrl() {
+        return this.inner.properties().url();
     }
 
-    public Boolean isActive() {
-        return this.inner.properties().active();
+    public String getActiveDeployment() {
+        return this.inner.properties().activeDeploymentName();
     }
 }
