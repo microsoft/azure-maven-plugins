@@ -412,7 +412,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         final SchemaVersion version = SchemaVersion.fromString(getSchemaVersion());
         final AbstractConfigurationValidator validator = version == SchemaVersion.V2 ?
                 new V2ConfigurationValidator(this) : new V1ConfigurationValidator(this);
-        final AbstractConfigParser parser = version == SchemaVersion.V2 ? new V2ConfigParser(this, validator) : null;
+        final AbstractConfigParser parser = version == SchemaVersion.V2 ? new V2ConfigParser(this, validator) : new V2ConfigParser(this, validator);
         return parser.getWebAppConfig();
     }
 
