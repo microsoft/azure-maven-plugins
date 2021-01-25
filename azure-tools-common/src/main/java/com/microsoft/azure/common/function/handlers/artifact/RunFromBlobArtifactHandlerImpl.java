@@ -52,7 +52,6 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
         final CloudBlockBlob blob = deployArtifactToAzureStorage(deployTarget, zipPackage, storageAccount);
         final String sasToken = AzureStorageHelper.getSASToken(blob, Period.ofYears(SAS_EXPIRE_DATE_BY_YEAR));
         FunctionArtifactHelper.updateAppSetting(deployTarget, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, sasToken);
-        ((FunctionApp) deployTarget.getApp()).syncTriggers();
     }
 
     private CloudBlockBlob deployArtifactToAzureStorage(DeployTarget deployTarget, File zipPackage, CloudStorageAccount storageAccount)
