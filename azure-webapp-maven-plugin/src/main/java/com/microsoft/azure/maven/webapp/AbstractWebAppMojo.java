@@ -6,6 +6,9 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.azure.core.management.AzureEnvironment;
+import com.azure.core.management.profile.AzureProfile;
+import com.azure.resourcemanager.AzureResourceManager;
 import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.utils.AppServiceUtils;
@@ -14,6 +17,8 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.model.MavenAuthConfiguration;
+import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
@@ -25,6 +30,8 @@ import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.AzureAppService;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
+import com.microsoft.azure.tools.auth.exception.AzureLoginException;
+import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -389,6 +396,30 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
                 new V2ConfigurationValidator(this) : new V1ConfigurationValidator(this);
         final AbstractConfigParser parser = version == SchemaVersion.V2 ? new V2ConfigParser(this, validator) : new V2ConfigParser(this, validator);
         return parser.parse();
+    }
+
+    protected AzureAppService getOrCreateLibraryClient() throws AzureExecutionException {
+        try {
+            final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
+            mavenAuthConfiguration.setType(getAuthType());
+            final AzureCredentialWrapper azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
+            if (Objects.isNull(azureCredentialWrapper)) {
+                return null;
+            }
+            final AzureProfile profile = new AzureProfile(azureCredentialWrapper.getTenantId(), getSubscriptionId(),
+                    convertEnvironment(azureCredentialWrapper.getEnv()));
+            final AzureResourceManager azureResourceManager = AzureResourceManager.configure()
+                    .authenticate(azureCredentialWrapper.getTokenCredential(), profile).withSubscription(getSubscriptionId());
+            return AzureAppService.auth(azureResourceManager);
+        } catch (AzureLoginException | AzureExecutionException e) {
+            throw new AzureExecutionException(e.getMessage());
+        }
+    }
+
+    protected AzureEnvironment convertEnvironment(com.microsoft.azure.AzureEnvironment environment) {
+        return AzureEnvironment.knownEnvironments().stream()
+                .filter(env -> StringUtils.equals(environment.managementEndpoint(), env.getManagementEndpoint()))
+                .findFirst().orElse(null);
     }
 
     @Override
