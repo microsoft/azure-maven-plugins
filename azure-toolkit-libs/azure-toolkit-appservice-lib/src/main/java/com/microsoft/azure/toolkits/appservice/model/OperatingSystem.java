@@ -26,4 +26,9 @@ public enum OperatingSystem {
                 .filter(os -> StringUtils.equals(operatingSystem.name(), os.getValue()))
                 .findFirst().orElse(null);
     }
+
+    public static OperatingSystem fromString(String value) {
+        return Arrays.stream(values()).filter(operatingSystem -> StringUtils.equalsIgnoreCase(operatingSystem.value, value))
+                .findFirst().orElse(null);
+    }
 }

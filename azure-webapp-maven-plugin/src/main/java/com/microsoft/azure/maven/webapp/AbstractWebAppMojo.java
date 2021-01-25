@@ -20,8 +20,11 @@ import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.AbstractConfigParser;
 import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
+import com.microsoft.azure.maven.webapp.parser.V1ConfigParser;
 import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
+import com.microsoft.azure.maven.webapp.parser.V2ConfigParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.AzureAppService;
@@ -407,7 +410,10 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     protected WebAppConfig getWebAppConfig() throws AzureExecutionException {
-        final AbstractConfigParser parser = null;
+        final SchemaVersion version = SchemaVersion.fromString(getSchemaVersion());
+        final AbstractConfigurationValidator validator = version == SchemaVersion.V2 ?
+                new V2ConfigurationValidator(this) : new V1ConfigurationValidator(this);
+        final AbstractConfigParser parser = version == SchemaVersion.V2 ? new V2ConfigParser(this, validator) : new V1ConfigParser(this, validator);
         return parser.getWebAppConfig();
     }
 

@@ -121,4 +121,10 @@ public class WebContainerUtils {
         Collections.sort(result);
         return result;
     }
+
+    public static com.microsoft.azure.toolkits.appservice.model.WebContainer toLibraryWebContainer(String input) {
+        return isJavaSeWebContainer(input) ?
+                com.microsoft.azure.toolkits.appservice.model.WebContainer.JAVA_SE :
+                com.microsoft.azure.toolkits.appservice.model.WebContainer.fromString(input);
+    }
 }

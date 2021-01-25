@@ -73,7 +73,7 @@
         <jsonwebtoken.jjwt.version>0.9.1</jsonwebtoken.jjwt.version>
         <jtwig.core.version>5.87.0.RELEASE</jtwig.core.version>
         <junit.version>4.13.1</junit.version>
-        <lombok.version>1.18.8</lombok.version>
+        <lombok.version>1.18.16</lombok.version>
         <maven3-model-jdom-support.version>1.6</maven3-model-jdom-support.version>
         <mockito.version>2.22.0</mockito.version>
         <powermock.version>2.0.2</powermock.version>
