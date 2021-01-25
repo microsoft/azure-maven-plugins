@@ -8,9 +8,11 @@ package com.microsoft.azure.toolkits.appservice.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
@@ -46,5 +48,28 @@ public class WebContainer {
         return Arrays.asList(TOMCAT_7, TOMCAT_7_0_50, TOMCAT_7_0_62, TOMCAT_8, TOMCAT_8_0_23, TOMCAT_85, TOMCAT_8_5_6, TOMCAT_8_5_20, TOMCAT_8_5_31,
                 TOMCAT_8_5_34, TOMCAT_8_5_37, TOMCAT_9, TOMCAT_9_0_0, TOMCAT_9_0_8, TOMCAT_9_0_12, TOMCAT_9_0_14, JETTY_9_1_NEWEST, JETTY_9_1_V20131115,
                 JETTY_9_3_NEWEST, JETTY_9_3_V20161014, JAVA_SE, JBOSS_72);
+    }
+
+    public static WebContainer fromString(String input) {
+        return values().stream()
+                .filter(webContainer -> StringUtils.equalsIgnoreCase(input, webContainer.value))
+                .findFirst().orElse(null);
+    }
+
+    @Override
+    public boolean equals(Object target) {
+        if (this == target) {
+            return true;
+        }
+        if (target == null || getClass() != target.getClass()) {
+            return false;
+        }
+        WebContainer that = (WebContainer) target;
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 }

@@ -22,6 +22,7 @@ import org.apache.maven.model.Resource;
 import java.util.List;
 import java.util.Locale;
 
+@Deprecated
 public class V2ConfigurationParser extends ConfigurationParser {
 
     public V2ConfigurationParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
