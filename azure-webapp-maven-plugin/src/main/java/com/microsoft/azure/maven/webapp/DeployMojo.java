@@ -63,12 +63,12 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private IAppService createOrUpdateResource(final WebAppConfig config) throws AzureExecutionException {
-        if (StringUtils.isNotEmpty(config.getDeploymentSlotName())) {
-            final IWebApp target = getWebApp(config);
-            return target.exists() ? updateWebApp(target, config) : createWebApp(target, config);
+        if (StringUtils.isEmpty(config.getDeploymentSlotName())) {
+            final IWebApp webApp = getWebApp(config);
+            return webApp.exists() ? updateWebApp(webApp, config) : createWebApp(webApp, config);
         } else {
-            final IWebAppDeploymentSlot target = getDeploymentSlot(config);
-            return target.exists() ? updateDeploymentSlot(target, config) : createDeploymentSlot(target, config);
+            final IWebAppDeploymentSlot slot = getDeploymentSlot(config);
+            return slot.exists() ? updateDeploymentSlot(slot, config) : createDeploymentSlot(slot, config);
         }
     }
 
