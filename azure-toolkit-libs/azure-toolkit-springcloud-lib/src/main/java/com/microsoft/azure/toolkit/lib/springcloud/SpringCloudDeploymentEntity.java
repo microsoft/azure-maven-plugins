@@ -20,12 +20,13 @@
  * SOFTWARE.
  */
 
-package com.microsoft.azure.toolkit.lib.springcloud.model;
+package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentInstance;
 import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
-import com.microsoft.azure.toolkit.lib.common.IAzureEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntity;
+import lombok.AccessLevel;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -35,7 +36,8 @@ import java.util.List;
 public class SpringCloudDeploymentEntity implements IAzureEntity {
     private final SpringCloudAppEntity app;
     private final String name;
-    DeploymentResourceInner inner;
+    @Getter(AccessLevel.PACKAGE)
+    private DeploymentResourceInner inner;
 
     private SpringCloudDeploymentEntity(final String name, SpringCloudAppEntity app) {
         this.name = name;

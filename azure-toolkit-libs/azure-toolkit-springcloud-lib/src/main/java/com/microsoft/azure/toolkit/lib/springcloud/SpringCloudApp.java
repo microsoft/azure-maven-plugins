@@ -9,13 +9,11 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.microsoft.azure.management.appplatform.v2020_07_01.PersistentDisk;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
-import com.microsoft.azure.toolkit.lib.common.AzureRemotableArtifact;
-import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
-import com.microsoft.azure.toolkit.lib.common.ICommittable;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
+import com.microsoft.azure.toolkit.lib.springcloud.model.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudAppManager;
+import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -31,17 +29,22 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
     private final SpringCloudCluster cluster;
     private final SpringCloudAppManager appManager;
     private final SpringCloudAppEntity local;
+    private final SpringCloudDeploymentManager deploymentManager;
     private SpringCloudAppEntity remote;
+    private boolean refreshed;
 
     public SpringCloudApp(SpringCloudAppEntity app, SpringCloudCluster cluster) {
         this.local = app;
         this.cluster = cluster;
         this.appManager = new SpringCloudAppManager(cluster.getClient());
+        this.deploymentManager = new SpringCloudDeploymentManager(cluster.getClient());
     }
 
     @Override
     public boolean exists() {
-        this.refresh();
+        if (!this.refreshed) {
+            this.refresh();
+        }
         return Objects.nonNull(this.remote);
     }
 
@@ -63,17 +66,17 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
     }
 
     public SpringCloudApp start() {
-        this.appManager.start(this.entity());
+        this.deploymentManager.start(this.getActiveDeploymentName(), this.entity());
         return this;
     }
 
     public SpringCloudApp stop() {
-        this.appManager.stop(this.entity());
+        this.deploymentManager.stop(this.getActiveDeploymentName(), this.entity());
         return this;
     }
 
     public SpringCloudApp restart() {
-        this.appManager.restart(this.entity());
+        this.deploymentManager.restart(this.getActiveDeploymentName(), this.entity());
         return this;
     }
 
@@ -88,6 +91,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         final SpringCloudAppEntity app = this.entity();
         final SpringCloudClusterEntity cluster = this.cluster.entity();
         this.remote = this.appManager.get(app.getName(), cluster);
+        this.refreshed = true;
         return this;
     }
 
@@ -102,6 +106,13 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
     @Nonnull
     public Updater update() {
         return new Updater(this);
+    }
+
+    public String getActiveDeploymentName() {
+        if (!this.refreshed) {
+            this.refresh();
+        }
+        return Optional.ofNullable(this.remote).map(r -> this.remote.getActiveDeployment()).orElse(null);
     }
 
     public static class Uploader implements ICommittable<SpringCloudApp> {
@@ -137,7 +148,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         }
 
         public Updater activate(String deploymentName) {
-            final String oldDeploymentName = Optional.ofNullable(this.app.remote).map(e -> e.getInner().properties().activeDeploymentName()).orElse(null);
+            final String oldDeploymentName = Optional.ofNullable(this.app.remote).map(SpringCloudAppEntity::getActiveDeployment).orElse(null);
             if (StringUtils.isNotBlank(deploymentName) && !Objects.equals(oldDeploymentName, deploymentName)) {
                 AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
                     .withActiveDeploymentName(deploymentName);

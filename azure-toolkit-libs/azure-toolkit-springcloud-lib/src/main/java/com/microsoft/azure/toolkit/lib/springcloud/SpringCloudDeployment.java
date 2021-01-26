@@ -8,12 +8,11 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.RuntimeVersion;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
-import com.microsoft.azure.toolkit.lib.common.AzureRemotableArtifact;
-import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
-import com.microsoft.azure.toolkit.lib.common.ICommittable;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.springcloud.model.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
 import com.microsoft.azure.tools.utils.RxUtils;
 import lombok.Getter;
@@ -33,6 +32,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     private final SpringCloudDeploymentEntity local;
     private SpringCloudDeploymentEntity remote;
     private final SpringCloudDeploymentManager deploymentManager;
+    private boolean refreshed;
 
     public SpringCloudDeployment(SpringCloudDeploymentEntity deployment, SpringCloudApp app) {
         this.app = app;
@@ -41,7 +41,9 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     }
 
     public boolean exists() {
-        this.refresh();
+        if (!this.refreshed) {
+            this.refresh();
+        }
         return Objects.nonNull(this.remote);
     }
 
@@ -54,7 +56,8 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     }
 
     public SpringCloudDeployment start() {
-        this.deploymentManager.start(this.entity());
+        final SpringCloudDeploymentEntity deployment = this.entity();
+        this.deploymentManager.start(deployment.getName(), deployment.getApp());
         return this;
     }
 
@@ -63,6 +66,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         final String deploymentName = this.name();
         final SpringCloudAppEntity app = this.app.entity();
         this.remote = this.deploymentManager.get(deploymentName, app);
+        this.refreshed = true;
         return this;
     }
 
@@ -163,14 +167,14 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         private void scale(@Nonnull ScaleSettings scaleSettings) {
-            log.info("Scaling deployment({})...", this.deployment.name());
+            log.info("Scaling deployment({})...", TextUtils.cyan(this.deployment.name()));
             final DeploymentResourceInner tempResource = new DeploymentResourceInner();
             AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(tempResource, this.deployment)
                 .withCpu(scaleSettings.getCpu()).withMemoryInGB(scaleSettings.getMemoryInGB());
             AzureSpringCloudConfigUtils.getOrCreateSku(tempResource, this.deployment)
                 .withCapacity(scaleSettings.getCapacity());
             this.deployment.remote = this.deployment.deploymentManager.update(tempResource, this.deployment.entity());
-            log.info("Successfully scaled deployment({})", this.deployment.name());
+            log.info("Successfully scaled the deployment.");
         }
     }
 

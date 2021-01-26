@@ -20,11 +20,11 @@
  * SOFTWARE.
  */
 
-package com.microsoft.azure.toolkit.lib.springcloud.model;
+package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
-import com.microsoft.azure.toolkit.lib.common.IAzureEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,6 +35,7 @@ import org.apache.commons.lang3.ArrayUtils;
 public class SpringCloudClusterEntity implements IAzureEntity {
     private final String resourceGroup;
     private final String name;
+    @Getter(AccessLevel.PACKAGE)
     private ServiceResourceInner inner;
 
     private SpringCloudClusterEntity(ServiceResourceInner resource) {
