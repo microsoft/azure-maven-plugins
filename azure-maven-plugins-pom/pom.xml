@@ -4,7 +4,7 @@
 
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugins-pom</artifactId>
-    <version>1.0.6-SNAPSHOT</version>
+    <version>1.0.7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Maven Plugins for Azure</name>
     <description>Maven plugins for Microsoft Azure services</description>
@@ -45,7 +45,7 @@
         <azure.eventhubs.version>1.2.0</azure.eventhubs.version>
         <azure.eventhubs-eph.version>2.0.1</azure.eventhubs-eph.version>
         <azure.function.version>1.4.2-SNAPSHOT</azure.function.version>
-        <azure.maven-plugin-lib.version>1.5.0-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.maven-plugin-lib.version>1.6.0-SNAPSHOT</azure.maven-plugin-lib.version>
         <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
         <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
         <azure.tools-common.version>0.11.0-SNAPSHOT</azure.tools-common.version>
