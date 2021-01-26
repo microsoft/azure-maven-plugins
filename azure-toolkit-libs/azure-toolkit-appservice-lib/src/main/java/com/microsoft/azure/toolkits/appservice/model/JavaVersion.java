@@ -18,6 +18,13 @@ import java.util.Objects;
 @Getter
 @AllArgsConstructor
 public class JavaVersion {
+    private static final String JAVA_7_VALUE = "Java 7";
+    private static final String JAVA_7_VALUE_TRIM = "Java7";
+    private static final String JAVA_8_VALUE = "Java 8";
+    private static final String JAVA_8_VALUE_TRIM = "Java8";
+    private static final String JAVA_11_VALUE = "Java 11";
+    private static final String JAVA_11_VALUE_TRIM = "Java11";
+
     public static final JavaVersion OFF = new JavaVersion("null");
     public static final JavaVersion JAVA_7 = new JavaVersion("1.7");
     public static final JavaVersion JAVA_8 = new JavaVersion("1.8");
@@ -53,6 +60,16 @@ public class JavaVersion {
     }
 
     public static JavaVersion fromString(String input) {
+        // parse display name first
+        if (StringUtils.equalsAnyIgnoreCase(input, JAVA_7_VALUE, JAVA_7_VALUE_TRIM)) {
+            return JavaVersion.JAVA_7;
+        }
+        if (StringUtils.equalsAnyIgnoreCase(input, JAVA_8_VALUE, JAVA_8_VALUE_TRIM)) {
+            return JavaVersion.JAVA_8;
+        }
+        if (StringUtils.equalsAnyIgnoreCase(input, JAVA_11_VALUE, JAVA_11_VALUE_TRIM)) {
+            return JavaVersion.JAVA_11;
+        }
         return values().stream()
                 .filter(javaVersion -> StringUtils.equalsIgnoreCase(input, javaVersion.getValue()))
                 .findFirst().orElse(null);

@@ -10,8 +10,6 @@ import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
-import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
-import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
@@ -79,8 +77,8 @@ public class V2ConfigParser extends AbstractConfigParser {
         validate(validator::validateJavaVersion);
         validate(validator::validateWebContainer);
         validate(validator::validateRuntimeStack);
-        final JavaVersion javaVersion = JavaVersionUtils.toLibraryJavaVersion(runtime.getJavaVersionRaw());
-        final WebContainer webContainer = WebContainerUtils.toLibraryWebContainer(runtime.getWebContainerRaw());
+        final JavaVersion javaVersion = JavaVersion.fromString(runtime.getJavaVersionRaw());
+        final WebContainer webContainer = WebContainer.fromString(runtime.getWebContainerRaw());
         return Runtime.getRuntime(os, webContainer, javaVersion);
     }
 

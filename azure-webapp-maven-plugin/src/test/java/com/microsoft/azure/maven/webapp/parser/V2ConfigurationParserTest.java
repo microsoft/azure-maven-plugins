@@ -172,7 +172,7 @@ public class V2ConfigurationParserTest {
         try {
             parser.getWebContainer();
         } catch (AzureExecutionException e) {
-            assertTrue(StringUtils.contains(e.getMessage(), "The configuration <webContainer> in pom.xml is not correct"));
+            assertTrue(StringUtils.contains(e.getMessage(), " for <webContainer> in pom.xml"));
         }
 
         doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(runtime).getWebContainer();
@@ -195,7 +195,7 @@ public class V2ConfigurationParserTest {
         try {
             parser.getJavaVersion();
         } catch (AzureExecutionException e) {
-            assertTrue(StringUtils.contains(e.getMessage(), "The configuration <javaVersion> in pom.xml is not correct"));
+            assertTrue(StringUtils.contains(e.getMessage(), " for <javaVersion> in pom.xml"));
         }
         doReturn(JavaVersion.JAVA_8_NEWEST).when(runtime).getJavaVersion();
         doReturn(JavaVersion.JAVA_8_NEWEST.toString()).when(runtime).getJavaVersionRaw();

@@ -8,8 +8,6 @@ package com.microsoft.azure.maven.webapp.validator;
 
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
-import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
-import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkits.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
@@ -62,8 +60,8 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
         if (!StringUtils.equalsIgnoreCase(mavenRuntimeSetting.getOs(), OperatingSystem.LINUX.getValue())) {
             return null;
         }
-        final JavaVersion javaVersion = JavaVersionUtils.toLibraryJavaVersion(mavenRuntimeSetting.getJavaVersionRaw());
-        final WebContainer webContainer = WebContainerUtils.toLibraryWebContainer(mavenRuntimeSetting.getWebContainerRaw());
+        final JavaVersion javaVersion = JavaVersion.fromString(mavenRuntimeSetting.getJavaVersionRaw());
+        final WebContainer webContainer = WebContainer.fromString(mavenRuntimeSetting.getWebContainerRaw());
         final Runtime result = Runtime.values().stream().filter(runtime -> runtime.getOperatingSystem() == OperatingSystem.LINUX)
                 .filter(runtime -> runtime.getJavaVersion() == javaVersion && runtime.getWebContainer() == webContainer)
                 .findAny().orElse(null);
@@ -78,8 +76,8 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
             return "Please config the <runtime> in pom.xml.";
         }
         final String javaVersionRaw = runtime.getJavaVersionRaw();
-        if (JavaVersion.fromString(javaVersionRaw) == null && JavaVersionUtils.parseJavaVersionEnum(javaVersionRaw) == null) {
-            return String.format("The configuration <javaVersion> in pom.xml is not correct, please refer %s.", RUNTIME_CONFIG_REFERENCE);
+        if (JavaVersion.fromString(javaVersionRaw) == null) {
+            return String.format("Unsupported value %s for <javaVersion> in pom.xml, please refer %s.", runtime.getJavaVersionRaw(), RUNTIME_CONFIG_REFERENCE);
         }
         return null;
     }
@@ -90,8 +88,9 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
         if (runtime == null) {
             return "Please config the <runtime> in pom.xml.";
         }
-        if (WebContainer.fromString(runtime.getWebContainerRaw()) == null && !WebContainerUtils.isJavaSeWebContainer(runtime.getWebContainerRaw())) {
-            return String.format("The configuration <webContainer> in pom.xml is not correct, please refer %s.", RUNTIME_CONFIG_REFERENCE);
+        if (WebContainer.fromString(runtime.getWebContainerRaw()) == null) {
+            return String.format("Unsupported value %s for <webContainer> in pom.xml, please refer %s.",
+                    runtime.getWebContainerRaw(), RUNTIME_CONFIG_REFERENCE);
         }
         return null;
     }

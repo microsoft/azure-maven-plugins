@@ -70,28 +70,6 @@ public class JavaVersionUtils {
         }
     }
 
-    public static com.microsoft.azure.toolkits.appservice.model.JavaVersion toLibraryJavaVersion(String input) {
-        if (StringUtils.isEmpty(input)) {
-            return null;
-        }
-        final com.microsoft.azure.toolkits.appservice.model.JavaVersion javaVersion =
-                com.microsoft.azure.toolkits.appservice.model.JavaVersion.fromString(input);
-        if (javaVersion == null) {
-            final JavaVersionEnum javaVersionEnum = JavaVersionUtils.parseJavaVersionEnum(input);
-            switch (javaVersionEnum) {
-                case JAVA_7:
-                    return com.microsoft.azure.toolkits.appservice.model.JavaVersion.JAVA_7;
-                case JAVA_8:
-                    return com.microsoft.azure.toolkits.appservice.model.JavaVersion.JAVA_8;
-                case JAVA_11:
-                    return com.microsoft.azure.toolkits.appservice.model.JavaVersion.JAVA_11;
-                default:
-                    throw new IllegalArgumentException(String.format("Java version '%s' is not supported.", input));
-            }
-        }
-        return javaVersion;
-    }
-
     public static String formatJavaVersion(JavaVersion javaVersion) {
         if (Objects.isNull(javaVersion)) {
             return null;
