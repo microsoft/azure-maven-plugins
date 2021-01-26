@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @RequiredArgsConstructor
@@ -34,17 +36,37 @@ public class PricingTier {
     public static final PricingTier FREE_F1 = new PricingTier("Free", "F1");
     public static final PricingTier SHARED_D1 = new PricingTier("Shared", "D1");
 
+    private static final List<PricingTier> values = Collections.unmodifiableList(Arrays.asList(BASIC_B1, BASIC_B2, BASIC_B3, STANDARD_S1, STANDARD_S2,
+            STANDARD_S3, PREMIUM_P1, PREMIUM_P2, PREMIUM_P3, PREMIUM_P1V2, PREMIUM_P2V2, PREMIUM_P3V2, PREMIUM_P1V3, PREMIUM_P2V3, PREMIUM_P3V3,
+            FREE_F1, SHARED_D1));
+
     private final String tier;
     private final String size;
 
     public static List<PricingTier> values() {
-        return Arrays.asList(BASIC_B1, BASIC_B2, BASIC_B3, STANDARD_S1, STANDARD_S2, STANDARD_S3, PREMIUM_P1, PREMIUM_P2, PREMIUM_P3, PREMIUM_P1V2,
-                PREMIUM_P2V2, PREMIUM_P3V2, PREMIUM_P1V3, PREMIUM_P2V3, PREMIUM_P3V3, FREE_F1, SHARED_D1);
+        return values;
     }
 
     public static PricingTier fromString(String input) {
         return values().stream()
                 .filter(pricingTier -> StringUtils.equalsIgnoreCase(input, pricingTier.size))
                 .findFirst().orElse(null);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PricingTier)) {
+            return false;
+        }
+        final PricingTier that = (PricingTier) o;
+        return Objects.equals(tier, that.tier) && Objects.equals(size, that.size);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tier, size);
     }
 }

@@ -11,15 +11,13 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
 public class WebContainer {
-
-    private String value;
-
     public static final WebContainer JAVA_SE = new WebContainer("java");
     public static final WebContainer TOMCAT_7 = new WebContainer("tomcat 7.0");
     public static final WebContainer TOMCAT_8 = new WebContainer("tomcat 8.0");
@@ -44,10 +42,14 @@ public class WebContainer {
     public static final WebContainer JETTY_9_3_NEWEST = new WebContainer("jetty 9.3");
     public static final WebContainer JETTY_9_3_V20161014 = new WebContainer("jetty 9.3.13.20161014");
 
+    private static final List<WebContainer> values = Collections.unmodifiableList(Arrays.asList(TOMCAT_7, TOMCAT_7_0_50, TOMCAT_7_0_62, TOMCAT_8,
+            TOMCAT_8_0_23, TOMCAT_85, TOMCAT_8_5_6, TOMCAT_8_5_20, TOMCAT_8_5_31, TOMCAT_8_5_34, TOMCAT_8_5_37, TOMCAT_9, TOMCAT_9_0_0, TOMCAT_9_0_8,
+            TOMCAT_9_0_12, TOMCAT_9_0_14, JETTY_9_1_NEWEST, JETTY_9_1_V20131115, JETTY_9_3_NEWEST, JETTY_9_3_V20161014, JAVA_SE, JBOSS_72));
+
+    private String value;
+
     public static List<WebContainer> values() {
-        return Arrays.asList(TOMCAT_7, TOMCAT_7_0_50, TOMCAT_7_0_62, TOMCAT_8, TOMCAT_8_0_23, TOMCAT_85, TOMCAT_8_5_6, TOMCAT_8_5_20, TOMCAT_8_5_31,
-                TOMCAT_8_5_34, TOMCAT_8_5_37, TOMCAT_9, TOMCAT_9_0_0, TOMCAT_9_0_8, TOMCAT_9_0_12, TOMCAT_9_0_14, JETTY_9_1_NEWEST, JETTY_9_1_V20131115,
-                JETTY_9_3_NEWEST, JETTY_9_3_V20161014, JAVA_SE, JBOSS_72);
+        return values;
     }
 
     public static WebContainer fromString(String input) {
@@ -64,7 +66,7 @@ public class WebContainer {
         if (target == null || getClass() != target.getClass()) {
             return false;
         }
-        WebContainer that = (WebContainer) target;
+        final WebContainer that = (WebContainer) target;
         return Objects.equals(value, that.value);
     }
 
