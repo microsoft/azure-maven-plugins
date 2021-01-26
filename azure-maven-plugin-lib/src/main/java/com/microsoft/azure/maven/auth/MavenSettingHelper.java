@@ -57,8 +57,6 @@ public class MavenSettingHelper {
                 decryptMavenSettingProperty(settingsDecrypter, "certificatePassword", rawCertificatePassword) :
                 rawCertificatePassword);
         configurationFromServer.setEnvironment(getPropertyValue(configuration, "environment"));
-        configurationFromServer.setHttpProxyHost(getPropertyValue(configuration, "httpProxyHost"));
-        configurationFromServer.setHttpProxyPort(getPropertyValue(configuration, "httpProxyPort"));
         configurationFromServer.setServerId(serverId);
         return configurationFromServer;
     }

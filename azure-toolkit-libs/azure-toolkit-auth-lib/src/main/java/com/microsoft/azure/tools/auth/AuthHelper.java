@@ -56,6 +56,14 @@ public class AuthHelper {
         }
     }
 
+    public static void setupAuthProxy(String httpProxyHost, String httpProxyPort) {
+        if (StringUtils.isNotBlank(httpProxyHost)) {
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, String.format("http://%s:%s", httpProxyHost, httpProxyPort));
+            setPropertyIfNotExist("http.proxyHost", httpProxyHost);
+            setPropertyIfNotExist("http.proxyPort", httpProxyPort);
+        }
+    }
+
     /**
      * Parse the corresponding azure environment.
      *
