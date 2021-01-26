@@ -7,6 +7,7 @@
 package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfig;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
@@ -15,7 +16,7 @@ import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkits.appservice.model.PricingTier;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
 import com.microsoft.azure.tools.common.model.Region;
-import lombok.AllArgsConstructor;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -23,11 +24,15 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Supplier;
 
-@AllArgsConstructor
 public abstract class AbstractConfigParser {
 
     protected AbstractWebAppMojo mojo;
     protected AbstractConfigurationValidator validator;
+
+    public AbstractConfigParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
+        this.mojo = mojo;
+        this.validator = validator;
+    }
 
     public String getAppName() throws AzureExecutionException {
         validate(validator::validateAppName);
@@ -62,15 +67,13 @@ public abstract class AbstractConfigParser {
         return mojo.getAppServicePlanResourceGroup();
     }
 
-    public abstract Region getRegion();
+    public abstract Region getRegion() throws AzureExecutionException;
 
-    public abstract String getSchemaVersion();
+    public abstract DockerConfiguration getDockerConfiguration() throws AzureExecutionException;
 
-    public abstract DockerConfiguration getDockerConfiguration();
+    public abstract List<Pair<File, DeployType>> getResources() throws AzureExecutionException;
 
-    public abstract List<Pair<File, DeployType>> getResources();
-
-    public abstract Runtime getRuntime();
+    public abstract Runtime getRuntime() throws AzureExecutionException;
 
     public WebAppConfig getWebAppConfig() throws AzureExecutionException {
         return WebAppConfig.builder()
@@ -88,10 +91,19 @@ public abstract class AbstractConfigParser {
                 .build();
     }
 
+    protected MavenDockerCredentialProvider getDockerCredential(String serverId) {
+        return MavenDockerCredentialProvider.fromMavenSettings(mojo.getSettings(), serverId);
+    }
+
     protected void validate(Supplier<String> validator) throws AzureExecutionException {
         final String message = validator.get();
         if (StringUtils.isNotEmpty(message)) {
             throw new AzureExecutionException(message);
         }
+    }
+
+    protected DeployType getDeployTypeFromFile(File file) {
+        final DeployType type = DeployType.fromString(FilenameUtils.getExtension(file.getName()));
+        return type == null ? DeployType.ZIP : type;
     }
 }

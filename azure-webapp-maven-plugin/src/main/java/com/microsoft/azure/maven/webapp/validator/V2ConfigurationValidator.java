@@ -6,17 +6,18 @@
 
 package com.microsoft.azure.maven.webapp.validator;
 
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.RuntimeStack;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
-
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
+import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkits.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkits.appservice.model.Runtime;
+import com.microsoft.azure.toolkits.appservice.model.WebContainer;
+import com.microsoft.azure.tools.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 
-import static com.microsoft.azure.maven.webapp.configuration.RuntimeSetting.RUNTIME_CONFIG_REFERENCE;
+import static com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting.RUNTIME_CONFIG_REFERENCE;
 
 public class V2ConfigurationValidator extends AbstractConfigurationValidator {
 
@@ -29,7 +30,7 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
     @Override
     public String validateRegion() {
         final String region = mojo.getRegion();
-        if (!StringUtils.isEmpty(region) && Region.findByLabelOrName(region) == null) {
+        if (!StringUtils.isEmpty(region) && Region.fromName(region) == null) {
             return "The value of <region> is not supported, please correct it in pom.xml.";
         }
         return null;
@@ -37,7 +38,7 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
 
     @Override
     public String validateOs() {
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         final String os = StringUtils.lowerCase(runtime.getOs());
         if (runtime.isEmpty()) {
             return null;
@@ -52,42 +53,51 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
 
     @Override
     public String validateRuntimeStack() {
-        final RuntimeSetting runtime = mojo.getRuntime();
-        if (runtime == null || runtime.isEmpty()) {
+        final MavenRuntimeSetting mavenRuntimeSetting = mojo.getRuntime();
+        if (mavenRuntimeSetting == null || mavenRuntimeSetting.isEmpty()) {
             return null;
         }
-        final RuntimeStack result = runtime.getLinuxRuntime();
+        if (!StringUtils.equalsIgnoreCase(mavenRuntimeSetting.getOs(), OperatingSystem.LINUX.getValue())) {
+            return null;
+        }
+        final JavaVersion javaVersion = JavaVersion.fromString(mavenRuntimeSetting.getJavaVersionRaw());
+        final WebContainer webContainer = WebContainer.fromString(mavenRuntimeSetting.getWebContainerRaw());
+        final Runtime result = Runtime.values().stream().filter(runtime -> runtime.getOperatingSystem() == OperatingSystem.LINUX)
+                .filter(runtime -> runtime.getJavaVersion() == javaVersion && runtime.getWebContainer() == webContainer)
+                .findAny().orElse(null);
         return result == null ? String.format("Unsupported value \"%s - %s\" for linux runtime, please refer %s " +
-                "more information", runtime.getWebContainerRaw(), runtime.getJavaVersionRaw(), RUNTIME_CONFIG_REFERENCE) : null;
+                "more information", mavenRuntimeSetting.getWebContainerRaw(), mavenRuntimeSetting.getJavaVersionRaw(), RUNTIME_CONFIG_REFERENCE) : null;
     }
 
     @Override
     public String validateJavaVersion() {
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null) {
-            return "Pleas config the <runtime> in pom.xml.";
+            return "Please config the <runtime> in pom.xml.";
         }
-        if (runtime.getJavaVersion() == null || !JavaVersion.values().contains(runtime.getJavaVersion())) {
-            return "The configuration <javaVersion> in pom.xml is not correct.";
+        final String javaVersionRaw = runtime.getJavaVersionRaw();
+        if (JavaVersion.fromString(javaVersionRaw) == null) {
+            return String.format("Unsupported value %s for <javaVersion> in pom.xml, please refer %s.", runtime.getJavaVersionRaw(), RUNTIME_CONFIG_REFERENCE);
         }
         return null;
     }
 
     @Override
     public String validateWebContainer() {
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null) {
-            return "Pleas config the <runtime> in pom.xml.";
+            return "Please config the <runtime> in pom.xml.";
         }
-        if (runtime.getWebContainer() == null) {
-            return "The configuration <webContainer> in pom.xml is not correct.";
+        if (WebContainer.fromString(runtime.getWebContainerRaw()) == null) {
+            return String.format("Unsupported value %s for <webContainer> in pom.xml, please refer %s.",
+                    runtime.getWebContainerRaw(), RUNTIME_CONFIG_REFERENCE);
         }
         return null;
     }
 
     @Override
     public String validateImage() {
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null) {
             return "Please configure the <runtime> in pom.xml.";
         }

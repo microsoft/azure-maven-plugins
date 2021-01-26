@@ -11,12 +11,19 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
 public class JavaVersion {
-    private String value;
+    private static final String JAVA_7_VALUE = "Java 7";
+    private static final String JAVA_7_VALUE_TRIM = "Java7";
+    private static final String JAVA_8_VALUE = "Java 8";
+    private static final String JAVA_8_VALUE_TRIM = "Java8";
+    private static final String JAVA_11_VALUE = "Java 11";
+    private static final String JAVA_11_VALUE_TRIM = "Java11";
 
     public static final JavaVersion OFF = new JavaVersion("null");
     public static final JavaVersion JAVA_7 = new JavaVersion("1.7");
@@ -42,28 +49,46 @@ public class JavaVersion {
     public static final JavaVersion JAVA_ZULU_1_8_0_202 = new JavaVersion("1.8.0_202_ZULU");
     public static final JavaVersion JAVA_ZULU_11_0_2 = new JavaVersion("11.0.2_ZULU");
 
+    private static final List<JavaVersion> values = Collections.unmodifiableList(Arrays.asList(OFF, JAVA_7, JAVA_1_7_0_51, JAVA_1_7_0_71, JAVA_1_7_0_80,
+            JAVA_ZULU_1_7_0_191, JAVA_8, JAVA_1_8_0_25, JAVA_1_8_0_60, JAVA_1_8_0_73, JAVA_1_8_0_111, JAVA_1_8_0_144, JAVA_1_8_0_172, JAVA_ZULU_1_8_0_172,
+            JAVA_ZULU_1_8_0_92, JAVA_ZULU_1_8_0_102, JAVA_1_8_0_181, JAVA_ZULU_1_8_0_181, JAVA_1_8_0_202, JAVA_ZULU_1_8_0_202, JAVA_11, JAVA_ZULU_11_0_2));
+
+    private String value;
+
     public static List<JavaVersion> values() {
-        return Arrays.asList(OFF, JAVA_7, JAVA_1_7_0_51, JAVA_1_7_0_71, JAVA_1_7_0_80, JAVA_ZULU_1_7_0_191, JAVA_8,
-                JAVA_1_8_0_25, JAVA_1_8_0_60, JAVA_1_8_0_73, JAVA_1_8_0_111, JAVA_1_8_0_144, JAVA_1_8_0_172, JAVA_ZULU_1_8_0_172,
-                JAVA_ZULU_1_8_0_92, JAVA_ZULU_1_8_0_102, JAVA_1_8_0_181, JAVA_ZULU_1_8_0_181, JAVA_1_8_0_202, JAVA_ZULU_1_8_0_202,
-                JAVA_11, JAVA_ZULU_11_0_2);
+        return values;
     }
 
     public static JavaVersion fromString(String input) {
+        // parse display name first
+        if (StringUtils.equalsAnyIgnoreCase(input, JAVA_7_VALUE, JAVA_7_VALUE_TRIM)) {
+            return JavaVersion.JAVA_7;
+        }
+        if (StringUtils.equalsAnyIgnoreCase(input, JAVA_8_VALUE, JAVA_8_VALUE_TRIM)) {
+            return JavaVersion.JAVA_8;
+        }
+        if (StringUtils.equalsAnyIgnoreCase(input, JAVA_11_VALUE, JAVA_11_VALUE_TRIM)) {
+            return JavaVersion.JAVA_11;
+        }
         return values().stream()
                 .filter(javaVersion -> StringUtils.equalsIgnoreCase(input, javaVersion.getValue()))
                 .findFirst().orElse(null);
     }
 
-    public static JavaVersion createFromServiceModel(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
-        return values().stream()
-                .filter(value -> StringUtils.equals(value.value, javaVersion.toString()))
-                .findFirst().orElse(null);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof JavaVersion)) {
+            return false;
+        }
+        final JavaVersion that = (JavaVersion) o;
+        return Objects.equals(value, that.value);
     }
 
-    public static com.azure.resourcemanager.appservice.models.JavaVersion convertToServiceModel(JavaVersion javaVersion) {
-        return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
-                .filter(value -> StringUtils.equals(value.toString(), javaVersion.getValue()))
-                .findFirst().orElse(null);
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 }

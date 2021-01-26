@@ -6,9 +6,7 @@
 
 package com.microsoft.azure.toolkits.appservice.entity;
 
-import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
-import com.microsoft.azure.toolkits.appservice.utils.Utils;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
@@ -26,18 +24,4 @@ public class WebAppDeploymentSlotEntity {
     private Runtime runtime;
     private String defaultHostName;
     private Map<String, String> appSettings;
-
-    public static WebAppDeploymentSlotEntity createFromServiceModel(DeploymentSlot deploymentSlot) {
-        return WebAppDeploymentSlotEntity.builder()
-                .name(deploymentSlot.name())
-                .webappName(deploymentSlot.parent().name())
-                .id(deploymentSlot.id())
-                .resourceGroup(deploymentSlot.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-                .runtime(null)
-                .appServicePlanId(deploymentSlot.appServicePlanId())
-                .defaultHostName(deploymentSlot.defaultHostname())
-                .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
-                .build();
-    }
 }

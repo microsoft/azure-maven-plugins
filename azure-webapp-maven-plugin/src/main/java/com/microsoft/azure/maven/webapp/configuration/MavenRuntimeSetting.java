@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * Runtime Setting
  */
-public class RuntimeSetting {
+public class MavenRuntimeSetting {
 
     /**
      * OS of Web App Below is the list of supported JVM versions:

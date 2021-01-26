@@ -6,10 +6,7 @@
 
 package com.microsoft.azure.toolkits.appservice.entity;
 
-import com.azure.resourcemanager.appservice.models.WebAppBase;
-import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
-import com.microsoft.azure.toolkits.appservice.utils.Utils;
 import com.microsoft.azure.tools.common.model.Region;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
@@ -28,28 +25,4 @@ public class WebAppEntity {
     private String appServicePlanId;
     private String defaultHostName;
     private Map<String, String> appSettings;
-
-    public static WebAppEntity createFromWebAppBase(WebAppBase webAppBase) {
-        return builder().name(webAppBase.name())
-                .id(webAppBase.id())
-                .region(Region.fromName(webAppBase.regionName()))
-                .resourceGroup(webAppBase.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(webAppBase.id()))
-                .runtime(null)
-                .appServicePlanId(webAppBase.appServicePlanId())
-                .defaultHostName(webAppBase.defaultHostname())
-                .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()))
-                .build();
-    }
-
-    public static WebAppEntity createFromWebAppBasic(WebAppBasic webAppBasic) {
-        return builder().name(webAppBasic.name())
-                .id(webAppBasic.id())
-                .region(Region.fromName(webAppBasic.regionName()))
-                .resourceGroup(webAppBasic.resourceGroupName())
-                .subscriptionId(Utils.getSubscriptionId(webAppBasic.id()))
-                .appServicePlanId(webAppBasic.appServicePlanId())
-                .defaultHostName(webAppBasic.defaultHostname())
-                .build();
-    }
 }

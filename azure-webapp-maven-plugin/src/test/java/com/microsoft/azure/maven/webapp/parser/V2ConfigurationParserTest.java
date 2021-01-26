@@ -14,9 +14,10 @@ import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +29,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -45,7 +47,7 @@ public class V2ConfigurationParserTest {
 
     @Test
     public void getOs() throws AzureExecutionException {
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
+        final MavenRuntimeSetting runtime = mock(MavenRuntimeSetting.class);
         doReturn(runtime).when(mojo).getRuntime();
 
         doReturn(true).when(runtime).isEmpty();
@@ -95,7 +97,7 @@ public class V2ConfigurationParserTest {
         doReturn(null).when(mojo).getRuntime();
         assertNull(parser.getRuntimeStack());
 
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
+        final MavenRuntimeSetting runtime = mock(MavenRuntimeSetting.class);
         doReturn(true).when(runtime).isEmpty();
         doReturn(runtime).when(mojo).getRuntime();
         assertNull(parser.getRuntimeStack());
@@ -120,7 +122,7 @@ public class V2ConfigurationParserTest {
             assertEquals(e.getMessage(), "Please configure the <runtime> in pom.xml.");
         }
 
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
+        final MavenRuntimeSetting runtime = mock(MavenRuntimeSetting.class);
         doReturn("").when(runtime).getImage();
         doReturn(runtime).when(mojo).getRuntime();
 
@@ -138,7 +140,7 @@ public class V2ConfigurationParserTest {
     public void getServerId() {
         assertNull(parser.getServerId());
 
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
+        final MavenRuntimeSetting runtime = mock(MavenRuntimeSetting.class);
         doReturn(runtime).when(mojo).getRuntime();
         doReturn("serverId").when(runtime).getServerId();
         assertEquals("serverId", parser.getServerId());
@@ -148,7 +150,7 @@ public class V2ConfigurationParserTest {
     public void getRegistryUrl() {
         assertNull(parser.getRegistryUrl());
 
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
+        final MavenRuntimeSetting runtime = mock(MavenRuntimeSetting.class);
         doReturn(runtime).when(mojo).getRuntime();
         doReturn("serverId").when(runtime).getRegistryUrl();
         assertEquals("serverId", parser.getRegistryUrl());
@@ -161,19 +163,20 @@ public class V2ConfigurationParserTest {
         try {
             parser.getWebContainer();
         } catch (AzureExecutionException e) {
-            assertEquals(e.getMessage(), "Pleas config the <runtime> in pom.xml.");
+            assertEquals(e.getMessage(), "Please config the <runtime> in pom.xml.");
         }
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
+        final MavenRuntimeSetting runtime = mock(MavenRuntimeSetting.class);
         doReturn(runtime).when(mojo).getRuntime();
         doReturn("windows").when(runtime).getOs();
         doReturn(null).when(runtime).getWebContainer();
         try {
             parser.getWebContainer();
         } catch (AzureExecutionException e) {
-            assertEquals(e.getMessage(), "The configuration <webContainer> in pom.xml is not correct.");
+            assertTrue(StringUtils.contains(e.getMessage(), " for <webContainer> in pom.xml"));
         }
 
         doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(runtime).getWebContainer();
+        doReturn(WebContainer.TOMCAT_8_5_NEWEST.toString()).when(runtime).getWebContainerRaw();
         assertEquals(WebContainer.TOMCAT_8_5_NEWEST, parser.getWebContainer());
     }
 
@@ -184,17 +187,18 @@ public class V2ConfigurationParserTest {
         try {
             parser.getJavaVersion();
         } catch (AzureExecutionException e) {
-            assertEquals(e.getMessage(), "Pleas config the <runtime> in pom.xml.");
+            assertEquals(e.getMessage(), "Please config the <runtime> in pom.xml.");
         }
-        final RuntimeSetting runtime = mock(RuntimeSetting.class);
+        final MavenRuntimeSetting runtime = mock(MavenRuntimeSetting.class);
         doReturn(runtime).when(mojo).getRuntime();
         doReturn(null).when(runtime).getJavaVersion();
         try {
             parser.getJavaVersion();
         } catch (AzureExecutionException e) {
-            assertEquals(e.getMessage(), "The configuration <javaVersion> in pom.xml is not correct.");
+            assertTrue(StringUtils.contains(e.getMessage(), " for <javaVersion> in pom.xml"));
         }
         doReturn(JavaVersion.JAVA_8_NEWEST).when(runtime).getJavaVersion();
+        doReturn(JavaVersion.JAVA_8_NEWEST.toString()).when(runtime).getJavaVersionRaw();
         assertEquals(JavaVersion.JAVA_8_NEWEST, parser.getJavaVersion());
     }
 

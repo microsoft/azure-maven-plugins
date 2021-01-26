@@ -14,7 +14,7 @@ import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 
 import org.apache.maven.model.Resource;
@@ -32,7 +32,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
     @Override
     protected OperatingSystemEnum getOs() throws AzureExecutionException {
         validate(validator.validateOs());
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         final String os = runtime.getOs();
         if (runtime.isEmpty()) {
             return null;
@@ -59,7 +59,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
     @Override
     protected RuntimeStack getRuntimeStack() throws AzureExecutionException {
         validate(validator.validateRuntimeStack());
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null || runtime.isEmpty()) {
             return null;
         }
@@ -69,13 +69,13 @@ public class V2ConfigurationParser extends ConfigurationParser {
     @Override
     protected String getImage() throws AzureExecutionException {
         validate(validator.validateImage());
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         return runtime.getImage();
     }
 
     @Override
     protected String getServerId() {
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null) {
             return null;
         }
@@ -84,7 +84,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
 
     @Override
     protected String getRegistryUrl() {
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null) {
             return null;
         }
@@ -99,14 +99,14 @@ public class V2ConfigurationParser extends ConfigurationParser {
     @Override
     protected WebContainer getWebContainer() throws AzureExecutionException {
         validate(validator.validateWebContainer());
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         return runtime.getWebContainer();
     }
 
     @Override
     protected JavaVersion getJavaVersion() throws AzureExecutionException {
         validate(validator.validateJavaVersion());
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         return runtime.getJavaVersion();
     }
 

@@ -21,9 +21,8 @@ public enum OperatingSystem {
 
     private String value;
 
-    public static OperatingSystem getFromServiceModel(com.azure.resourcemanager.appservice.models.OperatingSystem operatingSystem) {
-        return Arrays.stream(OperatingSystem.values())
-                .filter(os -> StringUtils.equals(operatingSystem.name(), os.getValue()))
+    public static OperatingSystem fromString(String value) {
+        return Arrays.stream(values()).filter(operatingSystem -> StringUtils.equalsIgnoreCase(operatingSystem.value, value))
                 .findFirst().orElse(null);
     }
 }
