@@ -11,7 +11,9 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.function.AzureStorageHelper;
 import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
 import java.io.File;
@@ -53,10 +55,10 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     private CloudBlockBlob deployArtifactToAzureStorage(DeployTarget deployTarget, File zipPackage, CloudStorageAccount storageAccount)
-        throws AzureExecutionException {
+            throws AzureExecutionException {
         Log.prompt(String.format(DEPLOY_START, deployTarget.getName()));
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
-                DEPLOYMENT_PACKAGE_CONTAINER, zipPackage.getName());
+                DEPLOYMENT_PACKAGE_CONTAINER, zipPackage.getName(), BlobContainerPublicAccessType.OFF);
         final String blobUri = blob.getUri().getHost() + blob.getUri().getPath();
         Log.prompt(String.format(DEPLOY_FINISH, blobUri));
         return blob;

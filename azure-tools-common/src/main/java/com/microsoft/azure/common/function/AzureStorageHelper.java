@@ -34,10 +34,10 @@ public class AzureStorageHelper {
     private static final String FAIL_TO_GENERATE_BLOB_SAS_TOKEN = "Fail to generate blob sas token";
 
     public static CloudBlockBlob uploadFileAsBlob(final File fileToUpload, final CloudStorageAccount storageAccount,
-            final String containerName, final String blobName) throws AzureExecutionException {
+            final String containerName, final String blobName, final BlobContainerPublicAccessType accessType) throws AzureExecutionException {
         try {
             final CloudBlobContainer blobContainer = getBlobContainer(storageAccount, containerName);
-            blobContainer.createIfNotExists(BlobContainerPublicAccessType.BLOB, null, null);
+            blobContainer.createIfNotExists(accessType, null, null);
 
             final CloudBlockBlob blob = blobContainer.getBlockBlobReference(blobName);
             blob.upload(new FileInputStream(fileToUpload), fileToUpload.length());
