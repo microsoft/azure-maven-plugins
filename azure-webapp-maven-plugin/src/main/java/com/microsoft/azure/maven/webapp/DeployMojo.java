@@ -41,10 +41,10 @@ import java.util.stream.Collectors;
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
     private static final Path FTP_ROOT = Paths.get("/site/wwwroot");
-    private static final String CREATE_WEBAPP = "Creating web app...";
-    private static final String CREATE_WEB_APP_DONE = "Successfully created Web App.";
-    private static final String UPDATE_WEBAPP = "Updating target Web App...";
-    private static final String UPDATE_WEBAPP_DONE = "Successfully updated Web App.";
+    private static final String CREATE_WEBAPP = "Creating web app %s...";
+    private static final String CREATE_WEB_APP_DONE = "Successfully created Web App %s.";
+    private static final String UPDATE_WEBAPP = "Updating target Web App %s...";
+    private static final String UPDATE_WEBAPP_DONE = "Successfully updated Web App %s.";
     private static final String CREATE_RESOURCE_GROUP = "Creating resource group %s in region %s...";
     private static final String CREATE_RESOURCE_GROUP_DONE = "Successfully created resource group %s.";
     private static final String CREATE_APP_SERVICE_PLAN = "Creating app service plan...";
@@ -53,12 +53,11 @@ public class DeployMojo extends AbstractWebAppMojo {
             "Please make sure the Web App name is correct.";
     private static final String CREATE_DEPLOYMENT_SLOT = "Creating deployment slot %s in web app %s";
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created the Deployment Slot.";
-    private static final String APP_SERVICE_PLAN_NOT_FOUND = "App service plan %s was not found in resource group %s";
 
     @Override
     protected void doExecute() throws AzureExecutionException {
         // initialize library client
-        az = getOrCreateLibraryClient();
+        az = getOrCreateAzureAppServiceClient();
 
         final WebAppConfig config = getWebAppConfig();
         final IAppService target = createOrUpdateResource(config);
@@ -92,24 +91,14 @@ public class DeployMojo extends AbstractWebAppMojo {
         ResourceGroup resourceGroup = az.getAzureResourceManager().resourceGroups().getByName(webAppConfig.getResourceGroup());
         if (resourceGroup == null) {
             Log.info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion()));
-            resourceGroup = az.getAzureResourceManager().resourceGroups().define(webAppConfig.getResourceGroup())
+            az.getAzureResourceManager().resourceGroups().define(webAppConfig.getResourceGroup())
                     .withRegion(webAppConfig.getRegion().getName()).create();
             Log.info(String.format(CREATE_RESOURCE_GROUP_DONE, webAppConfig.getResourceGroup()));
         }
         // Get or create App Service Plan
-        final IAppServicePlan appServicePlan = az.appServicePlan(webAppConfig.getServicePlanResourceGroup(), webAppConfig.getServicePlanName());
-        if (!appServicePlan.exists()) {
-            Log.info(CREATE_APP_SERVICE_PLAN);
-            appServicePlan.create()
-                    .withName(webAppConfig.getServicePlanName())
-                    .withResourceGroup(resourceGroup.name())
-                    .withRegion(webAppConfig.getRegion())
-                    .withPricingTier(webAppConfig.getPricingTier())
-                    .withOperatingSystem(webAppConfig.getRuntime().getOperatingSystem())
-                    .commit();
-            Log.info(String.format(CREATE_APP_SERVICE_DONE, appServicePlan.entity().getName()));
-        }
-        Log.info(CREATE_WEBAPP);
+        final IAppServicePlan appServicePlan = getOrCreateAppServicePlan(webAppConfig);
+
+        Log.info(String.format(CREATE_WEBAPP, webAppConfig.getAppName()));
         final IWebApp result = webApp.create().withName(webAppConfig.getAppName())
                 .withResourceGroup(webAppConfig.getResourceGroup())
                 .withPlan(appServicePlan.entity().getId())
@@ -118,19 +107,18 @@ public class DeployMojo extends AbstractWebAppMojo {
                 .withSubscription(webAppConfig.getSubscriptionId())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
-        Log.info(CREATE_WEB_APP_DONE);
+        Log.info(String.format(CREATE_WEB_APP_DONE, result.entity().getName()));
         return result;
     }
 
     private IWebApp updateWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) throws AzureExecutionException {
         // update app service plan
-        Log.info(UPDATE_WEBAPP);
+        Log.info(String.format(UPDATE_WEBAPP, webApp.entity().getName()));
         final IAppServicePlan currentPlan = webApp.plan();
-        final IAppServicePlan targetServicePlan = StringUtils.isEmpty(webAppConfig.getServicePlanName()) ? currentPlan :
-                az.appServicePlan(webAppConfig.getServicePlanResourceGroup(), webAppConfig.getServicePlanName());
+        IAppServicePlan targetServicePlan = StringUtils.isEmpty(webAppConfig.getServicePlanName()) ? currentPlan :
+                az.appServicePlan(getServicePlanResourceGroup(webAppConfig), webAppConfig.getServicePlanName());
         if (!targetServicePlan.exists()) {
-            throw new AzureExecutionException(String.format(APP_SERVICE_PLAN_NOT_FOUND,
-                    webAppConfig.getServicePlanName(), webAppConfig.getServicePlanResourceGroup()));
+            targetServicePlan = getOrCreateAppServicePlan(webAppConfig);
         }
         targetServicePlan.update().withPricingTier(webAppConfig.getPricingTier()).commit();
         final IWebApp result = webApp.update().withPlan(targetServicePlan.entity().getId())
@@ -138,8 +126,34 @@ public class DeployMojo extends AbstractWebAppMojo {
                 .withDockerConfiguration(webAppConfig.getDockerConfiguration())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
-        Log.info(UPDATE_WEBAPP_DONE);
+        Log.info(String.format(UPDATE_WEBAPP_DONE, webApp.entity().getName()));
         return result;
+    }
+
+    private IAppServicePlan getOrCreateAppServicePlan(final WebAppConfig webAppConfig) {
+        final IAppServicePlan appServicePlan = az.appServicePlan(getServicePlanResourceGroup(webAppConfig), webAppConfig.getServicePlanName());
+        if (!appServicePlan.exists()) {
+            Log.info(CREATE_APP_SERVICE_PLAN);
+            appServicePlan.create()
+                    .withName(getNewAppServicePlanName(webAppConfig))
+                    .withResourceGroup(getServicePlanResourceGroup(webAppConfig))
+                    .withRegion(webAppConfig.getRegion())
+                    .withPricingTier(webAppConfig.getPricingTier())
+                    .withOperatingSystem(webAppConfig.getRuntime().getOperatingSystem())
+                    .commit();
+            Log.info(String.format(CREATE_APP_SERVICE_DONE, appServicePlan.entity().getName()));
+        }
+        return appServicePlan;
+    }
+
+    private String getNewAppServicePlanName(final WebAppConfig webAppConfig) {
+        return StringUtils.isEmpty(webAppConfig.getServicePlanName()) ? String.format("asp-%s", webAppConfig.getAppName()) :
+                webAppConfig.getServicePlanName();
+    }
+
+    private String getServicePlanResourceGroup(final WebAppConfig webAppConfig) {
+        return StringUtils.isEmpty(webAppConfig.getServicePlanResourceGroup()) ? webAppConfig.getResourceGroup() :
+                webAppConfig.getServicePlanName();
     }
 
     private IWebAppDeploymentSlot createDeploymentSlot(final IWebAppDeploymentSlot slot, final WebAppConfig webAppConfig) {

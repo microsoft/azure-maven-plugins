@@ -398,7 +398,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return parser.parse();
     }
 
-    protected AzureAppService getOrCreateLibraryClient() throws AzureExecutionException {
+    protected AzureAppService getOrCreateAzureAppServiceClient() throws AzureExecutionException {
         try {
             final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
             mavenAuthConfiguration.setType(getAuthType());
@@ -416,7 +416,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         }
     }
 
-    protected AzureEnvironment convertEnvironment(com.microsoft.azure.AzureEnvironment environment) {
+    private AzureEnvironment convertEnvironment(com.microsoft.azure.AzureEnvironment environment) {
         return AzureEnvironment.knownEnvironments().stream()
                 .filter(env -> StringUtils.equals(environment.managementEndpoint(), env.getManagementEndpoint()))
                 .findFirst().orElse(null);
