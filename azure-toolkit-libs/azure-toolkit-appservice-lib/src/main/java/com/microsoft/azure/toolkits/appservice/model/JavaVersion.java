@@ -54,16 +54,4 @@ public class JavaVersion {
                 .filter(javaVersion -> StringUtils.equalsIgnoreCase(input, javaVersion.getValue()))
                 .findFirst().orElse(null);
     }
-
-    public static JavaVersion createFromServiceModel(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
-        return values().stream()
-                .filter(value -> StringUtils.equals(value.value, javaVersion.toString()))
-                .findFirst().orElse(null);
-    }
-
-    public static com.azure.resourcemanager.appservice.models.JavaVersion convertToServiceModel(JavaVersion javaVersion) {
-        return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
-                .filter(value -> StringUtils.equals(value.toString(), javaVersion.getValue()))
-                .findFirst().orElse(null);
-    }
 }

@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.toolkits.appservice.model;
 
-import com.azure.resourcemanager.appservice.models.SkuDescription;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -46,18 +45,6 @@ public class PricingTier {
     public static PricingTier fromString(String input) {
         return values().stream()
                 .filter(pricingTier -> StringUtils.equalsIgnoreCase(input, pricingTier.size))
-                .findFirst().orElse(null);
-    }
-
-    public static com.azure.resourcemanager.appservice.models.PricingTier convertToServiceModel(PricingTier pricingTier) {
-        final SkuDescription skuDescription = new SkuDescription().withTier(pricingTier.getTier()).withSize(pricingTier.getSize());
-        return com.azure.resourcemanager.appservice.models.PricingTier.fromSkuDescription(skuDescription);
-    }
-
-    public static PricingTier createFromServiceModel(com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
-        return values().stream()
-                .filter(value -> StringUtils.equals(value.getSize(), pricingTier.toSkuDescription().size()) &&
-                        StringUtils.equals(value.getTier(), pricingTier.toSkuDescription().tier()))
                 .findFirst().orElse(null);
     }
 }
