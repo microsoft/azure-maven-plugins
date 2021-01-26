@@ -6,7 +6,10 @@
 
 package com.microsoft.azure.maven.springcloud;
 
+import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
@@ -15,6 +18,7 @@ import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
+import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
@@ -63,6 +67,7 @@ import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY
 public abstract class AbstractMojoBase extends AbstractMojo {
     private static final String INIT_FAILURE = "InitFailure";
     private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
+    private static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
 
     @Parameter(property = "auth")
     protected MavenAuthConfiguration auth;
@@ -267,6 +272,12 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     public AppPlatformManager getAppPlatformManager() {
         if (this.manager == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
+            final AzureEnvironment env = azureCredentialWrapper.getEnv();
+            final String environmentName = AuthHelper.azureEnvironmentToString(env);
+            if (env != AzureEnvironment.AZURE) {
+                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
+            }
+            Log.info(azureCredentialWrapper.getCredentialDescription());
             this.manager = AppPlatformManager.configure()
                 .withLogLevel(logLevel)
                 .withUserAgent(getUserAgent())
