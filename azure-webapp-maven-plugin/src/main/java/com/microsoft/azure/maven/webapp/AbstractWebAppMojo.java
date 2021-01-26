@@ -235,6 +235,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     private WebAppConfiguration webAppConfiguration;
 
     protected File stagingDirectory;
+
+    private boolean isRuntimeInjected = false;
     //endregion
 
     //region Getter
@@ -335,7 +337,10 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     public RuntimeSetting getRuntime() {
-        SystemPropertyUtils.injectCommandLineParameter("runtime", runtime, RuntimeSetting.class);
+        if (!isRuntimeInjected) {
+            setRuntime((RuntimeSetting) SystemPropertyUtils.injectCommandLineParameter("runtime", runtime, RuntimeSetting.class));
+            isRuntimeInjected = true;
+        }
         return runtime;
     }
 

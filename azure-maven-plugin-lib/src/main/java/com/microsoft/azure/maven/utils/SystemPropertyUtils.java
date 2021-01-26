@@ -17,7 +17,7 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 
 public class SystemPropertyUtils {
-    public static void injectCommandLineParameter(String prefix, Object obj, @Nonnull Class cls) {
+    public static Object injectCommandLineParameter(String prefix, Object obj, @Nonnull Class cls) {
         Object result = obj;
         try {
             if (result == null) {
@@ -42,5 +42,6 @@ public class SystemPropertyUtils {
         } catch (IllegalAccessException ex) {
             throw new AzureException(ex.getMessage());
         }
+        return result;
     }
 }
