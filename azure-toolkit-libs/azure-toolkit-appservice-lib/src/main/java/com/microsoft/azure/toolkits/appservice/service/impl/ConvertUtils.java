@@ -5,15 +5,22 @@
  */
 package com.microsoft.azure.toolkits.appservice.service.impl;
 
+import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.SkuDescription;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
+import com.azure.resourcemanager.appservice.models.WebAppBasic;
+import com.microsoft.azure.toolkits.appservice.entity.AppServicePlanEntity;
+import com.microsoft.azure.toolkits.appservice.entity.WebAppDeploymentSlotEntity;
+import com.microsoft.azure.toolkits.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkits.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkits.appservice.model.PricingTier;
 import com.microsoft.azure.toolkits.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
 import com.microsoft.azure.toolkits.appservice.model.WebContainer;
+import com.microsoft.azure.toolkits.appservice.utils.Utils;
+import com.microsoft.azure.tools.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -127,5 +134,54 @@ public class ConvertUtils {
         return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
                 .filter(value -> StringUtils.equals(value.toString(), javaVersion.getValue()))
                 .findFirst().orElse(null);
+    }
+
+    static WebAppEntity createWebAppEntityFromWebAppBase(WebAppBase webAppBase) {
+        return WebAppEntity.builder().name(webAppBase.name())
+                .id(webAppBase.id())
+                .region(Region.fromName(webAppBase.regionName()))
+                .resourceGroup(webAppBase.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(webAppBase.id()))
+                .runtime(null)
+                .appServicePlanId(webAppBase.appServicePlanId())
+                .defaultHostName(webAppBase.defaultHostname())
+                .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()))
+                .build();
+    }
+
+    public static WebAppEntity createWebAppEntityFromWebAppBasic(WebAppBasic webAppBasic) {
+        return WebAppEntity.builder().name(webAppBasic.name())
+                .id(webAppBasic.id())
+                .region(Region.fromName(webAppBasic.regionName()))
+                .resourceGroup(webAppBasic.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(webAppBasic.id()))
+                .appServicePlanId(webAppBasic.appServicePlanId())
+                .defaultHostName(webAppBasic.defaultHostname())
+                .build();
+    }
+
+    public static WebAppDeploymentSlotEntity createSlotEntityFromServiceModel(DeploymentSlot deploymentSlot) {
+        return WebAppDeploymentSlotEntity.builder()
+                .name(deploymentSlot.name())
+                .webappName(deploymentSlot.parent().name())
+                .id(deploymentSlot.id())
+                .resourceGroup(deploymentSlot.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
+                .runtime(null)
+                .appServicePlanId(deploymentSlot.appServicePlanId())
+                .defaultHostName(deploymentSlot.defaultHostname())
+                .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
+                .build();
+    }
+
+    public static AppServicePlanEntity createServicePlanEntityFromServiceModel(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
+        return AppServicePlanEntity.builder()
+                .id(appServicePlan.id())
+                .name(appServicePlan.name())
+                .region(appServicePlan.regionName())
+                .resourceGroup(appServicePlan.resourceGroupName())
+                .pricingTier(getPricingTierFromServiceModel(appServicePlan.pricingTier()))
+                .operatingSystem(getOSFromServiceModel(appServicePlan.operatingSystem()))
+                .build();
     }
 }

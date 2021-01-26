@@ -19,15 +19,4 @@ public class AppServicePlanEntity {
     private String resourceGroup;
     private PricingTier pricingTier;
     private OperatingSystem operatingSystem;
-
-    public static AppServicePlanEntity createFromServiceModel(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
-        return AppServicePlanEntity.builder()
-                .id(appServicePlan.id())
-                .name(appServicePlan.name())
-                .region(appServicePlan.regionName())
-                .resourceGroup(appServicePlan.resourceGroupName())
-                .pricingTier(PricingTier.createFromServiceModel(appServicePlan.pricingTier()))
-                .operatingSystem(OperatingSystem.getFromServiceModel(appServicePlan.operatingSystem()))
-                .build();
-    }
 }
