@@ -7,6 +7,8 @@
 package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
@@ -33,6 +35,7 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
@@ -144,6 +147,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected void initExecution() throws MojoFailureException, MavenDecryptException, AzureExecutionException,
             com.microsoft.azure.tools.auth.exception.InvalidConfigurationException {
+        injectSystemProxy();
         // Init telemetries
         initTelemetry();
         trackMojoExecution(MojoStatus.Start);
@@ -270,7 +274,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     public AppPlatformManager getAppPlatformManager() {
         if (this.manager == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-            final Proxy proxy = ProxyUtils.createHttpProxy(this.httpProxyHost, this.httpProxyHost);
+            final Proxy proxy = ProxyUtils.createHttpProxy(this.httpProxyHost, this.httpProxyPort);
             this.manager = AppPlatformManager.configure()
                 .withLogLevel(logLevel)
                 .withUserAgent(getUserAgent())
@@ -284,5 +288,16 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return isTelemetryAllowed ? String.format("%s/%s installationId:%s sessionId:%s", plugin.getArtifactId(), plugin.getVersion(),
                 AppInsightHelper.INSTANCE.getInstallationId(), AppInsightHelper.INSTANCE.getSessionId())
                 : String.format("%s/%s", plugin.getArtifactId(), plugin.getVersion());
+    }
+
+    private void injectSystemProxy() {
+        if (StringUtils.isAllBlank(this.httpProxyHost, this.httpProxyPort)) {
+            final InetSocketAddress proxy = ProxyUtils.getSystemProxy();
+            if (proxy != null) {
+                Log.info(String.format("Use system proxy: %s:%s", TextUtils.cyan(proxy.getHostName()), TextUtils.cyan(Integer.toString(proxy.getPort()))));
+                this.httpProxyHost = proxy.getHostName();
+                this.httpProxyPort = Integer.toString(proxy.getPort());
+            }
+        }
     }
 }
