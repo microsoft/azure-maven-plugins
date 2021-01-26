@@ -23,7 +23,6 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudClusterManager;
 
 import javax.annotation.Nonnull;
