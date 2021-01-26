@@ -20,10 +20,11 @@
  * SOFTWARE.
  */
 
-package com.microsoft.azure.toolkit.lib.springcloud.model;
+package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
-import com.microsoft.azure.toolkit.lib.common.IAzureEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntity;
+import lombok.AccessLevel;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -32,7 +33,8 @@ import javax.annotation.Nonnull;
 public class SpringCloudAppEntity implements IAzureEntity {
     private final SpringCloudClusterEntity cluster;
     private final String name;
-    AppResourceInner inner;
+    @Getter(AccessLevel.PACKAGE)
+    private AppResourceInner inner;
 
     private SpringCloudAppEntity(String name, SpringCloudClusterEntity cluster) {
         this.name = name;
@@ -61,5 +63,9 @@ public class SpringCloudAppEntity implements IAzureEntity {
 
     public String getApplicationUrl() {
         return this.inner.properties().url();
+    }
+
+    public String getActiveDeployment() {
+        return this.inner.properties().activeDeploymentName();
     }
 }

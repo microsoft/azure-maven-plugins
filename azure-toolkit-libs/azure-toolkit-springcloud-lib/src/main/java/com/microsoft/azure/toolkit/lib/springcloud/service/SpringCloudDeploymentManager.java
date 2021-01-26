@@ -8,9 +8,9 @@ package com.microsoft.azure.toolkit.lib.springcloud.service;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentEntity;
 
 import java.util.Optional;
 
@@ -20,22 +20,6 @@ public class SpringCloudDeploymentManager {
 
     public SpringCloudDeploymentManager(AppPlatformManager client) {
         this.client = client;
-    }
-
-    public void start(final SpringCloudDeploymentEntity deployment) {
-        this.start(deployment.getName(), deployment.getApp());
-    }
-
-    public void stop(final SpringCloudDeploymentEntity deployment) {
-        this.stop(deployment.getName(), deployment.getApp());
-    }
-
-    public void restart(final SpringCloudDeploymentEntity deployment) {
-        this.restart(deployment.getName(), deployment.getApp());
-    }
-
-    public void remove(final SpringCloudDeploymentEntity deployment) {
-        this.remove(deployment.getName(), deployment.getApp());
     }
 
     public void start(String deployment, final SpringCloudAppEntity app) {
