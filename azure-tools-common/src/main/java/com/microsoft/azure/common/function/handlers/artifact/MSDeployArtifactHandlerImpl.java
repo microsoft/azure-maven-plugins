@@ -13,12 +13,14 @@ import com.microsoft.azure.common.function.Constants;
 import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 
 import javax.annotation.Nonnull;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.Period;
 import java.util.Date;
 
 public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
@@ -90,9 +92,9 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
                                                  final String blobName) throws AzureExecutionException {
         Log.prompt(UPLOAD_PACKAGE_START);
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
-                DEPLOYMENT_PACKAGE_CONTAINER, blobName);
-        final String packageUri = blob.getUri().toString();
-        Log.prompt(UPLOAD_PACKAGE_DONE + packageUri);
+                DEPLOYMENT_PACKAGE_CONTAINER, blobName, BlobContainerPublicAccessType.OFF);
+        final String packageUri = AzureStorageHelper.getSASToken(blob, Period.ofDays(1)); // no need for a long period as it will be deleted after deployment
+        Log.prompt(UPLOAD_PACKAGE_DONE + blob.getUri().toString());
         return packageUri;
     }
 

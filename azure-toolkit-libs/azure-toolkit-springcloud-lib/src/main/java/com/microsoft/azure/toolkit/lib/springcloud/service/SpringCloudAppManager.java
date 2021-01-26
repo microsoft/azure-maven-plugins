@@ -10,8 +10,8 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterEntity;
 import com.microsoft.azure.tools.utils.StorageUtils;
 
 import java.io.File;
@@ -19,23 +19,9 @@ import java.util.Optional;
 
 public class SpringCloudAppManager {
     private final AppPlatformManager client;
-    private final SpringCloudDeploymentManager deploymentManager;
 
     public SpringCloudAppManager(AppPlatformManager client) {
         this.client = client;
-        this.deploymentManager = new SpringCloudDeploymentManager(this.client);
-    }
-
-    public void start(final SpringCloudAppEntity app) {
-        this.deploymentManager.start(app.getInner().properties().activeDeploymentName(), app);
-    }
-
-    public void stop(final SpringCloudAppEntity app) {
-        this.deploymentManager.stop(app.getInner().properties().activeDeploymentName(), app);
-    }
-
-    public void restart(final SpringCloudAppEntity app) {
-        this.deploymentManager.restart(app.getInner().properties().activeDeploymentName(), app);
     }
 
     public void remove(final SpringCloudAppEntity app) {

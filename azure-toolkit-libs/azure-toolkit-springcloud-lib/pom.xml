@@ -16,6 +16,10 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-tools-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-common-lib</artifactId>
+        </dependency>
         <!-- azure lib for spring cloud-->
         <dependency>
             <groupId>com.microsoft.azure.appplatform.v2020_07_01</groupId>

@@ -14,6 +14,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
@@ -240,6 +241,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected File stagingDirectory;
 
     protected AzureAppService az;
+
+    private boolean isRuntimeInjected = false;
     //endregion
 
     //region Getter
@@ -340,6 +343,10 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     public MavenRuntimeConfig getRuntime() {
+        if (!isRuntimeInjected) {
+            setRuntime((MavenRuntimeConfig) SystemPropertyUtils.injectCommandLineParameter("runtime", runtime, MavenRuntimeConfig.class));
+            isRuntimeInjected = true;
+        }
         return runtime;
     }
 
