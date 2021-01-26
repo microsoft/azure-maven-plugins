@@ -32,7 +32,7 @@ public class ServicePrincipalCredentialRetriever extends AbstractCredentialRetri
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         try {
-            ValidationUtil.validateMavenAuthConfiguration(auth);
+            ValidationUtil.validateAuthConfiguration(auth);
         } catch (InvalidConfigurationException e) {
             throw new LoginFailureException(e.getMessage());
         }
