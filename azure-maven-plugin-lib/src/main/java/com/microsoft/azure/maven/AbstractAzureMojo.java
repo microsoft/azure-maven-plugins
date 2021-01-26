@@ -28,6 +28,7 @@ import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.MavenUtils;
+import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
@@ -342,7 +343,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         try {
             final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
             mavenAuthConfiguration.setType(getAuthType());
+
+            SystemPropertyUtils.injectCommandLineParameter("auth", mavenAuthConfiguration, MavenAuthConfiguration.class);
             azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration, this.httpProxyHost, this.httpProxyPort);
+
             if (Objects.isNull(azureCredentialWrapper)) {
                 return null;
             }
