@@ -29,8 +29,8 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
     private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
     private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java.";
-    private static final String CHANGE_FUNCTIONS_WORKER_RUNTIME = "Function worker runtime doesn't " +
-            "meet the requirement, change it from %s to java.";
+    private static final String CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING = "App setting `FUNCTIONS_WORKER_RUNTIME` doesn't " +
+            "meet the requirement of Azure Java Functions, the value should be `java`.";
     private static final String FUNCTIONS_EXTENSION_VERSION_NAME = "FUNCTIONS_EXTENSION_VERSION";
     private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
     private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
@@ -96,8 +96,8 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     //region get App Settings
     public Map getAppSettingsWithDefaultValue() {
         final Map settings = getAppSettings();
-        overrideDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
-                FUNCTIONS_WORKER_RUNTIME_VALUE, CHANGE_FUNCTIONS_WORKER_RUNTIME);
+        setDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
+                FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
         setDefaultAppSetting(settings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
                 FUNCTIONS_EXTENSION_VERSION_VALUE);
         return settings;
@@ -108,25 +108,21 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return FunctionUtils.parseFunctionExtensionVersion(extensionVersion);
     }
 
-    private void overrideDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
-                                           String settingValue, String changeSettingMessage) {
-
-        final String setting = (String) result.get(settingName);
-        if (StringUtils.isEmpty(setting)) {
-            Log.info(settingIsEmptyMessage);
-        } else if (!setting.equals(settingValue)) {
-            Log.warn(String.format(changeSettingMessage, setting));
-        }
-        result.put(settingName, settingValue);
+    private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
+                                      String settingValue) {
+        setDefaultAppSetting(result, settingName, settingIsEmptyMessage, settingValue, null);
     }
 
     private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
-                                        String settingValue) {
-
+                                        String settingValue, String warningMessage) {
         final String setting = (String) result.get(settingName);
         if (StringUtils.isEmpty(setting)) {
             Log.info(settingIsEmptyMessage);
             result.put(settingName, settingValue);
+        }
+        // Show warning message when user set a different value
+        if (StringUtils.isNotEmpty(setting) && StringUtils.isNotEmpty(warningMessage)) {
+            Log.warn(warningMessage);
         }
     }
     //endregion
