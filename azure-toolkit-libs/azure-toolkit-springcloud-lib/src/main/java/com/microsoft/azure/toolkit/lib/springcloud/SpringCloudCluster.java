@@ -7,9 +7,7 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
-import com.microsoft.azure.toolkit.lib.common.IAzureEntityManager;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudAppEntity;
-import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudClusterEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudClusterManager;
 
 import java.util.Objects;
@@ -19,6 +17,7 @@ public class SpringCloudCluster implements IAzureEntityManager<SpringCloudCluste
     private final SpringCloudClusterManager clusterService;
     private final SpringCloudClusterEntity local;
     private SpringCloudClusterEntity remote;
+    private boolean refreshed;
 
     public SpringCloudCluster(SpringCloudClusterEntity cluster, AppPlatformManager client) {
         this.local = cluster;
@@ -28,7 +27,9 @@ public class SpringCloudCluster implements IAzureEntityManager<SpringCloudCluste
 
     @Override
     public boolean exists() {
-        this.refresh();
+        if (!this.refreshed) {
+            this.refresh();
+        }
         return Objects.nonNull(this.remote);
     }
 
@@ -48,6 +49,7 @@ public class SpringCloudCluster implements IAzureEntityManager<SpringCloudCluste
     public SpringCloudCluster refresh() {
         final SpringCloudClusterEntity local = this.local;
         this.remote = this.clusterService.get(local.getName(), local.getResourceGroup());
+        this.refreshed = true;
         return this;
     }
 

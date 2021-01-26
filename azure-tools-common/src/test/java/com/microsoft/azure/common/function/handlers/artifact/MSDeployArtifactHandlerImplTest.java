@@ -31,6 +31,7 @@ import java.net.URI;
 import java.util.Map;
 
 import static com.microsoft.azure.common.function.Constants.INTERNAL_STORAGE_KEY;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -117,12 +118,13 @@ public class MSDeployArtifactHandlerImplTest {
         doReturn(blob).when(blobContainer).getBlockBlobReference(anyString());
         doNothing().when(blob).upload(any(FileInputStream.class), anyLong());
         doReturn(new URI("http://blob")).when(blob).getUri();
+        doReturn("token").when(blob).generateSharedAccessSignature(any(), isNull());
         final File file = new File("pom.xml");
 
         buildHandler();
         final String packageUri = handler.uploadPackageToAzureStorage(file, storageAccount, "blob");
 
-        assertSame("http://blob", packageUri);
+        assertEquals("http://blob?token", packageUri);
     }
 
     @Test

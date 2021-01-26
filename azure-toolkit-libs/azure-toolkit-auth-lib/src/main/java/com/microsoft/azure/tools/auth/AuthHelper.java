@@ -23,9 +23,10 @@ public class AuthHelper {
         // the first alias is the cloud name in azure cli
         // the second alias is the display name, all other aliases are only used in our toolkit
         putAliasMap(AzureEnvironment.AZURE, "AzureCloud", "azure", "azure_cloud");
-        putAliasMap(AzureEnvironment.AZURE_CHINA, "AzureChinaCloud", "azure_china", "azure_china_cloud");
+        putAliasMap(AzureEnvironment.AZURE_CHINA, "AzureChinaCloud", "azure_china", "AzureChina", "azure_china_cloud");
         // the TYPO:azure_german comes from azure cli: https://docs.microsoft.com/en-us/azure/germany/germany-get-started-connect-with-cli
-        putAliasMap(AzureEnvironment.AZURE_GERMANY, "AzureGermanCloud", "azure_germany", "azure_german", "azure_germany_cloud", "azure_german_cloud");
+        putAliasMap(AzureEnvironment.AZURE_GERMANY, "AzureGermanCloud", "azure_germany", "azure_german",
+                "azure_germany_cloud", "azure_german_cloud", "AzureGerman", "AzureGermany");
         putAliasMap(AzureEnvironment.AZURE_US_GOVERNMENT, "AzureUSGovernment", "azure_us_government");
     }
 
@@ -52,6 +53,14 @@ public class AuthHelper {
             // https://github.com/Azure/azure-sdk-for-java/blob/32f8f7ca8b44035b2e5520c5e10455f42500a778/sdk/identity/azure-identity/
             // src/main/java/com/azure/identity/implementation/IdentityClientOptions.java#L42
             Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.activeDirectoryEndpoint());
+        }
+    }
+
+    public static void setupAuthProxy(String httpProxyHost, String httpProxyPort) {
+        if (StringUtils.isNotBlank(httpProxyHost)) {
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, String.format("http://%s:%s", httpProxyHost, httpProxyPort));
+            setPropertyIfNotExist("http.proxyHost", httpProxyHost);
+            setPropertyIfNotExist("http.proxyPort", httpProxyPort);
         }
     }
 

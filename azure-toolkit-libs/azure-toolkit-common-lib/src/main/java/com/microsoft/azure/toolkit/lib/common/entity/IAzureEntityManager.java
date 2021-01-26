@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package com.microsoft.azure.toolkit.lib.common;
+package com.microsoft.azure.toolkit.lib.common.entity;
 
 public interface IAzureEntityManager<T extends IAzureEntity> {
     IAzureEntityManager<T> refresh();
