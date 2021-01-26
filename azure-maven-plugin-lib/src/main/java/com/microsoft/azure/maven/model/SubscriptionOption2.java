@@ -3,17 +3,17 @@
  * Licensed under the MIT License. See License.txt in the project root for
  * license information.
  */
-
+// todo: Remove duplicated codes for track1 and track2 subscription
 package com.microsoft.azure.maven.model;
 
-import com.microsoft.azure.management.resources.Subscription;
+import com.azure.resourcemanager.resources.models.Subscription;
 import org.apache.commons.lang3.StringUtils;
 
-public class SubscriptionOption implements Comparable<SubscriptionOption> {
+public class SubscriptionOption2 implements Comparable<SubscriptionOption2> {
 
     private Subscription inner;
 
-    public SubscriptionOption(Subscription inner) {
+    public SubscriptionOption2(Subscription inner) {
         this.inner = inner;
     }
 
@@ -35,7 +35,7 @@ public class SubscriptionOption implements Comparable<SubscriptionOption> {
     }
 
     @Override
-    public int compareTo(SubscriptionOption other) {
+    public int compareTo(SubscriptionOption2 other) {
         final String name1 = inner != null ? inner.displayName() : null;
         final String name2 = other.inner != null ? other.inner.displayName() : null;
         return StringUtils.compare(name1, name2);

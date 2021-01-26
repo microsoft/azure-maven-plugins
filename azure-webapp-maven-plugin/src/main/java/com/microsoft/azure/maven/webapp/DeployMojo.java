@@ -88,7 +88,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private IWebApp createWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) {
         // todo: Extract resource group logic to library
-        ResourceGroup resourceGroup = az.getAzureResourceManager().resourceGroups().getByName(webAppConfig.getResourceGroup());
+        final ResourceGroup resourceGroup = az.getAzureResourceManager().resourceGroups().getByName(webAppConfig.getResourceGroup());
         if (resourceGroup == null) {
             Log.info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion()));
             az.getAzureResourceManager().resourceGroups().define(webAppConfig.getResourceGroup())

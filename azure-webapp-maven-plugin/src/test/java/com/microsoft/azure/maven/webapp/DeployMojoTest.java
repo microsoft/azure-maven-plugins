@@ -29,6 +29,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DEPLOYMENT_TYPE_KEY;
@@ -121,10 +122,12 @@ public class DeployMojoTest {
     @Test
     public void getTelemetryProperties() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        ReflectionUtils.setVariableValueInObject(mojo, "plugin", plugin);
+        final DeployMojo spyMojo = spy(mojo);
+        ReflectionUtils.setVariableValueInObject(spyMojo, "plugin", plugin);
         doReturn("azure-webapp-maven-plugin").when(plugin).getArtifactId();
+        doReturn(Collections.EMPTY_LIST).when(spyMojo).getResources();
 
-        final Map map = mojo.getTelemetryProperties();
+        final Map map = spyMojo.getTelemetryProperties();
 
         assertEquals(11, map.size());
         assertTrue(map.containsKey(JAVA_VERSION_KEY));
