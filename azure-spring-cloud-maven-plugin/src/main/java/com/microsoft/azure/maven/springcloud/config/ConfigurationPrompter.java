@@ -300,6 +300,6 @@ public class ConfigurationPrompter {
     }
 
     private static void printConfirmation(String key, Object value) {
-        System.out.printf("%-17s : %s%n", key, TextUtils.green(Objects.toString(value)));
+        System.out.printf("%-17s : %s%n", key, TextUtils.cyan(Objects.toString(value)));
     }
 }
