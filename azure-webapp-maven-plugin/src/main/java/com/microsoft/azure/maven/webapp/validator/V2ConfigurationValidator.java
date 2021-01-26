@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.webapp.validator;
 
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkits.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
@@ -17,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 
-import static com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting.RUNTIME_CONFIG_REFERENCE;
+import static com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig.RUNTIME_CONFIG_REFERENCE;
 
 public class V2ConfigurationValidator extends AbstractConfigurationValidator {
 
@@ -38,7 +38,7 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
 
     @Override
     public String validateOs() {
-        final MavenRuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
         final String os = StringUtils.lowerCase(runtime.getOs());
         if (runtime.isEmpty()) {
             return null;
@@ -53,25 +53,25 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
 
     @Override
     public String validateRuntimeStack() {
-        final MavenRuntimeSetting mavenRuntimeSetting = mojo.getRuntime();
-        if (mavenRuntimeSetting == null || mavenRuntimeSetting.isEmpty()) {
+        final MavenRuntimeConfig mavenRuntimeConfig = mojo.getRuntime();
+        if (mavenRuntimeConfig == null || mavenRuntimeConfig.isEmpty()) {
             return null;
         }
-        if (!StringUtils.equalsIgnoreCase(mavenRuntimeSetting.getOs(), OperatingSystem.LINUX.getValue())) {
+        if (!StringUtils.equalsIgnoreCase(mavenRuntimeConfig.getOs(), OperatingSystem.LINUX.getValue())) {
             return null;
         }
-        final JavaVersion javaVersion = JavaVersion.fromString(mavenRuntimeSetting.getJavaVersionRaw());
-        final WebContainer webContainer = WebContainer.fromString(mavenRuntimeSetting.getWebContainerRaw());
+        final JavaVersion javaVersion = JavaVersion.fromString(mavenRuntimeConfig.getJavaVersionRaw());
+        final WebContainer webContainer = WebContainer.fromString(mavenRuntimeConfig.getWebContainerRaw());
         final Runtime result = Runtime.values().stream().filter(runtime -> runtime.getOperatingSystem() == OperatingSystem.LINUX)
                 .filter(runtime -> runtime.getJavaVersion() == javaVersion && runtime.getWebContainer() == webContainer)
                 .findAny().orElse(null);
         return result == null ? String.format("Unsupported value \"%s - %s\" for linux runtime, please refer %s " +
-                "more information", mavenRuntimeSetting.getWebContainerRaw(), mavenRuntimeSetting.getJavaVersionRaw(), RUNTIME_CONFIG_REFERENCE) : null;
+                "more information", mavenRuntimeConfig.getWebContainerRaw(), mavenRuntimeConfig.getJavaVersionRaw(), RUNTIME_CONFIG_REFERENCE) : null;
     }
 
     @Override
     public String validateJavaVersion() {
-        final MavenRuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
         if (runtime == null) {
             return "Please config the <runtime> in pom.xml.";
         }
@@ -84,7 +84,7 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
 
     @Override
     public String validateWebContainer() {
-        final MavenRuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
         if (runtime == null) {
             return "Please config the <runtime> in pom.xml.";
         }
@@ -97,7 +97,7 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
 
     @Override
     public String validateImage() {
-        final MavenRuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
         if (runtime == null) {
             return "Please configure the <runtime> in pom.xml.";
         }

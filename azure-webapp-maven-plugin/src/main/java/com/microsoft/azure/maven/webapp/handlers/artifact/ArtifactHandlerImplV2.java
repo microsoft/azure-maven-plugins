@@ -11,7 +11,7 @@ import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,14 +45,14 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             "please make sure the resource filter is correct and you have built the jar.";
     private static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
-    private MavenRuntimeSetting mavenRuntimeSetting;
+    private MavenRuntimeConfig mavenRuntimeConfig;
 
     public static class Builder extends ArtifactHandlerBase.Builder<ArtifactHandlerImplV2.Builder> {
 
-        private MavenRuntimeSetting mavenRuntimeSetting;
+        private MavenRuntimeConfig mavenRuntimeConfig;
 
-        public MavenRuntimeSetting getRuntimeSetting() {
-            return mavenRuntimeSetting;
+        public MavenRuntimeConfig getRuntimeSetting() {
+            return mavenRuntimeConfig;
         }
 
         @Override
@@ -60,8 +60,8 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
             return this;
         }
 
-        public ArtifactHandlerImplV2.Builder runtime(MavenRuntimeSetting mavenRuntimeSetting) {
-            this.mavenRuntimeSetting = mavenRuntimeSetting;
+        public ArtifactHandlerImplV2.Builder runtime(MavenRuntimeConfig mavenRuntimeConfig) {
+            this.mavenRuntimeConfig = mavenRuntimeConfig;
             return self();
         }
 
@@ -73,7 +73,7 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     protected ArtifactHandlerImplV2(final ArtifactHandlerImplV2.Builder builder) {
         super(builder);
-        this.mavenRuntimeSetting = builder.getRuntimeSetting();
+        this.mavenRuntimeConfig = builder.getRuntimeSetting();
     }
 
     @Override
@@ -183,11 +183,11 @@ public class ArtifactHandlerImplV2 extends ArtifactHandlerBase {
 
     protected boolean isJavaSERuntime() {
         final boolean isJarProject = project != null && project.isJarProject();
-        if (mavenRuntimeSetting == null || mavenRuntimeSetting.isEmpty() || isJarProject) {
+        if (mavenRuntimeConfig == null || mavenRuntimeConfig.isEmpty() || isJarProject) {
             return isJarProject;
         }
-        final String webContainer = mavenRuntimeSetting.getOsEnum() == OperatingSystemEnum.Windows ?
-                mavenRuntimeSetting.getWebContainer().toString() : mavenRuntimeSetting.getLinuxRuntime().stack();
+        final String webContainer = mavenRuntimeConfig.getOsEnum() == OperatingSystemEnum.Windows ?
+                mavenRuntimeConfig.getWebContainer().toString() : mavenRuntimeConfig.getLinuxRuntime().stack();
         return StringUtils.containsIgnoreCase(webContainer, "java");
     }
 

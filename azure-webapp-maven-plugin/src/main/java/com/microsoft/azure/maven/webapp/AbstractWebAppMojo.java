@@ -16,7 +16,7 @@ import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
-import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.AbstractConfigParser;
 import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
@@ -225,7 +225,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * @since 2.0.0
      */
     @Parameter(property = "runtime")
-    protected MavenRuntimeSetting runtime;
+    protected MavenRuntimeConfig runtime;
 
     /**
      * Deployment setting
@@ -339,7 +339,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return schemaVersion;
     }
 
-    public MavenRuntimeSetting getRuntime() {
+    public MavenRuntimeConfig getRuntime() {
         return runtime;
     }
 
@@ -347,7 +347,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return deployment;
     }
 
-    public void setRuntime(final MavenRuntimeSetting runtime) {
+    public void setRuntime(final MavenRuntimeConfig runtime) {
         this.runtime = runtime;
     }
     //endregion
@@ -412,8 +412,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         final SchemaVersion version = SchemaVersion.fromString(getSchemaVersion());
         final AbstractConfigurationValidator validator = version == SchemaVersion.V2 ?
                 new V2ConfigurationValidator(this) : new V1ConfigurationValidator(this);
-        final AbstractConfigParser parser = version == SchemaVersion.V2 ? new V2ConfigParser(this, validator) : null;
-        return parser.getWebAppConfig();
+        final AbstractConfigParser parser = version == SchemaVersion.V2 ? new V2ConfigParser(this, validator) : new V2ConfigParser(this, validator);
+        return parser.parse();
     }
 
     @Override

@@ -75,7 +75,7 @@ public abstract class AbstractConfigParser {
 
     public abstract Runtime getRuntime() throws AzureExecutionException;
 
-    public WebAppConfig getWebAppConfig() throws AzureExecutionException {
+    public WebAppConfig parse() throws AzureExecutionException {
         return WebAppConfig.builder()
                 .appName(getAppName())
                 .resourceGroup(getResourceGroup())

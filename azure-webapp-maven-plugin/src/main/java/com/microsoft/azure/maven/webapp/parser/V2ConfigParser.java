@@ -9,7 +9,7 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
@@ -38,11 +38,11 @@ public class V2ConfigParser extends AbstractConfigParser {
 
     @Override
     public DockerConfiguration getDockerConfiguration() throws AzureExecutionException {
-        final MavenRuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
         if (runtime == null) {
             return null;
         }
-        final OperatingSystem os = getOs();
+        final OperatingSystem os = getOs(runtime);
         if (os != OperatingSystem.DOCKER) {
             return null;
         }
@@ -66,11 +66,11 @@ public class V2ConfigParser extends AbstractConfigParser {
 
     @Override
     public Runtime getRuntime() throws AzureExecutionException {
-        final MavenRuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
         if (runtime == null) {
             return null;
         }
-        final OperatingSystem os = getOs();
+        final OperatingSystem os = getOs(runtime);
         if (os == OperatingSystem.DOCKER) {
             return Runtime.DOCKER;
         }
@@ -82,9 +82,8 @@ public class V2ConfigParser extends AbstractConfigParser {
         return Runtime.getRuntime(os, webContainer, javaVersion);
     }
 
-    private OperatingSystem getOs() throws AzureExecutionException {
+    private OperatingSystem getOs(final MavenRuntimeConfig runtime) throws AzureExecutionException {
         validate(validator::validateOs);
-        final MavenRuntimeSetting runtime = mojo.getRuntime();
         return OperatingSystem.fromString(runtime.getOs());
     }
 }
