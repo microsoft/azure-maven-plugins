@@ -12,8 +12,6 @@ import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
-import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
@@ -93,8 +91,8 @@ public class V1ConfigParser extends AbstractConfigParser {
     private Runtime getRuntimeForWindows() throws AzureExecutionException {
         validate(validator::validateJavaVersion);
         validate(validator::validateWebContainer);
-        final WebContainer webContainer = WebContainerUtils.toLibraryWebContainer(mojo.getJavaWebContainer().toString());
-        final JavaVersion javaVersion = JavaVersionUtils.toLibraryJavaVersion(mojo.getJavaVersion());
+        final WebContainer webContainer = WebContainer.fromString(mojo.getJavaWebContainer().toString());
+        final JavaVersion javaVersion = JavaVersion.fromString(mojo.getJavaVersion());
         return Runtime.getRuntime(OperatingSystem.WINDOWS, webContainer, javaVersion);
     }
 

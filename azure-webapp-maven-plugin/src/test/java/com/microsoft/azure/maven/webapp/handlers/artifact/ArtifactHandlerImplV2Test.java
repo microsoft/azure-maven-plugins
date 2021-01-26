@@ -15,7 +15,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.deploytarget.WebAppDeployTarget;
 import com.microsoft.azure.maven.webapp.utils.TestUtils;
 
@@ -143,36 +143,36 @@ public class ArtifactHandlerImplV2Test {
     public void isJavaSERuntime() throws Exception {
         final MavenProject mavenProject = TestUtils.getSimpleMavenProjectForUnitTest();
         final IProject project = ProjectUtils.convertCommonProject(mavenProject);
-        final MavenRuntimeSetting mavenRuntimeSetting = mock(MavenRuntimeSetting.class);
+        final MavenRuntimeConfig mavenRuntimeConfig = mock(MavenRuntimeConfig.class);
         handler = new ArtifactHandlerImplV2.Builder()
                 .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
                 .project(project)
-                .runtime(mavenRuntimeSetting)
+                .runtime(mavenRuntimeConfig)
                 .build();
         handlerSpy = spy(handler);
 
-        doReturn(false).when(mavenRuntimeSetting).isEmpty();
-        doReturn(OperatingSystemEnum.Windows).when(mavenRuntimeSetting).getOsEnum();
-        doReturn(WebContainer.fromString("java 8")).when(mavenRuntimeSetting).getWebContainer();
+        doReturn(false).when(mavenRuntimeConfig).isEmpty();
+        doReturn(OperatingSystemEnum.Windows).when(mavenRuntimeConfig).getOsEnum();
+        doReturn(WebContainer.fromString("java 8")).when(mavenRuntimeConfig).getWebContainer();
         assertTrue(handlerSpy.isJavaSERuntime());
 
         // No runtime setting, just check project packaging
         FieldUtils.writeField(project, "artifactFile", Paths.get("artifactFile.war"), true);
-        doReturn(true).when(mavenRuntimeSetting).isEmpty();
+        doReturn(true).when(mavenRuntimeConfig).isEmpty();
         assertFalse(handlerSpy.isJavaSERuntime());
 
         FieldUtils.writeField(project, "artifactFile", Paths.get("artifactFile.jar"), true);
-        doReturn(true).when(mavenRuntimeSetting).isEmpty();
+        doReturn(true).when(mavenRuntimeConfig).isEmpty();
         assertTrue(handlerSpy.isJavaSERuntime());
 
         // Project with jar packaging will always be regarded as java se project
-        Mockito.reset(mavenRuntimeSetting);
-        doReturn(false).when(mavenRuntimeSetting).isEmpty();
+        Mockito.reset(mavenRuntimeConfig);
+        doReturn(false).when(mavenRuntimeConfig).isEmpty();
         FieldUtils.writeField(project, "artifactFile", Paths.get("artifactFile.jar"), true);
         assertTrue(handlerSpy.isJavaSERuntime());
-        verify(mavenRuntimeSetting, times(0)).getOsEnum();
-        verify(mavenRuntimeSetting, times(0)).getWebContainer();
-        verify(mavenRuntimeSetting, times(0)).getLinuxRuntime();
+        verify(mavenRuntimeConfig, times(0)).getOsEnum();
+        verify(mavenRuntimeConfig, times(0)).getWebContainer();
+        verify(mavenRuntimeConfig, times(0)).getLinuxRuntime();
     }
 
     @Test

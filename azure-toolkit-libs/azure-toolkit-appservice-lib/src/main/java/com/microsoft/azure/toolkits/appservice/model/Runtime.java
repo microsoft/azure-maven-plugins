@@ -9,7 +9,10 @@ package com.microsoft.azure.toolkits.appservice.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.security.InvalidParameterException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +21,9 @@ import java.util.Objects;
 @Getter
 @AllArgsConstructor
 public class Runtime {
+
+    private static Logger logger = LoggerFactory.getLogger(Runtime.class);
+
     public static final Runtime WINDOWS_JAVA8 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_SE, JavaVersion.JAVA_8);
     public static final Runtime WINDOWS_JAVA11 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_SE, JavaVersion.JAVA_11);
     public static final Runtime WINDOWS_JAVA8_TOMCAT9 = new Runtime(OperatingSystem.WINDOWS, WebContainer.TOMCAT_9, JavaVersion.JAVA_8);
@@ -42,11 +48,16 @@ public class Runtime {
     private JavaVersion javaVersion;
 
     public static Runtime getRuntime(OperatingSystem operatingSystem, WebContainer webContainer, JavaVersion javaVersion) {
-        return values().stream()
+        final Runtime standardRuntime = values().stream()
                 .filter(runtime -> Objects.equals(runtime.operatingSystem, operatingSystem))
                 .filter(runtime -> Objects.equals(runtime.webContainer, webContainer))
                 .filter(runtime -> Objects.equals(runtime.javaVersion, javaVersion))
-                .findFirst().orElse(new Runtime(operatingSystem, webContainer, javaVersion));
+                .findFirst().orElse(null);
+        if (standardRuntime != null) {
+            return standardRuntime;
+        }
+        logger.warn(String.format("%s and %s is not recommended for %s app service", webContainer, javaVersion, operatingSystem));
+        return new Runtime(operatingSystem, webContainer, javaVersion);
     }
 
     public static Runtime getRuntimeFromLinuxFxVersion(String linuxFxVersion) {
@@ -57,9 +68,7 @@ public class Runtime {
         final String javaVersionRaw = runtimeDetails[1];
         final String webContainerRaw = runtimeDetails[0];
         final JavaVersion javaVersion = StringUtils.containsIgnoreCase(javaVersionRaw, "java11") ? JavaVersion.JAVA_11 : JavaVersion.JAVA_8;
-        final WebContainer webContainer = WebContainer.values().stream()
-                .filter(container -> StringUtils.containsIgnoreCase(webContainerRaw, container.getValue()))
-                .findFirst().orElse(null);
+        final WebContainer webContainer = WebContainer.fromString(webContainerRaw);
         return getRuntime(OperatingSystem.LINUX, webContainer, javaVersion);
     }
 

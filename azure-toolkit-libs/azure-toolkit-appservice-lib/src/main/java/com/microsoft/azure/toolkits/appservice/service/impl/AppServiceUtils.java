@@ -24,8 +24,9 @@ import com.microsoft.azure.tools.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Objects;
 
-public class ConvertUtils {
+class AppServiceUtils {
 
     static Runtime getRuntimeFromWebApp(WebAppBase webAppBase) {
         if (StringUtils.startsWithIgnoreCase(webAppBase.linuxFxVersion(), "docker")) {
@@ -35,7 +36,7 @@ public class ConvertUtils {
                 getRuntimeFromWindowsWebApp(webAppBase) : getRuntimeFromLinuxWebApp(webAppBase);
     }
 
-    static Runtime getRuntimeFromLinuxWebApp(WebAppBase webAppBase) {
+    private static Runtime getRuntimeFromLinuxWebApp(WebAppBase webAppBase) {
         if (StringUtils.isEmpty(webAppBase.linuxFxVersion())) {
             return null;
         }
@@ -43,7 +44,7 @@ public class ConvertUtils {
         return Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
     }
 
-    static Runtime getRuntimeFromWindowsWebApp(WebAppBase webAppBase) {
+    private static Runtime getRuntimeFromWindowsWebApp(WebAppBase webAppBase) {
         if (webAppBase.javaVersion() == null || StringUtils.isAnyEmpty(webAppBase.javaContainer(), webAppBase.javaContainerVersion())) {
             return null;
         }
@@ -53,30 +54,20 @@ public class ConvertUtils {
         final String javaContainer = String.join(webAppBase.javaContainer(), " ", webAppBase.javaContainerVersion());
         final WebContainer webContainer = StringUtils.equalsIgnoreCase(webAppBase.javaContainer(), "java") ? WebContainer.JAVA_SE :
                 WebContainer.values().stream()
-                        .filter(container -> StringUtils.equals(javaContainer, container.getValue()))
+                        .filter(container -> StringUtils.equalsIgnoreCase(javaContainer, container.getValue()))
                         .findFirst().orElse(null);
         return Runtime.getRuntime(OperatingSystem.WINDOWS, webContainer, javaVersion);
     }
 
-    static RuntimeStack convertRuntimeToRuntimeStack(Runtime runtime) {
-        if (runtime.getOperatingSystem() != OperatingSystem.LINUX || runtime.getWebContainer() == null || runtime.getJavaVersion() == null) {
-            return null;
-        }
-        final String fixedLinuxJavaVersion = runtime.getJavaVersion().getValue().startsWith(JavaVersion.JAVA_8.getValue()) ? "8" : "11";
+    static RuntimeStack toLinuxRuntimeStack(Runtime runtime) {
         return RuntimeStack.getAll().stream().filter(runtimeStack -> {
-            final String[] versionArray = runtimeStack.version().split("-");
-            final String runtimeStackJavaVersion = versionArray[1];
-            final String runtimeStackContainer = StringUtils.join(runtimeStack.stack(), " ", versionArray[0]);
-            return StringUtils.containsIgnoreCase(runtimeStackJavaVersion, fixedLinuxJavaVersion) &&
-                    ((StringUtils.containsIgnoreCase(runtimeStackContainer, "java") && runtime.getWebContainer() == WebContainer.JAVA_SE) ||
-                            StringUtils.equalsIgnoreCase(runtimeStackContainer, runtime.getWebContainer().getValue()));
+            final Runtime stackRuntime = Runtime.getRuntimeFromLinuxFxVersion(runtimeStack.toString());
+            return Objects.equals(stackRuntime.getJavaVersion(), runtime.getJavaVersion()) &&
+                    Objects.equals(stackRuntime.getWebContainer(), runtime.getWebContainer());
         }).findFirst().orElse(null);
     }
 
-    static com.azure.resourcemanager.appservice.models.WebContainer convertRuntimeToWebContainer(Runtime runtime) {
-        if (runtime.getOperatingSystem() != OperatingSystem.WINDOWS || runtime.getWebContainer() == null) {
-            return null;
-        }
+    static com.azure.resourcemanager.appservice.models.WebContainer toWindowsWebContainer(Runtime runtime) {
         if (runtime.getWebContainer() == WebContainer.JAVA_SE) {
             return StringUtils.startsWith(runtime.getJavaVersion().getValue(), JavaVersion.JAVA_8.getValue()) ?
                     com.azure.resourcemanager.appservice.models.WebContainer.JAVA_8 :
@@ -87,16 +78,14 @@ public class ConvertUtils {
                 .findFirst().orElse(null);
     }
 
-    static com.azure.resourcemanager.appservice.models.JavaVersion convertToServiceJavaVersionModel(Runtime runtime) {
-        if (runtime.getOperatingSystem() != OperatingSystem.WINDOWS || runtime.getJavaVersion() == null) {
-            return null;
-        }
+    static com.azure.resourcemanager.appservice.models.JavaVersion toWindowsJavaVersion(Runtime runtime) {
+
         return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
-                .filter(serviceVersion -> StringUtils.equals(serviceVersion.toString(), runtime.getJavaVersion().getValue()))
+                .filter(serviceVersion -> StringUtils.equalsIgnoreCase(serviceVersion.toString(), runtime.getJavaVersion().getValue()))
                 .findFirst().orElse(null);
     }
 
-    static PublishingProfile getPublishingProfileFromServiceModel(com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile) {
+    static PublishingProfile getPublishingProfile(com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile) {
         return PublishingProfile.builder()
                 .ftpUrl(publishingProfile.ftpUrl())
                 .ftpUsername(publishingProfile.ftpUsername())
@@ -106,37 +95,37 @@ public class ConvertUtils {
                 .gitPassword(publishingProfile.gitPassword()).build();
     }
 
-    static com.azure.resourcemanager.appservice.models.PricingTier convertPricingTierToServiceModel(PricingTier pricingTier) {
+    static com.azure.resourcemanager.appservice.models.PricingTier toPricingTier(PricingTier pricingTier) {
         final SkuDescription skuDescription = new SkuDescription().withTier(pricingTier.getTier()).withSize(pricingTier.getSize());
         return com.azure.resourcemanager.appservice.models.PricingTier.fromSkuDescription(skuDescription);
     }
 
-    static PricingTier getPricingTierFromServiceModel(com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
+    static PricingTier getPricingTier(com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
         return PricingTier.values().stream()
                 .filter(value -> StringUtils.equals(value.getSize(), pricingTier.toSkuDescription().size()) &&
                         StringUtils.equals(value.getTier(), pricingTier.toSkuDescription().tier()))
                 .findFirst().orElse(null);
     }
 
-    static OperatingSystem getOSFromServiceModel(com.azure.resourcemanager.appservice.models.OperatingSystem operatingSystem) {
+    static OperatingSystem getOperatingSystem(com.azure.resourcemanager.appservice.models.OperatingSystem operatingSystem) {
         return Arrays.stream(OperatingSystem.values())
                 .filter(os -> StringUtils.equals(operatingSystem.name(), os.getValue()))
                 .findFirst().orElse(null);
     }
 
-    static JavaVersion createJavaVersionFromServiceModel(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
+    static JavaVersion getJavaVersion(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
         return JavaVersion.values().stream()
                 .filter(value -> StringUtils.equals(value.getValue(), javaVersion.toString()))
                 .findFirst().orElse(null);
     }
 
-    static com.azure.resourcemanager.appservice.models.JavaVersion convertJavaVersionToServiceModel(JavaVersion javaVersion) {
+    static com.azure.resourcemanager.appservice.models.JavaVersion toJavaVersion(JavaVersion javaVersion) {
         return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
                 .filter(value -> StringUtils.equals(value.toString(), javaVersion.getValue()))
                 .findFirst().orElse(null);
     }
 
-    static WebAppEntity createWebAppEntityFromWebAppBase(WebAppBase webAppBase) {
+    static WebAppEntity getWebAppEntity(WebAppBase webAppBase) {
         return WebAppEntity.builder().name(webAppBase.name())
                 .id(webAppBase.id())
                 .region(Region.fromName(webAppBase.regionName()))
@@ -149,7 +138,7 @@ public class ConvertUtils {
                 .build();
     }
 
-    public static WebAppEntity createWebAppEntityFromWebAppBasic(WebAppBasic webAppBasic) {
+    public static WebAppEntity getWebAppEntity(WebAppBasic webAppBasic) {
         return WebAppEntity.builder().name(webAppBasic.name())
                 .id(webAppBasic.id())
                 .region(Region.fromName(webAppBasic.regionName()))
@@ -160,7 +149,7 @@ public class ConvertUtils {
                 .build();
     }
 
-    public static WebAppDeploymentSlotEntity createSlotEntityFromServiceModel(DeploymentSlot deploymentSlot) {
+    public static WebAppDeploymentSlotEntity getWebAppDeploymentSlotEntity(DeploymentSlot deploymentSlot) {
         return WebAppDeploymentSlotEntity.builder()
                 .name(deploymentSlot.name())
                 .webappName(deploymentSlot.parent().name())
@@ -174,14 +163,14 @@ public class ConvertUtils {
                 .build();
     }
 
-    public static AppServicePlanEntity createServicePlanEntityFromServiceModel(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
+    public static AppServicePlanEntity getAppServicePlanEntity(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
         return AppServicePlanEntity.builder()
                 .id(appServicePlan.id())
                 .name(appServicePlan.name())
                 .region(appServicePlan.regionName())
                 .resourceGroup(appServicePlan.resourceGroupName())
-                .pricingTier(getPricingTierFromServiceModel(appServicePlan.pricingTier()))
-                .operatingSystem(getOSFromServiceModel(appServicePlan.operatingSystem()))
+                .pricingTier(getPricingTier(appServicePlan.pricingTier()))
+                .operatingSystem(getOperatingSystem(appServicePlan.operatingSystem()))
                 .build();
     }
 }

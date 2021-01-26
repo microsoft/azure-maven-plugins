@@ -7,7 +7,7 @@ package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.webapp.DeployMojo;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
@@ -23,14 +23,14 @@ import static org.mockito.Mockito.mock;
 @RunWith(MockitoJUnitRunner.class)
 public class V2ConfigParserTest {
     DeployMojo deployMojo;
-    RuntimeSetting runtimeSetting;
+    MavenRuntimeConfig runtimeSetting;
     V2ConfigurationValidator validator;
     V2ConfigParser parser;
 
     @Before
     public void setUp() throws Exception {
         deployMojo = mock(DeployMojo.class);
-        runtimeSetting = mock(RuntimeSetting.class);
+        runtimeSetting = mock(MavenRuntimeConfig.class);
         doReturn(runtimeSetting).when(deployMojo).getRuntime();
         validator = new V2ConfigurationValidator(deployMojo);
         parser = new V2ConfigParser(deployMojo, validator);
