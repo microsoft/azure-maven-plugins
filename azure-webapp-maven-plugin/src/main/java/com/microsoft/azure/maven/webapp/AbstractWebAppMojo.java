@@ -16,7 +16,7 @@ import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.AbstractConfigParser;
 import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
@@ -225,7 +225,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      * @since 2.0.0
      */
     @Parameter(property = "runtime")
-    protected RuntimeSetting runtime;
+    protected MavenRuntimeSetting runtime;
 
     /**
      * Deployment setting
@@ -339,7 +339,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return schemaVersion;
     }
 
-    public RuntimeSetting getRuntime() {
+    public MavenRuntimeSetting getRuntime() {
         return runtime;
     }
 
@@ -347,7 +347,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return deployment;
     }
 
-    public void setRuntime(final RuntimeSetting runtime) {
+    public void setRuntime(final MavenRuntimeSetting runtime) {
         this.runtime = runtime;
     }
     //endregion

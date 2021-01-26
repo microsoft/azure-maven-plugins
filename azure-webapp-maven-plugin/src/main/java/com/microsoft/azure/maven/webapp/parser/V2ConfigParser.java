@@ -9,7 +9,7 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.maven.webapp.configuration.RuntimeSetting;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeSetting;
 import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
 import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
@@ -40,7 +40,7 @@ public class V2ConfigParser extends AbstractConfigParser {
 
     @Override
     public DockerConfiguration getDockerConfiguration() throws AzureExecutionException {
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null) {
             return null;
         }
@@ -68,7 +68,7 @@ public class V2ConfigParser extends AbstractConfigParser {
 
     @Override
     public Runtime getRuntime() throws AzureExecutionException {
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         if (runtime == null) {
             return null;
         }
@@ -86,7 +86,7 @@ public class V2ConfigParser extends AbstractConfigParser {
 
     private OperatingSystem getOs() throws AzureExecutionException {
         validate(validator::validateOs);
-        final RuntimeSetting runtime = mojo.getRuntime();
+        final MavenRuntimeSetting runtime = mojo.getRuntime();
         return OperatingSystem.fromString(runtime.getOs());
     }
 }
