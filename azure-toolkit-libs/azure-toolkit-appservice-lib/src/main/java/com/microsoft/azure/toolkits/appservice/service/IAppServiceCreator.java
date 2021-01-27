@@ -13,8 +13,6 @@ import java.util.Map;
 public interface IAppServiceCreator<T> {
     IAppServiceCreator<T> withName(String name);
 
-    IAppServiceCreator<T> withSubscription(String subscriptionId);
-
     IAppServiceCreator<T> withResourceGroup(String resourceGroupName);
 
     IAppServiceCreator<T> withPlan(String appServicePlanId);
