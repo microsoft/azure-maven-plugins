@@ -13,6 +13,7 @@ import com.microsoft.azure.tools.auth.core.ICredentialRetriever;
 import com.microsoft.azure.tools.auth.core.azurecli.AzureCliCredentialRetriever;
 import com.microsoft.azure.tools.auth.core.devicecode.DeviceCodeCredentialRetriever;
 import com.microsoft.azure.tools.auth.core.managedidentity.ManagedIdentityCredentialRetriever;
+import com.microsoft.azure.tools.auth.core.maven.MavenLoginCredentialRetriever;
 import com.microsoft.azure.tools.auth.core.oauth.OAuthCredentialRetriever;
 import com.microsoft.azure.tools.auth.core.serviceprincipal.ServicePrincipalCredentialRetriever;
 import com.microsoft.azure.tools.auth.core.visualstudio.VisualStudioCredentialRetriever;
@@ -63,6 +64,7 @@ public class AzureAuthManager {
         map.put(AuthType.VISUAL_STUDIO, new VisualStudioCredentialRetriever(env));
         map.put(AuthType.OAUTH2, new OAuthCredentialRetriever(env));
         map.put(AuthType.DEVICE_CODE, new DeviceCodeCredentialRetriever(env));
+        map.put(AuthType.AZURE_AUTH_MAVEN_PLUGIN, new MavenLoginCredentialRetriever(env));
         return map;
     }
 }
