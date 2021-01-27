@@ -49,7 +49,7 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
     
 1. Generate configuration by running the below command.
     ```
-    mvn com.microsoft.azure:azure-spring-cloud-maven-plugin:0.1.0-SNAPSHOT:config
+    mvn com.microsoft.azure:azure-spring-cloud-maven-plugin:1.4.0:config
     ```
     1. Select module `gateway`,`auth-service` and `account-service`
 
@@ -66,7 +66,7 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
 1. Deploy the above apps with the following command
 
     ``` 
-    mvn com.microsoft.azure:azure-spring-cloud-maven-plugin:0.1.0-SNAPSHOT:deploy
+    mvn com.microsoft.azure:azure-spring-cloud-maven-plugin:0.4.0:deploy
     ```
     
 1. You may access Piggy Metrics with the url printed in above command
