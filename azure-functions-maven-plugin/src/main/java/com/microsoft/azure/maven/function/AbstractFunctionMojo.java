@@ -114,14 +114,15 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     }
 
     private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
-                                        String settingValue, String warningMessage) {
+                                        String defaultValue, String warningMessage) {
         final String setting = (String) result.get(settingName);
         if (StringUtils.isEmpty(setting)) {
             Log.info(settingIsEmptyMessage);
-            result.put(settingName, settingValue);
+            result.put(settingName, defaultValue);
+            return;
         }
         // Show warning message when user set a different value
-        if (StringUtils.isNotEmpty(setting) && StringUtils.isNotEmpty(warningMessage)) {
+        if (!StringUtils.equalsIgnoreCase(setting, defaultValue) && StringUtils.isNotEmpty(warningMessage)) {
             Log.warn(warningMessage);
         }
     }
