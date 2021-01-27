@@ -425,7 +425,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     /**
      * Binding Function App with Application Insights
-     * Will follow the below sequence appInsightsKey -> appInsightsInstance -> Create New AI Instance (Function creation only)
+     * Will follow the below sequence appInsightsKey -&gt; appInsightsInstance -&gt; Create New AI Instance (Function creation only)
      * @param appSettings App settings map
      * @param isCreation Define the stage of function app, as we only create ai instance by default when create new function apps
      * @throws AzureExecutionException When there are conflicts in configuration or meet errors while finding/creating application insights instance
