@@ -154,9 +154,11 @@ public class DeployMojo extends AbstractMojoBase {
             printPublicUrl(app);
         }));
         final boolean shouldSkipConfirm = !prompt || (this.settings != null && !this.settings.isInteractiveMode());
-        if (!shouldSkipConfirm && this.confirm(tasks)) {
-            tasks.forEach(AzureTask::execute);
+        if (!shouldSkipConfirm && !this.confirm(tasks)) {
+            log.warn("Deployment is cancelled!");
+            return;
         }
+        tasks.forEach(AzureTask::execute);
     }
 
     protected boolean confirm(List<AzureTask<?>> tasks) throws MojoFailureException {
