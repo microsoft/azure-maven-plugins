@@ -1,14 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-libs</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
     <name>Libs for Azure Toolkits</name>
     <description>Wrapped libs for Microsoft Azure Toolkits</description>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:https://github.com/microsoft/azure-maven-plugins</connection>
+        <developerConnection>scm:git:git@github.com:microsoft/azure-maven-plugins</developerConnection>
+        <url>https://github.com/microsoft/azure-maven-plugins</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>wangmingliang-ms</id>
+            <name>Wang Mingliang</name>
+            <email>wangmi@microsoft.com</email>
+        </developer>
+    </developers>
 
     <modules>
         <module>azure-toolkit-common-lib</module>
@@ -19,6 +42,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <azure.toolkit-lib.version>${project.version}</azure.toolkit-lib.version>
 
         <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -90,7 +114,6 @@
 
         <google.jsr305.version>3.0.0</google.jsr305.version>
         <azure.azure-mgmt-appplatform.version>1.0.0-beta</azure.azure-mgmt-appplatform.version>
-        <azure.toolkit.common.lib.version>0.0.1-SNAPSHOT</azure.toolkit.common.lib.version>
         <azure-identity.version>1.2.1</azure-identity.version>
         <azure.version>1.36.3</azure.version>
         <lombok.version>1.18.8</lombok.version>
@@ -100,6 +123,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- azure toolkit libs -->
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-common-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.apache.maven</groupId>
                 <artifactId>maven-core</artifactId>
@@ -270,13 +300,6 @@
                 <artifactId>azure-identity</artifactId>
                 <version>${azure-identity.version}</version>
             </dependency>
-
-            <!-- azure toolkit libs -->
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-toolkit-common-lib</artifactId>
-                <version>${azure.toolkit.common.lib.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
@@ -286,6 +309,69 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>3.1.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven.jar-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.9.1</version>
+                    <configuration>
+                        <show>private</show>
+                        <failOnError>false</failOnError>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <additionalparam>${javadoc.opts}</additionalparam>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven.source-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>1.1.0</version>
+                    <configuration>
+                        <updatePomFile>true</updatePomFile>
+                        <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>flatten</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>flatten</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>flatten.clean</id>
+                            <phase>clean</phase>
+                            <goals>
+                                <goal>clean</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
