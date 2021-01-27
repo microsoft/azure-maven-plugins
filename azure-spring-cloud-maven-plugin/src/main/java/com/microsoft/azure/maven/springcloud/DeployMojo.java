@@ -6,25 +6,24 @@
 
 package com.microsoft.azure.maven.springcloud;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.prompt.DefaultPrompter;
 import com.microsoft.azure.common.prompt.IPrompter;
-import com.microsoft.azure.common.utils.TextUtils;
-import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentInstance;
 import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
-import com.microsoft.azure.management.appplatform.v2020_07_01.PersistentDisk;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
-import com.microsoft.azure.tools.springcloud.AppConfig;
-import com.microsoft.azure.tools.springcloud.AppDeploymentClient;
-import com.microsoft.azure.tools.springcloud.AppDeploymentConfig;
-import com.microsoft.azure.tools.springcloud.AppClient;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.tools.utils.RxUtils;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -36,51 +35,26 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
-import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_DEPLOYMENT;
-import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_NEW_APP;
-import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_DEPLOYMENT_NAME_GIVEN;
+import static com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils.DEFAULT_DEPLOYMENT_NAME;
 
 @Mojo(name = "deploy")
+@Slf4j
 public class DeployMojo extends AbstractMojoBase {
 
     private static final int GET_URL_TIMEOUT = 60;
     private static final int GET_STATUS_TIMEOUT = 180;
-    private static final String GETTING_DEPLOYMENT_STATUS = "Getting deployment status...";
-    private static final String GETTING_PUBLIC_URL = "Getting public url...";
     private static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     private static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     private static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
-            "packaging %s, only jar is supported";
-    private static final String GET_APP_URL_SUCCESSFULLY = "Application url : %s";
-    private static final String GET_APP_URL_FAIL = "Fail to get application url";
+        "packaging %s, only jar is supported";
+    private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
-            "you can check the app status from Azure Portal.";
-    private static final String STATUS_CREATE_APP = "Creating the app...";
-    private static final String STATUS_CREATE_APP_DONE = "Successfully created the app.";
-    private static final String STATUS_UPDATE_APP = "Updating the app...";
-    private static final String STATUS_UPDATE_APP_DONE = "Successfully updated the app.";
-    private static final String STATUS_UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
-    private static final String STATUS_CREATE_DEPLOYMENT = "Creating the deployment...";
-    private static final String STATUS_CREATE_DEPLOYMENT_DONE = "Successfully created the deployment.";
-    private static final String STATUS_UPDATE_DEPLOYMENT = "Updating the deployment...";
-    private static final String STATUS_UPDATE_DEPLOYMENT_DONE = "Successfully updated the deployment.";
-    private static final String DEPLOYMENT_STORAGE_STATUS = "Persistent storage path : %s, size : %s GB.";
-    private static final String STATUS_UPLOADING_ARTIFACTS = "Uploading artifacts...";
-    private static final String STATUS_UPLOADING_ARTIFACTS_DONE = "Successfully uploaded the artifacts.";
+        "you can check the app status from Azure Portal.";
     private static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
-    private static final String CONFIRM_PROMPT_CREATE_NEW_APP = "Create new app [%s]";
-    private static final String CONFIRM_PROMPT_UPDATE_APP = "Update app [%s]";
-    private static final String CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT = "Create new deployment [%s] in app [%s]";
-    private static final String CONFIRM_PROMPT_UPDATE_DEPLOYMENT = "Update deployment [%s] in app [%s]";
-    private static final String CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT = "Set [%s] as the active deployment of app [%s]";
     private static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
-
-    protected static final List<DeploymentResourceStatus> DEPLOYMENT_PROCESSING_STATUS =
-            Arrays.asList(DeploymentResourceStatus.COMPILING, DeploymentResourceStatus.ALLOCATING, DeploymentResourceStatus.UPGRADING);
 
     @Parameter(property = "noWait")
     private boolean noWait;
@@ -88,180 +62,155 @@ public class DeployMojo extends AbstractMojoBase {
     @Parameter(property = "prompt")
     private boolean prompt;
 
+    @SneakyThrows
     @Override
-    protected void doExecute() throws MojoExecutionException, MojoFailureException, AzureExecutionException {
+    protected void doExecute() {
         if (!checkProjectPackaging(project) || !checkConfiguration()) {
             return;
         }
         // Init spring clients, and prompt users to confirm
-        final AppConfig configuration = this.getConfiguration();
-        final AppDeploymentConfig deploymentConfig = configuration.getDeployment();
-        final AppClient cloudAppClient = getSpringServiceClient().newSpringAppClient(configuration);
-        AppResourceInner app = cloudAppClient.getApp();
-        final String deploymentName = deploymentConfig.getDeploymentName();
-        final AppDeploymentClient deploymentClient = cloudAppClient.getDeploymentClient(deploymentName, app);
-        DeploymentResourceInner deployment = deploymentClient.getDeployment();
-        final boolean toCreateNewDeployment = deployment == null;
-        if (!shouldSkipConfirm() && !confirmDeploy(app, deployment, configuration)) {
-            getLog().info("Terminate deployment");
-            return;
+        final SpringCloudAppConfig appConfig = this.getConfiguration();
+        final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
+        final List<File> artifacts = deploymentConfig.getArtifacts();
+        final File artifact = CollectionUtils.isNotEmpty(artifacts) ?
+            MavenArtifactUtils.getExecutableJarFiles(artifacts) : MavenArtifactUtils.getArtifactFromTargetFolder(project);
+        final boolean enableDisk = appConfig.getDeployment() != null && appConfig.getDeployment().isEnablePersistentStorage();
+        final String clusterName = appConfig.getClusterName();
+        final String appName = appConfig.getAppName();
+
+        final Map<String, String> env = deploymentConfig.getEnvironment();
+        final String jvmOptions = deploymentConfig.getJvmOptions();
+        final ScaleSettings scaleSettings = deploymentConfig.getScaleSettings();
+        final String runtimeVersion = deploymentConfig.getJavaVersion();
+
+        final AzureSpringCloud az = AzureSpringCloud.az(this.getAppPlatformManager());
+        final SpringCloudCluster cluster = az.cluster(clusterName);
+        final SpringCloudApp app = cluster.app(appName);
+        final String deploymentName = StringUtils.firstNonBlank(
+            deploymentConfig.getDeploymentName(),
+            appConfig.getActiveDeploymentName(),
+            app.getActiveDeploymentName(),
+            DEFAULT_DEPLOYMENT_NAME
+        );
+        final SpringCloudDeployment deployment = app.deployment(deploymentName);
+
+        final String CREATE_APP_TITLE = String.format("Create new app(%s) on service(%s)", TextUtils.cyan(appName), TextUtils.cyan(clusterName));
+        final String UPDATE_APP_TITLE = String.format("Update app(%s) of service(%s)", TextUtils.cyan(appName), TextUtils.cyan(clusterName));
+        final String CREATE_DEPLOYMENT_TITLE = String.format("Create new deployment(%s) in app(%s)", TextUtils.cyan(deploymentName), TextUtils.cyan(appName));
+        final String UPDATE_DEPLOYMENT_TITLE = String.format("Update deployment(%s) of app(%s)", TextUtils.cyan(deploymentName), TextUtils.cyan(appName));
+        final String UPLOAD_ARTIFACT_TITLE = String.format("Upload artifact(%s) to app(%s)", TextUtils.cyan(artifact.getPath()), TextUtils.cyan(appName));
+
+        final boolean toCreateApp = !app.exists();
+        final boolean toCreateDeployment = !deployment.exists();
+        final List<AzureTask<?>> tasks = new ArrayList<>();
+        final SpringCloudApp.Creator appCreator = app.create();
+        final SpringCloudApp.Uploader artifactUploader = app.uploadArtifact(artifact.getPath());
+        final SpringCloudDeployment.Updater deploymentModifier = (toCreateDeployment ? deployment.create() : deployment.update())
+            .configEnvironmentVariables(env)
+            .configJvmOptions(jvmOptions)
+            .configScaleSettings(scaleSettings)
+            .configRuntimeVersion(runtimeVersion)
+            .configArtifact(artifactUploader.getArtifact());
+        final SpringCloudApp.Updater appUpdater = app.update()
+            .activate(StringUtils.firstNonBlank(app.getActiveDeploymentName(), deploymentName)) // active deployment should keep active.
+            .setPublic(appConfig.isPublic())
+            .enablePersistentDisk(enableDisk);
+
+        if (toCreateApp) {
+            tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, () -> {
+                log.info("Creating app({})...", TextUtils.cyan(appName));
+                appCreator.commit();
+                log.info("Successfully created the app.");
+            }));
         }
-        // Prepare telemetries
-        traceTelemetry(app, deployment, configuration);
-        // Create new App if not exist
-        if (Objects.isNull(app)) {
-            getLog().info(STATUS_CREATE_APP);
-            app = cloudAppClient.createApp(configuration);
-            getLog().info(STATUS_CREATE_APP_DONE);
-        }
-        final PersistentDisk persistentDisk = app.properties().persistentDisk();
-        if (persistentDisk != null) {
-            getLog().info(String.format(DEPLOYMENT_STORAGE_STATUS, persistentDisk.mountPath(), persistentDisk.sizeInGB()));
+        tasks.add(new AzureTask<Void>(UPLOAD_ARTIFACT_TITLE, () -> {
+            log.info("Uploading artifact({}) to Azure...", TextUtils.cyan(artifact.getPath()));
+            artifactUploader.commit();
+            log.info("Successfully uploaded the artifact.");
+        }));
+        tasks.add(new AzureTask<Void>(toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE, () -> {
+            log.info(toCreateDeployment ? "Creating deployment({})..." : "Updating deployment({})...", TextUtils.cyan(deploymentName));
+            deploymentModifier.commit();
+            log.info(toCreateDeployment ? "Successfully created the deployment" : "Successfully updated the deployment");
+        }));
+        if (!appUpdater.isSkippable()) {
+            tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
+                log.info("Updating app({})...", TextUtils.cyan(appName));
+                appUpdater.commit();
+                log.info("Successfully updated the app.");
+                log.warn(UPDATE_APP_WARNING);
+            }));
         }
 
-        // Upload artifact
-        // TODO: no need to re-upload if artifact is not changed
-        getLog().info(STATUS_UPLOADING_ARTIFACTS);
-        final File toDeploy = isArtifactsSpecified(configuration) ? getArtifactFromConfiguration(configuration) :
-            MavenArtifactUtils.getArtifactFromTargetFolder(project);
-        final ResourceUploadDefinitionInner uploadDefinition = cloudAppClient.uploadArtifact(toDeploy);
-        getLog().info(STATUS_UPLOADING_ARTIFACTS_DONE);
-
-        // Create or update deployment
-        if (toCreateNewDeployment) {
-            getLog().info(STATUS_CREATE_DEPLOYMENT);
-            deployment = deploymentClient.createDeployment(configuration.getDeployment(), uploadDefinition);
-            getLog().info(STATUS_CREATE_DEPLOYMENT_DONE);
-            final String activeDeploymentName = app.properties().activeDeploymentName();
-            if (StringUtils.isAllEmpty(configuration.getActiveDeploymentName(), activeDeploymentName)) {
-                configuration.withActiveDeploymentName(deployment.name());
+        tasks.add(new AzureTask<Void>(() -> {
+            if (!noWait) {
+                log.info("Getting deployment status...");
+                if (!deployment.waitUntilReady(GET_STATUS_TIMEOUT)) {
+                    log.warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
+                }
             }
-        } else {
-            // TODO: no need to update if `deployment.properties` does include `configuration.getDeployment()`
-            getLog().info(STATUS_UPDATE_DEPLOYMENT);
-            deploymentClient.updateDeployment(deployment, configuration.getDeployment(), uploadDefinition);
-            getLog().info(STATUS_UPDATE_DEPLOYMENT_DONE);
-        }
-
-        // TODO: no need to update if `app.properties` does include `configuration`
-        getLog().info(STATUS_UPDATE_APP);
-        cloudAppClient.updateApp(app, configuration);
-        getLog().info(STATUS_UPDATE_APP_DONE);
-
-        getLog().warn(STATUS_UPDATE_APP_WARNING);
-
-        // Showing deployment status and public url
-        showDeploymentStatus(deploymentClient);
-        showPublicUrl(cloudAppClient);
-    }
-
-    protected void showPublicUrl(AppClient cloudAppClient) throws MojoExecutionException {
-        if (!cloudAppClient.isPublic()) {
-            return;
-        }
-        getLog().info(GETTING_PUBLIC_URL);
-        String publicUrl = cloudAppClient.getApplicationUrl();
-        if (!noWait && StringUtils.isEmpty(publicUrl)) {
-            publicUrl = RxUtils.pollUntil(cloudAppClient::getApplicationUrl, StringUtils::isNoneEmpty, GET_URL_TIMEOUT);
-        }
-        if (StringUtils.isEmpty(publicUrl)) {
-            getLog().warn(GET_APP_URL_FAIL);
-        } else {
-            getLog().info(String.format(GET_APP_URL_SUCCESSFULLY, publicUrl));
+            printStatus(deployment);
+            printPublicUrl(app);
+        }));
+        if (this.confirmDeploy(tasks)) {
+            tasks.forEach(AzureTask::execute);
         }
     }
 
-    protected void showDeploymentStatus(AppDeploymentClient springDeploymentClient) {
-        getLog().info(GETTING_DEPLOYMENT_STATUS);
-        DeploymentResourceInner deploymentResource = springDeploymentClient.getDeployment();
-        if (!noWait && !isDeploymentDone(deploymentResource)) {
-            deploymentResource = RxUtils.pollUntil(springDeploymentClient::getDeployment, this::isDeploymentDone, GET_STATUS_TIMEOUT);
-        }
-        if (!isDeploymentDone(deploymentResource)) {
-            getLog().warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
-        }
-        printDeploymentStatus(deploymentResource);
-    }
-
-    protected void printDeploymentStatus(DeploymentResourceInner deploymentResource) {
-        if (deploymentResource == null) {
-            return;
-        }
-        System.out.println(String.format("Deployment Status: %s", deploymentResource.properties().status()));
-        for (final DeploymentInstance instance : deploymentResource.properties().instances()) {
-            System.out.println(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s", instance.name(), instance.status()
-                    , instance.reason(), instance.discoveryStatus()));
-        }
-    }
-
-    protected boolean isDeploymentDone(DeploymentResourceInner deploymentResource) {
-        if (deploymentResource == null) {
-            return false;
-        }
-        final DeploymentResourceStatus deploymentResourceStatus = deploymentResource.properties().status();
-        if (DEPLOYMENT_PROCESSING_STATUS.contains(deploymentResourceStatus)) {
-            return false;
-        }
-        final String finalDiscoverStatus = BooleanUtils.isTrue(deploymentResource.properties().active()) ? "UP" : "OUT_OF_SERVICE";
-        final List<DeploymentInstance> instanceList = deploymentResource.properties().instances();
-        if (CollectionUtils.isEmpty(instanceList)) {
-            return false;
-        }
-        final boolean isInstanceDeployed = instanceList.stream().noneMatch(instance ->
-                StringUtils.equalsIgnoreCase(instance.status(), "waiting") || StringUtils.equalsIgnoreCase(instance.status(), "pending"));
-        final boolean isInstanceDiscovered = instanceList.stream().allMatch(instance ->
-                StringUtils.equalsIgnoreCase(instance.discoveryStatus(), finalDiscoverStatus));
-        return isInstanceDeployed && isInstanceDiscovered;
-    }
-
-    protected boolean shouldSkipConfirm() {
-        // Skip confirm when -Dprompt or in batch model
-        return !prompt || (this.settings != null && !this.settings.isInteractiveMode());
-    }
-
-    protected boolean confirmDeploy(AppResourceInner app, DeploymentResourceInner deployment, AppConfig configuration) throws MojoFailureException {
-        try (IPrompter prompter = new DefaultPrompter()) {
-            final List<String> operations = getOperations(app, deployment, configuration);
+    protected boolean confirmDeploy(List<AzureTask<?>> tasks) throws MojoFailureException {
+        try {
+            final IPrompter prompter = new DefaultPrompter();
             System.out.println(CONFIRM_PROMPT_START);
-            for (int i = 1; i <= operations.size(); i++) {
-                System.out.println(String.format("%-2d  %s", i, operations.get(i - 1)));
-            }
+            tasks.stream().filter(t -> StringUtils.isNotBlank(t.getTitle())).forEach((t) -> System.out.printf("\t- %s%n", t.getTitle()));
             return prompter.promoteYesNo(CONFIRM_PROMPT_CONFIRM, true, true);
         } catch (IOException e) {
-            throw new MojoFailureException(e.getMessage());
+            throw new MojoFailureException(e.getMessage(), e);
         }
     }
 
-    protected List<String> getOperations(AppResourceInner app, DeploymentResourceInner deployment, AppConfig configuration) {
-        final boolean isCreateNewApp = app == null;
-        final boolean isCreateNewDeployment = deployment == null;
-        final String appName = configuration.getAppName();
-        final String deploymentName = configuration.getDeployment().getDeploymentName();
-        final List<String> operations = new ArrayList<>();
-        final String appPrompt = isCreateNewApp ?
-                String.format(CONFIRM_PROMPT_CREATE_NEW_APP, TextUtils.blue(appName)) :
-                String.format(CONFIRM_PROMPT_UPDATE_APP, TextUtils.blue(appName));
-        operations.add(appPrompt);
-
-        final String deploymentPrompt = isCreateNewDeployment ?
-                String.format(CONFIRM_PROMPT_CREATE_NEW_DEPLOYMENT, TextUtils.blue(deploymentName),
-                        TextUtils.blue(appName)) :
-                String.format(CONFIRM_PROMPT_UPDATE_DEPLOYMENT, TextUtils.blue(deploymentName),
-                        TextUtils.blue(appName));
-        operations.add(deploymentPrompt);
-
-        if (StringUtils.isEmpty(AppClient.getActiveDeploymentName(app)) && isCreateNewDeployment) {
-            operations.add(String.format(CONFIRM_PROMPT_ACTIVATE_DEPLOYMENT, TextUtils.blue(deploymentName),
-                    TextUtils.blue(appName)));
+    protected void printPublicUrl(SpringCloudApp app) {
+        if (!app.entity().isPublic()) {
+            return;
         }
-        return operations;
+        log.info("Getting public url of app({})...", TextUtils.cyan(app.name()));
+        String publicUrl = app.entity().getApplicationUrl();
+        if (!noWait && StringUtils.isEmpty(publicUrl)) {
+            publicUrl = RxUtils.pollUntil(() -> app.refresh().entity().getApplicationUrl(), StringUtils::isNotBlank, GET_URL_TIMEOUT);
+        }
+        if (StringUtils.isEmpty(publicUrl)) {
+            log.warn("Failed to get application url");
+        } else {
+            log.info("Application url: {}", TextUtils.cyan(publicUrl));
+        }
+    }
+
+    protected void printStatus(SpringCloudDeployment deployment) {
+        final DeploymentResourceStatus status = deployment.entity().getStatus();
+        log.info("Deployment Status: {}", color(status.toString()));
+        deployment.entity().getInstances().forEach(instance ->
+            log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
+                instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
+    }
+
+    private static String color(String status) {
+        switch (status.toUpperCase()) {
+            case "RUNNING":
+                return TextUtils.green(status);
+            case "FAILED":
+            case "STOPPED":
+                return TextUtils.red(status);
+            case "UNKNOWN":
+                return status;
+            default:
+                return TextUtils.blue(status);
+        }
     }
 
     protected boolean checkProjectPackaging(MavenProject project) throws MojoExecutionException {
         if (MavenConfigUtils.isJarPackaging(project)) {
             return true;
         } else if (MavenConfigUtils.isPomPackaging(project)) {
-            getLog().info(PROJECT_SKIP);
+            log.info(PROJECT_SKIP);
             return false;
         } else {
             throw new MojoExecutionException(String.format(PROJECT_NOT_SUPPORT, project.getPackaging()));
@@ -272,37 +221,10 @@ public class DeployMojo extends AbstractMojoBase {
         final String pluginKey = plugin.getPluginLookupKey();
         final Xpp3Dom pluginDom = MavenConfigUtils.getPluginConfiguration(project, pluginKey);
         if (pluginDom == null || pluginDom.getChildren().length == 0) {
-            getLog().warn(PROJECT_NO_CONFIGURATION);
+            log.warn(PROJECT_NO_CONFIGURATION);
             return false;
         } else {
             return true;
         }
-    }
-
-    protected boolean isArtifactsSpecified(AppConfig springConfiguration) {
-        final AppDeploymentConfig deploymentConfig = springConfiguration.getDeployment();
-        return deploymentConfig.getArtifacts() != null && deploymentConfig.getArtifacts().size() > 0;
-    }
-
-    protected void traceTelemetry(AppResourceInner app, DeploymentResourceInner deployment, AppConfig configuration) {
-        traceAuth();
-        traceConfiguration(configuration);
-        traceDeployment(app, deployment, configuration);
-    }
-
-    protected void traceDeployment(AppResourceInner app, DeploymentResourceInner deployment, AppConfig configuration) {
-        final boolean isNewApp = app == null;
-        final boolean isNewDeployment = deployment == null;
-        final boolean isDeploymentNameGiven = configuration.getDeployment() != null &&
-                StringUtils.isNotEmpty(configuration.getDeployment().getDeploymentName());
-        telemetries.put(TELEMETRY_KEY_IS_CREATE_NEW_APP, String.valueOf(isNewApp));
-        telemetries.put(TELEMETRY_KEY_IS_CREATE_DEPLOYMENT, String.valueOf(isNewDeployment));
-        telemetries.put(TELEMETRY_KEY_IS_DEPLOYMENT_NAME_GIVEN, String.valueOf(isDeploymentNameGiven));
-    }
-
-    private static File getArtifactFromConfiguration(AppConfig springConfiguration) throws MojoExecutionException {
-        final AppDeploymentConfig deploymentConfig = springConfiguration.getDeployment();
-        final List<File> files = deploymentConfig.getArtifacts();
-        return MavenArtifactUtils.getExecutableJarFiles(files);
     }
 }

@@ -12,7 +12,6 @@ import com.microsoft.azure.tools.auth.AzureIdentityCredentialTokenCredentials;
 import com.microsoft.azure.tools.common.util.TextUtils;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +30,12 @@ public class AzureCredentialWrapper {
     private AzureEnvironment env;
 
     @Getter
-    @Setter
     private String defaultSubscriptionId;
 
     @Getter
-    @Setter
+    private String[] filteredSubscriptionIds;
+
+    @Getter
     private String tenantId;
 
 
@@ -48,14 +48,29 @@ public class AzureCredentialWrapper {
         this.env = env;
     }
 
+    public AzureCredentialWrapper withDefaultSubscriptionId(String defaultSubscriptionId) {
+        this.defaultSubscriptionId = defaultSubscriptionId;
+        return this;
+    }
+
+    public AzureCredentialWrapper withTenantId(String tenantId) {
+        this.tenantId = tenantId;
+        return this;
+    }
+
+    public AzureCredentialWrapper withFilteredSubscriptionIds(String[] filteredSubscriptionIds) {
+        this.filteredSubscriptionIds = filteredSubscriptionIds;
+        return this;
+    }
+
     public String getCredentialDescription() {
         List<String> details = new ArrayList<>();
-        details.add(String.format("auth type: %s", TextUtils.green(authMethod.toString())));
+        details.add(String.format("Auth method: %s", TextUtils.cyan(authMethod.toString())));
         if (StringUtils.isNotBlank(tenantId)) {
-            details.add(String.format("tenantId: %s", TextUtils.green(tenantId)));
+            details.add(String.format("Tenant id: %s", TextUtils.cyan(tenantId)));
         }
         if (StringUtils.isNotBlank(defaultSubscriptionId)) {
-            details.add(String.format("default subscription: %s", TextUtils.green(defaultSubscriptionId)));
+            details.add(String.format("Default subscription: %s", TextUtils.cyan(defaultSubscriptionId)));
         }
 
         return StringUtils.join(details.toArray(), "\n");

@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins-pom</artifactId>
-        <version>1.0.6-SNAPSHOT</version>
+        <version>1.0.7-SNAPSHOT</version>
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
     <name>Azure Spring Cloud Maven Plugin</name>
@@ -34,15 +34,16 @@
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-auth-helper</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-maven-plugin-lib</artifactId>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-tools-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-auth-lib</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
@@ -131,10 +132,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
         </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
         <!-- maven expressing evaluation -->
         <!--        <dependency>-->
         <!--            <groupId>org.eclipse.sisu</groupId>-->
@@ -202,6 +199,10 @@
             <groupId>org.powermock</groupId>
             <artifactId>powermock-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-common-lib</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -227,7 +228,7 @@
                             <goal>analyze-only</goal>
                         </goals>
                         <configuration>
-                            <failOnWarning>true</failOnWarning>
+                            <failOnWarning>false</failOnWarning>
                             <ignoreNonCompile>true</ignoreNonCompile>
                             <ignoredDependencies>
                                 <ignoredDependency>org.eclipse.sisu:org.eclipse.sisu.plexus</ignoredDependency>

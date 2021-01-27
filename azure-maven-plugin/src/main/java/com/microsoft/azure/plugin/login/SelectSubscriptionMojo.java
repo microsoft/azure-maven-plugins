@@ -84,7 +84,7 @@ public class SelectSubscriptionMojo extends AbstractAzureMojo {
                             current ? " [CURRENT]" : "");
 
                     if (current) {
-                        System.out.println(TextUtils.green(subscriptionLine));
+                        System.out.println(TextUtils.cyan(subscriptionLine));
                     } else {
                         System.out.println(subscriptionLine);
                     }
@@ -119,7 +119,7 @@ public class SelectSubscriptionMojo extends AbstractAzureMojo {
                 final AzureCredential azureCredential = AzureAuthHelper.readAzureCredentials();
                 azureCredential.setDefaultSubscription(selectSubscription.subscriptionId());
                 AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
-                log.info(String.format("You have set default subscription to '%s'.", TextUtils.green(selectSubscription.displayName())));
+                log.info(String.format("You have set default subscription to '%s'.", TextUtils.cyan(selectSubscription.displayName())));
             } catch (IOException e) {
                 throw new MojoExecutionException("Cannot update subscription id due to error: " + e.getMessage(), e);
             }

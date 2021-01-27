@@ -7,12 +7,12 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins-pom</artifactId>
-        <version>1.0.6-SNAPSHOT</version>
+        <version>1.0.7-SNAPSHOT</version>
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
 
     <artifactId>azure-maven-plugin-lib</artifactId>
-    <version>1.5.0-SNAPSHOT</version>
+    <version>1.6.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
@@ -112,10 +112,6 @@
             <artifactId>commons-net</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-auth-helper</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
@@ -166,6 +162,16 @@
         <dependency>
             <groupId>org.jtwig</groupId>
             <artifactId>jtwig-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-auth-lib</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

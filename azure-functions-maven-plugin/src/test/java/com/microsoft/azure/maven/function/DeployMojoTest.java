@@ -146,7 +146,6 @@ public class DeployMojoTest extends MojoTestBase {
         final DeployMojo mojoWithSettings = (DeployMojo) getMojoFromPom("/pom-with-settings.xml", "deploy");
         final Map settings = mojoWithSettings.getAppSettingsWithDefaultValue();
         assertEquals("bar", settings.get("FOO"));
-        assertEquals("java", settings.get("FUNCTIONS_WORKER_RUNTIME"));
         assertEquals("beta", settings.get("FUNCTIONS_EXTENSION_VERSION"));
     }
 

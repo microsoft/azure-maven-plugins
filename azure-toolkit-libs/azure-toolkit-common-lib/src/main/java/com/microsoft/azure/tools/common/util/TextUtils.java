@@ -36,6 +36,10 @@ public class TextUtils {
         return applyColorToText(message, Color.RED);
     }
 
+    public static String cyan(String message) {
+        return applyColorToText(message, Color.CYAN);
+    }
+
     public static String[] splitLines(String text) {
         Preconditions.checkNotNull(text, "The parameter 'text' cannot be null");
         return text.split("\\r?\\n");

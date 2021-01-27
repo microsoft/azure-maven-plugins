@@ -15,6 +15,7 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.Ser
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.management.resources.Subscriptions;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterEntity;
 import com.microsoft.rest.RestException;
 
 import org.apache.maven.model.Model;
@@ -104,16 +105,19 @@ public class TestHelper {
         return subs;
     }
 
-    public static List<ServiceResourceInner> createServiceList() {
+    public static List<SpringCloudClusterEntity> createServiceList() {
         return Arrays.asList(createMockAppClusterResourceInner("testCluster1"),
                 createMockAppClusterResourceInner("testCluster2"),
                 createMockAppClusterResourceInner("testCluster3"));
     }
 
-    private static ServiceResourceInner createMockAppClusterResourceInner(String name) {
+    private static SpringCloudClusterEntity createMockAppClusterResourceInner(String name) {
         final ServiceResourceInner mockResource = mock(ServiceResourceInner.class);
+        final String id = "https://ms.portal.azure.com/#@microsoft.onmicrosoft.com/resource/" +
+            "subscriptions/demoSubscriptionId/resourceGroups/demoResourceGroup/providers/Microsoft.AppPlatform/Spring/" + name;
         when(mockResource.name()).thenReturn(name);
-        return mockResource;
+        when(mockResource.id()).thenReturn(id);
+        return SpringCloudClusterEntity.fromResource(mockResource);
     }
 
     private static MavenProject createProject(final File pomFile) throws IOException {

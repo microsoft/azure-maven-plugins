@@ -7,25 +7,22 @@
 package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.auth.AzureAuthHelper;
-import com.microsoft.azure.auth.AzureCredential;
-import com.microsoft.azure.auth.MavenSettingHelper;
-import com.microsoft.azure.auth.configuration.AuthConfiguration;
-import com.microsoft.azure.auth.exception.AzureLoginFailureException;
-import com.microsoft.azure.auth.exception.MavenDecryptException;
-import com.microsoft.azure.common.ConfigurationProblem;
-import com.microsoft.azure.common.ConfigurationProblem.Severity;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.credentials.AzureTokenCredentials;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.common.utils.TextUtils;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
+import com.microsoft.azure.maven.exception.MavenDecryptException;
+import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
-import com.microsoft.azure.maven.utils.MavenUtils;
-import com.microsoft.azure.tools.springcloud.AppConfig;
-import com.microsoft.azure.tools.springcloud.ServiceClient;
-import com.microsoft.azure.tools.exception.DesktopNotSupportedException;
+import com.microsoft.azure.maven.utils.MavenAuthUtils;
+import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.tools.common.util.ProxyUtils;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -38,15 +35,13 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_AUTH_METHOD;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_CPU;
@@ -73,8 +68,12 @@ import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_VALUE_USER_ERROR;
 
 public abstract class AbstractMojoBase extends AbstractMojo {
+    private static final String INIT_FAILURE = "InitFailure";
+    private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
+    private static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
+
     @Parameter(property = "auth")
-    protected AuthConfiguration auth;
+    protected MavenAuthConfiguration auth;
 
     @Parameter(alias = "public")
     protected Boolean isPublic;
@@ -117,11 +116,25 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
-    protected AzureTokenCredentials azureTokenCredentials;
-
-    protected ServiceClient springServiceClient;
+    protected AzureCredentialWrapper azureCredentialWrapper;
 
     protected Long timeStart;
+    private AppPlatformManager manager;
+
+    @Parameter(property = "authType")
+    protected String authType;
+
+    /**
+     * Use a HTTP proxy host for the Azure Auth Client
+     */
+    @Parameter(property = "httpProxyHost")
+    protected String httpProxyHost;
+
+    /**
+     * Use a HTTP proxy port for the Azure Auth Client
+     */
+    @Parameter(property = "httpProxyPort")
+    protected String httpProxyPort;
 
     @Override
     public void execute() throws MojoFailureException {
@@ -135,61 +148,23 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         }
     }
 
-    protected void initExecution() throws MojoFailureException, InvalidConfigurationException, IOException, DesktopNotSupportedException,
-        ExecutionException, AzureLoginFailureException, InterruptedException {
+    protected void initExecution() throws MojoFailureException, MavenDecryptException, AzureExecutionException,
+            com.microsoft.azure.tools.auth.exception.InvalidConfigurationException {
+        injectSystemProxy();
         // Init telemetries
         initTelemetry();
         trackMojoExecution(MojoStatus.Start);
-
-        initializeAuthConfiguration();
-        final AuthConfiguration authConfiguration = isAuthConfigurationExist() ? auth : null;
-        this.azureTokenCredentials = AzureAuthHelper.getAzureTokenCredentials(authConfiguration);
-        // Use oauth if no existing credentials
-        if (azureTokenCredentials == null) {
-            final AzureEnvironment environment = AzureEnvironment.AZURE;
-            AzureCredential azureCredential;
-            try {
-                azureCredential = AzureAuthHelper.oAuthLogin(environment);
-            } catch (DesktopNotSupportedException e) {
-                azureCredential = AzureAuthHelper.deviceLogin(environment);
-            }
-            AzureAuthHelper.writeAzureCredentials(azureCredential, AzureAuthHelper.getAzureSecretFile());
-            this.azureTokenCredentials = AzureAuthHelper.getMavenAzureLoginCredentials(azureCredential, environment);
+        final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
+        mavenAuthConfiguration.setType(getAuthType());
+        this.azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration, this.httpProxyHost, this.httpProxyPort);
+        if (Objects.isNull(azureCredentialWrapper)) {
+            AppInsightHelper.INSTANCE.trackEvent(INIT_FAILURE);
+            throw new MojoFailureException(AZURE_INIT_FAIL);
         }
     }
 
-    protected void initializeAuthConfiguration() throws MojoFailureException {
-        if (!isAuthConfigurationExist()) {
-            return;
-        }
-        if (StringUtils.isNotBlank(auth.getServerId())) {
-            if (this.settings.getServer(auth.getServerId()) != null) {
-                try {
-                    auth = MavenSettingHelper.getAuthConfigurationFromServer(session, settingsDecrypter, auth.getServerId());
-                } catch (MavenDecryptException e) {
-                    throw new MojoFailureException(e.getMessage());
-                }
-            } else {
-                throw new MojoFailureException(String.format("Unable to get server('%s') from settings.xml.", auth.getServerId()));
-            }
-        }
-
-        final List<ConfigurationProblem> problems = auth.validate();
-        if (problems.stream().anyMatch(problem -> problem.getSeverity() == Severity.ERROR)) {
-            throw new MojoFailureException(String.format("Unable to validate auth configuration due to the following errors: %s",
-                problems.stream().map(ConfigurationProblem::getErrorMessage).collect(Collectors.joining("\n"))));
-        }
-
-    }
-
-    protected boolean isAuthConfigurationExist() {
-        final String pluginKey = plugin.getPluginLookupKey();
-        final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
-        if (pluginDom == null) {
-            return false;
-        }
-        final Xpp3Dom authDom = pluginDom.getChild("auth");
-        return authDom != null && authDom.getChildren().length > 0;
+    protected String getAuthType() {
+        return StringUtils.firstNonBlank(auth == null ? null : auth.getType(), authType);
     }
 
     protected void initTelemetry() {
@@ -209,7 +184,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected void handleException(Exception exception) {
         final boolean isUserError = exception instanceof IllegalArgumentException ||
-            exception instanceof InvalidConfigurationException;
+                exception instanceof InvalidConfigurationException;
         telemetries.put(TELEMETRY_KEY_ERROR_CODE, TELEMETRY_VALUE_ERROR_CODE_FAILURE);
         telemetries.put(TELEMETRY_KEY_ERROR_TYPE, isUserError ? TELEMETRY_VALUE_USER_ERROR : TELEMETRY_VALUE_SYSTEM_ERROR);
         telemetries.put(TELEMETRY_KEY_ERROR_MESSAGE, exception.getMessage());
@@ -230,14 +205,14 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_JAVA_VERSION, javaVersion);
     }
 
-    protected void traceConfiguration(AppConfig configuration) {
+    protected void traceConfiguration(SpringCloudAppConfig configuration) {
         telemetries.put(TELEMETRY_KEY_PUBLIC, String.valueOf(configuration.isPublic()));
         telemetries.put(TELEMETRY_KEY_RUNTIME_VERSION, configuration.getRuntimeVersion());
         telemetries.put(TELEMETRY_KEY_CPU, String.valueOf(configuration.getDeployment().getCpu()));
         telemetries.put(TELEMETRY_KEY_MEMORY, String.valueOf(configuration.getDeployment().getMemoryInGB()));
         telemetries.put(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getInstanceCount()));
         telemetries.put(TELEMETRY_KEY_JVM_OPTIONS,
-            String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmOptions())));
+                String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmOptions())));
         telemetries.put(TELEMETRY_KEY_SUBSCRIPTION_ID, configuration.getSubscriptionId());
     }
 
@@ -290,7 +265,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return plugin;
     }
 
-    public AppConfig getConfiguration() {
+    public SpringCloudAppConfig getConfiguration() {
         final ConfigurationParser parser = ConfigurationParser.getInstance();
         return parser.parse(this);
     }
@@ -299,17 +274,40 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return telemetries;
     }
 
-    public ServiceClient getSpringServiceClient() {
-        if (springServiceClient == null) {
+    public AppPlatformManager getAppPlatformManager() {
+        if (this.manager == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-            springServiceClient = new ServiceClient(azureTokenCredentials, subscriptionId, getUserAgent(), logLevel);
+            final AzureEnvironment env = azureCredentialWrapper.getEnv();
+            final String environmentName = AuthHelper.azureEnvironmentToString(env);
+            if (env != AzureEnvironment.AZURE) {
+                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
+            }
+            Log.info(azureCredentialWrapper.getCredentialDescription());
+
+            final Proxy proxy = ProxyUtils.createHttpProxy(this.httpProxyHost, this.httpProxyPort);
+            this.manager = AppPlatformManager.configure()
+                .withLogLevel(logLevel)
+                .withUserAgent(getUserAgent())
+                .withProxy(proxy)
+                .authenticate(azureCredentialWrapper.getAzureTokenCredentials(), subscriptionId);
         }
-        return springServiceClient;
+        return this.manager;
     }
 
-    public String getUserAgent() {
+    private String getUserAgent() {
         return isTelemetryAllowed ? String.format("%s/%s installationId:%s sessionId:%s", plugin.getArtifactId(), plugin.getVersion(),
-            AppInsightHelper.INSTANCE.getInstallationId(), AppInsightHelper.INSTANCE.getSessionId())
-            : String.format("%s/%s", plugin.getArtifactId(), plugin.getVersion());
+                AppInsightHelper.INSTANCE.getInstallationId(), AppInsightHelper.INSTANCE.getSessionId())
+                : String.format("%s/%s", plugin.getArtifactId(), plugin.getVersion());
+    }
+
+    private void injectSystemProxy() {
+        if (StringUtils.isAllBlank(this.httpProxyHost, this.httpProxyPort)) {
+            final InetSocketAddress proxy = ProxyUtils.getSystemProxy();
+            if (proxy != null) {
+                Log.info(String.format("Use system proxy: %s:%s", TextUtils.cyan(proxy.getHostName()), TextUtils.cyan(Integer.toString(proxy.getPort()))));
+                this.httpProxyHost = proxy.getHostName();
+                this.httpProxyPort = Integer.toString(proxy.getPort());
+            }
+        }
     }
 }
