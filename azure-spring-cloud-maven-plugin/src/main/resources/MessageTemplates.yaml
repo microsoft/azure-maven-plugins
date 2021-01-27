@@ -40,7 +40,7 @@ promote:
     many:         "Select Azure Spring Cloud for deployment:"
 message:
   empty_options:  "There are no Azure Spring Cloud Service in current subscription, please create it in Azure Portal."
-  auto_select:    "There is only one Azure Spring Cloud Service (***{{clusters.get(0).name()}}***) in current subscription, will use it automatically."
+  auto_select:    "There is only one Azure Spring Cloud Service (***{{ clusters[0].name() }}***) in current subscription, will use it automatically."
   select_none:    "You have not selected any Azure Spring Cloud, 'config' will terminate."
 required:         true
 auto_select:      true
