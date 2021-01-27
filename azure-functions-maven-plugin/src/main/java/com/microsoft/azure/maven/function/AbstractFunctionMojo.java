@@ -22,6 +22,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
@@ -91,16 +92,20 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.disableAppInsights", defaultValue = "false")
     protected boolean disableAppInsights;
 
+    protected Map fixedAppSettings;
     //endregion
 
     //region get App Settings
     public Map getAppSettingsWithDefaultValue() {
-        final Map settings = getAppSettings();
-        setDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
-                FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
-        setDefaultAppSetting(settings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
-                FUNCTIONS_EXTENSION_VERSION_VALUE);
-        return settings;
+        if (fixedAppSettings == null) {
+            // only override properties with default value once
+            fixedAppSettings = new HashMap(getAppSettings());
+            setDefaultAppSetting(fixedAppSettings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
+                    FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
+            setDefaultAppSetting(fixedAppSettings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
+                    FUNCTIONS_EXTENSION_VERSION_VALUE);
+        }
+        return fixedAppSettings;
     }
 
     public FunctionExtensionVersion getFunctionExtensionVersion() throws AzureExecutionException {
