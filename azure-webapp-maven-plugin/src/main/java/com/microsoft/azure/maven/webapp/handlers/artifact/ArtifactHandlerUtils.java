@@ -23,10 +23,10 @@ public class ArtifactHandlerUtils {
     public static final String DEFAULT_APP_SERVICE_JAR_NAME = "app.jar";
 
     /**
-     * Interfaces WebApp && DeploymentSlot define their own warDeploy API separately.
+     * Interfaces WebApp and DeploymentSlot define their own warDeploy API separately.
      * Ideally, it should be defined in their base interface WebAppBase.
      * {@link com.microsoft.azure.management.appservice.WebAppBase}
-     * Comparing to abstracting an adapter for WebApp && DeploymentSlot, we choose a lighter solution:
+     * Comparing to abstracting an adapter for WebApp and DeploymentSlot, we choose a lighter solution:
      * work around to get the real implementation of warDeploy.
      */
     public static Runnable getRealWarDeployExecutor(final DeployTarget target, final File war, final String path)
