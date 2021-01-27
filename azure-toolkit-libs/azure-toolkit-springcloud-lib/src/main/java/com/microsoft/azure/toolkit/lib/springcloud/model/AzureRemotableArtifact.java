@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.toolkit.lib.common;
+package com.microsoft.azure.toolkit.lib.springcloud.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
