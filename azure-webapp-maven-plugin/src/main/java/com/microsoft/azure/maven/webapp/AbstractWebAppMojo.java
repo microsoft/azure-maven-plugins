@@ -6,40 +6,62 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.azure.core.management.AzureEnvironment;
+import com.azure.core.management.profile.AzureProfile;
+import com.azure.core.util.Configuration;
+import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils;
+import com.azure.resourcemanager.resources.models.Subscription;
 import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.model.MavenAuthConfiguration;
+import com.microsoft.azure.maven.model.SubscriptionOption2;
+import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
+import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.AbstractConfigParser;
-import com.microsoft.azure.maven.webapp.parser.ConfigurationParser;
-import com.microsoft.azure.maven.webapp.parser.V1ConfigurationParser;
+import com.microsoft.azure.maven.webapp.parser.V1ConfigParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigParser;
-import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkits.appservice.AzureAppService;
+import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
+import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.exception.AzureLoginException;
+import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.tools.common.util.StringListUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.beryx.textio.TextIO;
+import org.beryx.textio.TextIoFactory;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Base abstract class for Web App Mojos.
@@ -47,7 +69,6 @@ import java.util.UUID;
 public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String JAVA_VERSION_KEY = "javaVersion";
     public static final String JAVA_WEB_CONTAINER_KEY = "javaWebContainer";
-    public static final String LINUX_RUNTIME_KEY = "linuxRuntime";
     public static final String DOCKER_IMAGE_TYPE_KEY = "dockerImageType";
     public static final String DEPLOYMENT_TYPE_KEY = "deploymentType";
     public static final String OS_KEY = "os";
@@ -359,54 +380,32 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
     //endregion
 
-    protected ConfigurationParser getParserBySchemaVersion() throws AzureExecutionException {
-        final String version = StringUtils.isEmpty(getSchemaVersion()) ? "v1" : getSchemaVersion();
-
-        switch (version.toLowerCase(Locale.ENGLISH)) {
-            case "v1":
-                return new V1ConfigurationParser(this, new V1ConfigurationValidator(this));
-            case "v2":
-                return new V2ConfigurationParser(this, new V2ConfigurationValidator(this));
-            default:
-                throw new AzureExecutionException(SchemaVersion.UNKNOWN_SCHEMA_VERSION);
-        }
-    }
-
-    protected WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {
-        if (webAppConfiguration == null) {
-            webAppConfiguration = getParserBySchemaVersion().getWebAppConfiguration();
-        }
-        return webAppConfiguration;
-    }
-
     //region Telemetry Configuration Interface
 
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
-        final WebAppConfiguration webAppConfig;
+        final WebAppConfig webAppConfig;
         try {
-            webAppConfig = getWebAppConfiguration();
+            webAppConfig = getWebAppConfig();
         } catch (Exception e) {
             map.put(INVALID_CONFIG_KEY, e.getMessage());
             return map;
         }
-        if (webAppConfig.getImage() != null) {
-            final String imageType = AppServiceUtils.getDockerImageType(webAppConfig.getImage(),
-                StringUtils.isNotEmpty(webAppConfig.getServerId()), webAppConfig.getRegistryUrl()).toString();
+        if (webAppConfig.getDockerConfiguration() != null) {
+            final DockerConfiguration dockerConfiguration = webAppConfig.getDockerConfiguration();
+            final String imageType = AppServiceUtils.getDockerImageType(dockerConfiguration.getImage(), StringUtils.isEmpty(dockerConfiguration.getPassword()),
+                    dockerConfiguration.getRegistryUrl()).name();
             map.put(DOCKER_IMAGE_TYPE_KEY, imageType);
         } else {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
         }
         map.put(SCHEMA_VERSION_KEY, schemaVersion);
-        map.put(OS_KEY, webAppConfig.getOs() == null ? "" : webAppConfig.getOs().toString());
-        map.put(JAVA_VERSION_KEY, webAppConfig.getJavaVersion() == null ? "" :
-            webAppConfig.getJavaVersion().toString());
-        map.put(JAVA_WEB_CONTAINER_KEY, webAppConfig.getWebContainer() == null ? "" :
-            webAppConfig.getJavaVersion().toString());
-        map.put(LINUX_RUNTIME_KEY, webAppConfig.getRuntimeStack() == null ? "" :
-            webAppConfig.getRuntimeStack().stack() + " " + webAppConfig.getRuntimeStack().version());
-
+        map.put(OS_KEY, webAppConfig.getRuntime() == null ? "" : Objects.toString(webAppConfig.getRuntime().getOperatingSystem()));
+        map.put(JAVA_VERSION_KEY, (webAppConfig.getRuntime() == null || webAppConfig.getRuntime().getJavaVersion() == null) ?
+                "" : webAppConfig.getRuntime().getJavaVersion().toString());
+        map.put(JAVA_WEB_CONTAINER_KEY, (webAppConfig.getRuntime() == null || webAppConfig.getRuntime().getWebContainer() == null) ?
+                "" : webAppConfig.getRuntime().getWebContainer().toString());
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
         } catch (AzureExecutionException e) {
@@ -419,8 +418,103 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         final SchemaVersion version = SchemaVersion.fromString(getSchemaVersion());
         final AbstractConfigurationValidator validator = version == SchemaVersion.V2 ?
                 new V2ConfigurationValidator(this) : new V1ConfigurationValidator(this);
-        final AbstractConfigParser parser = version == SchemaVersion.V2 ? new V2ConfigParser(this, validator) : new V2ConfigParser(this, validator);
+        final AbstractConfigParser parser = version == SchemaVersion.V2 ? new V2ConfigParser(this, validator) : new V1ConfigParser(this, validator);
         return parser.parse();
+    }
+
+    protected AzureAppService getOrCreateAzureAppServiceClient() throws AzureExecutionException {
+        try {
+            final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
+            mavenAuthConfiguration.setType(getAuthType());
+            final AzureCredentialWrapper azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration,
+                    this.httpProxyHost, this.httpProxyPort);
+            if (Objects.isNull(azureCredentialWrapper)) {
+                return null;
+            }
+            final com.microsoft.azure.AzureEnvironment env = azureCredentialWrapper.getEnv();
+            final String environmentName = AuthHelper.azureEnvironmentToString(env);
+            if (env != com.microsoft.azure.AzureEnvironment.AZURE) {
+                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
+            }
+            Log.info(azureCredentialWrapper.getCredentialDescription());
+            final Configuration configuration = new Configuration()
+                    .put(Configuration.PROPERTY_HTTP_PROXY, String.format("%s:%s", getHttpProxyHost(), Integer.toString(getHttpProxyPort())));
+            final AzureProfile profile = new AzureProfile(azureCredentialWrapper.getTenantId(), getSubscriptionId(),
+                    convertEnvironment(azureCredentialWrapper.getEnv()));
+            final AzureResourceManager.Authenticated authenticated =
+                    AzureResourceManager.configure().withConfiguration(configuration).authenticate(azureCredentialWrapper.getTokenCredential(), profile);
+            final List<Subscription> subscriptions = authenticated.subscriptions().list().stream().collect(Collectors.toList());
+            final String managerDefaultSubsId = ResourceManagerUtils.getDefaultSubscription(authenticated.subscriptions().list());
+            final String targetSubscriptionId = getTargetSubscriptionId(azureCredentialWrapper, subscriptions, managerDefaultSubsId);
+            checkSubscription(subscriptions, targetSubscriptionId);
+            azureCredentialWrapper.withDefaultSubscriptionId(targetSubscriptionId);
+            final AzureResourceManager azureResourceManager = authenticated.withSubscription(targetSubscriptionId);
+            return AzureAppService.auth(azureResourceManager);
+        } catch (AzureLoginException | AzureExecutionException e) {
+            throw new AzureExecutionException(e.getMessage());
+        }
+    }
+
+    private String getTargetSubscriptionId(AzureCredentialWrapper azureCredentialWrapper, List<Subscription> subscriptions, String managerDefaultId)
+            throws AzureExecutionException {
+        final List<String> subsIdList = subscriptions.stream().map(Subscription::subscriptionId).collect(Collectors.toList());
+        String targetSubscriptionId = StringUtils.firstNonBlank(this.subscriptionId, azureCredentialWrapper.getDefaultSubscriptionId());
+
+        if (StringUtils.isBlank(targetSubscriptionId) && ArrayUtils.isNotEmpty(azureCredentialWrapper.getFilteredSubscriptionIds())) {
+            final Collection<String> filteredSubscriptions = StringListUtils.intersectIgnoreCase(subsIdList,
+                    Arrays.asList(azureCredentialWrapper.getFilteredSubscriptionIds()));
+            if (filteredSubscriptions.size() == 1) {
+                targetSubscriptionId = filteredSubscriptions.iterator().next();
+            }
+        }
+        if (StringUtils.isBlank(targetSubscriptionId)) {
+            return selectSubscription(managerDefaultId, subscriptions.toArray(new Subscription[0]));
+        }
+        return targetSubscriptionId;
+    }
+
+    protected String selectSubscription(String defaultId, Subscription[] subscriptions) throws AzureExecutionException {
+        if (subscriptions.length == 0) {
+            throw new AzureExecutionException("Cannot find any subscriptions in current account.");
+        }
+        if (subscriptions.length == 1) {
+            Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
+                    com.microsoft.azure.common.utils.TextUtils.blue(SubscriptionOption2.getSubscriptionName(subscriptions[0]))));
+            return subscriptions[0].subscriptionId();
+        }
+        final List<SubscriptionOption2> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption2(t))
+                .sorted()
+                .collect(Collectors.toList());
+        final SubscriptionOption2 defaultValue = wrapSubs.stream()
+                .filter(t -> StringUtils.equalsIgnoreCase(t.getSubscriptionId(), defaultId)).findFirst().orElse(null);
+        final TextIO textIO = TextIoFactory.getTextIO();
+        final SubscriptionOption2 subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption2>(() -> textIO.getTextTerminal(), null)
+                .withCustomPrompt(String.format("Please choose a subscription%s: ",
+                        highlightDefaultValue(defaultValue == null ? null : defaultValue.getSubscriptionName())))
+                .withNumberedPossibleValues(wrapSubs).withDefaultValue(defaultValue).read("Available subscriptions:");
+        if (subscriptionOptionSelected == null) {
+            throw new AzureExecutionException("You must select a subscription.");
+        }
+        return subscriptionOptionSelected.getSubscription().subscriptionId();
+    }
+
+    private static void checkSubscription(List<Subscription> subscriptions, String targetSubscriptionId) throws AzureLoginException {
+        if (StringUtils.isEmpty(targetSubscriptionId)) {
+            Log.warn(SUBSCRIPTION_NOT_SPECIFIED);
+            return;
+        }
+        final Optional<Subscription> optionalSubscription = subscriptions.stream()
+                .filter(subscription -> StringUtils.equals(subscription.subscriptionId(), targetSubscriptionId))
+                .findAny();
+        if (!optionalSubscription.isPresent()) {
+            throw new AzureLoginException(String.format(SUBSCRIPTION_NOT_FOUND, targetSubscriptionId));
+        }
+    }
+
+    private AzureEnvironment convertEnvironment(com.microsoft.azure.AzureEnvironment environment) {
+        return AzureEnvironment.knownEnvironments().stream()
+                .filter(env -> StringUtils.equals(environment.managementEndpoint(), env.getManagementEndpoint()))
+                .findFirst().orElse(null);
     }
 
     @Override

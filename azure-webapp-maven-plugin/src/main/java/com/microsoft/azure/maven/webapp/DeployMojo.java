@@ -6,7 +6,9 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
@@ -16,7 +18,6 @@ import com.microsoft.azure.toolkits.appservice.service.IAppService;
 import com.microsoft.azure.toolkits.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkits.appservice.service.IWebApp;
 import com.microsoft.azure.toolkits.appservice.service.IWebAppDeploymentSlot;
-import com.microsoft.azure.tools.common.model.ResourceGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,23 +41,24 @@ import java.util.stream.Collectors;
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
     private static final Path FTP_ROOT = Paths.get("/site/wwwroot");
-    private static final String NO_RESOURCES_CONFIG = "<resources> is empty. Please make sure it is configured in pom.xml.";
-
-    public static final String WEBAPP_NOT_EXIST = "Target Web App doesn't exist. Creating a new one...";
-    public static final String WEBAPP_CREATED = "Successfully created Web App.";
-    public static final String CREATE_DEPLOYMENT_SLOT = "Target Deployment Slot doesn't exist. Creating a new one...";
-    public static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created the Deployment Slot.";
-    public static final String UPDATE_WEBAPP = "Updating target Web App...";
-    public static final String UPDATE_WEBAPP_SKIP = "No runtime configured. Skip the update.";
-    public static final String UPDATE_WEBAPP_DONE = "Successfully updated Web App.";
-
-    public static final String WEBAPP_NOT_EXIST_FOR_SLOT = "The Web App specified in pom.xml does not exist. " +
+    private static final String CREATE_WEBAPP = "Creating web app %s...";
+    private static final String CREATE_WEB_APP_DONE = "Successfully created Web App %s.";
+    private static final String UPDATE_WEBAPP = "Updating target Web App %s...";
+    private static final String UPDATE_WEBAPP_DONE = "Successfully updated Web App %s.";
+    private static final String CREATE_RESOURCE_GROUP = "Creating resource group %s in region %s...";
+    private static final String CREATE_RESOURCE_GROUP_DONE = "Successfully created resource group %s.";
+    private static final String CREATE_APP_SERVICE_PLAN = "Creating app service plan...";
+    private static final String CREATE_APP_SERVICE_DONE = "Successfully created app service plan %s.";
+    private static final String WEBAPP_NOT_EXIST_FOR_SLOT = "The Web App specified in pom.xml does not exist. " +
             "Please make sure the Web App name is correct.";
-    public static final String SLOT_SHOULD_EXIST_NOW = "Target deployment slot still does not exist. " +
-            "Please check if any error message during creation.";
+    private static final String CREATE_DEPLOYMENT_SLOT = "Creating deployment slot %s in web app %s";
+    private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created the Deployment Slot.";
 
     @Override
     protected void doExecute() throws AzureExecutionException {
+        // initialize library client
+        az = getOrCreateAzureAppServiceClient();
+
         final WebAppConfig config = getWebAppConfig();
         final IAppService target = createOrUpdateResource(config);
         deploy(target, config);
@@ -78,28 +80,26 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private IWebAppDeploymentSlot getDeploymentSlot(final WebAppConfig config) throws AzureExecutionException {
         final IWebApp webApp = getWebApp(config);
-        final boolean isDeploymentSlot = StringUtils.isNotEmpty(config.getDeploymentSlotName());
-        if (isDeploymentSlot && !webApp.exists()) {
+        if (!webApp.exists()) {
             throw new AzureExecutionException(WEBAPP_NOT_EXIST_FOR_SLOT);
         }
         return webApp.deploymentSlot(config.getDeploymentSlotName());
     }
 
     private IWebApp createWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) {
-        // todo: get or create Resource Group
-        final ResourceGroup resourceGroup = null;
-        // Get or create App Service Plan
-        final IAppServicePlan appServicePlan = az.appServicePlan(webAppConfig.getServicePlanResourceGroup(), webAppConfig.getServicePlanName());
-        if (!appServicePlan.exists()) {
-            appServicePlan.create()
-                    .withName(webAppConfig.getServicePlanName())
-                    .withResourceGroup(resourceGroup.getName())
-                    .withRegion(webAppConfig.getRegion())
-                    .withPricingTier(webAppConfig.getPricingTier())
-                    .withOperatingSystem(webAppConfig.getRuntime().getOperatingSystem())
-                    .commit();
+        // todo: Extract resource group logic to library
+        final ResourceGroup resourceGroup = az.getAzureResourceManager().resourceGroups().getByName(webAppConfig.getResourceGroup());
+        if (resourceGroup == null) {
+            Log.info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion()));
+            az.getAzureResourceManager().resourceGroups().define(webAppConfig.getResourceGroup())
+                    .withRegion(webAppConfig.getRegion().getName()).create();
+            Log.info(String.format(CREATE_RESOURCE_GROUP_DONE, webAppConfig.getResourceGroup()));
         }
-        return webApp.create().withName(webAppConfig.getAppName())
+        // Get or create App Service Plan
+        final IAppServicePlan appServicePlan = getOrCreateAppServicePlan(webAppConfig);
+
+        Log.info(String.format(CREATE_WEBAPP, webAppConfig.getAppName()));
+        final IWebApp result = webApp.create().withName(webAppConfig.getAppName())
                 .withResourceGroup(webAppConfig.getResourceGroup())
                 .withPlan(appServicePlan.entity().getId())
                 .withRuntime(webAppConfig.getRuntime())
@@ -107,30 +107,63 @@ public class DeployMojo extends AbstractWebAppMojo {
                 .withSubscription(webAppConfig.getSubscriptionId())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
+        Log.info(String.format(CREATE_WEB_APP_DONE, result.entity().getName()));
+        return result;
     }
 
     private IWebApp updateWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) throws AzureExecutionException {
         // update app service plan
+        Log.info(String.format(UPDATE_WEBAPP, webApp.entity().getName()));
         final IAppServicePlan currentPlan = webApp.plan();
-        final IAppServicePlan targetServicePlan = StringUtils.isEmpty(webAppConfig.getServicePlanName()) ? currentPlan :
-                az.appServicePlan(webAppConfig.getServicePlanResourceGroup(), webAppConfig.getServicePlanName());
+        IAppServicePlan targetServicePlan = StringUtils.isEmpty(webAppConfig.getServicePlanName()) ? currentPlan :
+                az.appServicePlan(getServicePlanResourceGroup(webAppConfig), webAppConfig.getServicePlanName());
         if (!targetServicePlan.exists()) {
-            throw new AzureExecutionException(String.format("App service plan %s was not found in resource group %s",
-                    webAppConfig.getServicePlanName(), webAppConfig.getServicePlanResourceGroup()));
+            targetServicePlan = getOrCreateAppServicePlan(webAppConfig);
         }
         targetServicePlan.update().withPricingTier(webAppConfig.getPricingTier()).commit();
-        return webApp.update().withPlan(targetServicePlan.entity().getId())
+        final IWebApp result = webApp.update().withPlan(targetServicePlan.entity().getId())
                 .withRuntime(webAppConfig.getRuntime())
                 .withDockerConfiguration(webAppConfig.getDockerConfiguration())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
+        Log.info(String.format(UPDATE_WEBAPP_DONE, webApp.entity().getName()));
+        return result;
+    }
+
+    private IAppServicePlan getOrCreateAppServicePlan(final WebAppConfig webAppConfig) {
+        final IAppServicePlan appServicePlan = az.appServicePlan(getServicePlanResourceGroup(webAppConfig), webAppConfig.getServicePlanName());
+        if (!appServicePlan.exists()) {
+            Log.info(CREATE_APP_SERVICE_PLAN);
+            appServicePlan.create()
+                    .withName(getNewAppServicePlanName(webAppConfig))
+                    .withResourceGroup(getServicePlanResourceGroup(webAppConfig))
+                    .withRegion(webAppConfig.getRegion())
+                    .withPricingTier(webAppConfig.getPricingTier())
+                    .withOperatingSystem(webAppConfig.getRuntime().getOperatingSystem())
+                    .commit();
+            Log.info(String.format(CREATE_APP_SERVICE_DONE, appServicePlan.entity().getName()));
+        }
+        return appServicePlan;
+    }
+
+    private String getNewAppServicePlanName(final WebAppConfig webAppConfig) {
+        return StringUtils.isEmpty(webAppConfig.getServicePlanName()) ? String.format("asp-%s", webAppConfig.getAppName()) :
+                webAppConfig.getServicePlanName();
+    }
+
+    private String getServicePlanResourceGroup(final WebAppConfig webAppConfig) {
+        return StringUtils.isEmpty(webAppConfig.getServicePlanResourceGroup()) ? webAppConfig.getResourceGroup() :
+                webAppConfig.getServicePlanName();
     }
 
     private IWebAppDeploymentSlot createDeploymentSlot(final IWebAppDeploymentSlot slot, final WebAppConfig webAppConfig) {
-        return slot.create().withName(webAppConfig.getDeploymentSlotName())
+        Log.info(String.format(CREATE_DEPLOYMENT_SLOT, webAppConfig.getDeploymentSlotName(), webAppConfig.getAppName()));
+        final IWebAppDeploymentSlot result = slot.create().withName(webAppConfig.getDeploymentSlotName())
                 .withConfigurationSource(webAppConfig.getDeploymentSlotConfigurationSource())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
+        Log.info(CREATE_DEPLOYMENT_SLOT_DONE);
+        return result;
     }
 
     private void deploy(IAppService target, WebAppConfig config) throws AzureExecutionException {
