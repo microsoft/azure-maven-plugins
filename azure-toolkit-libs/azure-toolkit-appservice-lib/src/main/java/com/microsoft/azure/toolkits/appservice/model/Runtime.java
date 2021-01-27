@@ -22,8 +22,6 @@ import java.util.Objects;
 @AllArgsConstructor
 public class Runtime {
 
-    private static Logger logger = LoggerFactory.getLogger(Runtime.class);
-
     public static final Runtime WINDOWS_JAVA8 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_SE, JavaVersion.JAVA_8);
     public static final Runtime WINDOWS_JAVA11 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_SE, JavaVersion.JAVA_11);
     public static final Runtime WINDOWS_JAVA8_TOMCAT9 = new Runtime(OperatingSystem.WINDOWS, WebContainer.TOMCAT_9, JavaVersion.JAVA_8);
@@ -56,7 +54,6 @@ public class Runtime {
         if (standardRuntime != null) {
             return standardRuntime;
         }
-        logger.warn(String.format("%s and %s is not recommended for %s app service", webContainer, javaVersion, operatingSystem));
         return new Runtime(operatingSystem, webContainer, javaVersion);
     }
 

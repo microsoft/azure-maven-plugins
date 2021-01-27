@@ -5,14 +5,18 @@
  */
 package com.microsoft.azure.toolkits.appservice.service.impl;
 
+import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.SkuDescription;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkits.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkits.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkits.appservice.entity.WebAppEntity;
+import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkits.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkits.appservice.model.PricingTier;
@@ -21,8 +25,10 @@ import com.microsoft.azure.toolkits.appservice.model.Runtime;
 import com.microsoft.azure.toolkits.appservice.model.WebContainer;
 import com.microsoft.azure.toolkits.appservice.utils.Utils;
 import com.microsoft.azure.tools.common.model.Region;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -62,7 +68,7 @@ class AppServiceUtils {
     static RuntimeStack toLinuxRuntimeStack(Runtime runtime) {
         return RuntimeStack.getAll().stream().filter(runtimeStack -> {
             final Runtime stackRuntime = Runtime.getRuntimeFromLinuxFxVersion(runtimeStack.toString());
-            return Objects.equals(stackRuntime.getJavaVersion(), runtime.getJavaVersion()) &&
+            return stackRuntime != null && Objects.equals(stackRuntime.getJavaVersion(), runtime.getJavaVersion()) &&
                     Objects.equals(stackRuntime.getWebContainer(), runtime.getWebContainer());
         }).findFirst().orElse(null);
     }
@@ -138,7 +144,7 @@ class AppServiceUtils {
                 .build();
     }
 
-    public static WebAppEntity getWebAppEntity(WebAppBasic webAppBasic) {
+    static WebAppEntity getBasicWebAppEntity(WebAppBasic webAppBasic) {
         return WebAppEntity.builder().name(webAppBasic.name())
                 .id(webAppBasic.id())
                 .region(Region.fromName(webAppBasic.regionName()))
@@ -149,7 +155,7 @@ class AppServiceUtils {
                 .build();
     }
 
-    public static WebAppDeploymentSlotEntity getWebAppDeploymentSlotEntity(DeploymentSlot deploymentSlot) {
+    static WebAppDeploymentSlotEntity getWebAppDeploymentSlotEntity(DeploymentSlot deploymentSlot) {
         return WebAppDeploymentSlotEntity.builder()
                 .name(deploymentSlot.name())
                 .webappName(deploymentSlot.parent().name())
@@ -163,7 +169,7 @@ class AppServiceUtils {
                 .build();
     }
 
-    public static AppServicePlanEntity getAppServicePlanEntity(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
+    static AppServicePlanEntity getAppServicePlanEntity(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
         return AppServicePlanEntity.builder()
                 .id(appServicePlan.id())
                 .name(appServicePlan.name())
@@ -172,5 +178,32 @@ class AppServiceUtils {
                 .pricingTier(getPricingTier(appServicePlan.pricingTier()))
                 .operatingSystem(getOperatingSystem(appServicePlan.operatingSystem()))
                 .build();
+    }
+
+    static AppServicePlan getAppServicePlan(AppServicePlanEntity entity, AzureResourceManager azureClient) {
+        try {
+            return StringUtils.isNotEmpty(entity.getId()) ?
+                    azureClient.appServicePlans().getById(entity.getId()) :
+                    azureClient.appServicePlans().getByResourceGroup(entity.getResourceGroup(), entity.getName());
+        } catch (Exception e) {
+            // SDK will throw exception when resource not founded
+            return null;
+        }
+    }
+
+    static DeployType getDeployTypeByFileExtension(File file) {
+        final String fileExtensionName = FilenameUtils.getExtension(file.getName());
+        switch (StringUtils.lowerCase(fileExtensionName)) {
+            case "jar":
+                return DeployType.JAR;
+            case "war":
+                return DeployType.WAR;
+            case "ear":
+                return DeployType.EAR;
+            case "zip":
+                return DeployType.ZIP;
+            default:
+                throw new AzureToolkitRuntimeException("Unsupported file type, please set the deploy type.");
+        }
     }
 }
