@@ -41,7 +41,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     //region Properties
     /**
-     * App Service pricing tier, which will only be used to create Functions App at the first time.<br/>
+     * App Service pricing tier, which will only be used to create Functions App at the first time.<p>
      * Below is the list of supported pricing tier:
      * <ul>
      *     <li>F1</li>
