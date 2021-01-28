@@ -31,7 +31,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.microsoft.azure.common.appservice.DeploymentType.DOCKER;
@@ -129,24 +128,9 @@ public class DeployMojoTest extends MojoTestBase {
     public void configureAppSettings() throws Exception {
         final WithCreate withCreate = mock(WithCreate.class);
 
-        mojo.configureAppSettings(withCreate::withAppSettings, mojo.getAppSettingsWithDefaultValue());
+        mojo.configureAppSettings(withCreate::withAppSettings, mojo.getAppSettings());
 
         verify(withCreate, times(1)).withAppSettings(anyMap());
-    }
-
-    @Test
-    public void testDefaultAppSettings() throws Exception {
-        final Map settings = mojo.getAppSettingsWithDefaultValue();
-        assertEquals("java", settings.get("FUNCTIONS_WORKER_RUNTIME"));
-        assertEquals("~3", settings.get("FUNCTIONS_EXTENSION_VERSION"));
-    }
-
-    @Test
-    public void testCustomAppSettings() throws Exception {
-        final DeployMojo mojoWithSettings = (DeployMojo) getMojoFromPom("/pom-with-settings.xml", "deploy");
-        final Map settings = mojoWithSettings.getAppSettingsWithDefaultValue();
-        assertEquals("bar", settings.get("FOO"));
-        assertEquals("beta", settings.get("FUNCTIONS_EXTENSION_VERSION"));
     }
 
     @Test
