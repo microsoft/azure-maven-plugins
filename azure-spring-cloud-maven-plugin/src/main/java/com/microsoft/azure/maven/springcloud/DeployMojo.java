@@ -112,7 +112,8 @@ public class DeployMojo extends AbstractMojoBase {
             .configRuntimeVersion(runtimeVersion)
             .configArtifact(artifactUploader.getArtifact());
         final SpringCloudApp.Updater appUpdater = app.update()
-            .activate(StringUtils.firstNonBlank(app.getActiveDeploymentName(), deploymentName)) // active deployment should keep active.
+            // active deployment should keep active.
+            .activate(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null))
             .setPublic(appConfig.isPublic())
             .enablePersistentDisk(enableDisk);
 
@@ -152,12 +153,15 @@ public class DeployMojo extends AbstractMojoBase {
             printStatus(deployment);
             printPublicUrl(app);
         }));
-        if (this.confirmDeploy(tasks)) {
-            tasks.forEach(AzureTask::execute);
+        final boolean shouldSkipConfirm = !prompt || (this.settings != null && !this.settings.isInteractiveMode());
+        if (!shouldSkipConfirm && !this.confirm(tasks)) {
+            log.warn("Deployment is cancelled!");
+            return;
         }
+        tasks.forEach(AzureTask::execute);
     }
 
-    protected boolean confirmDeploy(List<AzureTask<?>> tasks) throws MojoFailureException {
+    protected boolean confirm(List<AzureTask<?>> tasks) throws MojoFailureException {
         try {
             final IPrompter prompter = new DefaultPrompter();
             System.out.println(CONFIRM_PROMPT_START);

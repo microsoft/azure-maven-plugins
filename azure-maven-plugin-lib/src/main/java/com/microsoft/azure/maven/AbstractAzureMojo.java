@@ -133,11 +133,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     protected MavenResourcesFiltering mavenResourcesFiltering;
 
     /**
-     * Authentication setting for Azure Management API.<br/>
+     * Authentication setting for Azure Management API.<p>
      * Below are the supported sub-elements within {@code <authentication>}. You can use one of them to authenticate
-     * with azure<br/>
+     * with azure<p>
      * {@code <serverId>} specifies the credentials of your Azure service principal, by referencing a server definition
-     * in Maven's settings.xml<br/>
+     * in Maven's settings.xml<p>
      * {@code <file>} specifies the absolute path of your authentication file for Azure.
      *
      * @since 0.1.0
@@ -166,7 +166,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     protected boolean allowTelemetry;
 
     /**
-     * Boolean flag to control whether throwing exception from current Maven plugin when meeting any error.<br/>
+     * Boolean flag to control whether throwing exception from current Maven plugin when meeting any error.<p>
      * If set to true, the exception from current Maven plugin will fail the current Maven run.
      *
      * @since 0.1.0

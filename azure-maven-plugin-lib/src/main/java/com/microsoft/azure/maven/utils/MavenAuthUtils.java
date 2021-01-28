@@ -40,7 +40,9 @@ public class MavenAuthUtils {
                     buildAuthConfigurationByServerId(session, settingsDecrypter, serverId) : auth);
             ValidationUtil.validateHttpProxy(httpProxyHost, httpProxyPort);
             authConfiguration.setHttpProxyHost(httpProxyHost);
-            authConfiguration.setHttpProxyPort(NumberUtils.toInt(httpProxyPort));
+            if (Objects.nonNull(httpProxyPort)) {
+                authConfiguration.setHttpProxyPort(NumberUtils.toInt(httpProxyPort));
+            }
         } catch (InvalidConfigurationException ex) {
             final String messagePostfix = StringUtils.isNotBlank(serverId) ? ("in server: '" + serverId + "' at maven settings.xml.")
                     : "in <auth> configuration.";
