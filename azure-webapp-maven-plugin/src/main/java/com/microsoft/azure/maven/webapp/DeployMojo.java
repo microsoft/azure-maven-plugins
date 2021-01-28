@@ -104,7 +104,6 @@ public class DeployMojo extends AbstractWebAppMojo {
                 .withPlan(appServicePlan.entity().getId())
                 .withRuntime(webAppConfig.getRuntime())
                 .withDockerConfiguration(webAppConfig.getDockerConfiguration())
-                .withSubscription(webAppConfig.getSubscriptionId())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
         Log.info(String.format(CREATE_WEB_APP_DONE, result.entity().getName()));
