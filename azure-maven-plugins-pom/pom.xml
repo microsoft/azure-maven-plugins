@@ -69,7 +69,6 @@
         <jacoco.version>0.8.6</jacoco.version>
         <jansi.version>1.17.1</jansi.version>
         <jaxb.version>2.3.2</jaxb.version>
-        <jetty.server.version>9.4.35.v20201120</jetty.server.version>
         <json.schema.validator.version>2.2.14</json.schema.validator.version>
         <jsonwebtoken.jjwt.version>0.9.1</jsonwebtoken.jjwt.version>
         <jtwig.core.version>5.87.0.RELEASE</jtwig.core.version>
@@ -177,16 +176,6 @@
                         <artifactId>jsr305</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-server</artifactId>
-                <version>${jetty.server.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-servlet</artifactId>
-                <version>${jetty.server.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
