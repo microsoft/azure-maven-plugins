@@ -66,7 +66,7 @@ Please refer this [document](https://github.com/Azure/azure-managed-service-for-
 1. Deploy the above apps with the following command
 
     ``` 
-    mvn com.microsoft.azure:azure-spring-cloud-maven-plugin:0.4.0:deploy
+    mvn azure-spring-cloud:deploy
     ```
     
 1. You may access Piggy Metrics with the url printed in above command
