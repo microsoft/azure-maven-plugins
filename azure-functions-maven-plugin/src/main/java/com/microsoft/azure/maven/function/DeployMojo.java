@@ -368,11 +368,11 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected void parseConfiguration() {
+        processAppSettingsWithDefaultValue();
         parsedJavaVersion = FunctionUtils.parseJavaVersion(getRuntime().getJavaVersion());
-        appSettings = processAppSettingsWithDefaultValue();
     }
 
-    public Properties processAppSettingsWithDefaultValue() {
+    public void processAppSettingsWithDefaultValue() {
         if (appSettings == null) {
             appSettings = new Properties();
         }
@@ -380,7 +380,6 @@ public class DeployMojo extends AbstractFunctionMojo {
                 FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
         setDefaultAppSetting(fixedAppSettings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
                 FUNCTIONS_EXTENSION_VERSION_VALUE);
-        return appSettings;
     }
 
     private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
