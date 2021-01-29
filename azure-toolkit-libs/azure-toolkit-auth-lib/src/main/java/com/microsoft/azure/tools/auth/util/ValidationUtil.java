@@ -35,7 +35,6 @@ public class ValidationUtil {
         if (Objects.nonNull(errorMessage)) {
             throw new InvalidConfigurationException(errorMessage);
         }
-        validateHttpProxy(config.getHttpProxyHost(), Objects.toString(config.getHttpProxyPort(), null));
         return config;
     }
 

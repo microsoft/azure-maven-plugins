@@ -6,9 +6,9 @@
 
 package com.microsoft.azure.tools.auth;
 
-
 import com.azure.core.util.Configuration;
 import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.tools.common.util.StringListUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,11 +56,11 @@ public class AuthHelper {
         }
     }
 
-    public static void setupAuthProxy(String httpProxyHost, String httpProxyPort) {
+    public static void setupAuthProxy() {
+        final String httpProxyHost = ProxyManager.getInstance().getHttpProxyHost();
         if (StringUtils.isNotBlank(httpProxyHost)) {
-            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, String.format("http://%s:%s", httpProxyHost, httpProxyPort));
-            setPropertyIfNotExist("http.proxyHost", httpProxyHost);
-            setPropertyIfNotExist("http.proxyPort", httpProxyPort);
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY,
+                    String.format("http://%s:%s", httpProxyHost, ProxyManager.getInstance().getHttpProxyPort()));
         }
     }
 

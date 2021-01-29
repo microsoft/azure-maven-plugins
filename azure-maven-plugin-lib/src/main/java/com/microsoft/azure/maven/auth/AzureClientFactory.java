@@ -9,20 +9,20 @@ package com.microsoft.azure.maven.auth;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
-import com.microsoft.azure.tools.common.util.ProxyUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 
 public class AzureClientFactory {
     public static Azure getAzureClient(AzureCredentialWrapper azureTokenCredentials,
-                                       String userAgent, String httpProxyHost, int httpProxyPort) throws IOException, AzureLoginException {
+                                       String userAgent) throws IOException, AzureLoginException {
         Preconditions.checkNotNull(azureTokenCredentials, "The parameter 'azureTokenCredentials' cannot be null.");
         final String defaultSubscriptionId = azureTokenCredentials.getDefaultSubscriptionId();
         final Authenticated authenticated = Azure.configure().withUserAgent(userAgent)
-                .withProxy(ProxyUtils.createHttpProxy(httpProxyHost, Integer.toString(httpProxyPort)))
+                .withProxy(ProxyManager.getInstance().getProxy())
                 .authenticate(azureTokenCredentials.getAzureTokenCredentials());
 
         return StringUtils.isEmpty(defaultSubscriptionId) ? authenticated.withDefaultSubscription() :

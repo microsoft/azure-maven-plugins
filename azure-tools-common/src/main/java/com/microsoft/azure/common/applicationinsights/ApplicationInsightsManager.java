@@ -13,7 +13,7 @@ import com.microsoft.azure.management.applicationinsights.v2015_05_01.Applicatio
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.ApplicationType;
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.implementation.InsightsManager;
 import com.microsoft.azure.management.resources.Provider;
-import com.microsoft.azure.tools.common.util.ProxyUtils;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.Proxy;
@@ -31,9 +31,8 @@ public class ApplicationInsightsManager {
     private Azure azure;
     private InsightsManager insightsManager;
 
-    public ApplicationInsightsManager(AzureTokenCredentials tokenCredentials, String subscriptionId, String userAgent,
-                                      String httpProxyHost, String httpProxyPort) {
-        final Proxy proxy = ProxyUtils.createHttpProxy(httpProxyHost, httpProxyPort);
+    public ApplicationInsightsManager(AzureTokenCredentials tokenCredentials, String subscriptionId, String userAgent) {
+        final Proxy proxy = ProxyManager.getInstance().getProxy();
         azure = Azure.configure()
                 .withUserAgent(userAgent)
                 .withProxy(proxy)

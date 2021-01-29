@@ -515,7 +515,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
         final String subscriptionId = getAzureClient().subscriptionId();
         final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials.getAzureTokenCredentials(),
-                subscriptionId, getUserAgent(), getHttpProxyHost(), Integer.toString(getHttpProxyPort()));
+                subscriptionId, getUserAgent());
         return StringUtils.isNotEmpty(getAppInsightsInstance()) ?
                 getApplicationInsights(applicationInsightsManager, getAppInsightsInstance()) :
                 enableCreation ? createApplicationInsights(applicationInsightsManager, getAppName()) : null;
