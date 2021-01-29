@@ -36,7 +36,7 @@ public abstract class AbstractAppServiceUpdater<T> implements IAppServiceUpdater
 
     @Override
     public IAppServiceUpdater<T> withRuntime(Runtime runtime) {
-        this.runtime = Optional.of(runtime);
+        this.runtime = Optional.ofNullable(runtime);
         return this;
     }
 

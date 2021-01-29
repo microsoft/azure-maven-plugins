@@ -30,6 +30,7 @@ import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -230,8 +231,8 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private static File prepareStagingDirectory(List<File> files) throws AzureExecutionException {
-        final File stagingDirectory = FileUtils.getTempDirectory();
         try {
+            final File stagingDirectory = Files.createTempDirectory("azure-functions").toFile();
             FileUtils.forceDeleteOnExit(stagingDirectory);
             // Copy resources to staging folder
             for (final File file : files) {
