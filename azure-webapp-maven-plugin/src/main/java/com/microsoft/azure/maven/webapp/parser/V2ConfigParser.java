@@ -67,7 +67,7 @@ public class V2ConfigParser extends AbstractConfigParser {
     @Override
     public Runtime getRuntime() throws AzureExecutionException {
         final MavenRuntimeConfig runtime = mojo.getRuntime();
-        if (runtime == null) {
+        if (runtime == null || runtime.isEmpty()) {
             return null;
         }
         final OperatingSystem os = getOs(runtime);
