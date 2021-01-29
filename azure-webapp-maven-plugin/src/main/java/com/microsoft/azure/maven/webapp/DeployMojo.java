@@ -146,8 +146,8 @@ public class DeployMojo extends AbstractWebAppMojo {
         if (!appServicePlan.exists()) {
             Log.info(CREATE_APP_SERVICE_PLAN);
             appServicePlan.create()
-                    .withName(getNewAppServicePlanName(webAppConfig))
-                    .withResourceGroup(getServicePlanResourceGroup(webAppConfig))
+                    .withName(servicePlanName)
+                    .withResourceGroup(servicePlanGroup)
                     .withRegion(webAppConfig.getRegion())
                     .withPricingTier(webAppConfig.getPricingTier())
                     .withOperatingSystem(webAppConfig.getRuntime().getOperatingSystem())
@@ -164,7 +164,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private String getServicePlanResourceGroup(final WebAppConfig webAppConfig) {
         return StringUtils.isEmpty(webAppConfig.getServicePlanResourceGroup()) ? webAppConfig.getResourceGroup() :
-                webAppConfig.getServicePlanName();
+                webAppConfig.getServicePlanResourceGroup();
     }
 
     private IWebAppDeploymentSlot createDeploymentSlot(final IWebAppDeploymentSlot slot, final WebAppConfig webAppConfig) {
