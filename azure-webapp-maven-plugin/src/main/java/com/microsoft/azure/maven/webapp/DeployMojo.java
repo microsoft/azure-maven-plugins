@@ -13,6 +13,7 @@ import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
+import com.microsoft.azure.toolkits.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkits.appservice.model.WebContainer;
 import com.microsoft.azure.toolkits.appservice.service.IAppService;
 import com.microsoft.azure.toolkits.appservice.service.IAppServicePlan;
@@ -55,6 +56,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created the Deployment Slot.";
     private static final String DEPLOY_START = "Trying to deploy artifact to %s...";
     private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
+    private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
 
     @Override
     protected void doExecute() throws AzureExecutionException {
@@ -176,6 +178,9 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deploy(IAppService target, WebAppConfig config) throws AzureExecutionException {
+        if (target.getRuntime().getOperatingSystem() == OperatingSystem.DOCKER) {
+            Log.info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
+        }
         try {
             Log.info(String.format(DEPLOY_START, config.getAppName()));
             if (isStopAppDuringDeployment()) {
