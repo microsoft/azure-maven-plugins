@@ -51,8 +51,8 @@ public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetri
     }
 
     /**
-     * We need to override
-     * @return
+     * We need to override user configuration for some type of auth types.
+     * @return the non null azure environment
      */
     protected AzureEnvironment getAzureEnvironment() {
         return MoreObjects.firstNonNull(envFromVscode, AzureEnvironment.AZURE);
