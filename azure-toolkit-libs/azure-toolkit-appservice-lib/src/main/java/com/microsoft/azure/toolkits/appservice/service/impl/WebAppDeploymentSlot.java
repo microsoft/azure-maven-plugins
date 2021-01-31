@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkits.appservice.service.impl;
 
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
+import com.azure.resourcemanager.appservice.models.WebApp;
 import com.microsoft.azure.toolkits.appservice.AzureAppService;
 import com.microsoft.azure.toolkits.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
@@ -15,8 +16,12 @@ import com.microsoft.azure.toolkits.appservice.model.Runtime;
 import com.microsoft.azure.toolkits.appservice.service.IWebApp;
 import com.microsoft.azure.toolkits.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkits.appservice.service.IWebAppDeploymentSlotCreator;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.util.Map;
+import java.util.Optional;
 
 public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
@@ -34,81 +39,163 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
     @Override
     public IWebApp webApp() {
-        return null;
+        final WebAppDeploymentSlotEntity entity = entity();
+        return azureAppService.webapp(entity.getResourceGroup(), entity.getWebappName());
     }
 
     @Override
     public IWebAppDeploymentSlotCreator create() {
-        return null;
-    }
-
-    @Override
-    public WebAppDeploymentSlotEntity entity() {
-        return null;
+        return new WebAppDeploymentSlotCreator();
     }
 
     @Override
     public void start() {
-
+        getDeploymentSlotClient().start();
     }
 
     @Override
     public void stop() {
-
+        getDeploymentSlotClient().stop();
     }
 
     @Override
     public void restart() {
-
+        getDeploymentSlotClient().restart();
     }
 
     @Override
     public void delete() {
-
+        getDeploymentSlotClient().parent().deploymentSlots().deleteByName(slotEntity.getName());
     }
 
     @Override
     public void deploy(File file) {
-
+        deploy(AppServiceUtils.getDeployTypeByFileExtension(file), file);
     }
 
     @Override
     public void deploy(DeployType deployType, File file) {
-
+        getDeploymentSlotClient().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), file);
     }
 
     @Override
     public boolean exists() {
-        return false;
+        return getDeploymentSlotClient(true) != null;
     }
 
     @Override
     public String hostName() {
-        return null;
+        return getDeploymentSlotClient().defaultHostname();
     }
 
     @Override
     public String state() {
-        return null;
+        return getDeploymentSlotClient().state();
     }
 
     @Override
     public Runtime getRuntime() {
-        return null;
+        return AppServiceUtils.getRuntimeFromWebApp(getDeploymentSlotClient());
     }
 
     @Override
     public PublishingProfile getPublishingProfile() {
-        return null;
+        return AppServiceUtils.getPublishingProfile(getDeploymentSlotClient().getPublishingProfile());
+    }
+
+    @Override
+    public WebAppDeploymentSlotEntity entity() {
+        return slotEntity;
+    }
+
+    private com.azure.resourcemanager.appservice.models.DeploymentSlot getDeploymentSlotClient() {
+        return getDeploymentSlotClient(false);
+    }
+
+    private synchronized com.azure.resourcemanager.appservice.models.DeploymentSlot getDeploymentSlotClient(boolean force) {
+        if (deploymentSlotClient == null || force) {
+            try {
+                final WebApp webAppService = StringUtils.isNotEmpty(slotEntity.getId()) ?
+                        azureClient.webApps().getById(slotEntity.getId().substring(0, slotEntity.getId().indexOf("/slots"))) :
+                        azureClient.webApps().getByResourceGroup(slotEntity.getResourceGroup(), slotEntity.getWebappName());
+                deploymentSlotClient = StringUtils.isNotEmpty(slotEntity.getId()) ? webAppService.deploymentSlots().getById(slotEntity.getId()) :
+                        webAppService.deploymentSlots().getByName(slotEntity.getName());
+                slotEntity = AppServiceUtils.getWebAppDeploymentSlotEntity(deploymentSlotClient);
+            } catch (Exception e) {
+                // SDK will throw exception when resource not founded
+                return null;
+            }
+        }
+        return deploymentSlotClient;
     }
 
     @Override
     public String id() {
-        return null;
+        return getDeploymentSlotClient().id();
     }
 
     @Override
     public String name() {
-        return null;
+        return getDeploymentSlotClient().name();
+    }
+
+    @Getter
+    public class WebAppDeploymentSlotCreator implements IWebAppDeploymentSlotCreator {
+        public static final String CONFIGURATION_SOURCE_NEW = "new";
+        public static final String CONFIGURATION_SOURCE_PARENT = "parent";
+        private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current web app";
+
+        private String name;
+        private String configurationSource = CONFIGURATION_SOURCE_PARENT;
+        private Optional<Map<String, String>> appSettings = null;
+
+        @Override
+        public IWebAppDeploymentSlotCreator withName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        @Override
+        public IWebAppDeploymentSlotCreator withAppSettings(Map<String, String> appSettings) {
+            this.appSettings = Optional.ofNullable(appSettings);
+            return this;
+        }
+
+        @Override
+        public IWebAppDeploymentSlotCreator withConfigurationSource(String configurationSource) {
+            this.configurationSource = configurationSource;
+            return this;
+        }
+
+        @Override
+        public WebAppDeploymentSlot commit() {
+            final WebAppDeploymentSlotEntity entity = WebAppDeploymentSlot.this.entity();
+            final WebApp webApp = azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getWebappName());
+            final DeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
+            final DeploymentSlot.DefinitionStages.WithCreate withCreate;
+            // Using configuration from parent by default
+            final String source = StringUtils.isEmpty(configurationSource) ? CONFIGURATION_SOURCE_PARENT : StringUtils.lowerCase(configurationSource);
+            switch (source) {
+                case CONFIGURATION_SOURCE_NEW:
+                    withCreate = blank.withBrandNewConfiguration();
+                    break;
+                case CONFIGURATION_SOURCE_PARENT:
+                    withCreate = blank.withConfigurationFromParent();
+                    break;
+                default:
+                    final DeploymentSlot deploymentSlot = deploymentSlotClient.parent().deploymentSlots().getByName(configurationSource);
+                    if (deploymentSlot == null) {
+                        throw new RuntimeException(CONFIGURATION_SOURCE_DOES_NOT_EXISTS);
+                    }
+                    withCreate = blank.withConfigurationFromDeploymentSlot(deploymentSlot);
+                    break;
+            }
+            if (appSettings != null && appSettings.isPresent()) {
+                withCreate.withAppSettings(appSettings.get());
+            }
+            WebAppDeploymentSlot.this.deploymentSlotClient = withCreate.create();
+            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.getWebAppDeploymentSlotEntity(WebAppDeploymentSlot.this.deploymentSlotClient);
+            return WebAppDeploymentSlot.this;
+        }
     }
 }
