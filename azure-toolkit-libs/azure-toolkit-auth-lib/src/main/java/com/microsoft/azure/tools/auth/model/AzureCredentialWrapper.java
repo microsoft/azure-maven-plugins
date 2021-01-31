@@ -77,7 +77,7 @@ public class AzureCredentialWrapper {
     }
 
     /**
-     * Get <class>AzureTokenCredentials</class> instance from track2 credential
+     * Get <code>AzureTokenCredentials</code> instance from track2 credential
      * @return AzureTokenCredentials
      */
     public AzureTokenCredentials getAzureTokenCredentials() {
