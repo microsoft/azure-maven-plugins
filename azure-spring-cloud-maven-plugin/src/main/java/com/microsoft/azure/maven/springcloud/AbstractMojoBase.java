@@ -161,6 +161,12 @@ public abstract class AbstractMojoBase extends AbstractMojo {
             AppInsightHelper.INSTANCE.trackEvent(INIT_FAILURE);
             throw new MojoFailureException(AZURE_INIT_FAIL);
         }
+        final AzureEnvironment env = azureCredentialWrapper.getEnv();
+        final String environmentName = AuthHelper.azureEnvironmentToString(env);
+        if (env != AzureEnvironment.AZURE) {
+            Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
+        }
+        Log.info(azureCredentialWrapper.getCredentialDescription());
     }
 
     protected String getAuthType() {
@@ -277,13 +283,6 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     public AppPlatformManager getAppPlatformManager() {
         if (this.manager == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-            final AzureEnvironment env = azureCredentialWrapper.getEnv();
-            final String environmentName = AuthHelper.azureEnvironmentToString(env);
-            if (env != AzureEnvironment.AZURE) {
-                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
-            }
-            Log.info(azureCredentialWrapper.getCredentialDescription());
-
             final Proxy proxy = ProxyUtils.createHttpProxy(this.httpProxyHost, this.httpProxyPort);
             this.manager = AppPlatformManager.configure()
                 .withLogLevel(logLevel)

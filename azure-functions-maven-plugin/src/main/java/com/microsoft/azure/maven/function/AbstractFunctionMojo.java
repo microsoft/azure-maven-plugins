@@ -8,10 +8,7 @@ package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.function.configurations.ElasticPremiumPricingTier;
-import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
-import com.microsoft.azure.common.function.utils.FunctionUtils;
-import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PricingTier;
@@ -26,21 +23,12 @@ import java.util.Map;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
-    private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
-    private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
-    private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java.";
-    private static final String CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING = "App setting `FUNCTIONS_WORKER_RUNTIME` doesn't " +
-            "meet the requirement of Azure Java Functions, the value should be `java`.";
-    private static final String FUNCTIONS_EXTENSION_VERSION_NAME = "FUNCTIONS_EXTENSION_VERSION";
-    private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
-    private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
-            "isn't configured, setting up the default value.";
     private static final String FUNCTION_JAVA_VERSION_KEY = "functionJavaVersion";
     private static final String DISABLE_APP_INSIGHTS_KEY = "disableAppInsights";
 
     //region Properties
     /**
-     * App Service pricing tier, which will only be used to create Functions App at the first time.<br/>
+     * App Service pricing tier, which will only be used to create Functions App at the first time.<p>
      * Below is the list of supported pricing tier:
      * <ul>
      *     <li>F1</li>
@@ -91,40 +79,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.disableAppInsights", defaultValue = "false")
     protected boolean disableAppInsights;
 
-    //endregion
-
-    //region get App Settings
-    public Map getAppSettingsWithDefaultValue() {
-        final Map settings = getAppSettings();
-        setDefaultAppSetting(settings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
-                FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
-        setDefaultAppSetting(settings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
-                FUNCTIONS_EXTENSION_VERSION_VALUE);
-        return settings;
-    }
-
-    public FunctionExtensionVersion getFunctionExtensionVersion() throws AzureExecutionException {
-        final String extensionVersion = (String) getAppSettingsWithDefaultValue().get(FUNCTIONS_EXTENSION_VERSION_NAME);
-        return FunctionUtils.parseFunctionExtensionVersion(extensionVersion);
-    }
-
-    private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
-                                      String settingValue) {
-        setDefaultAppSetting(result, settingName, settingIsEmptyMessage, settingValue, null);
-    }
-
-    private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
-                                        String settingValue, String warningMessage) {
-        final String setting = (String) result.get(settingName);
-        if (StringUtils.isEmpty(setting)) {
-            Log.info(settingIsEmptyMessage);
-            result.put(settingName, settingValue);
-        }
-        // Show warning message when user set a different value
-        if (StringUtils.isNotEmpty(setting) && StringUtils.isNotEmpty(warningMessage)) {
-            Log.warn(warningMessage);
-        }
-    }
+    protected Map fixedAppSettings;
     //endregion
 
     //region Getter

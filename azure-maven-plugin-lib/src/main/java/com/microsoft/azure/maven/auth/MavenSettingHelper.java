@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.auth;
 
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
-import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -30,7 +29,8 @@ public class MavenSettingHelper {
      * @param settingsDecrypter the decrypter
      * @param serverId          the server id
      * @return the auth configuration
-     * @throws AzureLoginException when there are errors decrypting maven generated password
+     * @throws MavenDecryptException when there are errors decrypting maven generated password
+     * @throws InvalidConfigurationException where are any illegal configurations
      */
     public static MavenAuthConfiguration buildAuthConfigurationByServerId(MavenSession session, SettingsDecrypter settingsDecrypter, String serverId)
             throws InvalidConfigurationException, MavenDecryptException {

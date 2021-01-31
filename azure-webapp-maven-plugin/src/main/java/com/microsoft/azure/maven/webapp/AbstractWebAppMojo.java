@@ -76,7 +76,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     //region Properties
 
     /**
-     * App Service pricing tier, which will only be used to create Web App at the first time.<br/>
+     * App Service pricing tier, which will only be used to create Web App at the first time.<p>
      * Below is the list of supported pricing tier:
      * <ul>
      *     <li>F1</li>
@@ -96,7 +96,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected String pricingTier;
 
     /**
-     * JVM version of Web App. This only applies to Windows-based Web App.<br/>
+     * JVM version of Web App. This only applies to Windows-based Web App.<p>
      * Below is the list of supported JVM versions:
      * <ul>
      *     <li>1.7</li>
@@ -118,7 +118,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected String javaVersion;
 
     /**
-     * Web container type and version within Web App. This only applies to Windows-based Web App.<br/>
+     * Web container type and version within Web App. This only applies to Windows-based Web App.<p>
      * Below is the list of supported web container types:
      * <ul>
      *     <li>tomcat 7.0</li>
@@ -154,11 +154,11 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected String linuxRuntime;
 
     /**
-     * Settings of docker container image within Web App. This only applies to Linux-based Web App.<br/>
-     * Below are the supported sub-element within {@code <containerSettings>}:<br/>
-     * {@code <imageName>} specifies docker image name to use in Web App on Linux<br/>
+     * Settings of docker container image within Web App. This only applies to Linux-based Web App.<p>
+     * Below are the supported sub-element within {@code <containerSettings>}:<p>
+     * {@code <imageName>} specifies docker image name to use in Web App on Linux<p>
      * {@code <serverId>} specifies credentials to access docker image. Use it when you are using private Docker Hub
-     * image or private registry.<br/>
+     * image or private registry.<p>
      * {@code <registryUrl>} specifies your docker image registry URL. Use it when you are using private registry.
      *
      * @deprecated
