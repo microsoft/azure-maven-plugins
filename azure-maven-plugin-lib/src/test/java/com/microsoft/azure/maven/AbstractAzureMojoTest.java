@@ -12,9 +12,11 @@ import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Proxy;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.ReflectionUtils;
@@ -27,6 +29,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Map;
 
 import static com.microsoft.azure.maven.AbstractAzureMojo.INSTALLATION_ID_KEY;
@@ -38,6 +41,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractAzureMojoTest {
@@ -84,6 +88,9 @@ public class AbstractAzureMojoTest {
         MockitoAnnotations.initMocks(this);
         doReturn(PLUGIN_NAME).when(plugin).getArtifactId();
         doReturn(PLUGIN_VERSION).when(plugin).getVersion();
+        final MavenExecutionRequest mockedRequest = mock(MavenExecutionRequest.class);
+        doReturn(new ArrayList<Proxy>()).when(mockedRequest).getProxies();
+        doReturn(mockedRequest).when(session).getRequest();
         doReturn("target").when(buildDirectory).getAbsolutePath();
         ReflectionUtils.setVariableValueInObject(mojo, "subscriptionId", SUBSCRIPTION_ID);
         ReflectionUtils.setVariableValueInObject(mojo, "allowTelemetry", false);
