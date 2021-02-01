@@ -59,6 +59,9 @@ public class DeployMojo extends AbstractWebAppMojo {
     private static final String DEPLOY_START = "Trying to deploy artifact to %s...";
     private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
+    private static final String NO_RUNTIME_CONFIG = "No runtime related configuration is specified in pom.xml. " +
+            "For V1 schema version, please use <javaVersion>, <linuxRuntime> or <containerSettings>, " +
+            "For V2 schema version, please use <runtime>.";
 
     @Override
     protected void doExecute() throws AzureExecutionException {
@@ -92,10 +95,12 @@ public class DeployMojo extends AbstractWebAppMojo {
         return webApp.deploymentSlot(config.getDeploymentSlotName());
     }
 
-    private IWebApp createWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) {
+    private IWebApp createWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) throws AzureExecutionException {
+        if (webAppConfig.getRuntime() == null) {
+            throw new AzureExecutionException(NO_RUNTIME_CONFIG);
+        }
         final ResourceGroup resourceGroup = getOrCreateResourceGroup(webAppConfig);
         final IAppServicePlan appServicePlan = getOrCreateAppServicePlan(webAppConfig);
-
         Log.info(String.format(CREATE_WEBAPP, webAppConfig.getAppName()));
         final IWebApp result = webApp.create().withName(webAppConfig.getAppName())
                 .withResourceGroup(resourceGroup.name())
