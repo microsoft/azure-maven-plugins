@@ -79,7 +79,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     @Parameter(property = "functions.disableAppInsights", defaultValue = "false")
     protected boolean disableAppInsights;
 
-    protected Map fixedAppSettings;
     //endregion
 
     //region Getter
