@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
@@ -130,7 +131,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     private ResourceGroup getOrCreateResourceGroup(final WebAppConfig webAppConfig) {
         try {
             return az.getAzureResourceManager().resourceGroups().getByName(webAppConfig.getResourceGroup());
-        } catch (Exception e) {
+        } catch (ManagementException e) {
             Log.info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion().getName()));
             final ResourceGroup result = az.getAzureResourceManager().resourceGroups().define(webAppConfig.getResourceGroup())
                     .withRegion(webAppConfig.getRegion().getName()).create();
