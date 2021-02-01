@@ -182,6 +182,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     private void deploy(IAppService target, WebAppConfig config) throws AzureExecutionException {
         if (target.getRuntime().getOperatingSystem() == OperatingSystem.DOCKER) {
             Log.info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
+            return;
         }
         try {
             Log.info(String.format(DEPLOY_START, config.getAppName()));
