@@ -444,6 +444,10 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             checkSubscription(subscriptions, targetSubscriptionId);
             azureCredentialWrapper.withDefaultSubscriptionId(targetSubscriptionId);
             final AzureResourceManager azureResourceManager = authenticated.withSubscription(targetSubscriptionId);
+            final Subscription subscription = azureResourceManager.getCurrentSubscription();
+            if (subscription != null) {
+                Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.displayName()), TextUtils.cyan(subscription.subscriptionId())));
+            }
             return AzureAppService.auth(azureResourceManager);
         } catch (AzureLoginException | AzureExecutionException e) {
             throw new AzureExecutionException(e.getMessage());
