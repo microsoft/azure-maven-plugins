@@ -43,6 +43,11 @@ public class ProxyManager {
         return ProxyManagerHolder.INSTANCE;
     }
 
+    public ProxyManager() {
+        this.useSystem();
+        this.replaceSystemProxySelector();
+    }
+
     public String getHttpProxyHost() {
         if (Objects.nonNull(this.proxy) && proxy.address() instanceof InetSocketAddress) {
             InetSocketAddress address = (InetSocketAddress) proxy.address();
@@ -67,7 +72,7 @@ public class ProxyManager {
         this.source = source;
     }
 
-    public void useSystem() {
+    private void useSystem() {
         // if user wants to use or not use system proxy explicitly
         Proxy systemProxy = getSystemProxy();
         if (systemProxy != null) {
@@ -76,25 +81,22 @@ public class ProxyManager {
         }
     }
 
-    public void commit() {
-        if (Objects.nonNull(proxy)) {
-            final ProxySelector ds = ProxySelector.getDefault();
-            ProxySelector.setDefault(new ProxySelector() {
-
-                @Override
-                public List<Proxy> select(URI uri) {
-                    if (Objects.nonNull(ProxyManager.this.proxy)) {
-                        return Collections.singletonList(ProxyManager.this.proxy);
-                    }
-                    return ds.select(uri);
+    private void replaceSystemProxySelector() {
+        final ProxySelector ds = ProxySelector.getDefault();
+        ProxySelector.setDefault(new ProxySelector() {
+            @Override
+            public List<Proxy> select(URI uri) {
+                if (Objects.nonNull(ProxyManager.this.proxy)) {
+                    return Collections.singletonList(ProxyManager.this.proxy);
                 }
+                return ds.select(uri);
+            }
 
-                @Override
-                public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-                    ds.connectFailed(uri, sa, ioe);
-                }
-            });
-        }
+            @Override
+            public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+                ds.connectFailed(uri, sa, ioe);
+            }
+        });
     }
 
     private static Proxy createHttpProxy(String httpProxyHost, Integer httpProxyPort) {
@@ -114,17 +116,17 @@ public class ProxyManager {
                 if (isSystemProxyUnset) {
                     // revert the influence of System.setProperty(PROPERTY_USE_SYSTEM_PROXY, "true")
                     FieldUtils.writeStaticField(ProxySelector.getDefault().getClass(), "hasSystemProxies", false, true);
+                    System.clearProperty(PROPERTY_USE_SYSTEM_PROXY);
                 }
             } catch (NullPointerException | IllegalAccessException ex) {
                 // ignore
             }
-            System.clearProperty(PROPERTY_USE_SYSTEM_PROXY);
         }
     }
 
     @SneakyThrows
     private static Proxy getSystemProxyInner() {
-        final URI uri = new URI("https://foo/bar");
+        final URI uri = new URI("https://login.microsoft.com");
         // modified version of find system proxy at
         // https://stackoverflow.com/questions/4933677/detecting-windows-ie-proxy-setting-using-java/4933746#4933746
         for (final Proxy proxy : ProxySelector.getDefault().select(uri)) {

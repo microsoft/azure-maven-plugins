@@ -6,8 +6,6 @@
 
 package com.microsoft.azure.maven.utils;
 
-import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.util.ValidationUtil;
@@ -35,16 +33,5 @@ public class ProxyUtils {
             ValidationUtil.validateHttpProxy(httpProxyHost, httpProxyPort);
             proxyManager.configure("user", httpProxyHost, NumberUtils.toInt(httpProxyPort));
         }
-
-        if (StringUtils.isBlank(proxyManager.getSource())) {
-            proxyManager.useSystem();
-        }
-
-        final String source = proxyManager.getSource();
-        if (source != null) {
-            Log.info(String.format("Use %s proxy: %s:%s", source, TextUtils.cyan(proxyManager.getHttpProxyHost()),
-                    TextUtils.cyan(Integer.toString(proxyManager.getHttpProxyPort()))));
-        }
-        proxyManager.commit();
     }
 }
