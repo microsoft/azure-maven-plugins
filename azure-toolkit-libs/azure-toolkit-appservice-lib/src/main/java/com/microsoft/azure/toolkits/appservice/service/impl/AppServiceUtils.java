@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.toolkits.appservice.service.impl;
 
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
@@ -185,7 +186,7 @@ class AppServiceUtils {
             return StringUtils.isNotEmpty(entity.getId()) ?
                     azureClient.appServicePlans().getById(entity.getId()) :
                     azureClient.appServicePlans().getByResourceGroup(entity.getResourceGroup(), entity.getName());
-        } catch (Exception e) {
+        } catch (ManagementException e) {
             // SDK will throw exception when resource not founded
             return null;
         }

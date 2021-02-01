@@ -5,9 +5,11 @@
  */
 package com.microsoft.azure.toolkits.appservice.service.impl;
 
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.WebApp;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkits.appservice.AzureAppService;
 import com.microsoft.azure.toolkits.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
@@ -121,7 +123,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
                 deploymentSlotClient = StringUtils.isNotEmpty(slotEntity.getId()) ? webAppService.deploymentSlots().getById(slotEntity.getId()) :
                         webAppService.deploymentSlots().getByName(slotEntity.getName());
                 slotEntity = AppServiceUtils.getWebAppDeploymentSlotEntity(deploymentSlotClient);
-            } catch (Exception e) {
+            } catch (ManagementException e) {
                 // SDK will throw exception when resource not founded
                 return null;
             }
@@ -185,7 +187,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
                 default:
                     final DeploymentSlot deploymentSlot = deploymentSlotClient.parent().deploymentSlots().getByName(configurationSource);
                     if (deploymentSlot == null) {
-                        throw new RuntimeException(CONFIGURATION_SOURCE_DOES_NOT_EXISTS);
+                        throw new AzureToolkitRuntimeException(CONFIGURATION_SOURCE_DOES_NOT_EXISTS);
                     }
                     withCreate = blank.withConfigurationFromDeploymentSlot(deploymentSlot);
                     break;

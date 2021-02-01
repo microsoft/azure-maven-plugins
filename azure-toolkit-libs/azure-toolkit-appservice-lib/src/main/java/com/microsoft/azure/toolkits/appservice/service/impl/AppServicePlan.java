@@ -18,6 +18,7 @@ import com.microsoft.azure.tools.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -152,7 +153,7 @@ public class AppServicePlan implements IAppServicePlan {
             com.azure.resourcemanager.appservice.models.AppServicePlan.Update update = appServicePlanClient.update();
             if (pricingTier != null && pricingTier.isPresent()) {
                 final com.azure.resourcemanager.appservice.models.PricingTier newPricingTier = AppServiceUtils.toPricingTier(pricingTier.get());
-                if (newPricingTier != AppServicePlan.this.getPlanService().pricingTier()) {
+                if (!Objects.equals(newPricingTier, AppServicePlan.this.getPlanService().pricingTier())) {
                     modified = true;
                     update = update.withPricingTier(newPricingTier);
                 }

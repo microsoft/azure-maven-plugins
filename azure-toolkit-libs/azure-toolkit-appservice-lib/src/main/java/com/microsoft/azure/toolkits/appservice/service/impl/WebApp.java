@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.toolkits.appservice.service.impl;
 
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages;
@@ -147,7 +148,7 @@ public class WebApp implements IWebApp {
                         azureClient.webApps().getById(entity.getId()) :
                         azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
                 entity = AppServiceUtils.getWebAppEntity(webAppClient);
-            } catch (RuntimeException e) {
+            } catch (ManagementException e) {
                 // SDK will throw exception when resource not founded
                 webAppClient = null;
             }
