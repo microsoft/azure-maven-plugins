@@ -376,9 +376,9 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (appSettings == null) {
             appSettings = new Properties();
         }
-        setDefaultAppSetting(fixedAppSettings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
+        setDefaultAppSetting(appSettings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
                 FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
-        setDefaultAppSetting(fixedAppSettings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
+        setDefaultAppSetting(appSettings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
                 FUNCTIONS_EXTENSION_VERSION_VALUE);
     }
 
