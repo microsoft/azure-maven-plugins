@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
@@ -13,6 +14,7 @@ import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
+import com.microsoft.azure.toolkits.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkits.appservice.model.WebContainer;
 import com.microsoft.azure.toolkits.appservice.service.IAppService;
 import com.microsoft.azure.toolkits.appservice.service.IAppServicePlan;
@@ -29,6 +31,7 @@ import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -53,6 +56,9 @@ public class DeployMojo extends AbstractWebAppMojo {
             "Please make sure the Web App name is correct.";
     private static final String CREATE_DEPLOYMENT_SLOT = "Creating deployment slot %s in web app %s";
     private static final String CREATE_DEPLOYMENT_SLOT_DONE = "Successfully created the Deployment Slot.";
+    private static final String DEPLOY_START = "Trying to deploy artifact to %s...";
+    private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
+    private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
 
     @Override
     protected void doExecute() throws AzureExecutionException {
@@ -87,32 +93,24 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private IWebApp createWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) {
-        // todo: Extract resource group logic to library
-        final ResourceGroup resourceGroup = az.getAzureResourceManager().resourceGroups().getByName(webAppConfig.getResourceGroup());
-        if (resourceGroup == null) {
-            Log.info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion()));
-            az.getAzureResourceManager().resourceGroups().define(webAppConfig.getResourceGroup())
-                    .withRegion(webAppConfig.getRegion().getName()).create();
-            Log.info(String.format(CREATE_RESOURCE_GROUP_DONE, webAppConfig.getResourceGroup()));
-        }
-        // Get or create App Service Plan
+        final ResourceGroup resourceGroup = getOrCreateResourceGroup(webAppConfig);
         final IAppServicePlan appServicePlan = getOrCreateAppServicePlan(webAppConfig);
 
         Log.info(String.format(CREATE_WEBAPP, webAppConfig.getAppName()));
         final IWebApp result = webApp.create().withName(webAppConfig.getAppName())
-                .withResourceGroup(webAppConfig.getResourceGroup())
-                .withPlan(appServicePlan.entity().getId())
+                .withResourceGroup(resourceGroup.name())
+                .withPlan(appServicePlan.id())
                 .withRuntime(webAppConfig.getRuntime())
                 .withDockerConfiguration(webAppConfig.getDockerConfiguration())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
-        Log.info(String.format(CREATE_WEB_APP_DONE, result.entity().getName()));
+        Log.info(String.format(CREATE_WEB_APP_DONE, result.name()));
         return result;
     }
 
-    private IWebApp updateWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) throws AzureExecutionException {
+    private IWebApp updateWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) {
         // update app service plan
-        Log.info(String.format(UPDATE_WEBAPP, webApp.entity().getName()));
+        Log.info(String.format(UPDATE_WEBAPP, webApp.name()));
         final IAppServicePlan currentPlan = webApp.plan();
         IAppServicePlan targetServicePlan = StringUtils.isEmpty(webAppConfig.getServicePlanName()) ? currentPlan :
                 az.appServicePlan(getServicePlanResourceGroup(webAppConfig), webAppConfig.getServicePlanName());
@@ -120,27 +118,43 @@ public class DeployMojo extends AbstractWebAppMojo {
             targetServicePlan = getOrCreateAppServicePlan(webAppConfig);
         }
         targetServicePlan.update().withPricingTier(webAppConfig.getPricingTier()).commit();
-        final IWebApp result = webApp.update().withPlan(targetServicePlan.entity().getId())
+        final IWebApp result = webApp.update().withPlan(targetServicePlan.id())
                 .withRuntime(webAppConfig.getRuntime())
                 .withDockerConfiguration(webAppConfig.getDockerConfiguration())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
-        Log.info(String.format(UPDATE_WEBAPP_DONE, webApp.entity().getName()));
+        Log.info(String.format(UPDATE_WEBAPP_DONE, webApp.name()));
         return result;
     }
 
+    // todo: Extract resource group logic to library
+    private ResourceGroup getOrCreateResourceGroup(final WebAppConfig webAppConfig) {
+        try {
+            return az.getAzureResourceManager().resourceGroups().getByName(webAppConfig.getResourceGroup());
+        } catch (ManagementException e) {
+            Log.info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion().getName()));
+            final ResourceGroup result = az.getAzureResourceManager().resourceGroups().define(webAppConfig.getResourceGroup())
+                    .withRegion(webAppConfig.getRegion().getName()).create();
+            Log.info(String.format(CREATE_RESOURCE_GROUP_DONE, webAppConfig.getResourceGroup()));
+            return result;
+        }
+    }
+
     private IAppServicePlan getOrCreateAppServicePlan(final WebAppConfig webAppConfig) {
-        final IAppServicePlan appServicePlan = az.appServicePlan(getServicePlanResourceGroup(webAppConfig), webAppConfig.getServicePlanName());
+        final String servicePlanName = StringUtils.isEmpty(webAppConfig.getServicePlanName()) ?
+                getNewAppServicePlanName(webAppConfig) : webAppConfig.getServicePlanName();
+        final String servicePlanGroup = getServicePlanResourceGroup(webAppConfig);
+        final IAppServicePlan appServicePlan = az.appServicePlan(servicePlanGroup, servicePlanName);
         if (!appServicePlan.exists()) {
             Log.info(CREATE_APP_SERVICE_PLAN);
             appServicePlan.create()
-                    .withName(getNewAppServicePlanName(webAppConfig))
-                    .withResourceGroup(getServicePlanResourceGroup(webAppConfig))
+                    .withName(servicePlanName)
+                    .withResourceGroup(servicePlanGroup)
                     .withRegion(webAppConfig.getRegion())
                     .withPricingTier(webAppConfig.getPricingTier())
                     .withOperatingSystem(webAppConfig.getRuntime().getOperatingSystem())
                     .commit();
-            Log.info(String.format(CREATE_APP_SERVICE_DONE, appServicePlan.entity().getName()));
+            Log.info(String.format(CREATE_APP_SERVICE_DONE, appServicePlan.name()));
         }
         return appServicePlan;
     }
@@ -152,7 +166,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private String getServicePlanResourceGroup(final WebAppConfig webAppConfig) {
         return StringUtils.isEmpty(webAppConfig.getServicePlanResourceGroup()) ? webAppConfig.getResourceGroup() :
-                webAppConfig.getServicePlanName();
+                webAppConfig.getServicePlanResourceGroup();
     }
 
     private IWebAppDeploymentSlot createDeploymentSlot(final IWebAppDeploymentSlot slot, final WebAppConfig webAppConfig) {
@@ -166,12 +180,17 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deploy(IAppService target, WebAppConfig config) throws AzureExecutionException {
+        if (target.getRuntime().getOperatingSystem() == OperatingSystem.DOCKER) {
+            Log.info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
+        }
         try {
+            Log.info(String.format(DEPLOY_START, config.getAppName()));
             if (isStopAppDuringDeployment()) {
                 WebAppUtils.stopAppService(target);
             }
             deployArtifacts(target, config);
             deployExternalResources(target);
+            Log.info(String.format(DEPLOY_FINISH, target.hostName()));
         } finally {
             WebAppUtils.startAppService(target);
         }
@@ -213,8 +232,8 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private static File prepareStagingDirectory(List<File> files) throws AzureExecutionException {
-        final File stagingDirectory = FileUtils.getTempDirectory();
         try {
+            final File stagingDirectory = Files.createTempDirectory("azure-functions").toFile();
             FileUtils.forceDeleteOnExit(stagingDirectory);
             // Copy resources to staging folder
             for (final File file : files) {

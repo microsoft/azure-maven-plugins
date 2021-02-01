@@ -8,9 +8,7 @@ package com.microsoft.azure.maven.webapp;
 
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
-import com.azure.core.util.Configuration;
 import com.azure.resourcemanager.AzureResourceManager;
-import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils;
 import com.azure.resourcemanager.resources.models.Subscription;
 import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
@@ -437,15 +435,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }
             Log.info(azureCredentialWrapper.getCredentialDescription());
-            final Configuration configuration = new Configuration()
-                    .put(Configuration.PROPERTY_HTTP_PROXY, String.format("%s:%s", getHttpProxyHost(), Integer.toString(getHttpProxyPort())));
             final AzureProfile profile = new AzureProfile(azureCredentialWrapper.getTenantId(), getSubscriptionId(),
                     convertEnvironment(azureCredentialWrapper.getEnv()));
             final AzureResourceManager.Authenticated authenticated =
-                    AzureResourceManager.configure().withConfiguration(configuration).authenticate(azureCredentialWrapper.getTokenCredential(), profile);
+                    AzureResourceManager.configure().authenticate(azureCredentialWrapper.getTokenCredential(), profile);
             final List<Subscription> subscriptions = authenticated.subscriptions().list().stream().collect(Collectors.toList());
-            final String managerDefaultSubsId = ResourceManagerUtils.getDefaultSubscription(authenticated.subscriptions().list());
-            final String targetSubscriptionId = getTargetSubscriptionId(azureCredentialWrapper, subscriptions, managerDefaultSubsId);
+            final String targetSubscriptionId = getTargetSubscriptionId(azureCredentialWrapper, subscriptions);
             checkSubscription(subscriptions, targetSubscriptionId);
             azureCredentialWrapper.withDefaultSubscriptionId(targetSubscriptionId);
             final AzureResourceManager azureResourceManager = authenticated.withSubscription(targetSubscriptionId);
@@ -455,7 +450,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         }
     }
 
-    private String getTargetSubscriptionId(AzureCredentialWrapper azureCredentialWrapper, List<Subscription> subscriptions, String managerDefaultId)
+    private String getTargetSubscriptionId(AzureCredentialWrapper azureCredentialWrapper, List<Subscription> subscriptions)
             throws AzureExecutionException {
         final List<String> subsIdList = subscriptions.stream().map(Subscription::subscriptionId).collect(Collectors.toList());
         String targetSubscriptionId = StringUtils.firstNonBlank(this.subscriptionId, azureCredentialWrapper.getDefaultSubscriptionId());
@@ -468,12 +463,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             }
         }
         if (StringUtils.isBlank(targetSubscriptionId)) {
-            return selectSubscription(managerDefaultId, subscriptions.toArray(new Subscription[0]));
+            return selectSubscription(subscriptions.toArray(new Subscription[0]));
         }
         return targetSubscriptionId;
     }
 
-    protected String selectSubscription(String defaultId, Subscription[] subscriptions) throws AzureExecutionException {
+    protected String selectSubscription(Subscription[] subscriptions) throws AzureExecutionException {
         if (subscriptions.length == 0) {
             throw new AzureExecutionException("Cannot find any subscriptions in current account.");
         }
@@ -485,8 +480,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         final List<SubscriptionOption2> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption2(t))
                 .sorted()
                 .collect(Collectors.toList());
-        final SubscriptionOption2 defaultValue = wrapSubs.stream()
-                .filter(t -> StringUtils.equalsIgnoreCase(t.getSubscriptionId(), defaultId)).findFirst().orElse(null);
+        final SubscriptionOption2 defaultValue = wrapSubs.stream().findFirst().orElse(null);
         final TextIO textIO = TextIoFactory.getTextIO();
         final SubscriptionOption2 subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption2>(() -> textIO.getTextTerminal(), null)
                 .withCustomPrompt(String.format("Please choose a subscription%s: ",
