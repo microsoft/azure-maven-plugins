@@ -211,7 +211,8 @@ public class DeployMojo extends AbstractWebAppMojo {
         // call correspond deploy method when deploy artifact only
         if (resources.size() == 1) {
             final Pair<File, DeployType> resource = resources.get(0);
-            target.deploy(resource.getRight(), resource.getLeft());
+            final DeployType deployType = target.getRuntime().getWebContainer() == WebContainer.JBOSS_72 ? DeployType.EAR : resource.getRight();
+            target.deploy(deployType, resource.getLeft());
             return;
         }
         // package all resource and do zip deploy
