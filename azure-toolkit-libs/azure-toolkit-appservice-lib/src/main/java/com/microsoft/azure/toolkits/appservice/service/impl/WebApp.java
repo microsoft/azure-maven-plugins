@@ -93,7 +93,8 @@ public class WebApp implements IWebApp {
 
     @Override
     public boolean exists() {
-        return getWebAppClient(true) != null;
+        refreshWebAppClient();
+        return webAppClient != null;
     }
 
     @Override
@@ -138,22 +139,22 @@ public class WebApp implements IWebApp {
     }
 
     private com.azure.resourcemanager.appservice.models.WebApp getWebAppClient() {
-        return getWebAppClient(false);
-    }
-
-    synchronized com.azure.resourcemanager.appservice.models.WebApp getWebAppClient(boolean force) {
-        if (webAppClient == null || force) {
-            try {
-                webAppClient = StringUtils.isNotEmpty(entity.getId()) ?
-                        azureClient.webApps().getById(entity.getId()) :
-                        azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
-                entity = AppServiceUtils.getWebAppEntity(webAppClient);
-            } catch (ManagementException e) {
-                // SDK will throw exception when resource not founded
-                webAppClient = null;
-            }
+        if (webAppClient == null) {
+            refreshWebAppClient();
         }
         return webAppClient;
+    }
+
+    synchronized void refreshWebAppClient() {
+        try {
+            webAppClient = StringUtils.isNotEmpty(entity.getId()) ?
+                    azureClient.webApps().getById(entity.getId()) :
+                    azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
+            entity = AppServiceUtils.fromWebApp(webAppClient);
+        } catch (ManagementException e) {
+            // SDK will throw exception when resource not founded
+            webAppClient = null;
+        }
     }
 
     @Override
@@ -194,7 +195,7 @@ public class WebApp implements IWebApp {
                 withCreate.withAppSettings(getAppSettings().get());
             }
             WebApp.this.webAppClient = withCreate.create();
-            WebApp.this.entity = AppServiceUtils.getWebAppEntity(WebApp.this.webAppClient);
+            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.webAppClient);
             return WebApp.this;
         }
 
@@ -250,7 +251,7 @@ public class WebApp implements IWebApp {
             if (modified) {
                 WebApp.this.webAppClient = update.apply();
             }
-            WebApp.this.entity = AppServiceUtils.getWebAppEntity(WebApp.this.webAppClient);
+            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.webAppClient);
             return WebApp.this;
         }
 

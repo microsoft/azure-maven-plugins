@@ -82,7 +82,8 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
     @Override
     public boolean exists() {
-        return getDeploymentSlotClient(true) != null;
+        refreshDeploymentSlotClient();
+        return deploymentSlotClient != null;
     }
 
     @Override
@@ -111,24 +112,24 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     }
 
     private com.azure.resourcemanager.appservice.models.DeploymentSlot getDeploymentSlotClient() {
-        return getDeploymentSlotClient(false);
-    }
-
-    private synchronized com.azure.resourcemanager.appservice.models.DeploymentSlot getDeploymentSlotClient(boolean force) {
-        if (deploymentSlotClient == null || force) {
-            try {
-                final WebApp webAppService = StringUtils.isNotEmpty(slotEntity.getId()) ?
-                        azureClient.webApps().getById(slotEntity.getId().substring(0, slotEntity.getId().indexOf("/slots"))) :
-                        azureClient.webApps().getByResourceGroup(slotEntity.getResourceGroup(), slotEntity.getWebappName());
-                deploymentSlotClient = StringUtils.isNotEmpty(slotEntity.getId()) ? webAppService.deploymentSlots().getById(slotEntity.getId()) :
-                        webAppService.deploymentSlots().getByName(slotEntity.getName());
-                slotEntity = AppServiceUtils.getWebAppDeploymentSlotEntity(deploymentSlotClient);
-            } catch (ManagementException e) {
-                // SDK will throw exception when resource not founded
-                return null;
-            }
+        if (deploymentSlotClient == null) {
+            refreshDeploymentSlotClient();
         }
         return deploymentSlotClient;
+    }
+
+    private synchronized void refreshDeploymentSlotClient() {
+        try {
+            final WebApp webAppService = StringUtils.isNotEmpty(slotEntity.getId()) ?
+                    azureClient.webApps().getById(slotEntity.getId().substring(0, slotEntity.getId().indexOf("/slots"))) :
+                    azureClient.webApps().getByResourceGroup(slotEntity.getResourceGroup(), slotEntity.getWebappName());
+            deploymentSlotClient = StringUtils.isNotEmpty(slotEntity.getId()) ? webAppService.deploymentSlots().getById(slotEntity.getId()) :
+                    webAppService.deploymentSlots().getByName(slotEntity.getName());
+            slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(deploymentSlotClient);
+        } catch (ManagementException e) {
+            // SDK will throw exception when resource not founded
+            deploymentSlotClient = null;
+        }
     }
 
     @Override
@@ -196,7 +197,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
                 withCreate.withAppSettings(appSettings.get());
             }
             WebAppDeploymentSlot.this.deploymentSlotClient = withCreate.create();
-            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.getWebAppDeploymentSlotEntity(WebAppDeploymentSlot.this.deploymentSlotClient);
+            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.deploymentSlotClient);
             return WebAppDeploymentSlot.this;
         }
     }

@@ -42,7 +42,8 @@ public class AppServicePlan implements IAppServicePlan {
 
     @Override
     public boolean exists() {
-        return getPlanService(true) != null;
+        refreshPlanService();
+        return appServicePlanClient != null;
     }
 
     @Override
@@ -54,7 +55,7 @@ public class AppServicePlan implements IAppServicePlan {
     public List<IWebApp> webapps() {
         return getPlanService().manager().webApps().list().stream()
                 .filter(webapp -> StringUtils.equals(webapp.appServicePlanId(), getPlanService().id()))
-                .map(webapp -> new WebApp(AppServiceUtils.getBasicWebAppEntity(webapp), azureAppService))
+                .map(webapp -> new WebApp(AppServiceUtils.fromWebAppBasic(webapp), azureAppService))
                 .collect(Collectors.toList());
     }
 
@@ -64,14 +65,14 @@ public class AppServicePlan implements IAppServicePlan {
     }
 
     public com.azure.resourcemanager.appservice.models.AppServicePlan getPlanService() {
-        return getPlanService(false);
-    }
-
-    public synchronized com.azure.resourcemanager.appservice.models.AppServicePlan getPlanService(boolean force) {
-        if (appServicePlanClient == null || force) {
-            appServicePlanClient = AppServiceUtils.getAppServicePlan(entity, azureClient);
+        if (appServicePlanClient == null) {
+            refreshPlanService();
         }
         return appServicePlanClient;
+    }
+
+    public synchronized void refreshPlanService() {
+        appServicePlanClient = AppServiceUtils.getAppServicePlan(entity, azureClient);
     }
 
     @Override
@@ -128,7 +129,7 @@ public class AppServicePlan implements IAppServicePlan {
                     .withExistingResourceGroup(resourceGroup)
                     .withPricingTier(AppServiceUtils.toPricingTier(pricingTier))
                     .withOperatingSystem(convertOS(operatingSystem)).create();
-            AppServicePlan.this.entity = AppServiceUtils.getAppServicePlanEntity(AppServicePlan.this.appServicePlanClient);
+            AppServicePlan.this.entity = AppServiceUtils.fromAppServicePlan(AppServicePlan.this.appServicePlanClient);
             return AppServicePlan.this;
         }
 
@@ -161,7 +162,7 @@ public class AppServicePlan implements IAppServicePlan {
             if (modified) {
                 AppServicePlan.this.appServicePlanClient = update.apply();
             }
-            AppServicePlan.this.entity = AppServiceUtils.getAppServicePlanEntity(AppServicePlan.this.appServicePlanClient);
+            AppServicePlan.this.entity = AppServiceUtils.fromAppServicePlan(AppServicePlan.this.appServicePlanClient);
             return AppServicePlan.this;
         }
     }
