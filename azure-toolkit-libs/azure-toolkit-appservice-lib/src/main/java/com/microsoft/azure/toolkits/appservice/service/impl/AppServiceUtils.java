@@ -132,7 +132,7 @@ class AppServiceUtils {
                 .findFirst().orElse(null);
     }
 
-    static WebAppEntity getWebAppEntity(WebAppBase webAppBase) {
+    static WebAppEntity fromWebApp(WebAppBase webAppBase) {
         return WebAppEntity.builder().name(webAppBase.name())
                 .id(webAppBase.id())
                 .region(Region.fromName(webAppBase.regionName()))
@@ -145,7 +145,7 @@ class AppServiceUtils {
                 .build();
     }
 
-    static WebAppEntity getBasicWebAppEntity(WebAppBasic webAppBasic) {
+    static WebAppEntity fromWebAppBasic(WebAppBasic webAppBasic) {
         return WebAppEntity.builder().name(webAppBasic.name())
                 .id(webAppBasic.id())
                 .region(Region.fromName(webAppBasic.regionName()))
@@ -156,7 +156,7 @@ class AppServiceUtils {
                 .build();
     }
 
-    static WebAppDeploymentSlotEntity getWebAppDeploymentSlotEntity(DeploymentSlot deploymentSlot) {
+    static WebAppDeploymentSlotEntity fromWebAppDeploymentSlot(DeploymentSlot deploymentSlot) {
         return WebAppDeploymentSlotEntity.builder()
                 .name(deploymentSlot.name())
                 .webappName(deploymentSlot.parent().name())
@@ -170,7 +170,7 @@ class AppServiceUtils {
                 .build();
     }
 
-    static AppServicePlanEntity getAppServicePlanEntity(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
+    static AppServicePlanEntity fromAppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
         return AppServicePlanEntity.builder()
                 .id(appServicePlan.id())
                 .name(appServicePlan.name())
