@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class ProxyUtils {
-    public static void initProxyManager(MavenExecutionRequest request) {
+    public static void configureProxy(MavenExecutionRequest request) {
         final ProxyManager proxyManager = ProxyManager.getInstance();
         String source = "system";
         if (Objects.isNull(proxyManager.getProxy())) {

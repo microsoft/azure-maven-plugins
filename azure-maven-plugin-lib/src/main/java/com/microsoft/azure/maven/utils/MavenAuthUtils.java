@@ -7,11 +7,8 @@
 package com.microsoft.azure.maven.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
-import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.AzureAuthManager;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
@@ -44,7 +41,7 @@ public class MavenAuthUtils {
                     : "in <auth> configuration.";
             throw new AzureExecutionException(String.format("%s %s", ex.getMessage(), messagePostfix));
         }
-        ProxyUtils.initProxyManager(session.getRequest());
+        ProxyUtils.configureProxy(session.getRequest());
         return AzureAuthManager.getAzureCredentialWrapper(authConfiguration).toBlocking().value();
     }
 
