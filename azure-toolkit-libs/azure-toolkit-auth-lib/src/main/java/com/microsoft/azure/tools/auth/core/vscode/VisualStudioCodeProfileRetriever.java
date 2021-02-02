@@ -8,10 +8,12 @@ package com.microsoft.azure.tools.auth.core.vscode;
 
 import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.implementation.VisualStudioCacheAccessor;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.sun.jna.Platform;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,7 +34,7 @@ public class VisualStudioCodeProfileRetriever {
     private static final String CLOUD = "cloud";
     private static final String AZURE_RESOURCE_FILTER = "azure.resourceFilter";
 
-    public static VisualStudioCodeAccountProfile getProfile() throws CredentialUnavailableException, InvalidConfigurationException {
+    public static VisualStudioCodeAccountProfile getProfile() throws CredentialUnavailableException, InvalidConfigurationException, LoginFailureException {
         VisualStudioCacheAccessor accessor = new VisualStudioCacheAccessor();
 
         JsonNode userSettings = getUserSettings();
@@ -41,8 +43,13 @@ public class VisualStudioCodeProfileRetriever {
         }
         Map<String, String> details = getUserSettingsDetails(userSettings);
         String cloud = details.get(CLOUD);
-        if (StringUtils.isBlank(accessor.getCredentials("VS Code Azure", cloud))) {
-            return null;
+        try {
+            if (StringUtils.isBlank(accessor.getCredentials("VS Code Azure", cloud))) {
+                return null;
+            }
+        } catch (CredentialUnavailableException ex) {
+            throw new LoginFailureException(String.format("Cannot get credentials from VSCode`, " +
+                    "please execute the VSCode command `Azure: Sign In` to login your VSCode, detailed error: %s", ex.getMessage()));
         }
         return getVsCodeAccountProfile(userSettings, cloud);
     }
@@ -85,12 +92,12 @@ public class VisualStudioCodeProfileRetriever {
      * selected subscription
      */
     private static JsonNode getUserSettings() {
-        JsonNode output;
         String homeDir = System.getProperty("user.home");
         String settingsPath = "";
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true);
         mapper.configure(JsonReadFeature.ALLOW_JAVA_COMMENTS.mappedFeature(), true);
+        mapper.configure(JsonReadFeature.ALLOW_TRAILING_COMMA.mappedFeature(), true);
         try {
             if (Platform.isWindows()) {
                 settingsPath = Paths.get(System.getenv("APPDATA"), "Code", "User", "settings.json")
@@ -106,6 +113,8 @@ public class VisualStudioCodeProfileRetriever {
             }
             File settingsFile = new File(settingsPath);
             return mapper.readTree(settingsFile);
+        } catch (JsonParseException e) {
+            return mapper.createObjectNode();
         } catch (IOException e) {
             return null;
         }
