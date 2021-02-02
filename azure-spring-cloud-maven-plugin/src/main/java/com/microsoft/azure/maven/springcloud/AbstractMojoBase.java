@@ -18,7 +18,6 @@ import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
-import com.microsoft.azure.maven.utils.ProxyUtils;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
@@ -38,7 +37,6 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 
 import java.io.File;
-import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -150,8 +148,8 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected void initExecution() throws MojoFailureException, MavenDecryptException, AzureExecutionException,
             com.microsoft.azure.tools.auth.exception.InvalidConfigurationException {
-        // Init proxy
-        ProxyUtils.initProxyManager(this.httpProxyHost, this.httpProxyPort, this.getSession().getRequest());
+        // init proxy manager
+        ProxyManager.getInstance().init();
         // Init telemetries
         initTelemetry();
         trackMojoExecution(MojoStatus.Start);
@@ -284,11 +282,9 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     public AppPlatformManager getAppPlatformManager() {
         if (this.manager == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-            final Proxy proxy = ProxyManager.getInstance().getProxy();
             this.manager = AppPlatformManager.configure()
                 .withLogLevel(logLevel)
                 .withUserAgent(getUserAgent())
-                .withProxy(proxy)
                 .authenticate(azureCredentialWrapper.getAzureTokenCredentials(), subscriptionId);
         }
         return this.manager;

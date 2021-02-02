@@ -32,14 +32,11 @@ public class ApplicationInsightsManager {
     private InsightsManager insightsManager;
 
     public ApplicationInsightsManager(AzureTokenCredentials tokenCredentials, String subscriptionId, String userAgent) {
-        final Proxy proxy = ProxyManager.getInstance().getProxy();
         azure = Azure.configure()
                 .withUserAgent(userAgent)
-                .withProxy(proxy)
                 .authenticate(tokenCredentials).withSubscription(subscriptionId);
         insightsManager = InsightsManager.configure()
                 .withUserAgent(userAgent)
-                .withProxy(proxy)
                 .authenticate(tokenCredentials, subscriptionId);
     }
 

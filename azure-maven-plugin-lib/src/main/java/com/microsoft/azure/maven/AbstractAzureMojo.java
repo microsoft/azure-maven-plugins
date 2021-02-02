@@ -357,9 +357,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }
             Log.info(azureCredentialWrapper.getCredentialDescription());
-            final Proxy proxy = ProxyManager.getInstance().getProxy();
             final Azure tempAzure = Azure.configure()
-                    .withProxy(proxy)
                     .authenticate(azureCredentialWrapper.getAzureTokenCredentials()).withDefaultSubscription();
             final PagedList<Subscription> subscriptions = tempAzure.subscriptions().list();
             subscriptions.loadAll();
@@ -449,7 +447,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Override
     public void execute() throws MojoExecutionException {
         try {
-            ProxyUtils.initProxyManager(this.httpProxyHost, this.httpProxyPort, this.session.getRequest());
+            // init proxy manager
+            ProxyManager.getInstance().init();
 
             // Work around for Application Insights Java SDK:
             // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.

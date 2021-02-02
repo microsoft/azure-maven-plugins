@@ -6,32 +6,40 @@
 
 package com.microsoft.azure.maven.utils;
 
+import com.azure.core.util.Configuration;
+import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
-import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
-import com.microsoft.azure.tools.auth.util.ValidationUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.settings.Proxy;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ProxyUtils {
-    public static void initProxyManager(String httpProxyHost, String httpProxyPort, MavenExecutionRequest request) throws InvalidConfigurationException {
+    public static void initProxyManager(MavenExecutionRequest request) {
         final ProxyManager proxyManager = ProxyManager.getInstance();
-        if (StringUtils.isAllBlank(httpProxyHost, httpProxyPort)) {
+        String source = "system";
+        if (Objects.isNull(proxyManager.getProxy())) {
             final List<Proxy> mavenProxies = request.getProxies();
             if (CollectionUtils.isNotEmpty(mavenProxies)) {
-                final org.apache.maven.settings.Proxy mavenProxy = mavenProxies.stream().filter(
+                final Proxy mavenProxy = mavenProxies.stream().filter(
                     proxy -> proxy.isActive() && proxy.getPort() > 0 && StringUtils.isNotBlank(proxy.getHost())).findFirst().orElse(null);
                 if (mavenProxy != null) {
-                    proxyManager.configure("maven", mavenProxy.getHost(), mavenProxy.getPort());
+                    proxyManager.configure(mavenProxy.getHost(), mavenProxy.getPort());
+                    source = "maven";
                 }
             }
-        } else {
-            ValidationUtil.validateHttpProxy(httpProxyHost, httpProxyPort);
-            proxyManager.configure("user", httpProxyHost, NumberUtils.toInt(httpProxyPort));
+        }
+        if (source != null && Objects.nonNull(proxyManager.getProxy())) {
+            Log.info(String.format("Use %s proxy: %s:%s", source, TextUtils.cyan(proxyManager.getHttpProxyHost()),
+                    TextUtils.cyan(Integer.toString(proxyManager.getHttpProxyPort()))));
+
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY,
+                    String.format("http://%s:%s", proxyManager.getHttpProxyHost(), proxyManager.getHttpProxyPort()));
         }
     }
 }

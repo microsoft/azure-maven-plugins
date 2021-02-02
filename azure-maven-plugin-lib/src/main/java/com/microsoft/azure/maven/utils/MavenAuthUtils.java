@@ -44,12 +44,7 @@ public class MavenAuthUtils {
                     : "in <auth> configuration.";
             throw new AzureExecutionException(String.format("%s %s", ex.getMessage(), messagePostfix));
         }
-        final ProxyManager proxyManager = ProxyManager.getInstance();
-        final String source = proxyManager.getSource();
-        if (source != null) {
-            Log.info(String.format("Use %s proxy: %s:%s", source, TextUtils.cyan(proxyManager.getHttpProxyHost()),
-                    TextUtils.cyan(Integer.toString(proxyManager.getHttpProxyPort()))));
-        }
+        ProxyUtils.initProxyManager(session.getRequest());
         return AzureAuthManager.getAzureCredentialWrapper(authConfiguration).toBlocking().value();
     }
 

@@ -28,12 +28,10 @@ import lombok.SneakyThrows;
 
 public class ProxyManager {
     private static final String PROPERTY_USE_SYSTEM_PROXY = "java.net.useSystemProxies";
+    private static final int MAX_PORT_NUMBER = 65535;
 
     @Getter
     private Proxy proxy;
-
-    @Getter
-    private String source;
 
     private static class ProxyManagerHolder {
         private static final ProxyManager INSTANCE = new ProxyManager();
@@ -41,11 +39,6 @@ public class ProxyManager {
 
     public static ProxyManager getInstance() {
         return ProxyManagerHolder.INSTANCE;
-    }
-
-    public ProxyManager() {
-        this.useSystem();
-        this.replaceSystemProxySelector();
     }
 
     public String getHttpProxyHost() {
@@ -64,21 +57,23 @@ public class ProxyManager {
         return 0;
     }
 
-    public void configure(@Nonnull String source, @Nonnull String httpProxyHost, @Nonnull Integer httpProxyPort) {
+    public void configure(@Nonnull String httpProxyHost, @Nonnull Integer httpProxyPort) {
         Preconditions.checkNotNull(httpProxyHost, "httpProxyHost must not be null.");
         Preconditions.checkNotNull(httpProxyHost, "httpProxyPort must not be null.");
-        Preconditions.checkArgument(httpProxyPort.intValue() > 0, "httpProxyPort must be positive.");
+        if (httpProxyPort <= 0 || httpProxyPort > MAX_PORT_NUMBER) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid range of httpProxyPort: '%s', it should be a number between %d and %d", httpProxyPort, 1, MAX_PORT_NUMBER));
+        }
         this.proxy = createHttpProxy(httpProxyHost, httpProxyPort);
-        this.source = source;
     }
 
-    private void useSystem() {
+    public void init() {
         // if user wants to use or not use system proxy explicitly
         Proxy systemProxy = getSystemProxy();
         if (systemProxy != null) {
             this.proxy = systemProxy;
-            this.source = "system";
         }
+        this.replaceSystemProxySelector();
     }
 
     private void replaceSystemProxySelector() {

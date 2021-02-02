@@ -22,7 +22,6 @@ public class AzureClientFactory {
         Preconditions.checkNotNull(azureTokenCredentials, "The parameter 'azureTokenCredentials' cannot be null.");
         final String defaultSubscriptionId = azureTokenCredentials.getDefaultSubscriptionId();
         final Authenticated authenticated = Azure.configure().withUserAgent(userAgent)
-                .withProxy(ProxyManager.getInstance().getProxy())
                 .authenticate(azureTokenCredentials.getAzureTokenCredentials());
 
         return StringUtils.isEmpty(defaultSubscriptionId) ? authenticated.withDefaultSubscription() :
