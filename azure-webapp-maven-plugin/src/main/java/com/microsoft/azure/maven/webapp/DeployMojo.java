@@ -59,7 +59,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     private static final String DEPLOY_START = "Trying to deploy artifact to %s...";
     private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
-    private static final String NO_RUNTIME_CONFIG = "No runtime related configuration is specified in pom.xml. " +
+    private static final String NO_RUNTIME_CONFIG = "You need to specified runtime in pom.xml for creating azure webapps. " +
             "For V1 schema version, please use <javaVersion>, <linuxRuntime> or <containerSettings>, " +
             "For V2 schema version, please use <runtime>.";
 
