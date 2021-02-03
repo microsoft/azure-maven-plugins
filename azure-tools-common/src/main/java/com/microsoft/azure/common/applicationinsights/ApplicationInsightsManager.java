@@ -13,10 +13,8 @@ import com.microsoft.azure.management.applicationinsights.v2015_05_01.Applicatio
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.ApplicationType;
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.implementation.InsightsManager;
 import com.microsoft.azure.management.resources.Provider;
-import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import org.apache.commons.lang3.StringUtils;
 
-import java.net.Proxy;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
