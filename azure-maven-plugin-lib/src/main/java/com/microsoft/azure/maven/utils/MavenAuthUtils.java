@@ -17,7 +17,6 @@ import com.microsoft.azure.tools.auth.model.AuthType;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.auth.util.ValidationUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 
@@ -30,24 +29,19 @@ public class MavenAuthUtils {
     private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
         "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
 
-    public static AzureCredentialWrapper login(MavenSession session, SettingsDecrypter settingsDecrypter, @Nonnull MavenAuthConfiguration auth,
-                                               String httpProxyHost, String httpProxyPort)
+    public static AzureCredentialWrapper login(MavenSession session, SettingsDecrypter settingsDecrypter, @Nonnull MavenAuthConfiguration auth)
             throws AzureExecutionException, MavenDecryptException, InvalidConfigurationException {
         final String serverId = auth.getServerId();
         final AuthConfiguration authConfiguration;
         try {
             authConfiguration = convertToAuthConfiguration(StringUtils.isNotBlank(auth.getServerId()) ?
                     buildAuthConfigurationByServerId(session, settingsDecrypter, serverId) : auth);
-            ValidationUtil.validateHttpProxy(httpProxyHost, httpProxyPort);
-            authConfiguration.setHttpProxyHost(httpProxyHost);
-            if (Objects.nonNull(httpProxyPort)) {
-                authConfiguration.setHttpProxyPort(NumberUtils.toInt(httpProxyPort));
-            }
         } catch (InvalidConfigurationException ex) {
             final String messagePostfix = StringUtils.isNotBlank(serverId) ? ("in server: '" + serverId + "' at maven settings.xml.")
                     : "in <auth> configuration.";
             throw new AzureExecutionException(String.format("%s %s", ex.getMessage(), messagePostfix));
         }
+        ProxyUtils.configureProxy(session.getRequest());
         return AzureAuthManager.getAzureCredentialWrapper(authConfiguration).toBlocking().value();
     }
 
