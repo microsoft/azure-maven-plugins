@@ -27,9 +27,10 @@ import com.microsoft.azure.common.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.common.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.common.function.handlers.FunctionCoreToolsHandlerImpl;
 import com.microsoft.azure.common.logging.Log;
-
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
@@ -90,8 +91,9 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION =
         {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
-    public static final String EXTENSION_BUNDLE_ID = "Microsoft.Azure.Functions.ExtensionBundle";
-    public static final String SKIP_INSTALL_EXTENSIONS_BUNDLE = "Extension bundle specified, skip install extension";
+    private static final String EXTENSION_BUNDLE_ID = "Microsoft.Azure.Functions.ExtensionBundle";
+    private static final String SKIP_INSTALL_EXTENSIONS_BUNDLE = "Extension bundle specified, skip install extension";
+    private static final String CAN_NOT_FIND_ARTIFACT = "Cannot find the maven artifact, please run `mvn package` first.";
     //region Entry Point
 
     @Override
@@ -377,7 +379,23 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     protected void promptCompileInfo() throws AzureExecutionException {
         Log.info(String.format("Java home : %s", System.getenv("JAVA_HOME")));
-        Log.info(String.format("Artifact compile version : %s", Utils.getArtifactCompileVersion(project.getArtifact().getFile())));
+        Log.info(String.format("Artifact compile version : %s", Utils.getArtifactCompileVersion(getArtifactFile())));
+    }
+
+    private File getArtifactFile() throws AzureExecutionException {
+        final Artifact artifact = project.getArtifact();
+        if (artifact.getFile() != null) {
+            return artifact.getFile();
+        }
+        // Get artifact by buildDirectory and finalName
+        // as project.getArtifact() will be null when invoke azure-functions:package directly
+        final String finalName = project.getBuild().getFinalName();
+        final String packaging = project.getPackaging();
+        final File result = new File(buildDirectory, StringUtils.join(finalName, FilenameUtils.EXTENSION_SEPARATOR, packaging));
+        if (!result.exists()) {
+            throw new AzureExecutionException(CAN_NOT_FIND_ARTIFACT);
+        }
+        return result;
     }
 
     /**

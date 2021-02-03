@@ -14,6 +14,7 @@ import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.common.function.handlers.artifact.DockerArtifactHandler;
 import com.microsoft.azure.common.function.handlers.artifact.MSDeployArtifactHandlerImpl;
@@ -57,6 +58,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -121,6 +123,15 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String ARTIFACT_INCOMPATIBLE = "Your function app artifact compile version is higher than the java version in function host, " +
             "please downgrade the project compile version and try again.";
     private static final String FUNCTION_APP_NOT_EXISTS = "Cannot find the Function App '%s' when creating deployment slot.";
+    private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
+    private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
+    private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java.";
+    private static final String CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING = "App setting `FUNCTIONS_WORKER_RUNTIME` doesn't " +
+            "meet the requirement of Azure Java Functions, the value should be `java`.";
+    private static final String FUNCTIONS_EXTENSION_VERSION_NAME = "FUNCTIONS_EXTENSION_VERSION";
+    private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
+    private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
+            "isn't configured, setting up the default value.";
 
     private JavaVersion parsedJavaVersion;
 
@@ -178,7 +189,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected FunctionApp createFunctionApp(final FunctionRuntimeHandler runtimeHandler) throws AzureAuthFailureException, AzureExecutionException {
         Log.info(FUNCTION_APP_CREATE_START);
         validateApplicationInsightsConfiguration();
-        final Map appSettings = getAppSettingsWithDefaultValue();
+        final Map appSettings = getAppSettings();
         // get/create ai instances only if user didn't specify ai connection string in app settings
         bindApplicationInsights(appSettings, true);
         final WithCreate withCreate = runtimeHandler.defineAppWithRuntime();
@@ -357,7 +368,42 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected void parseConfiguration() {
+        processAppSettingsWithDefaultValue();
         parsedJavaVersion = FunctionUtils.parseJavaVersion(getRuntime().getJavaVersion());
+    }
+
+    public void processAppSettingsWithDefaultValue() {
+        if (appSettings == null) {
+            appSettings = new Properties();
+        }
+        setDefaultAppSetting(appSettings, FUNCTIONS_WORKER_RUNTIME_NAME, SET_FUNCTIONS_WORKER_RUNTIME,
+                FUNCTIONS_WORKER_RUNTIME_VALUE, CUSTOMIZED_FUNCTIONS_WORKER_RUNTIME_WARNING);
+        setDefaultAppSetting(appSettings, FUNCTIONS_EXTENSION_VERSION_NAME, SET_FUNCTIONS_EXTENSION_VERSION,
+                FUNCTIONS_EXTENSION_VERSION_VALUE);
+    }
+
+    private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
+                                      String settingValue) {
+        setDefaultAppSetting(result, settingName, settingIsEmptyMessage, settingValue, null);
+    }
+
+    private void setDefaultAppSetting(Map result, String settingName, String settingIsEmptyMessage,
+                                      String defaultValue, String warningMessage) {
+        final String setting = (String) result.get(settingName);
+        if (StringUtils.isEmpty(setting)) {
+            Log.info(settingIsEmptyMessage);
+            result.put(settingName, defaultValue);
+            return;
+        }
+        // Show warning message when user set a different value
+        if (!StringUtils.equalsIgnoreCase(setting, defaultValue) && StringUtils.isNotEmpty(warningMessage)) {
+            Log.warn(warningMessage);
+        }
+    }
+
+    public FunctionExtensionVersion getFunctionExtensionVersion() throws AzureExecutionException {
+        final String extensionVersion = (String) getAppSettings().get(FUNCTIONS_EXTENSION_VERSION_NAME);
+        return FunctionUtils.parseFunctionExtensionVersion(extensionVersion);
     }
 
     protected void configureAppSettings(final Consumer<Map> withAppSettings, final Map appSettings) {
@@ -368,7 +414,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     private WebAppBase.Update updateFunctionAppSettings(WebAppBase.Update update) throws AzureExecutionException, AzureAuthFailureException {
         validateApplicationInsightsConfiguration();
-        final Map appSettings = getAppSettingsWithDefaultValue();
+        final Map appSettings = getAppSettings();
         if (isDisableAppInsights()) {
             // Remove App Insights connection when `disableAppInsights` set to true
             // Need to call `withoutAppSetting` as withAppSettings will only not remove parameters
