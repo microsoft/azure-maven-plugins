@@ -28,7 +28,7 @@ public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetri
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         try {
-            final VisualStudioCodeAccountProfile vscodeProfile = VisualStudioCodeProfileRetriever.getProfile();
+            final VisualStudioCodeAccountProfile vscodeProfile = VisualStudioCodeProfileRetriever.getProfile(getAzureEnvironment());
             envFromVscode = AzureEnvironmentUtils.stringToAzureEnvironment(vscodeProfile.getEnvironment());
             checkAzureEnvironmentConflict(env, envFromVscode);
             AzureEnvironmentUtils.setupAzureEnvironment(envFromVscode);

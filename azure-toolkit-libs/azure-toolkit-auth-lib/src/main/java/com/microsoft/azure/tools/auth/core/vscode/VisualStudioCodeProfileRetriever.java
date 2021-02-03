@@ -8,15 +8,17 @@ package com.microsoft.azure.tools.auth.core.vscode;
 
 import com.azure.identity.CredentialUnavailableException;
 import com.azure.identity.implementation.VisualStudioCacheAccessor;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
+import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import com.sun.jna.Platform;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -34,15 +36,16 @@ public class VisualStudioCodeProfileRetriever {
     private static final String CLOUD = "cloud";
     private static final String AZURE_RESOURCE_FILTER = "azure.resourceFilter";
 
-    public static VisualStudioCodeAccountProfile getProfile() throws CredentialUnavailableException, InvalidConfigurationException, LoginFailureException {
+    public static VisualStudioCodeAccountProfile getProfile(@Nonnull AzureEnvironment env) throws CredentialUnavailableException, InvalidConfigurationException, LoginFailureException {
         VisualStudioCacheAccessor accessor = new VisualStudioCacheAccessor();
 
         JsonNode userSettings = getUserSettings();
-        if (Objects.isNull(userSettings)) {
-            return null;
-        }
         Map<String, String> details = getUserSettingsDetails(userSettings);
         String cloud = details.get(CLOUD);
+        if (StringUtils.isBlank(cloud)) {
+            cloud = AzureEnvironmentUtils.getCloudNameForAzureCli(env);
+        }
+
         try {
             if (StringUtils.isBlank(accessor.getCredentials("VS Code Azure", cloud))) {
                 return null;
@@ -64,7 +67,6 @@ public class VisualStudioCodeProfileRetriever {
                 map.put(TENANT, userSettings.get(AZURE_TENANT).asText());
             }
         }
-        map.putIfAbsent(CLOUD, "AzureCloud");
         return map;
     }
 
@@ -113,8 +115,6 @@ public class VisualStudioCodeProfileRetriever {
             }
             File settingsFile = new File(settingsPath);
             return mapper.readTree(settingsFile);
-        } catch (JsonParseException e) {
-            return mapper.createObjectNode();
         } catch (IOException e) {
             return null;
         }
