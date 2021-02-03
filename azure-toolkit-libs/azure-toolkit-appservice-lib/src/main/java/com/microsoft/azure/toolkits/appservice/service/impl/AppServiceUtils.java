@@ -5,6 +5,7 @@
  */
 package com.microsoft.azure.toolkits.appservice.service.impl;
 
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
@@ -85,13 +86,12 @@ class AppServiceUtils {
     }
 
     static com.azure.resourcemanager.appservice.models.JavaVersion toWindowsJavaVersion(Runtime runtime) {
-
         return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
                 .filter(serviceVersion -> StringUtils.equalsIgnoreCase(serviceVersion.toString(), runtime.getJavaVersion().getValue()))
                 .findFirst().orElse(null);
     }
 
-    static PublishingProfile getPublishingProfile(com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile) {
+    static PublishingProfile fromPublishingProfile(com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile) {
         return PublishingProfile.builder()
                 .ftpUrl(publishingProfile.ftpUrl())
                 .ftpUsername(publishingProfile.ftpUsername())
@@ -106,20 +106,20 @@ class AppServiceUtils {
         return com.azure.resourcemanager.appservice.models.PricingTier.fromSkuDescription(skuDescription);
     }
 
-    static PricingTier getPricingTier(com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
+    static PricingTier fromPricingTier(com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
         return PricingTier.values().stream()
                 .filter(value -> StringUtils.equals(value.getSize(), pricingTier.toSkuDescription().size()) &&
                         StringUtils.equals(value.getTier(), pricingTier.toSkuDescription().tier()))
                 .findFirst().orElse(null);
     }
 
-    static OperatingSystem getOperatingSystem(com.azure.resourcemanager.appservice.models.OperatingSystem operatingSystem) {
+    static OperatingSystem fromOperatingSystem(com.azure.resourcemanager.appservice.models.OperatingSystem operatingSystem) {
         return Arrays.stream(OperatingSystem.values())
                 .filter(os -> StringUtils.equals(operatingSystem.name(), os.getValue()))
                 .findFirst().orElse(null);
     }
 
-    static JavaVersion getJavaVersion(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
+    static JavaVersion fromJavaVersion(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
         return JavaVersion.values().stream()
                 .filter(value -> StringUtils.equals(value.getValue(), javaVersion.toString()))
                 .findFirst().orElse(null);
@@ -131,7 +131,7 @@ class AppServiceUtils {
                 .findFirst().orElse(null);
     }
 
-    static WebAppEntity getWebAppEntity(WebAppBase webAppBase) {
+    static WebAppEntity fromWebApp(WebAppBase webAppBase) {
         return WebAppEntity.builder().name(webAppBase.name())
                 .id(webAppBase.id())
                 .region(Region.fromName(webAppBase.regionName()))
@@ -144,7 +144,7 @@ class AppServiceUtils {
                 .build();
     }
 
-    static WebAppEntity getBasicWebAppEntity(WebAppBasic webAppBasic) {
+    static WebAppEntity fromWebAppBasic(WebAppBasic webAppBasic) {
         return WebAppEntity.builder().name(webAppBasic.name())
                 .id(webAppBasic.id())
                 .region(Region.fromName(webAppBasic.regionName()))
@@ -155,7 +155,7 @@ class AppServiceUtils {
                 .build();
     }
 
-    static WebAppDeploymentSlotEntity getWebAppDeploymentSlotEntity(DeploymentSlot deploymentSlot) {
+    static WebAppDeploymentSlotEntity fromWebAppDeploymentSlot(DeploymentSlot deploymentSlot) {
         return WebAppDeploymentSlotEntity.builder()
                 .name(deploymentSlot.name())
                 .webappName(deploymentSlot.parent().name())
@@ -169,14 +169,14 @@ class AppServiceUtils {
                 .build();
     }
 
-    static AppServicePlanEntity getAppServicePlanEntity(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
+    static AppServicePlanEntity fromAppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
         return AppServicePlanEntity.builder()
                 .id(appServicePlan.id())
                 .name(appServicePlan.name())
                 .region(appServicePlan.regionName())
                 .resourceGroup(appServicePlan.resourceGroupName())
-                .pricingTier(getPricingTier(appServicePlan.pricingTier()))
-                .operatingSystem(getOperatingSystem(appServicePlan.operatingSystem()))
+                .pricingTier(fromPricingTier(appServicePlan.pricingTier()))
+                .operatingSystem(fromOperatingSystem(appServicePlan.operatingSystem()))
                 .build();
     }
 
@@ -185,7 +185,7 @@ class AppServiceUtils {
             return StringUtils.isNotEmpty(entity.getId()) ?
                     azureClient.appServicePlans().getById(entity.getId()) :
                     azureClient.appServicePlans().getByResourceGroup(entity.getResourceGroup(), entity.getName());
-        } catch (Exception e) {
+        } catch (ManagementException e) {
             // SDK will throw exception when resource not founded
             return null;
         }
