@@ -39,7 +39,7 @@ public class WebApp implements IWebApp {
     private AzureAppService azureAppService;
 
     private AzureResourceManager azureClient;
-    private com.azure.resourcemanager.appservice.models.WebApp webAppClient;
+    private com.azure.resourcemanager.appservice.models.WebApp webAppInner;
 
     public WebApp(WebAppEntity entity, AzureAppService azureAppService) {
         this.entity = entity;
@@ -54,7 +54,7 @@ public class WebApp implements IWebApp {
 
     @Override
     public IAppServicePlan plan() {
-        return azureAppService.appServicePlan(getWebAppClient().appServicePlanId());
+        return azureAppService.appServicePlan(getWebAppInner().appServicePlanId());
     }
 
     @Override
@@ -64,22 +64,22 @@ public class WebApp implements IWebApp {
 
     @Override
     public void start() {
-        getWebAppClient().start();
+        getWebAppInner().start();
     }
 
     @Override
     public void stop() {
-        getWebAppClient().stop();
+        getWebAppInner().stop();
     }
 
     @Override
     public void restart() {
-        getWebAppClient().restart();
+        getWebAppInner().restart();
     }
 
     @Override
     public void delete() {
-        azureClient.webApps().deleteById(getWebAppClient().id());
+        azureClient.webApps().deleteById(getWebAppInner().id());
     }
 
     @Override
@@ -88,34 +88,34 @@ public class WebApp implements IWebApp {
     }
 
     public void deploy(DeployType deployType, File target) {
-        getWebAppClient().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), target);
+        getWebAppInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), target);
     }
 
     @Override
     public boolean exists() {
-        refreshWebAppClient();
-        return webAppClient != null;
+        refreshWebAppInner();
+        return webAppInner != null;
     }
 
     @Override
     public String hostName() {
-        return getWebAppClient().defaultHostname();
+        return getWebAppInner().defaultHostname();
     }
 
     @Override
     public String state() {
-        return getWebAppClient().state();
+        return getWebAppInner().state();
     }
 
     @Override
     public PublishingProfile getPublishingProfile() {
-        final com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile = getWebAppClient().getPublishingProfile();
+        final com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile = getWebAppInner().getPublishingProfile();
         return PublishingProfile.createFromServiceModel(publishingProfile);
     }
 
     @Override
     public Runtime getRuntime() {
-        return AppServiceUtils.getRuntimeFromWebApp(getWebAppClient());
+        return AppServiceUtils.getRuntimeFromWebApp(getWebAppInner());
     }
 
     @Override
@@ -126,45 +126,45 @@ public class WebApp implements IWebApp {
     @Override
     public IWebAppDeploymentSlot deploymentSlot(String slotName) {
         final WebAppDeploymentSlotEntity slotEntity = WebAppDeploymentSlotEntity.builder().name(slotName)
-                .resourceGroup(getWebAppClient().resourceGroupName())
-                .webappName(getWebAppClient().name()).build();
+                .resourceGroup(getWebAppInner().resourceGroupName())
+                .webappName(getWebAppInner().name()).build();
         return new WebAppDeploymentSlot(slotEntity, azureAppService);
     }
 
     @Override
     public List<IWebAppDeploymentSlot> deploymentSlots() {
-        return getWebAppClient().deploymentSlots().list().stream()
+        return getWebAppInner().deploymentSlots().list().stream()
                 .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureAppService))
                 .collect(Collectors.toList());
     }
 
-    private com.azure.resourcemanager.appservice.models.WebApp getWebAppClient() {
-        if (webAppClient == null) {
-            refreshWebAppClient();
+    private com.azure.resourcemanager.appservice.models.WebApp getWebAppInner() {
+        if (webAppInner == null) {
+            refreshWebAppInner();
         }
-        return webAppClient;
+        return webAppInner;
     }
 
-    synchronized void refreshWebAppClient() {
+    synchronized void refreshWebAppInner() {
         try {
-            webAppClient = StringUtils.isNotEmpty(entity.getId()) ?
+            webAppInner = StringUtils.isNotEmpty(entity.getId()) ?
                     azureClient.webApps().getById(entity.getId()) :
                     azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
-            entity = AppServiceUtils.fromWebApp(webAppClient);
+            entity = AppServiceUtils.fromWebApp(webAppInner);
         } catch (ManagementException e) {
             // SDK will throw exception when resource not founded
-            webAppClient = null;
+            webAppInner = null;
         }
     }
 
     @Override
     public String id() {
-        return getWebAppClient().id();
+        return getWebAppInner().id();
     }
 
     @Override
     public String name() {
-        return getWebAppClient().name();
+        return getWebAppInner().name();
     }
 
     public class WebAppCreator extends AbstractAppServiceCreator<WebApp> {
@@ -194,8 +194,8 @@ public class WebApp implements IWebApp {
                 // todo: support remove app settings
                 withCreate.withAppSettings(getAppSettings().get());
             }
-            WebApp.this.webAppClient = withCreate.create();
-            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.webAppClient);
+            WebApp.this.webAppInner = withCreate.create();
+            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.webAppInner);
             return WebApp.this;
         }
 
@@ -236,7 +236,7 @@ public class WebApp implements IWebApp {
 
         @Override
         public WebApp commit() {
-            Update update = getWebAppClient().update();
+            Update update = getWebAppInner().update();
             if (getAppServicePlan() != null && getAppServicePlan().isPresent()) {
                 update = updateAppServicePlan(update, getAppServicePlan().get());
             }
@@ -249,14 +249,14 @@ public class WebApp implements IWebApp {
                 update.withAppSettings(getAppSettings().get());
             }
             if (modified) {
-                WebApp.this.webAppClient = update.apply();
+                WebApp.this.webAppInner = update.apply();
             }
-            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.webAppClient);
+            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.webAppInner);
             return WebApp.this;
         }
 
         private Update updateAppServicePlan(Update update, AppServicePlanEntity newServicePlan) {
-            final AppServicePlanEntity currentServicePlan = azureAppService.appServicePlan(getWebAppClient().appServicePlanId()).entity();
+            final AppServicePlanEntity currentServicePlan = azureAppService.appServicePlan(getWebAppInner().appServicePlanId()).entity();
             if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
                     (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
                             StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {

@@ -30,7 +30,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     private AzureAppService azureAppService;
     private WebAppDeploymentSlotEntity slotEntity;
 
-    private DeploymentSlot deploymentSlotClient;
+    private DeploymentSlot deploymentSlotInner;
     private AzureResourceManager azureClient;
 
     public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureAppService azureAppService) {
@@ -52,22 +52,22 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
     @Override
     public void start() {
-        getDeploymentSlotClient().start();
+        getDeploymentSlotInner().start();
     }
 
     @Override
     public void stop() {
-        getDeploymentSlotClient().stop();
+        getDeploymentSlotInner().stop();
     }
 
     @Override
     public void restart() {
-        getDeploymentSlotClient().restart();
+        getDeploymentSlotInner().restart();
     }
 
     @Override
     public void delete() {
-        getDeploymentSlotClient().parent().deploymentSlots().deleteByName(slotEntity.getName());
+        getDeploymentSlotInner().parent().deploymentSlots().deleteByName(slotEntity.getName());
     }
 
     @Override
@@ -77,33 +77,33 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
     @Override
     public void deploy(DeployType deployType, File file) {
-        getDeploymentSlotClient().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), file);
+        getDeploymentSlotInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), file);
     }
 
     @Override
     public boolean exists() {
-        refreshDeploymentSlotClient();
-        return deploymentSlotClient != null;
+        refreshDeploymentSlotInner();
+        return deploymentSlotInner != null;
     }
 
     @Override
     public String hostName() {
-        return getDeploymentSlotClient().defaultHostname();
+        return getDeploymentSlotInner().defaultHostname();
     }
 
     @Override
     public String state() {
-        return getDeploymentSlotClient().state();
+        return getDeploymentSlotInner().state();
     }
 
     @Override
     public Runtime getRuntime() {
-        return AppServiceUtils.getRuntimeFromWebApp(getDeploymentSlotClient());
+        return AppServiceUtils.getRuntimeFromWebApp(getDeploymentSlotInner());
     }
 
     @Override
     public PublishingProfile getPublishingProfile() {
-        return AppServiceUtils.getPublishingProfile(getDeploymentSlotClient().getPublishingProfile());
+        return AppServiceUtils.fromPublishingProfile(getDeploymentSlotInner().getPublishingProfile());
     }
 
     @Override
@@ -111,35 +111,35 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
         return slotEntity;
     }
 
-    private com.azure.resourcemanager.appservice.models.DeploymentSlot getDeploymentSlotClient() {
-        if (deploymentSlotClient == null) {
-            refreshDeploymentSlotClient();
+    private com.azure.resourcemanager.appservice.models.DeploymentSlot getDeploymentSlotInner() {
+        if (deploymentSlotInner == null) {
+            refreshDeploymentSlotInner();
         }
-        return deploymentSlotClient;
+        return deploymentSlotInner;
     }
 
-    private synchronized void refreshDeploymentSlotClient() {
+    private synchronized void refreshDeploymentSlotInner() {
         try {
             final WebApp webAppService = StringUtils.isNotEmpty(slotEntity.getId()) ?
                     azureClient.webApps().getById(slotEntity.getId().substring(0, slotEntity.getId().indexOf("/slots"))) :
                     azureClient.webApps().getByResourceGroup(slotEntity.getResourceGroup(), slotEntity.getWebappName());
-            deploymentSlotClient = StringUtils.isNotEmpty(slotEntity.getId()) ? webAppService.deploymentSlots().getById(slotEntity.getId()) :
+            deploymentSlotInner = StringUtils.isNotEmpty(slotEntity.getId()) ? webAppService.deploymentSlots().getById(slotEntity.getId()) :
                     webAppService.deploymentSlots().getByName(slotEntity.getName());
-            slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(deploymentSlotClient);
+            slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(deploymentSlotInner);
         } catch (ManagementException e) {
             // SDK will throw exception when resource not founded
-            deploymentSlotClient = null;
+            deploymentSlotInner = null;
         }
     }
 
     @Override
     public String id() {
-        return getDeploymentSlotClient().id();
+        return getDeploymentSlotInner().id();
     }
 
     @Override
     public String name() {
-        return getDeploymentSlotClient().name();
+        return getDeploymentSlotInner().name();
     }
 
     @Getter
@@ -186,7 +186,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
                     withCreate = blank.withConfigurationFromParent();
                     break;
                 default:
-                    final DeploymentSlot deploymentSlot = deploymentSlotClient.parent().deploymentSlots().getByName(configurationSource);
+                    final DeploymentSlot deploymentSlot = deploymentSlotInner.parent().deploymentSlots().getByName(configurationSource);
                     if (deploymentSlot == null) {
                         throw new AzureToolkitRuntimeException(CONFIGURATION_SOURCE_DOES_NOT_EXISTS);
                     }
@@ -196,8 +196,8 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
             if (appSettings != null && appSettings.isPresent()) {
                 withCreate.withAppSettings(appSettings.get());
             }
-            WebAppDeploymentSlot.this.deploymentSlotClient = withCreate.create();
-            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.deploymentSlotClient);
+            WebAppDeploymentSlot.this.deploymentSlotInner = withCreate.create();
+            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.deploymentSlotInner);
             return WebAppDeploymentSlot.this;
         }
     }

@@ -86,13 +86,12 @@ class AppServiceUtils {
     }
 
     static com.azure.resourcemanager.appservice.models.JavaVersion toWindowsJavaVersion(Runtime runtime) {
-
         return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
                 .filter(serviceVersion -> StringUtils.equalsIgnoreCase(serviceVersion.toString(), runtime.getJavaVersion().getValue()))
                 .findFirst().orElse(null);
     }
 
-    static PublishingProfile getPublishingProfile(com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile) {
+    static PublishingProfile fromPublishingProfile(com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile) {
         return PublishingProfile.builder()
                 .ftpUrl(publishingProfile.ftpUrl())
                 .ftpUsername(publishingProfile.ftpUsername())
@@ -107,20 +106,20 @@ class AppServiceUtils {
         return com.azure.resourcemanager.appservice.models.PricingTier.fromSkuDescription(skuDescription);
     }
 
-    static PricingTier getPricingTier(com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
+    static PricingTier fromPricingTier(com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
         return PricingTier.values().stream()
                 .filter(value -> StringUtils.equals(value.getSize(), pricingTier.toSkuDescription().size()) &&
                         StringUtils.equals(value.getTier(), pricingTier.toSkuDescription().tier()))
                 .findFirst().orElse(null);
     }
 
-    static OperatingSystem getOperatingSystem(com.azure.resourcemanager.appservice.models.OperatingSystem operatingSystem) {
+    static OperatingSystem fromOperatingSystem(com.azure.resourcemanager.appservice.models.OperatingSystem operatingSystem) {
         return Arrays.stream(OperatingSystem.values())
                 .filter(os -> StringUtils.equals(operatingSystem.name(), os.getValue()))
                 .findFirst().orElse(null);
     }
 
-    static JavaVersion getJavaVersion(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
+    static JavaVersion fromJavaVersion(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
         return JavaVersion.values().stream()
                 .filter(value -> StringUtils.equals(value.getValue(), javaVersion.toString()))
                 .findFirst().orElse(null);
@@ -176,8 +175,8 @@ class AppServiceUtils {
                 .name(appServicePlan.name())
                 .region(appServicePlan.regionName())
                 .resourceGroup(appServicePlan.resourceGroupName())
-                .pricingTier(getPricingTier(appServicePlan.pricingTier()))
-                .operatingSystem(getOperatingSystem(appServicePlan.operatingSystem()))
+                .pricingTier(fromPricingTier(appServicePlan.pricingTier()))
+                .operatingSystem(fromOperatingSystem(appServicePlan.operatingSystem()))
                 .build();
     }
 
