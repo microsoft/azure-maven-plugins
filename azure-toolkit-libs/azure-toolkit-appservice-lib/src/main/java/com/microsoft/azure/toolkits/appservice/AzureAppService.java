@@ -12,6 +12,9 @@ import com.microsoft.azure.toolkits.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkits.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkits.appservice.service.IWebApp;
 import com.microsoft.azure.toolkits.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkits.appservice.service.impl.AppServicePlan;
+import com.microsoft.azure.toolkits.appservice.service.impl.WebApp;
+import com.microsoft.azure.toolkits.appservice.service.impl.WebAppDeploymentSlot;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,7 +42,7 @@ public class AzureAppService {
     }
 
     public IWebApp webapp(WebAppEntity webAppEntity) {
-        return null;
+        return new WebApp(webAppEntity, this);
     }
 
     public List<IWebApp> webapps() {
@@ -49,7 +52,7 @@ public class AzureAppService {
     }
 
     public IAppServicePlan appServicePlan(AppServicePlanEntity appServicePlanEntity) {
-        return null;
+        return new AppServicePlan(appServicePlanEntity, this);
     }
 
     public IAppServicePlan appServicePlan(String id) {
@@ -79,7 +82,7 @@ public class AzureAppService {
     }
 
     public IWebAppDeploymentSlot deploymentSlot(WebAppDeploymentSlotEntity deploymentSlot) {
-        return null;
+        return new WebAppDeploymentSlot(deploymentSlot, this);
     }
 
     public AzureResourceManager getAzureResourceManager() {
