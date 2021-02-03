@@ -20,10 +20,11 @@ import java.util.List;
 import java.util.Objects;
 
 public class ProxyUtils {
-    public static void configureProxy(MavenExecutionRequest request) {
+    public static void initProxy(MavenExecutionRequest request) {
         final ProxyManager proxyManager = ProxyManager.getInstance();
+        proxyManager.init();
         String source = "system";
-        if (Objects.isNull(proxyManager.getProxy())) {
+        if (!proxyManager.forceUseSystemProxy() && request != null) {
             final List<Proxy> mavenProxies = request.getProxies();
             if (CollectionUtils.isNotEmpty(mavenProxies)) {
                 final Proxy mavenProxy = mavenProxies.stream().filter(
