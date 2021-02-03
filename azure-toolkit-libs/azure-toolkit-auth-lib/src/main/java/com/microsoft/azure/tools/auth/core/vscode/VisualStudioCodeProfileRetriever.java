@@ -48,7 +48,7 @@ public class VisualStudioCodeProfileRetriever {
                 return null;
             }
         } catch (CredentialUnavailableException ex) {
-            throw new LoginFailureException(String.format("Cannot get credentials from VSCode`, " +
+            throw new LoginFailureException(String.format("Cannot get credentials from VSCode, " +
                     "please execute the VSCode command `Azure: Sign In` to login your VSCode, detailed error: %s", ex.getMessage()));
         }
         return getVsCodeAccountProfile(userSettings, cloud);
