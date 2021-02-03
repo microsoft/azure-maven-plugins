@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.maven.utils;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -48,22 +50,24 @@ public class MavenArtifactUtils {
 
     public static List<File> getArtifacts(List<Resource> resources) {
         final List<File> result = new ArrayList<>();
-        final DirectoryScanner directoryScanner = new DirectoryScanner();
-        for (final Resource resource : resources) {
-            if (resource.getIncludes() != null && resource.getIncludes().size() > 0) {
-                directoryScanner.setBasedir(resource.getDirectory());
-                directoryScanner.setIncludes(resource.getIncludes().toArray(new String[0]));
-                final String[] exclude = resource.getExcludes() == null ? new String[0] :
-                    resource.getExcludes().toArray(new String[0]);
-                directoryScanner.setExcludes(exclude);
-                directoryScanner.scan();
-                final List<File> resourceFiles = Arrays.stream(directoryScanner.getIncludedFiles())
-                    .map(path -> new File(resource.getDirectory(), path))
-                    .collect(Collectors.toList());
-                result.addAll(resourceFiles);
-            }
-        }
+        resources.forEach(resource -> result.addAll(getArtifacts(resource)));
         return result;
+    }
+
+    public static List<File> getArtifacts(Resource resource) {
+        if (CollectionUtils.isEmpty(resource.getIncludes())) {
+            return Collections.EMPTY_LIST;
+        }
+        final DirectoryScanner directoryScanner = new DirectoryScanner();
+        directoryScanner.setBasedir(resource.getDirectory());
+        directoryScanner.setIncludes(resource.getIncludes().toArray(new String[0]));
+        final String[] exclude = resource.getExcludes() == null ? new String[0] :
+                resource.getExcludes().toArray(new String[0]);
+        directoryScanner.setExcludes(exclude);
+        directoryScanner.scan();
+        return Arrays.stream(directoryScanner.getIncludedFiles())
+                .map(path -> new File(resource.getDirectory(), path))
+                .collect(Collectors.toList());
     }
 
     public static File getExecutableJarFiles(Collection<File> files) throws MojoExecutionException {

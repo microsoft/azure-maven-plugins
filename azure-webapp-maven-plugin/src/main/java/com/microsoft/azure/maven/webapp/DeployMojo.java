@@ -10,6 +10,7 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.maven.webapp.models.MavenArtifact;
 import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
@@ -23,7 +24,6 @@ import com.microsoft.azure.toolkits.appservice.service.IWebAppDeploymentSlot;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -32,8 +32,7 @@ import org.zeroturnaround.zip.ZipUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,7 +42,6 @@ import java.util.stream.Collectors;
  */
 @Mojo(name = "deploy", defaultPhase = LifecyclePhase.DEPLOY)
 public class DeployMojo extends AbstractWebAppMojo {
-    private static final Path FTP_ROOT = Paths.get("/site/wwwroot");
     private static final String CREATE_WEBAPP = "Creating web app %s...";
     private static final String CREATE_WEB_APP_DONE = "Successfully created Web App %s.";
     private static final String UPDATE_WEBAPP = "Updating target Web App %s...";
@@ -209,27 +207,32 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private void deployArtifacts(IAppService target, WebAppConfig config) throws AzureExecutionException {
         // This is the codes for one deploy API, for current release, will replace it with zip all files and deploy with zip deploy
-        final List<Pair<File, DeployType>> resources = config.getResources();
+        final List<MavenArtifact> resources = config.getMavenArtifacts();
         if (CollectionUtils.isEmpty(resources)) {
             return;
         }
         // call correspond deploy method when deploy artifact only
         if (resources.size() == 1) {
-            final Pair<File, DeployType> resource = resources.get(0);
-            final DeployType deployType = target.getRuntime().getWebContainer() == WebContainer.JBOSS_72 ? DeployType.EAR : resource.getRight();
-            target.deploy(deployType, resource.getLeft());
+            final MavenArtifact resource = resources.get(0);
+            final DeployType deployType = target.getRuntime().getWebContainer() == WebContainer.JBOSS_72 ? DeployType.EAR : resource.getDeployType();
+            target.deploy(deployType, resource.getFile(), resource.getPath());
+            return;
+        }
+        // Support deploy multi war to different paths
+        if (DeployUtils.isAllWarArtifacts(resources)) {
+            resources.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
             return;
         }
         // package all resource and do zip deploy
         // todo: migrate to use one deploy
-        final List<File> files = resources.stream().map(pair -> pair.getLeft()).collect(Collectors.toList());
-        deployResourcesWithZipDeploy(target, files);
+        deployResourcesWithZipDeploy(target, resources);
     }
 
-    private void deployResourcesWithZipDeploy(IAppService target, List<File> files) throws AzureExecutionException {
-        final File stagingDirectory = prepareStagingDirectory(files);
+    private void deployResourcesWithZipDeploy(IAppService target, List<MavenArtifact> artifacts) throws AzureExecutionException {
+        final File stagingDirectory = prepareStagingDirectory(artifacts);
         // Rename jar once java_se runtime
         if (target.getRuntime().getWebContainer() == WebContainer.JAVA_SE) {
+            final List<File> files = new ArrayList<>(FileUtils.listFiles(stagingDirectory, null, true));
             DeployUtils.prepareJavaSERuntimeJarArtifact(files, project.getBuild().getFinalName());
         }
         final File zipFile = Utils.createTempFile(appName + UUID.randomUUID().toString(), ".zip");
@@ -238,13 +241,14 @@ public class DeployMojo extends AbstractWebAppMojo {
         target.deploy(DeployType.ZIP, zipFile);
     }
 
-    private static File prepareStagingDirectory(List<File> files) throws AzureExecutionException {
+    private static File prepareStagingDirectory(List<MavenArtifact> mavenArtifacts) throws AzureExecutionException {
         try {
             final File stagingDirectory = Files.createTempDirectory("azure-functions").toFile();
             FileUtils.forceDeleteOnExit(stagingDirectory);
             // Copy resources to staging folder
-            for (final File file : files) {
-                FileUtils.copyFileToDirectory(file, stagingDirectory);
+            for (final MavenArtifact mavenArtifact : mavenArtifacts) {
+                final File targetFolder = StringUtils.isEmpty(mavenArtifact.getPath()) ? stagingDirectory : new File(stagingDirectory, mavenArtifact.getPath());
+                FileUtils.copyFileToDirectory(mavenArtifact.getFile(), targetFolder);
             }
             return stagingDirectory;
         } catch (IOException e) {
@@ -254,12 +258,8 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private void deployExternalResources(IAppService target) throws AzureExecutionException {
         final List<Resource> resources = this.deployment == null ? null : this.deployment.getResources();
-        final List<Resource> externalResources = resources.stream().filter(DeployMojo::isExternalResource).collect(Collectors.toList());
+        final List<Resource> externalResources = resources.stream().filter(DeployUtils::isExternalResource).collect(Collectors.toList());
         DeployUtils.deployResourcesWithFtp(target, externalResources);
     }
 
-    private static boolean isExternalResource(Resource resource) {
-        final Path target = Paths.get(DeployUtils.getAbsoluteTargetPath(resource.getTargetPath()));
-        return !target.startsWith(FTP_ROOT);
-    }
 }

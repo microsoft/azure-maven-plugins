@@ -8,8 +8,11 @@ package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.maven.webapp.models.MavenArtifact;
+import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkits.appservice.service.IAppService;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.maven.model.Resource;
@@ -20,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -35,6 +39,11 @@ public class DeployUtils {
             "please make sure the resource filter is correct and you have built the jar.";
     private static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
+    public static boolean isExternalResource(Resource resource) {
+        final Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
+        return !target.startsWith(FTP_ROOT);
+    }
+
     public static void deployResourcesWithFtp(IAppService appService, List<Resource> externalResources) throws AzureExecutionException {
         if (externalResources.isEmpty()) {
             return;
@@ -42,6 +51,7 @@ public class DeployUtils {
         final PublishingProfile publishingProfile = appService.getPublishingProfile();
         final String serverUrl = publishingProfile.getFtpUrl().split("/", 2)[0];
         try {
+
             final FTPClient ftpClient = FTPUtils.getFTPClient(serverUrl, publishingProfile.getFtpUsername(), publishingProfile.getFtpPassword());
             for (final Resource externalResource : externalResources) {
                 uploadResource(externalResource, ftpClient);
@@ -49,6 +59,11 @@ public class DeployUtils {
         } catch (IOException e) {
             throw new AzureExecutionException(e.getMessage(), e);
         }
+    }
+
+    public static boolean isAllWarArtifacts(List<MavenArtifact> mavenArtifacts) {
+        final Set<DeployType> deployTypes = mavenArtifacts.stream().map(MavenArtifact::getDeployType).collect(Collectors.toSet());
+        return deployTypes.size() == 1 && deployTypes.iterator().next() == DeployType.WAR;
     }
 
     private static void uploadResource(Resource resource, FTPClient ftpClient) throws IOException {
@@ -101,6 +116,9 @@ public class DeployUtils {
     }
 
     private static boolean isExecutableJar(File file) {
+        if (!StringUtils.equalsIgnoreCase(FilenameUtils.getExtension(file.getName()), "jar")) {
+            return false;
+        }
         try (final FileInputStream fileInputStream = new FileInputStream(file);
              final JarInputStream jarInputStream = new JarInputStream(fileInputStream)) {
             final Manifest manifest = jarInputStream.getManifest();

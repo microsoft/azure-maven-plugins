@@ -7,23 +7,19 @@ package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
-import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
+import com.microsoft.azure.maven.webapp.models.MavenArtifact;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
-import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkits.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
 import com.microsoft.azure.toolkits.appservice.model.WebContainer;
 import com.microsoft.azure.tools.common.model.Region;
-import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class V2ConfigParser extends AbstractConfigParser {
     public V2ConfigParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
@@ -56,12 +52,11 @@ public class V2ConfigParser extends AbstractConfigParser {
     }
 
     @Override
-    public List<Pair<File, DeployType>> getResources() throws AzureExecutionException {
+    public List<MavenArtifact> getMavenArtifacts() throws AzureExecutionException {
         if (mojo.getDeployment() == null || mojo.getDeployment().getResources() == null) {
             return Collections.EMPTY_LIST;
         }
-        final List<File> files = MavenArtifactUtils.getArtifacts(mojo.getDeployment().getResources());
-        return files.stream().map(file -> Pair.of(file, getDeployTypeFromFile(file))).collect(Collectors.toList());
+        return convertResourcesToArtifact(mojo.getDeployment().getResources());
     }
 
     @Override

@@ -8,21 +8,27 @@ package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
+import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfig;
+import com.microsoft.azure.maven.webapp.models.MavenArtifact;
+import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkits.appservice.model.PricingTier;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
 import com.microsoft.azure.tools.common.model.Region;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.maven.model.Resource;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class AbstractConfigParser {
 
@@ -71,7 +77,7 @@ public abstract class AbstractConfigParser {
 
     public abstract DockerConfiguration getDockerConfiguration() throws AzureExecutionException;
 
-    public abstract List<Pair<File, DeployType>> getResources() throws AzureExecutionException;
+    public abstract List<MavenArtifact> getMavenArtifacts() throws AzureExecutionException;
 
     public abstract Runtime getRuntime() throws AzureExecutionException;
 
@@ -87,7 +93,7 @@ public abstract class AbstractConfigParser {
                 .dockerConfiguration(getDockerConfiguration())
                 .deploymentSlotName(getDeploymentSlotName())
                 .deploymentSlotConfigurationSource(getDeploymentSlotConfigurationSource())
-                .resources(getResources())
+                .mavenArtifacts(getMavenArtifacts())
                 .build();
     }
 
@@ -100,6 +106,19 @@ public abstract class AbstractConfigParser {
         if (StringUtils.isNotEmpty(message)) {
             throw new AzureExecutionException(message);
         }
+    }
+
+    protected List<MavenArtifact> convertResourcesToArtifact(List<Resource> resources) {
+        return CollectionUtils.isEmpty(resources) ? Collections.EMPTY_LIST :
+                resources.stream()
+                        .filter(resource -> !DeployUtils.isExternalResource(resource))
+                        .flatMap(resource -> convertResourceToArtifact(resource).stream()).collect(Collectors.toList());
+    }
+
+    protected List<MavenArtifact> convertResourceToArtifact(Resource resource) {
+        return MavenArtifactUtils.getArtifacts(resource).stream()
+                .map(file -> MavenArtifact.builder().file(file).deployType(getDeployTypeFromFile(file)).path(resource.getTargetPath()).build())
+                .collect(Collectors.toList());
     }
 
     protected DeployType getDeployTypeFromFile(File file) {

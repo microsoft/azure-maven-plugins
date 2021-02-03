@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkits.appservice.service.impl;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.models.AppServicePlan;
+import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.WebApp.Update;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
@@ -88,7 +89,13 @@ public class WebApp implements IWebApp {
     }
 
     public void deploy(DeployType deployType, File target) {
-        getWebAppInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), target);
+        deploy(deployType, target, null);
+    }
+
+    @Override
+    public void deploy(DeployType deployType, File target, String targetPath) {
+        final DeployOptions options = new DeployOptions().withPath(targetPath);
+        getWebAppInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), target, options);
     }
 
     @Override

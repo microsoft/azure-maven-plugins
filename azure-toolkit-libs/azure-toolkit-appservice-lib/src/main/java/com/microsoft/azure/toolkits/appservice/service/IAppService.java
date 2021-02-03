@@ -11,7 +11,7 @@ import com.microsoft.azure.toolkits.appservice.model.Runtime;
 
 import java.io.File;
 
-public interface IAppService extends IResource{
+public interface IAppService extends IResource {
     void start();
 
     void stop();
@@ -23,6 +23,8 @@ public interface IAppService extends IResource{
     void deploy(File file);
 
     void deploy(DeployType deployType, File file);
+
+    void deploy(DeployType deployType, File file, String targetPath);
 
     boolean exists();
 
