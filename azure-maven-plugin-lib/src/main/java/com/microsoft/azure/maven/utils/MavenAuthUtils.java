@@ -9,7 +9,7 @@ package com.microsoft.azure.maven.utils;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
-import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.auth.AzureAuthManager;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.model.AuthConfiguration;
@@ -60,7 +60,7 @@ public class MavenAuthUtils {
         final String authTypeStr = mavenAuthConfiguration.getType();
         authConfiguration.setType(AuthType.parseAuthType(authTypeStr));
 
-        authConfiguration.setEnvironment(AuthHelper.stringToAzureEnvironment(mavenAuthConfiguration.getEnvironment()));
+        authConfiguration.setEnvironment(AzureEnvironmentUtils.stringToAzureEnvironment(mavenAuthConfiguration.getEnvironment()));
         if (StringUtils.isNotBlank(mavenAuthConfiguration.getEnvironment()) && Objects.isNull(authConfiguration.getEnvironment())) {
             throw new InvalidConfigurationException(String.format(INVALID_AZURE_ENVIRONMENT, mavenAuthConfiguration.getEnvironment()));
         }
