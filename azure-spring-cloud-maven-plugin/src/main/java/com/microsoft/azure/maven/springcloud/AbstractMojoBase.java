@@ -19,7 +19,7 @@ import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
-import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
@@ -161,7 +161,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
             throw new MojoFailureException(AZURE_INIT_FAIL);
         }
         final AzureEnvironment env = azureCredentialWrapper.getEnv();
-        final String environmentName = AuthHelper.azureEnvironmentToString(env);
+        final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
         if (env != AzureEnvironment.AZURE) {
             Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
         }

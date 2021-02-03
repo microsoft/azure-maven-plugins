@@ -30,7 +30,7 @@ import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.MavenUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
-import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.common.util.StringListUtils;
@@ -350,7 +350,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
 
             final AzureEnvironment env = azureCredentialWrapper.getEnv();
-            final String environmentName = AuthHelper.azureEnvironmentToString(env);
+            final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
             if (env != AzureEnvironment.AZURE) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }

@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth;
+package com.microsoft.azure.tools.auth.util;
 
 import com.azure.core.util.Configuration;
 import com.microsoft.azure.AzureEnvironment;
@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AuthHelper {
+public class AzureEnvironmentUtils {
     private static final Map<AzureEnvironment, String[]> AZURE_CLOUD_ALIAS_MAP = new HashMap<>();
 
     static {

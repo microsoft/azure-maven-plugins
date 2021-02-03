@@ -11,7 +11,7 @@ import com.azure.identity.AzureCliCredentialBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
@@ -33,7 +33,7 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         AzureCliAccountProfile accountInfo = getProfile();
-        checkAzureEnvironmentConflict(env, AuthHelper.stringToAzureEnvironment(accountInfo.getEnvironment()));
+        checkAzureEnvironmentConflict(env, AzureEnvironmentUtils.stringToAzureEnvironment(accountInfo.getEnvironment()));
         AzureCliCredential cliCredential = new AzureCliCredentialBuilder().build();
         validateTokenCredential(cliCredential);
         return new AzureCredentialWrapper(
@@ -46,8 +46,8 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
         if (env != null && envCli != null && !Objects.equals(env, envCli)) {
             throw new LoginFailureException(String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
                             "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
-                    AuthHelper.azureEnvironmentToString(envCli),
-                    AuthHelper.getCloudNameForAzureCli(env)));
+                    AzureEnvironmentUtils.azureEnvironmentToString(envCli),
+                    AzureEnvironmentUtils.getCloudNameForAzureCli(env)));
         }
     }
 
