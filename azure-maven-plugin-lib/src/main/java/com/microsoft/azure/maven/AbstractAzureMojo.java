@@ -98,8 +98,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             "Read Microsoft's privacy statement to learn more: https://privacy.microsoft.com/en-us/privacystatement." +
             "\n\nYou can change your telemetry configuration through 'allowTelemetry' property.\n" +
             "For more information, please go to https://aka.ms/azure-maven-config.\n";
-    private static final String SUBSCRIPTION_TEMPLATE = "Subscription: %s(%s)";
-    private static final String NO_AVAILABLE_SUBSCRIPTION = "No available subscription found in current account.";
+    protected static final String SUBSCRIPTION_TEMPLATE = "Subscription: %s(%s)";
     protected static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
     protected static final String SUBSCRIPTION_NOT_SPECIFIED = "Subscription ID was not specified, using the first subscription in current account," +
             " please refer https://github.com/microsoft/azure-maven-plugins/wiki/Authentication#subscription for more information.";
