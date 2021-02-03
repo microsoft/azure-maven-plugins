@@ -9,12 +9,12 @@ package com.microsoft.azure.tools.auth.core.maven;
 import com.azure.core.credential.TokenCredential;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
-import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.core.ICredentialRetriever;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
 import com.microsoft.azure.tools.auth.model.AuthMethod;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import rx.Single;
@@ -40,12 +40,12 @@ public class MavenLoginCredentialRetriever implements ICredentialRetriever {
 
         return Single.fromCallable(() -> {
             final AzureCredential credentials = MavenLoginHelper.readAzureCredentials(MavenLoginHelper.getAzureSecretFile());
-            AzureEnvironment envFromMavenLogin = AuthHelper.stringToAzureEnvironment(credentials.getEnvironment());
+            AzureEnvironment envFromMavenLogin = AzureEnvironmentUtils.stringToAzureEnvironment(credentials.getEnvironment());
             if (this.env != null && envFromMavenLogin != null && !Objects.equals(env, envFromMavenLogin)) {
                 throw new LoginFailureException(String.format("The azure cloud from maven login '%s' doesn't match with your auth configuration, " +
                                 "please switch to other auth method for '%s' environment.",
-                        AuthHelper.azureEnvironmentToString(envFromMavenLogin),
-                        AuthHelper.getCloudNameForAzureCli(env)));
+                        AzureEnvironmentUtils.azureEnvironmentToString(envFromMavenLogin),
+                        AzureEnvironmentUtils.getCloudNameForAzureCli(env)));
             }
             if (envFromMavenLogin == null) {
                 envFromMavenLogin = AzureEnvironment.AZURE;
