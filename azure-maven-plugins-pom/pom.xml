@@ -38,9 +38,9 @@
         <maven.shared-utils.version>3.2.1</maven.shared-utils.version>
         <maven.version>3.3.3</maven.version>
 
-        <azure.toolkit-lib.version>0.1.0</azure.toolkit-lib.version>
-        <azure.tools-common.version>0.11.0</azure.tools-common.version>
-        <azure.maven-plugin-lib.version>1.6.0</azure.maven-plugin-lib.version>
+        <azure.toolkit-lib.version>0.2.0-SNAPSHOT</azure.toolkit-lib.version>
+        <azure.tools-common.version>0.12.0-SNAPSHOT</azure.tools-common.version>
+        <azure.maven-plugin-lib.version>1.7.0-SNAPSHOT</azure.maven-plugin-lib.version>
         <azure.ai.version>2.6.2</azure.ai.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
         <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
