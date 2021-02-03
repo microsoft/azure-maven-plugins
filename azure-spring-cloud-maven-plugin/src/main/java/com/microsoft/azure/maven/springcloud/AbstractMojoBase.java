@@ -18,9 +18,9 @@ import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
-import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
+import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
-import com.microsoft.azure.tools.common.util.ProxyUtils;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.rest.LogLevel;
@@ -37,8 +37,6 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 
 import java.io.File;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -150,19 +148,20 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected void initExecution() throws MojoFailureException, MavenDecryptException, AzureExecutionException,
             com.microsoft.azure.tools.auth.exception.InvalidConfigurationException {
-        injectSystemProxy();
+        // init proxy manager
+        ProxyManager.getInstance().init();
         // Init telemetries
         initTelemetry();
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
         mavenAuthConfiguration.setType(getAuthType());
-        this.azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration, this.httpProxyHost, this.httpProxyPort);
+        this.azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
         if (Objects.isNull(azureCredentialWrapper)) {
             AppInsightHelper.INSTANCE.trackEvent(INIT_FAILURE);
             throw new MojoFailureException(AZURE_INIT_FAIL);
         }
         final AzureEnvironment env = azureCredentialWrapper.getEnv();
-        final String environmentName = AuthHelper.azureEnvironmentToString(env);
+        final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
         if (env != AzureEnvironment.AZURE) {
             Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
         }
@@ -283,11 +282,9 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     public AppPlatformManager getAppPlatformManager() {
         if (this.manager == null) {
             final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-            final Proxy proxy = ProxyUtils.createHttpProxy(this.httpProxyHost, this.httpProxyPort);
             this.manager = AppPlatformManager.configure()
                 .withLogLevel(logLevel)
                 .withUserAgent(getUserAgent())
-                .withProxy(proxy)
                 .authenticate(azureCredentialWrapper.getAzureTokenCredentials(), subscriptionId);
         }
         return this.manager;
@@ -297,16 +294,5 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return isTelemetryAllowed ? String.format("%s/%s installationId:%s sessionId:%s", plugin.getArtifactId(), plugin.getVersion(),
                 AppInsightHelper.INSTANCE.getInstallationId(), AppInsightHelper.INSTANCE.getSessionId())
                 : String.format("%s/%s", plugin.getArtifactId(), plugin.getVersion());
-    }
-
-    private void injectSystemProxy() {
-        if (StringUtils.isAllBlank(this.httpProxyHost, this.httpProxyPort)) {
-            final InetSocketAddress proxy = ProxyUtils.getSystemProxy();
-            if (proxy != null) {
-                Log.info(String.format("Use system proxy: %s:%s", TextUtils.cyan(proxy.getHostName()), TextUtils.cyan(Integer.toString(proxy.getPort()))));
-                this.httpProxyHost = proxy.getHostName();
-                this.httpProxyPort = Integer.toString(proxy.getPort());
-            }
-        }
     }
 }

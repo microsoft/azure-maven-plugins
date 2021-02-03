@@ -20,6 +20,4 @@ public class AuthConfiguration {
     private String key;
     private String certificate;
     private String certificatePassword;
-    private String httpProxyHost;
-    private Integer httpProxyPort;
 }

@@ -29,10 +29,10 @@ import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.MavenUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
-import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
+import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
-import com.microsoft.azure.tools.common.util.ProxyUtils;
 import com.microsoft.azure.tools.common.util.StringListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,8 +58,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
@@ -345,28 +343,26 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             mavenAuthConfiguration.setType(getAuthType());
 
             SystemPropertyUtils.injectCommandLineParameter("auth", mavenAuthConfiguration, MavenAuthConfiguration.class);
-            azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration, this.httpProxyHost, this.httpProxyPort);
+            azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
 
             if (Objects.isNull(azureCredentialWrapper)) {
                 return null;
             }
 
             final AzureEnvironment env = azureCredentialWrapper.getEnv();
-            final String environmentName = AuthHelper.azureEnvironmentToString(env);
+            final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
             if (env != AzureEnvironment.AZURE) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }
             Log.info(azureCredentialWrapper.getCredentialDescription());
-            final Proxy proxy = ProxyUtils.createHttpProxy(getHttpProxyHost(), Integer.toString(getHttpProxyPort()));
             final Azure tempAzure = Azure.configure()
-                    .withProxy(proxy)
                     .authenticate(azureCredentialWrapper.getAzureTokenCredentials()).withDefaultSubscription();
             final PagedList<Subscription> subscriptions = tempAzure.subscriptions().list();
             subscriptions.loadAll();
             final String targetSubscriptionId = getTargetSubscriptionId(tempAzure, subscriptions);
             checkSubscription(subscriptions, targetSubscriptionId);
             azureCredentialWrapper.withDefaultSubscriptionId(targetSubscriptionId);
-            return AzureClientFactory.getAzureClient(azureCredentialWrapper, getUserAgent(), getHttpProxyHost(), getHttpProxyPort());
+            return AzureClientFactory.getAzureClient(azureCredentialWrapper, getUserAgent());
         } catch (AzureLoginException | IOException e) {
             throw new AzureAuthFailureException(e.getMessage());
         }
@@ -449,7 +445,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Override
     public void execute() throws MojoExecutionException {
         try {
-            injectSystemProxy();
+            // init proxy manager
+            ProxyManager.getInstance().init();
 
             // Work around for Application Insights Java SDK:
             // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.
@@ -654,14 +651,4 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    private void injectSystemProxy() {
-        if (StringUtils.isAllBlank(this.httpProxyHost, this.httpProxyPort)) {
-            final InetSocketAddress proxy = ProxyUtils.getSystemProxy();
-            if (proxy != null) {
-                Log.info(String.format("Use system proxy: %s:%s", TextUtils.cyan(proxy.getHostName()), TextUtils.cyan(Integer.toString(proxy.getPort()))));
-                this.httpProxyHost = proxy.getHostName();
-                this.httpProxyPort = Integer.toString(proxy.getPort());
-            }
-        }
-    }
 }

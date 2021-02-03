@@ -4,11 +4,11 @@
  * license information.
  */
 
-package com.microsoft.azure.tools.auth;
-
+package com.microsoft.azure.tools.auth.util;
 
 import com.azure.core.util.Configuration;
 import com.microsoft.azure.AzureEnvironment;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.tools.common.util.StringListUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AuthHelper {
+public class AzureEnvironmentUtils {
     private static final Map<AzureEnvironment, String[]> AZURE_CLOUD_ALIAS_MAP = new HashMap<>();
 
     static {
@@ -53,14 +53,6 @@ public class AuthHelper {
             // https://github.com/Azure/azure-sdk-for-java/blob/32f8f7ca8b44035b2e5520c5e10455f42500a778/sdk/identity/azure-identity/
             // src/main/java/com/azure/identity/implementation/IdentityClientOptions.java#L42
             Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.activeDirectoryEndpoint());
-        }
-    }
-
-    public static void setupAuthProxy(String httpProxyHost, String httpProxyPort) {
-        if (StringUtils.isNotBlank(httpProxyHost)) {
-            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, String.format("http://%s:%s", httpProxyHost, httpProxyPort));
-            setPropertyIfNotExist("http.proxyHost", httpProxyHost);
-            setPropertyIfNotExist("http.proxyPort", httpProxyPort);
         }
     }
 

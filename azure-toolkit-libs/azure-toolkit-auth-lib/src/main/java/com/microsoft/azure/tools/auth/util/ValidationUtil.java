@@ -14,9 +14,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import java.util.Objects;
 
 public class ValidationUtil {
-
-    private static final int MAX_PORT_NUMBER = 65535;
-
     public static AuthConfiguration validateAuthConfiguration(AuthConfiguration config) throws InvalidConfigurationException {
         String tenant = config.getTenant();
         String client = config.getClient();
@@ -35,25 +32,6 @@ public class ValidationUtil {
         if (Objects.nonNull(errorMessage)) {
             throw new InvalidConfigurationException(errorMessage);
         }
-        validateHttpProxy(config.getHttpProxyHost(), Objects.toString(config.getHttpProxyPort(), null));
         return config;
-    }
-
-    public static void validateHttpProxy(String httpProxyHost, String httpProxyPortStr) throws InvalidConfigurationException {
-        if (StringUtils.isAllBlank(httpProxyHost, httpProxyPortStr)) {
-            return;
-        }
-        if (StringUtils.isAnyBlank(httpProxyHost, httpProxyPortStr)) {
-            throw new InvalidConfigurationException("if you want to use proxy, 'httpProxyHost' and 'httpProxyPort' must both be set");
-        }
-
-        if (!NumberUtils.isCreatable(httpProxyPortStr)) {
-            throw new InvalidConfigurationException(String.format("Invalid integer number for httpProxyPort: '%s'.", httpProxyPortStr));
-        }
-        int httpProxyPort = NumberUtils.toInt(httpProxyPortStr);
-        if (httpProxyPort <= 0 || httpProxyPort > MAX_PORT_NUMBER) {
-            throw new InvalidConfigurationException(
-                    String.format("Invalid range of httpProxyPort: '%s', it should be a number between %d and %d", httpProxyPort, 1, MAX_PORT_NUMBER));
-        }
     }
 }
