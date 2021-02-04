@@ -6,9 +6,13 @@
 package com.microsoft.azure.toolkits.appservice.utils;
 
 import com.azure.resourcemanager.appservice.models.AppSetting;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkits.appservice.model.DeployType;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -34,5 +38,21 @@ public class Utils {
 
     public static String getSubscriptionId(String resourceId) {
         return getSegment(resourceId, SUBSCRIPTIONS);
+    }
+
+    public static DeployType getDeployTypeByFileExtension(File file) {
+        final String fileExtensionName = FilenameUtils.getExtension(file.getName());
+        switch (StringUtils.lowerCase(fileExtensionName)) {
+            case "jar":
+                return DeployType.JAR;
+            case "war":
+                return DeployType.WAR;
+            case "ear":
+                return DeployType.EAR;
+            case "zip":
+                return DeployType.ZIP;
+            default:
+                throw new AzureToolkitRuntimeException("Unsupported file type, please set the deploy type.");
+        }
     }
 }

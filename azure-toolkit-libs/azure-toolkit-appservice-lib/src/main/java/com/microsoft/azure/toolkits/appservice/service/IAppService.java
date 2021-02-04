@@ -5,13 +5,15 @@
  */
 package com.microsoft.azure.toolkits.appservice.service;
 
+import com.microsoft.azure.toolkits.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
+import com.microsoft.azure.toolkits.appservice.utils.Utils;
 
 import java.io.File;
 
-public interface IAppService extends IResource{
+public interface IAppService extends IResource {
     void start();
 
     void stop();
@@ -20,9 +22,19 @@ public interface IAppService extends IResource{
 
     void delete();
 
-    void deploy(File file);
+    default void deploy(File targetFile) {
+        deploy(Utils.getDeployTypeByFileExtension(targetFile), targetFile);
+    }
 
-    void deploy(DeployType deployType, File file);
+    default void deploy(DeployType deployType, File targetFile) {
+        deploy(deployType, targetFile, null);
+    }
+
+    default void deploy(WebAppArtifact webAppArtifact) {
+        deploy(webAppArtifact.getDeployType(), webAppArtifact.getFile(), webAppArtifact.getPath());
+    }
+
+    void deploy(DeployType deployType, File targetFile, String targetPath);
 
     boolean exists();
 

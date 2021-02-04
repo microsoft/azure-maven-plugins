@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkits.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.WebApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -71,13 +72,9 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     }
 
     @Override
-    public void deploy(File file) {
-        deploy(AppServiceUtils.getDeployTypeByFileExtension(file), file);
-    }
-
-    @Override
-    public void deploy(DeployType deployType, File file) {
-        getDeploymentSlotInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), file);
+    public void deploy(DeployType deployType, File targetFile, String targetPath) {
+        final DeployOptions options = new DeployOptions().withPath(targetPath);
+        getDeploymentSlotInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
     @Override

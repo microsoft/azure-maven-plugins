@@ -9,9 +9,9 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.project.IProject;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
-import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
+import com.microsoft.azure.toolkits.appservice.model.WebAppArtifact;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
@@ -21,13 +21,11 @@ import com.microsoft.azure.toolkits.appservice.model.Runtime;
 import com.microsoft.azure.toolkits.appservice.model.WebContainer;
 import com.microsoft.azure.tools.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class V1ConfigParser extends AbstractConfigParser {
     public V1ConfigParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
@@ -61,15 +59,14 @@ public class V1ConfigParser extends AbstractConfigParser {
     }
 
     @Override
-    public List<Pair<File, DeployType>> getResources() throws AzureExecutionException {
+    public List<WebAppArtifact> getMavenArtifacts() throws AzureExecutionException {
         switch (mojo.getDeploymentType()) {
             case JAR:
-                return Arrays.asList(Pair.of(getFileToDeploy(mojo.getJarFile()), DeployType.JAR));
+                return Arrays.asList(WebAppArtifact.builder().file(getFileToDeploy(mojo.getJarFile())).deployType(DeployType.JAR).build());
             case WAR:
-                return Arrays.asList(Pair.of(getFileToDeploy(mojo.getWarFile()), DeployType.WAR));
+                return Arrays.asList(WebAppArtifact.builder().file(getFileToDeploy(mojo.getWarFile())).deployType(DeployType.JAR).build());
             default:
-                final List<File> files = MavenArtifactUtils.getArtifacts(mojo.getResources());
-                return files.stream().map(file -> Pair.of(file, getDeployTypeFromFile(file))).collect(Collectors.toList());
+                return parseArtifactsFromResources(mojo.getResources());
         }
     }
 
