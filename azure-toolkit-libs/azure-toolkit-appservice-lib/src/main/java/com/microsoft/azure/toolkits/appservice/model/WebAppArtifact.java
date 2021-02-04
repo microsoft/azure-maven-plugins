@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.webapp.models;
+package com.microsoft.azure.toolkits.appservice.model;
 
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import lombok.Getter;
@@ -14,7 +14,7 @@ import java.io.File;
 
 @Getter
 @SuperBuilder(toBuilder = true)
-public class MavenArtifact {
+public class WebAppArtifact {
     private File file;
     private String path;
     private DeployType deployType;

@@ -9,7 +9,7 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
-import com.microsoft.azure.maven.webapp.models.MavenArtifact;
+import com.microsoft.azure.toolkits.appservice.model.WebAppArtifact;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
@@ -52,11 +52,11 @@ public class V2ConfigParser extends AbstractConfigParser {
     }
 
     @Override
-    public List<MavenArtifact> getMavenArtifacts() throws AzureExecutionException {
+    public List<WebAppArtifact> getMavenArtifacts() throws AzureExecutionException {
         if (mojo.getDeployment() == null || mojo.getDeployment().getResources() == null) {
             return Collections.EMPTY_LIST;
         }
-        return convertResourcesToArtifact(mojo.getDeployment().getResources());
+        return parseArtifactsFromResources(mojo.getDeployment().getResources());
     }
 
     @Override

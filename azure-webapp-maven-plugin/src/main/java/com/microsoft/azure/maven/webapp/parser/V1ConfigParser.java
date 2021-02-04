@@ -11,7 +11,7 @@ import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.maven.webapp.models.MavenArtifact;
+import com.microsoft.azure.toolkits.appservice.model.WebAppArtifact;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
@@ -59,14 +59,14 @@ public class V1ConfigParser extends AbstractConfigParser {
     }
 
     @Override
-    public List<MavenArtifact> getMavenArtifacts() throws AzureExecutionException {
+    public List<WebAppArtifact> getMavenArtifacts() throws AzureExecutionException {
         switch (mojo.getDeploymentType()) {
             case JAR:
-                return Arrays.asList(MavenArtifact.builder().file(getFileToDeploy(mojo.getJarFile())).deployType(DeployType.JAR).build());
+                return Arrays.asList(WebAppArtifact.builder().file(getFileToDeploy(mojo.getJarFile())).deployType(DeployType.JAR).build());
             case WAR:
-                return Arrays.asList(MavenArtifact.builder().file(getFileToDeploy(mojo.getWarFile())).deployType(DeployType.JAR).build());
+                return Arrays.asList(WebAppArtifact.builder().file(getFileToDeploy(mojo.getWarFile())).deployType(DeployType.JAR).build());
             default:
-                return convertResourcesToArtifact(mojo.getResources());
+                return parseArtifactsFromResources(mojo.getResources());
         }
     }
 

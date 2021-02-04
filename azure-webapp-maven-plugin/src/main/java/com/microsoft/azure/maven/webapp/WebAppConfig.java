@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.maven.webapp.models.MavenArtifact;
+import com.microsoft.azure.toolkits.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkits.appservice.model.PricingTier;
 import com.microsoft.azure.toolkits.appservice.model.Runtime;
@@ -32,5 +32,5 @@ public class WebAppConfig {
     private String deploymentSlotConfigurationSource;
     private Map<String, String> appSettings;
     // resources
-    private List<MavenArtifact> mavenArtifacts;
+    private List<WebAppArtifact> webAppArtifacts;
 }

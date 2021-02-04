@@ -10,7 +10,7 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.maven.webapp.models.MavenArtifact;
+import com.microsoft.azure.toolkits.appservice.model.WebAppArtifact;
 import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
@@ -207,28 +207,28 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private void deployArtifacts(IAppService target, WebAppConfig config) throws AzureExecutionException {
         // This is the codes for one deploy API, for current release, will replace it with zip all files and deploy with zip deploy
-        final List<MavenArtifact> resources = config.getMavenArtifacts();
-        if (CollectionUtils.isEmpty(resources)) {
+        final List<WebAppArtifact> artifacts = config.getWebAppArtifacts();
+        if (CollectionUtils.isEmpty(artifacts)) {
             return;
         }
         // call correspond deploy method when deploy artifact only
-        if (resources.size() == 1) {
-            final MavenArtifact resource = resources.get(0);
-            final DeployType deployType = target.getRuntime().getWebContainer() == WebContainer.JBOSS_72 ? DeployType.EAR : resource.getDeployType();
-            target.deploy(deployType, resource.getFile(), resource.getPath());
+        if (artifacts.size() == 1) {
+            final WebAppArtifact artifact = artifacts.get(0);
+            final DeployType deployType = target.getRuntime().getWebContainer() == WebContainer.JBOSS_72 ? DeployType.EAR : artifact.getDeployType();
+            target.deploy(deployType, artifact.getFile(), artifact.getPath());
             return;
         }
         // Support deploy multi war to different paths
-        if (DeployUtils.isAllWarArtifacts(resources)) {
-            resources.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+        if (DeployUtils.isAllWarArtifacts(artifacts)) {
+            artifacts.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
             return;
         }
         // package all resource and do zip deploy
         // todo: migrate to use one deploy
-        deployResourcesWithZipDeploy(target, resources);
+        deployArtifactsWithZipDeploy(target, artifacts);
     }
 
-    private void deployResourcesWithZipDeploy(IAppService target, List<MavenArtifact> artifacts) throws AzureExecutionException {
+    private void deployArtifactsWithZipDeploy(IAppService target, List<WebAppArtifact> artifacts) throws AzureExecutionException {
         final File stagingDirectory = prepareStagingDirectory(artifacts);
         // Rename jar once java_se runtime
         if (target.getRuntime().getWebContainer() == WebContainer.JAVA_SE) {
@@ -241,14 +241,15 @@ public class DeployMojo extends AbstractWebAppMojo {
         target.deploy(DeployType.ZIP, zipFile);
     }
 
-    private static File prepareStagingDirectory(List<MavenArtifact> mavenArtifacts) throws AzureExecutionException {
+    private static File prepareStagingDirectory(List<WebAppArtifact> webAppArtifacts) throws AzureExecutionException {
         try {
             final File stagingDirectory = Files.createTempDirectory("azure-functions").toFile();
             FileUtils.forceDeleteOnExit(stagingDirectory);
-            // Copy resources to staging folder
-            for (final MavenArtifact mavenArtifact : mavenArtifacts) {
-                final File targetFolder = StringUtils.isEmpty(mavenArtifact.getPath()) ? stagingDirectory : new File(stagingDirectory, mavenArtifact.getPath());
-                FileUtils.copyFileToDirectory(mavenArtifact.getFile(), targetFolder);
+            // Copy maven artifacts to staging folder
+            for (final WebAppArtifact webAppArtifact : webAppArtifacts) {
+                final File targetFolder = StringUtils.isEmpty(webAppArtifact.getPath()) ? stagingDirectory :
+                        new File(stagingDirectory, webAppArtifact.getPath());
+                FileUtils.copyFileToDirectory(webAppArtifact.getFile(), targetFolder);
             }
             return stagingDirectory;
         } catch (IOException e) {

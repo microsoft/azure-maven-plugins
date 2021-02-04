@@ -11,7 +11,7 @@ import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfig;
-import com.microsoft.azure.maven.webapp.models.MavenArtifact;
+import com.microsoft.azure.toolkits.appservice.model.WebAppArtifact;
 import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
@@ -77,7 +77,7 @@ public abstract class AbstractConfigParser {
 
     public abstract DockerConfiguration getDockerConfiguration() throws AzureExecutionException;
 
-    public abstract List<MavenArtifact> getMavenArtifacts() throws AzureExecutionException;
+    public abstract List<WebAppArtifact> getMavenArtifacts() throws AzureExecutionException;
 
     public abstract Runtime getRuntime() throws AzureExecutionException;
 
@@ -93,7 +93,7 @@ public abstract class AbstractConfigParser {
                 .dockerConfiguration(getDockerConfiguration())
                 .deploymentSlotName(getDeploymentSlotName())
                 .deploymentSlotConfigurationSource(getDeploymentSlotConfigurationSource())
-                .mavenArtifacts(getMavenArtifacts())
+                .webAppArtifacts(getMavenArtifacts())
                 .build();
     }
 
@@ -108,20 +108,20 @@ public abstract class AbstractConfigParser {
         }
     }
 
-    protected List<MavenArtifact> convertResourcesToArtifact(List<Resource> resources) {
+    protected static List<WebAppArtifact> parseArtifactsFromResources(List<Resource> resources) {
         return CollectionUtils.isEmpty(resources) ? Collections.EMPTY_LIST :
                 resources.stream()
-                        .filter(resource -> !DeployUtils.isExternalResource(resource))
+                        .filter(resource -> !DeployUtils.isExternalResource(resource)) // filter out external resources
                         .flatMap(resource -> convertResourceToArtifact(resource).stream()).collect(Collectors.toList());
     }
 
-    protected List<MavenArtifact> convertResourceToArtifact(Resource resource) {
+    protected static List<WebAppArtifact> convertResourceToArtifact(Resource resource) {
         return MavenArtifactUtils.getArtifacts(resource).stream()
-                .map(file -> MavenArtifact.builder().file(file).deployType(getDeployTypeFromFile(file)).path(resource.getTargetPath()).build())
+                .map(file -> WebAppArtifact.builder().file(file).deployType(getDeployTypeFromFile(file)).path(resource.getTargetPath()).build())
                 .collect(Collectors.toList());
     }
 
-    protected DeployType getDeployTypeFromFile(File file) {
+    protected static DeployType getDeployTypeFromFile(File file) {
         final DeployType type = DeployType.fromString(FilenameUtils.getExtension(file.getName()));
         return type == null ? DeployType.ZIP : type;
     }

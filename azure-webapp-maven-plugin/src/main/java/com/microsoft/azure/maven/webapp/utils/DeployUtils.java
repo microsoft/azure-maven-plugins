@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.maven.webapp.models.MavenArtifact;
+import com.microsoft.azure.toolkits.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import com.microsoft.azure.toolkits.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkits.appservice.service.IAppService;
@@ -61,8 +61,8 @@ public class DeployUtils {
         }
     }
 
-    public static boolean isAllWarArtifacts(List<MavenArtifact> mavenArtifacts) {
-        final Set<DeployType> deployTypes = mavenArtifacts.stream().map(MavenArtifact::getDeployType).collect(Collectors.toSet());
+    public static boolean isAllWarArtifacts(List<WebAppArtifact> webAppArtifacts) {
+        final Set<DeployType> deployTypes = webAppArtifacts.stream().map(WebAppArtifact::getDeployType).collect(Collectors.toSet());
         return deployTypes.size() == 1 && deployTypes.iterator().next() == DeployType.WAR;
     }
 

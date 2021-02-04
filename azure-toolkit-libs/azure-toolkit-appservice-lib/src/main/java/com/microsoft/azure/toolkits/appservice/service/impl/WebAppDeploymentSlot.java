@@ -72,19 +72,9 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     }
 
     @Override
-    public void deploy(File file) {
-        deploy(AppServiceUtils.getDeployTypeByFileExtension(file), file);
-    }
-
-    @Override
-    public void deploy(DeployType deployType, File file) {
-        deploy(deployType, file, null);
-    }
-
-    @Override
-    public void deploy(DeployType deployType, File file, String targetPath) {
+    public void deploy(DeployType deployType, File targetFile, String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
-        getDeploymentSlotInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), file, options);
+        getDeploymentSlotInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
     @Override

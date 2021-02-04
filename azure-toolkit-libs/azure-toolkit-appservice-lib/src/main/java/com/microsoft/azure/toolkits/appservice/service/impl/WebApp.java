@@ -84,18 +84,9 @@ public class WebApp implements IWebApp {
     }
 
     @Override
-    public void deploy(File file) {
-        deploy(AppServiceUtils.getDeployTypeByFileExtension(file), file);
-    }
-
-    public void deploy(DeployType deployType, File target) {
-        deploy(deployType, target, null);
-    }
-
-    @Override
-    public void deploy(DeployType deployType, File target, String targetPath) {
+    public void deploy(DeployType deployType, File targetFile, String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
-        getWebAppInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), target, options);
+        getWebAppInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
     @Override

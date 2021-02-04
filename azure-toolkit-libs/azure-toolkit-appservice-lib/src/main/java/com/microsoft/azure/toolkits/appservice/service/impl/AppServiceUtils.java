@@ -191,19 +191,4 @@ class AppServiceUtils {
         }
     }
 
-    static DeployType getDeployTypeByFileExtension(File file) {
-        final String fileExtensionName = FilenameUtils.getExtension(file.getName());
-        switch (StringUtils.lowerCase(fileExtensionName)) {
-            case "jar":
-                return DeployType.JAR;
-            case "war":
-                return DeployType.WAR;
-            case "ear":
-                return DeployType.EAR;
-            case "zip":
-                return DeployType.ZIP;
-            default:
-                throw new AzureToolkitRuntimeException("Unsupported file type, please set the deploy type.");
-        }
-    }
 }
