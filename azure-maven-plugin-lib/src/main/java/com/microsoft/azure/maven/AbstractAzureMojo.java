@@ -26,10 +26,10 @@ import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
-import com.microsoft.azure.maven.utils.MavenAuthUtils;
+import com.microsoft.azure.maven.auth.MavenAuthManager;
 import com.microsoft.azure.maven.utils.MavenUtils;
+import com.microsoft.azure.maven.utils.ProxyUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
-import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
@@ -310,7 +310,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return StringUtils.firstNonBlank(auth == null ? null : auth.getType(), authType);
     }
 
-    protected String selectSubscription(Azure az, Subscription[] subscriptions) throws AzureExecutionException {
+    protected String selectSubscription(Subscription[] subscriptions) throws AzureExecutionException {
         if (subscriptions.length == 0) {
             throw new AzureExecutionException("Cannot find any subscriptions in current account.");
         }
@@ -319,12 +319,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                     TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
             return subscriptions[0].subscriptionId();
         }
-        final String defaultId = Optional.ofNullable(az.getCurrentSubscription()).map(Subscription::subscriptionId).orElse(null);
         final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption(t))
                 .sorted()
                 .collect(Collectors.toList());
-        final SubscriptionOption defaultValue = wrapSubs.stream()
-                .filter(t -> StringUtils.equalsIgnoreCase(t.getSubscriptionId(), defaultId)).findFirst().orElse(null);
+        final SubscriptionOption defaultValue = wrapSubs.get(0);
         final TextIO textIO = TextIoFactory.getTextIO();
         final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(() -> textIO.getTextTerminal(), null)
                 .withCustomPrompt(String.format("Please choose a subscription%s: ",
@@ -342,7 +340,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             mavenAuthConfiguration.setType(getAuthType());
 
             SystemPropertyUtils.injectCommandLineParameter("auth", mavenAuthConfiguration, MavenAuthConfiguration.class);
-            azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
+            azureCredentialWrapper = MavenAuthManager.getInstance().login(session, settingsDecrypter, mavenAuthConfiguration);
 
             if (Objects.isNull(azureCredentialWrapper)) {
                 return null;
@@ -354,11 +352,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }
             Log.info(azureCredentialWrapper.getCredentialDescription());
-            final Azure tempAzure = Azure.configure()
-                    .authenticate(azureCredentialWrapper.getAzureTokenCredentials()).withDefaultSubscription();
-            final PagedList<Subscription> subscriptions = tempAzure.subscriptions().list();
+            final PagedList<Subscription> subscriptions = Azure.configure()
+                    .authenticate(azureCredentialWrapper.getAzureTokenCredentials()).subscriptions().list();
             subscriptions.loadAll();
-            final String targetSubscriptionId = getTargetSubscriptionId(tempAzure, subscriptions);
+            final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions);
             checkSubscription(subscriptions, targetSubscriptionId);
             azureCredentialWrapper.withDefaultSubscriptionId(targetSubscriptionId);
             return AzureClientFactory.getAzureClient(azureCredentialWrapper, getUserAgent());
@@ -445,7 +442,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public void execute() throws MojoExecutionException {
         try {
             // init proxy manager
-            ProxyManager.getInstance().init();
+            ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
 
             // Work around for Application Insights Java SDK:
             // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.
@@ -619,9 +616,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
     //endregion
 
-    private String getTargetSubscriptionId(Azure azure2, PagedList<Subscription> subscriptions) throws IOException, AzureExecutionException {
+    private String getTargetSubscriptionId(String defaultSubscriptionId, PagedList<Subscription> subscriptions) throws IOException, AzureExecutionException {
         final List<String> subsIdList = subscriptions.stream().map(Subscription::subscriptionId).collect(Collectors.toList());
-        String targetSubscriptionId = StringUtils.firstNonBlank(this.subscriptionId, azureCredentialWrapper.getDefaultSubscriptionId());
+        String targetSubscriptionId = defaultSubscriptionId;
 
         if (StringUtils.isBlank(targetSubscriptionId) && ArrayUtils.isNotEmpty(azureCredentialWrapper.getFilteredSubscriptionIds())) {
             final Collection<String> filteredSubscriptions = StringListUtils.intersectIgnoreCase(subsIdList,
@@ -632,7 +629,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
 
         if (StringUtils.isBlank(targetSubscriptionId)) {
-            return selectSubscription(azure2, subscriptions.toArray(new Subscription[0]));
+            return selectSubscription(subscriptions.toArray(new Subscription[0]));
         }
         return targetSubscriptionId;
     }

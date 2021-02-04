@@ -29,7 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class AzureAuthManager {
-    public static Single<AzureCredentialWrapper> getAzureCredentialWrapper(AuthConfiguration configuration) {
+    protected Single<AzureCredentialWrapper> login(AuthConfiguration configuration) {
         AuthConfiguration auth = MoreObjects.firstNonNull(configuration, new AuthConfiguration());
         AzureEnvironmentUtils.setupAzureEnvironment(auth.getEnvironment());
         ChainedCredentialRetriever chainedCredentialRetriever = new ChainedCredentialRetriever();

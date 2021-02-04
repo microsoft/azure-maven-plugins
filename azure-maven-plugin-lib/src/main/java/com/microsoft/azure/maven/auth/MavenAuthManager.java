@@ -4,7 +4,7 @@
  * license information.
  */
 
-package com.microsoft.azure.maven.utils;
+package com.microsoft.azure.maven.auth;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
@@ -25,11 +25,17 @@ import java.util.Objects;
 
 import static com.microsoft.azure.maven.auth.MavenSettingHelper.buildAuthConfigurationByServerId;
 
-public class MavenAuthUtils {
+public class MavenAuthManager extends AzureAuthManager {
     private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
-        "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
+            "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
 
-    public static AzureCredentialWrapper login(MavenSession session, SettingsDecrypter settingsDecrypter, @Nonnull MavenAuthConfiguration auth)
+    private static MavenAuthManager mavenAuthManager = new MavenAuthManager();
+
+    public static MavenAuthManager getInstance() {
+        return mavenAuthManager;
+    }
+
+    public AzureCredentialWrapper login(MavenSession session, SettingsDecrypter settingsDecrypter, @Nonnull MavenAuthConfiguration auth)
             throws AzureExecutionException, MavenDecryptException, InvalidConfigurationException {
         final String serverId = auth.getServerId();
         final AuthConfiguration authConfiguration;
@@ -41,8 +47,7 @@ public class MavenAuthUtils {
                     : "in <auth> configuration.";
             throw new AzureExecutionException(String.format("%s %s", ex.getMessage(), messagePostfix));
         }
-        ProxyUtils.configureProxy(session.getRequest());
-        return AzureAuthManager.getAzureCredentialWrapper(authConfiguration).toBlocking().value();
+        return super.login(authConfiguration).toBlocking().value();
     }
 
     private static AuthConfiguration convertToAuthConfiguration(MavenAuthConfiguration mavenAuthConfiguration)
