@@ -19,10 +19,10 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.auth.MavenAuthManager;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.model.SubscriptionOption2;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
-import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
@@ -424,7 +424,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         try {
             final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
             mavenAuthConfiguration.setType(getAuthType());
-            final AzureCredentialWrapper azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
+            final AzureCredentialWrapper azureCredentialWrapper = MavenAuthManager.getInstance().login(session, settingsDecrypter, mavenAuthConfiguration);
             if (Objects.isNull(azureCredentialWrapper)) {
                 return null;
             }
