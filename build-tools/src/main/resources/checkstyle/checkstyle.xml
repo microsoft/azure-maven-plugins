@@ -175,7 +175,7 @@ page at https://checkstyle.org/config.html -->
         <module name="LocalFinalVariableName">
             <!-- Validates identifiers for local final variables against the
               expression "^[a-z][a-zA-Z0-9]*$". -->
-            <property name="severity" value="warning"/>
+            <property name="severity" value="info"/>
         </module>
 
         <module name="FinalLocalVariable">

@@ -10,7 +10,7 @@ import com.azure.identity.VisualStudioCodeCredential;
 import com.azure.identity.VisualStudioCodeCredentialBuilder;
 import com.google.common.base.MoreObjects;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.tools.auth.AuthHelper;
+import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.tools.auth.exception.LoginFailureException;
@@ -28,10 +28,10 @@ public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetri
 
     public AzureCredentialWrapper retrieveInternal() throws LoginFailureException {
         try {
-            final VisualStudioCodeAccountProfile vscodeProfile = VisualStudioCodeProfileRetriever.getProfile();
-            envFromVscode = AuthHelper.stringToAzureEnvironment(vscodeProfile.getEnvironment());
+            final VisualStudioCodeAccountProfile vscodeProfile = VisualStudioCodeProfileRetriever.getProfile(getAzureEnvironment());
+            envFromVscode = AzureEnvironmentUtils.stringToAzureEnvironment(vscodeProfile.getEnvironment());
             checkAzureEnvironmentConflict(env, envFromVscode);
-            AuthHelper.setupAzureEnvironment(envFromVscode);
+            AzureEnvironmentUtils.setupAzureEnvironment(envFromVscode);
             final VisualStudioCodeCredential visualStudioCodeCredential = new VisualStudioCodeCredentialBuilder().build();
             validateTokenCredential(visualStudioCodeCredential);
             return new AzureCredentialWrapper(AuthMethod.VSCODE, visualStudioCodeCredential, MoreObjects.firstNonNull(envFromVscode, AzureEnvironment.AZURE))
@@ -46,7 +46,7 @@ public class VisualStudioCodeCredentialRetriever extends AbstractCredentialRetri
         if (env != null && envVSCode != null && !Objects.equals(env, envVSCode)) {
             throw new LoginFailureException(String.format("The azure cloud from vscode '%s' doesn't match with your auth configuration: %s, " +
                             "you can change it by pressing F1 in VSCode and find \">azure: sign in to Azure Cloud\" command to change azure cloud in vscode.",
-                    AuthHelper.azureEnvironmentToString(envVSCode), AuthHelper.azureEnvironmentToString(env)));
+                    AzureEnvironmentUtils.azureEnvironmentToString(envVSCode), AzureEnvironmentUtils.azureEnvironmentToString(env)));
         }
     }
 

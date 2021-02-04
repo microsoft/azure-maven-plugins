@@ -37,9 +37,9 @@ import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkits.appservice.AzureAppService;
 import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
-import com.microsoft.azure.tools.auth.AuthHelper;
 import com.microsoft.azure.tools.auth.exception.AzureLoginException;
 import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.common.util.StringListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -424,13 +424,12 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         try {
             final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
             mavenAuthConfiguration.setType(getAuthType());
-            final AzureCredentialWrapper azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration,
-                    this.httpProxyHost, this.httpProxyPort);
+            final AzureCredentialWrapper azureCredentialWrapper = MavenAuthUtils.login(session, settingsDecrypter, mavenAuthConfiguration);
             if (Objects.isNull(azureCredentialWrapper)) {
                 return null;
             }
             final com.microsoft.azure.AzureEnvironment env = azureCredentialWrapper.getEnv();
-            final String environmentName = AuthHelper.azureEnvironmentToString(env);
+            final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
             if (env != com.microsoft.azure.AzureEnvironment.AZURE) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }
