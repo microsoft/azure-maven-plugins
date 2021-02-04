@@ -24,6 +24,7 @@ import org.apache.maven.model.Resource;
 
 import java.util.List;
 
+@Deprecated
 public abstract class ConfigurationParser {
     protected final AbstractWebAppMojo mojo;
     protected final AbstractConfigurationValidator validator;

@@ -4,7 +4,6 @@
  * license information.
  */
 
-
 package com.microsoft.azure.maven.model;
 
 import com.microsoft.azure.management.resources.Subscription;

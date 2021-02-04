@@ -38,12 +38,14 @@
         <module>azure-toolkit-common-lib</module>
         <module>azure-toolkit-auth-lib</module>
         <module>azure-toolkit-springcloud-lib</module>
+        <module>azure-toolkit-appservice-lib</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <azure.toolkit-lib.version>${project.version}</azure.toolkit-lib.version>
+        <azure.toolkit-auth.version>${project.version}</azure.toolkit-auth.version>
 
         <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -120,6 +122,7 @@
         <lombok.version>1.18.16</lombok.version>
         <azure.resourcemanager.version>2.1.0</azure.resourcemanager.version>
         <free.port.finder.version>1.0</free.port.finder.version>
+        <azure.resourcemanager.version>2.1.0</azure.resourcemanager.version>
     </properties>
 
     <dependencyManagement>
@@ -129,6 +132,11 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-common-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-auth-lib</artifactId>
+                <version>${azure.toolkit-auth.version}</version>
             </dependency>
 
             <dependency>
@@ -290,7 +298,6 @@
             </dependency>
 
             <!-- azure sdk -->
-
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager</artifactId>

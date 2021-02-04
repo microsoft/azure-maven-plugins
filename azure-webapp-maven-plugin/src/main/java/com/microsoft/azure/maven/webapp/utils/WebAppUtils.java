@@ -19,14 +19,23 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.Existin
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.toolkits.appservice.service.IAppService;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.concurrent.TimeUnit;
 
 
 public class WebAppUtils {
-    public static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
-    public static final String CREATE_SERVICE_PLAN = "Creating App Service Plan '%s'...";
-    public static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
-    public static final String CONFIGURATION_NOT_APPLICABLE =
+    private static final String SERVICE_PLAN_NOT_APPLICABLE = "The App Service Plan '%s' is not a %s Plan";
+    private static final String CREATE_SERVICE_PLAN = "Creating App Service Plan '%s'...";
+    private static final String SERVICE_PLAN_CREATED = "Successfully created App Service Plan.";
+    private static final String CONFIGURATION_NOT_APPLICABLE =
             "The configuration is not applicable for the target Web App (%s). Please correct it in pom.xml.";
+    private static final String STOP_APP = "Stopping Web App before deploying artifacts...";
+    private static final String START_APP = "Starting Web App after deploying artifacts...";
+    private static final String STOP_APP_DONE = "Successfully stopped Web App.";
+    private static final String START_APP_DONE = "Successfully started Web App.";
+    private static final String RUNNING = "Running";
 
     public static void assureLinuxWebApp(final WebApp app) throws AzureExecutionException {
         if (!isLinuxWebApp(app)) {
@@ -80,12 +89,12 @@ public class WebAppUtils {
     }
 
     public static AppServicePlan createAppServicePlan(String servicePlanName,
-                                                           final String resourceGroup,
-                                                           final Azure azure,
-                                                           final String servicePlanResourceGroup,
-                                                           final Region region,
-                                                           final PricingTier pricingTier,
-                                                           final OperatingSystem os) throws AzureExecutionException {
+                                                      final String resourceGroup,
+                                                      final Azure azure,
+                                                      final String servicePlanResourceGroup,
+                                                      final Region region,
+                                                      final PricingTier pricingTier,
+                                                      final OperatingSystem os) throws AzureExecutionException {
         if (region == null) {
             throw new AzureExecutionException("Please config the <region> in pom.xml, " +
                     "it is required to create a new Azure App Service Plan.");
@@ -125,5 +134,26 @@ public class WebAppUtils {
 
     private static boolean isLinuxWebApp(final WebApp app) {
         return app.inner().kind().contains("linux");
+    }
+
+    public static void stopAppService(IAppService target) {
+        Log.info(STOP_APP);
+        target.stop();
+        // workaround for the resources release problem.
+        // More details: https://github.com/Microsoft/azure-maven-plugins/issues/191
+        try {
+            TimeUnit.SECONDS.sleep(10 /* 10 seconds */);
+        } catch (InterruptedException e) {
+            // swallow exception
+        }
+        Log.info(STOP_APP_DONE);
+    }
+
+    public static void startAppService(IAppService target) {
+        if (!StringUtils.equalsIgnoreCase(target.state(), RUNNING)) {
+            Log.info(START_APP);
+            target.start();
+            Log.info(START_APP_DONE);
+        }
     }
 }

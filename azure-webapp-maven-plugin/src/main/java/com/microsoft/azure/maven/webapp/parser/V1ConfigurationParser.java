@@ -23,6 +23,7 @@ import org.apache.maven.model.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public class V1ConfigurationParser extends ConfigurationParser {
 
     private static final String RUNTIME_NOT_EXIST = "The configuration of <linuxRuntime> in pom.xml is not correct. " +
