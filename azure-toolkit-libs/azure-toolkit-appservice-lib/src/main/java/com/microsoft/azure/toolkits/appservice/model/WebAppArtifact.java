@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.toolkits.appservice.model;
 
-import com.microsoft.azure.toolkits.appservice.model.DeployType;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
