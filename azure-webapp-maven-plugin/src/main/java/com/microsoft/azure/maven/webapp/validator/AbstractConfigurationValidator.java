@@ -70,6 +70,11 @@ public abstract class AbstractConfigurationValidator {
         return null;
     }
 
+    public String validateAppServicePlan() {
+        // todo: add validation for app service plan name
+        return null;
+    }
+
     public abstract String validateRegion();
 
     public abstract String validateOs();

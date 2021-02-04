@@ -90,7 +90,7 @@ public class WebContainerUtils {
                     case JAVA_11:
                         return WebContainer.fromString(JAVA_11_STRING);
                     default:
-                        // nerver enter this since java version is first checked.
+                        // never enter this since java version is first checked.
                         throw new IllegalArgumentException(String.format("Java version '%s' is not supported.", javaVersion));
                 }
             }

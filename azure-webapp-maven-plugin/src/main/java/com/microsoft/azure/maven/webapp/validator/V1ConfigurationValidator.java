@@ -6,11 +6,10 @@
 
 package com.microsoft.azure.maven.webapp.validator;
 
-import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-
+import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -81,10 +80,8 @@ public class V1ConfigurationValidator extends AbstractConfigurationValidator {
         if (StringUtils.isEmpty(javaVersion)) {
             return "Please config the <javaVersion> in pom.xml.";
         }
-        for (final JavaVersion version : JavaVersion.values()) {
-            if (version.toString().equals(javaVersion)) {
-                return null;
-            }
+        if (JavaVersion.fromString(javaVersion) != null) {
+            return null;
         }
         return "The configuration of <javaVersion> in pom.xml is not correct.";
     }
