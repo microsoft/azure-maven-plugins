@@ -18,6 +18,7 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 
+@Deprecated
 public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
 
     public V2NoValidationConfigurationParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
