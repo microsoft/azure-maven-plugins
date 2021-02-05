@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-libs</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Libs for Azure Toolkits</name>
     <description>Wrapped libs for Microsoft Azure Toolkits</description>
@@ -56,17 +56,17 @@
         <maven.shared-utils.version>3.2.1</maven.shared-utils.version>
         <maven.version>3.3.3</maven.version>
 
-        <azure.ai.version>2.6.1</azure.ai.version>
+        <azure.toolkit-lib.version>${project.version}</azure.toolkit-lib.version>
+        <azure.tools-common.version>0.13.0-SNAPSHOT</azure.tools-common.version>
+
+        <azure.aad.version>1.6.4</azure.aad.version>
+        <azure.applicationinsights.version>2.6.2</azure.applicationinsights.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
-        <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
-        <azure.client.version>1.7.9</azure.client.version>
-        <azure.eventhubs.version>1.2.0</azure.eventhubs.version>
-        <azure.eventhubs-eph.version>2.0.1</azure.eventhubs-eph.version>
-        <azure.function.version>1.4.0</azure.function.version>
-        <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
-        <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
-        <azure.tools-common.version>0.10.0</azure.tools-common.version>
-        <azure.version>1.36.3</azure.version>
+        <azure.azure-mgmt-appplatform.version>1.0.0-beta</azure.azure-mgmt-appplatform.version>
+        <azure.client.version>1.7.10</azure.client.version>
+        <azure.identity.version>1.2.1</azure.identity.version>
+        <azure.resourcemanager.version>2.1.0</azure.resourcemanager.version>
+        <azure.version>1.38.0</azure.version>
 
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
         <commons.codec.version>1.14</commons.codec.version>
@@ -136,7 +136,7 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-auth-lib</artifactId>
-                <version>${azure.toolkit-auth.version}</version>
+                <version>${azure.toolkit-lib.version}</version>
             </dependency>
 
             <dependency>
