@@ -42,17 +42,17 @@ public class AppServiceFileService {
 
     @Nullable
     @AzureOperation(
-            name = "appservice|file.get.path",
-            params = {"$path", "@app.name()"},
-            type = AzureOperation.Type.SERVICE
+        name = "appservice|file.get.path",
+        params = {"$path", "@app.name()"},
+        type = AzureOperation.Type.SERVICE
     )
     public AppServiceFile getFileByPath(String path) {
         final File file = new File(path);
         final List<? extends AppServiceFile> result = getFilesInDirectory(file.getParent());
         return result.stream()
-                .filter(appServiceFile -> StringUtils.equals(file.getName(), appServiceFile.getName()))
-                .findFirst()
-                .orElse(null);
+            .filter(appServiceFile -> StringUtils.equals(file.getName(), appServiceFile.getName()))
+            .findFirst()
+            .orElse(null);
     }
 
     @AzureOperation(

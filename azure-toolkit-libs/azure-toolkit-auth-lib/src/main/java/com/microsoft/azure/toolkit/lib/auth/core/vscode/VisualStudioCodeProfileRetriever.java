@@ -51,7 +51,7 @@ public class VisualStudioCodeProfileRetriever {
             }
         } catch (CredentialUnavailableException ex) {
             throw new LoginFailureException(String.format("Cannot get credentials from VSCode, " +
-                    "please execute the VSCode command `Azure: Sign In` to login your VSCode, detailed error: %s", ex.getMessage()));
+                "please execute the VSCode command `Azure: Sign In` to login your VSCode, detailed error: %s", ex.getMessage()));
         }
         return getVsCodeAccountProfile(userSettings, cloud);
     }
@@ -79,7 +79,7 @@ public class VisualStudioCodeProfileRetriever {
                     filteredSubscriptions.add(tenantAndSubsId[1]);
                 } else {
                     throw new InvalidConfigurationException(
-                            String.format("Invalid 'azure.resourceFilter' settings '%s' in VSCode settings.json.", filter.asText()));
+                        String.format("Invalid 'azure.resourceFilter' settings '%s' in VSCode settings.json.", filter.asText()));
                 }
             }
         }
@@ -102,13 +102,13 @@ public class VisualStudioCodeProfileRetriever {
         try {
             if (Platform.isWindows()) {
                 settingsPath = Paths.get(System.getenv("APPDATA"), "Code", "User", "settings.json")
-                        .toString();
+                    .toString();
             } else if (Platform.isMac()) {
                 settingsPath = Paths.get(homeDir, "Library",
-                        "Application Support", "Code", "User", "settings.json").toString();
+                    "Application Support", "Code", "User", "settings.json").toString();
             } else if (Platform.isLinux()) {
                 settingsPath = Paths.get(homeDir, ".config", "Code", "User", "settings.json")
-                        .toString();
+                    .toString();
             } else {
                 throw new CredentialUnavailableException(PLATFORM_NOT_SUPPORTED_ERROR);
             }

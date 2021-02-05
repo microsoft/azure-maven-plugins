@@ -35,8 +35,8 @@ public class Runtime {
     public static final Runtime DOCKER = new Runtime(OperatingSystem.DOCKER, null, null);
 
     private static final List<Runtime> values = Collections.unmodifiableList(Arrays.asList(WINDOWS_JAVA8, WINDOWS_JAVA11, WINDOWS_JAVA8_TOMCAT9,
-            WINDOWS_JAVA8_TOMCAT85, WINDOWS_JAVA11_TOMCAT9, WINDOWS_JAVA11_TOMCAT85, LINUX_JAVA8, LINUX_JAVA11, LINUX_JAVA8_TOMCAT9, LINUX_JAVA8_TOMCAT85,
-            LINUX_JAVA8_JBOSS72, LINUX_JAVA11_TOMCAT9, LINUX_JAVA11_TOMCAT85));
+        WINDOWS_JAVA8_TOMCAT85, WINDOWS_JAVA11_TOMCAT9, WINDOWS_JAVA11_TOMCAT85, LINUX_JAVA8, LINUX_JAVA11, LINUX_JAVA8_TOMCAT9, LINUX_JAVA8_TOMCAT85,
+        LINUX_JAVA8_JBOSS72, LINUX_JAVA11_TOMCAT9, LINUX_JAVA11_TOMCAT85));
 
     private OperatingSystem operatingSystem;
     private WebContainer webContainer;
@@ -44,10 +44,10 @@ public class Runtime {
 
     public static Runtime getRuntime(OperatingSystem operatingSystem, WebContainer webContainer, JavaVersion javaVersion) {
         final Runtime standardRuntime = values().stream()
-                .filter(runtime -> Objects.equals(runtime.operatingSystem, operatingSystem))
-                .filter(runtime -> Objects.equals(runtime.webContainer, webContainer))
-                .filter(runtime -> Objects.equals(runtime.javaVersion, javaVersion))
-                .findFirst().orElse(null);
+            .filter(runtime -> Objects.equals(runtime.operatingSystem, operatingSystem))
+            .filter(runtime -> Objects.equals(runtime.webContainer, webContainer))
+            .filter(runtime -> Objects.equals(runtime.javaVersion, javaVersion))
+            .findFirst().orElse(null);
         if (standardRuntime != null) {
             return standardRuntime;
         }
@@ -80,7 +80,7 @@ public class Runtime {
         }
         final Runtime runtime = (Runtime) o;
         return operatingSystem == runtime.operatingSystem && Objects.equals(webContainer, runtime.webContainer) &&
-                Objects.equals(javaVersion, runtime.javaVersion);
+            Objects.equals(javaVersion, runtime.javaVersion);
     }
 
     @Override

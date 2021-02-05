@@ -32,7 +32,7 @@ public class DeployType {
 
     public static DeployType fromString(String input) {
         return values().stream()
-                .filter(deployType -> StringUtils.equalsIgnoreCase(deployType.getValue(), input))
-                .findFirst().orElse(null);
+            .filter(deployType -> StringUtils.equalsIgnoreCase(deployType.getValue(), input))
+            .findFirst().orElse(null);
     }
 }

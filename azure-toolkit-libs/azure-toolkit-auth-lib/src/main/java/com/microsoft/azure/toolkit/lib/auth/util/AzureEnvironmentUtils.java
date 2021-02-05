@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.auth.util;
 
 import com.azure.core.util.Configuration;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.toolkit.lib.common.utils.StringListUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -25,7 +25,7 @@ public class AzureEnvironmentUtils {
         putAliasMap(AzureEnvironment.AZURE_CHINA, "AzureChinaCloud", "azure_china", "AzureChina", "azure_china_cloud");
         // the TYPO:azure_german comes from azure cli: https://docs.microsoft.com/en-us/azure/germany/germany-get-started-connect-with-cli
         putAliasMap(AzureEnvironment.AZURE_GERMANY, "AzureGermanCloud", "azure_germany", "azure_german",
-                "azure_germany_cloud", "azure_german_cloud", "AzureGerman", "AzureGermany");
+            "azure_germany_cloud", "azure_german_cloud", "AzureGerman", "AzureGermany");
         putAliasMap(AzureEnvironment.AZURE_US_GOVERNMENT, "AzureUSGovernment", "azure_us_government");
     }
 
@@ -63,9 +63,9 @@ public class AzureEnvironmentUtils {
      */
     public static AzureEnvironment stringToAzureEnvironment(String environment) {
         final String targetEnvironment = StringUtils.replaceChars(environment, '-', '_');
-        return AZURE_CLOUD_ALIAS_MAP.entrySet().stream().filter(entry -> StringListUtils.containsIgnoreCase(Arrays.asList(entry.getValue()), targetEnvironment))
-                .map(Map.Entry::getKey)
-                .findFirst().orElse(null);
+        return AZURE_CLOUD_ALIAS_MAP.entrySet().stream().filter(entry -> Utils.containsIgnoreCase(Arrays.asList(entry.getValue()), targetEnvironment))
+            .map(Map.Entry::getKey)
+            .findFirst().orElse(null);
     }
 
     private static void putAliasMap(AzureEnvironment env, String... aliases) {

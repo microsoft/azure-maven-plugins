@@ -13,19 +13,19 @@ import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.WebApp.Update;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
-import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
-import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
+import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceCreator;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
+import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -124,16 +124,16 @@ public class WebApp implements IWebApp {
     @Override
     public IWebAppDeploymentSlot deploymentSlot(String slotName) {
         final WebAppDeploymentSlotEntity slotEntity = WebAppDeploymentSlotEntity.builder().name(slotName)
-                .resourceGroup(getWebAppInner().resourceGroupName())
-                .webappName(getWebAppInner().name()).build();
+            .resourceGroup(getWebAppInner().resourceGroupName())
+            .webappName(getWebAppInner().name()).build();
         return new WebAppDeploymentSlot(slotEntity, azureAppService);
     }
 
     @Override
     public List<IWebAppDeploymentSlot> deploymentSlots() {
         return getWebAppInner().deploymentSlots().list().stream()
-                .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureAppService))
-                .collect(Collectors.toList());
+            .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureAppService))
+            .collect(Collectors.toList());
     }
 
     private com.azure.resourcemanager.appservice.models.WebApp getWebAppInner() {
@@ -146,8 +146,8 @@ public class WebApp implements IWebApp {
     synchronized void refreshWebAppInner() {
         try {
             webAppInner = StringUtils.isNotEmpty(entity.getId()) ?
-                    azureClient.webApps().getById(entity.getId()) :
-                    azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
+                azureClient.webApps().getById(entity.getId()) :
+                azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
             entity = AppServiceUtils.fromWebApp(webAppInner);
         } catch (ManagementException e) {
             // SDK will throw exception when resource not founded
@@ -200,31 +200,31 @@ public class WebApp implements IWebApp {
         DefinitionStages.WithCreate createWindowsWebApp(DefinitionStages.Blank blank, ResourceGroup resourceGroup, AppServicePlan appServicePlan,
                                                         Runtime runtime) {
             return (DefinitionStages.WithCreate) blank.withExistingWindowsPlan(appServicePlan)
-                    .withExistingResourceGroup(resourceGroup)
-                    .withJavaVersion(AppServiceUtils.toWindowsJavaVersion(runtime))
-                    .withWebContainer(AppServiceUtils.toWindowsWebContainer(runtime));
+                .withExistingResourceGroup(resourceGroup)
+                .withJavaVersion(AppServiceUtils.toWindowsJavaVersion(runtime))
+                .withWebContainer(AppServiceUtils.toWindowsWebContainer(runtime));
         }
 
         DefinitionStages.WithCreate createLinuxWebApp(DefinitionStages.Blank blank, ResourceGroup resourceGroup, AppServicePlan appServicePlan,
                                                       Runtime runtime) {
             return blank.withExistingLinuxPlan(appServicePlan)
-                    .withExistingResourceGroup(resourceGroup)
-                    .withBuiltInImage(AppServiceUtils.toLinuxRuntimeStack(runtime));
+                .withExistingResourceGroup(resourceGroup)
+                .withBuiltInImage(AppServiceUtils.toLinuxRuntimeStack(runtime));
         }
 
         DefinitionStages.WithCreate createDockerWebApp(DefinitionStages.Blank blank, ResourceGroup resourceGroup, AppServicePlan appServicePlan,
                                                        DockerConfiguration dockerConfiguration) {
             final DefinitionStages.WithLinuxAppFramework withLinuxAppFramework =
-                    blank.withExistingLinuxPlan(appServicePlan).withExistingResourceGroup(resourceGroup);
+                blank.withExistingLinuxPlan(appServicePlan).withExistingResourceGroup(resourceGroup);
             if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
                 return withLinuxAppFramework.withPublicDockerHubImage(dockerConfiguration.getImage());
             }
             if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
                 return withLinuxAppFramework.withPrivateDockerHubImage(dockerConfiguration.getImage())
-                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
             return withLinuxAppFramework.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
-                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
         }
     }
 
@@ -256,8 +256,8 @@ public class WebApp implements IWebApp {
         private Update updateAppServicePlan(Update update, AppServicePlanEntity newServicePlan) {
             final AppServicePlanEntity currentServicePlan = azureAppService.appServicePlan(getWebAppInner().appServicePlanId()).entity();
             if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
-                    (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
-                            StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {
+                (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
+                    StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {
                 return update;
             }
             final AppServicePlan newPlanServiceModel = AppServiceUtils.getAppServicePlan(newServicePlan, azureClient);
@@ -282,7 +282,7 @@ public class WebApp implements IWebApp {
                     return update.withBuiltInImage(AppServiceUtils.toLinuxRuntimeStack(newRuntime));
                 case WINDOWS:
                     return (Update) update.withJavaVersion(AppServiceUtils.toWindowsJavaVersion(newRuntime))
-                            .withWebContainer(AppServiceUtils.toWindowsWebContainer(newRuntime));
+                        .withWebContainer(AppServiceUtils.toWindowsWebContainer(newRuntime));
                 case DOCKER:
                     final DockerConfiguration dockerConfiguration = getDockerConfiguration().get();
                     if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
@@ -290,10 +290,10 @@ public class WebApp implements IWebApp {
                     }
                     if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
                         return update.withPrivateDockerHubImage(dockerConfiguration.getImage())
-                                .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                            .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
                     }
                     return update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
-                            .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
                 default:
                     throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
             }

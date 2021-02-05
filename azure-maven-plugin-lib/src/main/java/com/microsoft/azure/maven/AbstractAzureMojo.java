@@ -33,7 +33,7 @@ import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
-import com.microsoft.azure.toolkit.lib.common.utils.StringListUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -621,7 +621,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         String targetSubscriptionId = defaultSubscriptionId;
 
         if (StringUtils.isBlank(targetSubscriptionId) && ArrayUtils.isNotEmpty(azureCredentialWrapper.getFilteredSubscriptionIds())) {
-            final Collection<String> filteredSubscriptions = StringListUtils.intersectIgnoreCase(subsIdList,
+            final Collection<String> filteredSubscriptions = Utils.intersectIgnoreCase(subsIdList,
                     Arrays.asList(azureCredentialWrapper.getFilteredSubscriptionIds()));
             if (filteredSubscriptions.size() == 1) {
                 targetSubscriptionId = filteredSubscriptions.iterator().next();

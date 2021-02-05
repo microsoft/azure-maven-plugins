@@ -47,8 +47,8 @@ public class AzureAppService {
 
     public List<IWebApp> webapps() {
         return azureResourceManager.webApps().list().stream()
-                .map(webAppBasic -> webapp(webAppBasic.id()))
-                .collect(Collectors.toList());
+            .map(webAppBasic -> webapp(webAppBasic.id()))
+            .collect(Collectors.toList());
     }
 
     public IAppServicePlan appServicePlan(AppServicePlanEntity appServicePlanEntity) {
@@ -62,15 +62,15 @@ public class AzureAppService {
 
     public IAppServicePlan appServicePlan(String resourceGroup, String name) {
         final AppServicePlanEntity appServicePlanEntity = AppServicePlanEntity.builder()
-                .resourceGroup(resourceGroup)
-                .name(name).build();
+            .resourceGroup(resourceGroup)
+            .name(name).build();
         return appServicePlan(appServicePlanEntity);
     }
 
     public List<IAppServicePlan> appServicePlans() {
         return this.azureResourceManager.appServicePlans().list().stream()
-                .map(appServicePlan -> appServicePlan(appServicePlan.id()))
-                .collect(Collectors.toList());
+            .map(appServicePlan -> appServicePlan(appServicePlan.id()))
+            .collect(Collectors.toList());
     }
 
     public IWebAppDeploymentSlot deploymentSlot(String id) {

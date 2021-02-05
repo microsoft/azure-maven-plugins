@@ -11,14 +11,14 @@ import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
-import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlotCreator;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -118,10 +118,10 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     private synchronized void refreshDeploymentSlotInner() {
         try {
             final WebApp webAppService = StringUtils.isNotEmpty(slotEntity.getId()) ?
-                    azureClient.webApps().getById(slotEntity.getId().substring(0, slotEntity.getId().indexOf("/slots"))) :
-                    azureClient.webApps().getByResourceGroup(slotEntity.getResourceGroup(), slotEntity.getWebappName());
+                azureClient.webApps().getById(slotEntity.getId().substring(0, slotEntity.getId().indexOf("/slots"))) :
+                azureClient.webApps().getByResourceGroup(slotEntity.getResourceGroup(), slotEntity.getWebappName());
             deploymentSlotInner = StringUtils.isNotEmpty(slotEntity.getId()) ? webAppService.deploymentSlots().getById(slotEntity.getId()) :
-                    webAppService.deploymentSlots().getByName(slotEntity.getName());
+                webAppService.deploymentSlots().getByName(slotEntity.getName());
             slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(deploymentSlotInner);
         } catch (ManagementException e) {
             // SDK will throw exception when resource not founded

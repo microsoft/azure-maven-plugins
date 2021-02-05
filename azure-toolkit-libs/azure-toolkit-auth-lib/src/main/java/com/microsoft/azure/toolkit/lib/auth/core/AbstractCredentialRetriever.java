@@ -35,7 +35,7 @@ public abstract class AbstractCredentialRetriever implements ICredentialRetrieve
     protected void validateTokenCredential(TokenCredential credential) throws LoginFailureException {
         try {
             credential.getToken(
-                    new TokenRequestContext().addScopes(getAzureEnvironment().managementEndpoint() + "/.default")).block().getToken();
+                new TokenRequestContext().addScopes(getAzureEnvironment().managementEndpoint() + "/.default")).block().getToken();
         } catch (ClientAuthenticationException ex) {
             throw new LoginFailureException(ex.getMessage(), ex);
         }

@@ -11,14 +11,14 @@ import com.azure.identity.AzureCliCredentialBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.core.AbstractCredentialRetriever;
+import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
-import com.microsoft.azure.toolkit.lib.common.utils.CommandUtil;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -36,25 +36,24 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
         checkAzureEnvironmentConflict(env, AzureEnvironmentUtils.stringToAzureEnvironment(accountInfo.getEnvironment()));
         AzureCliCredential cliCredential = new AzureCliCredentialBuilder().build();
         validateTokenCredential(cliCredential);
-        return new AzureCredentialWrapper(
-                isInCloudShell() ? AuthMethod.CLOUD_SHELL : AuthMethod.AZURE_CLI, cliCredential, getAzureEnvironment())
-                .withDefaultSubscriptionId(accountInfo.getSubscriptionId())
-                .withTenantId(accountInfo.getTenantId());
+        return new AzureCredentialWrapper(isInCloudShell() ? AuthMethod.CLOUD_SHELL : AuthMethod.AZURE_CLI, cliCredential, getAzureEnvironment())
+            .withDefaultSubscriptionId(accountInfo.getSubscriptionId())
+            .withTenantId(accountInfo.getTenantId());
     }
 
     private static void checkAzureEnvironmentConflict(AzureEnvironment env, AzureEnvironment envCli) throws LoginFailureException {
         if (env != null && envCli != null && !Objects.equals(env, envCli)) {
             throw new LoginFailureException(String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
-                            "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
-                    AzureEnvironmentUtils.azureEnvironmentToString(envCli),
-                    AzureEnvironmentUtils.getCloudNameForAzureCli(env)));
+                    "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
+                AzureEnvironmentUtils.azureEnvironmentToString(envCli),
+                AzureEnvironmentUtils.getCloudNameForAzureCli(env)));
         }
     }
 
     private static AzureCliAccountProfile getProfile() throws LoginFailureException {
         final String accountInfo;
         try {
-            accountInfo = CommandUtil.executeCommandAndGetOutput("az account show", null);
+            accountInfo = Utils.executeCommandAndGetOutput("az account show", null);
             final JsonObject accountObject = JsonUtils.getGson().fromJson(accountInfo, JsonObject.class);
             String tenantId = accountObject.get("tenantId").getAsString();
             String environment = accountObject.get("environmentName").getAsString();
@@ -64,7 +63,7 @@ public class AzureCliCredentialRetriever extends AbstractCredentialRetriever {
             return new AzureCliAccountProfile(tenantId, environment, userName, userType, subscriptionId);
         } catch (InterruptedException | IOException | CommandExecuteException | JsonParseException | NullPointerException ex) {
             throw new LoginFailureException(String.format("Cannot get account info from azure cli through `az account show`, " +
-                            "please run `az login` to login your Azure Cli, detailed error: %s", ex.getMessage()));
+                "please run `az login` to login your Azure Cli, detailed error: %s", ex.getMessage()));
         }
     }
 

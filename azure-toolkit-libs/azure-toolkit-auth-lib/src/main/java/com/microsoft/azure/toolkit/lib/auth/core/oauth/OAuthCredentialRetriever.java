@@ -30,8 +30,8 @@ public class OAuthCredentialRetriever extends AbstractCredentialRetriever {
             throw new DesktopNotSupportedException("Not able to launch a browser to log you in.");
         }
         InteractiveBrowserCredential interactiveBrowserCredential = new InteractiveBrowserCredentialBuilder()
-                .clientId(AZURE_TOOLKIT_CLIENT_ID).redirectUrl("http://localhost:" + FreePortFinder.findFreeLocalPort())
-                .build();
+            .clientId(AZURE_TOOLKIT_CLIENT_ID).redirectUrl("http://localhost:" + FreePortFinder.findFreeLocalPort())
+            .build();
         return new AzureCredentialWrapper(AuthMethod.OAUTH2, interactiveBrowserCredential, getAzureEnvironment());
     }
 
