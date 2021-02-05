@@ -13,7 +13,7 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 

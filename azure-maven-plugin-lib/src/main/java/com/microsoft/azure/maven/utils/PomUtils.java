@@ -7,7 +7,7 @@
 package com.microsoft.azure.maven.utils;
 
 import com.microsoft.azure.common.utils.IndentUtil;
-import com.microsoft.azure.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;

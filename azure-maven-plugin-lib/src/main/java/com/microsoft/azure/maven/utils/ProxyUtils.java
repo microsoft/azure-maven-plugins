@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.utils;
 
 import com.azure.core.util.Configuration;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 
 import org.apache.commons.collections4.CollectionUtils;

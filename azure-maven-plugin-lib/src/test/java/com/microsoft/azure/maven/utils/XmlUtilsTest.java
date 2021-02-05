@@ -5,7 +5,7 @@
  */
 package com.microsoft.azure.maven.utils;
 
-import com.microsoft.azure.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 
 import org.dom4j.Document;
 import org.dom4j.Element;

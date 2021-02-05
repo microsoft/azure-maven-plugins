@@ -9,8 +9,8 @@ package com.microsoft.azure.maven.auth;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
-import com.microsoft.azure.tools.auth.exception.AzureLoginException;
-import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
+import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;

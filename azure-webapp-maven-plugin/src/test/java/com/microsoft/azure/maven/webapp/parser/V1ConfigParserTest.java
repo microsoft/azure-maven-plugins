@@ -9,7 +9,7 @@ import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.webapp.DeployMojo;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
-import com.microsoft.azure.toolkits.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
