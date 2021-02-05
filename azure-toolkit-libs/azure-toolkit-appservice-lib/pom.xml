@@ -37,6 +37,10 @@
             <groupId>com.azure.resourcemanager</groupId>
             <artifactId>azure-resourcemanager</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-mgmt-appservice</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.azure</groupId>
