@@ -37,8 +37,8 @@ public class PricingTier {
     public static final PricingTier SHARED_D1 = new PricingTier("Shared", "D1");
 
     private static final List<PricingTier> values = Collections.unmodifiableList(Arrays.asList(BASIC_B1, BASIC_B2, BASIC_B3, STANDARD_S1, STANDARD_S2,
-            STANDARD_S3, PREMIUM_P1, PREMIUM_P2, PREMIUM_P3, PREMIUM_P1V2, PREMIUM_P2V2, PREMIUM_P3V2, PREMIUM_P1V3, PREMIUM_P2V3, PREMIUM_P3V3,
-            FREE_F1, SHARED_D1));
+        STANDARD_S3, PREMIUM_P1, PREMIUM_P2, PREMIUM_P3, PREMIUM_P1V2, PREMIUM_P2V2, PREMIUM_P3V2, PREMIUM_P1V3, PREMIUM_P2V3, PREMIUM_P3V3,
+        FREE_F1, SHARED_D1));
 
     private final String tier;
     private final String size;
@@ -49,8 +49,8 @@ public class PricingTier {
 
     public static PricingTier fromString(String input) {
         return values().stream()
-                .filter(pricingTier -> StringUtils.equalsIgnoreCase(input, pricingTier.size))
-                .findFirst().orElse(null);
+            .filter(pricingTier -> StringUtils.equalsIgnoreCase(input, pricingTier.size))
+            .findFirst().orElse(null);
     }
 
     @Override

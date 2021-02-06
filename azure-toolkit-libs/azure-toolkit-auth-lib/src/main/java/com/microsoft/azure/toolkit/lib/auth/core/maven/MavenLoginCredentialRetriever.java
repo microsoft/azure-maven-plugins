@@ -23,7 +23,7 @@ import java.util.Objects;
 
 public class MavenLoginCredentialRetriever implements ICredentialRetriever {
     private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
-            "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
+        "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
 
     @Setter
     protected AzureEnvironment env;
@@ -43,9 +43,9 @@ public class MavenLoginCredentialRetriever implements ICredentialRetriever {
             AzureEnvironment envFromMavenLogin = AzureEnvironmentUtils.stringToAzureEnvironment(credentials.getEnvironment());
             if (this.env != null && envFromMavenLogin != null && !Objects.equals(env, envFromMavenLogin)) {
                 throw new LoginFailureException(String.format("The azure cloud from maven login '%s' doesn't match with your auth configuration, " +
-                                "please switch to other auth method for '%s' environment.",
-                        AzureEnvironmentUtils.azureEnvironmentToString(envFromMavenLogin),
-                        AzureEnvironmentUtils.getCloudNameForAzureCli(env)));
+                        "please switch to other auth method for '%s' environment.",
+                    AzureEnvironmentUtils.azureEnvironmentToString(envFromMavenLogin),
+                    AzureEnvironmentUtils.getCloudNameForAzureCli(env)));
             }
             if (envFromMavenLogin == null) {
                 envFromMavenLogin = AzureEnvironment.AZURE;

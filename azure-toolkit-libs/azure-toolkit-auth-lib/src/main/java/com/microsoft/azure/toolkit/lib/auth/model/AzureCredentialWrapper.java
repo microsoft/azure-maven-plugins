@@ -9,15 +9,15 @@ import com.azure.core.credential.TokenCredential;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.toolkit.lib.auth.AzureIdentityCredentialTokenCredentials;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;;
-
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
+;
 
 public class AzureCredentialWrapper {
     @Getter
@@ -78,6 +78,7 @@ public class AzureCredentialWrapper {
 
     /**
      * Get <code>AzureTokenCredentials</code> instance from track2 credential
+     *
      * @return AzureTokenCredentials
      */
     public AzureTokenCredentials getAzureTokenCredentials() {

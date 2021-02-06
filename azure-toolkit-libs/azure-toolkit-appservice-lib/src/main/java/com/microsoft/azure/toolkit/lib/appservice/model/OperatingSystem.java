@@ -23,6 +23,6 @@ public enum OperatingSystem {
 
     public static OperatingSystem fromString(String value) {
         return Arrays.stream(values()).filter(operatingSystem -> StringUtils.equalsIgnoreCase(operatingSystem.value, value))
-                .findFirst().orElse(null);
+            .findFirst().orElse(null);
     }
 }

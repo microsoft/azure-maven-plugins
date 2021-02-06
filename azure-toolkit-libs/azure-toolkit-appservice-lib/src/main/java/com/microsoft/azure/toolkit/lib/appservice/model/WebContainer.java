@@ -47,8 +47,8 @@ public class WebContainer {
     public static final WebContainer JETTY_9_3_V20161014 = new WebContainer("jetty 9.3.13.20161014");
 
     private static final List<WebContainer> values = Collections.unmodifiableList(Arrays.asList(TOMCAT_7, TOMCAT_7_0_50, TOMCAT_7_0_62, TOMCAT_8,
-            TOMCAT_8_0_23, TOMCAT_85, TOMCAT_8_5_6, TOMCAT_8_5_20, TOMCAT_8_5_31, TOMCAT_8_5_34, TOMCAT_8_5_37, TOMCAT_9, TOMCAT_9_0_0, TOMCAT_9_0_8,
-            TOMCAT_9_0_12, TOMCAT_9_0_14, JETTY_9_1_NEWEST, JETTY_9_1_V20131115, JETTY_9_3_NEWEST, JETTY_9_3_V20161014, JAVA_SE, JBOSS_72));
+        TOMCAT_8_0_23, TOMCAT_85, TOMCAT_8_5_6, TOMCAT_8_5_20, TOMCAT_8_5_31, TOMCAT_8_5_34, TOMCAT_8_5_37, TOMCAT_9, TOMCAT_9_0_0, TOMCAT_9_0_8,
+        TOMCAT_9_0_12, TOMCAT_9_0_14, JETTY_9_1_NEWEST, JETTY_9_1_V20131115, JETTY_9_3_NEWEST, JETTY_9_3_V20161014, JAVA_SE, JBOSS_72));
 
     private String value;
 
@@ -62,8 +62,8 @@ public class WebContainer {
             return WebContainer.JAVA_SE;
         }
         return values().stream()
-                .filter(webContainer -> StringUtils.equalsIgnoreCase(input, webContainer.value))
-                .findFirst().orElse(null);
+            .filter(webContainer -> StringUtils.equalsIgnoreCase(input, webContainer.value))
+            .findFirst().orElse(null);
     }
 
     @Override

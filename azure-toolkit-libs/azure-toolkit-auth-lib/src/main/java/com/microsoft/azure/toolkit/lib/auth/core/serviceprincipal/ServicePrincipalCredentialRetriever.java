@@ -41,11 +41,11 @@ public class ServicePrincipalCredentialRetriever extends AbstractCredentialRetri
 
     private AzureCredentialWrapper mavenSettingLogin(AuthMethod method, AuthConfiguration configuration) throws LoginFailureException {
         TokenCredential clientSecretCredential = StringUtils.isNotBlank(configuration.getCertificate()) ?
-                new ClientCertificateCredentialBuilder().clientId(configuration.getClient())
+            new ClientCertificateCredentialBuilder().clientId(configuration.getClient())
                 .pfxCertificate(configuration.getCertificate(), configuration.getCertificatePassword())
                 .tenantId(configuration.getTenant()).build()
-                : new ClientSecretCredentialBuilder().clientId(configuration.getClient())
-                .clientSecret(configuration.getKey()).tenantId(configuration.getTenant()).build();
+            : new ClientSecretCredentialBuilder().clientId(configuration.getClient())
+            .clientSecret(configuration.getKey()).tenantId(configuration.getTenant()).build();
         validateTokenCredential(clientSecretCredential);
         return new AzureCredentialWrapper(method, clientSecretCredential, getAzureEnvironment()).withTenantId(configuration.getTenant());
     }

@@ -108,7 +108,7 @@
                     <verbose>false</verbose>
                     <outxml>true</outxml>
                     <forceAjcCompile>true</forceAjcCompile>
-                    <sources/><!-- this is important!-->
+                    <sources /><!-- this is important!-->
                     <weaveDirectories>
                         <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
                     </weaveDirectories>

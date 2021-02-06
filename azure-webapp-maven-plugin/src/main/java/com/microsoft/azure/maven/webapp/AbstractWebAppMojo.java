@@ -40,7 +40,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
-import com.microsoft.azure.toolkit.lib.common.utils.StringListUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
@@ -459,7 +459,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         String targetSubscriptionId = StringUtils.firstNonBlank(this.subscriptionId, azureCredentialWrapper.getDefaultSubscriptionId());
 
         if (StringUtils.isBlank(targetSubscriptionId) && ArrayUtils.isNotEmpty(azureCredentialWrapper.getFilteredSubscriptionIds())) {
-            final Collection<String> filteredSubscriptions = StringListUtils.intersectIgnoreCase(subsIdList,
+            final Collection<String> filteredSubscriptions = Utils.intersectIgnoreCase(subsIdList,
                     Arrays.asList(azureCredentialWrapper.getFilteredSubscriptionIds()));
             if (filteredSubscriptions.size() == 1) {
                 targetSubscriptionId = filteredSubscriptions.iterator().next();

@@ -9,10 +9,10 @@ package com.microsoft.azure.toolkit.lib.auth.core.devicecode;
 import com.azure.identity.DeviceCodeCredential;
 import com.azure.identity.DeviceCodeCredentialBuilder;
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.toolkit.lib.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;;
+import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class DeviceCodeCredentialRetriever extends AbstractCredentialRetriever {
@@ -24,8 +24,8 @@ public class DeviceCodeCredentialRetriever extends AbstractCredentialRetriever {
 
     public AzureCredentialWrapper retrieveInternal() {
         DeviceCodeCredential deviceCodeCredential = new DeviceCodeCredentialBuilder().clientId(AZURE_TOOLKIT_CLIENT_ID)
-                .challengeConsumer(challenge -> System.out.println(StringUtils.replace(challenge.getMessage(), challenge.getUserCode(),
-                        TextUtils.cyan(challenge.getUserCode())))).build();
+            .challengeConsumer(challenge -> System.out.println(StringUtils.replace(challenge.getMessage(), challenge.getUserCode(),
+                TextUtils.cyan(challenge.getUserCode())))).build();
         return new AzureCredentialWrapper(AuthMethod.DEVICE_CODE, deviceCodeCredential, getAzureEnvironment());
     }
 }

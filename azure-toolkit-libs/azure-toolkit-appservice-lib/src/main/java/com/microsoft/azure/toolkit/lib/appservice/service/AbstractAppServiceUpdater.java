@@ -5,10 +5,10 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
+import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import lombok.Getter;
 
 import java.util.Map;

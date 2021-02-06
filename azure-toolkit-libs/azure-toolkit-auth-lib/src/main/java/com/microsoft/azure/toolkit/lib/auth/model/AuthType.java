@@ -6,11 +6,11 @@
 
 package com.microsoft.azure.toolkit.lib.auth.model;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * The auth type which user may define in configuration.
@@ -54,7 +54,7 @@ public enum AuthType {
                 return VISUAL_STUDIO;
             default:
                 throw new InvalidConfigurationException(String.format("Invalid auth type '%s', supported values are: %s.", type,
-                        Arrays.stream(values()).map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", "))));
+                    Arrays.stream(values()).map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", "))));
         }
     }
 }

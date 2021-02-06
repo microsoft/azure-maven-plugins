@@ -7,9 +7,9 @@ package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.resourcemanager.AzureResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlanCreator;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlanUpdater;
@@ -54,9 +54,9 @@ public class AppServicePlan implements IAppServicePlan {
     @Override
     public List<IWebApp> webapps() {
         return getAppServicePlanInner().manager().webApps().list().stream()
-                .filter(webapp -> StringUtils.equals(webapp.appServicePlanId(), getAppServicePlanInner().id()))
-                .map(webapp -> new WebApp(AppServiceUtils.fromWebAppBasic(webapp), azureAppService))
-                .collect(Collectors.toList());
+            .filter(webapp -> StringUtils.equals(webapp.appServicePlanId(), getAppServicePlanInner().id()))
+            .map(webapp -> new WebApp(AppServiceUtils.fromWebAppBasic(webapp), azureAppService))
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -125,18 +125,18 @@ public class AppServicePlan implements IAppServicePlan {
         @Override
         public IAppServicePlan commit() {
             AppServicePlan.this.appServicePlanInner = azureClient.appServicePlans().define(name)
-                    .withRegion(region.getName())
-                    .withExistingResourceGroup(resourceGroup)
-                    .withPricingTier(AppServiceUtils.toPricingTier(pricingTier))
-                    .withOperatingSystem(convertOS(operatingSystem)).create();
+                .withRegion(region.getName())
+                .withExistingResourceGroup(resourceGroup)
+                .withPricingTier(AppServiceUtils.toPricingTier(pricingTier))
+                .withOperatingSystem(convertOS(operatingSystem)).create();
             AppServicePlan.this.entity = AppServiceUtils.fromAppServicePlan(AppServicePlan.this.appServicePlanInner);
             return AppServicePlan.this;
         }
 
         private com.azure.resourcemanager.appservice.models.OperatingSystem convertOS(OperatingSystem operatingSystem) {
             return operatingSystem == OperatingSystem.WINDOWS ?
-                    com.azure.resourcemanager.appservice.models.OperatingSystem.WINDOWS :
-                    com.azure.resourcemanager.appservice.models.OperatingSystem.LINUX; // Using Linux for Docker app service
+                com.azure.resourcemanager.appservice.models.OperatingSystem.WINDOWS :
+                com.azure.resourcemanager.appservice.models.OperatingSystem.LINUX; // Using Linux for Docker app service
         }
     }
 

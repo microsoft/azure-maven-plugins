@@ -51,7 +51,7 @@ public class MavenLoginHelper {
      */
     public static File getAzureConfigFolder() {
         return StringUtils.isNotBlank(System.getenv(AZURE_CONFIG_DIR)) ? new File(System.getenv(AZURE_CONFIG_DIR)) :
-                Paths.get(System.getProperty(USER_HOME), AZURE_FOLDER).toFile();
+            Paths.get(System.getProperty(USER_HOME), AZURE_FOLDER).toFile();
     }
 
     /**
@@ -94,6 +94,7 @@ public class MavenLoginHelper {
     public static TokenCredential getMavenAzureLoginCredentialsTrack2(@Nonnull AzureCredential credentials, @Nonnull AzureEnvironment env) throws IOException {
         return new TokenCredential() {
             private Map<String, AzureTokenCredentials> tokenCache = new ConcurrentHashMap<>();
+
             @Override
             public Mono<AccessToken> getToken(TokenRequestContext request) {
                 final String resource = ScopeUtil.scopesToResource(request.getScopes());
@@ -170,7 +171,7 @@ public class MavenLoginHelper {
      * @throws MalformedURLException if there are some bad urls in azure endpoints
      */
     static AzureCredential refreshToken(AzureEnvironment env, String refreshToken)
-            throws MalformedURLException, InterruptedException, ExecutionException {
+        throws MalformedURLException, InterruptedException, ExecutionException {
         if (env == null) {
             throw new IllegalArgumentException("Parameter 'env' cannot be null.");
         }
@@ -179,7 +180,7 @@ public class MavenLoginHelper {
         }
 
         return new AzureContextExecutor(baseURL(env), authenticationContext -> authenticationContext
-                .acquireTokenByRefreshToken(refreshToken, CLIENT_ID, env.managementEndpoint(), null).get()).execute();
+            .acquireTokenByRefreshToken(refreshToken, CLIENT_ID, env.managementEndpoint(), null).get()).execute();
 
     }
 

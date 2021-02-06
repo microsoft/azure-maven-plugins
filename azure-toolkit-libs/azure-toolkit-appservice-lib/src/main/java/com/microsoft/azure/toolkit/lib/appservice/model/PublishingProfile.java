@@ -21,11 +21,11 @@ public class PublishingProfile {
 
     public static PublishingProfile createFromServiceModel(com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile) {
         return builder()
-                .ftpUrl(publishingProfile.ftpUrl())
-                .ftpUsername(publishingProfile.ftpUsername())
-                .ftpPassword(publishingProfile.ftpPassword())
-                .gitUrl(publishingProfile.gitUrl())
-                .gitUsername(publishingProfile.gitUsername())
-                .gitPassword(publishingProfile.gitPassword()).build();
+            .ftpUrl(publishingProfile.ftpUrl())
+            .ftpUsername(publishingProfile.ftpUsername())
+            .ftpPassword(publishingProfile.ftpPassword())
+            .gitUrl(publishingProfile.gitUrl())
+            .gitUsername(publishingProfile.gitUsername())
+            .gitPassword(publishingProfile.gitPassword()).build();
     }
 }
