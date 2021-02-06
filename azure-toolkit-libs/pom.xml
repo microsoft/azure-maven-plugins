@@ -295,48 +295,6 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>aspectj-maven-plugin</artifactId>
                     <version>${maven.aspectj-plugin.version}</version>
-                    <configuration>
-                        <showWeaveInfo>false</showWeaveInfo>
-                        <source>1.8</source>
-                        <target>1.8</target>
-                        <Xlint>ignore</Xlint>
-                        <complianceLevel>1.8</complianceLevel>
-                        <encoding>UTF-8</encoding>
-                        <verbose>false</verbose>
-                        <outxml>true</outxml>
-                        <forceAjcCompile>true</forceAjcCompile>
-                        <sources /><!-- this is important!-->
-                        <weaveDirectories>
-                            <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
-                        </weaveDirectories>
-                        <aspectLibraries>
-                            <aspectLibrary>
-                                <groupId>org.aspectj</groupId>
-                                <artifactId>aspectjweaver</artifactId>
-                            </aspectLibrary>
-                        </aspectLibraries>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>compile-with-aspectj</id>
-                            <phase>process-classes</phase>
-                            <goals>
-                                <goal>compile</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>test-compile-with-aspectj</id>
-                            <phase>process-classes</phase>
-                            <goals>
-                                <goal>test-compile</goal>
-                            </goals>
-                            <configuration>
-                                <weaveDirectories>
-                                    <weaveDirectory>${project.build.directory}/test-classes</weaveDirectory>
-                                </weaveDirectories>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
