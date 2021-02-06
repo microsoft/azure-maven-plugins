@@ -46,7 +46,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;

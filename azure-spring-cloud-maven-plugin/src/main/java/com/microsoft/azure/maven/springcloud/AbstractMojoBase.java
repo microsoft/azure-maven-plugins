@@ -9,7 +9,7 @@ package com.microsoft.azure.maven.springcloud;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
@@ -19,8 +19,8 @@ import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
 import com.microsoft.azure.maven.auth.MavenAuthManager;
 import com.microsoft.azure.maven.utils.ProxyUtils;
-import com.microsoft.azure.tools.auth.util.AzureEnvironmentUtils;
-import com.microsoft.azure.tools.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
+import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.rest.LogLevel;
@@ -148,7 +148,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     }
 
     protected void initExecution() throws MojoFailureException, MavenDecryptException, AzureExecutionException,
-            com.microsoft.azure.tools.auth.exception.InvalidConfigurationException {
+        com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException {
         // init proxy manager
         ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
         // Init telemetries

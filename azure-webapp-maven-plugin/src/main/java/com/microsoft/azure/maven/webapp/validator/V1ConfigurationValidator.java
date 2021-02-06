@@ -9,7 +9,7 @@ package com.microsoft.azure.maven.webapp.validator;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
-import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;

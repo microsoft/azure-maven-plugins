@@ -12,7 +12,7 @@ import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
-import com.microsoft.azure.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.AppSetting;

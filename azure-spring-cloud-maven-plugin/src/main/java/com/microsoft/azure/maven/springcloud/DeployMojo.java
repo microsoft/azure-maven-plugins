@@ -158,14 +158,14 @@ public class DeployMojo extends AbstractMojoBase {
             log.warn("Deployment is cancelled!");
             return;
         }
-        tasks.forEach(AzureTask::execute);
+        tasks.forEach((task) -> task.getSupplier().get());
     }
 
     protected boolean confirm(List<AzureTask<?>> tasks) throws MojoFailureException {
         try {
             final IPrompter prompter = new DefaultPrompter();
             System.out.println(CONFIRM_PROMPT_START);
-            tasks.stream().filter(t -> StringUtils.isNotBlank(t.getTitle())).forEach((t) -> System.out.printf("\t- %s%n", t.getTitle()));
+            tasks.stream().filter(t -> StringUtils.isNotBlank(t.getTitle().toString())).forEach((t) -> System.out.printf("\t- %s%n", t.getTitle()));
             return prompter.promoteYesNo(CONFIRM_PROMPT_CONFIRM, true, true);
         } catch (IOException e) {
             throw new MojoFailureException(e.getMessage(), e);
