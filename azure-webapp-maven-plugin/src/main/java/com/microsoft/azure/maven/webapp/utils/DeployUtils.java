@@ -8,10 +8,10 @@ package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.toolkits.appservice.model.WebAppArtifact;
-import com.microsoft.azure.toolkits.appservice.model.DeployType;
-import com.microsoft.azure.toolkits.appservice.model.PublishingProfile;
-import com.microsoft.azure.toolkits.appservice.service.IAppService;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
+import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
+import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
+import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;

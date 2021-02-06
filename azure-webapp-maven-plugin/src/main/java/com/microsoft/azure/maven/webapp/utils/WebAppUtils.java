@@ -19,7 +19,7 @@ import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.Existin
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.WebApp.DefinitionStages.WithDockerContainerImage;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.toolkits.appservice.service.IAppService;
+import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.TimeUnit;

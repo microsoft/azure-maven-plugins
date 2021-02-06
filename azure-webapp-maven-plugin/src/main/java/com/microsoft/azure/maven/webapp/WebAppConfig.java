@@ -5,11 +5,11 @@
  */
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.toolkits.appservice.model.WebAppArtifact;
-import com.microsoft.azure.toolkits.appservice.model.DockerConfiguration;
-import com.microsoft.azure.toolkits.appservice.model.PricingTier;
-import com.microsoft.azure.toolkits.appservice.model.Runtime;
-import com.microsoft.azure.tools.common.model.Region;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
+import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 

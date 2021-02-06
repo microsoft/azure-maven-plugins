@@ -8,11 +8,11 @@ package com.microsoft.azure.maven.webapp.validator;
 
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
-import com.microsoft.azure.toolkits.appservice.model.JavaVersion;
-import com.microsoft.azure.toolkits.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkits.appservice.model.Runtime;
-import com.microsoft.azure.toolkits.appservice.model.WebContainer;
-import com.microsoft.azure.tools.common.model.Region;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;

@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.utils.SneakyThrowUtils;
-import com.microsoft.azure.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.management.resources.Subscription;
