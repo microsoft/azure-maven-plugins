@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.auth;
 
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
-import com.microsoft.azure.tools.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.Server;

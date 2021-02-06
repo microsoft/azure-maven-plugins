@@ -7,11 +7,11 @@
 package com.microsoft.azure.toolkit.lib.common.proxy;
 
 import com.google.common.base.Preconditions;
-
+import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -21,9 +21,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
-import lombok.Getter;
-import lombok.SneakyThrows;
 
 public class ProxyManager {
     private static final String PROPERTY_USE_SYSTEM_PROXY = "java.net.useSystemProxies";
@@ -63,12 +60,12 @@ public class ProxyManager {
         Preconditions.checkNotNull(httpProxyHost, "httpProxyPort must not be null.");
         if (httpProxyPort <= 0 || httpProxyPort > MAX_PORT_NUMBER) {
             throw new IllegalArgumentException(
-                    String.format("Invalid range of httpProxyPort: '%s', it should be a number between %d and %d", httpProxyPort, 1, MAX_PORT_NUMBER));
+                String.format("Invalid range of httpProxyPort: '%s', it should be a number between %d and %d", httpProxyPort, 1, MAX_PORT_NUMBER));
         }
         // proxy conflicting
         if (forceUseSystemProxy()) {
             throw new IllegalArgumentException("Cannot set the proxy second time when user has specified the proxy through " +
-                    "vm arguments: -Djava.net.useSystemProxies=true.");
+                "vm arguments: -Djava.net.useSystemProxies=true.");
         }
         this.proxy = createHttpProxy(httpProxyHost, httpProxyPort);
         replaceDefaultProxySelector();
@@ -105,7 +102,7 @@ public class ProxyManager {
 
     private static Proxy createHttpProxy(String httpProxyHost, Integer httpProxyPort) {
         return StringUtils.isNotBlank(httpProxyHost) ? new Proxy(Proxy.Type.HTTP, new InetSocketAddress(httpProxyHost,
-                httpProxyPort)) : null;
+            httpProxyPort)) : null;
     }
 
     @SneakyThrows

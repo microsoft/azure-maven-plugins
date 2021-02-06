@@ -18,7 +18,7 @@ import org.beryx.textio.InputReader;
 import org.beryx.textio.TextTerminal;
 
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
-import com.microsoft.azure.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 
 /**
  * A custom InputReader for handing the custom list prompt text rather than "Enter your choice" which is not changeable in Text.IO.

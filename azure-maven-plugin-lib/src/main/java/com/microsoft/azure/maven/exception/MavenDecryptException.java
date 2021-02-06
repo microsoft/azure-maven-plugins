@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.exception;
 
-import com.microsoft.azure.tools.auth.exception.AzureLoginException;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 
 public class MavenDecryptException extends AzureLoginException {
     private static final long serialVersionUID = 5207024853556212112L;

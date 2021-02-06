@@ -13,7 +13,7 @@ import com.microsoft.azure.common.prompt.DefaultPrompter;
 import com.microsoft.azure.common.prompt.IPrompter;
 import com.microsoft.azure.common.prompt.InputValidateResult;
 import com.microsoft.azure.common.utils.SneakyThrowUtils;
-import com.microsoft.azure.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.common.validation.SchemaValidator;
 import com.microsoft.azure.maven.utils.TemplateUtils;
 
