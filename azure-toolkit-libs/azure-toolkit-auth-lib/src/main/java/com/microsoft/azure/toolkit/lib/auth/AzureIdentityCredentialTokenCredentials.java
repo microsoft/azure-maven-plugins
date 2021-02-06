@@ -25,7 +25,7 @@ public class AzureIdentityCredentialTokenCredentials extends AzureTokenCredentia
     private final String[] scopes;
 
     public AzureIdentityCredentialTokenCredentials(AzureEnvironment environment, String tenantId, TokenCredential tokenCredential) {
-        this(environment, tenantId, tokenCredential, new String[]{ environment.managementEndpoint() + "/.default" });
+        this(environment, tenantId, tokenCredential, new String[]{environment.managementEndpoint() + "/.default"});
     }
 
     public AzureIdentityCredentialTokenCredentials(AzureEnvironment environment, String tenantId,
@@ -39,7 +39,7 @@ public class AzureIdentityCredentialTokenCredentials extends AzureTokenCredentia
     public String getToken(String endpoint) {
         if (!accessTokenCache.containsKey(endpoint) || accessTokenCache.get(endpoint).isExpired()) {
             accessTokenCache.put(endpoint,
-                    this.tokenCredential.getToken(new TokenRequestContext().addScopes(scopes)).block());
+                this.tokenCredential.getToken(new TokenRequestContext().addScopes(scopes)).block());
         }
         return accessTokenCache.get(endpoint).getToken();
     }

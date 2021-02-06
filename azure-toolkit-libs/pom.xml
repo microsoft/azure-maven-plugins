@@ -44,17 +44,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <azure.toolkit-lib.version>${project.version}</azure.toolkit-lib.version>
-        <azure.toolkit-auth.version>${project.version}</azure.toolkit-auth.version>
 
         <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.filtering.version>3.0.0</maven.filtering.version>
-        <maven.plugin-testing-harness.version>3.3.0</maven.plugin-testing-harness.version>
-        <maven.plugin-tools.version>3.3</maven.plugin-tools.version>
-        <maven.shared-utils.version>3.2.1</maven.shared-utils.version>
-        <maven.version>3.3.3</maven.version>
 
         <azure.toolkit-lib.version>${project.version}</azure.toolkit-lib.version>
         <azure.tools-common.version>0.13.0-SNAPSHOT</azure.tools-common.version>
@@ -68,65 +61,57 @@
         <azure.resourcemanager.version>2.1.0</azure.resourcemanager.version>
         <azure.version>1.38.0</azure.version>
 
+        <aspectj.version>1.8.13</aspectj.version>
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
         <commons.codec.version>1.14</commons.codec.version>
         <commons.collections4.version>4.4</commons.collections4.version>
+        <commons.exec.version>1.3</commons.exec.version>
         <commons.io.version>2.7</commons.io.version>
         <commons.lang3.version>3.10</commons.lang3.version>
         <commons.net.version>3.6</commons.net.version>
         <dom4j.version>2.1.3</dom4j.version>
-        <error.prone.core.version>2.4.0</error.prone.core.version>
-        <evo-inflector.version>1.2.2</evo-inflector.version>
         <gson.version>2.8.6</gson.version>
         <guava.version>30.0-jre</guava.version>
         <httpclient.version>4.5.9</httpclient.version>
-        <jackson.core.version>2.11.2</jackson.core.version>
-        <jackson.dataformat.version>2.11.2</jackson.dataformat.version>
+        <jackson.version>2.11.2</jackson.version>
         <jacoco.version>0.8.5</jacoco.version>
         <jansi.version>1.17.1</jansi.version>
-        <jaxb.version>2.3.2</jaxb.version>
-        <jetty.server.version>9.4.20.v20190813</jetty.server.version>
+        <jetbrains.annotations.version>19.0.0</jetbrains.annotations.version>
         <json.schema.validator.version>2.2.14</json.schema.validator.version>
-        <jsonwebtoken.jjwt.version>0.9.1</jsonwebtoken.jjwt.version>
         <jtwig.core.version>5.87.0.RELEASE</jtwig.core.version>
         <junit.version>4.13.1</junit.version>
-        <maven3-model-jdom-support.version>1.6</maven3-model-jdom-support.version>
+        <lombok.version>1.18.16</lombok.version>
         <mockito.version>2.22.0</mockito.version>
         <powermock.version>2.0.2</powermock.version>
-        <reflections.version>0.9.11</reflections.version>
-        <semver.version>0.9.0</semver.version>
-        <slf4j-api.version>1.7.29</slf4j-api.version>
-        <text-io.version>3.4.1</text-io.version>
-        <snakeyaml.version>1.26</snakeyaml.version>
-        <spring-test.version>4.1.6.RELEASE</spring-test.version>
-        <zt.zip.version>1.14</zt.zip.version>
+        <rx.version>1.3.8</rx.version>
+        <slf4j-api.version>1.7.30</slf4j-api.version>
 
-        <gson.version>2.8.6</gson.version>
-        <maven.clean-plugin.version>3.1.0</maven.clean-plugin.version>
-        <maven.resources-plugin.version>3.0.2</maven.resources-plugin.version>
+        <maven.plugin-tools.version>3.3</maven.plugin-tools.version>
+        <maven.version>3.3.3</maven.version>
         <maven.source-plugin.version>2.2.1</maven.source-plugin.version>
-        <maven.compiler-plugin.version>3.8.0</maven.compiler-plugin.version>
-        <maven.plugin-plugin.version>3.6.0</maven.plugin-plugin.version>
-        <maven.surefire-plugin.version>2.22.1</maven.surefire-plugin.version>
         <maven.jar-plugin.version>3.0.2</maven.jar-plugin.version>
-        <maven.install-plugin.version>2.5.2</maven.install-plugin.version>
-        <maven.deploy-plugin.version>2.8.2</maven.deploy-plugin.version>
-        <maven.invoker-plugin.version>3.1.0</maven.invoker-plugin.version>
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.checkstyle-plugin.version>3.1.0</maven.checkstyle-plugin.version>
+        <maven.aspectj-plugin.version>1.11</maven.aspectj-plugin.version>
 
         <google.jsr305.version>3.0.0</google.jsr305.version>
-        <azure.azure-mgmt-appplatform.version>1.0.0-beta</azure.azure-mgmt-appplatform.version>
-        <azure-identity.version>1.2.1</azure-identity.version>
-        <azure.version>1.36.3</azure.version>
-        <lombok.version>1.18.16</lombok.version>
-        <azure.resourcemanager.version>2.1.0</azure.resourcemanager.version>
         <free.port.finder.version>1.0</free.port.finder.version>
-        <azure.resourcemanager.version>2.1.0</azure.resourcemanager.version>
+        <jjwt.version>0.9.1</jjwt.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjrt</artifactId>
+                <version>${aspectj.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.aspectj/aspectjweaver -->
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjweaver</artifactId>
+                <version>${aspectj.version}</version>
+            </dependency>
             <!-- azure toolkit libs -->
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
@@ -138,68 +123,10 @@
                 <artifactId>azure-toolkit-auth-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-core</artifactId>
-                <version>${maven.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.errorprone</groupId>
-                        <artifactId>error_prone_annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>jsr305</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-plugin-api</artifactId>
-                <version>${maven.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven.plugin-tools</groupId>
-                <artifactId>maven-plugin-annotations</artifactId>
-                <version>${maven.plugin-tools.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-settings</artifactId>
-                <version>${maven.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-settings-builder</artifactId>
-                <version>${maven.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-model</artifactId>
-                <version>${maven.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-model-builder</artifactId>
-                <version>${maven.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.codehaus.plexus</groupId>
-                <artifactId>plexus-utils</artifactId>
-                <version>${codehaus.plexus-utils.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.core.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>${jackson.core.version}</version>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
@@ -290,11 +217,26 @@
                 <version>${lombok.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>${rx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jtwig</groupId>
+                <artifactId>jtwig-core</artifactId>
+                <version>${jtwig.core.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>me.alexpanov</groupId>
                 <artifactId>free-port-finder</artifactId>
                 <version>${free.port.finder.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains</groupId>
+                <artifactId>annotations</artifactId>
+                <version>${jetbrains.annotations.version}</version>
             </dependency>
 
             <!-- azure sdk -->
@@ -304,15 +246,98 @@
                 <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-mgmt-appservice</artifactId>
+                <version>${azure.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.azure</groupId>
                 <artifactId>azure-identity</artifactId>
-                <version>${azure-identity.version}</version>
+                <version>${azure.identity.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>applicationinsights-core</artifactId>
+                <version>${azure.applicationinsights.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>applicationinsights-web</artifactId>
+                <version>${azure.applicationinsights.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-mgmt-resources</artifactId>
+                <version>${azure.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>adal4j</artifactId>
+                <version>${azure.aad.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${commons.collections4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>${jjwt.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/aspectj-maven-plugin -->
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>aspectj-maven-plugin</artifactId>
+                    <version>${maven.aspectj-plugin.version}</version>
+                    <configuration>
+                        <showWeaveInfo>false</showWeaveInfo>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                        <Xlint>ignore</Xlint>
+                        <complianceLevel>1.8</complianceLevel>
+                        <encoding>UTF-8</encoding>
+                        <verbose>false</verbose>
+                        <outxml>true</outxml>
+                        <forceAjcCompile>true</forceAjcCompile>
+                        <sources /><!-- this is important!-->
+                        <weaveDirectories>
+                            <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
+                        </weaveDirectories>
+                        <aspectLibraries>
+                            <aspectLibrary>
+                                <groupId>org.aspectj</groupId>
+                                <artifactId>aspectjweaver</artifactId>
+                            </aspectLibrary>
+                        </aspectLibraries>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>compile-with-aspectj</id>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>compile</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>test-compile-with-aspectj</id>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>test-compile</goal>
+                            </goals>
+                            <configuration>
+                                <weaveDirectories>
+                                    <weaveDirectory>${project.build.directory}/test-classes</weaveDirectory>
+                                </weaveDirectories>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
@@ -326,7 +351,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.9.1</version>
+                    <version>${maven.javadoc-plugin.version}</version>
                     <configuration>
                         <show>private</show>
                         <failOnError>false</failOnError>

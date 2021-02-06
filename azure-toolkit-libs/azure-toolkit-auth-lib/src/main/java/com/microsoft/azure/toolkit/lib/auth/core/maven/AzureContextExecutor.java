@@ -36,7 +36,7 @@ public class AzureContextExecutor {
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
             final AuthenticationContext authenticationContext = new AuthenticationContext(baseUrl, true,
-                    executorService);
+                executorService);
             final AuthenticationResult result = this.acquireTokenFunc.acquire(authenticationContext);
             if (result == null) {
                 return null;

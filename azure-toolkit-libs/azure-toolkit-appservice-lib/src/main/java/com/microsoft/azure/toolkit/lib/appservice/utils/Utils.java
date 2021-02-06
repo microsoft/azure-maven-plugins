@@ -21,7 +21,7 @@ public class Utils {
 
     public static Map<String, String> normalizeAppSettings(Map<String, AppSetting> input) {
         return input.entrySet().stream()
-                .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue().value()));
+            .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue().value()));
     }
 
     public static String getSegment(String id, String segment) {

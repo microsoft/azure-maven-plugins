@@ -47,7 +47,7 @@ public class AzureAuthManager {
             chainedCredentialRetriever.addRetriever(allRetrievers.get(authType));
         }
         return chainedCredentialRetriever.retrieve().onErrorResumeNext(e ->
-                Single.error(new LoginFailureException(String.format("Cannot get credentials from authType '%s' due to error: %s", authType, e.getMessage())))
+            Single.error(new LoginFailureException(String.format("Cannot get credentials from authType '%s' due to error: %s", authType, e.getMessage())))
         );
     }
 

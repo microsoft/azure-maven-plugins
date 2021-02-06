@@ -9,7 +9,7 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 
 import java.util.List;
 
-public interface IAppServicePlan extends IResource{
+public interface IAppServicePlan extends IResource {
     IAppServicePlanCreator create();
 
     IAppServicePlanUpdater update();
