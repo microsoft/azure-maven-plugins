@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.common.exception;
 
 import com.google.common.base.Throwables;
 import com.microsoft.aad.adal4j.AuthenticationException;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
