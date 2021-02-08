@@ -11,6 +11,7 @@ import com.microsoft.azure.common.prompt.IPrompter;
 import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
@@ -83,8 +84,7 @@ public class DeployMojo extends AbstractMojoBase {
         final ScaleSettings scaleSettings = deploymentConfig.getScaleSettings();
         final String runtimeVersion = deploymentConfig.getJavaVersion();
 
-        final AzureSpringCloud az = AzureSpringCloud.az(this.getAppPlatformManager());
-        final SpringCloudCluster cluster = az.cluster(clusterName);
+        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).cluster(clusterName);
         final SpringCloudApp app = cluster.app(appName);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),
