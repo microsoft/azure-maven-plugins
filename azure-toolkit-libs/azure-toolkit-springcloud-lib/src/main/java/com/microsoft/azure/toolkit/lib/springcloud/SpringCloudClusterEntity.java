@@ -24,15 +24,16 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
+import com.microsoft.azure.management.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.ArrayUtils;
 
 @Getter
 @Setter(AccessLevel.PRIVATE)
 public class SpringCloudClusterEntity implements IAzureEntity {
+    private final String subscriptionId;
     private final String resourceGroup;
     private final String name;
     @Getter(AccessLevel.PACKAGE)
@@ -40,22 +41,14 @@ public class SpringCloudClusterEntity implements IAzureEntity {
 
     private SpringCloudClusterEntity(ServiceResourceInner resource) {
         this.inner = resource;
-        final String[] attributes = this.inner.id().split("/");
-        this.resourceGroup = attributes[ArrayUtils.indexOf(attributes, "resourceGroups") + 1];
+        final ResourceId id = ResourceId.fromString(this.inner.id());
+        this.resourceGroup = id.resourceGroupName();
+        this.subscriptionId = id.subscriptionId();
         this.name = resource.name();
-    }
-
-    public SpringCloudClusterEntity(String name, String resourceGroup) {
-        this.name = name;
-        this.resourceGroup = resourceGroup;
     }
 
     public static SpringCloudClusterEntity fromResource(ServiceResourceInner resource) {
         return new SpringCloudClusterEntity(resource);
-    }
-
-    public static SpringCloudClusterEntity fromName(final String name, final String resourceGroup) {
-        return new SpringCloudClusterEntity(name, resourceGroup);
     }
 
     public SkuInner getSku() {
