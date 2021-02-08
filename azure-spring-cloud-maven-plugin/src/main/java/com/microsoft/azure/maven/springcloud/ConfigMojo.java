@@ -7,8 +7,8 @@ package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.utils.SneakyThrowUtils;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
-import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
@@ -310,7 +310,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void selectAppCluster() throws IOException, InvalidConfigurationException {
-        final AzureSpringCloud az = AzureSpringCloud.az(this.getAppPlatformManager());
+        final AzureSpringCloud az = Azure.az(AzureSpringCloud.class);
         if (StringUtils.isNotBlank(clusterName)) {
             final SpringCloudCluster cluster = az.cluster(this.clusterName);
             if (cluster.exists()) {
@@ -330,7 +330,7 @@ public class ConfigMojo extends AbstractMojoBase {
 
     private void selectSubscription() throws IOException, InvalidConfigurationException {
         // TODO: getAzureTokenCredentials will check auth for null, but maven will always map a default AuthConfiguration
-        azure = Azure.configure().authenticate(azureCredentialWrapper.getAzureTokenCredentials());
+        azure = com.microsoft.azure.management.Azure.configure().authenticate(azureCredentialWrapper.getAzureTokenCredentials());
         if (StringUtils.isBlank(subscriptionId)) {
             subscriptionId = StringUtils.isBlank(azureCredentialWrapper.getDefaultSubscriptionId()) ? promptSubscription() :
                     azureCredentialWrapper.getDefaultSubscriptionId();
