@@ -92,7 +92,7 @@
         <maven.jar-plugin.version>3.0.2</maven.jar-plugin.version>
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.checkstyle-plugin.version>3.1.0</maven.checkstyle-plugin.version>
-        <maven.aspectj-plugin.version>1.11</maven.aspectj-plugin.version>
+        <maven.aspectj-plugin.version>1.12.6</maven.aspectj-plugin.version>
 
         <google.jsr305.version>3.0.0</google.jsr305.version>
         <free.port.finder.version>1.0</free.port.finder.version>
@@ -292,7 +292,8 @@
             <plugins>
                 <plugin>
                     <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/aspectj-maven-plugin -->
-                    <groupId>org.codehaus.mojo</groupId>
+                    <!-- http://www.quabr.com/62976155/aspectj-maven-plugin-1-11-missing-tools-jar-issue-with-jdk-11 -->
+                    <groupId>com.nickwongdev</groupId>
                     <artifactId>aspectj-maven-plugin</artifactId>
                     <version>${maven.aspectj-plugin.version}</version>
                 </plugin>
