@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-;
-
 public class AzureCredentialWrapper {
     @Getter
     private AuthMethod authMethod;
@@ -41,7 +39,7 @@ public class AzureCredentialWrapper {
     public AzureCredentialWrapper(AuthMethod method, TokenCredential tokenCredential, AzureEnvironment env) {
         Objects.requireNonNull(method, "authMethod is null");
         Objects.requireNonNull(tokenCredential, "tokenCredential is null");
-        Objects.requireNonNull(tokenCredential, "env is null");
+        Objects.requireNonNull(env, "env is null");
         this.authMethod = method;
         this.tokenCredential = tokenCredential;
         this.env = env;

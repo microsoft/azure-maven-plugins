@@ -34,7 +34,8 @@ public class VisualStudioCodeProfileRetriever {
     private static final String CLOUD = "cloud";
     private static final String AZURE_RESOURCE_FILTER = "azure.resourceFilter";
 
-    public static VisualStudioCodeAccountProfile getProfile(@Nonnull AzureEnvironment env) throws CredentialUnavailableException, InvalidConfigurationException, LoginFailureException {
+    public static VisualStudioCodeAccountProfile getProfile(@Nonnull AzureEnvironment env) throws
+            CredentialUnavailableException, InvalidConfigurationException, LoginFailureException {
         VisualStudioCacheAccessor accessor = new VisualStudioCacheAccessor();
 
         JsonNode userSettings = getUserSettings();

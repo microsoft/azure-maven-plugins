@@ -1,7 +1,6 @@
-/**
+/*
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for
- * license information.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
 package com.microsoft.azure.toolkit.lib.auth.model;
@@ -15,7 +14,9 @@ import java.util.List;
 @Getter
 public class AccountEntity {
 
-    private AuthType type;
+    private AuthMethod method;
+
+    private String environment;
 
     private String email;
 
@@ -23,7 +24,11 @@ public class AccountEntity {
 
     private boolean authenticated;
 
-    List<SubscriptionEntity> subscriptions;
+    private List<SubscriptionEntity> subscriptions;
 
-    List<String> tenantIds;
+    private List<SubscriptionEntity> selectedSubscriptions;
+
+    private List<String> tenantIds;
+
+    private Throwable error;
 }
