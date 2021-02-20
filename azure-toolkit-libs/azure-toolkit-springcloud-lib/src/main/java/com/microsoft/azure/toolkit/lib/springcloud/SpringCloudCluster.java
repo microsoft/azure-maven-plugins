@@ -37,6 +37,10 @@ public class SpringCloudCluster implements IAzureEntityManager<SpringCloudCluste
         return Objects.nonNull(this.remote) ? this.remote : this.local;
     }
 
+    public String id() {
+        return this.entity().getId();
+    }
+
     public SpringCloudApp app(SpringCloudAppEntity app) {
         return new SpringCloudApp(app, this);
     }

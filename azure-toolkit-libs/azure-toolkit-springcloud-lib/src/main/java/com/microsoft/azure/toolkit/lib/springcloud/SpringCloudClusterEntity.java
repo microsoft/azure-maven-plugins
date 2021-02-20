@@ -35,6 +35,7 @@ import org.apache.commons.lang3.ArrayUtils;
 public class SpringCloudClusterEntity implements IAzureEntity {
     private final String resourceGroup;
     private final String name;
+    private final String id;
     @Getter(AccessLevel.PACKAGE)
     private ServiceResourceInner inner;
 
@@ -43,19 +44,11 @@ public class SpringCloudClusterEntity implements IAzureEntity {
         final String[] attributes = this.inner.id().split("/");
         this.resourceGroup = attributes[ArrayUtils.indexOf(attributes, "resourceGroups") + 1];
         this.name = resource.name();
-    }
-
-    public SpringCloudClusterEntity(String name, String resourceGroup) {
-        this.name = name;
-        this.resourceGroup = resourceGroup;
+        this.id = resource.id();
     }
 
     public static SpringCloudClusterEntity fromResource(ServiceResourceInner resource) {
         return new SpringCloudClusterEntity(resource);
-    }
-
-    public static SpringCloudClusterEntity fromName(final String name, final String resourceGroup) {
-        return new SpringCloudClusterEntity(name, resourceGroup);
     }
 
     public SkuInner getSku() {
