@@ -20,8 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity> {
@@ -59,6 +61,11 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
     public SpringCloudDeployment deployment(final String name) {
         final SpringCloudAppEntity app = this.entity();
         return new SpringCloudDeployment(SpringCloudDeploymentEntity.fromName(name, app), this);
+    }
+
+    public List<SpringCloudDeployment> deployments() {
+        final SpringCloudAppEntity app = this.entity();
+        return this.appManager.getDeployments(app).stream().map(this::deployment).collect(Collectors.toList());
     }
 
     public SpringCloudCluster cluster() {
