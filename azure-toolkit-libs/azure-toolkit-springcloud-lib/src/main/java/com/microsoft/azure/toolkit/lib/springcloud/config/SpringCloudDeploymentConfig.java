@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.config;
 
+import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import lombok.Builder;
@@ -13,8 +14,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 
-import java.io.File;
-import java.util.List;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 @Builder
@@ -29,7 +29,8 @@ public class SpringCloudDeploymentConfig {
     private String runtimeVersion;
     private Boolean enablePersistentStorage;
     private Map<String, String> environment;
-    private List<File> artifacts;
+    @Nullable
+    private IArtifact artifact;
 
     public Boolean isEnablePersistentStorage() {
         return BooleanUtils.isTrue(enablePersistentStorage);

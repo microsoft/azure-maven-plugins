@@ -10,6 +10,7 @@ import com.microsoft.azure.common.prompt.IPrompter;
 import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
@@ -22,7 +23,6 @@ import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.tools.utils.RxUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils.DEFAULT_DEPLOYMENT_NAME;
 
@@ -70,9 +71,8 @@ public class DeployMojo extends AbstractMojoBase {
         // Init spring clients, and prompt users to confirm
         final SpringCloudAppConfig appConfig = this.getConfiguration();
         final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
-        final List<File> artifacts = deploymentConfig.getArtifacts();
-        final File artifact = CollectionUtils.isNotEmpty(artifacts) ?
-            MavenArtifactUtils.getExecutableJarFiles(artifacts) : MavenArtifactUtils.getArtifactFromTargetFolder(project);
+        final IArtifact artifact = deploymentConfig.getArtifact();
+        final File file = Objects.nonNull(artifact) ? artifact.getFile() : MavenArtifactUtils.getArtifactFromTargetFolder(project);
         final boolean enableDisk = appConfig.getDeployment() != null && appConfig.getDeployment().isEnablePersistentStorage();
         final String clusterName = appConfig.getClusterName();
         final String appName = appConfig.getAppName();
@@ -97,13 +97,13 @@ public class DeployMojo extends AbstractMojoBase {
         final String UPDATE_APP_TITLE = String.format("Update app(%s) of service(%s)", TextUtils.cyan(appName), TextUtils.cyan(clusterName));
         final String CREATE_DEPLOYMENT_TITLE = String.format("Create new deployment(%s) in app(%s)", TextUtils.cyan(deploymentName), TextUtils.cyan(appName));
         final String UPDATE_DEPLOYMENT_TITLE = String.format("Update deployment(%s) of app(%s)", TextUtils.cyan(deploymentName), TextUtils.cyan(appName));
-        final String UPLOAD_ARTIFACT_TITLE = String.format("Upload artifact(%s) to app(%s)", TextUtils.cyan(artifact.getPath()), TextUtils.cyan(appName));
+        final String UPLOAD_ARTIFACT_TITLE = String.format("Upload artifact(%s) to app(%s)", TextUtils.cyan(file.getPath()), TextUtils.cyan(appName));
 
         final boolean toCreateApp = !app.exists();
         final boolean toCreateDeployment = !deployment.exists();
         final List<AzureTask<?>> tasks = new ArrayList<>();
         final SpringCloudApp.Creator appCreator = app.create();
-        final SpringCloudApp.Uploader artifactUploader = app.uploadArtifact(artifact.getPath());
+        final SpringCloudApp.Uploader artifactUploader = app.uploadArtifact(file.getPath());
         final SpringCloudDeployment.Updater deploymentModifier = (toCreateDeployment ? deployment.create() : deployment.update())
             .configEnvironmentVariables(env)
             .configJvmOptions(jvmOptions)
@@ -124,7 +124,7 @@ public class DeployMojo extends AbstractMojoBase {
             }));
         }
         tasks.add(new AzureTask<Void>(UPLOAD_ARTIFACT_TITLE, () -> {
-            log.info("Uploading artifact({}) to Azure...", TextUtils.cyan(artifact.getPath()));
+            log.info("Uploading artifact({}) to Azure...", TextUtils.cyan(file.getPath()));
             artifactUploader.commit();
             log.info("Successfully uploaded the artifact.");
         }));
