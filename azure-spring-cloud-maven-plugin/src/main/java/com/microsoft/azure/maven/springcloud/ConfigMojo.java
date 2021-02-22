@@ -5,20 +5,21 @@
 
 package com.microsoft.azure.maven.springcloud;
 
-import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.utils.SneakyThrowUtils;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
-import com.microsoft.azure.management.Azure.Authenticated;
-import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoFailureException;
@@ -73,11 +74,6 @@ public class ConfigMojo extends AbstractMojoBase {
      * The map of project to the default appName.
      */
     private Map<MavenProject, String> appNameByProject;
-
-    /**
-     * The azure client for get list of subscriptions.
-     */
-    private Authenticated azure;
 
     /**
      * The app settings collected from user.
@@ -330,19 +326,22 @@ public class ConfigMojo extends AbstractMojoBase {
 
     private void selectSubscription() throws IOException, InvalidConfigurationException {
         // TODO: getAzureTokenCredentials will check auth for null, but maven will always map a default AuthConfiguration
-        azure = com.microsoft.azure.management.Azure.configure().authenticate(azureCredentialWrapper.getAzureTokenCredentials());
-        if (StringUtils.isBlank(subscriptionId)) {
-            subscriptionId = StringUtils.isBlank(azureCredentialWrapper.getDefaultSubscriptionId()) ? promptSubscription() :
-                    azureCredentialWrapper.getDefaultSubscriptionId();
+        Account account = Azure.az(AzureAccount.class).account();
+        if (StringUtils.isBlank(subscriptionId) && CollectionUtils.isNotEmpty(account.getSelectedSubscriptions())
+                && account.getSelectedSubscriptions().size() == 1) {
+            subscriptionId = account.getSelectedSubscriptions().get(0).getId();
+        } else {
+            promptSubscription();
         }
     }
 
     private String promptSubscription() throws IOException, InvalidConfigurationException {
-        final PagedList<Subscription> subscriptions = azure.subscriptions().list();
+        Account account = Azure.az(AzureAccount.class).account();
+        final List<SubscriptionEntity> subscriptions = account.getSubscriptions();
         this.wrapper.putCommonVariable("subscriptions", subscriptions);
-        final Subscription select = this.wrapper.handleSelectOne("select-subscriptions", subscriptions, null,
-            t -> String.format("%s (%s)", t.displayName(), t.subscriptionId()));
-        return select.subscriptionId();
+        final SubscriptionEntity select = this.wrapper.handleSelectOne("select-subscriptions", subscriptions, null,
+            t -> String.format("%s (%s)", t.getName(), t.getId()));
+        return select.getId();
     }
 
     private boolean isProjectConfigured(MavenProject proj) {

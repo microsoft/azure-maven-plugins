@@ -35,11 +35,11 @@ public class OAuthAccountEntityBuilder implements IAccountEntityBuilder {
 
     @Override
     public AccountEntity build() {
-        AccountEntity profile = new AccountEntity();
-        profile.setMethod(AuthMethod.OAUTH2);
-        profile.setAuthenticated(false);
+        AccountEntity accountEntity = new AccountEntity();
+        accountEntity.setMethod(AuthMethod.OAUTH2);
+        accountEntity.setAuthenticated(false);
         AzureEnvironment env = MoreObjects.firstNonNull(this.environment, AzureEnvironment.AZURE);
-        profile.setEnvironment(AzureEnvironmentV2Utils.getCloudNameForAzureCli(env));
+        accountEntity.setEnvironment(AzureEnvironmentV2Utils.getCloudNameForAzureCli(env));
         int port = FreePortFinder.findFreeLocalPort();
         try {
             final TokenRequestContext request = new TokenRequestContext().addScopes(env.getManagementEndpoint() + "/.default");
@@ -47,14 +47,14 @@ public class OAuthAccountEntityBuilder implements IAccountEntityBuilder {
                     .authenticateWithBrowserInteraction(request, port).block();
             IAuthenticationResult result = msalToken.getAuthenticationResult();
             if (result != null && result.account() != null) {
-                profile.setEmail(result.account().username());
+                accountEntity.setEmail(result.account().username());
             }
             String refreshToken = (String) FieldUtils.readField(result, "refreshToken", true);
             if (StringUtils.isBlank(refreshToken)) {
                 throw new LoginFailureException("Cannot get refresh token from oauth2 workflow.");
             }
 
-            profile.setCredentialBuilder(new ICredentialBuilder() {
+            accountEntity.setCredentialBuilder(new ICredentialBuilder() {
                 @Override
                 public TokenCredential getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
                     Objects.requireNonNull(subscriptionEntity, "Parameter 'subscriptionEntity' cannot be null for building credentials.");
@@ -71,11 +71,11 @@ public class OAuthAccountEntityBuilder implements IAccountEntityBuilder {
                     return new RefreshTokenCredentialBuilder().buildTokenCredential(env, null, refreshToken);
                 }
             });
-            profile.setAuthenticated(true);
+            accountEntity.setAuthenticated(true);
         } catch (Throwable ex) {
-            profile.setAuthenticated(false);
-            profile.setError(ex);
+            accountEntity.setAuthenticated(false);
+            accountEntity.setError(ex);
         }
-        return profile;
+        return accountEntity;
     }
 }

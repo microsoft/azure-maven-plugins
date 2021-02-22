@@ -24,29 +24,29 @@ import java.util.stream.Collectors;
 
 public class AzureCliAccountEntityBuilder implements IAccountEntityBuilder {
     public AccountEntity build() {
-        AccountEntity profile = new AccountEntity();
-        profile.setMethod(AuthMethod.AZURE_CLI);
-        profile.setAuthenticated(false);
+        AccountEntity accountEntity = new AccountEntity();
+        accountEntity.setMethod(AuthMethod.AZURE_CLI);
+        accountEntity.setAuthenticated(false);
 
         String cliVersion = getVersion();
         if (StringUtils.isBlank(cliVersion)) {
-            return profile;
+            return accountEntity;
         }
 
         final List<SubscriptionEntity> subscriptions = listSubscriptions();
         if (CollectionUtils.isEmpty(subscriptions)) {
-            return profile;
+            return accountEntity;
         }
 
         SubscriptionEntity defaultSubscription = subscriptions.stream().filter(SubscriptionEntity::isSelected).findFirst().orElse(subscriptions.get(0));
-        profile.setTenantIds(subscriptions.stream().map(SubscriptionEntity::getTenantId).distinct().collect(Collectors.toList()));
+        accountEntity.setTenantIds(subscriptions.stream().map(SubscriptionEntity::getTenantId).distinct().collect(Collectors.toList()));
         List<SubscriptionEntity> selectedSubscriptions = subscriptions.stream()
                 .filter(SubscriptionEntity::isSelected).collect(Collectors.toList());
-        profile.setSelectedSubscriptionIds(selectedSubscriptions.stream().map(SubscriptionEntity::getId).collect(Collectors.toList()));
-        profile.setEmail(defaultSubscription.getEmail());
-        profile.setEnvironment(defaultSubscription.getEnvironment());
+        accountEntity.setSelectedSubscriptionIds(selectedSubscriptions.stream().map(SubscriptionEntity::getId).collect(Collectors.toList()));
+        accountEntity.setEmail(defaultSubscription.getEmail());
+        accountEntity.setEnvironment(defaultSubscription.getEnvironment());
 
-        profile.setCredentialBuilder(new ICredentialBuilder() {
+        accountEntity.setCredentialBuilder(new ICredentialBuilder() {
             @Override
             public TokenCredential getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
                 Objects.requireNonNull(subscriptionEntity, "Parameter 'subscriptionEntity' cannot be null for building credentials.");
@@ -63,8 +63,8 @@ public class AzureCliAccountEntityBuilder implements IAccountEntityBuilder {
                 return new AzureCliTenantCredential();
             }
         });
-        profile.setAuthenticated(true);
-        return profile;
+        accountEntity.setAuthenticated(true);
+        return accountEntity;
     }
 
     private static String getVersion() {

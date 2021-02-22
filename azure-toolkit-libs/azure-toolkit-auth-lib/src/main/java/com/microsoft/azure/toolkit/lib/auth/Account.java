@@ -13,12 +13,14 @@ import com.azure.resourcemanager.resources.models.Subscription;
 import com.azure.resourcemanager.resources.models.Tenant;
 import com.google.common.base.MoreObjects;
 import com.microsoft.aad.adal4j.AuthenticationException;
+import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.toolkit.lib.auth.core.ICredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.CachedTokenCredential;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentV2Utils;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureIdentityCredentialTokenCredentialsConverter;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -148,11 +149,36 @@ public class Account {
             throw new LoginFailureException("Please login first.");
         }
         Objects.requireNonNull(this.credentialBuilder, "Azure Account should be initialized first.");
-        Optional<SubscriptionEntity> subscriptionEntity = getSubscriptions().stream()
-                .filter(s -> StringUtils.equalsIgnoreCase(subscriptionId, s.getId())).findFirst();
-        if (subscriptionEntity.isPresent() && StringUtils.isNotBlank(subscriptionEntity.get().getTenantId())) {
-            return tenantToCredential.computeIfAbsent(subscriptionEntity.get().getTenantId(),
-                    e -> new CachedTokenCredential(credentialBuilder.getCredentialWrapperForSubscription(subscriptionEntity.get())));
+        SubscriptionEntity subscriptionEntity = getSubscriptionById(subscriptionId);
+        if (subscriptionEntity != null) {
+            return getCredentialInternal(subscriptionEntity);
+        }
+        return null;
+    }
+
+    public AzureTokenCredentials getCredentialV1(String subscriptionId) throws LoginFailureException {
+        if (!this.isAuthenticated()) {
+            throw new LoginFailureException("Please login first.");
+        }
+        Objects.requireNonNull(this.credentialBuilder, "Azure Account should be initialized first.");
+
+        SubscriptionEntity subscriptionEntity = getSubscriptionById(subscriptionId);
+        if (subscriptionEntity != null) {
+            return AzureIdentityCredentialTokenCredentialsConverter.convert(this.getEnvironment(), subscriptionEntity.getTenantId(),
+                    getCredentialInternal(subscriptionEntity));
+        }
+        return null;
+    }
+
+    private SubscriptionEntity getSubscriptionById(String subscriptionId) {
+        return getSubscriptions().stream()
+                .filter(s -> StringUtils.equalsIgnoreCase(subscriptionId, s.getId())).findFirst().orElse(null);
+    }
+
+    private TokenCredential getCredentialInternal(SubscriptionEntity subscriptionEntity) {
+        if (subscriptionEntity != null && StringUtils.isNotBlank(subscriptionEntity.getTenantId())) {
+            return tenantToCredential.computeIfAbsent(subscriptionEntity.getTenantId(),
+                    e -> new CachedTokenCredential(credentialBuilder.getCredentialWrapperForSubscription(subscriptionEntity)));
         }
         return null;
     }

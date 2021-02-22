@@ -27,9 +27,9 @@ import java.util.Objects;
 public class VisualStudioCodeAccountEntityBuilder implements IAccountEntityBuilder {
     @Override
     public AccountEntity build() {
-        AccountEntity profile = new AccountEntity();
-        profile.setMethod(AuthMethod.VSCODE);
-        profile.setAuthenticated(false);
+        AccountEntity accountEntity = new AccountEntity();
+        accountEntity.setMethod(AuthMethod.VSCODE);
+        accountEntity.setAuthenticated(false);
         VisualStudioCacheAccessor accessor = new VisualStudioCacheAccessor();
         try {
             Map<String, String> userSettings = accessor.getUserSettingsDetails();
@@ -41,15 +41,15 @@ public class VisualStudioCodeAccountEntityBuilder implements IAccountEntityBuild
                 filteredSubscriptions = new ArrayList<>();
             }
 
-            profile.setEnvironment(vscodeCloudName);
+            accountEntity.setEnvironment(vscodeCloudName);
 
             String refreshToken = accessor.getCredentials("VS Code Azure", vscodeCloudName);
             if (StringUtils.isEmpty(refreshToken)) {
                 throw new LoginFailureException("Cannot get credentials from VSCode, please make sure that you have signed-in in VSCode Azure Account plugin");
             }
-            profile.setSelectedSubscriptionIds(filteredSubscriptions);
+            accountEntity.setSelectedSubscriptionIds(filteredSubscriptions);
             AzureEnvironment env = Utils.firstNonNull(AzureEnvironmentV2Utils.stringToAzureEnvironment(vscodeCloudName), AzureEnvironment.AZURE);
-            profile.setCredentialBuilder(new ICredentialBuilder() {
+            accountEntity.setCredentialBuilder(new ICredentialBuilder() {
                 @Override
                 public TokenCredential getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
                     Objects.requireNonNull(subscriptionEntity, "Parameter 'subscriptionEntity' cannot be null for building credentials.");
@@ -66,12 +66,12 @@ public class VisualStudioCodeAccountEntityBuilder implements IAccountEntityBuild
                     return new RefreshTokenCredentialBuilder().buildVSCodeTokenCredential(env, null, refreshToken);
                 }
             });
-            profile.setAuthenticated(true);
+            accountEntity.setAuthenticated(true);
         } catch (LoginFailureException ex) {
-            profile.setError(ex);
-            profile.setAuthenticated(false);
+            accountEntity.setError(ex);
+            accountEntity.setAuthenticated(false);
         }
 
-        return profile;
+        return accountEntity;
     }
 }

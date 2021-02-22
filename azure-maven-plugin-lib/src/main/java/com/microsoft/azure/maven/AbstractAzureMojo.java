@@ -355,7 +355,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             checkSubscription(subscriptions, targetSubscriptionId);
 
             this.subscriptionId = targetSubscriptionId;
-            return AzureClientFactory.getAzureClient(azureCredentialWrapper, getUserAgent(), targetSubscriptionId);
+            return AzureClientFactory.getAzureClient(getUserAgent(), targetSubscriptionId);
         } catch (AzureLoginException | IOException e) {
             throw new AzureAuthFailureException(e.getMessage());
         }

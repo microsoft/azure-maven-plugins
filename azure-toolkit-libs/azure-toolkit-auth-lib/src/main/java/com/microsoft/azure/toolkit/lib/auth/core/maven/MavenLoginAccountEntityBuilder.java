@@ -26,27 +26,27 @@ import java.util.Objects;
 public class MavenLoginAccountEntityBuilder implements IAccountEntityBuilder {
     @Override
     public AccountEntity build() {
-        AccountEntity profile = new AccountEntity();
-        profile.setMethod(AuthMethod.AZURE_SECRET_FILE);
-        profile.setAuthenticated(false);
+        AccountEntity accountEntity = new AccountEntity();
+        accountEntity.setMethod(AuthMethod.AZURE_SECRET_FILE);
+        accountEntity.setAuthenticated(false);
 
         if (!MavenLoginHelper.existsAzureSecretFile()) {
-            return profile;
+            return accountEntity;
         }
         try {
             AzureCredential credentials = MavenLoginHelper.readAzureCredentials(MavenLoginHelper.getAzureSecretFile());
             String envString = credentials.getEnvironment();
 
-            profile.setEnvironment(envString);
+            accountEntity.setEnvironment(envString);
             if (StringUtils.isBlank(credentials.getRefreshToken())) {
                 throw new LoginFailureException("Missing required 'refresh_token' from file:" + MavenLoginHelper.getAzureSecretFile());
             }
-            profile.setSelectedSubscriptionIds(Arrays.asList(credentials.getDefaultSubscription()));
+            accountEntity.setSelectedSubscriptionIds(Arrays.asList(credentials.getDefaultSubscription()));
             if (credentials.getUserInfo() != null) {
-                profile.setEmail(credentials.getUserInfo().getDisplayableId());
+                accountEntity.setEmail(credentials.getUserInfo().getDisplayableId());
             }
             AzureEnvironment env = MoreObjects.firstNonNull(AzureEnvironmentV2Utils.stringToAzureEnvironment(envString), AzureEnvironment.AZURE);
-            profile.setCredentialBuilder(new ICredentialBuilder() {
+            accountEntity.setCredentialBuilder(new ICredentialBuilder() {
                 @Override
                 public TokenCredential getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
                     Objects.requireNonNull(subscriptionEntity, "Parameter 'subscriptionEntity' cannot be null for building credentials.");
@@ -63,11 +63,11 @@ public class MavenLoginAccountEntityBuilder implements IAccountEntityBuilder {
                     return new RefreshTokenCredentialBuilder().buildTokenCredential(env, null, credentials.getRefreshToken());
                 }
             });
-            profile.setAuthenticated(true);
+            accountEntity.setAuthenticated(true);
 
         } catch (IOException | LoginFailureException ex) {
-            profile.setError(ex);
+            accountEntity.setError(ex);
         }
-        return profile;
+        return accountEntity;
     }
 }
