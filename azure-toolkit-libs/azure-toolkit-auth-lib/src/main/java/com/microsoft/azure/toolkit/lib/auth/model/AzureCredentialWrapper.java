@@ -5,7 +5,7 @@
 package com.microsoft.azure.toolkit.lib.auth.model;
 
 import com.azure.core.credential.TokenCredential;
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.toolkit.lib.auth.AzureIdentityCredentialTokenCredentials;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -13,6 +13,7 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -79,6 +80,12 @@ public class AzureCredentialWrapper {
      * @return AzureTokenCredentials
      */
     public AzureTokenCredentials getAzureTokenCredentials() {
-        return new AzureIdentityCredentialTokenCredentials(env, tenantId, tokenCredential);
+        return new AzureIdentityCredentialTokenCredentials(toV1Environment(env), tenantId, tokenCredential);
+    }
+
+    private com.microsoft.azure.AzureEnvironment toV1Environment(AzureEnvironment env) {
+        return Arrays.stream(com.microsoft.azure.AzureEnvironment.knownEnvironments())
+                .filter(e -> StringUtils.equalsIgnoreCase(env.getManagementEndpoint(), e.managementEndpoint()))
+                .findFirst().orElse(com.microsoft.azure.AzureEnvironment.AZURE);
     }
 }

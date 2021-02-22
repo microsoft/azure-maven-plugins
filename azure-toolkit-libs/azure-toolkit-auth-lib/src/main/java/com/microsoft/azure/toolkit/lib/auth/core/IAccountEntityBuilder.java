@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.auth.core;
 
-import com.microsoft.azure.toolkit.lib.auth.model.AccountProfile;
+import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 
-public interface IProfileBuilder {
-    AccountProfile buildProfile();
+public interface IAccountEntityBuilder {
+    AccountEntity build();
 }

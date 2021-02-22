@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.auth.model;
 
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import lombok.Getter;
 import lombok.Setter;
 

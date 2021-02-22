@@ -9,13 +9,11 @@ import com.azure.core.credential.TokenCredential;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.lib.auth.core.ICredentialBuilder;
-import com.microsoft.azure.toolkit.lib.auth.core.IProfileBuilder;
-import com.microsoft.azure.toolkit.lib.auth.model.AccountProfile;
+import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
+import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapperV2;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
 import com.microsoft.azure.toolkit.lib.auth.util.AzCommandUtils;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,9 +22,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class AzureCliProfileBuilder implements IProfileBuilder {
-    public AccountProfile buildProfile() {
-        AccountProfile profile = new AccountProfile();
+public class AzureCliAccountEntityBuilder implements IAccountEntityBuilder {
+    public AccountEntity build() {
+        AccountEntity profile = new AccountEntity();
         profile.setMethod(AuthMethod.AZURE_CLI);
         profile.setAuthenticated(false);
 
@@ -50,12 +48,9 @@ public class AzureCliProfileBuilder implements IProfileBuilder {
 
         profile.setCredentialBuilder(new ICredentialBuilder() {
             @Override
-            public AzureCredentialWrapperV2 getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
+            public TokenCredential getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
                 Objects.requireNonNull(subscriptionEntity, "Parameter 'subscriptionEntity' cannot be null for building credentials.");
-                return new AzureCredentialWrapperV2(AuthMethod.AZURE_CLI,
-                        AzureEnvironmentUtils.stringToAzureEnvironment(subscriptionEntity.getEnvironment()),
-                        subscriptionEntity.getTenantId(),
-                        new AzureCliTenantCredential(subscriptionEntity.getTenantId()));
+                return new AzureCliTenantCredential(subscriptionEntity.getTenantId());
             }
 
             @Override

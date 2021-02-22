@@ -13,14 +13,12 @@ import com.azure.identity.implementation.util.IdentityConstants;
 import com.google.common.base.MoreObjects;
 import com.microsoft.aad.msal4j.IAuthenticationResult;
 import com.microsoft.azure.toolkit.lib.auth.core.ICredentialBuilder;
-import com.microsoft.azure.toolkit.lib.auth.core.IProfileBuilder;
+import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
 import com.microsoft.azure.toolkit.lib.auth.core.refreshtoken.RefreshTokenCredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
-import com.microsoft.azure.toolkit.lib.auth.model.AccountProfile;
+import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapperV2;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentV2Utils;
 import me.alexpanov.net.FreePortFinder;
 import org.apache.commons.lang3.StringUtils;
@@ -28,16 +26,16 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 
 import java.util.Objects;
 
-public class OAuthProfileBuilder implements IProfileBuilder {
+public class OAuthAccountEntityBuilder implements IAccountEntityBuilder {
     private AzureEnvironment environment;
 
-    public OAuthProfileBuilder(AzureEnvironment environment) {
+    public OAuthAccountEntityBuilder(AzureEnvironment environment) {
         this.environment = environment;
     }
 
     @Override
-    public AccountProfile buildProfile() {
-        AccountProfile profile = new AccountProfile();
+    public AccountEntity build() {
+        AccountEntity profile = new AccountEntity();
         profile.setMethod(AuthMethod.OAUTH2);
         profile.setAuthenticated(false);
         AzureEnvironment env = MoreObjects.firstNonNull(this.environment, AzureEnvironment.AZURE);
@@ -58,12 +56,9 @@ public class OAuthProfileBuilder implements IProfileBuilder {
 
             profile.setCredentialBuilder(new ICredentialBuilder() {
                 @Override
-                public AzureCredentialWrapperV2 getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
+                public TokenCredential getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
                     Objects.requireNonNull(subscriptionEntity, "Parameter 'subscriptionEntity' cannot be null for building credentials.");
-                    return new AzureCredentialWrapperV2(AuthMethod.AZURE_SECRET_FILE,
-                            AzureEnvironmentUtils.stringToAzureEnvironment(subscriptionEntity.getEnvironment()),
-                            subscriptionEntity.getTenantId(),
-                            new RefreshTokenCredentialBuilder().buildTokenCredential(env, subscriptionEntity.getTenantId(), refreshToken));
+                    return new RefreshTokenCredentialBuilder().buildTokenCredential(env, subscriptionEntity.getTenantId(), refreshToken);
                 }
 
                 @Override

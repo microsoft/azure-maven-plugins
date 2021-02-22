@@ -9,15 +9,13 @@ package com.microsoft.azure.toolkit.lib.auth.core.maven;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.AzureEnvironment;
 import com.google.common.base.MoreObjects;
+import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
 import com.microsoft.azure.toolkit.lib.auth.core.ICredentialBuilder;
-import com.microsoft.azure.toolkit.lib.auth.core.IProfileBuilder;
 import com.microsoft.azure.toolkit.lib.auth.core.refreshtoken.RefreshTokenCredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
-import com.microsoft.azure.toolkit.lib.auth.model.AccountProfile;
+import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapperV2;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentV2Utils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -25,10 +23,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class MavenLoginProfileBuilder implements IProfileBuilder {
+public class MavenLoginAccountEntityBuilder implements IAccountEntityBuilder {
     @Override
-    public AccountProfile buildProfile() {
-        AccountProfile profile = new AccountProfile();
+    public AccountEntity build() {
+        AccountEntity profile = new AccountEntity();
         profile.setMethod(AuthMethod.AZURE_SECRET_FILE);
         profile.setAuthenticated(false);
 
@@ -50,12 +48,9 @@ public class MavenLoginProfileBuilder implements IProfileBuilder {
             AzureEnvironment env = MoreObjects.firstNonNull(AzureEnvironmentV2Utils.stringToAzureEnvironment(envString), AzureEnvironment.AZURE);
             profile.setCredentialBuilder(new ICredentialBuilder() {
                 @Override
-                public AzureCredentialWrapperV2 getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
+                public TokenCredential getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
                     Objects.requireNonNull(subscriptionEntity, "Parameter 'subscriptionEntity' cannot be null for building credentials.");
-                    return new AzureCredentialWrapperV2(AuthMethod.AZURE_SECRET_FILE,
-                            AzureEnvironmentUtils.stringToAzureEnvironment(subscriptionEntity.getEnvironment()),
-                            subscriptionEntity.getTenantId(),
-                            new RefreshTokenCredentialBuilder().buildTokenCredential(env, subscriptionEntity.getTenantId(), credentials.getRefreshToken()));
+                    return new RefreshTokenCredentialBuilder().buildTokenCredential(env, subscriptionEntity.getTenantId(), credentials.getRefreshToken());
                 }
 
                 @Override

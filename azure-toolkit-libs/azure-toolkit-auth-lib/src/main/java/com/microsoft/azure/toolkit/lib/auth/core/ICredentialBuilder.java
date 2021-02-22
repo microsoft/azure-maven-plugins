@@ -6,12 +6,11 @@
 package com.microsoft.azure.toolkit.lib.auth.core;
 
 import com.azure.core.credential.TokenCredential;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapperV2;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
 
 public interface ICredentialBuilder {
 
-    AzureCredentialWrapperV2 getCredentialWrapperForSubscription(SubscriptionEntity subscription);
+    TokenCredential getCredentialWrapperForSubscription(SubscriptionEntity subscription);
 
     TokenCredential getCredentialForTenant(String tenantId);
 

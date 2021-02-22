@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.auth;
 
+import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.AzureResourceManager;
@@ -15,7 +16,7 @@ import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.core.ICredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapperV2;
+import com.microsoft.azure.toolkit.lib.auth.model.CachedTokenCredential;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentV2Utils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
@@ -44,7 +45,7 @@ public class Account {
     @Getter
     private ICredentialBuilder credentialBuilder;
 
-    private Map<String, AzureCredentialWrapperV2> tenantToCredential = new HashMap<>();
+    private Map<String, TokenCredential> tenantToCredential = new HashMap<>();
 
     public Account logout() {
         this.entity = null;
@@ -142,7 +143,7 @@ public class Account {
         return null;
     }
 
-    public AzureCredentialWrapperV2 getCredential(String subscriptionId) throws LoginFailureException {
+    public TokenCredential getCredential(String subscriptionId) throws LoginFailureException {
         if (!this.isAuthenticated()) {
             throw new LoginFailureException("Please login first.");
         }
@@ -151,7 +152,7 @@ public class Account {
                 .filter(s -> StringUtils.equalsIgnoreCase(subscriptionId, s.getId())).findFirst();
         if (subscriptionEntity.isPresent() && StringUtils.isNotBlank(subscriptionEntity.get().getTenantId())) {
             return tenantToCredential.computeIfAbsent(subscriptionEntity.get().getTenantId(),
-                    e -> credentialBuilder.getCredentialWrapperForSubscription(subscriptionEntity.get()));
+                    e -> new CachedTokenCredential(credentialBuilder.getCredentialWrapperForSubscription(subscriptionEntity.get())));
         }
         return null;
     }

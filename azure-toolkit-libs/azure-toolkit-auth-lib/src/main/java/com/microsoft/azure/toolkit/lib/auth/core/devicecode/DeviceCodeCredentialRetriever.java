@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.toolkit.lib.auth.core.devicecode;
 
+import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeCredential;
 import com.azure.identity.DeviceCodeCredentialBuilder;
-import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;

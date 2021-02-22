@@ -8,8 +8,8 @@ package com.microsoft.azure.toolkit.lib.auth.core;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.exception.ClientAuthenticationException;
+import com.azure.core.management.AzureEnvironment;
 import com.google.common.base.MoreObjects;
-import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import lombok.Setter;
@@ -34,7 +34,7 @@ public abstract class AbstractCredentialRetriever implements ICredentialRetrieve
     protected void validateTokenCredential(TokenCredential credential) throws LoginFailureException {
         try {
             credential.getToken(
-                new TokenRequestContext().addScopes(getAzureEnvironment().managementEndpoint() + "/.default")).block().getToken();
+                new TokenRequestContext().addScopes(getAzureEnvironment().getManagementEndpoint() + "/.default")).block().getToken();
         } catch (ClientAuthenticationException ex) {
             throw new LoginFailureException(ex.getMessage(), ex);
         }

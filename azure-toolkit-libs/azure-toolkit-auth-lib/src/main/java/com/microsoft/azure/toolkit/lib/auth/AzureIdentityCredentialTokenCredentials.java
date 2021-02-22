@@ -10,7 +10,6 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -42,4 +41,5 @@ public class AzureIdentityCredentialTokenCredentials extends AzureTokenCredentia
         }
         return accessTokenCache.get(endpoint).getToken();
     }
+
 }

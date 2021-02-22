@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.auth.util;
 
+import com.azure.core.management.AzureEnvironment;
 import com.azure.core.util.Configuration;
-import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -50,7 +50,7 @@ public class AzureEnvironmentUtils {
             // see code at
             // https://github.com/Azure/azure-sdk-for-java/blob/32f8f7ca8b44035b2e5520c5e10455f42500a778/sdk/identity/azure-identity/
             // src/main/java/com/azure/identity/implementation/IdentityClientOptions.java#L42
-            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.activeDirectoryEndpoint());
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.getActiveDirectoryEndpoint());
         }
     }
 

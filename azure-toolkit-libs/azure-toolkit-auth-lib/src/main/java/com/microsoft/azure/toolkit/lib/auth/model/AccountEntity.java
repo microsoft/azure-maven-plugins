@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.auth.model;
 
+import com.microsoft.azure.toolkit.lib.auth.core.ICredentialBuilder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,4 +32,8 @@ public class AccountEntity {
     private List<String> tenantIds;
 
     private Throwable error;
+
+    private List<String> selectedSubscriptionIds;
+
+    private ICredentialBuilder credentialBuilder;
 }

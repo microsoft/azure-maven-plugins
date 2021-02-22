@@ -6,8 +6,8 @@
 package com.microsoft.azure.toolkit.lib.auth.core.visualstudio;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.SharedTokenCacheCredentialBuilder;
-import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.auth.core.AbstractCredentialRetriever;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;

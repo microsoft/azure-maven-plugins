@@ -8,14 +8,12 @@ package com.microsoft.azure.toolkit.lib.auth.core.vscode;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.auth.core.ICredentialBuilder;
-import com.microsoft.azure.toolkit.lib.auth.core.IProfileBuilder;
+import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
 import com.microsoft.azure.toolkit.lib.auth.core.refreshtoken.RefreshTokenCredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
-import com.microsoft.azure.toolkit.lib.auth.model.AccountProfile;
+import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapperV2;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentV2Utils;
 import com.microsoft.azure.toolkit.lib.auth.util.Utils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,10 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class VisualStudioCodeProfileBuilder implements IProfileBuilder {
+public class VisualStudioCodeAccountEntityBuilder implements IAccountEntityBuilder {
     @Override
-    public AccountProfile buildProfile() {
-        AccountProfile profile = new AccountProfile();
+    public AccountEntity build() {
+        AccountEntity profile = new AccountEntity();
         profile.setMethod(AuthMethod.VSCODE);
         profile.setAuthenticated(false);
         VisualStudioCacheAccessor accessor = new VisualStudioCacheAccessor();
@@ -53,12 +51,9 @@ public class VisualStudioCodeProfileBuilder implements IProfileBuilder {
             AzureEnvironment env = Utils.firstNonNull(AzureEnvironmentV2Utils.stringToAzureEnvironment(vscodeCloudName), AzureEnvironment.AZURE);
             profile.setCredentialBuilder(new ICredentialBuilder() {
                 @Override
-                public AzureCredentialWrapperV2 getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
+                public TokenCredential getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
                     Objects.requireNonNull(subscriptionEntity, "Parameter 'subscriptionEntity' cannot be null for building credentials.");
-                    return new AzureCredentialWrapperV2(AuthMethod.VSCODE,
-                            AzureEnvironmentUtils.stringToAzureEnvironment(subscriptionEntity.getEnvironment()),
-                            subscriptionEntity.getTenantId(),
-                            new RefreshTokenCredentialBuilder().buildVSCodeTokenCredential(env, subscriptionEntity.getTenantId(), refreshToken));
+                    return new RefreshTokenCredentialBuilder().buildVSCodeTokenCredential(env, subscriptionEntity.getTenantId(), refreshToken);
                 }
 
                 @Override

@@ -16,9 +16,8 @@ import java.io.IOException;
 
 public class AzureClientFactory {
     public static Azure getAzureClient(AzureCredentialWrapper azureTokenCredentials,
-                                       String userAgent) throws IOException, AzureLoginException {
+                                       String userAgent, String defaultSubscriptionId) throws IOException, AzureLoginException {
         Preconditions.checkNotNull(azureTokenCredentials, "The parameter 'azureTokenCredentials' cannot be null.");
-        final String defaultSubscriptionId = azureTokenCredentials.getDefaultSubscriptionId();
         final Authenticated authenticated = Azure.configure().withUserAgent(userAgent)
                 .authenticate(azureTokenCredentials.getAzureTokenCredentials());
 

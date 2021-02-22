@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven;
 
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
@@ -163,6 +163,6 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         if (azureEnvironment == AzureEnvironment.AZURE_CHINA) {
             return "https://portal.azure.cn";
         }
-        return azureEnvironment.portal();
+        return azureEnvironment.getPortal();
     }
 }
