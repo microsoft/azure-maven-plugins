@@ -29,11 +29,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Account {
@@ -58,7 +56,7 @@ public class Account {
         return entity.getEnvironment();
     }
 
-    public void initialize() {
+    public void fillTenantAndSubscriptions() {
         Objects.requireNonNull(entity, "Cannot initialize from null account entity.");
         AzureEnvironment env = MoreObjects.firstNonNull(getEnvironment(), AzureEnvironment.AZURE);
         AzureProfile azureProfile = new AzureProfile(env);
@@ -68,6 +66,7 @@ public class Account {
 
         }
 
+        // use map to re-dup subs
         Map<String, SubscriptionEntity> subscriptionMap = new HashMap<>();
         this.entity.getTenantIds().forEach(tenantId -> {
             try {
@@ -95,27 +94,8 @@ public class Account {
         if (subscriptionMap.isEmpty()) {
             this.entity.setAuthenticated(false);
         }
-    }
 
-    public void selectSubscriptions(List<String> subscriptionIds) {
-        // select subscriptions
-        if (CollectionUtils.isNotEmpty(subscriptionIds) && CollectionUtils.isNotEmpty(this.entity.getSubscriptions())) {
-            entity.getSubscriptions().stream().filter(s ->
-                    Utils.containsIgnoreCase(subscriptionIds, s.getId())
-            ).forEach(t -> {
-                t.setSelected(true);
-            });
-        }
-        entity.setSelectedSubscriptions(entity.getSubscriptions().stream().filter(SubscriptionEntity::isSelected).collect(Collectors.toList()));
-    }
-
-    private SubscriptionEntity toSubscriptionEntity(AzureEnvironment env, String tenantId, Subscription subscription) {
-        final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setId(subscription.subscriptionId());
-        subscriptionEntity.setName(subscription.displayName());
-        subscriptionEntity.setTenantId(tenantId);
-        subscriptionEntity.setEnvironment(env);
-        return subscriptionEntity;
+        this.selectSubscriptions(this.entity.getSelectedSubscriptionIds());
     }
 
     public boolean isAuthenticated() {
@@ -173,5 +153,26 @@ public class Account {
                     e -> new CachedTokenCredential(credentialBuilder.provideCredentialForTenant(subscriptionEntity.getTenantId())));
         }
         return null;
+    }
+
+    void selectSubscriptions(List<String> subscriptionIds) {
+        // select subscriptions
+        if (CollectionUtils.isNotEmpty(subscriptionIds) && CollectionUtils.isNotEmpty(this.entity.getSubscriptions())) {
+            entity.getSubscriptions().stream().filter(s ->
+                    Utils.containsIgnoreCase(subscriptionIds, s.getId())
+            ).forEach(t -> {
+                t.setSelected(true);
+            });
+        }
+        entity.setSelectedSubscriptions(entity.getSubscriptions().stream().filter(SubscriptionEntity::isSelected).collect(Collectors.toList()));
+    }
+
+    private SubscriptionEntity toSubscriptionEntity(AzureEnvironment env, String tenantId, Subscription subscription) {
+        final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(subscription.subscriptionId());
+        subscriptionEntity.setName(subscription.displayName());
+        subscriptionEntity.setTenantId(tenantId);
+        subscriptionEntity.setEnvironment(env);
+        return subscriptionEntity;
     }
 }

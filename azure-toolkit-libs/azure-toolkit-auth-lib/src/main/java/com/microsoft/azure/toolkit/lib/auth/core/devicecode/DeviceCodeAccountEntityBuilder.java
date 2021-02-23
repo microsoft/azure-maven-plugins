@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.auth.core.devicecode;
 
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.implementation.MsalToken;
+import com.azure.identity.implementation.util.IdentityConstants;
 import com.microsoft.aad.msal4j.IAuthenticationResult;
 import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
 import com.microsoft.azure.toolkit.lib.auth.core.common.CommonAccountEntityBuilder;
@@ -21,7 +22,6 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 
 @AllArgsConstructor
 public class DeviceCodeAccountEntityBuilder implements IAccountEntityBuilder {
-    private static final String AZURE_TOOLKIT_CLIENT_ID = "777acee8-5286-4d6e-8b05-f7c851d8ed0a";
     private AzureEnvironment environment;
 
     @Override
@@ -29,7 +29,7 @@ public class DeviceCodeAccountEntityBuilder implements IAccountEntityBuilder {
         AccountEntity accountEntity = CommonAccountEntityBuilder.createAccountEntity(AuthMethod.DEVICE_CODE);
         accountEntity.setEnvironment(this.environment);
         try {
-            MsalToken msalToken = new MsalTokenBuilder(environment, AZURE_TOOLKIT_CLIENT_ID).buildDeviceCode(
+            MsalToken msalToken = new MsalTokenBuilder(environment, IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID).buildDeviceCode(
                     challenge -> System.out.println(StringUtils.replace(challenge.getMessage(), challenge.getUserCode(),
                     TextUtils.cyan(challenge.getUserCode())))).block();
             IAuthenticationResult result = msalToken.getAuthenticationResult();
@@ -41,7 +41,8 @@ public class DeviceCodeAccountEntityBuilder implements IAccountEntityBuilder {
                 throw new LoginFailureException("Cannot get refresh token from device code login workflow.");
             }
 
-            accountEntity.setCredentialBuilder(CommonAccountEntityBuilder.fromRefreshToken(environment, AZURE_TOOLKIT_CLIENT_ID, refreshToken));
+            accountEntity.setCredentialBuilder(
+                    CommonAccountEntityBuilder.fromRefreshToken(environment, IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID, refreshToken));
             CommonAccountEntityBuilder.listTenants(accountEntity);
             accountEntity.setAuthenticated(true);
         } catch (Throwable ex) {

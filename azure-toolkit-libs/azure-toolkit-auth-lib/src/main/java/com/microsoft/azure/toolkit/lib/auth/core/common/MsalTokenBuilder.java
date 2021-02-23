@@ -37,7 +37,7 @@ public class MsalTokenBuilder {
     private final String clientId;
 
     @Getter
-    private final String tenantId = "organizations";
+    private final String tenantId = "common";
 
     public MsalTokenBuilder(AzureEnvironment env, String clientId) {
         this.env = env;

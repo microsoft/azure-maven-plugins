@@ -29,8 +29,10 @@ import com.microsoft.azure.toolkit.lib.auth.util.ValidationUtil;
 import lombok.Getter;
 import lombok.Lombok;
 import lombok.Setter;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +62,12 @@ public class AzureAccount implements AzureService {
                     auth.getCertificatePassword());
             try {
                 ValidationUtil.validateAuthConfiguration(auth);
+                ServicePrincipalAccountEntityBuilder builder = new ServicePrincipalAccountEntityBuilder(auth);
+                AccountEntity entity = builder.build();
+                if (entity.isAuthenticated()) {
+                    login(entity);
+                    return;
+                }
             } catch (InvalidConfigurationException e) {
                 if (forceSPLogin) {
                     Lombok.sneakyThrow(e);
@@ -68,13 +76,6 @@ public class AzureAccount implements AzureService {
                 if (isSPConfigurationPresent) {
                     logger.warning("Cannot login through 'SERVICE_PRINCIPAL' due to invalid configuration: " + e.getMessage());
                 }
-            }
-
-            ServicePrincipalAccountEntityBuilder builder = new ServicePrincipalAccountEntityBuilder(auth);
-            AccountEntity entity = builder.build();
-            if (entity.isAuthenticated()) {
-                login(entity);
-                return;
             }
         }
         Map<AuthType, IAccountEntityBuilder> allBuilders = buildProfilerBuilders(environment);
@@ -88,31 +89,30 @@ public class AzureAccount implements AzureService {
                 }
             }
         }
-
-
     }
 
     public void login(AccountEntity accountEntity) throws AzureToolkitAuthenticationException {
         Objects.requireNonNull(accountEntity, "accountEntity is required.");
         this.account = new Account();
         final AccountEntity entity = new AccountEntity();
-        entity.setMethod(accountEntity.getMethod());
-        entity.setAuthenticated(accountEntity.isAuthenticated());
-        entity.setEnvironment(accountEntity.getEnvironment());
-        entity.setEmail(accountEntity.getEmail());
-        entity.setTenantIds(accountEntity.getTenantIds());
+        try {
+            BeanUtils.copyProperties(entity, accountEntity);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new AzureToolkitAuthenticationException(
+                    String.format("Cannot copy properties on class AccountEntity due to error: %s", e.getMessage()));
+        }
+
         this.account.setEntity(entity);
         this.account.setCredentialBuilder(accountEntity.getCredentialBuilder());
         if (!accountEntity.isAuthenticated()) {
             return;
         }
         // get
-        this.account.initialize();
-        this.account.selectSubscriptions(accountEntity.getSelectedSubscriptionIds());
+        this.account.fillTenantAndSubscriptions();
     }
 
     /**
-     * @return account
+     * @return the current account
      * @throws AzureToolkitAuthenticationException if not initialized
      */
     public Account account() throws AzureToolkitAuthenticationException {
@@ -124,13 +124,14 @@ public class AzureAccount implements AzureService {
         Map<AuthType, IAccountEntityBuilder> map = new LinkedHashMap<>();
         // SP is not there since it requires special constructor argument and it is handled in login(AuthConfiguration auth)
         AzureEnvironment environmentOrDefault = MoreObjects.firstNonNull(env, AzureEnvironment.AZURE);
+        map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityAccountEntityBuilder(environmentOrDefault));
         map.put(AuthType.AZURE_CLI, new AzureCliAccountEntityBuilder());
-        map.put(AuthType.AZURE_AUTH_MAVEN_PLUGIN, new MavenLoginAccountEntityBuilder());
+
         map.put(AuthType.VSCODE, new VisualStudioCodeAccountEntityBuilder());
+        map.put(AuthType.VISUAL_STUDIO, new VisualStudioAccountEntityBuilder());
+        map.put(AuthType.AZURE_AUTH_MAVEN_PLUGIN, new MavenLoginAccountEntityBuilder());
         map.put(AuthType.OAUTH2, new OAuthAccountEntityBuilder(environmentOrDefault));
         map.put(AuthType.DEVICE_CODE, new DeviceCodeAccountEntityBuilder(environmentOrDefault));
-        map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityAccountEntityBuilder(environmentOrDefault));
-        map.put(AuthType.VISUAL_STUDIO, new VisualStudioAccountEntityBuilder());
         return map;
     }
 
