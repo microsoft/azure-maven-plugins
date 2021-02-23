@@ -50,6 +50,5 @@
         <module>azure-toolkit-libs</module>
         <module>azure-maven-plugin-lib</module>
         <module>azure-webapp-maven-plugin</module>
-        <module>azure-spring-cloud-maven-plugin</module>
     </modules>
 </project>
