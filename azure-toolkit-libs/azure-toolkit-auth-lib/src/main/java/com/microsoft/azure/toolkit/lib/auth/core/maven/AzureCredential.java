@@ -11,7 +11,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class AzureCredential {
+class AzureCredential {
 
     private String accessTokenType;
     private String idToken;

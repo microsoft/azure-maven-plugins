@@ -14,7 +14,7 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentV2Utils;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.resources.Subscription;
@@ -81,8 +81,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     private static final String AUTH_TYPE = "authType";
     private static final String AUTH_METHOD = "authMethod";
     private static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
-    private static final String INIT_FAILURE = "InitFailure";
-    private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
+    protected static final String INIT_FAILURE = "InitFailure";
+    protected static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     private static final String FAILURE_REASON = "failureReason";
     private static final String JVM_UP_TIME = "jvmUpTime";
     private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
@@ -345,7 +345,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 return null;
             }
             final AzureEnvironment env = account.getEnvironment();
-            final String environmentName = AzureEnvironmentV2Utils.azureEnvironmentToString(env);
+            final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
             if (env != AzureEnvironment.AZURE) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }
@@ -453,6 +453,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         try {
             // init proxy manager
             ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
+            AzureEnvironmentUtils.setupAzureEnvironment(null);
 
             // Work around for Application Insights Java SDK:
             // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.

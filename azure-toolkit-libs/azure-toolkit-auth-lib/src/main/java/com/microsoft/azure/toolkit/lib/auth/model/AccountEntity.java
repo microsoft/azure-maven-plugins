@@ -5,7 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.auth.model;
 
-import com.microsoft.azure.toolkit.lib.auth.core.ICredentialBuilder;
+import com.azure.core.management.AzureEnvironment;
+import com.microsoft.azure.toolkit.lib.auth.core.ICredentialProvider;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +18,7 @@ public class AccountEntity {
 
     private AuthMethod method;
 
-    private String environment;
+    private AzureEnvironment environment;
 
     private String email;
 
@@ -35,5 +36,5 @@ public class AccountEntity {
 
     private List<String> selectedSubscriptionIds;
 
-    private ICredentialBuilder credentialBuilder;
+    private ICredentialProvider credentialBuilder;
 }

@@ -14,12 +14,11 @@ import com.azure.resourcemanager.resources.models.Tenant;
 import com.google.common.base.MoreObjects;
 import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
-import com.microsoft.azure.toolkit.lib.auth.core.ICredentialBuilder;
+import com.microsoft.azure.toolkit.lib.auth.core.ICredentialProvider;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.CachedTokenCredential;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentV2Utils;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureIdentityCredentialTokenCredentialsConverter;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
@@ -44,7 +43,7 @@ public class Account {
 
     @Setter
     @Getter
-    private ICredentialBuilder credentialBuilder;
+    private ICredentialProvider credentialBuilder;
 
     private Map<String, TokenCredential> tenantToCredential = new HashMap<>();
 
@@ -56,11 +55,7 @@ public class Account {
     }
 
     public AzureEnvironment getEnvironment() {
-        String envString = entity == null ? null : entity.getEnvironment();
-        if (StringUtils.isEmpty(envString)) {
-            return null;
-        }
-        return AzureEnvironmentV2Utils.stringToAzureEnvironment(envString);
+        return entity.getEnvironment();
     }
 
     public void initialize() {
@@ -69,7 +64,7 @@ public class Account {
         AzureProfile azureProfile = new AzureProfile(env);
         Set<String> validTenantIds = new HashSet<>();
         if (this.entity.getTenantIds() == null) {
-            this.entity.setTenantIds(AzureResourceManager.authenticate(this.credentialBuilder.getCredentialForListingTenants()
+            this.entity.setTenantIds(AzureResourceManager.authenticate(this.credentialBuilder.provideCredentialCommon()
                     , azureProfile).tenants().list().stream().map(Tenant::tenantId).collect(Collectors.toList()));
 
         }
@@ -78,7 +73,7 @@ public class Account {
         this.entity.getTenantIds().forEach(tenantId -> {
             try {
                 List<SubscriptionEntity> subscriptionsOnTenant =
-                        AzureResourceManager.authenticate(this.credentialBuilder.getCredentialForTenant(tenantId), azureProfile).subscriptions().list()
+                        AzureResourceManager.authenticate(this.credentialBuilder.provideCredentialForTenant(tenantId), azureProfile).subscriptions().list()
                                 .mapPage(s -> this.toSubscriptionEntity(entity.getEnvironment(), tenantId, s)).stream().collect(Collectors.toList());
 
                 for (SubscriptionEntity s : subscriptionsOnTenant) {
@@ -117,7 +112,7 @@ public class Account {
         entity.setSelectedSubscriptions(entity.getSubscriptions().stream().filter(SubscriptionEntity::isSelected).collect(Collectors.toList()));
     }
 
-    private SubscriptionEntity toSubscriptionEntity(String env, String tenantId, Subscription subscription) {
+    private SubscriptionEntity toSubscriptionEntity(AzureEnvironment env, String tenantId, Subscription subscription) {
         final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId(subscription.subscriptionId());
         subscriptionEntity.setName(subscription.displayName());
@@ -178,7 +173,7 @@ public class Account {
     private TokenCredential getCredentialInternal(SubscriptionEntity subscriptionEntity) {
         if (subscriptionEntity != null && StringUtils.isNotBlank(subscriptionEntity.getTenantId())) {
             return tenantToCredential.computeIfAbsent(subscriptionEntity.getTenantId(),
-                    e -> new CachedTokenCredential(credentialBuilder.getCredentialWrapperForSubscription(subscriptionEntity)));
+                    e -> new CachedTokenCredential(credentialBuilder.provideCredentialForTenant(subscriptionEntity.getTenantId())));
         }
         return null;
     }

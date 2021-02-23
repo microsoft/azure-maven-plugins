@@ -37,7 +37,7 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentV2Utils;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
@@ -426,7 +426,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
             checkSubscription(subscriptions, targetSubscriptionId);
             final AzureEnvironment env = account.getEnvironment();
-            final String environmentName = AzureEnvironmentV2Utils.azureEnvironmentToString(env);
+            final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
             if (env != AzureEnvironment.AZURE) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }

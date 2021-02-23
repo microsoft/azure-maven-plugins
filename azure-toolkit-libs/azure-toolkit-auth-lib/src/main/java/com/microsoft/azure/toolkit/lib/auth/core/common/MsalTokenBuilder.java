@@ -3,31 +3,34 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.auth.core.oauth;
+package com.microsoft.azure.toolkit.lib.auth.core.common;
 
-import com.azure.core.credential.AccessToken;
-import com.azure.core.credential.TokenCredential;
-import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.exception.ClientAuthenticationException;
 import com.azure.core.management.AzureEnvironment;
+import com.azure.identity.DeviceCodeInfo;
 import com.azure.identity.implementation.MsalToken;
 import com.azure.identity.implementation.SynchronizedAccessor;
+import com.azure.identity.implementation.util.ScopeUtil;
+import com.microsoft.aad.msal4j.DeviceCodeFlowParameters;
 import com.microsoft.aad.msal4j.IAuthenticationResult;
 import com.microsoft.aad.msal4j.InteractiveRequestParameters;
 import com.microsoft.aad.msal4j.Prompt;
 import com.microsoft.aad.msal4j.PublicClientApplication;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import me.alexpanov.net.FreePortFinder;
 import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-public class OAuthCredential implements TokenCredential {
+public class MsalTokenBuilder {
     private final AzureEnvironment env;
     private final SynchronizedAccessor<PublicClientApplication> publicClientApplicationAccessor;
     @Getter
@@ -36,30 +39,13 @@ public class OAuthCredential implements TokenCredential {
     @Getter
     private final String tenantId = "organizations";
 
-    public OAuthCredential(@NotNull AzureEnvironment env, @NotNull String clientId) {
+    public MsalTokenBuilder(AzureEnvironment env, String clientId) {
         this.env = env;
         this.clientId = clientId;
         this.publicClientApplicationAccessor = new SynchronizedAccessor<>(() -> createPublicClientApplication(clientId, tenantId, this.env));
-
     }
 
-    @SneakyThrows
-    @Override
-    public Mono<AccessToken> getToken(TokenRequestContext request) {
-        int port = FreePortFinder.findFreeLocalPort();
-        return Mono.defer(() -> authenticateWithBrowserInteraction(request, port));
-    }
-
-    /**
-     * Asynchronously acquire a token from Active Directory by opening a browser and wait for the user to login. The
-     * credential will run a minimal local HttpServer at the given port, so {@code http://localhost:{port}} must be
-     * listed as a valid reply URL for the application.
-     *
-     * @param request the details of the token request
-     * @param port the port on which the HTTP server is listening
-     * @return a Publisher that emits an AccessToken
-     */
-    public Mono<MsalToken> authenticateWithBrowserInteraction(TokenRequestContext request, int port) {
+    public Mono<MsalToken> buildWithBrowserInteraction(int port) {
         URI redirectUri;
         String redirectUrl = "http://localhost:" + port;
         try {
@@ -67,14 +53,28 @@ public class OAuthCredential implements TokenCredential {
         } catch (URISyntaxException e) {
             return Mono.error(e);
         }
+        Set<String> scopes = Arrays.stream(ScopeUtil.resourceToScopes(env.getManagementEndpoint())).collect(Collectors.toSet());
         InteractiveRequestParameters.InteractiveRequestParametersBuilder builder =
-                InteractiveRequestParameters.builder(redirectUri).prompt(Prompt.SELECT_ACCOUNT).scopes(new HashSet<>(request.getScopes()));
+                InteractiveRequestParameters.builder(redirectUri).prompt(Prompt.SELECT_ACCOUNT).scopes(scopes);
 
         Mono<IAuthenticationResult> acquireToken = publicClientApplicationAccessor.getValue()
                 .flatMap(pc -> Mono.fromFuture(() -> pc.acquireToken(builder.build())));
 
         return acquireToken.onErrorMap(t -> new ClientAuthenticationException(
                 "Failed to acquire token with Interactive Browser Authentication.", null, t)).map(MsalToken::new);
+    }
+
+    public Mono<MsalToken> buildDeviceCode(Consumer<DeviceCodeInfo> deviceCodeConsumer) {
+        Set<String> scopes = Arrays.stream(ScopeUtil.resourceToScopes(env.getManagementEndpoint())).collect(Collectors.toSet());
+        return publicClientApplicationAccessor.getValue().flatMap(pc ->
+                Mono.fromFuture(() -> {
+                    DeviceCodeFlowParameters parameters = DeviceCodeFlowParameters.builder(scopes, dc -> deviceCodeConsumer.accept(
+                                    new DeviceCodeInfo(dc.userCode(), dc.deviceCode(), dc.verificationUri(),
+                                            OffsetDateTime.now().plusSeconds(dc.expiresIn()), dc.message()))).build();
+                    return pc.acquireToken(parameters);
+                }).onErrorMap(t -> new ClientAuthenticationException("Failed to acquire token with device code", null, t))
+                        .map(MsalToken::new));
+
     }
 
     @SneakyThrows

@@ -6,13 +6,14 @@
 package com.microsoft.azure.toolkit.lib.auth.model;
 
 
+import com.azure.core.management.AzureEnvironment;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
 public class SubscriptionEntity {
-    private String environment;
+    private AzureEnvironment environment;
     private String id;
     private String name;
     private String email;

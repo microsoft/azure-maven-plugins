@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-public class MavenLoginHelper {
+class MavenLoginHelper {
     // ClientId from https://github.com/Azure/azure-cli/blob/1beb6352ece2d06187bbccd66f1638f45b0340f7/src/azure-cli-core/azure/cli/core/_profile.py#L64
     private static final String AZURE_FOLDER = ".azure";
     private static final String USER_HOME = "user.home";

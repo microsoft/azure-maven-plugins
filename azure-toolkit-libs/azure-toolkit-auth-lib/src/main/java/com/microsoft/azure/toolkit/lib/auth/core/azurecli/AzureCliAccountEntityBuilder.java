@@ -8,26 +8,24 @@ package com.microsoft.azure.toolkit.lib.auth.core.azurecli;
 import com.azure.core.credential.TokenCredential;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.microsoft.azure.toolkit.lib.auth.core.ICredentialBuilder;
+import com.microsoft.azure.toolkit.lib.auth.core.ICredentialProvider;
+import com.microsoft.azure.toolkit.lib.auth.core.common.CommonAccountEntityBuilder;
 import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
 import com.microsoft.azure.toolkit.lib.auth.util.AzCommandUtils;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class AzureCliAccountEntityBuilder implements IAccountEntityBuilder {
     public AccountEntity build() {
-        AccountEntity accountEntity = new AccountEntity();
-        accountEntity.setMethod(AuthMethod.AZURE_CLI);
-        accountEntity.setAuthenticated(false);
-
+        AccountEntity accountEntity = CommonAccountEntityBuilder.createAccountEntity(AuthMethod.AZURE_CLI);
         String cliVersion = getVersion();
         if (StringUtils.isBlank(cliVersion)) {
             return accountEntity;
@@ -46,21 +44,15 @@ public class AzureCliAccountEntityBuilder implements IAccountEntityBuilder {
         accountEntity.setEmail(defaultSubscription.getEmail());
         accountEntity.setEnvironment(defaultSubscription.getEnvironment());
 
-        accountEntity.setCredentialBuilder(new ICredentialBuilder() {
+        accountEntity.setCredentialBuilder(new ICredentialProvider() {
             @Override
-            public TokenCredential getCredentialWrapperForSubscription(SubscriptionEntity subscriptionEntity) {
-                Objects.requireNonNull(subscriptionEntity, "Parameter 'subscriptionEntity' cannot be null for building credentials.");
-                return new AzureCliTenantCredential(subscriptionEntity.getTenantId());
-            }
-
-            @Override
-            public TokenCredential getCredentialForTenant(String tenantId) {
+            public TokenCredential provideCredentialForTenant(String tenantId) {
                 return new AzureCliTenantCredential(tenantId);
             }
 
             @Override
-            public TokenCredential getCredentialForListingTenants() {
-                return new AzureCliTenantCredential();
+            public TokenCredential provideCredentialCommon() {
+                return new AzureCliTenantCredential(null);
             }
         });
         accountEntity.setAuthenticated(true);
@@ -100,7 +92,7 @@ public class AzureCliAccountEntityBuilder implements IAccountEntityBuilder {
                     entity.setSelected(accountObject.get("isDefault").getAsBoolean());
                     entity.setTenantId(tenantId);
                     entity.setEmail(email);
-                    entity.setEnvironment(cloud);
+                    entity.setEnvironment(AzureEnvironmentUtils.stringToAzureEnvironment(cloud));
                     list.add(entity);
                 }
             });
