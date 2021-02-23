@@ -9,6 +9,7 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
@@ -64,6 +65,10 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void doExecute() throws AzureExecutionException {
         // initialize library client
         az = getOrCreateAzureAppServiceClient();
+        if (az == null) {
+            getTelemetryProxy().trackEvent(INIT_FAILURE);
+            throw new AzureExecutionException(AZURE_INIT_FAIL);
+        }
 
         final WebAppConfig config = getWebAppConfig();
         final IAppService target = createOrUpdateResource(config);
