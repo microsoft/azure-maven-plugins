@@ -6,6 +6,10 @@
 package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.common.utils.SneakyThrowUtils;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.management.Azure.Authenticated;
+import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
@@ -326,12 +330,10 @@ public class ConfigMojo extends AbstractMojoBase {
 
     private void selectSubscription() throws IOException, InvalidConfigurationException {
         // TODO: getAzureTokenCredentials will check auth for null, but maven will always map a default AuthConfiguration
-        Account account = Azure.az(AzureAccount.class).account();
-        if (StringUtils.isBlank(subscriptionId) && CollectionUtils.isNotEmpty(account.getSelectedSubscriptions())
-                && account.getSelectedSubscriptions().size() == 1) {
-            subscriptionId = account.getSelectedSubscriptions().get(0).getId();
-        } else {
-            promptSubscription();
+        azure = com.microsoft.azure.management.Azure.configure().authenticate(azureCredentialWrapper.getAzureTokenCredentials());
+        if (StringUtils.isBlank(subscriptionId)) {
+            subscriptionId = StringUtils.isBlank(azureCredentialWrapper.getDefaultSubscriptionId()) ? promptSubscription() :
+                    azureCredentialWrapper.getDefaultSubscriptionId();
         }
     }
 
