@@ -67,13 +67,4 @@ public class SpringCloudCluster implements IAzureEntityManager<SpringCloudCluste
     public AppPlatformManager getClient() {
         return this.client;
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (Objects.isNull(obj) || !(obj instanceof SpringCloudCluster)) {
-            return false;
-        }
-        final SpringCloudCluster cluster = (SpringCloudCluster) obj;
-        return Objects.equals(cluster.id(), this.id());
-    }
 }

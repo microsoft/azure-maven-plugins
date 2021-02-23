@@ -8,24 +8,22 @@ package com.microsoft.azure.toolkit.lib.common.model;
 
 import lombok.Getter;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Optional;
 
 public interface IArtifact {
     File getFile();
 
-    @Nullable
-    static FileArtifact fromFile(@Nullable File file) {
-        return Optional.ofNullable(file).map(FileArtifact::new).orElse(null);
+    @Nonnull
+    static FileArtifact fromFile(@Nonnull final File file) {
+        return new FileArtifact(file);
     }
 
     @Getter
     class FileArtifact implements IArtifact {
-
         private final File file;
 
-        public FileArtifact(File file) {
+        public FileArtifact(@Nonnull final File file) {
             this.file = file;
         }
     }

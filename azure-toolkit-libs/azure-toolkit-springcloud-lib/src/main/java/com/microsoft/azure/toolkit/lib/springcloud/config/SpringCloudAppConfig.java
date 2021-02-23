@@ -6,14 +6,18 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 
 @Builder
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SpringCloudAppConfig {
     private String subscriptionId;
     private String clusterName;

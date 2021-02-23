@@ -9,8 +9,10 @@ package com.microsoft.azure.toolkit.lib.springcloud.config;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 
@@ -20,6 +22,8 @@ import java.util.Map;
 @Builder
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SpringCloudDeploymentConfig {
     private Integer cpu;
     private Integer memoryInGB;
