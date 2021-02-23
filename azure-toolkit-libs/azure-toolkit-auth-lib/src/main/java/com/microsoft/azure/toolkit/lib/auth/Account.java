@@ -62,7 +62,6 @@ public class Account {
         Objects.requireNonNull(entity, "Cannot initialize from null account entity.");
         AzureEnvironment env = MoreObjects.firstNonNull(getEnvironment(), AzureEnvironment.AZURE);
         AzureProfile azureProfile = new AzureProfile(env);
-        Set<String> validTenantIds = new HashSet<>();
         if (this.entity.getTenantIds() == null) {
             this.entity.setTenantIds(AzureResourceManager.authenticate(this.credentialBuilder.provideCredentialCommon()
                     , azureProfile).tenants().list().stream().map(Tenant::tenantId).collect(Collectors.toList()));
@@ -76,11 +75,9 @@ public class Account {
                         AzureResourceManager.authenticate(this.credentialBuilder.provideCredentialForTenant(tenantId), azureProfile).subscriptions().list()
                                 .mapPage(s -> this.toSubscriptionEntity(entity.getEnvironment(), tenantId, s)).stream().collect(Collectors.toList());
 
-                for (SubscriptionEntity s : subscriptionsOnTenant) {
-                    String key = StringUtils.lowerCase(s.getId());
-                    if (subscriptionMap.putIfAbsent(key, s) != null) {
-                        validTenantIds.add(tenantId);
-                    }
+                for (SubscriptionEntity subscriptionEntity : subscriptionsOnTenant) {
+                    String key = StringUtils.lowerCase(subscriptionEntity.getId());
+                    subscriptionMap.putIfAbsent(key, subscriptionEntity);
                 }
             } catch (Exception ex) {
                 // ignore AuthenticationException since on some tenants, it doesn't allow list subscriptions
@@ -93,8 +90,8 @@ public class Account {
         });
 
         // since some tenants doesn't have subscriptions, reduce the tenants
-        this.entity.setTenantIds(new ArrayList<>(validTenantIds));
         this.entity.setSubscriptions(new ArrayList<>(subscriptionMap.values()));
+        this.entity.setTenantIds(subscriptionMap.values().stream().map(SubscriptionEntity::getTenantId).distinct().collect(Collectors.toList()));
         if (subscriptionMap.isEmpty()) {
             this.entity.setAuthenticated(false);
         }

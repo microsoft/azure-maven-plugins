@@ -44,6 +44,7 @@ public class AzureEnvironmentUtils {
 
     public static void setupAzureEnvironment(AzureEnvironment env) {
         setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.identity", "off");
+        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.adal4j", "off");
         setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.msal4jextensions", "off");
         if (env != null) {
             // change the default azure env after it is initialized in azure identity

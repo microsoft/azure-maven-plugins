@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.util.logging.ClientLogger;
+import com.google.common.base.MoreObjects;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
@@ -20,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.auth.core.visualstudio.VisualStudioAccoun
 import com.microsoft.azure.toolkit.lib.auth.core.vscode.VisualStudioCodeAccountEntityBuilder;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
+import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
@@ -50,7 +52,7 @@ public class AzureAccount implements AzureService {
         return allBuilders.values().stream().map(builder -> builder.build()).collect(Collectors.toList());
     }
 
-    public void login(AuthConfiguration auth) {
+    public void login(AuthConfiguration auth) throws LoginFailureException {
         environment = auth.getEnvironment();
         boolean forceSPLogin = auth.getType() == AuthType.SERVICE_PRINCIPAL;
         if (forceSPLogin || auth.getType() == AuthType.AUTO) {
@@ -79,13 +81,15 @@ public class AzureAccount implements AzureService {
         if (allBuilders.containsKey(auth.getType())) {
             loginByBuilder(allBuilders.get(auth.getType()));
             return;
-        }
-
-        for (IAccountEntityBuilder builder : allBuilders.values()) {
-            if (loginByBuilder(builder)) {
-                return;
+        } else {
+            for (IAccountEntityBuilder builder : allBuilders.values()) {
+                if (loginByBuilder(builder)) {
+                    return;
+                }
             }
         }
+
+
     }
 
     public void login(AccountEntity accountEntity) throws AzureToolkitAuthenticationException {
@@ -119,12 +123,13 @@ public class AzureAccount implements AzureService {
     private static Map<AuthType, IAccountEntityBuilder> buildProfilerBuilders(AzureEnvironment env) {
         Map<AuthType, IAccountEntityBuilder> map = new LinkedHashMap<>();
         // SP is not there since it requires special constructor argument and it is handled in login(AuthConfiguration auth)
+        AzureEnvironment environmentOrDefault = MoreObjects.firstNonNull(env, AzureEnvironment.AZURE);
         map.put(AuthType.AZURE_CLI, new AzureCliAccountEntityBuilder());
         map.put(AuthType.AZURE_AUTH_MAVEN_PLUGIN, new MavenLoginAccountEntityBuilder());
         map.put(AuthType.VSCODE, new VisualStudioCodeAccountEntityBuilder());
-        map.put(AuthType.OAUTH2, new OAuthAccountEntityBuilder(env));
-        map.put(AuthType.DEVICE_CODE, new DeviceCodeAccountEntityBuilder(env));
-        map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityAccountEntityBuilder(env));
+        map.put(AuthType.OAUTH2, new OAuthAccountEntityBuilder(environmentOrDefault));
+        map.put(AuthType.DEVICE_CODE, new DeviceCodeAccountEntityBuilder(environmentOrDefault));
+        map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityAccountEntityBuilder(environmentOrDefault));
         map.put(AuthType.VISUAL_STUDIO, new VisualStudioAccountEntityBuilder());
         return map;
     }
