@@ -43,9 +43,6 @@ public class AzureEnvironmentUtils {
     }
 
     public static void setupAzureEnvironment(AzureEnvironment env) {
-        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.identity", "off");
-        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.adal4j", "off");
-        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.msal4jextensions", "off");
         if (env != null) {
             // change the default azure env after it is initialized in azure identity
             // see code at
@@ -70,11 +67,5 @@ public class AzureEnvironmentUtils {
 
     private static void putAliasMap(AzureEnvironment env, String... aliases) {
         AZURE_CLOUD_ALIAS_MAP.put(env, aliases);
-    }
-
-    private static void setPropertyIfNotExist(String key, String value) {
-        if (StringUtils.isBlank(System.getProperty(key))) {
-            System.setProperty(key, value);
-        }
     }
 }

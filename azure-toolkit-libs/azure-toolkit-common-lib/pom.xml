@@ -89,7 +89,6 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>adal4j</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>

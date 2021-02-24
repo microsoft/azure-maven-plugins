@@ -36,13 +36,10 @@ public class MsalTokenBuilder {
     @Getter
     private final String clientId;
 
-    @Getter
-    private final String tenantId = "common";
-
     public MsalTokenBuilder(AzureEnvironment env, String clientId) {
         this.env = env;
         this.clientId = clientId;
-        this.publicClientApplicationAccessor = new SynchronizedAccessor<>(() -> createPublicClientApplication(clientId, tenantId, this.env));
+        this.publicClientApplicationAccessor = new SynchronizedAccessor<>(() -> createPublicClientApplication(clientId, "common", this.env));
     }
 
     public Mono<MsalToken> buildWithBrowserInteraction(int port) {

@@ -34,6 +34,7 @@ import com.microsoft.azure.maven.utils.MavenUtils;
 import com.microsoft.azure.maven.utils.ProxyUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.maven.execution.MavenSession;
@@ -452,8 +453,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public void execute() throws MojoExecutionException {
         try {
             // init proxy manager
-            ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
-            AzureEnvironmentUtils.setupAzureEnvironment(null);
+            ProxyUtils.initProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
+            Utils.disableAzureIdentityLogs();
 
             // Work around for Application Insights Java SDK:
             // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.

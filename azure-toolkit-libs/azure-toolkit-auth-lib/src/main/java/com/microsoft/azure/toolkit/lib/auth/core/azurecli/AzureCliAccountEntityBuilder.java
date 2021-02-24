@@ -9,7 +9,7 @@ import com.azure.core.credential.TokenCredential;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.lib.auth.core.ICredentialProvider;
-import com.microsoft.azure.toolkit.lib.auth.core.common.CommonAccountEntityBuilder;
+import com.microsoft.azure.toolkit.lib.auth.util.AccountBuilderUtils;
 import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 public class AzureCliAccountEntityBuilder implements IAccountEntityBuilder {
     public AccountEntity build() {
-        AccountEntity accountEntity = CommonAccountEntityBuilder.createAccountEntity(AuthMethod.AZURE_CLI);
+        AccountEntity accountEntity = AccountBuilderUtils.createAccountEntity(AuthMethod.AZURE_CLI);
         String cliVersion = getVersion();
         if (StringUtils.isBlank(cliVersion)) {
             return accountEntity;

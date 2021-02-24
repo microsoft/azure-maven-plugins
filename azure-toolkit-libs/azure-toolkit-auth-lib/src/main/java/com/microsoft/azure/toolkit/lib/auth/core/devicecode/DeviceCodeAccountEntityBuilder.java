@@ -10,7 +10,7 @@ import com.azure.identity.implementation.MsalToken;
 import com.azure.identity.implementation.util.IdentityConstants;
 import com.microsoft.aad.msal4j.IAuthenticationResult;
 import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
-import com.microsoft.azure.toolkit.lib.auth.core.common.CommonAccountEntityBuilder;
+import com.microsoft.azure.toolkit.lib.auth.util.AccountBuilderUtils;
 import com.microsoft.azure.toolkit.lib.auth.core.common.MsalTokenBuilder;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
@@ -26,7 +26,7 @@ public class DeviceCodeAccountEntityBuilder implements IAccountEntityBuilder {
 
     @Override
     public AccountEntity build() {
-        AccountEntity accountEntity = CommonAccountEntityBuilder.createAccountEntity(AuthMethod.DEVICE_CODE);
+        AccountEntity accountEntity = AccountBuilderUtils.createAccountEntity(AuthMethod.DEVICE_CODE);
         accountEntity.setEnvironment(this.environment);
         try {
             MsalToken msalToken = new MsalTokenBuilder(environment, IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID).buildDeviceCode(
@@ -41,9 +41,8 @@ public class DeviceCodeAccountEntityBuilder implements IAccountEntityBuilder {
                 throw new LoginFailureException("Cannot get refresh token from device code login workflow.");
             }
 
-            accountEntity.setCredentialBuilder(
-                    CommonAccountEntityBuilder.fromRefreshToken(environment, IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID, refreshToken));
-            CommonAccountEntityBuilder.listTenants(accountEntity);
+            AccountBuilderUtils.setRefreshCredentialBuilder(accountEntity, IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID, refreshToken);
+            AccountBuilderUtils.listTenants(accountEntity);
             accountEntity.setAuthenticated(true);
         } catch (Throwable ex) {
             accountEntity.setAuthenticated(false);

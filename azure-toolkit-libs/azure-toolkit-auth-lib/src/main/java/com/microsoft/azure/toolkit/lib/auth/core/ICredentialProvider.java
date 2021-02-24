@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.auth.core;
 
 import com.azure.core.credential.TokenCredential;
 
-public interface ICredentialProvider {
+public interface  ICredentialProvider {
     TokenCredential provideCredentialForTenant(String tenantId);
 
     TokenCredential provideCredentialCommon();

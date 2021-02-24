@@ -10,7 +10,7 @@ import com.microsoft.azure.toolkit.lib.auth.core.ICredentialProvider;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class CommonCredentialProvider implements ICredentialProvider {
+public class DefaultCredentialProvider implements ICredentialProvider {
     private TokenCredential sharedTokenCredential;
 
     @Override

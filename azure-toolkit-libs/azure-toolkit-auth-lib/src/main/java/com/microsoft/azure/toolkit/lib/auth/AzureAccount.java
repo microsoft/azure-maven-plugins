@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.util.logging.ClientLogger;
-import com.google.common.base.MoreObjects;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
@@ -25,11 +24,11 @@ import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.util.ValidationUtil;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
-import lombok.Lombok;
 import lombok.Setter;
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -51,42 +50,43 @@ public class AzureAccount implements AzureService {
 
     public List<AccountEntity> getAvailableAccounts() {
         Map<AuthType, IAccountEntityBuilder> allBuilders = buildProfilerBuilders(environment);
-        return allBuilders.values().stream().map(builder -> builder.build()).collect(Collectors.toList());
+        return allBuilders.values().stream().map(IAccountEntityBuilder::build).collect(Collectors.toList());
     }
 
     public void login(AuthConfiguration auth) throws LoginFailureException {
-        environment = auth.getEnvironment();
-        boolean forceSPLogin = auth.getType() == AuthType.SERVICE_PRINCIPAL;
-        if (forceSPLogin || auth.getType() == AuthType.AUTO) {
-            boolean isSPConfigurationPresent = !StringUtils.isAllBlank(auth.getCertificate(), auth.getKey(),
-                    auth.getCertificatePassword());
-            try {
-                ValidationUtil.validateAuthConfiguration(auth);
-                ServicePrincipalAccountEntityBuilder builder = new ServicePrincipalAccountEntityBuilder(auth);
-                AccountEntity entity = builder.build();
-                if (entity.isAuthenticated()) {
-                    login(entity);
-                    return;
-                }
-            } catch (InvalidConfigurationException e) {
-                if (forceSPLogin) {
-                    Lombok.sneakyThrow(e);
-                    return;
-                }
-                if (isSPConfigurationPresent) {
-                    logger.warning("Cannot login through 'SERVICE_PRINCIPAL' due to invalid configuration: " + e.getMessage());
-                }
-            }
-        }
-        Map<AuthType, IAccountEntityBuilder> allBuilders = buildProfilerBuilders(environment);
-        if (allBuilders.containsKey(auth.getType())) {
-            loginByBuilder(allBuilders.get(auth.getType()));
-            return;
-        } else {
-            for (IAccountEntityBuilder builder : allBuilders.values()) {
-                if (loginByBuilder(builder)) {
-                    return;
-                }
+        // update the env state of AzureAccount when auth configuration has a strong configuration of env
+        this.environment = Utils.firstNonNull(auth.getEnvironment(), this.environment);
+        Objects.requireNonNull(auth, "Null 'auth' cannot be used to sign-in.");
+        AzureEnvironmentUtils.setupAzureEnvironment(auth.getEnvironment());
+        loginInner(auth);
+        if (auth.getEnvironment() != null && this.account.getEnvironment() != null
+                && this.account.getEnvironment() != this.environment
+                && this.account.isAuthenticated()) {
+
+            String expectedEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(auth.getEnvironment());
+            String realEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(this.account.getEnvironment());
+
+            // conflicting configuration of azure environment
+            switch (this.account.getEntity().getMethod()) {
+                case AZURE_CLI:
+                    throw new LoginFailureException(String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
+                                    "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
+                            realEnv,
+                            expectedEnv));
+
+                case AZURE_SECRET_FILE:
+                    throw new LoginFailureException(String.format("The azure cloud from maven login '%s' doesn't match with your auth configuration, " +
+                                    "please switch to other auth method for '%s' environment.",
+                            realEnv,
+                            expectedEnv));
+                case VSCODE:
+                    throw new LoginFailureException(String.format("The azure cloud from vscode '%s' doesn't match with your auth configuration: %s, " +
+                                    "you can change it by pressing F1 in VSCode and find \">azure: sign in to Azure Cloud\" command " +
+                                    "to change azure cloud in vscode.",
+                            realEnv,
+                            expectedEnv));
+                default:
+                    // empty
             }
         }
     }
@@ -96,7 +96,7 @@ public class AzureAccount implements AzureService {
         this.account = new Account();
         final AccountEntity entity = new AccountEntity();
         try {
-            BeanUtils.copyProperties(entity, accountEntity);
+            Utils.copyProperties(entity, accountEntity);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new AzureToolkitAuthenticationException(
                     String.format("Cannot copy properties on class AccountEntity due to error: %s", e.getMessage()));
@@ -120,10 +120,52 @@ public class AzureAccount implements AzureService {
             .orElseThrow(() -> new AzureToolkitAuthenticationException("Account is not initialized."));
     }
 
+    private void loginInner(AuthConfiguration auth) throws LoginFailureException {
+        if (auth.getType() == AuthType.SERVICE_PRINCIPAL || auth.getType() == AuthType.AUTO) {
+            if (loginServicePrincipal(auth)) {
+                return;
+            }
+        }
+        Map<AuthType, IAccountEntityBuilder> allBuilders = buildProfilerBuilders(environment);
+        if (allBuilders.containsKey(auth.getType())) {
+            loginByBuilder(allBuilders.get(auth.getType()));
+        } else {
+            for (IAccountEntityBuilder builder : allBuilders.values()) {
+                if (loginByBuilder(builder)) {
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean loginServicePrincipal(AuthConfiguration auth) throws LoginFailureException {
+        boolean forceServicePrincipalLogin = auth.getType() == AuthType.SERVICE_PRINCIPAL;
+        boolean isSPConfigurationPresent = !StringUtils.isAllBlank(auth.getCertificate(), auth.getKey(),
+                auth.getCertificatePassword());
+        try {
+            ValidationUtil.validateAuthConfiguration(auth);
+            AzureEnvironmentUtils.setupAzureEnvironment(auth.getEnvironment());
+            ServicePrincipalAccountEntityBuilder builder = new ServicePrincipalAccountEntityBuilder(auth);
+            AccountEntity entity = builder.build();
+            if (entity.isAuthenticated()) {
+                login(entity);
+            }
+            return entity.isAuthenticated();
+        } catch (InvalidConfigurationException e) {
+            if (forceServicePrincipalLogin) {
+                throw new LoginFailureException(e.getMessage(), e);
+            }
+            if (isSPConfigurationPresent) {
+                logger.warning("Cannot login through 'SERVICE_PRINCIPAL' due to invalid configuration: " + e.getMessage());
+            }
+        }
+        return false;
+    }
+
     private static Map<AuthType, IAccountEntityBuilder> buildProfilerBuilders(AzureEnvironment env) {
         Map<AuthType, IAccountEntityBuilder> map = new LinkedHashMap<>();
         // SP is not there since it requires special constructor argument and it is handled in login(AuthConfiguration auth)
-        AzureEnvironment environmentOrDefault = MoreObjects.firstNonNull(env, AzureEnvironment.AZURE);
+        AzureEnvironment environmentOrDefault = Utils.firstNonNull(env, AzureEnvironment.AZURE);
         map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityAccountEntityBuilder(environmentOrDefault));
         map.put(AuthType.AZURE_CLI, new AzureCliAccountEntityBuilder());
 
@@ -140,6 +182,6 @@ public class AzureAccount implements AzureService {
         if (profile != null && profile.isAuthenticated()) {
             Azure.az(AzureAccount.class).login(profile);
         }
-        return Azure.az(AzureAccount.class).account().isAuthenticated();
+        return profile.isAuthenticated();
     }
 }

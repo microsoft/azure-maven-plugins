@@ -10,8 +10,8 @@ import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.ManagedIdentityCredential;
 import com.azure.identity.ManagedIdentityCredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
-import com.microsoft.azure.toolkit.lib.auth.core.common.CommonAccountEntityBuilder;
-import com.microsoft.azure.toolkit.lib.auth.core.common.CommonCredentialProvider;
+import com.microsoft.azure.toolkit.lib.auth.util.AccountBuilderUtils;
+import com.microsoft.azure.toolkit.lib.auth.core.common.DefaultCredentialProvider;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import lombok.AllArgsConstructor;
@@ -22,12 +22,12 @@ public class ManagedIdentityAccountEntityBuilder implements IAccountEntityBuilde
 
     @Override
     public AccountEntity build() {
-        AccountEntity accountEntity = CommonAccountEntityBuilder.createAccountEntity(AuthMethod.MANAGED_IDENTITY);
+        AccountEntity accountEntity = AccountBuilderUtils.createAccountEntity(AuthMethod.MANAGED_IDENTITY);
         accountEntity.setEnvironment(environment);
 
         ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder().build();
-        accountEntity.setCredentialBuilder(new CommonCredentialProvider(managedIdentityCredential));
-        CommonAccountEntityBuilder.listTenants(accountEntity);
+        accountEntity.setCredentialBuilder(new DefaultCredentialProvider(managedIdentityCredential));
+        AccountBuilderUtils.listTenants(accountEntity);
         return accountEntity;
     }
 

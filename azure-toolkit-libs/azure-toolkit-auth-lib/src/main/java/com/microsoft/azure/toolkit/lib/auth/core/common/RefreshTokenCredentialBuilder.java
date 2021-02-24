@@ -41,7 +41,7 @@ public class RefreshTokenCredentialBuilder {
     private static TokenCredential buildRefreshTokenCredentialInternal(AzureEnvironment env, String clientId, String tenantId, String refreshToken) {
         return request -> Mono.fromCallable(() -> {
             AuthenticationResult result =
-                    new RefreshTokenCredentialBuilder().authorize(env,
+                    RefreshTokenCredentialBuilder.authorize(env,
                                     clientId,
                                     StringUtils.firstNonBlank(tenantId, "common"),
                                     refreshToken,

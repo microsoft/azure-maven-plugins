@@ -38,7 +38,7 @@ public class VisualStudioCacheAccessor {
     private JsonNode getUserSettings() {
         JsonNode output;
         String homeDir = System.getProperty("user.home");
-        String settingsPath = "";
+        String settingsPath;
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true);
         mapper.configure(JsonReadFeature.ALLOW_JAVA_COMMENTS.mappedFeature(), true);

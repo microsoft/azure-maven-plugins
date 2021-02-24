@@ -7,12 +7,12 @@ package com.microsoft.azure.toolkit.lib.auth.core.vscode;
 
 import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
-import com.microsoft.azure.toolkit.lib.auth.core.common.CommonAccountEntityBuilder;
+import com.microsoft.azure.toolkit.lib.auth.util.AccountBuilderUtils;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
-import com.microsoft.azure.toolkit.lib.auth.util.Utils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class VisualStudioCodeAccountEntityBuilder implements IAccountEntityBuild
 
     @Override
     public AccountEntity build() {
-        AccountEntity accountEntity = CommonAccountEntityBuilder.createAccountEntity(AuthMethod.VSCODE);
+        AccountEntity accountEntity = AccountBuilderUtils.createAccountEntity(AuthMethod.VSCODE);
         VisualStudioCacheAccessor accessor = new VisualStudioCacheAccessor();
         try {
             Map<String, String> userSettings = accessor.getUserSettingsDetails();
@@ -44,7 +44,7 @@ public class VisualStudioCodeAccountEntityBuilder implements IAccountEntityBuild
                 throw new LoginFailureException("Cannot get credentials from VSCode, please make sure that you have signed-in in VSCode Azure Account plugin");
             }
             accountEntity.setSelectedSubscriptionIds(filteredSubscriptions);
-            accountEntity.setCredentialBuilder(CommonAccountEntityBuilder.fromRefreshToken(env, VSCODE_CLIENT_ID, refreshToken));
+            AccountBuilderUtils.setRefreshCredentialBuilder(accountEntity, VSCODE_CLIENT_ID, refreshToken);
             accountEntity.setAuthenticated(true);
         } catch (LoginFailureException ex) {
             accountEntity.setError(ex);

@@ -11,7 +11,6 @@ import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.Subscription;
 import com.azure.resourcemanager.resources.models.Tenant;
-import com.google.common.base.MoreObjects;
 import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.toolkit.lib.auth.core.ICredentialProvider;
@@ -58,7 +57,7 @@ public class Account {
 
     public void fillTenantAndSubscriptions() {
         Objects.requireNonNull(entity, "Cannot initialize from null account entity.");
-        AzureEnvironment env = MoreObjects.firstNonNull(getEnvironment(), AzureEnvironment.AZURE);
+        AzureEnvironment env = Utils.firstNonNull(getEnvironment(), AzureEnvironment.AZURE);
         AzureProfile azureProfile = new AzureProfile(env);
         if (this.entity.getTenantIds() == null) {
             this.entity.setTenantIds(AzureResourceManager.authenticate(this.credentialBuilder.provideCredentialCommon()
@@ -160,9 +159,7 @@ public class Account {
         if (CollectionUtils.isNotEmpty(subscriptionIds) && CollectionUtils.isNotEmpty(this.entity.getSubscriptions())) {
             entity.getSubscriptions().stream().filter(s ->
                     Utils.containsIgnoreCase(subscriptionIds, s.getId())
-            ).forEach(t -> {
-                t.setSelected(true);
-            });
+            ).forEach(t -> t.setSelected(true));
         }
         entity.setSelectedSubscriptions(entity.getSubscriptions().stream().filter(SubscriptionEntity::isSelected).collect(Collectors.toList()));
     }

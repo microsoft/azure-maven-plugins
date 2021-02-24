@@ -38,7 +38,6 @@ public class AzCommandUtils {
      * @param command the az command to be executed
      */
     public static JsonElement executeAzCommandJson(String command) {
-        System.out.println("!" + command);
         BufferedReader reader = null;
         try {
             final String starter;

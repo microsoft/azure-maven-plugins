@@ -10,6 +10,7 @@ import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
@@ -49,7 +50,7 @@ public class MavenAuthManager {
         return authConfiguration;
     }
 
-    public void login(AuthConfiguration authConfiguration) {
+    public void login(AuthConfiguration authConfiguration) throws LoginFailureException {
         Azure.az(AzureAccount.class).login(authConfiguration);
     }
 
