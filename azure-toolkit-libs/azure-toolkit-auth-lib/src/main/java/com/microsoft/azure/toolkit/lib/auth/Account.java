@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -57,7 +58,7 @@ public class Account {
 
     public void fillTenantAndSubscriptions() {
         Objects.requireNonNull(entity, "Cannot initialize from null account entity.");
-        AzureEnvironment env = Utils.firstNonNull(getEnvironment(), AzureEnvironment.AZURE);
+        AzureEnvironment env = ObjectUtils.firstNonNull(getEnvironment(), AzureEnvironment.AZURE);
         AzureProfile azureProfile = new AzureProfile(env);
         if (this.entity.getTenantIds() == null) {
             this.entity.setTenantIds(AzureResourceManager.authenticate(this.credentialBuilder.provideCredentialCommon()

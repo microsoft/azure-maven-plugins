@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.auth.util.ValidationUtil;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -55,7 +56,7 @@ public class AzureAccount implements AzureService {
 
     public void login(AuthConfiguration auth) throws LoginFailureException {
         // update the env state of AzureAccount when auth configuration has a strong configuration of env
-        this.environment = Utils.firstNonNull(auth.getEnvironment(), this.environment);
+        this.environment = ObjectUtils.firstNonNull(auth.getEnvironment(), this.environment);
         Objects.requireNonNull(auth, "Null 'auth' cannot be used to sign-in.");
         AzureEnvironmentUtils.setupAzureEnvironment(auth.getEnvironment());
         loginInner(auth);
@@ -165,7 +166,7 @@ public class AzureAccount implements AzureService {
     private static Map<AuthType, IAccountEntityBuilder> buildProfilerBuilders(AzureEnvironment env) {
         Map<AuthType, IAccountEntityBuilder> map = new LinkedHashMap<>();
         // SP is not there since it requires special constructor argument and it is handled in login(AuthConfiguration auth)
-        AzureEnvironment environmentOrDefault = Utils.firstNonNull(env, AzureEnvironment.AZURE);
+        AzureEnvironment environmentOrDefault = ObjectUtils.firstNonNull(env, AzureEnvironment.AZURE);
         map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityAccountEntityBuilder(environmentOrDefault));
         map.put(AuthType.AZURE_CLI, new AzureCliAccountEntityBuilder());
 

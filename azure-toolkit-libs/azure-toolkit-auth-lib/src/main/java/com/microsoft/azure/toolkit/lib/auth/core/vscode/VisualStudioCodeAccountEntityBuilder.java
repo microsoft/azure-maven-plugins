@@ -12,7 +12,7 @@ import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class VisualStudioCodeAccountEntityBuilder implements IAccountEntityBuild
             } else {
                 filteredSubscriptions = new ArrayList<>();
             }
-            AzureEnvironment env = Utils.firstNonNull(AzureEnvironmentUtils.stringToAzureEnvironment(vscodeCloudName), AzureEnvironment.AZURE);
+            AzureEnvironment env = ObjectUtils.firstNonNull(AzureEnvironmentUtils.stringToAzureEnvironment(vscodeCloudName), AzureEnvironment.AZURE);
             accountEntity.setEnvironment(env);
 
             String refreshToken = accessor.getCredentials("VS Code Azure", vscodeCloudName);

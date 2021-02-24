@@ -8,13 +8,13 @@ package com.microsoft.azure.toolkit.lib.auth.core.maven;
 
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.implementation.util.IdentityConstants;
-import com.google.common.base.MoreObjects;
 import com.microsoft.azure.toolkit.lib.auth.core.IAccountEntityBuilder;
 import com.microsoft.azure.toolkit.lib.auth.util.AccountBuilderUtils;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -33,7 +33,7 @@ public class MavenLoginAccountEntityBuilder implements IAccountEntityBuilder {
                 throw new LoginFailureException("Cannot read credential from file:" + MavenLoginHelper.getAzureSecretFile());
             }
             String envString = credentials.getEnvironment();
-            AzureEnvironment env = MoreObjects.firstNonNull(AzureEnvironmentUtils.stringToAzureEnvironment(envString), AzureEnvironment.AZURE);
+            AzureEnvironment env = ObjectUtils.firstNonNull(AzureEnvironmentUtils.stringToAzureEnvironment(envString), AzureEnvironment.AZURE);
             accountEntity.setEnvironment(env);
 
             if (StringUtils.isBlank(credentials.getRefreshToken())) {

@@ -55,15 +55,6 @@ public class Utils {
         return Integer.toHexString(System.identityHashCode(obj));
     }
 
-    public static <T> T firstNonNull(T... args) {
-        for (T obj : args) {
-            if (obj != null) {
-                return obj;
-            }
-        }
-        return null;
-    }
-
     public static <T> T copyProperties(T to, T from) throws IllegalAccessException, InvocationTargetException {
         Objects.requireNonNull(from);
         Objects.requireNonNull(to);
