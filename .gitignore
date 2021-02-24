@@ -43,3 +43,5 @@ hs_err_pid*
 
 jacoco.exec
 bin/
+
+install.cmd
