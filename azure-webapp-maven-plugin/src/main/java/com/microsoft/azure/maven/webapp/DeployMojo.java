@@ -64,6 +64,10 @@ public class DeployMojo extends AbstractWebAppMojo {
     protected void doExecute() throws AzureExecutionException {
         // initialize library client
         az = getOrCreateAzureAppServiceClient();
+        if (az == null) {
+            getTelemetryProxy().trackEvent(INIT_FAILURE);
+            throw new AzureExecutionException(AZURE_INIT_FAIL);
+        }
 
         final WebAppConfig config = getWebAppConfig();
         final IAppService target = createOrUpdateResource(config);

@@ -5,34 +5,71 @@
 
 package com.microsoft.azure.toolkit.lib.auth;
 
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.credential.TokenCredential;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
+import com.microsoft.azure.toolkit.lib.auth.core.ICredentialProvider;
+import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
+import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 public class Account {
     @Getter
-    private boolean authenticated;
+    @Setter
+    private AccountEntity entity;
+
     @Setter
     @Getter
-    private AzureEnvironment environment;
-    @Getter
-    private List<SubscriptionEntity> selectedSubscriptions;
+    private ICredentialProvider credentialBuilder;
 
-    private List<SubscriptionEntity> subscriptions;
+    private Map<String, TokenCredential> tenantToCredential = new HashMap<>();
 
     public Account logout() {
-        this.authenticated = false;
+        this.entity = null;
+        this.credentialBuilder = null;
+        this.tenantToCredential = new HashMap<>();
         return this;
     }
 
-    /**
-     * @return the credential for specified subscription
-     */
-    public AzureTokenCredentials getCredential(String subscriptionId) {
+    public AzureEnvironment getEnvironment() {
+        return entity.getEnvironment();
+    }
+
+    public void fillTenantAndSubscriptions() {
+        Objects.requireNonNull(entity, "Cannot initialize from null account entity.");
+    }
+
+    public boolean isAuthenticated() {
+        return this.entity != null && this.entity.isAuthenticated();
+    }
+
+    public List<SubscriptionEntity> getSubscriptions() {
+        if (this.entity != null) {
+            return this.entity.getSubscriptions();
+        }
+        return null;
+    }
+
+    public List<SubscriptionEntity> getSelectedSubscriptions() {
+        if (this.entity != null) {
+            return this.entity.getSelectedSubscriptions();
+        }
+        return null;
+    }
+
+    public TokenCredential getCredential(String subscriptionId) throws LoginFailureException {
+        return null;
+    }
+
+    public AzureTokenCredentials getCredentialV1(String subscriptionId) throws LoginFailureException {
         return null;
     }
 }

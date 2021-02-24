@@ -5,9 +5,10 @@
 
 package com.microsoft.azure.toolkit.lib.auth.core;
 
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
-import rx.Single;
+import com.azure.core.credential.TokenCredential;
 
-public interface ICredentialRetriever {
-    Single<AzureCredentialWrapper> retrieve();
+public interface ICredentialProvider {
+    TokenCredential provideCredentialForTenant(String tenantId);
+
+    TokenCredential provideCredentialCommon();
 }

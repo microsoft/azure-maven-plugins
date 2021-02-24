@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import lombok.SneakyThrows;
+
 public class AzureSpringCloud implements AzureService {
     private final Account account;
 
@@ -64,6 +66,7 @@ public class AzureSpringCloud implements AzureService {
             .collect(Collectors.toList());
     }
 
+    @SneakyThrows
     private AppPlatformManager getAppPlatformManager(final String subscriptionId) {
         // TODO: cache AppPlatformManager since authenticate is slow.
         final AzureConfiguration config = Azure.az().config();
@@ -72,6 +75,6 @@ public class AzureSpringCloud implements AzureService {
         return AppPlatformManager.configure()
             .withLogLevel(logLevel)
             .withUserAgent(userAgent)
-            .authenticate(this.account.getCredential(subscriptionId), subscriptionId);
+            .authenticate(this.account.getCredentialV1(subscriptionId), subscriptionId);
     }
 }

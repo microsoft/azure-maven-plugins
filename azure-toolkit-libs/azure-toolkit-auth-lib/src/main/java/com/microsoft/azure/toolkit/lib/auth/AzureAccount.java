@@ -5,38 +5,42 @@
 
 package com.microsoft.azure.toolkit.lib.auth;
 
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
+import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 
 import java.util.List;
 import java.util.Optional;
 
-public class AzureAccount implements AzureService {
+import lombok.Getter;
+import lombok.Setter;
 
+public class AzureAccount implements AzureService {
     private Account account;
 
-    public List<Account> getAvailableAccounts() {
+    @Setter
+    @Getter
+    private AzureEnvironment environment;
+
+    public List<AccountEntity> getAvailableAccounts() {
         return null;
     }
 
-    /**
-     * @return account if authenticated
-     * @throws AzureToolkitAuthenticationException if failed to authenticate
-     */
-    public Account login(AccountEntity entity) throws AzureToolkitAuthenticationException {
-        final Account account = new Account(); // TODO: login and create Account instance;
-        this.account = account;
-        return this.account;
+    public void login(AuthConfiguration auth) throws LoginFailureException {
+    }
+
+    public void login(AccountEntity accountEntity) throws AzureToolkitAuthenticationException {
     }
 
     /**
-     * @return account if authenticated
-     * @throws AzureToolkitAuthenticationException if not authenticated
+     * @return the current account
+     * @throws AzureToolkitAuthenticationException if not initialized
      */
     public Account account() throws AzureToolkitAuthenticationException {
         return Optional.ofNullable(this.account)
-            .filter(Account::isAuthenticated)
-            .orElseThrow(() -> new AzureToolkitAuthenticationException("Account is not authentication."));
+            .orElseThrow(() -> new AzureToolkitAuthenticationException("Account is not initialized."));
     }
 }
