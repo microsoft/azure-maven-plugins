@@ -6,24 +6,16 @@
 package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.common.utils.SneakyThrowUtils;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
-import com.microsoft.azure.management.Azure.Authenticated;
-import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.Account;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoFailureException;
@@ -329,7 +321,6 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void selectSubscription() throws IOException, InvalidConfigurationException {
-        // TODO:fixme
     }
 
     private boolean isProjectConfigured(MavenProject proj) {

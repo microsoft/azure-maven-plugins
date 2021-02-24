@@ -160,7 +160,8 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
         mavenAuthConfiguration.setType(getAuthType());
-        MavenAuthManager.getInstance().login(MavenAuthManager.getInstance().buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
+        MavenAuthManager.getInstance().login(
+            MavenAuthManager.getInstance().buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
         Account account = Azure.az(AzureAccount.class).account();
         if (!account.isAuthenticated()) {
             AppInsightHelper.INSTANCE.trackEvent(INIT_FAILURE);
