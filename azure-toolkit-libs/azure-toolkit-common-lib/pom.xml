@@ -96,8 +96,7 @@
         <plugins>
             <plugin>
                 <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/aspectj-maven-plugin -->
-                <!-- http://www.quabr.com/62976155/aspectj-maven-plugin-1-11-missing-tools-jar-issue-with-jdk-11 -->
-                <groupId>com.nickwongdev</groupId>
+                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
                 <configuration>
                     <showWeaveInfo>false</showWeaveInfo>
