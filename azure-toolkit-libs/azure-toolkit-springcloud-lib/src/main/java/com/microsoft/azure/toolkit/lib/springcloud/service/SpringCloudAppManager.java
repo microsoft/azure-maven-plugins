@@ -6,16 +6,21 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.service;
 
+import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
+import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentEntity;
 import com.microsoft.azure.tools.utils.StorageUtils;
 
 import java.io.File;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class SpringCloudAppManager {
     private final AppPlatformManager client;
@@ -60,6 +65,16 @@ public class SpringCloudAppManager {
             inner
         );
         return Optional.ofNullable(resource).map(r -> SpringCloudAppEntity.fromResource(r, cluster)).orElse(null);
+    }
+
+    public List<SpringCloudDeploymentEntity> getDeployments(final SpringCloudAppEntity app) {
+        final SpringCloudClusterEntity cluster = app.getCluster();
+        final PagedList<DeploymentResourceInner> deployments = this.client.inner().deployments().list(
+            cluster.getResourceGroup(),
+            cluster.getName(),
+            app.getName());
+        deployments.loadAll();
+        return deployments.stream().map(d -> SpringCloudDeploymentEntity.fromResource(d, app)).collect(Collectors.toList());
     }
 
     public ResourceUploadDefinitionInner uploadArtifact(String path, final SpringCloudAppEntity app) throws AzureExecutionException {

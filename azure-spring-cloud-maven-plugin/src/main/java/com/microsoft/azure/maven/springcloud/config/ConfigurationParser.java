@@ -7,8 +7,13 @@ package com.microsoft.azure.maven.springcloud.config;
 
 import com.microsoft.azure.maven.springcloud.AbstractMojoBase;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
+import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
+import lombok.SneakyThrows;
+
+import java.io.File;
+import java.util.List;
 
 public class ConfigurationParser {
     public SpringCloudAppConfig parse(AbstractMojoBase springMojo) {
@@ -24,11 +29,14 @@ public class ConfigurationParser {
             .build();
     }
 
+    @SneakyThrows
     private static SpringCloudDeploymentConfig toDeploymentConfig(AppDeploymentMavenConfig rawConfig) {
+        final List<File> artifacts = MavenArtifactUtils.getArtifacts(rawConfig.getResources());
+        final File artifact = MavenArtifactUtils.getExecutableJarFiles(artifacts);
         return SpringCloudDeploymentConfig.builder()
             .cpu(rawConfig.getCpu())
             .deploymentName(rawConfig.getDeploymentName())
-            .artifacts(MavenArtifactUtils.getArtifacts(rawConfig.getResources()))
+            .artifact(IArtifact.fromFile(artifact))
             .enablePersistentStorage(rawConfig.isEnablePersistentStorage())
             .environment(rawConfig.getEnvironment())
             .instanceCount(rawConfig.getInstanceCount())

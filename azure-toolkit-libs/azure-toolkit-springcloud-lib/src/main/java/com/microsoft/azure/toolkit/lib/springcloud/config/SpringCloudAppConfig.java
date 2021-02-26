@@ -6,22 +6,27 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 
-@Getter
 @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SpringCloudAppConfig {
-
-    private final String subscriptionId;
-    private final String clusterName;
-    private final String appName;
-    private final String resourceGroup;
-    private final Boolean isPublic;
-    private final String runtimeVersion;
-    private final String activeDeploymentName;
-    private final SpringCloudDeploymentConfig deployment;
+    private String subscriptionId;
+    private String clusterName;
+    private String appName;
+    private String resourceGroup;
+    private Boolean isPublic;
+    private String runtimeVersion;
+    private String activeDeploymentName;
+    private SpringCloudDeploymentConfig deployment;
 
     public Boolean isPublic() {
         return BooleanUtils.isTrue(isPublic);

@@ -10,11 +10,13 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.App
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudClusterManager;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class SpringCloudCluster implements IAzureEntityManager<SpringCloudClusterEntity> {
     private final AppPlatformManager client;
-    private final SpringCloudClusterManager clusterService;
+    private final SpringCloudClusterManager clusterManager;
     private final SpringCloudClusterEntity local;
     private SpringCloudClusterEntity remote;
     private boolean refreshed;
@@ -22,7 +24,7 @@ public class SpringCloudCluster implements IAzureEntityManager<SpringCloudCluste
     public SpringCloudCluster(SpringCloudClusterEntity cluster, AppPlatformManager client) {
         this.local = cluster;
         this.client = client;
-        this.clusterService = new SpringCloudClusterManager(client);
+        this.clusterManager = new SpringCloudClusterManager(client);
     }
 
     @Override
@@ -37,6 +39,10 @@ public class SpringCloudCluster implements IAzureEntityManager<SpringCloudCluste
         return Objects.nonNull(this.remote) ? this.remote : this.local;
     }
 
+    public String id() {
+        return this.entity().getId();
+    }
+
     public SpringCloudApp app(SpringCloudAppEntity app) {
         return new SpringCloudApp(app, this);
     }
@@ -46,9 +52,14 @@ public class SpringCloudCluster implements IAzureEntityManager<SpringCloudCluste
         return new SpringCloudApp(SpringCloudAppEntity.fromName(name, cluster), this);
     }
 
+    public List<SpringCloudApp> apps() {
+        final SpringCloudClusterEntity cluster = this.entity();
+        return this.clusterManager.getApps(cluster).stream().map(this::app).collect(Collectors.toList());
+    }
+
     public SpringCloudCluster refresh() {
         final SpringCloudClusterEntity local = this.local;
-        this.remote = this.clusterService.get(local.getName(), local.getResourceGroup());
+        this.remote = this.clusterManager.get(local.getName(), local.getResourceGroup());
         this.refreshed = true;
         return this;
     }
