@@ -53,7 +53,7 @@ class AppServiceUtils {
         final JavaVersion javaVersion = JavaVersion.values().stream()
             .filter(version -> StringUtils.equals(webAppBase.javaVersion().toString(), version.getValue()))
             .findFirst().orElse(null);
-        final String javaContainer = String.join(webAppBase.javaContainer(), " ", webAppBase.javaContainerVersion());
+        final String javaContainer = String.join(" ", webAppBase.javaContainer(), webAppBase.javaContainerVersion());
         final WebContainer webContainer = StringUtils.equalsIgnoreCase(webAppBase.javaContainer(), "java") ? WebContainer.JAVA_SE :
             WebContainer.values().stream()
                 .filter(container -> StringUtils.equalsIgnoreCase(javaContainer, container.getValue()))
