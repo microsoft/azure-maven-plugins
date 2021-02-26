@@ -10,7 +10,6 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,17 +17,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * Convert token credential in azure-identity to legacy AzureTokenCredentials
  * Refers https://github.com/jongio/azidext/blob/master/java/src/main/java/com/azure/identity/extensions/AzureIdentityCredentialAdapter.java
  */
-public class AzureIdentityCredentialTokenCredentials extends AzureTokenCredentials {
+public class AzureTokenCredentialsAdapter extends AzureTokenCredentials {
     private final TokenCredential tokenCredential;
     private final Map<String, AccessToken> accessTokenCache = new ConcurrentHashMap<>();
     private final String[] scopes;
 
-    public AzureIdentityCredentialTokenCredentials(AzureEnvironment environment, String tenantId, TokenCredential tokenCredential) {
+    public AzureTokenCredentialsAdapter(AzureEnvironment environment, String tenantId, TokenCredential tokenCredential) {
         this(environment, tenantId, tokenCredential, new String[]{environment.managementEndpoint() + "/.default"});
     }
 
-    public AzureIdentityCredentialTokenCredentials(AzureEnvironment environment, String tenantId,
-                                                   TokenCredential tokenCredential, String[] scopes) {
+    public AzureTokenCredentialsAdapter(AzureEnvironment environment, String tenantId,
+                                        TokenCredential tokenCredential, String[] scopes) {
         super(environment, tenantId);
         this.tokenCredential = tokenCredential;
         this.scopes = scopes;
@@ -42,4 +41,5 @@ public class AzureIdentityCredentialTokenCredentials extends AzureTokenCredentia
         }
         return accessTokenCache.get(endpoint).getToken();
     }
+
 }

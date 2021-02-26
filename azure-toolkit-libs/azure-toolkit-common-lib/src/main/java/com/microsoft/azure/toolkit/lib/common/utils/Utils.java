@@ -9,13 +9,19 @@ import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Utils {
@@ -49,5 +55,30 @@ public class Utils {
 
     public static String getId(Object obj) {
         return Integer.toHexString(System.identityHashCode(obj));
+    }
+
+    public static <T> T copyProperties(T to, T from) throws IllegalAccessException, InvocationTargetException {
+        Objects.requireNonNull(from);
+        Objects.requireNonNull(to);
+        for (Field field : FieldUtils.getAllFields(from.getClass())) {
+            FieldUtils.writeField(to, field.getName(), FieldUtils.readField(from, field.getName(), true), true);
+        }
+        return to;
+    }
+
+    public static void disableAzureIdentityLogs() {
+        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.identity", "off");
+        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.adal4j", "off");
+        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.msal4jextensions", "off");
+    }
+
+    public static <K, V> Map<K, V> groupByIgnoreDuplicate(Collection<V> list, Function<? super V, ? extends K> keyMapper) {
+        return list.stream().collect(Collectors.toMap(keyMapper, item -> item, (item1, item2) -> item1));
+    }
+
+    private static void setPropertyIfNotExist(String key, String value) {
+        if (StringUtils.isBlank(System.getProperty(key))) {
+            System.setProperty(key, value);
+        }
     }
 }
