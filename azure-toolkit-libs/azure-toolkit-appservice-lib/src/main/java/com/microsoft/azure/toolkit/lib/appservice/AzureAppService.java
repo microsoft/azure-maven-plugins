@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebAppDeploymentSlot;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,8 +47,9 @@ public class AzureAppService {
 
     public List<IWebApp> webapps() {
         return azureResourceManager.webApps().list().stream()
-            .map(webAppBasic -> webapp(webAppBasic.id()))
-            .collect(Collectors.toList());
+                .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
+                .map(webAppBasic -> webapp(webAppBasic.id()))
+                .collect(Collectors.toList());
     }
 
     public IAppServicePlan appServicePlan(AppServicePlanEntity appServicePlanEntity) {
