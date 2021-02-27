@@ -24,15 +24,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AzureTelemeter {
-    private static final String OP_ID = "id";
-    private static final String OP_NAME = "name";
-    private static final String OP_TIMESTAMP = "timestamp";
-    private static final String OP_TYPE = "type";
-    private static final String OP_SERVICE_NAME = "serviceName";
-    private static final String OP_OPERATION_NAME = "operationName";
-    private static final String OP_ACTION = "action";
-    private static final String OP_PARENT_ID = "parentId";
-    private static final String OP_CONTEXT_ID = "contextId";
+    private static final String SERVICE_NAME = "serviceName";
+    private static final String OPERATION_NAME = "operationName";
+    private static final String TIMESTAMP = "timestamp";
+    private static final String OP_ID = "op_id";
+    private static final String OP_NAME = "op_name";
+    private static final String OP_TYPE = "op_type";
+    private static final String OP_ACTION = "op_action";
+    private static final String OP_PARENT_ID = "op_parentId";
+    private static final String OP_CONTEXT_ID = "op_contextId";
+
     private static final String OP_ACTION_CREATE = "CREATE";
     private static final String OP_ACTION_ENTER = "ENTER";
     private static final String OP_ACTION_EXIT = "EXIT";
@@ -49,32 +50,34 @@ public class AzureTelemeter {
     @Getter
     @Setter
     private static Map<String, String> commonProperties;
-    public static TelemetryClient client;
+    @Getter
+    @Setter
+    private static TelemetryClient client;
 
     public static void afterCreate(final IAzureOperation op) {
         final Map<String, String> properties = serialize(op);
-        properties.put(OP_TIMESTAMP, Instant.now().toString());
+        properties.put(TIMESTAMP, Instant.now().toString());
         properties.put(OP_ACTION, OP_ACTION_CREATE);
         AzureTelemeter.log(Telemetry.Type.INFO, properties);
     }
 
     public static void beforeEnter(final IAzureOperation op) {
         final Map<String, String> properties = serialize(op);
-        properties.put(OP_TIMESTAMP, Instant.now().toString());
+        properties.put(TIMESTAMP, Instant.now().toString());
         properties.put(OP_ACTION, OP_ACTION_ENTER);
         AzureTelemeter.log(Telemetry.Type.OP_START, properties);
     }
 
     public static void afterExit(final IAzureOperation op) {
         final Map<String, String> properties = serialize(op);
-        properties.put(OP_TIMESTAMP, Instant.now().toString());
+        properties.put(TIMESTAMP, Instant.now().toString());
         properties.put(OP_ACTION, OP_ACTION_EXIT);
         AzureTelemeter.log(Telemetry.Type.OP_END, properties);
     }
 
     public static void onError(final IAzureOperation op, Throwable error) {
         final Map<String, String> properties = serialize(op);
-        properties.put(OP_TIMESTAMP, Instant.now().toString());
+        properties.put(TIMESTAMP, Instant.now().toString());
         properties.put(OP_ACTION, OP_ACTION_ERROR);
         AzureTelemeter.log(Telemetry.Type.ERROR, properties, error);
     }
@@ -105,12 +108,12 @@ public class AzureTelemeter {
         final String[] compositeServiceName = parts[0].split("\\|"); // ["appservice", "file"]
         final String mainServiceName = compositeServiceName[0]; // "appservice"
         final String operationName = compositeServiceName.length > 1 ? parts[1] + "_" + compositeServiceName[1] : parts[1]; // "list_file"
+        properties.put(SERVICE_NAME, mainServiceName);
+        properties.put(OPERATION_NAME, operationName);
         properties.put(OP_CONTEXT_ID, getCompositeId(ctxOperations, op));
         properties.put(OP_ID, op.getId());
         properties.put(OP_PARENT_ID, parent.map(IAzureOperation::getId).orElse("/"));
         properties.put(OP_NAME, name);
-        properties.put(OP_SERVICE_NAME, mainServiceName);
-        properties.put(OP_OPERATION_NAME, operationName);
         properties.put(OP_TYPE, op.getType());
         return properties;
     }
