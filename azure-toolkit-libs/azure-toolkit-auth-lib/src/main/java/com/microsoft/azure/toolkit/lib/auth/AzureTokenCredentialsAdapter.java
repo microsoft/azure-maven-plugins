@@ -10,6 +10,9 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,11 +25,11 @@ public class AzureTokenCredentialsAdapter extends AzureTokenCredentials {
     private final Map<String, AccessToken> accessTokenCache = new ConcurrentHashMap<>();
     private final String[] scopes;
 
-    public AzureTokenCredentialsAdapter(AzureEnvironment environment, String tenantId, TokenCredential tokenCredential) {
+    AzureTokenCredentialsAdapter(AzureEnvironment environment, String tenantId, TokenCredential tokenCredential) {
         this(environment, tenantId, tokenCredential, new String[]{environment.managementEndpoint() + "/.default"});
     }
 
-    public AzureTokenCredentialsAdapter(AzureEnvironment environment, String tenantId,
+    AzureTokenCredentialsAdapter(AzureEnvironment environment, String tenantId,
                                         TokenCredential tokenCredential, String[] scopes) {
         super(environment, tenantId);
         this.tokenCredential = tokenCredential;
@@ -40,6 +43,15 @@ public class AzureTokenCredentialsAdapter extends AzureTokenCredentials {
                 this.tokenCredential.getToken(new TokenRequestContext().addScopes(scopes)).block());
         }
         return accessTokenCache.get(endpoint).getToken();
+    }
+
+
+    public static AzureTokenCredentials from(com.azure.core.management.AzureEnvironment env, String tenantId, TokenCredential tokenCredential) {
+        AzureEnvironment azureEnvironment = Arrays.stream(AzureEnvironment.knownEnvironments())
+                .filter(e -> StringUtils.equalsIgnoreCase(env.getManagementEndpoint(), e.managementEndpoint()))
+                .findFirst().orElse(AzureEnvironment.AZURE);
+
+        return new AzureTokenCredentialsAdapter(azureEnvironment, tenantId, tokenCredential);
     }
 
 }

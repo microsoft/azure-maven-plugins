@@ -21,7 +21,6 @@ import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureTokenCredentialsConverter;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +57,7 @@ public abstract class Account {
     }
 
     public AzureTokenCredentials getTokenCredentialV1(String tenantId) {
-        return AzureTokenCredentialsConverter.convert(getEnvironment(), tenantId, getTokenCredential(tenantId));
+        return AzureTokenCredentialsAdapter.from(getEnvironment(), tenantId, getTokenCredential(tenantId));
     }
 
     public Account logout() {

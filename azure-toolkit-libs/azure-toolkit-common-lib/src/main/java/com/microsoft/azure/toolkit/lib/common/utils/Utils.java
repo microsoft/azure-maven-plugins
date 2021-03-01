@@ -57,28 +57,7 @@ public class Utils {
         return Integer.toHexString(System.identityHashCode(obj));
     }
 
-    public static <T> T copyProperties(T to, T from) throws IllegalAccessException, InvocationTargetException {
-        Objects.requireNonNull(from);
-        Objects.requireNonNull(to);
-        for (Field field : FieldUtils.getAllFields(from.getClass())) {
-            FieldUtils.writeField(to, field.getName(), FieldUtils.readField(from, field.getName(), true), true);
-        }
-        return to;
-    }
-
-    public static void disableAzureIdentityLogs() {
-        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.identity", "off");
-        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.adal4j", "off");
-        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.msal4jextensions", "off");
-    }
-
     public static <K, V> Map<K, V> groupByIgnoreDuplicate(Collection<V> list, Function<? super V, ? extends K> keyMapper) {
         return list.stream().collect(Collectors.toMap(keyMapper, item -> item, (item1, item2) -> item1));
-    }
-
-    private static void setPropertyIfNotExist(String key, String value) {
-        if (StringUtils.isBlank(System.getProperty(key))) {
-            System.setProperty(key, value);
-        }
     }
 }

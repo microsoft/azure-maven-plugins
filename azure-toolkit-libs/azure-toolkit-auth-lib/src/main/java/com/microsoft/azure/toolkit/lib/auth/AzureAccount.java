@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
+import javax.annotation.Nonnull;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class AzureAccount implements AzureService {
         return buildAccountMap(AzureEnvironment.AZURE).values().stream().collect(Collectors.toList());
     }
 
-    public AzureAccount login(Account targetAccount) throws LoginFailureException {
+    public AzureAccount login(@Nonnull Account targetAccount) throws LoginFailureException {
         account = targetAccount;
         account.authenticate();
         return this;
@@ -68,7 +69,7 @@ public class AzureAccount implements AzureService {
         return null;
     }
 
-    public void login(AuthConfiguration auth) throws LoginFailureException {
+    public void login(@Nonnull AuthConfiguration auth) throws LoginFailureException {
         // update the env state of AzureAccount when auth configuration has a strong configuration of env
         AzureEnvironment environment = ObjectUtils.firstNonNull(auth.getEnvironment(), AzureEnvironment.AZURE);
         Objects.requireNonNull(auth, "Null auth configuration is illegal for login.");
@@ -106,7 +107,7 @@ public class AzureAccount implements AzureService {
         }
     }
 
-    private void loginWithAuthConfiguration(AuthConfiguration auth) {
+    private void loginWithAuthConfiguration(@Nonnull AuthConfiguration auth) {
         // need to be implemented
     }
 
