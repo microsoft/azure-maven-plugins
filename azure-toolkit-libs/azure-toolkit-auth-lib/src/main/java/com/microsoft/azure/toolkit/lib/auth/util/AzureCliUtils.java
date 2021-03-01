@@ -51,10 +51,6 @@ public class AzureCliUtils {
         }
     }
 
-    public static void main(String[] args) {
-        checkCliVersion();
-    }
-
     private static int compareVersion(String version1, String version2, int maxVersionCount) {
         String[] v1s = version1.split("\\.");
         String[] v2s = version2.split("\\.");
@@ -87,7 +83,7 @@ public class AzureCliUtils {
     }
 
     public static List<AzureCliSubscriptionEntity> listSubscriptions() {
-        final JsonArray result = AzureCliUtils.executeAzCommandJson("az account list --output json").getAsJsonArray();
+        final JsonArray result = executeAzCommandJson("az account list --output json").getAsJsonArray();
         final List<AzureCliSubscriptionEntity> list = new ArrayList<>();
         if (result != null) {
             result.forEach(j -> {
@@ -126,7 +122,6 @@ public class AzureCliUtils {
      * @param command the az command to be executed
      */
     public static JsonElement executeAzCommandJson(String command) {
-        System.out.println(command);
         BufferedReader reader = null;
         try {
             final String starter;

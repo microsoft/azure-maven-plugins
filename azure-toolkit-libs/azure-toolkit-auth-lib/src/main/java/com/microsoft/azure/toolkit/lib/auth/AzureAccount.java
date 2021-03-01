@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.management.AzureEnvironment;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.oauth.OAuthAccount;
@@ -27,17 +26,6 @@ import java.util.stream.Collectors;
 
 public class AzureAccount implements AzureService {
     private Account account;
-
-    public static void main(String[] args) throws LoginFailureException {
-        AzureAccount az = Azure.az(AzureAccount.class);
-        for (Account account : az.accounts()) {
-            System.out.println("Got: " + account.getMethod());
-            System.out.println("Got: " + account.isAvailable());
-            System.out.println("Got: " + account.isAuthenticated());
-            az.login(account);
-        }
-
-    }
 
     /**
      * @return the current account
