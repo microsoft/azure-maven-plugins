@@ -11,12 +11,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class AuthConfiguration {
-    private AuthType type;
+public class AzureCliSubscriptionEntity extends SubscriptionEntity {
     private AzureEnvironment environment;
-    private String client;
-    private String tenant;
-    private String key;
-    private String certificate;
-    private String certificatePassword;
+    private String email;
 }
