@@ -75,9 +75,6 @@
                     <outxml>true</outxml>
                     <forceAjcCompile>true</forceAjcCompile>
                     <sources/><!-- this is important!-->
-                    <weaveDirectories>
-                        <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
-                    </weaveDirectories>
                     <aspectLibraries>
                         <aspectLibrary>
                             <groupId>com.microsoft.azure</groupId>
@@ -89,6 +86,11 @@
                     <execution>
                         <id>compile-with-aspectj</id>
                         <phase>process-classes</phase>
+                        <configuration>
+                            <weaveDirectories>
+                                <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
+                            </weaveDirectories>
+                        </configuration>
                         <goals>
                             <goal>compile</goal>
                         </goals>
@@ -96,6 +98,11 @@
                     <execution>
                         <id>test-compile-with-aspectj</id>
                         <phase>process-classes</phase>
+                        <configuration>
+                            <weaveDirectories>
+                                <weaveDirectory>${project.build.directory}/test-classes</weaveDirectory>
+                            </weaveDirectories>
+                        </configuration>
                         <goals>
                             <goal>test-compile</goal>
                         </goals>
