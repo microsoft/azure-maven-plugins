@@ -93,7 +93,15 @@ public abstract class Account {
         }
     }
 
-    public AccountEntity buildAccountEntity() {
+    public void authenticate() throws LoginFailureException {
+        initializeCredentials();
+
+        initializeTenants();
+
+        initializeSubscriptions();
+    }
+
+    protected AccountEntity buildAccountEntity() {
         entity = createAccountEntity(getMethod());
         try {
             if (!entity.isAvailable()) {
@@ -105,14 +113,6 @@ public abstract class Account {
             entity.setLastError(e);
         }
         return entity;
-    }
-
-    public void authenticate() throws LoginFailureException {
-        initializeCredentials();
-
-        initializeTenants();
-
-        initializeSubscriptions();
     }
 
     protected void verifyTokenCredential(AzureEnvironment environment, TokenCredential credential) throws LoginFailureException {

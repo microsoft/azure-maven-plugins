@@ -45,7 +45,6 @@ public class AzureTokenCredentialsAdapter extends AzureTokenCredentials {
         return accessTokenCache.get(endpoint).getToken();
     }
 
-
     public static AzureTokenCredentials from(com.azure.core.management.AzureEnvironment env, String tenantId, TokenCredential tokenCredential) {
         AzureEnvironment azureEnvironment = Arrays.stream(AzureEnvironment.knownEnvironments())
                 .filter(e -> StringUtils.equalsIgnoreCase(env.getManagementEndpoint(), e.managementEndpoint()))
