@@ -109,14 +109,16 @@
                     <outxml>true</outxml>
                     <forceAjcCompile>true</forceAjcCompile>
                     <sources /><!-- this is important!-->
-                    <weaveDirectories>
-                        <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
-                    </weaveDirectories>
                 </configuration>
                 <executions>
                     <execution>
                         <id>compile-with-aspectj</id>
                         <phase>process-classes</phase>
+                        <configuration>
+                            <weaveDirectories>
+                                <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
+                            </weaveDirectories>
+                        </configuration>
                         <goals>
                             <goal>compile</goal>
                         </goals>
