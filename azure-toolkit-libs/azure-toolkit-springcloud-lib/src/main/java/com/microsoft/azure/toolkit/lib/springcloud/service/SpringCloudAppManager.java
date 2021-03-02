@@ -7,7 +7,6 @@
 package com.microsoft.azure.toolkit.lib.springcloud.service;
 
 import com.microsoft.azure.PagedList;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
@@ -15,7 +14,7 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.Res
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentEntity;
-import com.microsoft.azure.tools.utils.StorageUtils;
+import com.microsoft.azure.toolkit.lib.springcloud.Utils;
 
 import java.io.File;
 import java.util.List;
@@ -77,9 +76,9 @@ public class SpringCloudAppManager {
         return deployments.stream().map(d -> SpringCloudDeploymentEntity.fromResource(d, app)).collect(Collectors.toList());
     }
 
-    public ResourceUploadDefinitionInner uploadArtifact(String path, final SpringCloudAppEntity app) throws AzureExecutionException {
+    public ResourceUploadDefinitionInner uploadArtifact(String path, final SpringCloudAppEntity app) {
         final ResourceUploadDefinitionInner definition = this.getUploadDefinition(app);
-        StorageUtils.uploadFileToStorage(new File(path), definition.uploadUrl());
+        Utils.uploadFileToStorage(new File(path), definition.uploadUrl());
         return definition;
     }
 
