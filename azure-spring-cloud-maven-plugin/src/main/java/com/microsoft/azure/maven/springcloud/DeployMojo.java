@@ -101,6 +101,9 @@ public class DeployMojo extends AbstractMojoBase {
 
         final boolean toCreateApp = !app.exists();
         final boolean toCreateDeployment = !deployment.exists();
+
+        traceDeployment(toCreateApp, toCreateDeployment, appConfig);
+
         final List<AzureTask<?>> tasks = new ArrayList<>();
         final SpringCloudApp.Creator appCreator = app.create();
         final SpringCloudApp.Uploader artifactUploader = app.uploadArtifact(file.getPath());

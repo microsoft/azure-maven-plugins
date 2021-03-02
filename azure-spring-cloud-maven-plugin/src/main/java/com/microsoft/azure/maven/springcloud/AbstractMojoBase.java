@@ -48,6 +48,9 @@ import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_ERROR_MESSAGE;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_ERROR_TYPE;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_INSTANCE_COUNT;
+import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_DEPLOYMENT;
+import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_NEW_APP;
+import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_DEPLOYMENT_NAME_GIVEN;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_KEY_ENCRYPTED;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_SERVICE_PRINCIPAL;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_JAVA_VERSION;
@@ -179,6 +182,8 @@ public abstract class AbstractMojoBase extends AbstractMojo {
             AppInsightHelper.INSTANCE.disable();
         }
         tracePluginInformation();
+        traceAuth();
+        traceConfiguration(this.getConfiguration());
     }
 
     protected void handleSuccess() {
@@ -227,6 +232,15 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_IS_SERVICE_PRINCIPAL, "false");
         telemetries.put(TELEMETRY_KEY_IS_KEY_ENCRYPTED, "false");
     }
+
+    protected void traceDeployment(boolean newApp, boolean newDeployment, SpringCloudAppConfig configuration) {
+        final boolean isDeploymentNameGiven = configuration.getDeployment() != null &&
+            StringUtils.isNotEmpty(configuration.getDeployment().getDeploymentName());
+        telemetries.put(TELEMETRY_KEY_IS_CREATE_NEW_APP, String.valueOf(newApp));
+        telemetries.put(TELEMETRY_KEY_IS_CREATE_DEPLOYMENT, String.valueOf(newDeployment));
+        telemetries.put(TELEMETRY_KEY_IS_DEPLOYMENT_NAME_GIVEN, String.valueOf(isDeploymentNameGiven));
+    }
+
 
     protected abstract void doExecute() throws MojoExecutionException, MojoFailureException, AzureExecutionException;
 
