@@ -50,7 +50,6 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <azure.toolkit-lib.version>${project.version}</azure.toolkit-lib.version>
-        <azure.tools-common.version>0.13.0-SNAPSHOT</azure.tools-common.version>
 
         <azure.aad.version>1.6.4</azure.aad.version>
         <azure.applicationinsights.version>2.6.2</azure.applicationinsights.version>
@@ -128,11 +127,6 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-tools-common</artifactId>
-                <version>${azure.tools-common.version}</version>
             </dependency>
             <!-- azure lib for spring cloud -->
             <dependency>
