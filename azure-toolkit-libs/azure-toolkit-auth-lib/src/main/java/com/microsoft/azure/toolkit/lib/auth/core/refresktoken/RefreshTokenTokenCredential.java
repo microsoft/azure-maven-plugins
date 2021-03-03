@@ -9,19 +9,19 @@ import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.management.AzureEnvironment;
-import com.microsoft.azure.toolkit.lib.auth.MasterTokenCredential;
+import com.microsoft.azure.toolkit.lib.auth.BaseTokenCredential;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class RefreshTokenMasterTokenCredential extends MasterTokenCredential {
+public class RefreshTokenTokenCredential extends BaseTokenCredential {
     private final Map<String, TokenCredential> accessTokenCache = new ConcurrentHashMap<>();
     private String refreshToken;
     private String clientId;
 
-    public RefreshTokenMasterTokenCredential(AzureEnvironment environment, String clientId, String refreshToken) {
+    public RefreshTokenTokenCredential(AzureEnvironment environment, String clientId, String refreshToken) {
         super(environment);
         this.clientId = clientId;
         this.refreshToken = refreshToken;

@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Convert token credential in azure-identity to legacy AzureTokenCredentials
  * Refers https://github.com/jongio/azidext/blob/master/java/src/main/java/com/azure/identity/extensions/AzureIdentityCredentialAdapter.java
  */
-public class AzureTokenCredentialsAdapter extends AzureTokenCredentials {
+class AzureTokenCredentialsAdapter extends AzureTokenCredentials {
     private final TokenCredential tokenCredential;
     private final Map<String, AccessToken> accessTokenCache = new ConcurrentHashMap<>();
     private final String[] scopes;

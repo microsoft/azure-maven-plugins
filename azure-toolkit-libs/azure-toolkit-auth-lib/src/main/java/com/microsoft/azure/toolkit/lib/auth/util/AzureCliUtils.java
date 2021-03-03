@@ -191,7 +191,7 @@ public class AzureCliUtils {
                     reader.close();
                 }
             } catch (IOException e) {
-                throw new AzureToolkitAuthenticationException(e.getMessage());
+                // ignore
             }
         }
     }
