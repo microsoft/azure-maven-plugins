@@ -241,7 +241,6 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_IS_DEPLOYMENT_NAME_GIVEN, String.valueOf(isDeploymentNameGiven));
     }
 
-
     protected abstract void doExecute() throws MojoExecutionException, MojoFailureException, AzureExecutionException;
 
     public boolean isPublic() {
