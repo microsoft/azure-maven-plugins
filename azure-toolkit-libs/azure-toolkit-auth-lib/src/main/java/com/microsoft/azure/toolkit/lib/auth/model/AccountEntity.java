@@ -6,14 +6,14 @@
 package com.microsoft.azure.toolkit.lib.auth.model;
 
 import com.azure.core.management.AzureEnvironment;
-import com.microsoft.azure.toolkit.lib.auth.MasterTokenCredential;
+import com.microsoft.azure.toolkit.lib.auth.BaseTokenCredential;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 
-@Setter
 @Getter
+@Setter
 public class AccountEntity {
 
     private AuthMethod method;
@@ -34,5 +34,5 @@ public class AccountEntity {
 
     private Throwable lastError;
 
-    private MasterTokenCredential credential;
+    private BaseTokenCredential credential;
 }
