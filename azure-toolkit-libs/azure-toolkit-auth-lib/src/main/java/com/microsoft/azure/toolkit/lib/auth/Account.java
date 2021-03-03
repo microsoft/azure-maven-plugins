@@ -22,9 +22,11 @@ import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,15 +36,23 @@ import java.util.stream.Collectors;
 
 public abstract class Account {
     private final ClientLogger logger = new ClientLogger(Account.class);
+    @Getter
     protected AccountEntity entity;
 
     public Account() {
-        this.entity = buildAccountEntity();
+        buildAccountEntity();
     }
 
     public abstract AuthMethod getMethod();
 
-    public abstract void initializeCredentials() throws LoginFailureException;
+    protected abstract Mono<Boolean> checkAvailableInner();
+
+    protected abstract void initializeCredentials() throws LoginFailureException;
+
+    boolean checkAvailable() {
+        checkAvailableInner().doOnSuccess(avail -> this.entity.setAvailable(avail)).onErrorContinue((e, i) -> this.entity.setLastError(e)).block();
+        return isAvailable();
+    }
 
     public AzureEnvironment getEnvironment() {
         return entity == null ? null : entity.getEnvironment();
@@ -52,12 +62,22 @@ public abstract class Account {
         if (StringUtils.isBlank(tenantId)) {
             return this.entity.getCredential();
         } else {
-            return this.entity.getCredential().createRelatedTokenCredential(tenantId);
+            return this.entity.getCredential().createTenantTokenCredential(tenantId);
         }
     }
 
     public AzureTokenCredentials getTokenCredentialV1(String tenantId) {
         return AzureTokenCredentialsAdapter.from(getEnvironment(), tenantId, getTokenCredential(tenantId));
+    }
+
+    public TokenCredential getTokenCredentialForSubscription(String subscriptionId) {
+        SubscriptionEntity subscriptionEntity = getSubscriptionById(subscriptionId);
+        return getTokenCredential(subscriptionEntity.getTenantId());
+    }
+
+    public AzureTokenCredentials getTokenCredentialV1ForSubscription(String subscriptionId) {
+        SubscriptionEntity subscriptionEntity = getSubscriptionById(subscriptionId);
+        return getTokenCredentialV1(subscriptionEntity.getTenantId());
     }
 
     public Account logout() {
@@ -70,7 +90,7 @@ public abstract class Account {
     }
 
     public boolean isAuthenticated() {
-        return this.entity != null && this.entity.isAuthenticated();
+        return isAvailable() && this.entity != null && this.entity.isAuthenticated();
     }
 
     public List<SubscriptionEntity> getSubscriptions() {
@@ -93,26 +113,31 @@ public abstract class Account {
         }
     }
 
-    public void authenticate() throws LoginFailureException {
-        initializeCredentials();
-
-        initializeTenants();
-
-        initializeSubscriptions();
-    }
-
-    protected AccountEntity buildAccountEntity() {
-        entity = createAccountEntity(getMethod());
+    void authenticate() throws LoginFailureException {
         try {
-            if (!entity.isAvailable()) {
-                return entity;
-            }
-            entity.setAvailable(true);
-            return entity;
+            initializeCredentials();
+
+            initializeTenants();
+
+            initializeSubscriptions();
+
+            entity.setAuthenticated(true);
         } catch (AzureToolkitAuthenticationException e) {
             entity.setLastError(e);
         }
-        return entity;
+    }
+
+    List<String> listTenantIds(AzureEnvironment environment, TokenCredential credential) {
+        return AzureResourceManager.authenticate(credential
+                , new AzureProfile(environment)).tenants().list().stream().map(Tenant::tenantId).collect(Collectors.toList());
+    }
+
+    protected void buildAccountEntity() {
+        try {
+            createAccountEntity(getMethod());
+        } catch (AzureToolkitAuthenticationException e) {
+            entity.setLastError(e);
+        }
     }
 
     protected void verifyTokenCredential(AzureEnvironment environment, TokenCredential credential) throws LoginFailureException {
@@ -125,10 +150,9 @@ public abstract class Account {
         }
     }
 
-    protected void initializeTenants() throws LoginFailureException {
-        MasterTokenCredential credential = entity.getCredential();
-        verifyTokenCredential(credential.getEnvironment(), entity.getCredential());
-        List<String> allTenantIds = listTenantIds(credential.getEnvironment(), credential);
+    protected void initializeTenants() {
+        TokenCredential credential = entity.getCredential().createTenantTokenCredential(null);
+        List<String> allTenantIds = listTenantIds(entity.getCredential().getEnvironment(), credential);
         // in azure cli, the tenant ids from 'az account list' should be less/equal than the list tenant api
         if (this.entity.getTenantIds() == null) {
             this.entity.setTenantIds(allTenantIds);
@@ -142,15 +166,16 @@ public abstract class Account {
         selectSubscriptions(subscriptions, this.entity.getSelectedSubscriptionIds());
     }
 
-    List<String> listTenantIds(AzureEnvironment environment, TokenCredential credential) {
-        return AzureResourceManager.authenticate(credential
-                , new AzureProfile(environment)).tenants().list().stream().map(Tenant::tenantId).collect(Collectors.toList());
+    private SubscriptionEntity getSubscriptionById(String subscriptionId) {
+        return getSubscriptions().stream()
+                .filter(s -> StringUtils.equalsIgnoreCase(subscriptionId, s.getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot find subscription with id '%s'", subscriptionId)));
     }
 
-    private AccountEntity createAccountEntity(AuthMethod method) {
-        AccountEntity accountEntity = new AccountEntity();
-        accountEntity.setMethod(method);
-        return accountEntity;
+    private void createAccountEntity(AuthMethod method) {
+        this.entity = new AccountEntity();
+        entity.setMethod(method);
     }
 
     private void selectSubscriptions(List<SubscriptionEntity> subscriptions, List<String> subscriptionIds) {
@@ -160,16 +185,16 @@ public abstract class Account {
         }
     }
 
-    private List<SubscriptionEntity> listSubscriptions(List<String> tenantIds, MasterTokenCredential credential) {
+    private List<SubscriptionEntity> listSubscriptions(List<String> tenantIds, BaseTokenCredential credential) {
         AzureProfile azureProfile = new AzureProfile(credential.getEnvironment());
         // use map to re-dup subs
         final Map<String, SubscriptionEntity> subscriptionMap = new HashMap<>();
         tenantIds.parallelStream().forEach(tenantId -> {
             try {
-                TokenCredential tenantTokenCredential = credential.createRelatedTokenCredential(tenantId);
+                TokenCredential tenantTokenCredential = credential.createTenantTokenCredential(tenantId);
                 List<SubscriptionEntity> subscriptionsOnTenant =
                         AzureResourceManager.authenticate(tenantTokenCredential, azureProfile).subscriptions().list()
-                                .mapPage(s -> this.toSubscriptionEntity(tenantId, s)).stream().collect(Collectors.toList());
+                                .mapPage(s -> toSubscriptionEntity(tenantId, s)).stream().collect(Collectors.toList());
 
                 for (SubscriptionEntity subscriptionEntity : subscriptionsOnTenant) {
                     String key = StringUtils.lowerCase(subscriptionEntity.getId());
@@ -177,8 +202,9 @@ public abstract class Account {
                 }
             } catch (Exception ex) {
                 // ignore AuthenticationException since on some tenants, it doesn't allow list subscriptions
-                if (!(ExceptionUtils.getRootCause(ex) instanceof AuthenticationException)) {
-                    logger.warning("Cannot get subscriptions for tenant '%s', please verify you have all proper permission over  ");
+                if ((ExceptionUtils.getRootCause(ex) instanceof AuthenticationException)) {
+                    logger.warning("Cannot get subscriptions for tenant " + tenantId +
+                            ", please verify you have proper permissions over this tenant.");
                 } else {
                     throw new AzureToolkitAuthenticationException(ex.getMessage());
                 }

@@ -15,7 +15,7 @@ import lombok.Setter;
 import reactor.core.publisher.Mono;
 
 @AllArgsConstructor
-public abstract class MasterTokenCredential implements TokenCredential {
+public abstract class BaseTokenCredential implements TokenCredential {
     @Setter
     @Getter
     private AzureEnvironment environment;
@@ -27,7 +27,7 @@ public abstract class MasterTokenCredential implements TokenCredential {
 
     protected abstract Mono<AccessToken> getAccessToken(String tenantId, TokenRequestContext request);
 
-    public TokenCredential createRelatedTokenCredential(String tenantId) {
-        return request -> getAccessToken(tenantId, request);
+    public TokenCredential createTenantTokenCredential(String tenantId) {
+        return new CachedTokenCredential(request -> getAccessToken(tenantId, request));
     }
 }
