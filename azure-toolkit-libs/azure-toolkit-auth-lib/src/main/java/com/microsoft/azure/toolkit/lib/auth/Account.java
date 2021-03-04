@@ -12,7 +12,6 @@ import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.identity.implementation.util.ScopeUtil;
 import com.azure.resourcemanager.AzureResourceManager;
-import com.azure.resourcemanager.resources.models.Subscription;
 import com.azure.resourcemanager.resources.models.Tenant;
 import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
@@ -20,7 +19,7 @@ import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthentication
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
-import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -71,13 +70,13 @@ public abstract class Account {
     }
 
     public TokenCredential getTokenCredentialForSubscription(String subscriptionId) {
-        SubscriptionEntity subscriptionEntity = getSubscriptionById(subscriptionId);
-        return getTokenCredential(subscriptionEntity.getTenantId());
+        Subscription subscription = getSubscriptionById(subscriptionId);
+        return getTokenCredential(subscription.getTenantId());
     }
 
     public AzureTokenCredentials getTokenCredentialV1ForSubscription(String subscriptionId) {
-        SubscriptionEntity subscriptionEntity = getSubscriptionById(subscriptionId);
-        return getTokenCredentialV1(subscriptionEntity.getTenantId());
+        Subscription subscription = getSubscriptionById(subscriptionId);
+        return getTokenCredentialV1(subscription.getTenantId());
     }
 
     public Account logout() {
@@ -93,16 +92,16 @@ public abstract class Account {
         return isAvailable() && this.entity != null && this.entity.isAuthenticated();
     }
 
-    public List<SubscriptionEntity> getSubscriptions() {
+    public List<Subscription> getSubscriptions() {
         if (this.entity != null) {
             return this.entity.getSubscriptions();
         }
         return null;
     }
 
-    public List<SubscriptionEntity> getSelectedSubscriptions() {
+    public List<Subscription> getSelectedSubscriptions() {
         if (this.entity != null) {
-            return this.entity.getSubscriptions().stream().filter(SubscriptionEntity::isSelected).collect(Collectors.toList());
+            return this.entity.getSubscriptions().stream().filter(Subscription::isSelected).collect(Collectors.toList());
         }
         return null;
     }
@@ -160,13 +159,13 @@ public abstract class Account {
     }
 
     protected void initializeSubscriptions() {
-        List<SubscriptionEntity> subscriptions = listSubscriptions(entity.getTenantIds(), entity.getCredential());
-        entity.setTenantIds(subscriptions.stream().map(SubscriptionEntity::getTenantId).distinct().collect(Collectors.toList()));
+        List<Subscription> subscriptions = listSubscriptions(entity.getTenantIds(), entity.getCredential());
+        entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
         entity.setSubscriptions(subscriptions);
         selectSubscriptions(subscriptions, this.entity.getSelectedSubscriptionIds());
     }
 
-    private SubscriptionEntity getSubscriptionById(String subscriptionId) {
+    private Subscription getSubscriptionById(String subscriptionId) {
         return getSubscriptions().stream()
                 .filter(s -> StringUtils.equalsIgnoreCase(subscriptionId, s.getId()))
                 .findFirst()
@@ -178,27 +177,27 @@ public abstract class Account {
         entity.setMethod(method);
     }
 
-    private void selectSubscriptions(List<SubscriptionEntity> subscriptions, List<String> subscriptionIds) {
+    private void selectSubscriptions(List<Subscription> subscriptions, List<String> subscriptionIds) {
         // select subscriptions
         if (CollectionUtils.isNotEmpty(subscriptionIds) && CollectionUtils.isNotEmpty(subscriptions)) {
             subscriptions.forEach(s -> s.setSelected(Utils.containsIgnoreCase(subscriptionIds, s.getId())));
         }
     }
 
-    private List<SubscriptionEntity> listSubscriptions(List<String> tenantIds, BaseTokenCredential credential) {
+    private List<Subscription> listSubscriptions(List<String> tenantIds, BaseTokenCredential credential) {
         AzureProfile azureProfile = new AzureProfile(credential.getEnvironment());
         // use map to re-dup subs
-        final Map<String, SubscriptionEntity> subscriptionMap = new HashMap<>();
+        final Map<String, Subscription> subscriptionMap = new HashMap<>();
         tenantIds.parallelStream().forEach(tenantId -> {
             try {
                 TokenCredential tenantTokenCredential = credential.createTenantTokenCredential(tenantId);
-                List<SubscriptionEntity> subscriptionsOnTenant =
+                List<Subscription> subscriptionsOnTenant =
                         AzureResourceManager.authenticate(tenantTokenCredential, azureProfile).subscriptions().list()
                                 .mapPage(s -> toSubscriptionEntity(tenantId, s)).stream().collect(Collectors.toList());
 
-                for (SubscriptionEntity subscriptionEntity : subscriptionsOnTenant) {
-                    String key = StringUtils.lowerCase(subscriptionEntity.getId());
-                    subscriptionMap.putIfAbsent(key, subscriptionEntity);
+                for (Subscription subscription : subscriptionsOnTenant) {
+                    String key = StringUtils.lowerCase(subscription.getId());
+                    subscriptionMap.putIfAbsent(key, subscription);
                 }
             } catch (Exception ex) {
                 // ignore AuthenticationException since on some tenants, it doesn't allow list subscriptions
@@ -215,8 +214,8 @@ public abstract class Account {
         return new ArrayList<>(subscriptionMap.values());
     }
 
-    private static SubscriptionEntity toSubscriptionEntity(String tenantId, Subscription subscription) {
-        final SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+    private static Subscription toSubscriptionEntity(String tenantId, com.azure.resourcemanager.resources.models.Subscription subscription) {
+        final Subscription subscriptionEntity = new Subscription();
         subscriptionEntity.setId(subscription.subscriptionId());
         subscriptionEntity.setName(subscription.displayName());
         subscriptionEntity.setTenantId(tenantId);

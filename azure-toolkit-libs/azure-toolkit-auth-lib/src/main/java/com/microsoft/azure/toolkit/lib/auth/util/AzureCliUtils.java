@@ -12,7 +12,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscriptionEntity;
+import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -82,9 +82,9 @@ public class AzureCliUtils {
         return 0;
     }
 
-    public static List<AzureCliSubscriptionEntity> listSubscriptions() {
+    public static List<AzureCliSubscription> listSubscriptions() {
         final JsonArray result = executeAzCommandJson("az account list --output json").getAsJsonArray();
-        final List<AzureCliSubscriptionEntity> list = new ArrayList<>();
+        final List<AzureCliSubscription> list = new ArrayList<>();
         if (result != null) {
             result.forEach(j -> {
                 JsonObject accountObject = j.getAsJsonObject();
@@ -100,7 +100,7 @@ public class AzureCliUtils {
                 String email = accountObject.get("user").getAsJsonObject().get("name").getAsString();
 
                 if (StringUtils.equals(state, "Enabled") && StringUtils.isNoneBlank(subscriptionId, subscriptionName)) {
-                    AzureCliSubscriptionEntity entity = new AzureCliSubscriptionEntity();
+                    AzureCliSubscription entity = new AzureCliSubscription();
                     entity.setId(subscriptionId);
                     entity.setName(subscriptionName);
                     entity.setSelected(accountObject.get("isDefault").getAsBoolean());
