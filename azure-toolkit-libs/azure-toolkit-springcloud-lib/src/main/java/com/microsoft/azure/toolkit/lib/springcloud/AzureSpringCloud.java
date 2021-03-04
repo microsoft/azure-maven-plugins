@@ -72,6 +72,6 @@ public class AzureSpringCloud implements AzureService {
         return AppPlatformManager.configure()
             .withLogLevel(logLevel)
             .withUserAgent(userAgent)
-            .authenticate(this.account.getCredential(subscriptionId), subscriptionId);
+            .authenticate(this.account.getTokenCredentialV1(subscriptionId), subscriptionId);
     }
 }
