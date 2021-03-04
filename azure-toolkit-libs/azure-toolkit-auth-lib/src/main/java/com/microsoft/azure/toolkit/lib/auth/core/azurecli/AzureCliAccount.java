@@ -8,9 +8,9 @@ package com.microsoft.azure.toolkit.lib.auth.core.azurecli;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscriptionEntity;
-import com.microsoft.azure.toolkit.lib.auth.model.SubscriptionEntity;
+import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureCliUtils;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import lombok.Getter;
 import reactor.core.publisher.Mono;
 
@@ -35,13 +35,13 @@ public class AzureCliAccount extends Account {
 
     @Override
     protected void initializeCredentials() throws LoginFailureException {
-        List<AzureCliSubscriptionEntity> subscriptions = AzureCliUtils.listSubscriptions();
+        List<AzureCliSubscription> subscriptions = AzureCliUtils.listSubscriptions();
         if (subscriptions.isEmpty()) {
             throw new LoginFailureException("Cannot find any subscriptions in current account.");
         }
 
-        AzureCliSubscriptionEntity defaultSubscription = subscriptions.stream()
-                .filter(AzureCliSubscriptionEntity::isSelected).findFirst().orElse(subscriptions.get(0));
+        AzureCliSubscription defaultSubscription = subscriptions.stream()
+                .filter(AzureCliSubscription::isSelected).findFirst().orElse(subscriptions.get(0));
 
         this.entity.setEnvironment(defaultSubscription.getEnvironment());
 
@@ -52,11 +52,11 @@ public class AzureCliAccount extends Account {
         verifyTokenCredential(azureCliCredential.getEnvironment(), azureCliCredential);
 
         // use the tenant who has one or more subscriptions
-        this.entity.setTenantIds(subscriptions.stream().map(SubscriptionEntity::getTenantId).distinct().collect(Collectors.toList()));
+        this.entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
 
         // set initial selection of subscriptions
-        this.entity.setSelectedSubscriptionIds(subscriptions.stream().filter(SubscriptionEntity::isSelected)
-                .map(SubscriptionEntity::getId).distinct().collect(Collectors.toList()));
+        this.entity.setSelectedSubscriptionIds(subscriptions.stream().filter(Subscription::isSelected)
+                .map(Subscription::getId).distinct().collect(Collectors.toList()));
 
         this.entity.setCredential(azureCliCredential);
     }
