@@ -5,5 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib;
 
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+
+import java.util.List;
+
 public interface AzureService {
+    default List<Subscription> getSubscriptions() {
+        return Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
+    }
 }
