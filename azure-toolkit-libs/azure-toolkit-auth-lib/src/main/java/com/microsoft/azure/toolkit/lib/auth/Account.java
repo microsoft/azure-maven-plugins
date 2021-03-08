@@ -15,6 +15,7 @@ import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.Tenant;
 import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
@@ -33,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class Account {
+public abstract class Account implements IAccount {
     private final ClientLogger logger = new ClientLogger(Account.class);
     @Getter
     protected AccountEntity entity;
@@ -99,6 +100,7 @@ public abstract class Account {
         return null;
     }
 
+    @Override
     public List<Subscription> getSelectedSubscriptions() {
         if (this.entity != null) {
             return this.entity.getSubscriptions().stream().filter(Subscription::isSelected).collect(Collectors.toList());
