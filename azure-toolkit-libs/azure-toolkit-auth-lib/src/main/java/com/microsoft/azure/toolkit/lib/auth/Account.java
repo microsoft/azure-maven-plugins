@@ -152,10 +152,10 @@ public abstract class Account implements IAccount {
     }
 
     protected void initializeTenants() {
-        TokenCredential credential = entity.getCredential().createTenantTokenCredential(null);
-        List<String> allTenantIds = listTenantIds(entity.getCredential().getEnvironment(), credential);
         // in azure cli, the tenant ids from 'az account list' should be less/equal than the list tenant api
         if (this.entity.getTenantIds() == null) {
+            TokenCredential credential = entity.getCredential().createTenantTokenCredential(null);
+            List<String> allTenantIds = listTenantIds(entity.getCredential().getEnvironment(), credential);
             this.entity.setTenantIds(allTenantIds);
         }
     }
@@ -195,7 +195,7 @@ public abstract class Account implements IAccount {
                 TokenCredential tenantTokenCredential = credential.createTenantTokenCredential(tenantId);
                 List<Subscription> subscriptionsOnTenant =
                         AzureResourceManager.authenticate(tenantTokenCredential, azureProfile).subscriptions().list()
-                                .mapPage(s -> toSubscriptionEntity(tenantId, s)).stream().collect(Collectors.toList());
+                                .stream().map(s -> toSubscriptionEntity(tenantId, s)).collect(Collectors.toList());
 
                 for (Subscription subscription : subscriptionsOnTenant) {
                     String key = StringUtils.lowerCase(subscription.getId());

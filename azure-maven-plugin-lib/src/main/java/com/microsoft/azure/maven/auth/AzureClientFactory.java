@@ -5,22 +5,20 @@
 
 package com.microsoft.azure.maven.auth;
 
-import com.google.common.base.Preconditions;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.Azure.Authenticated;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 
 public class AzureClientFactory {
-    public static Azure getAzureClient(AzureCredentialWrapper azureTokenCredentials,
-                                       String userAgent) throws IOException, AzureLoginException {
-        Preconditions.checkNotNull(azureTokenCredentials, "The parameter 'azureTokenCredentials' cannot be null.");
-        final String defaultSubscriptionId = azureTokenCredentials.getDefaultSubscriptionId();
+    public static Azure getAzureClient(String userAgent, String defaultSubscriptionId) throws IOException, AzureLoginException {
+        Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
         final Authenticated authenticated = Azure.configure().withUserAgent(userAgent)
-                .authenticate(azureTokenCredentials.getAzureTokenCredentials());
+                .authenticate(account.getTokenCredentialV1ForSubscription(defaultSubscriptionId));
 
         return StringUtils.isEmpty(defaultSubscriptionId) ? authenticated.withDefaultSubscription() :
                 authenticated.withSubscription(defaultSubscriptionId);
