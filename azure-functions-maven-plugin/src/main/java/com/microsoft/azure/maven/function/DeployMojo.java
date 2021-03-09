@@ -508,7 +508,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureAuthFailureException, AzureExecutionException {
-        Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+        final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
         if (!account.isAuthenticated()) {
             Log.warn(APPLICATION_INSIGHTS_NOT_SUPPORTED);
             return null;

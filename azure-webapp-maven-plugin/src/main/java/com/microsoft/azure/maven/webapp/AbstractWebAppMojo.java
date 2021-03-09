@@ -417,7 +417,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             mavenAuthConfiguration.setType(getAuthType());
             com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
                     MavenAuthManager.getInstance().buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
-            Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+            final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
             if (!account.isAuthenticated()) {
                 return null;
             }
@@ -432,7 +432,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             }
             printCredentialDescription(account);
             this.subscriptionId = targetSubscriptionId;
-            Subscription current = subscriptions.stream().filter(t -> StringUtils.equals(t.getId(), this.subscriptionId)).findFirst().orElse(null);
+            final Subscription current = subscriptions.stream().filter(t -> StringUtils.equals(t.getId(), this.subscriptionId)).findFirst().orElse(null);
             if (current == null) {
                 return null;
             }

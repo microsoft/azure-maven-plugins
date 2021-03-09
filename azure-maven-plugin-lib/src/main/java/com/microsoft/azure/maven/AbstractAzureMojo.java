@@ -233,7 +233,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     @Override
     public String getSubscriptionId() {
-        return StringUtils.firstNonBlank(subscriptionId, azure == null ?
+        return StringUtils.firstNonBlank(subscriptionId, (azure == null || azure.getCurrentSubscription() == null) ?
                 null : azure.getCurrentSubscription().subscriptionId());
     }
 
@@ -336,7 +336,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             SystemPropertyUtils.injectCommandLineParameter("auth", mavenAuthConfiguration, MavenAuthConfiguration.class);
             com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
                     MavenAuthManager.getInstance().buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
-            com.microsoft.azure.toolkit.lib.auth.Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+            final com.microsoft.azure.toolkit.lib.auth.Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
             if (!account.isAuthenticated()) {
                 return null;
             }
@@ -358,9 +358,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void printCredentialDescription(com.microsoft.azure.toolkit.lib.auth.Account account) {
-        List<String> details = new ArrayList<>();
+        final List<String> details = new ArrayList<>();
         details.add(String.format("Auth method: %s", TextUtils.cyan(account.getMethod().toString())));
-        List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
+        final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
         if (StringUtils.isNotEmpty(account.getEntity().getEmail())) {
             details.add(String.format("Username: %s", TextUtils.cyan(account.getEntity().getEmail())));
         }
@@ -420,7 +420,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     public String getAuthMethod() {
-        com.microsoft.azure.toolkit.lib.auth.Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+        final com.microsoft.azure.toolkit.lib.auth.Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
         if (account != null) {
             return account.getMethod().toString();
         }

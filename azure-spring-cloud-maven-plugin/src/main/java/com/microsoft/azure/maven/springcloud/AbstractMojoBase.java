@@ -164,7 +164,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         mavenAuthConfiguration.setType(getAuthType());
         com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
                 MavenAuthManager.getInstance().buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
-        Account account = Azure.az(AzureAccount.class).account();
+        final Account account = Azure.az(AzureAccount.class).account();
         if (!account.isAuthenticated()) {
             AppInsightHelper.INSTANCE.trackEvent(INIT_FAILURE);
             throw new MojoFailureException(AZURE_INIT_FAIL);
@@ -193,9 +193,9 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     }
 
     protected void printCredentialDescription(Account account) {
-        List<String> details = new ArrayList<>();
+        final List<String> details = new ArrayList<>();
         details.add(String.format("Auth method: %s", TextUtils.cyan(account.getEntity().getMethod().toString())));
-        List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
+        final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
         if (StringUtils.isNotEmpty(account.getEntity().getEmail())) {
             details.add(String.format("Username: %s", TextUtils.cyan(account.getEntity().getEmail())));
         }
