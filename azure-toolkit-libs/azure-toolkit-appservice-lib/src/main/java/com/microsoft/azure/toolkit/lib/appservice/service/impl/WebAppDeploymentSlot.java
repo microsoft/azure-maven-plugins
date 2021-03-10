@@ -9,6 +9,7 @@ import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.WebApp;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
@@ -28,22 +29,20 @@ import java.util.Optional;
 
 public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
-    private AzureAppService azureAppService;
     private WebAppDeploymentSlotEntity slotEntity;
 
     private DeploymentSlot deploymentSlotInner;
     private AzureResourceManager azureClient;
 
-    public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureAppService azureAppService) {
+    public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureResourceManager) {
         this.slotEntity = deploymentSlot;
-        this.azureAppService = azureAppService;
-        this.azureClient = azureAppService.getAzureResourceManager();
+        this.azureClient = azureResourceManager;
     }
 
     @Override
     public IWebApp webApp() {
         final WebAppDeploymentSlotEntity entity = entity();
-        return azureAppService.webapp(entity.getResourceGroup(), entity.getWebappName());
+        return Azure.az(AzureAppService.class).webapp(entity.getSubscriptionId(), entity.getResourceGroup(), entity.getWebappName());
     }
 
     @Override
