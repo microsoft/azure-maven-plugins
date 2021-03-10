@@ -5,7 +5,6 @@
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.resourcemanager.AzureResourceManager;
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -24,14 +23,12 @@ import java.util.stream.Collectors;
 public class AppServicePlan implements IAppServicePlan {
 
     private AppServicePlanEntity entity;
-    private AzureAppService azureAppService;
     private AzureResourceManager azureClient;
     private com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlanInner;
 
-    public AppServicePlan(AppServicePlanEntity appServicePlanEntity, AzureAppService appService) {
+    public AppServicePlan(AppServicePlanEntity appServicePlanEntity, AzureResourceManager azureResourceManager) {
         this.entity = appServicePlanEntity;
-        this.azureAppService = appService;
-        this.azureClient = appService.getAzureResourceManager();
+        this.azureClient = azureResourceManager;
     }
 
     @Override
@@ -54,7 +51,7 @@ public class AppServicePlan implements IAppServicePlan {
     public List<IWebApp> webapps() {
         return getAppServicePlanInner().manager().webApps().list().stream()
             .filter(webapp -> StringUtils.equals(webapp.appServicePlanId(), getAppServicePlanInner().id()))
-            .map(webapp -> new WebApp(AppServiceUtils.fromWebAppBasic(webapp), azureAppService))
+            .map(webapp -> new WebApp(AppServiceUtils.fromWebAppBasic(webapp), azureClient))
             .collect(Collectors.toList());
     }
 
