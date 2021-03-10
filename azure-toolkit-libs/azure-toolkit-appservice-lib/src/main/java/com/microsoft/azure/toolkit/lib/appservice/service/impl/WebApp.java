@@ -41,10 +41,9 @@ public class WebApp implements IWebApp {
     private AzureResourceManager azureClient;
     private com.azure.resourcemanager.appservice.models.WebApp webAppInner;
 
-    public WebApp(WebAppEntity entity, AzureAppService azureAppService) {
+    public WebApp(WebAppEntity entity, AzureResourceManager azureResourceManager) {
         this.entity = entity;
-        this.azureAppService = azureAppService;
-        this.azureClient = azureAppService.getAzureResourceManager();
+        this.azureClient = azureResourceManager;
     }
 
     @Override
@@ -125,13 +124,13 @@ public class WebApp implements IWebApp {
         final WebAppDeploymentSlotEntity slotEntity = WebAppDeploymentSlotEntity.builder().name(slotName)
             .resourceGroup(getWebAppInner().resourceGroupName())
             .webappName(getWebAppInner().name()).build();
-        return new WebAppDeploymentSlot(slotEntity, azureAppService);
+        return new WebAppDeploymentSlot(slotEntity, azureClient);
     }
 
     @Override
     public List<IWebAppDeploymentSlot> deploymentSlots() {
         return getWebAppInner().deploymentSlots().list().stream()
-            .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureAppService))
+            .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureClient))
             .collect(Collectors.toList());
     }
 

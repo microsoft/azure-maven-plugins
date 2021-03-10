@@ -12,6 +12,7 @@ import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.SkuDescription;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
@@ -167,6 +168,7 @@ class AppServiceUtils {
     static AppServicePlanEntity fromAppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
         return AppServicePlanEntity.builder()
             .id(appServicePlan.id())
+            .subscriptionId(ResourceId.fromString(appServicePlan.id()).subscriptionId())
             .name(appServicePlan.name())
             .region(appServicePlan.regionName())
             .resourceGroup(appServicePlan.resourceGroupName())
