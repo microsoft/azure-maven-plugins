@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -16,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public abstract class SubscriptionScoped<T extends AzureService> {
@@ -43,5 +45,22 @@ public abstract class SubscriptionScoped<T extends AzureService> {
 
     public T subscription(@Nonnull final Subscription subscription) {
         return this.subscriptions(Collections.singletonList(subscription));
+    }
+
+    public T subscription(@Nonnull final String subscriptionId) {
+        return this.subscriptions(subscriptionId);
+    }
+
+    public T subscriptions(@Nonnull final String... subscriptions) {
+        assert ArrayUtils.isNotEmpty(subscriptions) : "subscriptions can not be empty!";
+        final List<Subscription> subscriptionList = Azure.az(IAzureAccount.class).account().getSubscriptions().stream()
+                .filter(subscription -> ArrayUtils.contains(subscriptions, subscription.getId()))
+                .collect(Collectors.toList());
+        return this.subscriptions(subscriptionList);
+    }
+
+    // If only one subscription is selected, using it as default subscription
+    public Subscription getDefaultSubscription() {
+        return CollectionUtils.isNotEmpty(subscriptions) && subscriptions.size() == 1 ? subscriptions.get(0) : null;
     }
 }

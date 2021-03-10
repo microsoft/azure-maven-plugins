@@ -4,7 +4,15 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice;
 
+import com.azure.core.http.policy.HttpLogDetailLevel;
+import com.azure.core.http.policy.HttpPipelinePolicy;
+import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.AzureConfiguration;
+import com.microsoft.azure.toolkit.lib.AzureService;
+import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
@@ -14,21 +22,26 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AzureAppService {
+public class AzureAppService extends SubscriptionScoped<AzureAppService> implements AzureService {
 
-    private AzureResourceManager azureResourceManager;
-
-    private AzureAppService(AzureResourceManager azureResourceManager) {
-        this.azureResourceManager = azureResourceManager;
+    public AzureAppService() { // for SPI
+        super(AzureAppService::new);
     }
 
-    public static AzureAppService auth(AzureResourceManager azureResourceManager) {
-        return new AzureAppService(azureResourceManager);
+    private AzureAppService(@Nonnull final List<Subscription> subscriptions) {
+        super(AzureAppService::new, subscriptions);
     }
 
     public IWebApp webapp(String id) {
@@ -37,23 +50,27 @@ public class AzureAppService {
     }
 
     public IWebApp webapp(String resourceGroup, String name) {
-        final WebAppEntity webAppEntity = WebAppEntity.builder().resourceGroup(resourceGroup).name(name).build();
+        return webapp(null, resourceGroup, name);
+    }
+
+    public IWebApp webapp(String subscriptionId, String resourceGroup, String name) {
+        final WebAppEntity webAppEntity = WebAppEntity.builder().subscriptionId(subscriptionId).resourceGroup(resourceGroup).name(name).build();
         return webapp(webAppEntity);
     }
 
     public IWebApp webapp(WebAppEntity webAppEntity) {
-        return new WebApp(webAppEntity, this);
+        final String subscriptionId = getSubscriptionId(webAppEntity.getId(), webAppEntity.getSubscriptionId());
+        return new WebApp(webAppEntity, getAzureResourceManager(subscriptionId));
     }
 
     public List<IWebApp> webapps() {
-        return azureResourceManager.webApps().list().stream()
+        return getSubscriptions().stream()
+                .map(subscription -> getAzureResourceManager(subscription.getId()))
+                .flatMap(azureResourceManager -> azureResourceManager.webApps().list().stream())
+                .collect(Collectors.toList()).stream()
                 .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
                 .map(webAppBasic -> webapp(webAppBasic.id()))
                 .collect(Collectors.toList());
-    }
-
-    public IAppServicePlan appServicePlan(AppServicePlanEntity appServicePlanEntity) {
-        return new AppServicePlan(appServicePlanEntity, this);
     }
 
     public IAppServicePlan appServicePlan(String id) {
@@ -62,16 +79,29 @@ public class AzureAppService {
     }
 
     public IAppServicePlan appServicePlan(String resourceGroup, String name) {
+        return appServicePlan(null, resourceGroup, name);
+    }
+
+    public IAppServicePlan appServicePlan(String subscriptionId, String resourceGroup, String name) {
         final AppServicePlanEntity appServicePlanEntity = AppServicePlanEntity.builder()
-            .resourceGroup(resourceGroup)
-            .name(name).build();
+                .subscriptionId(subscriptionId)
+                .resourceGroup(resourceGroup)
+                .name(name).build();
         return appServicePlan(appServicePlanEntity);
     }
 
+    public IAppServicePlan appServicePlan(AppServicePlanEntity appServicePlanEntity) {
+        final String subscriptionId = getSubscriptionId(appServicePlanEntity.getId(), appServicePlanEntity.getSubscriptionId());
+        return new AppServicePlan(appServicePlanEntity, getAzureResourceManager(subscriptionId));
+    }
+
     public List<IAppServicePlan> appServicePlans() {
-        return this.azureResourceManager.appServicePlans().list().stream()
-            .map(appServicePlan -> appServicePlan(appServicePlan.id()))
-            .collect(Collectors.toList());
+        return getSubscriptions().stream()
+                .map(subscription -> getAzureResourceManager(subscription.getId()))
+                .flatMap(azureResourceManager -> azureResourceManager.appServicePlans().list().stream())
+                .collect(Collectors.toList()).stream()
+                .map(appServicePlan -> appServicePlan(appServicePlan.id()))
+                .collect(Collectors.toList());
     }
 
     public IWebAppDeploymentSlot deploymentSlot(String id) {
@@ -79,14 +109,49 @@ public class AzureAppService {
     }
 
     public IWebAppDeploymentSlot deploymentSlot(String resourceGroup, String appName, String slotName) {
-        return deploymentSlot(WebAppDeploymentSlotEntity.builder().resourceGroup(resourceGroup).webappName(appName).name(slotName).build());
+        return deploymentSlot(null, resourceGroup, appName, slotName);
+    }
+
+    public IWebAppDeploymentSlot deploymentSlot(String subscriptionId, String resourceGroup, String appName, String slotName) {
+        return deploymentSlot(WebAppDeploymentSlotEntity.builder().subscriptionId(subscriptionId).resourceGroup(resourceGroup).webappName(appName).name(slotName).build());
     }
 
     public IWebAppDeploymentSlot deploymentSlot(WebAppDeploymentSlotEntity deploymentSlot) {
-        return new WebAppDeploymentSlot(deploymentSlot, this);
+        final String subscriptionId = getSubscriptionId(deploymentSlot.getId(), deploymentSlot.getSubscriptionId());
+        return new WebAppDeploymentSlot(deploymentSlot, getAzureResourceManager(subscriptionId));
     }
 
-    public AzureResourceManager getAzureResourceManager() {
-        return azureResourceManager;
+    // todo: share codes with other library which leverage track2 mgmt sdk
+    @Cacheable(cacheName = "AzureResourceManager", key = "$subscriptionId")
+    private AzureResourceManager getAzureResourceManager(String subscriptionId) {
+        final Account account = Azure.az(AzureAccount.class).account();
+        final AzureConfiguration config = Azure.az().config();
+        final String userAgent = config.getUserAgent();
+        final HttpLogDetailLevel logDetailLevel = config.getLogLevel() == null ?
+                HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel().name());
+        final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
+        return AzureResourceManager.configure()
+                .withLogLevel(logDetailLevel)
+                .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
+                .authenticate(account.getTokenCredentialForSubscription(subscriptionId), azureProfile)
+                .withSubscription(subscriptionId);
+    }
+
+    private HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
+        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
+            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
+            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
+            return httpPipelineNextPolicy.process();
+        };
+    }
+
+    private String getSubscriptionId(@Nullable String resourceId, @Nullable String subscriptionId) {
+        if (StringUtils.isNotEmpty(resourceId)) {
+            return ResourceId.fromString(resourceId).subscriptionId();
+        }
+        if (StringUtils.isEmpty(subscriptionId) && getDefaultSubscription() == null) {
+            throw new AzureToolkitRuntimeException("Subscription id is required for this request.");
+        }
+        return StringUtils.isEmpty(subscriptionId) ? getDefaultSubscription().getId() : subscriptionId;
     }
 }
