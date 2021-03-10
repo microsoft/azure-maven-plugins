@@ -14,10 +14,6 @@
     <dependencies>
         <dependency>
             <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-tools-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-common-lib</artifactId>
         </dependency>
         <!-- azure lib for spring cloud-->
@@ -32,6 +28,10 @@
         <dependency>
             <groupId>com.microsoft.rest</groupId>
             <artifactId>client-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-storage</artifactId>
         </dependency>
 
         <!-- javax annotations e.g. @Nonnull -->

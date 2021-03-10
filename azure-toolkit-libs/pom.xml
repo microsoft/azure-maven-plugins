@@ -50,7 +50,6 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <azure.toolkit-lib.version>${project.version}</azure.toolkit-lib.version>
-        <azure.tools-common.version>0.13.0-SNAPSHOT</azure.tools-common.version>
 
         <azure.aad.version>1.6.4</azure.aad.version>
         <azure.applicationinsights.version>2.6.2</azure.applicationinsights.version>
@@ -59,6 +58,7 @@
         <azure.client.version>1.7.10</azure.client.version>
         <azure.identity.version>1.2.1</azure.identity.version>
         <azure.resourcemanager.version>2.1.0</azure.resourcemanager.version>
+        <azure.storage.version>8.0.0</azure.storage.version>
         <azure.version>1.38.0</azure.version>
 
         <aspectj.version>1.8.13</aspectj.version>
@@ -127,11 +127,6 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-tools-common</artifactId>
-                <version>${azure.tools-common.version}</version>
             </dependency>
             <!-- azure lib for spring cloud -->
             <dependency>
@@ -269,6 +264,11 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-mgmt-resources</artifactId>
                 <version>${azure.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-storage</artifactId>
+                <version>${azure.storage.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>

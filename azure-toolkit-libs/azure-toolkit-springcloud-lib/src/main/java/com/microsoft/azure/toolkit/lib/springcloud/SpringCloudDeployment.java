@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.model.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
-import com.microsoft.azure.tools.utils.RxUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
@@ -71,7 +70,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     }
 
     public boolean waitUntilReady(int timeoutInSeconds) {
-        final SpringCloudDeployment deployment = RxUtils.pollUntil(this::refresh, AzureSpringCloudConfigUtils::isDeploymentDone, timeoutInSeconds);
+        final SpringCloudDeployment deployment = Utils.pollUntil(this::refresh, AzureSpringCloudConfigUtils::isDeploymentDone, timeoutInSeconds);
         return AzureSpringCloudConfigUtils.isDeploymentDone(deployment);
     }
 
