@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder(toBuilder = true)
 public class AppServicePlanEntity {
+    private String subscriptionId;
     private String id;
     private String name;
     private String region;
