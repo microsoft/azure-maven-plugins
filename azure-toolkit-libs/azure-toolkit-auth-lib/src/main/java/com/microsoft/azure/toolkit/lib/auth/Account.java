@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -112,6 +113,23 @@ public abstract class Account implements IAccount {
         if (CollectionUtils.isNotEmpty(selectedSubscriptionIds) && CollectionUtils.isNotEmpty(this.entity.getSubscriptions())) {
             entity.getSubscriptions().forEach(s -> s.setSelected(Utils.containsIgnoreCase(selectedSubscriptionIds, s.getId())));
         }
+    }
+
+    @Override
+    public String toString() {
+        final List<String> details = new ArrayList<>();
+        if (getEntity() == null) {
+            return "<Uninitialized account>";
+        }
+        details.add(String.format("Auth method: %s", TextUtils.cyan(getEntity().getMethod().toString())));
+        final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
+        if (StringUtils.isNotEmpty(getEntity().getEmail())) {
+            details.add(String.format("Username: %s", TextUtils.cyan(getEntity().getEmail())));
+        }
+        if (selectedSubscriptions != null && selectedSubscriptions.size() == 1) {
+            details.add(String.format("Default subscription: %s", TextUtils.cyan(selectedSubscriptions.get(0).getId())));
+        }
+        return StringUtils.join(details.toArray(), "\n");
     }
 
     void authenticate() throws LoginFailureException {

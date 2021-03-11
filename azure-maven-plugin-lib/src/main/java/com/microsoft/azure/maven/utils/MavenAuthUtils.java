@@ -3,18 +3,15 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.maven.auth;
+package com.microsoft.azure.maven.utils;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.util.ValidationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -25,17 +22,11 @@ import java.util.Objects;
 
 import static com.microsoft.azure.maven.auth.MavenSettingHelper.buildAuthConfigurationByServerId;
 
-public class MavenAuthManager {
+public class MavenAuthUtils {
     private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
             "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
 
-    private static MavenAuthManager mavenAuthManager = new MavenAuthManager();
-
-    public static MavenAuthManager getInstance() {
-        return mavenAuthManager;
-    }
-
-    public AuthConfiguration buildAuthConfiguration(MavenSession session, SettingsDecrypter settingsDecrypter, @Nonnull MavenAuthConfiguration auth)
+    public static AuthConfiguration buildAuthConfiguration(MavenSession session, SettingsDecrypter settingsDecrypter, @Nonnull MavenAuthConfiguration auth)
             throws AzureExecutionException, MavenDecryptException {
         final String serverId = auth.getServerId();
         final AuthConfiguration authConfiguration;
@@ -48,10 +39,6 @@ public class MavenAuthManager {
             throw new AzureExecutionException(String.format("%s %s", ex.getMessage(), messagePostfix));
         }
         return authConfiguration;
-    }
-
-    public void login(AuthConfiguration authConfiguration) throws LoginFailureException {
-        Azure.az(AzureAccount.class).login(authConfiguration);
     }
 
     private static AuthConfiguration convertToAuthConfiguration(MavenAuthConfiguration mavenAuthConfiguration)

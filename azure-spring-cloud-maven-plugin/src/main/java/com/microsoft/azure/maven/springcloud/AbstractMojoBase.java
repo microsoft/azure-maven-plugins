@@ -8,8 +8,8 @@ package com.microsoft.azure.maven.springcloud;
 import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
@@ -18,7 +18,7 @@ import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
-import com.microsoft.azure.maven.auth.MavenAuthManager;
+import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.ProxyUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
@@ -40,9 +40,7 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -141,18 +139,21 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     protected String httpProxyPort;
 
     @Override
-    public void execute() throws MojoFailureException {
+    public void execute() throws MojoFailureException, MojoExecutionException {
         try {
             initExecution();
             doExecute();
             handleSuccess();
         } catch (Exception e) {
+            if (e instanceof AzureToolkitAuthenticationException) {
+                throw new MojoExecutionException(String.format("Cannot authenticate due to error: %s", e.getMessage()), e);
+            }
             handleException(e);
             throw new MojoFailureException(e.getMessage(), e);
         }
     }
 
-    protected void initExecution() throws MojoFailureException, MavenDecryptException, AzureExecutionException, LoginFailureException {
+    protected void initExecution() throws MavenDecryptException, AzureExecutionException, LoginFailureException {
         // init proxy manager
         ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
         // Init telemetries
@@ -163,12 +164,8 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
         mavenAuthConfiguration.setType(getAuthType());
         com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
-                MavenAuthManager.getInstance().buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
+                MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
         final Account account = Azure.az(AzureAccount.class).account();
-        if (!account.isAuthenticated()) {
-            AppInsightHelper.INSTANCE.trackEvent(INIT_FAILURE);
-            throw new MojoFailureException(AZURE_INIT_FAIL);
-        }
         final AzureEnvironment env = account.getEnvironment();
         final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
         if (env != AzureEnvironment.AZURE) {
@@ -193,16 +190,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     }
 
     protected void printCredentialDescription(Account account) {
-        final List<String> details = new ArrayList<>();
-        details.add(String.format("Auth method: %s", TextUtils.cyan(account.getEntity().getMethod().toString())));
-        final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
-        if (StringUtils.isNotEmpty(account.getEntity().getEmail())) {
-            details.add(String.format("Username: %s", TextUtils.cyan(account.getEntity().getEmail())));
-        }
-        if (selectedSubscriptions != null && selectedSubscriptions.size() == 1) {
-            details.add(String.format("Default subscription: %s", TextUtils.cyan(selectedSubscriptions.get(0).getId())));
-        }
-        System.out.println(StringUtils.join(details.toArray(), "\n"));
+        System.out.println(account.toString());
     }
 
     protected void handleSuccess() {

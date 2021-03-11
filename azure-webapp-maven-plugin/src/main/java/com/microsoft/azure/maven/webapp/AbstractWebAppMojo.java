@@ -17,8 +17,8 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.auth.MavenAuthManager;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
+import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
@@ -35,6 +35,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -416,12 +417,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
             mavenAuthConfiguration.setType(getAuthType());
             com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
-                    MavenAuthManager.getInstance().buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
+                    MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
             final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
-            if (!account.isAuthenticated()) {
-                return null;
-            }
-
             final List<Subscription> subscriptions = account.getSubscriptions();
             final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
             checkSubscription(subscriptions, targetSubscriptionId);
@@ -447,7 +444,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
                 Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.displayName()), TextUtils.cyan(subscription.subscriptionId())));
             }
             return AzureAppService.auth(azureResourceManager);
-        } catch (AzureLoginException | AzureExecutionException | IOException e) {
+        } catch (AzureLoginException | AzureExecutionException | IOException | AzureToolkitAuthenticationException e) {
             throw new AzureExecutionException(e.getMessage());
         }
     }

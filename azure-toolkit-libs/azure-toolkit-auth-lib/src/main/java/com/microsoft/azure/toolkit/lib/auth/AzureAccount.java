@@ -15,13 +15,11 @@ import com.microsoft.azure.toolkit.lib.auth.core.serviceprincipal.ServicePrincip
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
-import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 
@@ -44,22 +42,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
      */
     public Account account() throws AzureToolkitAuthenticationException {
         return Optional.ofNullable(this.account)
-                .orElse(new Account() {
-                    @Override
-                    public AuthMethod getMethod() {
-                        return AuthMethod.UNKNOWN;
-                    }
-
-                    @Override
-                    protected Mono<Boolean> checkAvailableInner() {
-                        return Mono.just(false);
-                    }
-
-                    @Override
-                    protected void initializeCredentials() {
-
-                    }
-                });
+                .orElseThrow(() -> new AzureToolkitAuthenticationException("Account is not initialized."));
     }
 
     public List<Account> accounts() {

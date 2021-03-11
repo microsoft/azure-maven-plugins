@@ -10,9 +10,6 @@ import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFac
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.GetHashMac;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
@@ -25,12 +22,15 @@ import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
-import com.microsoft.azure.maven.auth.MavenAuthManager;
-import com.microsoft.azure.maven.utils.MavenUtils;
+import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.ProxyUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.maven.execution.MavenSession;
@@ -45,7 +45,6 @@ import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -55,7 +54,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -286,10 +284,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 azure = new AzureAuthHelperLegacy(this).getAzureClient();
             } else {
                 azure = getOrCreateAzureClient();
-            }
-            if (azure == null) {
-                getTelemetryProxy().trackEvent(INIT_FAILURE);
-                throw new AzureAuthFailureException(AZURE_INIT_FAIL);
+
             }
             printCurrentSubscription(azure);
             getTelemetryProxy().addDefaultProperty(AUTH_TYPE, getAuthType());
@@ -335,11 +330,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
             SystemPropertyUtils.injectCommandLineParameter("auth", mavenAuthConfiguration, MavenAuthConfiguration.class);
             com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
-                    MavenAuthManager.getInstance().buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
+                    MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
             final com.microsoft.azure.toolkit.lib.auth.Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
-            if (!account.isAuthenticated()) {
-                return null;
-            }
             final AzureEnvironment env = account.getEnvironment();
             final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
             if (env != AzureEnvironment.AZURE) {
@@ -358,16 +350,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void printCredentialDescription(com.microsoft.azure.toolkit.lib.auth.Account account) {
-        final List<String> details = new ArrayList<>();
-        details.add(String.format("Auth method: %s", TextUtils.cyan(account.getMethod().toString())));
-        final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
-        if (StringUtils.isNotEmpty(account.getEntity().getEmail())) {
-            details.add(String.format("Username: %s", TextUtils.cyan(account.getEntity().getEmail())));
-        }
-        if (selectedSubscriptions != null && selectedSubscriptions.size() == 1) {
-            details.add(String.format("Default subscription: %s", TextUtils.cyan(selectedSubscriptions.get(0).getId())));
-        }
-        System.out.println(StringUtils.join(details.toArray(), "\n"));
+        System.out.println(account.toString());
     }
 
     public TelemetryProxy getTelemetryProxy() {
@@ -394,16 +377,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (subscription != null) {
             Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.displayName()), TextUtils.cyan(subscription.subscriptionId())));
         }
-    }
-
-    protected boolean isAuthConfigurationExist() {
-        final String pluginKey = plugin.getPluginLookupKey();
-        final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
-        if (pluginDom == null) {
-            return false;
-        }
-        final Xpp3Dom authDom = pluginDom.getChild("auth");
-        return authDom != null && authDom.getChildren().length > 0;
     }
 
     //region Telemetry Configuration Interface
@@ -470,6 +443,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 trackMojoSuccess();
             }
         } catch (Exception e) {
+            if (e instanceof AzureToolkitAuthenticationException) {
+                throw new MojoExecutionException(String.format("Cannot authenticate due to error: %s", e.getMessage()), e);
+            }
             handleException(e);
         } finally {
             // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
