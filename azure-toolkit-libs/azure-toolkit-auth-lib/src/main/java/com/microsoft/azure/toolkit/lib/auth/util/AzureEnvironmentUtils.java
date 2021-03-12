@@ -20,12 +20,12 @@ public class AzureEnvironmentUtils {
     static {
         // the first alias is the cloud name in azure cli
         // the second alias is the display name, all other aliases are only used in our toolkit
-        putAliasMap(AzureEnvironment.AZURE, "AzureCloud", "azure", "azure_cloud");
-        putAliasMap(AzureEnvironment.AZURE_CHINA, "AzureChinaCloud", "azure_china", "AzureChina", "azure_china_cloud");
+        putAliasMap(AzureEnvironment.AZURE, "AzureCloud", "azure", "azure_cloud", "GLOBAL");
+        putAliasMap(AzureEnvironment.AZURE_CHINA, "AzureChinaCloud", "azure_china", "AzureChina", "azure_china_cloud", "CHINA");
         // the TYPO:azure_german comes from azure cli: https://docs.microsoft.com/en-us/azure/germany/germany-get-started-connect-with-cli
         putAliasMap(AzureEnvironment.AZURE_GERMANY, "AzureGermanCloud", "azure_germany", "azure_german",
-            "azure_germany_cloud", "azure_german_cloud", "AzureGerman", "AzureGermany");
-        putAliasMap(AzureEnvironment.AZURE_US_GOVERNMENT, "AzureUSGovernment", "azure_us_government");
+            "azure_germany_cloud", "azure_german_cloud", "AzureGerman", "AzureGermany", "GERMAN");
+        putAliasMap(AzureEnvironment.AZURE_US_GOVERNMENT, "AzureUSGovernment", "azure_us_government", "US_GOVERNMENT");
     }
 
     public static String azureEnvironmentToString(AzureEnvironment azureEnvironment) {

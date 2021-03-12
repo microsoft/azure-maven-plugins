@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.auth;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.util.logging.ClientLogger;
 import com.microsoft.azure.toolkit.lib.AzureService;
-import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.oauth.OAuthAccount;

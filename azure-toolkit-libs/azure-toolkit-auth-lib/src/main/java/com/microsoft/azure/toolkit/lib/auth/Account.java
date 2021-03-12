@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -114,6 +115,23 @@ public abstract class Account implements IAccount {
         }
     }
 
+    @Override
+    public String toString() {
+        final List<String> details = new ArrayList<>();
+        if (getEntity() == null) {
+            return "<Uninitialized account>";
+        }
+        details.add(String.format("Auth method: %s", TextUtils.cyan(getEntity().getMethod().toString())));
+        final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
+        if (StringUtils.isNotEmpty(getEntity().getEmail())) {
+            details.add(String.format("Username: %s", TextUtils.cyan(getEntity().getEmail())));
+        }
+        if (selectedSubscriptions != null && selectedSubscriptions.size() == 1) {
+            details.add(String.format("Default subscription: %s", TextUtils.cyan(selectedSubscriptions.get(0).getId())));
+        }
+        return StringUtils.join(details.toArray(), "\n");
+    }
+
     void authenticate() throws LoginFailureException {
         try {
             initializeCredentials();
@@ -152,10 +170,10 @@ public abstract class Account implements IAccount {
     }
 
     protected void initializeTenants() {
-        TokenCredential credential = entity.getCredential().createTenantTokenCredential(null);
-        List<String> allTenantIds = listTenantIds(entity.getCredential().getEnvironment(), credential);
         // in azure cli, the tenant ids from 'az account list' should be less/equal than the list tenant api
         if (this.entity.getTenantIds() == null) {
+            TokenCredential credential = entity.getCredential().createTenantTokenCredential(null);
+            List<String> allTenantIds = listTenantIds(entity.getCredential().getEnvironment(), credential);
             this.entity.setTenantIds(allTenantIds);
         }
     }
@@ -195,7 +213,7 @@ public abstract class Account implements IAccount {
                 TokenCredential tenantTokenCredential = credential.createTenantTokenCredential(tenantId);
                 List<Subscription> subscriptionsOnTenant =
                         AzureResourceManager.authenticate(tenantTokenCredential, azureProfile).subscriptions().list()
-                                .mapPage(s -> toSubscriptionEntity(tenantId, s)).stream().collect(Collectors.toList());
+                                .stream().map(s -> toSubscriptionEntity(tenantId, s)).collect(Collectors.toList());
 
                 for (Subscription subscription : subscriptionsOnTenant) {
                     String key = StringUtils.lowerCase(subscription.getId());

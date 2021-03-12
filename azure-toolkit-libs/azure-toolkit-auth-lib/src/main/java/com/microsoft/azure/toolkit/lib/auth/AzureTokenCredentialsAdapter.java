@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.auth;
 import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
+import com.azure.identity.implementation.util.ScopeUtil;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import org.apache.commons.lang3.StringUtils;
@@ -23,24 +24,18 @@ import java.util.concurrent.ConcurrentHashMap;
 class AzureTokenCredentialsAdapter extends AzureTokenCredentials {
     private final TokenCredential tokenCredential;
     private final Map<String, AccessToken> accessTokenCache = new ConcurrentHashMap<>();
-    private final String[] scopes;
-
-    AzureTokenCredentialsAdapter(AzureEnvironment environment, String tenantId, TokenCredential tokenCredential) {
-        this(environment, tenantId, tokenCredential, new String[]{environment.managementEndpoint() + "/.default"});
-    }
 
     AzureTokenCredentialsAdapter(AzureEnvironment environment, String tenantId,
-                                        TokenCredential tokenCredential, String[] scopes) {
+                                        TokenCredential tokenCredential) {
         super(environment, tenantId);
         this.tokenCredential = tokenCredential;
-        this.scopes = scopes;
     }
 
     @Override
     public String getToken(String endpoint) {
         if (!accessTokenCache.containsKey(endpoint) || accessTokenCache.get(endpoint).isExpired()) {
             accessTokenCache.put(endpoint,
-                this.tokenCredential.getToken(new TokenRequestContext().addScopes(scopes)).block());
+                this.tokenCredential.getToken(new TokenRequestContext().addScopes(ScopeUtil.resourceToScopes(endpoint))).block());
         }
         return accessTokenCache.get(endpoint).getToken();
     }
