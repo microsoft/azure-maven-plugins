@@ -26,9 +26,9 @@ public class AppServicePlan implements IAppServicePlan {
     private AzureResourceManager azureClient;
     private com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlanInner;
 
-    public AppServicePlan(AppServicePlanEntity appServicePlanEntity, AzureResourceManager azureResourceManager) {
+    public AppServicePlan(AppServicePlanEntity appServicePlanEntity, AzureResourceManager azureClient) {
         this.entity = appServicePlanEntity;
-        this.azureClient = azureResourceManager;
+        this.azureClient = azureClient;
     }
 
     @Override

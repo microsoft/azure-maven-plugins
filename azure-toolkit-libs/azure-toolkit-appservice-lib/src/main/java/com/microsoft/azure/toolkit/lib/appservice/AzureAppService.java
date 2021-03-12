@@ -8,7 +8,6 @@ import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.AzureResourceManager;
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
@@ -22,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.cache.Cacheable;
@@ -50,7 +50,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     public IWebApp webapp(String resourceGroup, String name) {
-        return webapp(null, resourceGroup, name);
+        return webapp(getDefaultSubscription().getId(), resourceGroup, name);
     }
 
     public IWebApp webapp(String subscriptionId, String resourceGroup, String name) {
@@ -79,7 +79,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     public IAppServicePlan appServicePlan(String resourceGroup, String name) {
-        return appServicePlan(null, resourceGroup, name);
+        return appServicePlan(getDefaultSubscription().getId(), resourceGroup, name);
     }
 
     public IAppServicePlan appServicePlan(String subscriptionId, String resourceGroup, String name) {
@@ -109,7 +109,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     public IWebAppDeploymentSlot deploymentSlot(String resourceGroup, String appName, String slotName) {
-        return deploymentSlot(null, resourceGroup, appName, slotName);
+        return deploymentSlot(getDefaultSubscription().getId(), resourceGroup, appName, slotName);
     }
 
     public IWebAppDeploymentSlot deploymentSlot(String subscriptionId, String resourceGroup, String appName, String slotName) {
@@ -147,11 +147,11 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     private String getSubscriptionId(@Nullable String resourceId, @Nullable String subscriptionId) {
         if (StringUtils.isNotEmpty(resourceId)) {
-            return ResourceId.fromString(resourceId).subscriptionId();
+            return Utils.getSubscriptionId(resourceId);
         }
-        if (StringUtils.isEmpty(subscriptionId) && getDefaultSubscription() == null) {
-            throw new AzureToolkitRuntimeException("Subscription id is required for this request.");
+        if (StringUtils.isNotEmpty(subscriptionId)) {
+            return subscriptionId;
         }
-        return StringUtils.isEmpty(subscriptionId) ? getDefaultSubscription().getId() : subscriptionId;
+        throw new AzureToolkitRuntimeException("Subscription id is required for this request.");
     }
 }
