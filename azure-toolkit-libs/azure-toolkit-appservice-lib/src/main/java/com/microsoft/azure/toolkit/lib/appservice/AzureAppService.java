@@ -25,12 +25,12 @@ import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,7 +59,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     public IWebApp webapp(WebAppEntity webAppEntity) {
-        final String subscriptionId = getSubscriptionId(webAppEntity.getId(), webAppEntity.getSubscriptionId());
+        final String subscriptionId = getSubscriptionFromResourceEntity(webAppEntity);
         return new WebApp(webAppEntity, getAzureResourceManager(subscriptionId));
     }
 
@@ -91,7 +91,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     public IAppServicePlan appServicePlan(AppServicePlanEntity appServicePlanEntity) {
-        final String subscriptionId = getSubscriptionId(appServicePlanEntity.getId(), appServicePlanEntity.getSubscriptionId());
+        final String subscriptionId = getSubscriptionFromResourceEntity(appServicePlanEntity);
         return new AppServicePlan(appServicePlanEntity, getAzureResourceManager(subscriptionId));
     }
 
@@ -117,13 +117,13 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     public IWebAppDeploymentSlot deploymentSlot(WebAppDeploymentSlotEntity deploymentSlot) {
-        final String subscriptionId = getSubscriptionId(deploymentSlot.getId(), deploymentSlot.getSubscriptionId());
+        final String subscriptionId = getSubscriptionFromResourceEntity(deploymentSlot);
         return new WebAppDeploymentSlot(deploymentSlot, getAzureResourceManager(subscriptionId));
     }
 
     // todo: share codes with other library which leverage track2 mgmt sdk
     @Cacheable(cacheName = "AzureResourceManager", key = "$subscriptionId")
-    private AzureResourceManager getAzureResourceManager(String subscriptionId) {
+    public AzureResourceManager getAzureResourceManager(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
@@ -145,12 +145,12 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         };
     }
 
-    private String getSubscriptionId(@Nullable String resourceId, @Nullable String subscriptionId) {
-        if (StringUtils.isNotEmpty(resourceId)) {
-            return Utils.getSubscriptionId(resourceId);
+    private String getSubscriptionFromResourceEntity(@Nonnull IAzureResourceEntity resourceEntity) {
+        if (StringUtils.isNotEmpty(resourceEntity.getId())) {
+            return Utils.getSubscriptionId(resourceEntity.getId());
         }
-        if (StringUtils.isNotEmpty(subscriptionId)) {
-            return subscriptionId;
+        if (StringUtils.isNotEmpty(resourceEntity.getSubscriptionId())) {
+            return resourceEntity.getSubscriptionId();
         }
         throw new AzureToolkitRuntimeException("Subscription id is required for this request.");
     }
