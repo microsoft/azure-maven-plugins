@@ -41,9 +41,9 @@ public class WebApp implements IWebApp {
     private AzureResourceManager azureClient;
     private com.azure.resourcemanager.appservice.models.WebApp webAppInner;
 
-    public WebApp(WebAppEntity entity, AzureResourceManager azureResourceManager) {
+    public WebApp(WebAppEntity entity, AzureResourceManager azureClient) {
         this.entity = entity;
-        this.azureClient = azureResourceManager;
+        this.azureClient = azureClient;
     }
 
     @Override

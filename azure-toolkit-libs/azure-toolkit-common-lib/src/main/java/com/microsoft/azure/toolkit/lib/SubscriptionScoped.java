@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib;
 
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
@@ -16,6 +17,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -61,6 +63,7 @@ public abstract class SubscriptionScoped<T extends AzureService> {
 
     // If only one subscription is selected, using it as default subscription
     public Subscription getDefaultSubscription() {
-        return CollectionUtils.isNotEmpty(subscriptions) && subscriptions.size() == 1 ? subscriptions.get(0) : null;
+        return Optional.of(CollectionUtils.size(subscriptions) == 1 ? subscriptions.get(0) : null)
+                .orElseThrow(() -> new AzureToolkitRuntimeException("Subscription can not be null"));
     }
 }
