@@ -5,10 +5,12 @@
 
 package com.microsoft.azure.maven.springcloud;
 
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.maven.auth.MavenAuthManager;
@@ -18,9 +20,13 @@ import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
+import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.ProxyUtils;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
+import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.rest.LogLevel;
@@ -39,7 +45,6 @@ import org.apache.maven.settings.crypto.SettingsDecrypter;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_AUTH_METHOD;
@@ -119,8 +124,6 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
-    protected AzureCredentialWrapper azureCredentialWrapper;
-
     protected Long timeStart;
     private AppPlatformManager manager;
 
@@ -140,40 +143,39 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     protected String httpProxyPort;
 
     @Override
-    public void execute() throws MojoFailureException {
+    public void execute() throws MojoFailureException, MojoExecutionException {
         try {
             initExecution();
             doExecute();
             handleSuccess();
         } catch (Exception e) {
+            if (e instanceof AzureToolkitAuthenticationException) {
+                throw new MojoExecutionException(String.format("Cannot authenticate due to error: %s", e.getMessage()), e);
+            }
             handleException(e);
             throw new MojoFailureException(e.getMessage(), e);
         }
     }
 
-    protected void initExecution() throws MojoFailureException, MavenDecryptException, AzureExecutionException,
-        com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException {
+    protected void initExecution() throws MavenDecryptException, AzureExecutionException, LoginFailureException {
         // init proxy manager
         ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
         // Init telemetries
         initTelemetry();
         telemetries.put(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
+        Azure.az().config().setLogLevel(LogLevel.NONE);
+        Azure.az().config().setUserAgent(getUserAgent());
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
         mavenAuthConfiguration.setType(getAuthType());
-        this.azureCredentialWrapper = MavenAuthManager.getInstance().login(session, settingsDecrypter, mavenAuthConfiguration);
-        if (Objects.isNull(azureCredentialWrapper)) {
-            AppInsightHelper.INSTANCE.trackEvent(INIT_FAILURE);
-            throw new MojoFailureException(AZURE_INIT_FAIL);
-        }
-        final AzureEnvironment env = azureCredentialWrapper.getEnv();
+        com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
+                MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
+        final Account account = Azure.az(AzureAccount.class).account();
+        final AzureEnvironment env = account.getEnvironment();
         final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
         if (env != AzureEnvironment.AZURE) {
             Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
         }
-
-        telemetries.put(AUTH_TYPE, getAuthType());
-        telemetries.put(AZURE_ENVIRONMENT, environmentName);
         Log.info(azureCredentialWrapper.getCredentialDescription());
     }
 
@@ -190,6 +192,10 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         tracePluginInformation();
         traceAuth();
         traceConfiguration(this.getConfiguration());
+    }
+
+    protected void printCredentialDescription(Account account) {
+        System.out.println(account.toString());
     }
 
     protected void handleSuccess() {
@@ -296,20 +302,13 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         return telemetries;
     }
 
-    public AppPlatformManager getAppPlatformManager() {
-        if (this.manager == null) {
-            final LogLevel logLevel = getLog().isDebugEnabled() ? LogLevel.BODY_AND_HEADERS : LogLevel.NONE;
-            this.manager = AppPlatformManager.configure()
-                .withLogLevel(logLevel)
-                .withUserAgent(getUserAgent())
-                .authenticate(azureCredentialWrapper.getAzureTokenCredentials(), subscriptionId);
-        }
-        return this.manager;
-    }
-
     private String getUserAgent() {
         return isTelemetryAllowed ? String.format("%s/%s installationId:%s sessionId:%s", plugin.getArtifactId(), plugin.getVersion(),
                 AppInsightHelper.INSTANCE.getInstallationId(), AppInsightHelper.INSTANCE.getSessionId())
                 : String.format("%s/%s", plugin.getArtifactId(), plugin.getVersion());
+    }
+
+    protected static String highlightDefaultValue(String defaultValue) {
+        return StringUtils.isBlank(defaultValue) ? "" : String.format(" [%s]", TextUtils.blue(defaultValue));
     }
 }

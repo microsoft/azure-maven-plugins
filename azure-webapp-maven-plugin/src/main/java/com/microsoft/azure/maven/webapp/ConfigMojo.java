@@ -11,7 +11,6 @@ import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.AppSetting;
@@ -27,18 +26,19 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.queryer.MavenPluginQueryer;
 import com.microsoft.azure.maven.queryer.QueryFactory;
+import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import com.microsoft.azure.maven.webapp.models.WebAppOption;
 import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
-import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
-
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.plugin.MojoFailureException;
@@ -47,7 +47,6 @@ import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.dom4j.DocumentException;
-
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
@@ -62,7 +61,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 
 import static com.microsoft.azure.maven.webapp.utils.Utils.findStringInCollectionIgnoreCase;
 import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.APP_NAME_PATTERN;
@@ -495,57 +493,62 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
     private WebAppConfiguration chooseExistingWebappForConfiguration()
             throws AzureExecutionException, AzureAuthFailureException {
-        final Azure az = getOrCreateAzureClient();
-        if (Objects.isNull(az)) {
+        try {
+            final Azure az = getOrCreateAzureClient();
+            if (Objects.isNull(az)) {
+                return null;
+            }
+            final Subscription targetSubscription = az.getCurrentSubscription();
+            if (Objects.isNull(targetSubscription)) {
+                return null;
+            }
+            // get user selected sub id to persistent it in pom.xml
+            this.subscriptionId = targetSubscription.subscriptionId();
+            // here is a walk around to solve the bad app service listing issue
+            final WebAppsInner webappClient = az.webApps().manager().inner().webApps();
+            final List<WebAppOption> siteInners = webappClient.list().stream()
+                    .filter(site -> site.kind() != null && !Arrays.asList(site.kind().split(",")).contains("functionapp"))
+                    .map(t -> new WebAppOption(t, webappClient)).sorted().collect(Collectors.toList());
+
+            // check empty: first time
+            if (siteInners.isEmpty()) {
+                Log.warn(NO_JAVA_WEB_APPS);
+                return null;
+            }
+            Log.info(LONG_LOADING_HINT);
+
+            // load configuration to detecting java or docker
+            Observable.from(siteInners).flatMap(WebAppOption::loadConfigurationSync, siteInners.size()).subscribeOn(Schedulers.io()).toBlocking().subscribe();
+
+            final boolean isContainer = !Utils.isJarPackagingProject(this.project.getPackaging());
+            final boolean isDockerOnly = Utils.isPomPackagingProject(this.project.getPackaging());
+            final List<WebAppOption> javaOrDockerWebapps = siteInners.stream().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
+                    .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
+                    .collect(Collectors.toList());
+            final TextIO textIO = TextIoFactory.getTextIO();
+            final WebAppOption selectedApp = selectAzureWebApp(textIO, javaOrDockerWebapps,
+                    getWebAppTypeByPackaging(this.project.getPackaging()), targetSubscription);
+            if (selectedApp == null || selectedApp.isCreateNew()) {
+                return null;
+            }
+
+            final WebApp webapp = az.webApps().manager().webApps().getById(selectedApp.getId());
+            final String serverPlanId = selectedApp.getServicePlanId();
+            AppServicePlan servicePlan = null;
+            if (StringUtils.isNotBlank(serverPlanId)) {
+                servicePlan = az.webApps().manager().appServicePlans().getById(serverPlanId);
+            }
+
+            final WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
+            if (!AppServiceUtils.isDockerAppService(webapp)) {
+                builder.resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources());
+            }
+            return getConfigurationFromExisting(webapp, servicePlan, builder);
+        } catch (AzureToolkitAuthenticationException ex) {
+            // if is valid for config goal to have error in authentication
+            getLog().warn(String.format("Cannot authenticate due to error: %s, select existing webapp is skipped.", ex.getMessage()));
             return null;
         }
-
-        final Subscription targetSubscription = az.getCurrentSubscription();
-        if (Objects.isNull(targetSubscription)) {
-            return null;
-        }
-        // get user selected sub id to persistent it in pom.xml
-        this.subscriptionId = targetSubscription.subscriptionId();
-        // here is a walk around to solve the bad app service listing issue
-        final WebAppsInner webappClient = az.webApps().manager().inner().webApps();
-        final List<WebAppOption> siteInners = webappClient.list().stream()
-                .filter(site -> site.kind() != null && !Arrays.asList(site.kind().split(",")).contains("functionapp"))
-                .map(t -> new WebAppOption(t, webappClient)).sorted().collect(Collectors.toList());
-
-        // check empty: first time
-        if (siteInners.isEmpty()) {
-            Log.warn(NO_JAVA_WEB_APPS);
-            return null;
-        }
-        Log.info(LONG_LOADING_HINT);
-
-        // load configuration to detecting java or docker
-        Observable.from(siteInners).flatMap(WebAppOption::loadConfigurationSync, siteInners.size()).subscribeOn(Schedulers.io()).toBlocking().subscribe();
-
-        final boolean isContainer = !Utils.isJarPackagingProject(this.project.getPackaging());
-        final boolean isDockerOnly = Utils.isPomPackagingProject(this.project.getPackaging());
-        final List<WebAppOption> javaOrDockerWebapps = siteInners.stream().filter(app -> app.isJavaWebApp() || app.isDockerWebapp())
-                .filter(app -> checkWebAppVisible(isContainer, isDockerOnly, app.isJavaSE(), app.isDockerWebapp())).sorted()
-                .collect(Collectors.toList());
-        final TextIO textIO = TextIoFactory.getTextIO();
-        final WebAppOption selectedApp = selectAzureWebApp(textIO, javaOrDockerWebapps,
-                getWebAppTypeByPackaging(this.project.getPackaging()), targetSubscription);
-        if (selectedApp == null || selectedApp.isCreateNew()) {
-            return null;
-        }
-
-        final WebApp webapp = az.webApps().manager().webApps().getById(selectedApp.getId());
-        final String serverPlanId = selectedApp.getServicePlanId();
-        AppServicePlan servicePlan = null;
-        if (StringUtils.isNotBlank(serverPlanId)) {
-            servicePlan = az.webApps().manager().appServicePlans().getById(serverPlanId);
-        }
-
-        final WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
-        if (!AppServiceUtils.isDockerAppService(webapp)) {
-            builder.resources(Deployment.getDefaultDeploymentConfiguration(getProject().getPackaging()).getResources());
-        }
-        return getConfigurationFromExisting(webapp, servicePlan, builder);
     }
 
     private static WebAppOption selectAzureWebApp(TextIO textIO, List<WebAppOption> javaOrDockerWebapps, String webAppType, Subscription targetSubscription) {
