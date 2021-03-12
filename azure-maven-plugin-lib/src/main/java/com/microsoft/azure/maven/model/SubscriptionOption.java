@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.model;
 
-import com.microsoft.azure.management.resources.Subscription;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.lang3.StringUtils;
 
 public class SubscriptionOption implements Comparable<SubscriptionOption> {
@@ -20,12 +20,8 @@ public class SubscriptionOption implements Comparable<SubscriptionOption> {
         return inner;
     }
 
-    public String getSubscriptionId() {
-        return inner != null ? inner.subscriptionId() : null;
-    }
-
     public String getSubscriptionName() {
-        return inner != null ? inner.displayName() : null;
+        return inner != null ? inner.getName() : null;
     }
 
     @Override
@@ -35,12 +31,12 @@ public class SubscriptionOption implements Comparable<SubscriptionOption> {
 
     @Override
     public int compareTo(SubscriptionOption other) {
-        final String name1 = inner != null ? inner.displayName() : null;
-        final String name2 = other.inner != null ? other.inner.displayName() : null;
+        final String name1 = inner != null ? inner.getName() : null;
+        final String name2 = other.inner != null ? other.inner.getName() : null;
         return StringUtils.compare(name1, name2);
     }
 
     public static String getSubscriptionName(Subscription subs) {
-        return String.format("%s(%s)", subs.displayName(), subs.subscriptionId());
+        return String.format("%s(%s)", subs.getName(), subs.getId());
     }
 }

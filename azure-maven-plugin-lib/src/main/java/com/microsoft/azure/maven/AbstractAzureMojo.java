@@ -5,15 +5,12 @@
 
 package com.microsoft.azure.maven;
 
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
-import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.GetHashMac;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
@@ -25,15 +22,15 @@ import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
-import com.microsoft.azure.maven.auth.MavenAuthManager;
-import com.microsoft.azure.maven.utils.MavenUtils;
+import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.ProxyUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import org.apache.commons.lang3.ArrayUtils;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.maven.execution.MavenSession;
@@ -48,7 +45,6 @@ import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,11 +55,9 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
@@ -201,8 +195,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     private TelemetryProxy telemetryProxy;
 
-    private AzureCredentialWrapper azureCredentialWrapper;
-
     private String sessionId = UUID.randomUUID().toString();
 
     private String installationId = GetHashMac.getHashMac();
@@ -239,7 +231,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     @Override
     public String getSubscriptionId() {
-        return StringUtils.firstNonBlank(subscriptionId, azureCredentialWrapper == null ? null : azureCredentialWrapper.getDefaultSubscriptionId());
+        return StringUtils.firstNonBlank(subscriptionId, (azure == null || azure.getCurrentSubscription() == null) ?
+                null : azure.getCurrentSubscription().subscriptionId());
     }
 
     public boolean isTelemetryAllowed() {
@@ -291,10 +284,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 azure = new AzureAuthHelperLegacy(this).getAzureClient();
             } else {
                 azure = getOrCreateAzureClient();
-            }
-            if (azure == null) {
-                getTelemetryProxy().trackEvent(INIT_FAILURE);
-                throw new AzureAuthFailureException(AZURE_INIT_FAIL);
+
             }
             printCurrentSubscription(azure);
             getTelemetryProxy().addDefaultProperty(AUTH_TYPE, getAuthType());
@@ -316,7 +306,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (subscriptions.length == 1) {
             Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
                     TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
-            return subscriptions[0].subscriptionId();
+            return subscriptions[0].getId();
         }
         final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption(t))
                 .sorted()
@@ -330,7 +320,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (subscriptionOptionSelected == null) {
             throw new AzureExecutionException("You must select a subscription.");
         }
-        return subscriptionOptionSelected.getSubscription().subscriptionId();
+        return subscriptionOptionSelected.getSubscription().getId();
     }
 
     protected Azure getOrCreateAzureClient() throws AzureAuthFailureException, AzureExecutionException {
@@ -339,32 +329,28 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             mavenAuthConfiguration.setType(getAuthType());
 
             SystemPropertyUtils.injectCommandLineParameter("auth", mavenAuthConfiguration, MavenAuthConfiguration.class);
-            azureCredentialWrapper = MavenAuthManager.getInstance().login(session, settingsDecrypter, mavenAuthConfiguration);
-
-            if (Objects.isNull(azureCredentialWrapper)) {
-                return null;
-            }
-
-            final AzureEnvironment env = azureCredentialWrapper.getEnv();
+            com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
+                    MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
+            final com.microsoft.azure.toolkit.lib.auth.Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+            final AzureEnvironment env = account.getEnvironment();
             final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
             if (env != AzureEnvironment.AZURE) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }
-            Log.info(azureCredentialWrapper.getCredentialDescription());
-            final PagedList<Subscription> subscriptions = Azure.configure()
-                    .authenticate(azureCredentialWrapper.getAzureTokenCredentials()).subscriptions().list();
-            subscriptions.loadAll();
-            final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions);
+            printCredentialDescription(account);
+            final List<Subscription> subscriptions = account.getSubscriptions();
+            final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
             checkSubscription(subscriptions, targetSubscriptionId);
-            azureCredentialWrapper.withDefaultSubscriptionId(targetSubscriptionId);
-            return AzureClientFactory.getAzureClient(azureCredentialWrapper, getUserAgent());
+
+            this.subscriptionId = targetSubscriptionId;
+            return AzureClientFactory.getAzureClient(getUserAgent(), targetSubscriptionId);
         } catch (AzureLoginException | IOException e) {
             throw new AzureAuthFailureException(e.getMessage());
         }
     }
 
-    protected AzureCredentialWrapper getAzureCredentialWrapper() {
-        return azureCredentialWrapper;
+    protected void printCredentialDescription(com.microsoft.azure.toolkit.lib.auth.Account account) {
+        System.out.println(account.toString());
     }
 
     public TelemetryProxy getTelemetryProxy() {
@@ -387,20 +373,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (azure == null) {
             return;
         }
-        final Subscription subscription = azure.getCurrentSubscription();
+        final com.microsoft.azure.management.resources.Subscription subscription = azure.getCurrentSubscription();
         if (subscription != null) {
             Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.displayName()), TextUtils.cyan(subscription.subscriptionId())));
         }
-    }
-
-    protected boolean isAuthConfigurationExist() {
-        final String pluginKey = plugin.getPluginLookupKey();
-        final Xpp3Dom pluginDom = MavenUtils.getPluginConfiguration(project, pluginKey);
-        if (pluginDom == null) {
-            return false;
-        }
-        final Xpp3Dom authDom = pluginDom.getChild("auth");
-        return authDom != null && authDom.getChildren().length > 0;
     }
 
     //region Telemetry Configuration Interface
@@ -417,8 +393,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     public String getAuthMethod() {
-        if (azureCredentialWrapper != null) {
-            return azureCredentialWrapper.getAuthMethod().name();
+        final com.microsoft.azure.toolkit.lib.auth.Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+        if (account != null) {
+            return account.getMethod().toString();
         }
         final AuthenticationSetting authSetting = getAuthenticationSetting();
         if (authSetting == null) {
@@ -441,7 +418,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public void execute() throws MojoExecutionException {
         try {
             // init proxy manager
-            ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
+            ProxyUtils.initProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
 
             // Work around for Application Insights Java SDK:
             // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.
@@ -466,6 +443,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 trackMojoSuccess();
             }
         } catch (Exception e) {
+            if (e instanceof AzureToolkitAuthenticationException) {
+                throw new MojoExecutionException(String.format("Cannot authenticate due to error: %s", e.getMessage()), e);
+            }
             handleException(e);
         } finally {
             // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
@@ -615,16 +595,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
     //endregion
 
-    private String getTargetSubscriptionId(String defaultSubscriptionId, PagedList<Subscription> subscriptions) throws IOException, AzureExecutionException {
-        final List<String> subsIdList = subscriptions.stream().map(Subscription::subscriptionId).collect(Collectors.toList());
+    protected String getTargetSubscriptionId(String defaultSubscriptionId,
+                                             List<Subscription> subscriptions,
+                                             List<Subscription> selectedSubscriptions) throws IOException, AzureExecutionException {
         String targetSubscriptionId = defaultSubscriptionId;
 
-        if (StringUtils.isBlank(targetSubscriptionId) && ArrayUtils.isNotEmpty(azureCredentialWrapper.getFilteredSubscriptionIds())) {
-            final Collection<String> filteredSubscriptions = Utils.intersectIgnoreCase(subsIdList,
-                    Arrays.asList(azureCredentialWrapper.getFilteredSubscriptionIds()));
-            if (filteredSubscriptions.size() == 1) {
-                targetSubscriptionId = filteredSubscriptions.iterator().next();
-            }
+        if (StringUtils.isBlank(targetSubscriptionId) && selectedSubscriptions.size() == 1) {
+            targetSubscriptionId = selectedSubscriptions.get(0).getId();
         }
 
         if (StringUtils.isBlank(targetSubscriptionId)) {
@@ -633,13 +610,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return targetSubscriptionId;
     }
 
-    private static void checkSubscription(List<Subscription> subscriptions, String targetSubscriptionId) throws AzureLoginException {
+    protected static void checkSubscription(List<Subscription> subscriptions, String targetSubscriptionId) throws AzureLoginException {
         if (StringUtils.isEmpty(targetSubscriptionId)) {
             Log.warn(SUBSCRIPTION_NOT_SPECIFIED);
             return;
         }
         final Optional<Subscription> optionalSubscription = subscriptions.stream()
-                .filter(subscription -> StringUtils.equals(subscription.subscriptionId(), targetSubscriptionId))
+                .filter(subscription -> StringUtils.equals(subscription.getId(), targetSubscriptionId))
                 .findAny();
         if (!optionalSubscription.isPresent()) {
             throw new AzureLoginException(String.format(SUBSCRIPTION_NOT_FOUND, targetSubscriptionId));
