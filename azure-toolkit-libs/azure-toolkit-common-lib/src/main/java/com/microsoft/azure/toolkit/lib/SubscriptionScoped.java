@@ -63,7 +63,7 @@ public abstract class SubscriptionScoped<T extends AzureService> {
 
     // If only one subscription is selected, using it as default subscription
     public Subscription getDefaultSubscription() {
-        return Optional.of(CollectionUtils.size(subscriptions) == 1 ? subscriptions.get(0) : null)
-                .orElseThrow(() -> new AzureToolkitRuntimeException("Subscription can not be null"));
+        return Optional.of(CollectionUtils.size(getSubscriptions()) == 1 ? subscriptions.get(0) : null)
+                .orElseThrow(() -> new AzureToolkitRuntimeException("Multiple subscriptions found in current account, please set the subscription id"));
     }
 }

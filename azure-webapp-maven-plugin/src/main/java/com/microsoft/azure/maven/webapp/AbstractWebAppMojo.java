@@ -5,20 +5,14 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.azure.core.management.AzureEnvironment;
-import com.azure.core.management.profile.AzureProfile;
-import com.azure.resourcemanager.AzureResourceManager;
 import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.model.MavenAuthConfiguration;
-import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
@@ -30,21 +24,14 @@ import com.microsoft.azure.maven.webapp.parser.V2ConfigParser;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
-import com.microsoft.azure.toolkit.lib.auth.Account;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
-import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
@@ -414,41 +401,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return parser.parse();
     }
 
-    protected AzureAppService getOrCreateAzureAppServiceClient() throws AzureExecutionException {
-        try {
-            final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
-            mavenAuthConfiguration.setType(getAuthType());
-            com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
-                    MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
-            final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
-            final List<Subscription> subscriptions = account.getSubscriptions();
-            final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
-            checkSubscription(subscriptions, targetSubscriptionId);
-            final AzureEnvironment env = account.getEnvironment();
-            final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
-            if (env != AzureEnvironment.AZURE) {
-                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
-            }
-            printCredentialDescription(account);
-            this.subscriptionId = targetSubscriptionId;
-            final Subscription current = subscriptions.stream().filter(t -> StringUtils.equals(t.getId(), this.subscriptionId)).findFirst().orElse(null);
-            if (current == null) {
-                return null;
-            }
-
-            final AzureProfile profile = new AzureProfile(current.getTenantId(), current.getId(), env);
-
-            final AzureResourceManager.Authenticated authenticated =
-                    AzureResourceManager.configure().authenticate(account.getTokenCredentialForSubscription(current.getId()), profile);
-            final AzureResourceManager azureResourceManager = authenticated.withSubscription(targetSubscriptionId);
-            final com.azure.resourcemanager.resources.models.Subscription subscription = azureResourceManager.getCurrentSubscription();
-            if (subscription != null) {
-                Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.displayName()), TextUtils.cyan(subscription.subscriptionId())));
-            }
-            return AzureAppService.auth(azureResourceManager);
-        } catch (AzureLoginException | AzureExecutionException | IOException | AzureToolkitAuthenticationException e) {
-            throw new AzureExecutionException(e.getMessage());
-        }
+    protected AzureAppService getOrCreateAzureAppServiceClient() {
+        return Azure.az(AzureAppService.class);
     }
 
     @Override
