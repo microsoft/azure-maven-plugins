@@ -25,14 +25,14 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
 import com.microsoft.azure.management.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter(AccessLevel.PRIVATE)
-public class SpringCloudClusterEntity implements IAzureEntity {
+public class SpringCloudClusterEntity implements IAzureResourceEntity {
     private final String subscriptionId;
     private final String resourceGroup;
     private final String name;
