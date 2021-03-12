@@ -34,9 +34,9 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     private DeploymentSlot deploymentSlotInner;
     private AzureResourceManager azureClient;
 
-    public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureResourceManager) {
+    public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureClient) {
         this.slotEntity = deploymentSlot;
-        this.azureClient = azureResourceManager;
+        this.azureClient = azureClient;
     }
 
     @Override
