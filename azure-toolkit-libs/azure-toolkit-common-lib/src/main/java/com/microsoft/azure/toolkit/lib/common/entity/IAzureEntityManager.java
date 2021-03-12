@@ -22,7 +22,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.entity;
 
-public interface IAzureEntityManager<T extends IAzureEntity> {
+public interface IAzureEntityManager<T extends IAzureResourceEntity> {
     IAzureEntityManager<T> refresh();
 
     boolean exists();
