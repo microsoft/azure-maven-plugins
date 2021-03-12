@@ -115,8 +115,10 @@ public class DeployMojoTest extends MojoTestBase {
     public void updateFunctionApp() throws Exception {
         final FunctionApp app = mock(FunctionApp.class);
         final Update update = mock(Update.class);
+        doReturn("9db749a0-09d8-4697-a736-52df13820aab").when(mojoSpy).getAppInsightsKey();
         doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
         final FunctionRuntimeHandler functionRuntimeHandler = mock(WindowsFunctionRuntimeHandler.class);
+
         doReturn(update).when(functionRuntimeHandler).updateAppRuntime(app);
         mojoSpy.updateFunctionApp(app, functionRuntimeHandler);
 
