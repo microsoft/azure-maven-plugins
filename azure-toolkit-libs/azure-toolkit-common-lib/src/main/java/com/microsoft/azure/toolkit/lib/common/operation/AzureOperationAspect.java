@@ -28,36 +28,29 @@ public final class AzureOperationAspect {
 
     @Before("operation()")
     public void beforeEnter(JoinPoint point) {
-        enterOperation(point);
+        final AzureOperationRef operation = toOperationRef(point);
+        AzureTelemeter.beforeEnter(operation);
+        AzureTaskContext.current().pushOperation(operation);
     }
 
     @AfterReturning("operation()")
     public void afterReturning(JoinPoint point) {
-        exitOperation(point);
-    }
-
-    @AfterThrowing(pointcut = "operation()", throwing = "e")
-    public void afterThrowing(JoinPoint point, Throwable e) throws Throwable {
-        final AzureOperationRef operation = exitOperation(point);
-        if (!(e instanceof RuntimeException)) {
-            throw e; // do not wrap checked exception
-        }
-        throw new AzureOperationException(operation, e);
-    }
-
-    private static AzureOperationRef enterOperation(JoinPoint point) {
-        final AzureOperationRef operation = toOperationRef(point);
-        AzureTelemeter.beforeEnter(operation);
-        AzureTaskContext.current().pushOperation(operation);
-        return operation;
-    }
-
-    private static AzureOperationRef exitOperation(JoinPoint point) {
         final AzureOperationRef current = toOperationRef(point);
         final AzureOperationRef operation = (AzureOperationRef) AzureTaskContext.current().popOperation();
         AzureTelemeter.afterExit(operation);
         assert Objects.equals(current, operation) : String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
-        return operation;
+    }
+
+    @AfterThrowing(pointcut = "operation()", throwing = "e")
+    public void afterThrowing(JoinPoint point, Throwable e) throws Throwable {
+        final AzureOperationRef current = toOperationRef(point);
+        final AzureOperationRef operation = (AzureOperationRef) AzureTaskContext.current().popOperation();
+        AzureTelemeter.onError(operation, e);
+        assert Objects.equals(current, operation) : String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
+        if (!(e instanceof RuntimeException)) {
+            throw e; // do not wrap checked exception
+        }
+        throw new AzureOperationException(operation, e);
     }
 
     private static AzureOperationRef toOperationRef(JoinPoint point) {
