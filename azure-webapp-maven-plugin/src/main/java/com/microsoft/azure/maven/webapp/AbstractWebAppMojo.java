@@ -27,11 +27,15 @@ import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
@@ -241,6 +245,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected AzureAppService az;
 
     private boolean isRuntimeInjected = false;
+
+    private AzureAppService appServiceClient;
     //endregion
 
     //region Getter
@@ -288,8 +294,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     public WebContainer getJavaWebContainer() {
         return StringUtils.isEmpty(javaWebContainer) ?
-            WebContainer.TOMCAT_8_5_NEWEST :
-            WebContainer.fromString(javaWebContainer);
+                WebContainer.TOMCAT_8_5_NEWEST :
+                WebContainer.fromString(javaWebContainer);
     }
 
     public ContainerSetting getContainerSettings() {
@@ -399,8 +405,24 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return parser.parse();
     }
 
-    protected AzureAppService getOrCreateAzureAppServiceClient() {
-        return Azure.az(AzureAppService.class);
+    protected AzureAppService getOrCreateAzureAppServiceClient() throws AzureExecutionException {
+        if (appServiceClient == null) {
+            try {
+                final Account account = getAzureAccount();
+                final List<Subscription> subscriptions = account.getSubscriptions();
+                final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
+                checkSubscription(subscriptions, targetSubscriptionId);
+                appServiceClient = Azure.az(AzureAppService.class).subscription(targetSubscriptionId);
+            } catch (AzureLoginException | AzureExecutionException | IOException e) {
+                throw new AzureExecutionException(String.format("Cannot authenticate due to error %s", e.getMessage()), e);
+            }
+        }
+        return appServiceClient;
+    }
+
+    @Override
+    public String getSubscriptionId() {
+        return appServiceClient == null ? this.subscriptionId : appServiceClient.getDefaultSubscription().getId();
     }
 
     @Override

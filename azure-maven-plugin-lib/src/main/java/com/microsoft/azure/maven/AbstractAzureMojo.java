@@ -16,6 +16,7 @@ import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.auth.AzureAuthHelperLegacy;
 import com.microsoft.azure.maven.auth.AzureClientFactory;
+import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.model.SubscriptionOption;
 import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
@@ -25,9 +26,11 @@ import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.ProxyUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
+import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -191,6 +194,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Component
     protected SettingsDecrypter settingsDecrypter;
 
+    private Account azureAccount;
+
     private Azure azure;
 
     private TelemetryProxy telemetryProxy;
@@ -325,19 +330,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     protected Azure getOrCreateAzureClient() throws AzureAuthFailureException, AzureExecutionException {
         try {
-            final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
-            mavenAuthConfiguration.setType(getAuthType());
-
-            SystemPropertyUtils.injectCommandLineParameter("auth", mavenAuthConfiguration, MavenAuthConfiguration.class);
-            com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
-                    MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
-            final com.microsoft.azure.toolkit.lib.auth.Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
-            final AzureEnvironment env = account.getEnvironment();
-            final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
-            if (env != AzureEnvironment.AZURE) {
-                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
-            }
-            printCredentialDescription(account);
+            final Account account = getAzureAccount();
             final List<Subscription> subscriptions = account.getSubscriptions();
             final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
             checkSubscription(subscriptions, targetSubscriptionId);
@@ -349,7 +342,26 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    protected void printCredentialDescription(com.microsoft.azure.toolkit.lib.auth.Account account) {
+    protected Account getAzureAccount() throws MavenDecryptException, AzureExecutionException, LoginFailureException {
+        if (azureAccount == null) {
+            final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
+            mavenAuthConfiguration.setType(getAuthType());
+
+            SystemPropertyUtils.injectCommandLineParameter("auth", mavenAuthConfiguration, MavenAuthConfiguration.class);
+            com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
+                    MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
+            azureAccount = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+            final AzureEnvironment env = azureAccount.getEnvironment();
+            final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
+            if (env != AzureEnvironment.AZURE) {
+                Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
+            }
+            printCredentialDescription(azureAccount);
+        }
+        return azureAccount;
+    }
+
+    protected void printCredentialDescription(Account account) {
         System.out.println(account.toString());
     }
 
@@ -393,7 +405,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     public String getAuthMethod() {
-        final com.microsoft.azure.toolkit.lib.auth.Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+        final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
         if (account != null) {
             return account.getMethod().toString();
         }
