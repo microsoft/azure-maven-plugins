@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AzureCliAccount extends Account {
-    @Getter
-    private final AuthMethod method = AuthMethod.AZURE_CLI;
 
     protected Mono<Boolean> checkAvailableInner() {
         try {
@@ -59,5 +57,10 @@ public class AzureCliAccount extends Account {
                 .map(Subscription::getId).distinct().collect(Collectors.toList()));
 
         this.entity.setCredential(azureCliCredential);
+    }
+
+    @Override
+    public AuthMethod getMethod() {
+        return AuthMethod.AZURE_CLI;
     }
 }
