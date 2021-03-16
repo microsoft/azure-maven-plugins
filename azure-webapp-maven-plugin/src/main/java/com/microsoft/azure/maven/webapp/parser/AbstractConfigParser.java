@@ -72,6 +72,10 @@ public abstract class AbstractConfigParser {
         return mojo.getAppServicePlanResourceGroup();
     }
 
+    public String getSubscriptionId() {
+        return mojo.getSubscriptionId();
+    }
+
     public abstract Region getRegion() throws AzureExecutionException;
 
     public abstract DockerConfiguration getDockerConfiguration() throws AzureExecutionException;
@@ -82,6 +86,7 @@ public abstract class AbstractConfigParser {
 
     public WebAppConfig parse() throws AzureExecutionException {
         return WebAppConfig.builder()
+                .subscriptionId(getSubscriptionId())
                 .appName(getAppName())
                 .resourceGroup(getResourceGroup())
                 .servicePlanName(getAppServicePlanName())
