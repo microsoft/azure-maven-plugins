@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationUtils;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 import lombok.Getter;
@@ -15,13 +14,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class AzureTelemeter {
     private static final String SERVICE_NAME = "serviceName";
