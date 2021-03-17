@@ -32,7 +32,6 @@ public class AzureTelemeter {
     private static final String OP_TYPE = "op_type";
     private static final String OP_ACTION = "op_action";
     private static final String OP_PARENT_ID = "op_parentId";
-    private static final String OP_CONTEXT_ID = "op_contextId";
 
     private static final String OP_ACTION_CREATE = "CREATE";
     private static final String OP_ACTION_ENTER = "ENTER";
@@ -110,7 +109,6 @@ public class AzureTelemeter {
         final String operationName = compositeServiceName.length > 1 ? parts[1] + "_" + compositeServiceName[1] : parts[1]; // "list_file"
         properties.put(SERVICE_NAME, mainServiceName);
         properties.put(OPERATION_NAME, operationName);
-        properties.put(OP_CONTEXT_ID, getCompositeId(ctxOperations, op));
         properties.put(OP_ID, op.getId());
         properties.put(OP_PARENT_ID, parent.map(IAzureOperation::getId).orElse("/"));
         properties.put(OP_NAME, name);
@@ -127,12 +125,6 @@ public class AzureTelemeter {
         properties.put(ERROR_MSG, e.getMessage());
         properties.put(ERROR_STACKTRACE, ExceptionUtils.getStackTrace(e));
         return properties;
-    }
-
-    private static String getCompositeId(final Deque<? extends IAzureOperation> ops, IAzureOperation op) {
-        final List<IAzureOperation> revised = AzureOperationUtils.revise(ops);
-        revised.add(op);
-        return revised.stream().map(IAzureOperation::getId).collect(Collectors.joining("/", "/", ""));
     }
 
     private enum ErrorType {
