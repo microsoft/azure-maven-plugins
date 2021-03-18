@@ -58,7 +58,7 @@ public class CacheableAspect {
         }
         final Object result = point.proceed();
         if (Objects.nonNull(result)) {
-            cache.put(key, result);
+            cache.put(key, Optional.of(result));
         }
         return result;
     }
