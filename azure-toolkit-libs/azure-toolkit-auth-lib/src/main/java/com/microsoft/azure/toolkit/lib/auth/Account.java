@@ -60,6 +60,7 @@ public abstract class Account implements IAccount {
     }
 
     public TokenCredential getTokenCredential(String tenantId) {
+        requireAuthenticated();
         if (StringUtils.isBlank(tenantId)) {
             return this.entity.getCredential();
         } else {
@@ -68,16 +69,19 @@ public abstract class Account implements IAccount {
     }
 
     public AzureTokenCredentials getTokenCredentialV1(String tenantId) {
+        requireAuthenticated();
         return AzureTokenCredentialsAdapter.from(getEnvironment(), tenantId, getTokenCredential(tenantId));
     }
 
     public TokenCredential getTokenCredentialForSubscription(String subscriptionId) {
-        Subscription subscription = getSubscriptionById(subscriptionId);
+        requireAuthenticated();
+        Subscription subscription = getSelectedSubscriptionById(subscriptionId);
         return getTokenCredential(subscription.getTenantId());
     }
 
     public AzureTokenCredentials getTokenCredentialV1ForSubscription(String subscriptionId) {
-        Subscription subscription = getSubscriptionById(subscriptionId);
+        requireAuthenticated();
+        Subscription subscription = getSelectedSubscriptionById(subscriptionId);
         return getTokenCredentialV1(subscription.getTenantId());
     }
 
@@ -91,35 +95,43 @@ public abstract class Account implements IAccount {
     }
 
     public boolean isAuthenticated() {
-        return isAvailable() && this.entity != null && this.entity.isAuthenticated();
+        return isAvailable() && this.entity.isAuthenticated();
     }
 
     public List<Subscription> getSubscriptions() {
-        if (this.entity != null) {
-            return this.entity.getSubscriptions();
-        }
-        return null;
+        requireAuthenticated();
+        return this.entity.getSubscriptions();
     }
 
     @Override
     public List<Subscription> getSelectedSubscriptions() {
-        if (this.entity != null) {
-            return this.entity.getSubscriptions().stream().filter(Subscription::isSelected).collect(Collectors.toList());
-        }
-        return null;
+        requireAuthenticated();
+        return this.entity.getSubscriptions().stream().filter(Subscription::isSelected).collect(Collectors.toList());
     }
 
-    public void selectSubscriptions(List<String> selectedSubscriptionIds) {
-        if (CollectionUtils.isNotEmpty(selectedSubscriptionIds) && CollectionUtils.isNotEmpty(this.entity.getSubscriptions())) {
-            entity.getSubscriptions().forEach(s -> s.setSelected(Utils.containsIgnoreCase(selectedSubscriptionIds, s.getId())));
+    public void selectSubscription(List<String> selectedSubscriptionIds) {
+        requireAuthenticated();
+        if (CollectionUtils.isEmpty(selectedSubscriptionIds)) {
+            throw new IllegalArgumentException("Cannot select subscription by an empty id list.");
         }
+
+        if (CollectionUtils.isEmpty(getSubscriptions())) {
+            throw new IllegalArgumentException("There are no subscriptions to select.");
+        }
+        if (entity.getSubscriptions().stream().anyMatch(s -> Utils.containsIgnoreCase(selectedSubscriptionIds, s.getId()))) {
+            selectSubscriptionInner(this.getSubscriptions(), selectedSubscriptionIds);
+        } else {
+            throw new AzureToolkitAuthenticationException("Cannot select subscriptions since none subscriptions are selected, " +
+                    "make sure you have provided valid subscription list");
+        }
+
     }
 
     @Override
     public String toString() {
         final List<String> details = new ArrayList<>();
         if (getEntity() == null) {
-            return "<Uninitialized account>";
+            return "<account not logged in>";
         }
         details.add(String.format("Auth method: %s", TextUtils.cyan(getEntity().getMethod().toString())));
         final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
@@ -182,11 +194,16 @@ public abstract class Account implements IAccount {
         List<Subscription> subscriptions = listSubscriptions(entity.getTenantIds(), entity.getCredential());
         entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
         entity.setSubscriptions(subscriptions);
-        selectSubscriptions(subscriptions, this.entity.getSelectedSubscriptionIds());
+        selectSubscriptionInner(subscriptions, this.entity.getSelectedSubscriptionIds());
+
+        // no subscriptions are selected, selected all
+        if (!subscriptions.isEmpty() && subscriptions.stream().noneMatch(Subscription::isSelected)) {
+            subscriptions.forEach(s -> s.setSelected(true));
+        }
     }
 
-    private Subscription getSubscriptionById(String subscriptionId) {
-        return getSubscriptions().stream()
+    private Subscription getSelectedSubscriptionById(String subscriptionId) {
+        return getSelectedSubscriptions().stream()
                 .filter(s -> StringUtils.equalsIgnoreCase(subscriptionId, s.getId()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot find subscription with id '%s'", subscriptionId)));
@@ -197,8 +214,9 @@ public abstract class Account implements IAccount {
         entity.setMethod(method);
     }
 
-    private void selectSubscriptions(List<Subscription> subscriptions, List<String> subscriptionIds) {
+    private void selectSubscriptionInner(List<Subscription> subscriptions, List<String> subscriptionIds) {
         // select subscriptions
+        requireAuthenticated();
         if (CollectionUtils.isNotEmpty(subscriptionIds) && CollectionUtils.isNotEmpty(subscriptions)) {
             subscriptions.forEach(s -> s.setSelected(Utils.containsIgnoreCase(subscriptionIds, s.getId())));
         }
@@ -240,5 +258,11 @@ public abstract class Account implements IAccount {
         subscriptionEntity.setName(subscription.displayName());
         subscriptionEntity.setTenantId(tenantId);
         return subscriptionEntity;
+    }
+
+    private void requireAuthenticated() {
+        if (!this.isAuthenticated()) {
+            throw new AzureToolkitAuthenticationException("Please signed in first.");
+        }
     }
 }

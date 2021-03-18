@@ -42,7 +42,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
      */
     public Account account() throws AzureToolkitAuthenticationException {
         return Optional.ofNullable(this.account)
-                .orElseThrow(() -> new AzureToolkitAuthenticationException("Account is not initialized."));
+                .orElseThrow(() -> new AzureToolkitAuthenticationException("Please signed in first."));
     }
 
     public List<Account> accounts() {
@@ -52,7 +52,9 @@ public class AzureAccount implements AzureService, IAzureAccount {
     public AzureAccount login(@Nonnull Account targetAccount) throws LoginFailureException {
         account = targetAccount;
         if (account.checkAvailable()) {
-            account.authenticate();
+            if (!account.isAuthenticated()) {
+                account.authenticate();
+            }
         } else {
             if (account.entity.getLastError() != null) {
                 throw new LoginFailureException(account.entity.getLastError().getMessage(), account.entity.getLastError());
@@ -61,6 +63,18 @@ public class AzureAccount implements AzureService, IAzureAccount {
             }
         }
         return this;
+    }
+
+    public AzureAccount logout() {
+        if (this.account != null) {
+            this.account.logout();
+            this.account = null;
+        }
+        return this;
+    }
+
+    public boolean isAuthenticated() {
+        return this.account != null && this.account.isAvailable() && this.account.isAuthenticated();
     }
 
     public AzureAccount login(AuthType type) throws LoginFailureException {
