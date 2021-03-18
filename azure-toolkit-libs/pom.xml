@@ -97,6 +97,7 @@
         <google.jsr305.version>3.0.0</google.jsr305.version>
         <free.port.finder.version>1.0</free.port.finder.version>
         <jjwt.version>0.9.1</jjwt.version>
+        <reflections.version>0.9.12</reflections.version>
     </properties>
 
     <dependencyManagement>
@@ -278,6 +279,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>${commons.collections4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>${reflections.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
