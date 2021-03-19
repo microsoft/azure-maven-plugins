@@ -130,10 +130,13 @@ public abstract class Account implements IAccount {
     @Override
     public String toString() {
         final List<String> details = new ArrayList<>();
-        if (getEntity() == null) {
+
+        if (this.isAuthenticated()) {
             return "<account not logged in>";
         }
-        details.add(String.format("Auth method: %s", TextUtils.cyan(getEntity().getMethod().toString())));
+        if (getMethod() != null) {
+            details.add(String.format("Auth method: %s", TextUtils.cyan(getMethod().toString())));
+        }
         final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
         if (StringUtils.isNotEmpty(getEntity().getEmail())) {
             details.add(String.format("Username: %s", TextUtils.cyan(getEntity().getEmail())));
@@ -216,7 +219,6 @@ public abstract class Account implements IAccount {
 
     private void selectSubscriptionInner(List<Subscription> subscriptions, List<String> subscriptionIds) {
         // select subscriptions
-        requireAuthenticated();
         if (CollectionUtils.isNotEmpty(subscriptionIds) && CollectionUtils.isNotEmpty(subscriptions)) {
             subscriptions.forEach(s -> s.setSelected(Utils.containsIgnoreCase(subscriptionIds, s.getId())));
         }
