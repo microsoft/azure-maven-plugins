@@ -22,8 +22,11 @@ import java.util.logging.Level;
 
 @Log
 public class Preloader {
+
+    private static final String INVALID_PRELOAD_METHOD = "@Preload annotated method(%s.%s) should have (no args or only varargs) " +
+            "and must be (static or in a singleton class)";
+
     public static Collection<Method> load() {
-        // Using progress manager as azure task manager is not initialized
         final Set<Method> methods = getPreloadingMethods();
         log.log(Level.INFO, String.format("Found %d @Preload annotated methods.", methods.size()));
         methods.parallelStream().forEach((m) -> {
@@ -33,7 +36,7 @@ public class Preloader {
                     && (Modifier.isStatic(m.getModifiers()) || Objects.nonNull(instance = getSingleton(m)))) {
                 invoke(m, instance);
             } else {
-                log.warning("@Preload annotated method should have (no args or only varargs) and must be (static or in a singleton class)");
+                log.warning(String.format(INVALID_PRELOAD_METHOD, m.getDeclaringClass().getSimpleName(), m.getName()));
             }
         });
         return methods;
