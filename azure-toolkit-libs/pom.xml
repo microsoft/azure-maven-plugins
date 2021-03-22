@@ -78,7 +78,7 @@
         <jansi.version>1.17.1</jansi.version>
         <jetbrains.annotations.version>19.0.0</jetbrains.annotations.version>
         <json.schema.validator.version>2.2.14</json.schema.validator.version>
-        <jtwig.core.version>5.87.0.RELEASE</jtwig.core.version>
+        <groovy.version>2.5.11</groovy.version>
         <junit.version>4.13.1</junit.version>
         <lombok.version>1.18.16</lombok.version>
         <mockito.version>2.22.0</mockito.version>
@@ -219,11 +219,10 @@
                 <version>${rx.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.jtwig</groupId>
-                <artifactId>jtwig-core</artifactId>
-                <version>${jtwig.core.version}</version>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-templates</artifactId>
+                <version>${groovy.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>me.alexpanov</groupId>
                 <artifactId>free-port-finder</artifactId>

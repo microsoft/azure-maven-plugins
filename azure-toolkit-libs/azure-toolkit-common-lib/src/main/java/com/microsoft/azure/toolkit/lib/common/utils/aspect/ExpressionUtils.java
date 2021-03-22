@@ -7,82 +7,62 @@ package com.microsoft.azure.toolkit.lib.common.utils.aspect;
 
 import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.management.resources.fluentcore.arm.ResourceUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jtwig.JtwigModel;
-import org.jtwig.JtwigTemplate;
-import org.jtwig.environment.EnvironmentConfiguration;
-import org.jtwig.environment.EnvironmentConfigurationBuilder;
-import org.jtwig.functions.FunctionRequest;
-import org.jtwig.functions.SimpleJtwigFunction;
+import groovy.text.SimpleTemplateEngine;
+import groovy.text.Template;
+import lombok.extern.java.Log;
+import org.codehaus.groovy.runtime.MethodClosure;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
 
+@Log
 public class ExpressionUtils {
-    private static final Uri2NameFunction toName = new Uri2NameFunction();
-    private static final EnvironmentConfiguration jgConfig = EnvironmentConfigurationBuilder.configuration().functions().add(toName).and().build();
     private static final ImmutableMap<String, Boolean> valueMap = ImmutableMap.of("true", true, "false", false);
+    private static final SimpleTemplateEngine engine = new SimpleTemplateEngine();
+    private static final String INVALID_TEMPLATE = "error occurs when evaluate template(%s) with bindings(%s)";
 
-    public static boolean evaluate(String expression, MethodInvocation invocation, boolean defaultVal) {
+    public static boolean evaluate(@Nonnull final String expression, @Nonnull final MethodInvocation invocation, boolean defaultVal) {
         final String result = interpret(expression, invocation);
-        return valueMap.getOrDefault(result.toLowerCase(), defaultVal);
+        return valueMap.getOrDefault(Optional.ofNullable(result).map(String::toLowerCase).orElse(null), defaultVal);
     }
 
-    public static String interpret(String expression, MethodInvocation invocation) {
-        return render(String.format("{{%s}}", expression), invocation);
+    public static String interpret(@Nonnull final String expression, @Nonnull final MethodInvocation invocation) {
+        return render(String.format("${%s}", expression), invocation);
     }
 
-    public static String render(String expressionOrTemplate, MethodInvocation invocation) {
-        //TODO: validate&decide expression or template
-        final boolean isTemplate = expressionOrTemplate.contains("{{") && expressionOrTemplate.contains("}}");
-        final boolean hasExpression = StringUtils.containsAny(expressionOrTemplate, "@", "$");
-        if (isTemplate) {
-            assert hasExpression : "invalid jtwig template";
-            return render(expressionOrTemplate, toMap(invocation));
-        } else if (hasExpression) {
-            return render(String.format("{{%s}}", expressionOrTemplate), toMap(invocation));
-        } else {
-            return expressionOrTemplate;
+    public static String render(@Nonnull final String template, @Nonnull final MethodInvocation invocation) {
+        if (!template.contains("$")) { // no groovy expression, just return
+            return template;
         }
-    }
-
-    private static String render(String template, Map<String, Object> variables) {
-        final String fixedTemplate = template.replace("@", "$$.");
-        final JtwigTemplate tpl = JtwigTemplate.inlineTemplate(fixedTemplate, jgConfig);
-        final JtwigModel model = JtwigModel.newModel();
-        variables.forEach(model::with);
-        return tpl.render(model);
+        final Map<String, Object> bindings = initBindings(invocation);
+        final String fixed = template.replaceAll("(\\W)this(\\.)", "$1_this_$2"); // resolve `this`
+        try {
+            final Template tpl = engine.createTemplate(fixed);
+            return tpl.make(bindings).toString();
+        } catch (final ClassNotFoundException | IOException e) {
+            log.log(Level.SEVERE, String.format(INVALID_TEMPLATE, template, bindings), e);
+        }
+        return template;
     }
 
     @Nonnull
-    private static Map<String, Object> toMap(@Nonnull final MethodInvocation invocation) {
+    private static Map<String, Object> initBindings(@Nonnull final MethodInvocation invocation) {
         final String[] paramNames = invocation.getParamNames();
         final Object[] paramValues = invocation.getParamValues();
-        final Map<String, Object> variables = new HashMap<>();
+        final Map<String, Object> bindings = new HashMap<>();
         for (int i = 0; i < paramNames.length; i++) {
-            variables.put("$" + paramNames[i], paramValues[i]);
+            bindings.put(paramNames[i], paramValues[i]);
         }
-        variables.put("$$", invocation.getInstance());
-        return variables;
+        bindings.put("_this_", invocation.getInstance());
+        bindPredefinedFunctions(bindings);
+        return bindings;
     }
 
-    private static class Uri2NameFunction extends SimpleJtwigFunction {
-
-        @Override
-        public String name() {
-            return "uri_to_name";
-        }
-
-        @Override
-        public Object execute(FunctionRequest request) {
-            final String input = getInput(request);
-            return ResourceUtils.nameFromResourceId(input);
-        }
-
-        private String getInput(FunctionRequest request) {
-            request.minimumNumberOfArguments(1).maximumNumberOfArguments(1);
-            return request.getEnvironment().getValueEnvironment().getStringConverter().convert(request.get(0));
-        }
+    private static void bindPredefinedFunctions(@Nonnull Map<String, Object> bindings) {
+        bindings.put("nameFromResourceId", new MethodClosure(ResourceUtils.class, "nameFromResourceId"));
     }
 }

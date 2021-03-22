@@ -65,8 +65,8 @@
             <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jtwig</groupId>
-            <artifactId>jtwig-core</artifactId>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-templates</artifactId>
         </dependency>
 
         <dependency>
@@ -112,7 +112,7 @@
                     <verbose>false</verbose>
                     <outxml>true</outxml>
                     <forceAjcCompile>true</forceAjcCompile>
-                    <sources /><!-- this is important!-->
+                    <sources/><!-- this is important!-->
                 </configuration>
                 <executions>
                     <execution>
