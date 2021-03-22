@@ -25,7 +25,7 @@ public class AzureOperationException extends AzureToolkitRuntimeException {
     }
 
     AzureOperationException(final AzureOperationRef operation, final Throwable cause, final String action, final String actionId) {
-        super(AzureOperationUtils.getOperationTitle(operation), cause, action, actionId);
+        super(operation.getTitle(), cause, action, actionId);
         this.operation = operation;
     }
 }
