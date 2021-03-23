@@ -6,20 +6,17 @@
 package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import lombok.Builder;
+import com.microsoft.azure.toolkit.lib.common.utils.aspect.ExpressionUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
-import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Objects;
 
 @Getter
-@Builder
-public class AzureOperationRef implements IAzureOperation {
-    private final Method method;
-    private final String[] paramNames;
-    private final Object[] paramValues;
-    private final Object instance;
-
+@SuperBuilder
+public class AzureOperationRef extends MethodInvocation implements IAzureOperation {
     @Override
     public boolean equals(final Object obj) {
         if (!(obj instanceof AzureOperationRef)) {
@@ -31,18 +28,25 @@ public class AzureOperationRef implements IAzureOperation {
 
     @Override
     public String toString() {
-        final AzureOperation annotation = AzureOperationUtils.getAnnotation(this);
+        final AzureOperation annotation = this.getAnnotation(AzureOperation.class);
         return String.format("{title:'%s', method:%s}", annotation.name(), method.getName());
     }
 
     public String getName() {
-        final AzureOperation annotation = AzureOperationUtils.getAnnotation(this);
+        final AzureOperation annotation = this.getAnnotation(AzureOperation.class);
         return annotation.name();
     }
 
     public String getType() {
-        final AzureOperation annotation = AzureOperationUtils.getAnnotation(this);
+        final AzureOperation annotation = this.getAnnotation(AzureOperation.class);
         return annotation.type().name();
+    }
+
+    public String getTitle() {
+        final AzureOperation annotation = this.getAnnotation(AzureOperation.class);
+        final String name = annotation.name();
+        final String[] params = Arrays.stream(annotation.params()).map(e -> ExpressionUtils.interpret(e, this)).toArray(String[]::new);
+        return AzureOperationBundle.title(name, (Object[]) params).toString();
     }
 
     public String getId() {
