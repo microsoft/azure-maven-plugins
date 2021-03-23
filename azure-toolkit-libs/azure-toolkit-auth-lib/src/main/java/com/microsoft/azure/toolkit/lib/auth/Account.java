@@ -131,7 +131,7 @@ public abstract class Account implements IAccount {
     public String toString() {
         final List<String> details = new ArrayList<>();
 
-        if (this.isAuthenticated()) {
+        if (!this.isAuthenticated()) {
             return "<account not logged in>";
         }
         if (getMethod() != null) {
