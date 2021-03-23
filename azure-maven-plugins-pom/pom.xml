@@ -47,7 +47,7 @@
         <azure.client.version>1.7.12</azure.client.version>
         <azure.eventhubs.version>1.2.0</azure.eventhubs.version>
         <azure.eventhubs-eph.version>2.0.1</azure.eventhubs-eph.version>
-        <azure.function.version>1.4.2-SNAPSHOT</azure.function.version>
+        <azure.function.version>1.4.2</azure.function.version>
         <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
         <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
         <azure.version>1.38.1</azure.version>
