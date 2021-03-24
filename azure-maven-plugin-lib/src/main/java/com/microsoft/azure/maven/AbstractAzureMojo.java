@@ -103,6 +103,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
             "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
+    private static final String AZURE_ENVIRONMENT = "azureEnvironment";
 
     //region Properties
 
@@ -350,6 +351,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             if (env != AzureEnvironment.AZURE) {
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }
+            getTelemetryProxy().addDefaultProperty(AZURE_ENVIRONMENT, environmentName);
             Log.info(azureCredentialWrapper.getCredentialDescription());
             final PagedList<Subscription> subscriptions = Azure.configure()
                     .authenticate(azureCredentialWrapper.getAzureTokenCredentials()).subscriptions().list();

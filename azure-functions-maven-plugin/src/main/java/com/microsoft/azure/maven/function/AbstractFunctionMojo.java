@@ -24,6 +24,10 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     private static final String FUNCTION_JAVA_VERSION_KEY = "functionJavaVersion";
     private static final String DISABLE_APP_INSIGHTS_KEY = "disableAppInsights";
+    private static final String FUNCTION_RUNTIME_KEY = "os";
+    private static final String FUNCTION_IS_DOCKER_KEY = "isDockerFunction";
+    private static final String FUNCTION_REGION_KEY = "region";
+    private static final String FUNCTION_PRICING_KEY = "pricingTier";
 
     //region Properties
     /**
@@ -129,7 +133,13 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> result = super.getTelemetryProperties();
         final String javaVersion = runtime == null ? null : runtime.getJavaVersion();
+        final String os = runtime == null ? null : runtime.getOs();
+        final boolean isDockerFunction = runtime == null ? false : StringUtils.isNotEmpty(runtime.getImage());
         result.put(FUNCTION_JAVA_VERSION_KEY, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
+        result.put(FUNCTION_RUNTIME_KEY, StringUtils.isEmpty(os) ? "" : os);
+        result.put(FUNCTION_IS_DOCKER_KEY, String.valueOf(isDockerFunction));
+        result.put(FUNCTION_REGION_KEY, region);
+        result.put(FUNCTION_PRICING_KEY, pricingTier);
         result.put(DISABLE_APP_INSIGHTS_KEY, String.valueOf(isDisableAppInsights()));
         return result;
     }
