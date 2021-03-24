@@ -27,8 +27,10 @@ public class Preloader {
             "and must be (static or in a singleton class)";
 
     public static Collection<Method> load() {
+        log.log(Level.INFO, "#####Start Scanning for @Preload#####");
         final Set<Method> methods = getPreloadingMethods();
         log.log(Level.INFO, String.format("Found %d @Preload annotated methods.", methods.size()));
+        log.log(Level.INFO, "#####End Scanning for @Preload#####");
         log.log(Level.INFO, "#####Start Preloading#####");
         methods.parallelStream().forEach((m) -> {
             Object instance = null;

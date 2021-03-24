@@ -14,27 +14,27 @@ import java.lang.annotation.Target;
 public @interface CacheEvict {
 
     /**
-     * alias of {@link CacheEvict#cacheName()} }
-     * string literal or groovy expression or template for computing the cacheName dynamically.
-     * e.g. groovy expression/templates: {@code "$subscriptionId" }, {@code "$subscriptionId-$clusterId"}, {@code "@.subscriptionId"}
+     * alias of {@link Cacheable#cacheName()} }
+     * string literal or groovy template for computing the cacheName dynamically.
+     * e.g. groovy templates: {@code "$subscriptionId" }, {@code "$subscriptionId-$clusterId"}, {@code "${this.subscriptionId}"}
      */
     String value() default "";
 
     /**
-     * string literal or groovy expression or template for computing the cacheName dynamically.
-     * e.g. groovy expression/templates: {@code "$subscriptionId" }, {@code "$subscriptionId-$clusterId"}, {@code "@.subscriptionId"}
+     * string literal or groovy template for computing the cacheName dynamically.
+     * e.g. groovy templates: {@code "$subscriptionId" }, {@code "$subscriptionId-$clusterId"}, {@code "${this.subscriptionId}"}
      */
     String cacheName() default "";
 
     /**
-     * string literal or groovy expression or template for computing the key dynamically.
-     * e.g. groovy expression/templates: {@code "$subscriptionId" }, {@code "$subscriptionId-$clusterId"}, {@code "@.subscriptionId"}
+     * string literal or groovy template for computing the key dynamically.
+     * e.g. groovy templates: {@code "$subscriptionId" }, {@code "$subscriptionId-$clusterId"}, {@code "${this.subscriptionId}"}
      */
     String key() default "<cache>";
 
     /**
      * groovy expression used for making the method caching conditional.
-     * e.g. groovy expression: {@code "$items && $items[0]=='xxx'" }
+     * e.g. groovy expression: {@code "items&&items[0]" }
      */
     String condition() default "";
 }

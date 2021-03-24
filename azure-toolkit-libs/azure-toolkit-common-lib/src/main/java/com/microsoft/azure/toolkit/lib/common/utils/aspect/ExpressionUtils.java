@@ -10,9 +10,11 @@ import com.microsoft.azure.management.resources.fluentcore.arm.ResourceUtils;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import lombok.extern.java.Log;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.groovy.runtime.MethodClosure;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,8 +36,8 @@ public class ExpressionUtils {
         return render(String.format("${%s}", expression), invocation);
     }
 
-    public static String render(@Nonnull final String template, @Nonnull final MethodInvocation invocation) {
-        if (!template.contains("$")) { // no groovy expression, just return
+    public static String render(@Nullable final String template, @Nonnull final MethodInvocation invocation) {
+        if (StringUtils.isBlank(template) || !template.contains("$")) { // no groovy expression, just return
             return template;
         }
         final Map<String, Object> bindings = initBindings(invocation);
