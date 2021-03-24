@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 
@@ -23,6 +24,8 @@ public interface IAppServiceCreator<T> {
     IAppServiceCreator<T> withDockerConfiguration(DockerConfiguration dockerConfiguration);
 
     IAppServiceCreator<T> withAppSettings(Map<String, String> appSettings);
+
+    IAppServiceCreator<T> withDiagnosticConfig(DiagnosticConfig diagnosticConfig);
 
     T commit();
 }

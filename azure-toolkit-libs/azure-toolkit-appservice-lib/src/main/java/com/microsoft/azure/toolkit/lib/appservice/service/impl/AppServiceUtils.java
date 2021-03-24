@@ -15,6 +15,7 @@ import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -186,4 +187,37 @@ class AppServiceUtils {
         }
     }
 
+    static void defineDiagnosticConfigurationForWebAppBase(final WebAppBase.DefinitionStages.WithCreate withCreate, final DiagnosticConfig diagnosticConfig) {
+        if (diagnosticConfig.isEnableApplicationLog()) {
+            withCreate.defineDiagnosticLogsConfiguration()
+                    .withApplicationLogging()
+                    .withLogLevel(com.azure.resourcemanager.appservice.models.LogLevel.fromString(diagnosticConfig.getApplicationLogLevel().toString()))
+                    .withApplicationLogsStoredOnFileSystem();
+        }
+        if (diagnosticConfig.isEnableWebServerLogging()) {
+            withCreate.defineDiagnosticLogsConfiguration().withWebServerLogging()
+                    .withWebServerLogsStoredOnFileSystem()
+                    .withWebServerFileSystemQuotaInMB(diagnosticConfig.getWebServerLogQuota())
+                    .withLogRetentionDays(diagnosticConfig.getWebServerRetentionPeriod())
+                    .withDetailedErrorMessages(diagnosticConfig.isEnableDetailedErrorMessage())
+                    .withFailedRequestTracing(diagnosticConfig.isEnableFailedRequestTracing());
+        }
+    }
+
+    static void updateDiagnosticConfigurationForWebAppBase(final WebAppBase.Update update, final DiagnosticConfig diagnosticConfig) {
+        if (diagnosticConfig.isEnableApplicationLog()) {
+            update.updateDiagnosticLogsConfiguration()
+                    .withApplicationLogging()
+                    .withLogLevel(com.azure.resourcemanager.appservice.models.LogLevel.fromString(diagnosticConfig.getApplicationLogLevel().toString()))
+                    .withApplicationLogsStoredOnFileSystem();
+        }
+        if (diagnosticConfig.isEnableWebServerLogging()) {
+            update.updateDiagnosticLogsConfiguration().withWebServerLogging()
+                    .withWebServerLogsStoredOnFileSystem()
+                    .withWebServerFileSystemQuotaInMB(diagnosticConfig.getWebServerLogQuota())
+                    .withLogRetentionDays(diagnosticConfig.getWebServerRetentionPeriod())
+                    .withDetailedErrorMessages(diagnosticConfig.isEnableDetailedErrorMessage())
+                    .withFailedRequestTracing(diagnosticConfig.isEnableFailedRequestTracing());
+        }
+    }
 }

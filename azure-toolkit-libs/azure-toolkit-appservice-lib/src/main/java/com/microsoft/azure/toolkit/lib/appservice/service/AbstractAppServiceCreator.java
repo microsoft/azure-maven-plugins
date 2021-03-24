@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
@@ -25,6 +26,7 @@ public abstract class AbstractAppServiceCreator<T> implements IAppServiceCreator
     private String name = null;
     private String resourceGroup = null;
     private AppServicePlanEntity appServicePlanEntity = null;
+    private Optional<DiagnosticConfig> diagnosticConfig = null;
     private Optional<DockerConfiguration> dockerConfiguration = null;
     private Optional<Map<String, String>> appSettings = null;
 
@@ -53,6 +55,12 @@ public abstract class AbstractAppServiceCreator<T> implements IAppServiceCreator
     @Override
     public IAppServiceCreator<T> withRuntime(Runtime runtime) {
         this.runtime = runtime;
+        return this;
+    }
+
+    @Override
+    public IAppServiceCreator<T> withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
+        this.diagnosticConfig = Optional.ofNullable(diagnosticConfig);
         return this;
     }
 
