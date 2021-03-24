@@ -23,7 +23,7 @@ import java.io.File;
  */
 @Mojo(name = "run")
 public class RunMojo extends AbstractFunctionMojo {
-    protected static final String FUNC_CMD = "func";
+    protected static final String FUNC_CMD = "func -v";
     protected static final String FUNC_HOST_START_CMD = "func host start";
     protected static final String RUN_FUNCTIONS_FAILURE = "Failed to run Azure Functions. Please checkout console output.";
     protected static final String RUNTIME_NOT_FOUND = "Azure Functions Core Tools not found. " +
