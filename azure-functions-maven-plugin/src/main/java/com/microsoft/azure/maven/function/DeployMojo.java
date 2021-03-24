@@ -131,6 +131,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String FUNCTIONS_EXTENSION_VERSION_VALUE = "~3";
     private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
             "isn't configured, setting up the default value.";
+    private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
 
     private JavaVersion parsedJavaVersion;
 
@@ -187,6 +188,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected FunctionApp createFunctionApp(final FunctionRuntimeHandler runtimeHandler) throws AzureAuthFailureException, AzureExecutionException {
         Log.info(FUNCTION_APP_CREATE_START);
+        getTelemetryProxy().addDefaultProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
         validateApplicationInsightsConfiguration();
         final Map appSettings = getAppSettings();
         // get/create ai instances only if user didn't specify ai connection string in app settings
