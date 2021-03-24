@@ -29,16 +29,20 @@ public class Preloader {
     public static Collection<Method> load() {
         final Set<Method> methods = getPreloadingMethods();
         log.log(Level.INFO, String.format("Found %d @Preload annotated methods.", methods.size()));
+        log.log(Level.INFO, "#####Start Preloading#####");
         methods.parallelStream().forEach((m) -> {
             Object instance = null;
             // TODO: maybe support predefined variables, e.g. selected subscriptions
             if ((m.getParameterCount() == 0 || m.isVarArgs())
                     && (Modifier.isStatic(m.getModifiers()) || Objects.nonNull(instance = getSingleton(m)))) {
+                log.log(Level.INFO, String.format("preloading [%s]", m.getName()));
                 invoke(m, instance);
+                log.log(Level.INFO, String.format("preloaded [%s]", m.getName()));
             } else {
                 log.warning(String.format(INVALID_PRELOAD_METHOD, m.getDeclaringClass().getSimpleName(), m.getName()));
             }
         });
+        log.log(Level.INFO, "#####End Preloading#####");
         return methods;
     }
 
@@ -72,7 +76,7 @@ public class Preloader {
 
     private static Set<Method> getPreloadingMethods() {
         final ConfigurationBuilder configuration = new ConfigurationBuilder()
-                .forPackages("com.microsoft.azure.toolkit")
+                .forPackages("com.microsoft.azure.toolkit","com.microsoft.azuretools")
                 .setScanners(new MethodAnnotationsScanner());
         final Reflections reflections = new Reflections(configuration);
         return reflections.getMethodsAnnotatedWith(Preload.class);

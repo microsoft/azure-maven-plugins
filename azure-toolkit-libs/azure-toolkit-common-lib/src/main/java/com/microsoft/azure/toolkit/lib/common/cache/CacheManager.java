@@ -15,13 +15,15 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Aspect
 @Log
-public class CacheableAspect {
+public class CacheManager {
     private static final CacheLoader<String, Cache<Object, Object>> loader = new CacheLoader<String, Cache<Object, Object>>() {
         @Override
         public Cache<Object, Object> load(@Nonnull String key) {
@@ -40,8 +42,12 @@ public class CacheableAspect {
     public void cacheable() {
     }
 
+    @Pointcut("execution(@com.microsoft.azure.toolkit.lib.common.cache.CacheEvict * *..*.*(..))")
+    public void cacheEvict() {
+    }
+
     @Around("cacheable()")
-    public Object around(ProceedingJoinPoint point) throws Throwable {
+    public Object aroundCacheable(@Nonnull final ProceedingJoinPoint point) throws Throwable {
         final MethodSignature signature = (MethodSignature) point.getSignature();
         final MethodInvocation invocation = MethodInvocation.from(point);
         final Cacheable annotation = signature.getMethod().getAnnotation(Cacheable.class);
@@ -58,7 +64,7 @@ public class CacheableAspect {
         final boolean toUseCache = StringUtils.isBlank(condition) || ExpressionUtils.evaluate(condition, invocation, true);
         final Cache<Object, Object> cache = caches.get(name);
         if (toUseCache) {
-            return getFromCache(cache, key, point);
+            return readCache(cache, key, point);
         }
         final Object result = point.proceed();
         if (Objects.nonNull(result)) {
@@ -67,7 +73,38 @@ public class CacheableAspect {
         return result;
     }
 
-    private Object getFromCache(Cache<Object, Object> cache, String key, ProceedingJoinPoint point) throws Throwable {
+    @Around("cacheEvict()")
+    public Object aroundCacheEvict(@Nonnull final ProceedingJoinPoint point) throws Throwable {
+        final MethodSignature signature = (MethodSignature) point.getSignature();
+        final MethodInvocation invocation = MethodInvocation.from(point);
+        final CacheEvict annotation = signature.getMethod().getAnnotation(CacheEvict.class);
+
+        final String cacheName = StringUtils.firstNonBlank(annotation.cacheName(), annotation.value());
+        final String name = ExpressionUtils.render(cacheName, invocation);
+        final String key = ExpressionUtils.render(annotation.key(), invocation);
+        final String condition = annotation.condition();
+        final boolean toEvictCache = StringUtils.isBlank(condition) || ExpressionUtils.evaluate(condition, invocation, true);
+
+        if (toEvictCache) {
+            invalidateCache(name, key);
+        }
+        return point.proceed();
+    }
+
+    private void invalidateCache(@Nullable final String name, @Nullable final String key) throws ExecutionException {
+        if (StringUtils.isBlank(name)) { // invalidate all cache entries if cache name not specified
+            caches.invalidateAll();
+        } else {
+            final Cache<Object, Object> cache = caches.get(name);
+            if (StringUtils.isBlank(key)) { // invalidate all cache entries of named cache if only cache name is specified
+                cache.invalidateAll();
+            } else { // invalidate key specified cache entry of named cache if both cache name and key are specified
+                cache.invalidate(key);
+            }
+        }
+    }
+
+    private Object readCache(Cache<Object, Object> cache, String key, ProceedingJoinPoint point) throws Throwable {
         final Optional<?> result = (Optional<?>) cache.get(key, () -> {
             try {
                 return Optional.ofNullable(point.proceed());
