@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.function;
 
+import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.common.Utils;
 import com.microsoft.azure.common.applicationinsights.ApplicationInsightsManager;
 import com.microsoft.azure.common.appservice.DeployTargetType;
@@ -54,10 +55,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -101,7 +99,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String SKIP_CREATING_APPLICATION_INSIGHTS = "Skip creating application insights";
     private static final String APPLICATION_INSIGHTS_CREATE_START = "Creating application insights...";
     private static final String APPLICATION_INSIGHTS_CREATED = "Successfully created the application insights %s " +
-            "for this Function App. You can visit https://portal.azure.com/#resource%s/overview to view your " +
+            "for this Function App. You can visit %s/#resource%s/overview to view your " +
             "Application Insights component.";
     private static final String APPLICATION_INSIGHTS_CREATE_FAILED = "Unable to create the Application Insights " +
             "for the Function App due to error %s. Please use the Azure Portal to manually create and configure the " +
@@ -429,7 +427,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     private File getArtifactToDeploy() throws AzureExecutionException {
         final File stagingFolder = new File(getDeploymentStagingDirectoryPath());
-        return Arrays.stream(stagingFolder.listFiles())
+        return Arrays.stream(Optional.ofNullable(stagingFolder.listFiles()).orElse(new File[0]))
                 .filter(jar -> StringUtils.equals(FilenameUtils.getBaseName(jar.getName()), this.getFinalName()))
                 .findFirst()
                 .orElseThrow(() -> new AzureExecutionException(
@@ -541,7 +539,11 @@ public class DeployMojo extends AbstractFunctionMojo {
         try {
             Log.info(APPLICATION_INSIGHTS_CREATE_START);
             final ApplicationInsightsComponent resource = applicationInsightsManager.createApplicationInsights(getResourceGroup(), name, getRegion());
-            Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.name(), resource.id()));
+
+            final AzureCredentialWrapper azureCredentialWrapper = getAzureCredentialWrapper();
+            final AzureEnvironment environment = azureCredentialWrapper.getEnv();
+
+            Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.name(), getPortalUrl(environment), resource.id()));
             return resource;
         } catch (Exception e) {
             Log.warn(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, e.getMessage()));
