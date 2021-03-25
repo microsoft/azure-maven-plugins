@@ -59,6 +59,10 @@ public class DeployMojo extends AbstractWebAppMojo {
     private static final String NO_RUNTIME_CONFIG = "You need to specified runtime in pom.xml for creating azure webapps. " +
             "For V1 schema version, please use <javaVersion>, <linuxRuntime> or <containerSettings>, " +
             "For V2 schema version, please use <runtime>.";
+    private static final String CREATE_NEW_APP_SERVICE_PLAN = "createNewAppServicePlan";
+    private static final String CREATE_NEW_RESOURCE_GROUP = "createNewResourceGroup";
+    private static final String CREATE_NEW_WEB_APP = "createNewWebApp";
+    private static final String CREATE_NEW_DEPLOYMENT_SLOT = "createNewDeploymentSlot";
 
     @Override
     protected void doExecute() throws AzureExecutionException {
@@ -96,6 +100,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         if (webAppConfig.getRuntime() == null) {
             throw new AzureExecutionException(NO_RUNTIME_CONFIG);
         }
+        getTelemetryProxy().addDefaultProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         final ResourceGroup resourceGroup = getOrCreateResourceGroup(webAppConfig);
         final IAppServicePlan appServicePlan = getOrCreateAppServicePlan(webAppConfig);
         Log.info(String.format(CREATE_WEBAPP, webAppConfig.getAppName()));
@@ -135,6 +140,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             return az.getAzureResourceManager().resourceGroups().getByName(webAppConfig.getResourceGroup());
         } catch (ManagementException e) {
             Log.info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion().getName()));
+            getTelemetryProxy().addDefaultProperty(CREATE_NEW_RESOURCE_GROUP, String.valueOf(true));
             final ResourceGroup result = az.getAzureResourceManager().resourceGroups().define(webAppConfig.getResourceGroup())
                     .withRegion(webAppConfig.getRegion().getName()).create();
             Log.info(String.format(CREATE_RESOURCE_GROUP_DONE, webAppConfig.getResourceGroup()));
@@ -149,6 +155,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         final IAppServicePlan appServicePlan = az.appServicePlan(servicePlanGroup, servicePlanName);
         if (!appServicePlan.exists()) {
             Log.info(CREATE_APP_SERVICE_PLAN);
+            getTelemetryProxy().addDefaultProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
             appServicePlan.create()
                     .withName(servicePlanName)
                     .withResourceGroup(servicePlanGroup)
@@ -173,6 +180,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     private IWebAppDeploymentSlot createDeploymentSlot(final IWebAppDeploymentSlot slot, final WebAppConfig webAppConfig) {
         Log.info(String.format(CREATE_DEPLOYMENT_SLOT, webAppConfig.getDeploymentSlotName(), webAppConfig.getAppName()));
+        getTelemetryProxy().addDefaultProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
         final IWebAppDeploymentSlot result = slot.create().withName(webAppConfig.getDeploymentSlotName())
                 .withConfigurationSource(webAppConfig.getDeploymentSlotConfigurationSource())
                 .withAppSettings(webAppConfig.getAppSettings())
