@@ -56,7 +56,7 @@ public class LegacyRefreshTokenCredentialFactory {
                         throw new AzureToolkitRuntimeException("There are no tenants in your account.");
                     }
 
-                    return new RefreshTokenTokenCredential(
+                    return LegacyRefreshTokenCredentialFactory.fromRefreshToken(
                             environment, IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID, tenantIds.get(0), refreshTokenFromResult);
                 });
     }
