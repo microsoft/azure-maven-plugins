@@ -9,6 +9,8 @@ import com.azure.identity.DeviceCodeCredential;
 import com.azure.identity.DeviceCodeCredentialBuilder;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.auth.core.AbstractCredentialRetriever;
+import com.microsoft.azure.toolkit.lib.auth.core.legacy.LegacyAsyncCredentialProxy;
+import com.microsoft.azure.toolkit.lib.auth.core.legacy.LegacyRefreshTokenCredentialFactory;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -25,6 +27,9 @@ public class DeviceCodeCredentialRetriever extends AbstractCredentialRetriever {
         DeviceCodeCredential deviceCodeCredential = new DeviceCodeCredentialBuilder().clientId(AZURE_TOOLKIT_CLIENT_ID)
             .challengeConsumer(challenge -> System.out.println(StringUtils.replace(challenge.getMessage(), challenge.getUserCode(),
                 TextUtils.cyan(challenge.getUserCode())))).build();
-        return new AzureCredentialWrapper(AuthMethod.DEVICE_CODE, deviceCodeCredential, getAzureEnvironment());
+        return new AzureCredentialWrapper(AuthMethod.DEVICE_CODE,
+                new LegacyAsyncCredentialProxy(LegacyRefreshTokenCredentialFactory.createRefreshTokenCredential(
+                        getAzureEnvironment(), deviceCodeCredential)),
+                getAzureEnvironment());
     }
 }
