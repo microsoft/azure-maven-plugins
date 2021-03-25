@@ -103,7 +103,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String SKIP_CREATING_APPLICATION_INSIGHTS = "Skip creating application insights";
     private static final String APPLICATION_INSIGHTS_CREATE_START = "Creating application insights...";
     private static final String APPLICATION_INSIGHTS_CREATED = "Successfully created the application insights %s " +
-            "for this Function App. You can visit %s/#resource%s/overview to view your " +
+            "for this Function App. You can visit %s/#@/resource%s/overview to view your " +
             "Application Insights component.";
     private static final String APPLICATION_INSIGHTS_CREATE_FAILED = "Unable to create the Application Insights " +
             "for the Function App due to error %s. Please use the Azure Portal to manually create and configure the " +

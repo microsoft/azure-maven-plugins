@@ -26,7 +26,7 @@ import java.util.Properties;
  */
 public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
-    protected static final String PORTAL_URL_PATTERN = "%s/#/resource%s";
+    protected static final String PORTAL_URL_PATTERN = "%s/#@/resource%s";
 
     /**
      * Resource group of App Service. It will be created if it doesn't exist.
