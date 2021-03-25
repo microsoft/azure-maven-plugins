@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthentication
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
-import com.microsoft.azure.maven.auth.MavenAuthManager;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
@@ -28,7 +27,6 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
-import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -159,7 +157,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected void initExecution() throws MavenDecryptException, AzureExecutionException, LoginFailureException {
         // init proxy manager
-        ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
+        ProxyUtils.initProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
         // Init telemetries
         initTelemetry();
         telemetries.put(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
@@ -167,7 +165,6 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         Azure.az().config().setUserAgent(getUserAgent());
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
-        mavenAuthConfiguration.setType(getAuthType());
         com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(
                 MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
         final Account account = Azure.az(AzureAccount.class).account();
@@ -176,7 +173,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         if (env != AzureEnvironment.AZURE) {
             Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
         }
-        Log.info(azureCredentialWrapper.getCredentialDescription());
+        Log.info(account.toString());
     }
 
     protected String getAuthType() {

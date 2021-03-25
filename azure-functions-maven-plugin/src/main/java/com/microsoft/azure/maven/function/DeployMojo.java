@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.common.Utils;
 import com.microsoft.azure.common.applicationinsights.ApplicationInsightsManager;
 import com.microsoft.azure.common.appservice.DeployTargetType;
@@ -550,10 +550,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         try {
             Log.info(APPLICATION_INSIGHTS_CREATE_START);
             final ApplicationInsightsComponent resource = applicationInsightsManager.createApplicationInsights(getResourceGroup(), name, getRegion());
-
-            final AzureCredentialWrapper azureCredentialWrapper = getAzureCredentialWrapper();
-            final AzureEnvironment environment = azureCredentialWrapper.getEnv();
-
+            final AzureEnvironment environment = Azure.az(AzureAccount.class).account().getEnvironment();
             Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.name(), getPortalUrl(environment), resource.id()));
             return resource;
         } catch (Exception e) {
