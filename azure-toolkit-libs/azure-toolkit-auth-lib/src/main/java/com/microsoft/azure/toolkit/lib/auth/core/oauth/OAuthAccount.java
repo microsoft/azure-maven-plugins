@@ -20,7 +20,6 @@ import javax.annotation.Nonnull;
 import java.awt.*;
 
 public class OAuthAccount extends RefreshTokenAccount {
-    @Getter
     private final AuthMethod method = AuthMethod.OAUTH2;
 
     public OAuthAccount(@Nonnull AzureEnvironment environment) {
@@ -48,5 +47,11 @@ public class OAuthAccount extends RefreshTokenAccount {
 
     private static boolean isBrowserAvailable() {
         return Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE);
+    }
+
+
+    @Override
+    public AuthMethod getMethod() {
+        return method;
     }
 }
