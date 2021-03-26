@@ -17,24 +17,29 @@ public @interface CacheEvict {
      * alias of {@link Cacheable#cacheName()} }
      * string literal or groovy template for computing the cacheName dynamically.
      * e.g. groovy templates: {@code "$subscriptionId" }, {@code "$subscriptionId-$clusterId"}, {@code "${this.subscriptionId}"}
+     * {@link CacheEvict#ALL} to evict all caches.
      */
     String value() default "";
 
     /**
      * string literal or groovy template for computing the cacheName dynamically.
      * e.g. groovy templates: {@code "$subscriptionId" }, {@code "$subscriptionId-$clusterId"}, {@code "${this.subscriptionId}"}
+     * {@link CacheEvict#ALL} to evict all caches.
      */
     String cacheName() default "";
 
     /**
      * string literal or groovy template for computing the key dynamically.
      * e.g. groovy templates: {@code "$subscriptionId" }, {@code "$subscriptionId-$clusterId"}, {@code "${this.subscriptionId}"}
+     * {@link CacheEvict#ALL} to evict all the cache entries of the named cache .
      */
-    String key() default "<cache>";
+    String key() default "";
 
     /**
      * groovy expression used for making the method caching conditional.
      * e.g. groovy expression: {@code "items&&items[0]" }
      */
     String condition() default "";
+
+    String ALL = "<ALL>";
 }

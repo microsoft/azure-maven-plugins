@@ -96,17 +96,20 @@ public class CacheManager {
     }
 
     private void invalidateCache(@Nullable final String name, @Nullable final String key) throws ExecutionException {
-        if (StringUtils.isBlank(name)) { // invalidate all cache entries if cache name not specified
-            log.log(Level.INFO, "invalidate all cache");
+        if (StringUtils.isBlank(name)) {
+            log.log(Level.WARNING, "cache name is not specified when invalidating cache");
+        } else if (StringUtils.equals(CacheEvict.ALL, name)) { // invalidate all cache entries if cache name not specified
+            log.log(Level.INFO, "invalidate all caches");
             caches.invalidateAll();
         } else {
-            final Cache<Object, Object> cache = caches.get(name);
-            if (StringUtils.isBlank(key)) { // invalidate all cache entries of named cache if only cache name is specified
+            if (StringUtils.isBlank(key)) {
+                log.log(Level.WARNING, String.format("key is not specified when invalidating cache[%s]", name));
+            } else if (StringUtils.equals(CacheEvict.ALL, key)) { // invalidate all cache entries of named cache if only cache name is specified
                 log.log(Level.INFO, String.format("invalidate all entries in cache[%s]", name));
-                cache.invalidateAll();
+                caches.invalidate(name);
             } else { // invalidate key specified cache entry of named cache if both cache name and key are specified
                 log.log(Level.INFO, String.format("invalidate cache entry[%s.%s]", name, key));
-                cache.invalidate(key);
+                caches.get(name).invalidate(key);
             }
         }
     }
