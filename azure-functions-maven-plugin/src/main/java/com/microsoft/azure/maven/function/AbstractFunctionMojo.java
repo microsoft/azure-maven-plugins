@@ -28,6 +28,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     private static final String FUNCTION_IS_DOCKER_KEY = "isDockerFunction";
     private static final String FUNCTION_REGION_KEY = "region";
     private static final String FUNCTION_PRICING_KEY = "pricingTier";
+    private static final String FUNCTION_DEPLOY_TO_SLOT_KEY = "isDeployToFunctionSlot";
 
     //region Properties
     /**
@@ -134,13 +135,15 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         final Map<String, String> result = super.getTelemetryProperties();
         final String javaVersion = runtime == null ? null : runtime.getJavaVersion();
         final String os = runtime == null ? null : runtime.getOs();
-        final boolean isDockerFunction = runtime == null ? false : StringUtils.isNotEmpty(runtime.getImage());
+        final boolean isDockerFunction = runtime != null && StringUtils.isNotEmpty(runtime.getImage());
         result.put(FUNCTION_JAVA_VERSION_KEY, StringUtils.isEmpty(javaVersion) ? "" : javaVersion);
         result.put(FUNCTION_RUNTIME_KEY, StringUtils.isEmpty(os) ? "" : os);
         result.put(FUNCTION_IS_DOCKER_KEY, String.valueOf(isDockerFunction));
         result.put(FUNCTION_REGION_KEY, region);
         result.put(FUNCTION_PRICING_KEY, pricingTier);
         result.put(DISABLE_APP_INSIGHTS_KEY, String.valueOf(isDisableAppInsights()));
+        final boolean isDeployToFunctionSlot = getDeploymentSlotSetting() != null && StringUtils.isNotEmpty(getDeploymentSlotSetting().getName());
+        result.put(FUNCTION_DEPLOY_TO_SLOT_KEY, String.valueOf(isDeployToFunctionSlot));
         return result;
     }
     //endregion
