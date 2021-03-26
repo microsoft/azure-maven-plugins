@@ -34,7 +34,7 @@ public @interface Cacheable {
 
     /**
      * groovy expression used for making the method caching conditional.
-     * e.g. groovy expression: {@code "items&&items[0]" }
+     * e.g. groovy expression: {@code "this.isLoading()" } {@code "this.loading" },  {@code "this.subscriptionId=='xxx'" }
      */
     String condition() default "";
 }
