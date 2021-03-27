@@ -58,6 +58,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>oauth2-oidc-sdk</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>me.alexpanov</groupId>
             <artifactId>free-port-finder</artifactId>
         </dependency>

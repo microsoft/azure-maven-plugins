@@ -11,7 +11,6 @@ import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
 import com.microsoft.azure.management.appservice.WebAppBase;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -27,7 +26,7 @@ import java.util.Properties;
  */
 public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     protected static final String MAVEN_PLUGIN_POSTFIX = "-maven-plugin";
-    protected static final String PORTAL_URL_PATTERN = "%s/#@%s/resource%s";
+    protected static final String PORTAL_URL_PATTERN = "%s/#@/resource%s";
 
     /**
      * Resource group of App Service. It will be created if it doesn't exist.
@@ -149,14 +148,13 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         this.deploymentSlotSetting = slotSetting;
     }
 
-    public String getResourcePortalUrl(WebAppBase resource) throws AzureAuthFailureException, AzureExecutionException {
+    public String getResourcePortalUrl(WebAppBase resource) {
         final AzureCredentialWrapper azureCredentialWrapper = getAzureCredentialWrapper();
         final AzureEnvironment environment = azureCredentialWrapper.getEnv();
-        final String tenantId = getAzureClient().tenantId();
-        return String.format(PORTAL_URL_PATTERN, getPortalUrl(environment), tenantId, resource.id());
+        return String.format(PORTAL_URL_PATTERN, getPortalUrl(environment), resource.id());
     }
 
-    private static String getPortalUrl(AzureEnvironment azureEnvironment) {
+    protected static String getPortalUrl(AzureEnvironment azureEnvironment) {
         if (azureEnvironment == null || azureEnvironment == AzureEnvironment.AZURE) {
             return "https://ms.portal.azure.com";
         }
