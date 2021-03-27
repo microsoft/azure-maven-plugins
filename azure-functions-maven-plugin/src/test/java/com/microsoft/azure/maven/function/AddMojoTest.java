@@ -7,6 +7,7 @@ package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 
+import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.settings.Settings;
@@ -22,6 +23,8 @@ import java.util.Set;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -107,6 +110,9 @@ public class AddMojoTest extends MojoTestBase {
 
     private AddMojo getMojoFromPom() throws Exception {
         final AddMojo mojo = (AddMojo) getMojoFromPom("/pom.xml", "add");
+        final TelemetryProxy testProxy = mock(TelemetryProxy.class);
+        doNothing().when(testProxy).addDefaultProperty(any(), any());
+        ReflectionUtils.setVariableValueInObject(mojo, "telemetryProxy", testProxy);
         assertNotNull(mojo);
         return mojo;
     }

@@ -29,6 +29,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
     private static final String FUNCTION_REGION_KEY = "region";
     private static final String FUNCTION_PRICING_KEY = "pricingTier";
     private static final String FUNCTION_DEPLOY_TO_SLOT_KEY = "isDeployToFunctionSlot";
+    protected static final String TRIGGER_TYPE = "triggerType";
 
     //region Properties
     /**
