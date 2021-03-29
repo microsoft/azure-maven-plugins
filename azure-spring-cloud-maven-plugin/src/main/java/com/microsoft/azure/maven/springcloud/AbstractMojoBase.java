@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.springcloud;
 import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
@@ -72,6 +73,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     private static final String INIT_FAILURE = "InitFailure";
     private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     private static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
+    private static final String PROXY = "proxy";
 
     @Parameter(property = "auth")
     protected MavenAuthConfiguration auth;
@@ -155,6 +157,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
         // Init telemetries
         initTelemetry();
+        telemetries.put(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
         mavenAuthConfiguration.setType(getAuthType());

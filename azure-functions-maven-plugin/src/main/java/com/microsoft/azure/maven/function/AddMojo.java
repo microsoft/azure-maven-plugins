@@ -145,8 +145,8 @@ public class AddMojo extends AbstractFunctionMojo {
             final List<FunctionTemplate> templates = loadAllFunctionTemplates();
 
             final FunctionTemplate template = getFunctionTemplate(templates);
-            final BindingTemplate bindingTemplate = FunctionUtils.loadBindingTemplate(template.getTriggerType());
 
+            final BindingTemplate bindingTemplate = FunctionUtils.loadBindingTemplate(template.getTriggerType());
             final Map params = prepareRequiredParameters(template, bindingTemplate);
 
             final String newFunctionClass = substituteParametersInTemplate(template, params);
@@ -178,19 +178,20 @@ public class AddMojo extends AbstractFunctionMojo {
         if (settings != null && !settings.isInteractiveMode()) {
             assureInputInBatchMode(getFunctionTemplate(),
                 str -> getTemplateNames(templates)
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .anyMatch(o -> o.equalsIgnoreCase(str)),
-                this::setFunctionTemplate,
-                true);
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .anyMatch(o -> o.equalsIgnoreCase(str)),
+                    this::setFunctionTemplate,
+                    true);
         } else {
             assureInputFromUser("template for new function",
-                getFunctionTemplate(),
-                getTemplateNames(templates),
-                this::setFunctionTemplate);
+                    getFunctionTemplate(),
+                    getTemplateNames(templates),
+                    this::setFunctionTemplate);
         }
-
-        return findTemplateByName(templates, getFunctionTemplate());
+        final FunctionTemplate result = findTemplateByName(templates, getFunctionTemplate());
+        getTelemetryProxy().addDefaultProperty(TRIGGER_TYPE, result.getTriggerType());
+        return result;
     }
 
     protected List<String> getTemplateNames(final List<FunctionTemplate> templates) {
@@ -201,8 +202,8 @@ public class AddMojo extends AbstractFunctionMojo {
             throws AzureExecutionException {
         Log.info("Selected function template: " + templateName);
         final Optional<FunctionTemplate> template = templates.stream()
-            .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
-            .findFirst();
+                .filter(t -> t.getMetadata().getName().equalsIgnoreCase(templateName))
+                .findFirst();
 
         if (template.isPresent()) {
             Log.info(FIND_TEMPLATE_DONE + templateName);
@@ -218,7 +219,7 @@ public class AddMojo extends AbstractFunctionMojo {
 
     protected Map<String, String> prepareRequiredParameters(final FunctionTemplate template,
                                                             final BindingTemplate bindingTemplate)
-        throws MojoFailureException {
+            throws MojoFailureException {
         Log.info("");
         Log.info(PREPARE_PARAMS);
 
@@ -242,16 +243,10 @@ public class AddMojo extends AbstractFunctionMojo {
         Log.info("Common parameter [Function Name]: name for both the new function and Java class");
 
         if (settings != null && !settings.isInteractiveMode()) {
-            assureInputInBatchMode(getFunctionName(),
-                str -> StringUtils.isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
-                this::setFunctionName,
-                true);
+            assureInputInBatchMode(getFunctionName(), str -> StringUtils.isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP), this::setFunctionName, true);
         } else {
-            assureInputFromUser("Enter value for Function Name: ",
-                getFunctionName(),
-                str -> StringUtils.isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
-                "Function name must start with a letter and can contain letters, digits, '_' and '-'",
-                this::setFunctionName);
+            assureInputFromUser("Enter value for Function Name: ", getFunctionName(), str -> StringUtils.isNotEmpty(str) && str.matches(FUNCTION_NAME_REGEXP),
+                    "Function name must start with a letter and can contain letters, digits, '_' and '-'", this::setFunctionName);
         }
     }
 
@@ -259,54 +254,38 @@ public class AddMojo extends AbstractFunctionMojo {
         Log.info("Common parameter [Package Name]: package name of the new Java class");
 
         if (settings != null && !settings.isInteractiveMode()) {
-            assureInputInBatchMode(getFunctionPackageName(),
-                str -> StringUtils.isNotEmpty(str) && isName(str),
-                this::setFunctionPackageName,
-                true);
+            assureInputInBatchMode(getFunctionPackageName(), str -> StringUtils.isNotEmpty(str) && isName(str), this::setFunctionPackageName, true);
         } else {
-            assureInputFromUser("Enter value for Package Name: ",
-                getFunctionPackageName(),
-                str -> StringUtils.isNotEmpty(str) && isName(str),
-                "Input should be a valid Java package name.",
-                this::setFunctionPackageName);
+            assureInputFromUser("Enter value for Package Name: ", getFunctionPackageName(), str -> StringUtils.isNotEmpty(str) && isName(str),
+                    "Input should be a valid Java package name.", this::setFunctionPackageName);
         }
     }
 
     protected Map<String, String> prepareTemplateParameters(final FunctionTemplate template,
                                                             final BindingTemplate bindingTemplate,
                                                             final Map<String, String> params)
-        throws MojoFailureException {
+            throws MojoFailureException {
         for (final String property : template.getMetadata().getUserPrompt()) {
             String initValue = System.getProperty(property);
             final List<String> options = getOptionsForUserPrompt(property);
             final FunctionSettingTemplate settingTemplate = bindingTemplate == null ?
-                null : bindingTemplate.getSettingTemplateByName(property);
+                    null : bindingTemplate.getSettingTemplateByName(property);
             final String helpMessage = (settingTemplate != null && settingTemplate.getHelp() != null) ?
-                settingTemplate.getHelp() : "";
+                    settingTemplate.getHelp() : "";
 
             Log.info(format("Trigger specific parameter [%s]:%s", property,
-                TemplateResources.getResource(helpMessage)));
+                    TemplateResources.getResource(helpMessage)));
             if (settings != null && !settings.isInteractiveMode()) {
                 if (options != null && options.size() > 0) {
                     final String foundElement = findElementInOptions(options, initValue);
                     initValue = foundElement == null ? options.get(0) : foundElement;
                 }
-
-                assureInputInBatchMode(
-                    initValue,
-                    StringUtils::isNotEmpty,
-                    str -> params.put(property, str),
-                    false
-                );
+                assureInputInBatchMode(initValue, StringUtils::isNotEmpty, str -> params.put(property, str), false);
             } else {
                 if (options == null) {
                     params.put(property, getStringInputFromUser(property, initValue, settingTemplate));
                 } else {
-                    assureInputFromUser(
-                        format("the value for %s: ", property),
-                        System.getProperty(property),
-                        options,
-                        str -> params.put(property, str)
+                    assureInputFromUser(format("the value for %s: ", property), System.getProperty(property), options, str -> params.put(property, str)
                     );
                 }
             }
@@ -340,13 +319,13 @@ public class AddMojo extends AbstractFunctionMojo {
 
     protected String getStringInputErrorMessage(FunctionSettingTemplate template) {
         return (template != null && template.getErrorText() != null) ?
-            TemplateResources.getResource(template.getErrorText()) : DEFAULT_INPUT_ERROR_MESSAGE;
+                TemplateResources.getResource(template.getErrorText()) : DEFAULT_INPUT_ERROR_MESSAGE;
     }
 
     protected String getStringInputPromptString(String attributeName, String defaultValue) {
         return StringUtils.isBlank(defaultValue) ?
-            String.format(PROMPT_STRING_WITHOUT_DEFAULTVALUE, attributeName) :
-            String.format(PROMPT_STRING_WITH_DEFAULTVALUE, attributeName, defaultValue);
+                String.format(PROMPT_STRING_WITHOUT_DEFAULTVALUE, attributeName) :
+                String.format(PROMPT_STRING_WITH_DEFAULTVALUE, attributeName, defaultValue);
     }
 
     protected Function<String, Boolean> getStringInputValidator(FunctionSettingTemplate template) {
@@ -441,16 +420,14 @@ public class AddMojo extends AbstractFunctionMojo {
             out.printf("%d. %s%n", i, options.get(i));
         }
 
-        assureInputFromUser("Enter index to use: ", null,
-            str -> {
+        assureInputFromUser("Enter index to use: ", null, str -> {
                 try {
                     final int index = Integer.parseInt(str);
                     return 0 <= index && index < options.size();
                 } catch (Exception e) {
                     return false;
                 }
-            },
-            "Invalid index.", str -> {
+            }, "Invalid index.", str -> {
                 final int index = Integer.parseInt(str);
                 setter.accept(options.get(index));
             }
@@ -508,9 +485,9 @@ public class AddMojo extends AbstractFunctionMojo {
     @Nullable
     private String findElementInOptions(List<String> options, String item) {
         return options.stream()
-            .filter(o -> o != null && o.equalsIgnoreCase(item))
-            .findFirst()
-            .orElse(null);
+                .filter(o -> o != null && o.equalsIgnoreCase(item))
+                .findFirst()
+                .orElse(null);
     }
 
     @Nullable

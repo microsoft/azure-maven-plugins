@@ -11,6 +11,7 @@ import com.microsoft.azure.PagedList;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.GetHashMac;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.resources.Subscription;
@@ -104,6 +105,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
             "\"Azure\", \"AzureChina\", \"AzureGermany\", \"AzureUSGovernment\",.";
     private static final String AZURE_ENVIRONMENT = "azureEnvironment";
+    private static final String PROXY = "proxy";
 
     //region Properties
 
@@ -444,7 +446,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         try {
             // init proxy manager
             ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
-
+            getTelemetryProxy().addDefaultProperty(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
             // Work around for Application Insights Java SDK:
             // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.
             // An issue has been filed at https://github.com/Microsoft/ApplicationInsights-Java/issues/416
