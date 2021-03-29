@@ -153,10 +153,10 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected void initExecution() throws MojoFailureException, MavenDecryptException, AzureExecutionException,
         com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException {
-        // Init telemetries
-        initTelemetry();
         // init proxy manager
         ProxyUtils.initProxy(Optional.ofNullable(this.session).map(s -> s.getRequest()).orElse(null));
+        // Init telemetries
+        initTelemetry();
         telemetries.put(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
