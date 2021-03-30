@@ -12,6 +12,7 @@ import com.azure.resourcemanager.appservice.models.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
@@ -147,6 +148,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
         private String name;
         private String configurationSource = CONFIGURATION_SOURCE_PARENT;
         private Optional<Map<String, String>> appSettings = null;
+        private Optional<DiagnosticConfig> diagnosticConfig = null;
 
         @Override
         public IWebAppDeploymentSlotCreator withName(String name) {
@@ -163,6 +165,12 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
         @Override
         public IWebAppDeploymentSlotCreator withConfigurationSource(String configurationSource) {
             this.configurationSource = configurationSource;
+            return this;
+        }
+
+        @Override
+        public IWebAppDeploymentSlotCreator withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
+            this.diagnosticConfig = Optional.ofNullable(diagnosticConfig);
             return this;
         }
 
@@ -191,6 +199,9 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
             }
             if (appSettings != null && appSettings.isPresent()) {
                 withCreate.withAppSettings(appSettings.get());
+            }
+            if (getDiagnosticConfig() != null && getDiagnosticConfig().isPresent()) {
+                AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig().get());
             }
             WebAppDeploymentSlot.this.deploymentSlotInner = withCreate.create();
             WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.deploymentSlotInner);

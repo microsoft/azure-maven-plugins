@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 @Getter
 public abstract class AbstractAppServiceUpdater<T> implements IAppServiceUpdater {
+    private Optional<DiagnosticConfig> diagnosticConfig = null;
     private Optional<DockerConfiguration> dockerConfiguration = null;
     private Optional<Runtime> runtime = null;
     private Optional<PricingTier> pricingTier = null;
@@ -48,6 +50,12 @@ public abstract class AbstractAppServiceUpdater<T> implements IAppServiceUpdater
     @Override
     public IAppServiceUpdater<T> withAppSettings(Map appSettings) {
         this.appSettings = Optional.ofNullable(appSettings);
+        return this;
+    }
+
+    @Override
+    public IAppServiceUpdater<T> withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
+        this.diagnosticConfig = Optional.ofNullable(diagnosticConfig);
         return this;
     }
 }

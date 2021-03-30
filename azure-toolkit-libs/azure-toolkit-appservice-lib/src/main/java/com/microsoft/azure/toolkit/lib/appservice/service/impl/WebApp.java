@@ -191,6 +191,9 @@ public class WebApp implements IWebApp {
                 // todo: support remove app settings
                 withCreate.withAppSettings(getAppSettings().get());
             }
+            if (getDiagnosticConfig() != null && getDiagnosticConfig().isPresent()) {
+                AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig().get());
+            }
             WebApp.this.webAppInner = withCreate.create();
             WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.webAppInner);
             return WebApp.this;
@@ -244,6 +247,10 @@ public class WebApp implements IWebApp {
                 // todo: enhance app settings update, as now we could only add new app settings but can not remove existing values
                 modified = true;
                 update.withAppSettings(getAppSettings().get());
+            }
+            if (getDiagnosticConfig() != null && getDiagnosticConfig().isPresent()) {
+                modified = true;
+                AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig().get());
             }
             if (modified) {
                 WebApp.this.webAppInner = update.apply();
