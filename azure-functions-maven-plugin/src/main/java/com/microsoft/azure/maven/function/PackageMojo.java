@@ -17,6 +17,7 @@ import com.google.gson.JsonParser;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
 import com.microsoft.azure.common.Utils;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.common.function.bindings.Binding;
 import com.microsoft.azure.common.function.bindings.BindingEnum;
 import com.microsoft.azure.common.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.common.function.handlers.AnnotationHandler;
@@ -56,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Generate configuration files (host.json, function.json etc.) and copy JARs to staging directory.
@@ -115,6 +117,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         final Map<String, FunctionConfiguration> configMap = getFunctionConfigurations(annotationHandler, methods);
 
+        trackFunctionProperties(configMap);
         validateFunctionConfigurations(configMap);
 
         final ObjectWriter objectWriter = getObjectWriter();
@@ -443,4 +446,12 @@ public class PackageMojo extends AbstractFunctionMojo {
         }
     }
 
+    protected void trackFunctionProperties(Map<String, FunctionConfiguration> configMap) {
+        final List<String> bindingTypeSet = configMap.values().stream().flatMap(configuration -> configuration.getBindings().stream())
+                .map(Binding::getType)
+                .sorted()
+                .distinct()
+                .collect(Collectors.toList());
+        getTelemetryProxy().addDefaultProperty(TRIGGER_TYPE, StringUtils.join(bindingTypeSet, ","));
+    }
 }

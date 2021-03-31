@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure Function" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.10.0](#1100)
   - [1.9.0](#190)
   - [1.8.0](#180)
   - [1.7.0](#170)
@@ -17,6 +18,12 @@ All notable changes to the "Maven Plugin for Azure Function" will be documented 
   - [1.2.2](#122)
   - [1.2.1](#121)
   - [1.2.0](#120)
+
+## 1.10.0
+- Support function execution retry on invocation failures with @Retry annotation [PR#1203](https://github.com/microsoft/azure-maven-plugins/pull/1203)
+- Add support for Proxy [PR#1240](https://github.com/microsoft/azure-maven-plugins/pull/1240)
+- Enable users set different functions worker with maven plugin [#1209](https://github.com/microsoft/azure-maven-plugins/issues/1209)
+- Fixes: `mvn azure-functions:package` fails with NullPointerException [PR#1267](https://github.com/microsoft/azure-maven-plugins/pull/1267)
 
 ## 1.9.0
 - Support deployment slot in function maven toolkit [PR#1143](https://github.com/microsoft/azure-maven-plugins/pull/1143)

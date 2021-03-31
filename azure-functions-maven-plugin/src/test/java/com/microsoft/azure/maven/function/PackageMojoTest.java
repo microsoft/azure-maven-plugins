@@ -50,6 +50,7 @@ public class PackageMojoTest extends MojoTestBase {
         doReturn(mock(MavenResourcesFiltering.class)).when(mojoSpy).getMavenResourcesFiltering();
         doNothing().when(mojoSpy).copyHostJsonFile(any());
         doNothing().when(mojoSpy).promptCompileInfo();
+        doNothing().when(mojoSpy).trackFunctionProperties(any());
         mojoSpy.doExecute();
     }
 

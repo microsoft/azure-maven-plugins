@@ -15,8 +15,6 @@ import com.microsoft.azure.toolkit.lib.auth.core.managedidentity.ManagedIdentity
 import com.microsoft.azure.toolkit.lib.auth.core.maven.MavenLoginCredentialRetriever;
 import com.microsoft.azure.toolkit.lib.auth.core.oauth.OAuthCredentialRetriever;
 import com.microsoft.azure.toolkit.lib.auth.core.serviceprincipal.ServicePrincipalCredentialRetriever;
-import com.microsoft.azure.toolkit.lib.auth.core.visualstudio.VisualStudioCredentialRetriever;
-import com.microsoft.azure.toolkit.lib.auth.core.vscode.VisualStudioCodeCredentialRetriever;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
@@ -56,8 +54,9 @@ public class AzureAuthManager {
         map.put(AuthType.SERVICE_PRINCIPAL, new ServicePrincipalCredentialRetriever(auth));
         map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityCredentialRetriever(auth));
         map.put(AuthType.AZURE_CLI, new AzureCliCredentialRetriever(env));
-        map.put(AuthType.VSCODE, new VisualStudioCodeCredentialRetriever(env));
-        map.put(AuthType.VISUAL_STUDIO, new VisualStudioCredentialRetriever(env));
+        // disabled due to bug: https://github.com/Azure/azure-sdk-for-java/issues/19443
+        // map.put(AuthType.VSCODE, new VisualStudioCodeCredentialRetriever(env));
+        // map.put(AuthType.VISUAL_STUDIO, new VisualStudioCredentialRetriever(env));
         map.put(AuthType.OAUTH2, new OAuthCredentialRetriever(env));
         map.put(AuthType.DEVICE_CODE, new DeviceCodeCredentialRetriever(env));
         map.put(AuthType.AZURE_AUTH_MAVEN_PLUGIN, new MavenLoginCredentialRetriever(env));
