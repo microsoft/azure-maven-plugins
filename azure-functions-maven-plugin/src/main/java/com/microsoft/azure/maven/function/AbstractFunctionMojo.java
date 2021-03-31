@@ -13,6 +13,7 @@ import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -129,6 +130,12 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     public RuntimeConfiguration getRuntime() {
         return runtime;
+    }
+
+    protected void validateAppName() {
+        if (StringUtils.isBlank(appName)) {
+            throw new AzureToolkitRuntimeException("Please config the <appName> in pom.xml");
+        }
     }
 
     @Override
