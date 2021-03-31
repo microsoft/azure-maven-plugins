@@ -93,6 +93,7 @@ public abstract class AbstractConfigParser {
                 .deploymentSlotName(getDeploymentSlotName())
                 .deploymentSlotConfigurationSource(getDeploymentSlotConfigurationSource())
                 .webAppArtifacts(getMavenArtifacts())
+                .appSettings(this.mojo.getAppSettings())
                 .build();
     }
 
