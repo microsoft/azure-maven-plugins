@@ -68,8 +68,7 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
         final String blobName = getBlobName(deployTarget.getApp(), zipPackage);
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 container.getName(), blobName, BlobContainerPublicAccessType.OFF);
-        final String blobUri = blob.getUri().getHost() + blob.getUri().getPath();
-        Log.prompt(String.format(DEPLOY_FINISH, blobUri));
+        Log.prompt(String.format(DEPLOY_FINISH, deployTarget.getDefaultHostName()));
         return blob;
     }
 
