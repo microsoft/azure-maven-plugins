@@ -147,6 +147,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     @Override
     protected void doExecute() throws AzureExecutionException {
         try {
+            validateAppName();
+
             parseConfiguration();
 
             checkArtifactCompileVersion();

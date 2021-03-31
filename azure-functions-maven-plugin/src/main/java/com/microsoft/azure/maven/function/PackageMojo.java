@@ -99,6 +99,8 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     @Override
     protected void doExecute() throws AzureExecutionException {
+        validateAppName();
+
         promptCompileInfo();
 
         final AnnotationHandler annotationHandler = getAnnotationHandler();

@@ -66,6 +66,8 @@ public class RunMojo extends AbstractFunctionMojo {
 
     @Override
     protected void doExecute() throws AzureExecutionException {
+        validateAppName();
+
         final CommandHandler commandHandler = new CommandHandlerImpl();
 
         checkStageDirectoryExistence();
