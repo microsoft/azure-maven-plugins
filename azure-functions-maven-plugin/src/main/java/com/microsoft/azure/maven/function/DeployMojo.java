@@ -134,6 +134,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String SET_FUNCTIONS_EXTENSION_VERSION = "Functions extension version " +
             "isn't configured, setting up the default value.";
     private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
+    private static final String RUNNING = "Running";
 
     private JavaVersion parsedJavaVersion;
 
@@ -171,6 +172,11 @@ public class DeployMojo extends AbstractFunctionMojo {
         Log.info(DEPLOY_START);
         final ArtifactHandler artifactHandler = getArtifactHandler();
         executeWithTimeRecorder(() -> artifactHandler.publish(deployTarget), DEPLOY);
+        final WebAppBase target = deployTarget.getApp();
+        if (!StringUtils.equalsIgnoreCase(target.state(), RUNNING)) {
+            // start function app after deployment
+            target.start();
+        }
         Log.info(String.format(DEPLOY_FINISH, getResourcePortalUrl(deployTarget.getApp())));
     }
 
