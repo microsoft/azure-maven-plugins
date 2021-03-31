@@ -16,12 +16,14 @@ public @interface AzureOperation {
     String name();
 
     /**
-     * expression supported, e.g. <code>{"@webapp", "$subsId"}</code>
+     * groovy expressions to compute the params dynamically.
+     * e.g. groovy expression: {@code "this.webapp.id()" }, {@code "subscriptionId" }
      */
     String[] params() default {};
 
     /**
-     * expression supported, e.g. <code>@buildProps($webapp)</code>
+     * groovy expressions to compute the props dynamically.
+     * e.g. groovy expression: {@code "this.buildProps()" }
      */
     String props() default "";
 

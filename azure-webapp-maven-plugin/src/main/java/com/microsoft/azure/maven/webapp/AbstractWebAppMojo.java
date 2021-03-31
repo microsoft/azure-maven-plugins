@@ -71,6 +71,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String OS_KEY = "os";
     public static final String INVALID_CONFIG_KEY = "invalidConfiguration";
     public static final String SCHEMA_VERSION_KEY = "schemaVersion";
+    public static final String DEPLOY_TO_SLOT_KEY = "isDeployToSlot";
 
     //region Properties
 
@@ -400,14 +401,15 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         map.put(SCHEMA_VERSION_KEY, schemaVersion);
         map.put(OS_KEY, webAppConfig.getRuntime() == null ? "" : Objects.toString(webAppConfig.getRuntime().getOperatingSystem()));
         map.put(JAVA_VERSION_KEY, (webAppConfig.getRuntime() == null || webAppConfig.getRuntime().getJavaVersion() == null) ?
-                "" : webAppConfig.getRuntime().getJavaVersion().toString());
+                "" : webAppConfig.getRuntime().getJavaVersion().getValue());
         map.put(JAVA_WEB_CONTAINER_KEY, (webAppConfig.getRuntime() == null || webAppConfig.getRuntime().getWebContainer() == null) ?
-                "" : webAppConfig.getRuntime().getWebContainer().toString());
+                "" : webAppConfig.getRuntime().getWebContainer().getValue());
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
         } catch (AzureExecutionException e) {
             map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
         }
+        map.put(DEPLOY_TO_SLOT_KEY, String.valueOf(StringUtils.isNotEmpty(webAppConfig.getDeploymentSlotName())));
         return map;
     }
 

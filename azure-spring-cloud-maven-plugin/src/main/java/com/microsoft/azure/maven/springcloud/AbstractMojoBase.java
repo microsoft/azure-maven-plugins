@@ -11,18 +11,18 @@ import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
+import com.microsoft.azure.maven.auth.MavenAuthManager;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
 import com.microsoft.azure.maven.telemetry.AppInsightHelper;
 import com.microsoft.azure.maven.telemetry.MojoStatus;
-import com.microsoft.azure.maven.auth.MavenAuthManager;
 import com.microsoft.azure.maven.utils.ProxyUtils;
-import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
-import com.microsoft.azure.tools.exception.InvalidConfigurationException;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.rest.LogLevel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -52,8 +52,6 @@ import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_DEPLOYMENT;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_CREATE_NEW_APP;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_DEPLOYMENT_NAME_GIVEN;
-import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_KEY_ENCRYPTED;
-import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_IS_SERVICE_PRINCIPAL;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_JAVA_VERSION;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_JVM_OPTIONS;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_MEMORY;
@@ -71,9 +69,11 @@ import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY
 
 public abstract class AbstractMojoBase extends AbstractMojo {
     private static final String INIT_FAILURE = "InitFailure";
+    private static final String AZURE_ENVIRONMENT = "azureEnvironment";
     private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     private static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
     private static final String PROXY = "proxy";
+    private static final String AUTH_TYPE = "authType";
 
     @Parameter(property = "auth")
     protected MavenAuthConfiguration auth;
@@ -171,6 +171,9 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         if (env != AzureEnvironment.AZURE) {
             Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
         }
+
+        telemetries.put(AUTH_TYPE, getAuthType());
+        telemetries.put(AZURE_ENVIRONMENT, environmentName);
         Log.info(azureCredentialWrapper.getCredentialDescription());
     }
 
@@ -232,8 +235,6 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     protected void traceAuth() {
         // Todo update deploy mojo telemetries with real value
         telemetries.put(TELEMETRY_KEY_AUTH_METHOD, TELEMETRY_VALUE_AUTH_POM_CONFIGURATION);
-        telemetries.put(TELEMETRY_KEY_IS_SERVICE_PRINCIPAL, "false");
-        telemetries.put(TELEMETRY_KEY_IS_KEY_ENCRYPTED, "false");
     }
 
     protected void traceDeployment(boolean newApp, boolean newDeployment, SpringCloudAppConfig configuration) {

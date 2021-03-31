@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
+
 import java.util.Map;
 
 public interface IWebAppDeploymentSlotCreator {
@@ -14,6 +16,8 @@ public interface IWebAppDeploymentSlotCreator {
     IWebAppDeploymentSlotCreator withAppSettings(Map<String, String> appSettings);
 
     IWebAppDeploymentSlotCreator withConfigurationSource(String source);
+
+    IWebAppDeploymentSlotCreator withDiagnosticConfig(DiagnosticConfig diagnosticConfig);
 
     IWebAppDeploymentSlot commit();
 }
