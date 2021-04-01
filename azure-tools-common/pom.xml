@@ -5,11 +5,11 @@
     <parent>
         <groupId>com.microsoft.azure</groupId>
         <artifactId>azure-maven-plugins-pom</artifactId>
-        <version>1.0.9</version>
+        <version>1.0.10</version>
         <relativePath>../azure-maven-plugins-pom</relativePath>
     </parent>
     <artifactId>azure-tools-common</artifactId>
-    <version>0.13.0</version>
+    <version>0.13.1</version>
 
     <repositories>
         <repository>
