@@ -76,7 +76,7 @@ public class RunMojoTest extends MojoTestBase {
         verify(commandHandlerMock, times(1))
             .runCommandWithReturnCodeCheck(
                 mojo.getCheckRuntimeCommand(),
-                false,
+                true,
                 null,
                 CommandUtils.getDefaultValidReturnCodes(),
                 RUNTIME_NOT_FOUND

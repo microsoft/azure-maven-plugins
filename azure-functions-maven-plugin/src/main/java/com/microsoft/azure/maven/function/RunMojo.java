@@ -88,7 +88,7 @@ public class RunMojo extends AbstractFunctionMojo {
     protected void checkRuntimeExistence(final CommandHandler handler) throws AzureExecutionException {
         handler.runCommandWithReturnCodeCheck(
                 getCheckRuntimeCommand(),
-                false, /* showStdout */
+                true, /* showStdout */
                 null, /* workingDirectory */
                 CommandUtils.getDefaultValidReturnCodes(),
                 RUNTIME_NOT_FOUND
