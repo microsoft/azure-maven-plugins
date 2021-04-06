@@ -14,4 +14,5 @@ import lombok.Setter;
 public class AzureConfiguration {
     private LogLevel logLevel;
     private String userAgent;
+    private String cloud;
 }
