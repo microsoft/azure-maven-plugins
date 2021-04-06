@@ -123,8 +123,10 @@ public class DeployMojo extends AbstractWebAppMojo {
                 az.appServicePlan(getServicePlanResourceGroup(webAppConfig), webAppConfig.getServicePlanName());
         if (!targetServicePlan.exists()) {
             targetServicePlan = getOrCreateAppServicePlan(webAppConfig);
+        } else if (webAppConfig.getPricingTier() != null) {
+            targetServicePlan.update().withPricingTier(webAppConfig.getPricingTier()).commit();
         }
-        targetServicePlan.update().withPricingTier(webAppConfig.getPricingTier()).commit();
+
         final IWebApp result = webApp.update().withPlan(targetServicePlan.id())
                 .withRuntime(webAppConfig.getRuntime())
                 .withDockerConfiguration(webAppConfig.getDockerConfiguration())
