@@ -6,34 +6,37 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.management.AzureEnvironment;
-import com.azure.core.util.logging.ClientLogger;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
+import com.microsoft.azure.toolkit.lib.auth.core.maven.MavenPluginAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.oauth.OAuthAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.serviceprincipal.ServicePrincipalAccount;
+import com.microsoft.azure.toolkit.lib.auth.core.vscode.VisualStudioCodeAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
-
-import org.apache.commons.lang3.ObjectUtils;
+import lombok.AccessLevel;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
-
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class AzureAccount implements AzureService, IAzureAccount {
 
-    private final ClientLogger logger = new ClientLogger(AzureAccount.class);
-
+    @Setter(AccessLevel.PRIVATE)
     private Account account;
 
     /**
@@ -46,129 +49,140 @@ public class AzureAccount implements AzureService, IAzureAccount {
     }
 
     public List<Account> accounts() {
-        return buildAccountMap(null).values().stream().filter(Account::checkAvailable).collect(Collectors.toList());
+        List<Account> accountList = Flux.fromIterable(buildAccountMap().values()).map(Supplier::get).collectList().block();
+        return accountList.stream().filter(Account::checkAvailable).collect(Collectors.toList());
     }
 
-    public AzureAccount login(@Nonnull Account targetAccount) throws LoginFailureException {
-        account = targetAccount;
-        if (account.checkAvailable()) {
-            if (!account.isAuthenticated()) {
-                account.authenticate();
-            }
-        } else {
-            if (account.entity.getLastError() != null) {
-                throw new LoginFailureException(account.entity.getLastError().getMessage(), account.entity.getLastError());
-            } else {
-                throw new LoginFailureException(String.format("Cannot get credential from auth method '%s'.", targetAccount.getMethod()));
-            }
-        }
-        return this;
+    public AzureAccount login(@Nonnull AuthType type) {
+        return blockMonoAndReturnThis(loginAsync(type));
     }
 
-    public AzureAccount logout() {
+    public AzureAccount login(@Nonnull Account targetAccount) {
+        return blockMonoAndReturnThis(loginAsync(targetAccount));
+    }
+
+    public AzureAccount login(@Nonnull AuthConfiguration auth) {
+        return blockMonoAndReturnThis(loginAsync(auth));
+    }
+
+    public void logout() {
         if (this.account != null) {
             this.account.logout();
             this.account = null;
         }
-        return this;
     }
 
     public boolean isAuthenticated() {
         return this.account != null && this.account.isAvailable() && this.account.isAuthenticated();
     }
 
-    public AzureAccount login(AuthType type) throws LoginFailureException {
-        AuthConfiguration auth = new AuthConfiguration();
-        auth.setType(type);
-        loginWithAuthConfiguration(auth);
-        return this;
+    public Mono<Account> authenticateAccounts(List<Account> accounts) {
+        Mono<Account> current = accounts.get(0).authenticateAsync();
+        for (int i = 1; i < accounts.size(); i++) {
+            current = current.onErrorResume(e -> accounts.get(0).authenticateAsync());
+        }
+        return current;
     }
 
-    public void login(@Nonnull AuthConfiguration auth) throws LoginFailureException {
-        // update the env state of AzureAccount when auth configuration has a strong configuration of env
-        Objects.requireNonNull(auth, "Null auth configuration is illegal for login.");
-        loginWithAuthConfiguration(auth);
-        if (auth.getEnvironment() != null && this.account.getEnvironment() != null
-                && this.account.getEnvironment() != auth.getEnvironment()
-                && this.account.isAuthenticated()) {
 
-            String expectedEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(auth.getEnvironment());
-            String realEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(this.account.getEnvironment());
+    public Mono<Account> loginAsync(@Nonnull AuthConfiguration auth) {
+        // update the env state of AzureAccount when auth configuration has an explicit configuration of env
+        Objects.requireNonNull(auth, "Auth configuration is required for login.");
+        Objects.requireNonNull(auth.getType(), "Auth type is required for login.");
+        AuthType type = auth.getType();
+        final List<Account> accounts = new ArrayList<>();
+        if (auth.getType() == AuthType.SERVICE_PRINCIPAL) {
+            accounts.add(new ServicePrincipalAccount(auth));
+        } else {
+            Map<AuthType, Supplier<Account>> accountByType = buildAccountMap();
+            if (auth.getType() == AuthType.AUTO) {
+                accounts.add(new ServicePrincipalAccount(auth));
+                accounts.addAll(accountByType.values().stream().map(Supplier::get).collect(Collectors.toList()));
+            } else {
+                if (!accountByType.containsKey(type)) {
+                    return Mono.error(new LoginFailureException(String.format("Unsupported auth type '%s', supported values are: %s.\"",
+                            type, accountByType.keySet().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", ")))));
+                }
+                accounts.add(accountByType.get(type).get());
+            }
+        }
+
+        return authenticateAccounts(accounts).doOnSuccess(result -> {
+            checkEnv(result, auth.getEnvironment());
+            this.setAccount(result);
+        });
+    }
+
+    public Mono<Account> loginAsync(AuthType type) {
+        Objects.requireNonNull(type, "Please specify auth type in auth configuration.");
+        Map<AuthType, Supplier<Account>> accountByType = buildAccountMap();
+        if (!accountByType.containsKey(type)) {
+            return Mono.error(new LoginFailureException(String.format("Unsupported auth type '%s', supported values are: %s.\"",
+                    type, accountByType.keySet().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", ")))));
+        }
+        return loginAsync(accountByType.get(type).get());
+    }
+
+
+    public Mono<Account> loginAsync(Account targetAccount) {
+        Objects.requireNonNull(targetAccount, "Please specify account to login.");
+
+        return targetAccount.authenticateAsync().doOnSuccess(this::setAccount);
+    }
+
+
+    private AzureAccount blockMonoAndReturnThis(Mono<Account> mono) {
+        try {
+            mono.block();
+            return this;
+        } catch (Throwable ex) {
+            throw new AzureToolkitAuthenticationException("Cannot login due to error: " + ex.getMessage());
+        }
+    }
+
+    private static void checkEnv(Account ac, AzureEnvironment env) {
+
+        if (env != null && ac.getEnvironment() != null
+                && ac.getEnvironment() != env
+                && ac.isAuthenticated()) {
+
+            String expectedEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(env);
+            String realEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(ac.getEnvironment());
 
             // conflicting configuration of azure environment
-            switch (this.account.getMethod()) {
+            switch (ac.getMethod()) {
                 case AZURE_CLI:
-                    throw new LoginFailureException(String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
+                    throw new AzureToolkitAuthenticationException(String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
                                     "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
                             realEnv,
                             expectedEnv));
 
                 case AZURE_SECRET_FILE:
-                    throw new LoginFailureException(String.format("The azure cloud from maven login '%s' doesn't match with your auth configuration, " +
+                    throw new AzureToolkitAuthenticationException(String.format("The azure cloud from maven login '%s' doesn't match with your auth configuration, " +
                                     "please switch to other auth method for '%s' environment.",
                             realEnv,
                             expectedEnv));
                 case VSCODE:
-                    throw new LoginFailureException(String.format("The azure cloud from vscode '%s' doesn't match with your auth configuration: %s, " +
+                    throw new AzureToolkitAuthenticationException(String.format("The azure cloud from vscode '%s' doesn't match with your auth configuration: %s, " +
                                     "you can change it by pressing F1 in VSCode and find \">azure: sign in to Azure Cloud\" command " +
                                     "to change azure cloud in vscode.",
                             realEnv,
                             expectedEnv));
-                default:
-                    // empty
+                default: // empty
+
             }
         }
     }
 
-    private void loginWithAuthConfiguration(@Nonnull AuthConfiguration auth) throws LoginFailureException {
-        Objects.requireNonNull(auth, "Null 'auth' cannot be used to sign-in.");
-        Objects.requireNonNull(auth.getType(), "Please specify auth type in auth configuration.");
-        Map<AuthType, Account> accountByType = buildAccountMap(auth.getEnvironment());
-        if (auth.getType() == AuthType.SERVICE_PRINCIPAL || auth.getType() == AuthType.AUTO) {
-            if (loginServicePrincipal(auth)) {
-                return;
-            }
-        }
-        if (accountByType.containsKey(auth.getType())) {
-            login(accountByType.get(auth.getType()));
-        } else {
-            throw new LoginFailureException(String.format("Unsupported auth type '%s', supported values are: %s.\"",
-                    auth.getType(), accountByType.keySet().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", "))));
-        }
-    }
+    private static Map<AuthType, Supplier<Account>> buildAccountMap() {
+        Map<AuthType, Supplier<Account>> map = new LinkedHashMap<>();
+        // SP is not there since it requires special constructor argument and it is special(it requires complex auth configuration)
+        map.put(AuthType.AZURE_CLI, AzureCliAccount::new);
+        map.put(AuthType.VSCODE, VisualStudioCodeAccount::new);
+        map.put(AuthType.OAUTH2, OAuthAccount::new);
+        // map.put(AuthType.DEVICE_CODE, DeviceCodeAccount::new);
+        map.put(AuthType.AZURE_AUTH_MAVEN_PLUGIN, MavenPluginAccount::new);
 
-    private boolean loginServicePrincipal(AuthConfiguration auth) throws LoginFailureException {
-        boolean forceServicePrincipalLogin = auth.getType() == AuthType.SERVICE_PRINCIPAL;
-        boolean isSPConfigurationPresent = !StringUtils.isAllBlank(auth.getCertificate(), auth.getKey(),
-                auth.getCertificatePassword());
-        try {
-            ServicePrincipalAccount spAccount = new ServicePrincipalAccount(auth);
-            login(spAccount);
-            return spAccount.isAuthenticated();
-        } catch (LoginFailureException | AzureToolkitAuthenticationException e) {
-            if (forceServicePrincipalLogin) {
-                throw new LoginFailureException(e.getMessage(), e);
-            }
-            if (isSPConfigurationPresent) {
-                logger.warning("Cannot login through 'SERVICE_PRINCIPAL' due to invalid configuration: " + e.getMessage());
-            }
-        }
-        return false;
-    }
-
-    private static Map<AuthType, Account> buildAccountMap(AzureEnvironment env) {
-        Map<AuthType, Account> map = new LinkedHashMap<>();
-        // SP is not there since it requires special constructor argument and it is handled in login(AuthConfiguration auth)
-        AzureEnvironment environmentOrDefault = ObjectUtils.firstNonNull(env, AzureEnvironment.AZURE);
-        // map.put(AuthType.MANAGED_IDENTITY, new ManagedIdentityAccount(environmentOrDefault));
-        map.put(AuthType.AZURE_CLI, new AzureCliAccount());
-
-        // map.put(AuthType.VSCODE, new VisualStudioCodeAccount());
-        // null is valid for visual studio account
-        // map.put(AuthType.VISUAL_STUDIO, new VisualStudioAccount(env));
-        // map.put(AuthType.AZURE_AUTH_MAVEN_PLUGIN, new MavenLoginAccount());
-        map.put(AuthType.OAUTH2, new OAuthAccount(environmentOrDefault));
-        // map.put(AuthType.DEVICE_CODE, new DeviceCodeAccount(environmentOrDefault));
         return map;
     }
 }
