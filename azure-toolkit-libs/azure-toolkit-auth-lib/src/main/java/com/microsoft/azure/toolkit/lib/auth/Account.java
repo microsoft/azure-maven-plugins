@@ -48,7 +48,7 @@ public abstract class Account implements IAccount {
 
     protected abstract boolean checkAvailableInner();
 
-    protected abstract void initializeCredentials() throws LoginFailureException;
+    protected abstract TokenCredential createTokenCredential();
 
     boolean checkAvailable() {
         if (this.entity.isAvailable()) {
@@ -152,7 +152,7 @@ public abstract class Account implements IAccount {
 
     void authenticate() throws LoginFailureException {
         try {
-            initializeCredentials();
+            createTokenCredential();
 
             initializeTenants();
 
