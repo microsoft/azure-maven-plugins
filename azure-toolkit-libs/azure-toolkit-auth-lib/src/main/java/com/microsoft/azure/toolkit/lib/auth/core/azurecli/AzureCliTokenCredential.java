@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.auth.core.azurecli;
 
 import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenRequestContext;
-import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.implementation.util.ScopeUtil;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.lib.auth.TenantCredential;
@@ -24,9 +23,10 @@ import java.time.format.DateTimeFormatter;
 
 class AzureCliTokenCredential extends TenantCredential {
     private static final String CLI_GET_ACCESS_TOKEN_CMD = "az account get-access-token --resource %s %s --output json";
+    private static final String CLOUD_SHELL_ENV_KEY = "ACC_CLOUD";
 
     public Mono<AccessToken> getAccessToken(String tenantId, TokenRequestContext request) {
-        String scopes = ScopeUtil.scopesToResource(request.getScopes());
+        final String scopes = ScopeUtil.scopesToResource(request.getScopes());
 
         try {
             ScopeUtil.validateScope(scopes);
@@ -34,7 +34,8 @@ class AzureCliTokenCredential extends TenantCredential {
             throw new AzureToolkitAuthenticationException(String.format("Invalid scope: %s", scopes));
         }
 
-        String azCommand = String.format(CLI_GET_ACCESS_TOKEN_CMD, scopes, StringUtils.isBlank(tenantId) ? "" : (" -t " + tenantId));
+        final String azCommand = String.format(CLI_GET_ACCESS_TOKEN_CMD, scopes,
+                (StringUtils.isBlank(tenantId) || isInCloudShell()) ? "" : (" -t " + tenantId));
         JsonObject result = AzureCliUtils.executeAzCommandJson(azCommand).getAsJsonObject();
 
         // copied from https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/identity/azure-identity
@@ -47,5 +48,9 @@ class AzureCliTokenCredential extends TenantCredential {
                 .atZone(ZoneId.systemDefault())
                 .toOffsetDateTime().withOffsetSameInstant(ZoneOffset.UTC);
         return Mono.just(new AccessToken(accessToken, expiresOn));
+    }
+
+    static boolean isInCloudShell() {
+        return System.getenv(CLOUD_SHELL_ENV_KEY) != null;
     }
 }
