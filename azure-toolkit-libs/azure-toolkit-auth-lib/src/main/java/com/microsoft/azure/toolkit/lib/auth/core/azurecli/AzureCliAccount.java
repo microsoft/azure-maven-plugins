@@ -17,16 +17,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AzureCliAccount extends Account {
-
-    protected Mono<Boolean> checkAvailableInner() {
+    @Override
+    protected boolean checkAvailableInner() {
         try {
             if (!AzureCliUtils.checkCliVersion()) {
-                return Mono.just(false);
+                return false;
             }
             AzureCliUtils.executeAzCommandJson("az account get-access-token --output json");
-            return Mono.just(true);
+            return true;
         } catch (Throwable ex) {
-            return Mono.error(ex);
+            this.entity.setLastError(ex);
+            return false;
         }
     }
 
