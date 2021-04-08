@@ -52,6 +52,10 @@ public class AzureEnvironmentUtils {
         }
     }
 
+    public static String getAuthority(AzureEnvironment environment) {
+        return environment.getActiveDirectoryEndpoint().replaceAll("/+$", "");
+    }
+
     /**
      * Parse the corresponding azure environment.
      *
