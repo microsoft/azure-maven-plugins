@@ -31,11 +31,9 @@ public abstract class RefreshTokenAccount extends Account {
 
     protected abstract void initializeRefreshToken();
 
-    protected Mono<Boolean> checkAvailableInner() {
-        return Mono.fromCallable(() -> {
-            initializeRefreshToken();
-            return StringUtils.isNotEmpty(refreshToken);
-        });
+    protected boolean checkAvailableInner() {
+        initializeRefreshToken();
+        return StringUtils.isNotEmpty(refreshToken);
     }
 
     @Override

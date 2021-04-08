@@ -27,7 +27,6 @@ import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,18 +40,22 @@ public abstract class Account implements IAccount {
     protected AccountEntity entity;
 
     public Account() {
-        buildAccountEntity();
+        this.entity = new AccountEntity();
+        entity.setMethod(getMethod());
     }
 
     public abstract AuthMethod getMethod();
 
-    protected abstract Mono<Boolean> checkAvailableInner();
+    protected abstract boolean checkAvailableInner();
 
     protected abstract void initializeCredentials() throws LoginFailureException;
 
     boolean checkAvailable() {
-        checkAvailableInner().doOnSuccess(avail -> this.entity.setAvailable(avail)).onErrorContinue((e, i) -> this.entity.setLastError(e)).block();
-        return isAvailable();
+        if (this.entity.isAvailable()) {
+            return true;
+        }
+        this.entity.setAvailable(checkAvailableInner());
+        return this.entity.isAvailable();
     }
 
     public AzureEnvironment getEnvironment() {
@@ -112,7 +115,7 @@ public abstract class Account implements IAccount {
     public void selectSubscription(List<String> selectedSubscriptionIds) {
         requireAuthenticated();
         if (CollectionUtils.isEmpty(selectedSubscriptionIds)) {
-            throw new IllegalArgumentException("Cannot select subscription by an empty id list.");
+            throw new IllegalArgumentException("You must select at least one subscription.");
         }
 
         if (CollectionUtils.isEmpty(getSubscriptions())) {
@@ -166,14 +169,6 @@ public abstract class Account implements IAccount {
                 , new AzureProfile(environment)).tenants().list().stream().map(Tenant::tenantId).collect(Collectors.toList());
     }
 
-    protected void buildAccountEntity() {
-        try {
-            createAccountEntity(getMethod());
-        } catch (AzureToolkitAuthenticationException e) {
-            entity.setLastError(e);
-        }
-    }
-
     protected void verifyTokenCredential(AzureEnvironment environment, TokenCredential credential) throws LoginFailureException {
         try {
             TokenRequestContext tokenRequestContext = new TokenRequestContext()
@@ -210,11 +205,6 @@ public abstract class Account implements IAccount {
                 .filter(s -> StringUtils.equalsIgnoreCase(subscriptionId, s.getId()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot find subscription with id '%s'", subscriptionId)));
-    }
-
-    private void createAccountEntity(AuthMethod method) {
-        this.entity = new AccountEntity();
-        entity.setMethod(method);
     }
 
     private void selectSubscriptionInner(List<Subscription> subscriptions, List<String> subscriptionIds) {
