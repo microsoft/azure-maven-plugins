@@ -62,9 +62,9 @@ public abstract class Account implements IAccount {
     public TokenCredential getTokenCredential(String tenantId) {
         requireAuthenticated();
         if (StringUtils.isBlank(tenantId)) {
-            return this.entity.getCredential();
+            return this.entity.getTenantCredential();
         } else {
-            return this.entity.getCredential().createTenantTokenCredential(tenantId);
+            return this.entity.getTenantCredential().createTokenCredential(tenantId);
         }
     }
 
@@ -187,14 +187,14 @@ public abstract class Account implements IAccount {
     protected void initializeTenants() {
         // in azure cli, the tenant ids from 'az account list' should be less/equal than the list tenant api
         if (this.entity.getTenantIds() == null) {
-            TokenCredential credential = entity.getCredential().createTenantTokenCredential(null);
-            List<String> allTenantIds = listTenantIds(entity.getCredential().getEnvironment(), credential);
+            TokenCredential credential = entity.getTenantCredential().createTokenCredential(null);
+            List<String> allTenantIds = listTenantIds(entity.getEnvironment(), credential);
             this.entity.setTenantIds(allTenantIds);
         }
     }
 
     protected void initializeSubscriptions() {
-        List<Subscription> subscriptions = listSubscriptions(entity.getTenantIds(), entity.getCredential());
+        List<Subscription> subscriptions = listSubscriptions(entity.getTenantIds(), entity.getTenantCredential());
         entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
         entity.setSubscriptions(subscriptions);
         selectSubscriptionInner(subscriptions, this.entity.getSelectedSubscriptionIds());
@@ -224,13 +224,13 @@ public abstract class Account implements IAccount {
         }
     }
 
-    private List<Subscription> listSubscriptions(List<String> tenantIds, BaseTokenCredential credential) {
-        AzureProfile azureProfile = new AzureProfile(credential.getEnvironment());
+    private List<Subscription> listSubscriptions(List<String> tenantIds, TenantCredential credential) {
+        AzureProfile azureProfile = new AzureProfile(entity.getEnvironment());
         // use map to re-dup subs
         final Map<String, Subscription> subscriptionMap = new HashMap<>();
         tenantIds.parallelStream().forEach(tenantId -> {
             try {
-                TokenCredential tenantTokenCredential = credential.createTenantTokenCredential(tenantId);
+                TokenCredential tenantTokenCredential = credential.createTokenCredential(tenantId);
                 List<Subscription> subscriptionsOnTenant =
                         AzureResourceManager.authenticate(tenantTokenCredential, azureProfile).subscriptions().list()
                                 .stream().map(s -> toSubscriptionEntity(tenantId, s)).collect(Collectors.toList());
