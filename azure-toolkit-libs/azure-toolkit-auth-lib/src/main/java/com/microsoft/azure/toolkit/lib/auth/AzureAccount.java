@@ -52,7 +52,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
         account = targetAccount;
         if (account.checkAvailable()) {
             if (!account.isAuthenticated()) {
-                account.authenticate();
+                account.authenticate().block();
             }
         } else {
             if (account.entity.getLastError() != null) {
