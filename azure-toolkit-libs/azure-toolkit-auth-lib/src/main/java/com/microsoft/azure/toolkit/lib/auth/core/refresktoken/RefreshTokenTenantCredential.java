@@ -7,36 +7,42 @@ package com.microsoft.azure.toolkit.lib.auth.core.refresktoken;
 
 import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
-import com.azure.core.management.AzureEnvironment;
+import com.azure.core.credential.TokenRequestContext;
 import com.azure.identity.implementation.util.ScopeUtil;
 import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.aad.adal4j.AuthenticationResult;
+import com.microsoft.azure.toolkit.lib.auth.TenantCredential;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.Map;
+import java.util.concurrent.*;
 
-public class RefreshTokenCredentialFactory {
-    public static TokenCredential fromRefreshToken(AzureEnvironment env, String clientId, String tenantId, String refreshToken) {
-        return buildRefreshTokenCredential(env, clientId, tenantId, refreshToken);
+@AllArgsConstructor
+public class RefreshTokenTenantCredential extends TenantCredential {
+    private final Map<String, TokenCredential> tokenCredentialCache = new ConcurrentHashMap<>();
+    private final String authority;
+    private final String clientId;
+    private final String refreshToken;
+
+    @Override
+    protected Mono<AccessToken> getAccessToken(String tenantId, TokenRequestContext context) {
+        final String key = StringUtils.firstNonBlank(tenantId, "$");
+        if (!tokenCredentialCache.containsKey(key)) {
+            tokenCredentialCache.put(key, createTokenCredential(tenantId));
+        }
+        return tokenCredentialCache.get(key).getToken(context);
     }
 
-    private static TokenCredential buildRefreshTokenCredential(AzureEnvironment env, String clientId, String tenantId, String refreshToken) {
+    public TokenCredential createTokenCredential(String tenantId) {
         return request -> Mono.fromCallable(() -> {
-            AuthenticationResult result =
-                    authorize(env,
-                            clientId,
-                            StringUtils.firstNonBlank(tenantId, "common"),
-                            refreshToken,
-                            StringUtils.isBlank(tenantId) ? null : ScopeUtil.scopesToResource(request.getScopes())
-                    );
+            AuthenticationResult result = authenticate(StringUtils.firstNonBlank(tenantId, "common"),
+                    ScopeUtil.scopesToResource(request.getScopes()));
             return fromAuthenticationResult(result);
         });
     }
@@ -51,19 +57,13 @@ public class RefreshTokenCredentialFactory {
         return new AccessToken(authenticationResult.getAccessToken(), expiresOnDate);
     }
 
-    private static AuthenticationResult authorize(AzureEnvironment env,
-                                                  String clientId,
-                                                  String tenantId,
-                                                  String refreshToken,
-                                                  String resource) throws LoginFailureException, MalformedURLException {
+    private AuthenticationResult authenticate(String tenantId, String resource) throws LoginFailureException, MalformedURLException {
         AuthenticationContext context;
         AuthenticationResult result;
-        String authorityUrl = env.getActiveDirectoryEndpoint().replaceAll("/+$", "") + "/" + tenantId;
-        ExecutorService service = null;
+        String authorityUrl = authority + "/" + tenantId;
+        ExecutorService service = Executors.newFixedThreadPool(1);
         try {
-            service = Executors.newFixedThreadPool(1);
-            context = new AuthenticationContext(authorityUrl, true,
-                    service);
+            context = new AuthenticationContext(authorityUrl, true, service);
             Future<AuthenticationResult> future = context
                     .acquireTokenByRefreshToken(refreshToken, clientId, resource, null);
             result = future.get();
@@ -74,7 +74,7 @@ public class RefreshTokenCredentialFactory {
         }
 
         if (result == null) {
-            throw new LoginFailureException("authentication result was null");
+            throw new LoginFailureException("Authentication result from acquireTokenByRefreshToken is null.");
         }
         return result;
     }

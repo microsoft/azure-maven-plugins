@@ -6,7 +6,6 @@ package com.microsoft.azure.toolkit.lib.common.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
