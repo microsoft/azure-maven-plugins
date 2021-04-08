@@ -35,8 +35,6 @@ import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Scanner;
 
-
-
 /**
  * Helper class to authenticate with Azure
  */

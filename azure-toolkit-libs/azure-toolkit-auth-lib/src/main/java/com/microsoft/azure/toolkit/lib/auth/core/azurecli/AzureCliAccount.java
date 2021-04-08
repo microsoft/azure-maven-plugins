@@ -11,7 +11,6 @@ import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureCliUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import lombok.Getter;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -45,9 +44,9 @@ public class AzureCliAccount extends Account {
 
         this.entity.setEmail(defaultSubscription.getEmail());
 
-        AzureCliTokenCredential azureCliCredential = new AzureCliTokenCredential(defaultSubscription.getEnvironment());
+        AzureCliTokenCredential azureCliCredential = new AzureCliTokenCredential();
 
-        verifyTokenCredential(azureCliCredential.getEnvironment(), azureCliCredential);
+        verifyTokenCredential(defaultSubscription.getEnvironment(), azureCliCredential);
 
         // use the tenant who has one or more subscriptions
         this.entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
@@ -56,7 +55,7 @@ public class AzureCliAccount extends Account {
         this.entity.setSelectedSubscriptionIds(subscriptions.stream().filter(Subscription::isSelected)
                 .map(Subscription::getId).distinct().collect(Collectors.toList()));
 
-        this.entity.setCredential(azureCliCredential);
+        this.entity.setTenantCredential(azureCliCredential);
     }
 
     @Override

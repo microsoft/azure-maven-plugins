@@ -10,7 +10,7 @@ import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.implementation.util.ScopeUtil;
 import com.google.gson.JsonObject;
-import com.microsoft.azure.toolkit.lib.auth.BaseTokenCredential;
+import com.microsoft.azure.toolkit.lib.auth.TenantCredential;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureCliUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,12 +22,8 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
-class AzureCliTokenCredential extends BaseTokenCredential {
+class AzureCliTokenCredential extends TenantCredential {
     private static final String CLI_GET_ACCESS_TOKEN_CMD = "az account get-access-token --resource %s %s --output json";
-
-    public AzureCliTokenCredential(AzureEnvironment environment) {
-        super(environment);
-    }
 
     public Mono<AccessToken> getAccessToken(String tenantId, TokenRequestContext request) {
         String scopes = ScopeUtil.scopesToResource(request.getScopes());

@@ -14,7 +14,7 @@ import com.azure.identity.implementation.util.IdentityConstants;
 import com.azure.identity.implementation.util.ScopeUtil;
 import com.microsoft.aad.msal4j.IAuthenticationResult;
 import com.microsoft.azure.toolkit.lib.auth.Account;
-import com.microsoft.azure.toolkit.lib.auth.BaseTokenCredential;
+import com.microsoft.azure.toolkit.lib.auth.TenantCredential;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -66,9 +66,9 @@ public abstract class RefreshTokenAccount extends Account {
     }
 
     private void initializeFromRefreshToken(String refreshToken) {
-        BaseTokenCredential refreshTokenCredential =
-                new RefreshTokenTokenCredential(environment, clientId, refreshToken);
-        entity.setCredential(refreshTokenCredential);
+        TenantCredential refreshTokenCredential =
+                new RefreshTokenTokenCredential(clientId, refreshToken);
+        entity.setTenantCredential(refreshTokenCredential);
     }
 
 }
