@@ -19,7 +19,6 @@ import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import reactor.core.publisher.Mono;
 
 public abstract class RefreshTokenAccount extends Account {
     @Getter

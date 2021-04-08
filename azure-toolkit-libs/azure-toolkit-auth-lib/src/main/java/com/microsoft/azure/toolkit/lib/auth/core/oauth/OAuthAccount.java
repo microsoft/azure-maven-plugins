@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import me.alexpanov.net.FreePortFinder;
-import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -47,7 +46,6 @@ public class OAuthAccount extends RefreshTokenAccount {
     private static boolean isBrowserAvailable() {
         return Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE);
     }
-
 
     @Override
     public AuthMethod getMethod() {
