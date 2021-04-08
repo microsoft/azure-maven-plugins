@@ -9,20 +9,19 @@ import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.management.AzureEnvironment;
-import com.microsoft.azure.toolkit.lib.auth.BaseTokenCredential;
+import com.microsoft.azure.toolkit.lib.auth.TenantCredential;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class RefreshTokenTokenCredential extends BaseTokenCredential {
+public class RefreshTokenTokenCredential extends TenantCredential {
     private final Map<String, TokenCredential> accessTokenCache = new ConcurrentHashMap<>();
     private String refreshToken;
     private String clientId;
 
-    public RefreshTokenTokenCredential(AzureEnvironment environment, String clientId, String refreshToken) {
-        super(environment);
+    public RefreshTokenTokenCredential(String clientId, String refreshToken) {
         this.clientId = clientId;
         this.refreshToken = refreshToken;
     }
@@ -32,7 +31,8 @@ public class RefreshTokenTokenCredential extends BaseTokenCredential {
         String key = StringUtils.firstNonBlank(tenantId, "$");
         if (!accessTokenCache.containsKey(key)) {
             accessTokenCache.put(key,
-                    RefreshTokenCredentialFactory.fromRefreshToken(this.getEnvironment(), clientId, tenantId, refreshToken));
+                    // TODO: hard coded env, will be fixed in future PR
+                    RefreshTokenCredentialFactory.fromRefreshToken(AzureEnvironment.AZURE, clientId, tenantId, refreshToken));
         }
         return accessTokenCache.get(key).getToken(context);
     }
