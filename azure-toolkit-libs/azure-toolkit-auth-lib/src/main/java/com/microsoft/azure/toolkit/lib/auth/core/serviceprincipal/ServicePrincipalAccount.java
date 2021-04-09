@@ -10,7 +10,7 @@ import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.Account;
-import com.microsoft.azure.toolkit.lib.auth.DefaultTokenCredential;
+import com.microsoft.azure.toolkit.lib.auth.SingleTenantCredential;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
@@ -57,6 +57,6 @@ public class ServicePrincipalAccount extends Account {
     protected void initializeCredentials() throws LoginFailureException {
         this.entity.setEnvironment(ObjectUtils.firstNonNull(configuration.getEnvironment(), AzureEnvironment.AZURE));
         verifyTokenCredential(ObjectUtils.firstNonNull(configuration.getEnvironment(), AzureEnvironment.AZURE), clientSecretCredential);
-        this.entity.setCredential(new DefaultTokenCredential(this.entity.getEnvironment(), clientSecretCredential));
+        this.entity.setTenantCredential(new SingleTenantCredential(clientSecretCredential));
     }
 }
