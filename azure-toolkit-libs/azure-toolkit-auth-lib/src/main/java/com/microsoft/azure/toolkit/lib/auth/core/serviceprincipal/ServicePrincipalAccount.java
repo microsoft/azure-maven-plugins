@@ -11,8 +11,6 @@ import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.SingleTenantCredential;
-import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
-import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
@@ -38,13 +36,20 @@ public class ServicePrincipalAccount extends Account {
     }
 
     @Override
-    protected boolean checkAvailableInner() {
+    protected Mono<Boolean> checkAvailableInner() {
         try {
             ValidationUtil.validateAuthConfiguration(configuration);
-            return true;
-        } catch (InvalidConfigurationException e) {
-            throw new AzureToolkitAuthenticationException(
-                    "Cannot login through 'SERVICE_PRINCIPAL' due to invalid configuration:" + e.getMessage());
+            AzureEnvironmentUtils.setupAzureEnvironment(configuration.getEnvironment());
+            clientSecretCredential = StringUtils.isNotBlank(configuration.getCertificate()) ?
+                    new ClientCertificateCredentialBuilder().clientId(configuration.getClient())
+                            .pfxCertificate(configuration.getCertificate(), configuration.getCertificatePassword())
+                            .tenantId(configuration.getTenant()).build()
+                    : new ClientSecretCredentialBuilder().clientId(configuration.getClient())
+                    .clientSecret(configuration.getKey()).tenantId(configuration.getTenant()).build();
+
+            return Mono.just(true);
+        } catch (Throwable ex) {
+            return Mono.error(ex);
         }
     }
 
