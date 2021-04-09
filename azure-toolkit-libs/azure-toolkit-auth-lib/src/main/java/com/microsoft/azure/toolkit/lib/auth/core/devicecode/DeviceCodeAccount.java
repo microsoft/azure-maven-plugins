@@ -6,11 +6,14 @@
 package com.microsoft.azure.toolkit.lib.auth.core.devicecode;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeCredentialBuilder;
 import com.azure.identity.DeviceCodeInfo;
 import com.azure.identity.implementation.util.IdentityConstants;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import reactor.core.publisher.Mono;
@@ -47,6 +50,8 @@ public class DeviceCodeAccount extends Account {
         if (executorService.isShutdown()) {
             throw new AzureToolkitAuthenticationException("Cannot device login twice.");
         }
+        AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
+        this.entity.setEnvironment(env);
         DeviceCodeCredentialBuilder builder = new DeviceCodeCredentialBuilder();
         return builder.clientId(IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID)
                 .executorService(executorService)
