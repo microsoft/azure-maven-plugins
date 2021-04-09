@@ -6,10 +6,14 @@
 package com.microsoft.azure.toolkit.lib.auth.core.oauth;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.InteractiveBrowserCredential;
 import com.azure.identity.InteractiveBrowserCredentialBuilder;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import me.alexpanov.net.FreePortFinder;
 
 import java.awt.*;
@@ -29,6 +33,9 @@ public class OAuthAccount extends Account {
 
     @Override
     protected TokenCredential createTokenCredential() {
+        AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
+        this.entity.setEnvironment(env);
+        AzureEnvironmentUtils.setupAzureEnvironment(env);
         InteractiveBrowserCredential interactiveBrowserCredential = new InteractiveBrowserCredentialBuilder()
                 .redirectUrl("http://localhost:" + FreePortFinder.findFreeLocalPort())
                 .build();
