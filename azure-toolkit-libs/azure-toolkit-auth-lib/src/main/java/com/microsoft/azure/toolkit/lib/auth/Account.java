@@ -8,9 +8,6 @@ package com.microsoft.azure.toolkit.lib.auth;
 import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
-import com.azure.core.http.policy.FixedDelay;
-import com.azure.core.http.policy.HttpPipelinePolicy;
-import com.azure.core.http.policy.RetryPolicy;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.implementation.MsalToken;
@@ -18,7 +15,6 @@ import com.azure.identity.implementation.util.IdentityConstants;
 import com.azure.identity.implementation.util.ScopeUtil;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.Tenant;
-import com.microsoft.aad.adal4j.AuthenticationException;
 import com.microsoft.aad.msal4j.IAuthenticationResult;
 import com.microsoft.azure.credentials.AzureTokenCredentials;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -35,18 +31,12 @@ import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public abstract class Account implements IAccount {
@@ -55,7 +45,6 @@ public abstract class Account implements IAccount {
 
     public Account() {
         this.entity = new AccountEntity();
-        entity.setMethod(getMethod());
     }
 
     public abstract AuthMethod getMethod();
@@ -235,7 +224,10 @@ public abstract class Account implements IAccount {
     }
 
     protected Mono<Void> initializeSubscriptions() {
-        return listSubscriptions(entity.getTenantIds(), entity.getTenantCredential()).doOnSuccess(subscriptions -> {
+        TokenCredentialManager tcm = new TokenCredentialManagerWithCache();
+        tcm.setEnv(this.entity.getEnvironment());
+        tcm.setCredentialSupplier(tenant -> this.entity.getTenantCredential().createTokenCredential(tenant));
+        return tcm.listSubscriptions(entity.getTenantIds()).doOnSuccess(subscriptions -> {
             entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
             entity.setSubscriptions(subscriptions);
             selectSubscriptionInner(subscriptions, this.entity.getSelectedSubscriptionIds());
@@ -245,34 +237,6 @@ public abstract class Account implements IAccount {
                 subscriptions.forEach(s -> s.setSelected(true));
             }
         }).then();
-    }
-
-    private Mono<List<Subscription>> listSubscriptions(List<String> tenantIds, TenantCredential credential) {
-        AzureProfile azureProfile = new AzureProfile(ObjectUtils.firstNonNull(this.entity.getEnvironment(), Azure.az(AzureCloud.class).getOrDefault()));
-        // use map to re-dup subs
-        final Map<String, Subscription> subscriptionMap = new ConcurrentHashMap<>();
-        Map<String, Throwable> throwableList = new ConcurrentHashMap<>();
-        return Flux.fromIterable(tenantIds).parallel().runOn(Schedulers.boundedElastic())
-                .flatMap(t -> listSubscriptions(azureProfile, t, credential.createTokenCredential(t), throwableList)).sequential().collectList()
-                .map(subscriptionsSet -> {
-                    for (List<Subscription> subscriptionsOnTenant : subscriptionsSet) {
-                        for (Subscription subscription : subscriptionsOnTenant) {
-                            String key = StringUtils.lowerCase(subscription.getId());
-                            subscriptionMap.putIfAbsent(key, subscription);
-                        }
-                    }
-                    for (Map.Entry<String, Throwable> tenantError : throwableList.entrySet()) {
-                        Throwable ex = tenantError.getValue();
-                        if ((ExceptionUtils.getRootCause(ex) instanceof AuthenticationException)) {
-                            System.out.println("Cannot get subscriptions for tenant " + tenantError.getKey() +
-                                    ", please verify you have proper permissions over this tenant.");
-                        } else {
-                            throw new AzureToolkitAuthenticationException(ex.getMessage());
-                        }
-                    }
-
-                    return new ArrayList<>(subscriptionMap.values());
-                });
     }
 
     private Subscription getSelectedSubscriptionById(String subscriptionId) {
@@ -287,42 +251,6 @@ public abstract class Account implements IAccount {
         if (CollectionUtils.isNotEmpty(subscriptionIds) && CollectionUtils.isNotEmpty(subscriptions)) {
             subscriptions.forEach(s -> s.setSelected(Utils.containsIgnoreCase(subscriptionIds, s.getId())));
         }
-    }
-
-    private static Mono<List<Subscription>> listSubscriptions(AzureProfile profile,
-                                                              String tenantId,
-                                                              TokenCredential credential,
-                                                              Map<String, Throwable> errorsOnTenant) {
-        return configureAzure().authenticate(credential, profile).subscriptions().listAsync()
-                .map(s -> toSubscriptionEntity(tenantId, s)).collectList().onErrorResume(e -> {
-                    errorsOnTenant.put(tenantId, e);
-                    return Mono.just(new ArrayList<>());
-                });
-    }
-
-    private static Subscription toSubscriptionEntity(String tenantId,
-                                                     com.azure.resourcemanager.resources.models.Subscription subscription) {
-        final Subscription subscriptionEntity = new Subscription();
-        subscriptionEntity.setId(subscription.subscriptionId());
-        subscriptionEntity.setName(subscription.displayName());
-        subscriptionEntity.setTenantId(tenantId);
-        return subscriptionEntity;
-    }
-
-    private static AzureResourceManager.Configurable configureAzure() {
-        // disable retry for getting tenant and subscriptions
-        return AzureResourceManager.configure()
-                .withPolicy(createUserAgentPolicy())
-                .withRetryPolicy(new RetryPolicy(new FixedDelay(0, Duration.ofSeconds(0))));
-    }
-
-    private static HttpPipelinePolicy createUserAgentPolicy() {
-        final String userAgent = Azure.az().config().getUserAgent();
-        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
-            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
-            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
-            return httpPipelineNextPolicy.process();
-        };
     }
 
     private void requireAuthenticated() {
