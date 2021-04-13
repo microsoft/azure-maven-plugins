@@ -52,12 +52,6 @@ public class AzureAccount implements AzureService, IAzureAccount {
         return accountList.stream().filter(Account::checkAvailable).collect(Collectors.toList());
     }
 
-    public Account account(AuthType type) {
-        Account ac = buildAccountMap().get(type).get();
-        ac.checkAvailable();
-        return ac;
-    }
-
     public AzureAccount login(@Nonnull AuthType type) {
         return blockMonoAndReturnThis(loginAsync(type));
     }
