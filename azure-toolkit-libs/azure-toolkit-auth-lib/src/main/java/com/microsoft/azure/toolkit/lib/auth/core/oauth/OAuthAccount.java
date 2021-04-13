@@ -9,26 +9,41 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.InteractiveBrowserCredential;
 import com.azure.identity.InteractiveBrowserCredentialBuilder;
+import com.azure.identity.implementation.util.IdentityConstants;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
-import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import me.alexpanov.net.FreePortFinder;
+import reactor.core.publisher.Mono;
 
 import java.awt.*;
 
 public class OAuthAccount extends Account {
-    private final AuthMethod method = AuthMethod.OAUTH2;
-
     @Override
-    public AuthMethod getMethod() {
-        return method;
+    public AuthType getAuthType() {
+        return AuthType.OAUTH2;
+    }
+
+    protected boolean isExternal() {
+        return false;
     }
 
     @Override
-    protected boolean checkAvailableInner() {
-        return isBrowserAvailable();
+    public String getClientId() {
+        return IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID;
+    }
+
+    @Override
+    protected Mono<Boolean> preLoginCheck() {
+        return Mono.fromCallable(() -> {
+            if (!isBrowserAvailable()) {
+                throw new AzureToolkitAuthenticationException("Browser is not available for oauth login.");
+            }
+            return true;
+        });
     }
 
     @Override

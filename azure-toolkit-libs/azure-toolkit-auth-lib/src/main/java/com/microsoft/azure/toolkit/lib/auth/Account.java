@@ -22,7 +22,7 @@ import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.refresktoken.RefreshTokenTenantCredential;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
-import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
+import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -47,18 +47,25 @@ public abstract class Account implements IAccount {
         this.entity = new AccountEntity();
     }
 
-    public abstract AuthMethod getMethod();
+    public abstract AuthType getAuthType();
 
-    protected abstract boolean checkAvailableInner();
+    protected abstract String getClientId();
 
     protected abstract TokenCredential createTokenCredential();
 
-    boolean checkAvailable() {
-        if (this.entity.isAvailable()) {
-            return true;
+    protected boolean isExternal() {
+        return false;
+    }
+
+    public Mono<Boolean> checkAvailable() {
+        if (!isExternal()) {
+            return Mono.just(true);
         }
-        this.entity.setAvailable(checkAvailableInner());
-        return this.entity.isAvailable();
+        return null;
+    }
+
+    protected Mono<Boolean> preLoginCheck() {
+        return Mono.just(true);
     }
 
     public AzureEnvironment getEnvironment() {
@@ -130,7 +137,6 @@ public abstract class Account implements IAccount {
             throw new AzureToolkitAuthenticationException("Cannot select subscriptions since none subscriptions are selected, " +
                     "make sure you have provided valid subscription list");
         }
-
     }
 
     @Override
@@ -140,8 +146,8 @@ public abstract class Account implements IAccount {
         if (!this.isAuthenticated()) {
             return "<account not logged in>";
         }
-        if (getMethod() != null) {
-            details.add(String.format("Auth method: %s", TextUtils.cyan(getMethod().toString())));
+        if (getAuthType() != null) {
+            details.add(String.format("Auth method: %s", TextUtils.cyan(getAuthType().toString())));
         }
         final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
         if (StringUtils.isNotEmpty(getEntity().getEmail())) {
@@ -154,8 +160,8 @@ public abstract class Account implements IAccount {
     }
 
     protected Mono<Account> authenticate() {
-        if (!this.checkAvailable()) {
-            return Mono.error(new AzureToolkitAuthenticationException("Cannot find credential using auth method: " + this.getMethod()));
+        if (!this.preLoginCheck().block()) {
+            return Mono.error(new AzureToolkitAuthenticationException("Cannot find credential using auth method: " + this.getAuthType()));
         }
         return Mono.fromCallable(this::createTokenCredential).flatMap(this::verifyAndGetTenantId).map(tenantAndToken -> {
             if (tenantAndToken.getT2() instanceof MsalToken) {

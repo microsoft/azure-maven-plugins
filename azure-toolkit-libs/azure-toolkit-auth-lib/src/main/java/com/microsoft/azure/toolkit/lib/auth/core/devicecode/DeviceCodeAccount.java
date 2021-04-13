@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
-import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
+import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -36,13 +36,17 @@ public class DeviceCodeAccount extends Account {
     private Mono<Account> loginMono;
 
     @Override
-    public AuthMethod getMethod() {
-        return AuthMethod.DEVICE_CODE;
+    public AuthType getAuthType() {
+        return AuthType.DEVICE_CODE;
+    }
+
+    protected boolean isExternal() {
+        return false;
     }
 
     @Override
-    protected boolean checkAvailableInner() {
-        return true;
+    public String getClientId() {
+        return IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID;
     }
 
     @Override
