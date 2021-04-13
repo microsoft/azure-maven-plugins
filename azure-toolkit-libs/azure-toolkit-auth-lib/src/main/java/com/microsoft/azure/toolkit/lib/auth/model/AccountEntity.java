@@ -17,8 +17,6 @@ import java.util.List;
 @Setter
 public class AccountEntity {
 
-    private AuthMethod method;
-
     private AzureEnvironment environment;
 
     private String email;
