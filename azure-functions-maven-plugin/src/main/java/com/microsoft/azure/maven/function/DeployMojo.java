@@ -524,7 +524,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         final Account account = Azure.az(AzureAccount.class).account();
         final String subscriptionId = getAzureClient().subscriptionId();
         final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(
-                account.getTokenCredentialV1ForSubscription(subscriptionId),
+                account.getTokenCredentialV1(subscriptionId),
                 subscriptionId, getUserAgent());
         return StringUtils.isNotEmpty(getAppInsightsInstance()) ?
                 getApplicationInsights(applicationInsightsManager, getAppInsightsInstance()) :

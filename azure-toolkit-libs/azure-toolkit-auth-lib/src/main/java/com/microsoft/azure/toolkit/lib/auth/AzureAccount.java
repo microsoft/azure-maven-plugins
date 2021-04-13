@@ -66,20 +66,18 @@ public class AzureAccount implements AzureService, IAzureAccount {
 
     public void logout() {
         if (this.account != null) {
-            this.account.logout();
+            Account temp = this.account;
             this.account = null;
+            temp.logout();
+
         }
     }
 
-    public boolean isAuthenticated() {
-        return this.account != null && this.account.isAvailable() && this.account.isAuthenticated();
-    }
-
-    public Mono<Account> authenticateAccounts(List<Account> accounts) {
-        Mono<Account> current = accounts.get(0).authenticate();
+    private Mono<Account> authenticateAccounts(List<Account> accounts) {
+        Mono<Account> current = accounts.get(0).login();
         for (int i = 1; i < accounts.size(); i++) {
             final Account ac = accounts.get(i);
-            current = current.onErrorResume(e -> ac.authenticate());
+            current = current.onErrorResume(e -> ac.login());
         }
         return current;
     }
@@ -125,7 +123,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
     public Mono<Account> loginAsync(Account targetAccount) {
         Objects.requireNonNull(targetAccount, "Please specify account to login.");
 
-        return targetAccount.authenticate().doOnSuccess(this::setAccount);
+        return targetAccount.login().doOnSuccess(this::setAccount);
     }
 
     private AzureAccount blockMonoAndReturnThis(Mono<Account> mono) {
@@ -138,11 +136,8 @@ public class AzureAccount implements AzureService, IAzureAccount {
     }
 
     private static void checkEnv(Account ac, AzureEnvironment env) {
-
         if (env != null && ac.getEnvironment() != null
-                && ac.getEnvironment() != env
-                && ac.isAuthenticated()) {
-
+                && ac.getEnvironment() != env && ac.isAvailable()) {
             String expectedEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(env);
             String realEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(ac.getEnvironment());
 

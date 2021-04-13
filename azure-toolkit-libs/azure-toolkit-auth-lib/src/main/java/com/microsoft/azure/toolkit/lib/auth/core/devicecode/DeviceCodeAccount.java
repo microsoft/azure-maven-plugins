@@ -14,8 +14,11 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
+import com.microsoft.azure.toolkit.lib.auth.TokenCredentialManager;
+import com.microsoft.azure.toolkit.lib.auth.RefreshTokenTokenCredentialManager;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
+import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -40,33 +43,41 @@ public class DeviceCodeAccount extends Account {
         return AuthType.DEVICE_CODE;
     }
 
-    protected boolean isExternal() {
-        return false;
-    }
-
     @Override
     public String getClientId() {
         return IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID;
     }
 
     @Override
-    protected TokenCredential createTokenCredential() {
+    protected Mono<Boolean> preLoginCheck() {
+        return Mono.just(true);
+    }
+
+    public Mono<Boolean> checkAvailable() {
+        return Mono.just(true);
+    }
+
+    private TokenCredential createCredential() {
         if (executorService.isShutdown()) {
             throw new AzureToolkitAuthenticationException("Cannot device login twice.");
         }
-        AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
-        this.entity.setEnvironment(env);
+        AzureEnvironmentUtils.setupAzureEnvironment(this.entity.getEnvironment());
         DeviceCodeCredentialBuilder builder = new DeviceCodeCredentialBuilder();
         return builder.clientId(IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID)
                 .executorService(executorService)
                 .challengeConsumer(deviceCodeFuture::complete).build();
     }
 
+    protected Mono<TokenCredentialManager> createTokenCredentialManager() {
+        AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
+        this.entity.setEnvironment(env);
+        return RefreshTokenTokenCredentialManager.createTokenCredentialManager(env, getClientId(), createCredential());
+    }
+
     @Override
-    protected Mono<Account> authenticate() {
+    protected Mono<Account> login() {
         Mono<Account> map = Mono.fromFuture(deviceCodeFuture).map(ignore -> this);
-        loginMono = super.authenticate().doFinally(r -> executorService.shutdown()
-        ).subscribeOn(Schedulers.boundedElastic()).cache();
+        loginMono = super.login().doFinally(r -> executorService.shutdown()).subscribeOn(Schedulers.boundedElastic()).cache();
         return map.doOnCancel(executorService::shutdownNow).doOnSubscribe(ignore -> loginMono.subscribe());
     }
 
