@@ -21,14 +21,12 @@ public class AzureCliAccount extends Account {
     @Override
     protected boolean checkAvailableInner() {
         try {
-            if (!AzureCliUtils.checkCliVersion()) {
-                return false;
-            }
+            AzureCliUtils.ensureMinimumCliVersion();
             AzureCliUtils.executeAzCommandJson("az account get-access-token --output json");
             return true;
         } catch (Throwable ex) {
-            this.entity.setLastError(ex);
-            return false;
+            throw new AzureToolkitAuthenticationException(
+                    "Cannot login through azure cli due to error:" + ex.getMessage());
         }
     }
 
