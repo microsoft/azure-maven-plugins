@@ -17,10 +17,12 @@ import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthentication
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -35,27 +37,29 @@ public class AzureCliUtils {
     private static final String DEFAULT_MAC_LINUX_PATH = "/bin/";
     private static final String WINDOWS_PROCESS_ERROR_MESSAGE = "'az' is not recognized";
     private static final String LINUX_MAC_PROCESS_ERROR_MESSAGE = "(.*)az:(.*)not found";
+    private static final String MIN_VERSION = "2.11.0";
 
-    public static boolean checkCliVersion() {
+    public static void ensureMinimumCliVersion() {
         try {
             final JsonObject result = AzureCliUtils.executeAzCommandJson("az version --output json").getAsJsonObject();
             String cliVersion = result.get("azure-cli").getAsString();
             // we require at least azure cli version 2.11.0
-            if (compareVersion(cliVersion, "2.11.0", 3) < 0) {
+            if (compareWithMinimVersion(cliVersion) < 0) {
                 throw new AzureToolkitAuthenticationException(String.format("Your azure cli version '%s' is too old, " +
                         "you need to upgrade your CLI with 'az upgrade'.", cliVersion));
             }
-            return true;
         } catch (NullPointerException | NumberFormatException ex) {
-            return false;
+            throw new AzureToolkitAuthenticationException(
+                    String.format("Cannot authenticate through azure cli, " +
+                            "please make sure your Azure cli is installed and signed-in, the detailed error is : %s", ex.getMessage()));
         }
     }
 
-    private static int compareVersion(String version1, String version2, int maxVersionCount) {
-        String[] v1s = version1.split("\\.");
-        String[] v2s = version2.split("\\.");
+    private static int compareWithMinimVersion(String version) {
+        String[] v1s = version.split("\\.");
+        String[] v2s = MIN_VERSION.split("\\.");
         int i = 0;
-        for (; i < v1s.length && i < v2s.length && i < maxVersionCount; i++) {
+        for (; i < v1s.length && i < v2s.length && i < 3; i++) {
             int v1 = Integer.parseInt(v1s[i]);
             int v2 = Integer.parseInt(v2s[i]);
             if (v1 > v2) {
@@ -82,7 +86,7 @@ public class AzureCliUtils {
         return 0;
     }
 
-    public static List<AzureCliSubscription> listSubscriptions() {
+    public static @Nonnull List<AzureCliSubscription> listSubscriptions() {
         final JsonArray result = executeAzCommandJson("az account list --output json --all").getAsJsonArray();
         final List<AzureCliSubscription> list = new ArrayList<>();
         if (result != null) {
@@ -112,7 +116,8 @@ public class AzureCliUtils {
             });
             return list;
         }
-        return null;
+        throw new AzureToolkitAuthenticationException(
+                "Cannot list subscriptions by command `az account list`, please make sure you have signed in azure cli using `az login`");
     }
 
     /**
@@ -143,7 +148,7 @@ public class AzureCliUtils {
             }
             builder.redirectErrorStream(true);
             final Process process = builder.start();
-            reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
+            reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
             String line;
             final StringBuilder output = new StringBuilder();
             while (true) {
@@ -162,7 +167,7 @@ public class AzureCliUtils {
             process.waitFor(10, TimeUnit.SECONDS);
             if (process.exitValue() != 0) {
                 if (processOutput.length() > 0) {
-                    final String redactedOutput = redactInfo("\"accessToken\": \"(.*?)(\"|$)", processOutput);
+                    final String redactedOutput = redactInfo(processOutput);
                     if (redactedOutput.contains("az login") || redactedOutput.contains("az account set")) {
                         throw new CredentialUnavailableException(
                                 "AzureCliTenantCredential authentication unavailable. Please run 'az login' to set up account.");
@@ -207,7 +212,7 @@ public class AzureCliUtils {
         }
     }
 
-    private static String redactInfo(String regex, String input) {
-        return input.replaceAll(regex, "****");
+    private static String redactInfo(String input) {
+        return input.replaceAll("\"accessToken\": \"(.*?)(\"|$)", "****");
     }
 }
