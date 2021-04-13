@@ -48,8 +48,8 @@ public class AzureAccount implements AzureService, IAzureAccount {
     }
 
     public List<Account> accounts() {
-        List<Account> accountList = Flux.fromIterable(buildAccountMap().values()).map(Supplier::get).collectList().block();
-        return accountList.stream().filter(Account::checkAvailable).collect(Collectors.toList());
+        return Flux.fromIterable(buildAccountMap().values()).map(Supplier::get).collectList().block();
+
     }
 
     public AzureAccount login(@Nonnull AuthType type) {
@@ -147,7 +147,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
             String realEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(ac.getEnvironment());
 
             // conflicting configuration of azure environment
-            switch (ac.getMethod()) {
+            switch (ac.getAuthType()) {
                 case AZURE_CLI:
                     throw new AzureToolkitAuthenticationException(
                             String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
@@ -155,7 +155,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
                             realEnv,
                             expectedEnv));
 
-                case AZURE_SECRET_FILE:
+                case AZURE_AUTH_MAVEN_PLUGIN:
                     throw new AzureToolkitAuthenticationException(
                             String.format("The azure cloud from maven login '%s' doesn't match with your auth configuration, " +
                                     "please switch to other auth method for '%s' environment.",

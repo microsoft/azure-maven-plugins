@@ -296,7 +296,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             }
             printCurrentSubscription(azure);
             getTelemetryProxy().addDefaultProperty(AUTH_TYPE, getAuthType());
-            getTelemetryProxy().addDefaultProperty(AUTH_METHOD, getAuthMethod());
+            getTelemetryProxy().addDefaultProperty(AUTH_METHOD, getActualAuthType());
             // Repopulate subscriptionId in case it is not configured.
             getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
         }
@@ -407,10 +407,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return map;
     }
 
-    public String getAuthMethod() {
+    public String getActualAuthType() {
         final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
         if (account != null) {
-            return account.getMethod().toString();
+            return account.getAuthType().toString();
         }
         final AuthenticationSetting authSetting = getAuthenticationSetting();
         if (authSetting == null) {

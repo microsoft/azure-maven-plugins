@@ -6,28 +6,31 @@
 package com.microsoft.azure.toolkit.lib.auth.core.azurecli;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.identity.implementation.util.IdentityConstants;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
-import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
+import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureCliUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class AzureCliAccount extends Account {
     @Override
-    protected boolean checkAvailableInner() {
-        try {
+    public AuthType getAuthType() {
+        return AuthType.AZURE_CLI;
+    }
+
+    protected Mono<Boolean> preLoginCheck() {
+        return Mono.fromCallable(() -> {
             AzureCliUtils.ensureMinimumCliVersion();
             AzureCliUtils.executeAzCommandJson("az account get-access-token --output json");
             return true;
-        } catch (Throwable ex) {
-            throw new AzureToolkitAuthenticationException(
-                    "Cannot login through azure cli due to error:" + ex.getMessage());
-        }
+        });
     }
 
     @Override
@@ -74,7 +77,7 @@ public class AzureCliAccount extends Account {
     }
 
     @Override
-    public AuthMethod getMethod() {
-        return AuthMethod.AZURE_CLI;
+    public String getClientId() {
+        return IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID;
     }
 }
