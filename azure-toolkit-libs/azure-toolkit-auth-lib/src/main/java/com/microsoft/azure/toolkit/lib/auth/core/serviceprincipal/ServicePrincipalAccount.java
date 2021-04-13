@@ -13,18 +13,16 @@ import com.microsoft.azure.toolkit.lib.auth.SingleTenantCredential;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
-import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
+import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.util.ValidationUtil;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
 public class ServicePrincipalAccount extends Account {
-    @Getter
-    private final AuthMethod method = AuthMethod.SERVICE_PRINCIPAL;
     private final AuthConfiguration configuration;
 
     public ServicePrincipalAccount(@Nonnull AuthConfiguration authConfiguration) {
@@ -33,14 +31,25 @@ public class ServicePrincipalAccount extends Account {
     }
 
     @Override
-    protected boolean checkAvailableInner() {
-        try {
-            ValidationUtil.validateAuthConfiguration(configuration);
-            return true;
-        } catch (InvalidConfigurationException e) {
-            throw new AzureToolkitAuthenticationException(
-                    "Cannot login through 'SERVICE_PRINCIPAL' due to invalid configuration:" + e.getMessage());
-        }
+    public AuthType getAuthType() {
+        return AuthType.SERVICE_PRINCIPAL;
+    }
+
+    @Override
+    protected String getClientId() {
+        return this.configuration.getClient();
+    }
+
+    protected Mono<Boolean> preLoginCheck() {
+        return Mono.fromCallable(() -> {
+            try {
+                ValidationUtil.validateAuthConfiguration(configuration);
+                return true;
+            } catch (InvalidConfigurationException e) {
+                throw new AzureToolkitAuthenticationException(
+                        "Cannot login through 'SERVICE_PRINCIPAL' due to invalid configuration:" + e.getMessage());
+            }
+        });
     }
 
     protected TokenCredential createTokenCredential() {
