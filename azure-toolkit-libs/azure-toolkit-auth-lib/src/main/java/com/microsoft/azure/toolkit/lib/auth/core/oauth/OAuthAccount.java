@@ -12,7 +12,6 @@ import com.microsoft.azure.toolkit.lib.auth.core.refresktoken.RefreshTokenAccoun
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthMethod;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
-import lombok.Getter;
 import me.alexpanov.net.FreePortFinder;
 import reactor.core.publisher.Mono;
 
@@ -32,8 +31,8 @@ public class OAuthAccount extends RefreshTokenAccount {
     }
 
     @Override
-    protected Mono<Boolean> checkAvailableInner() {
-        return Mono.just(isBrowserAvailable());
+    protected boolean checkAvailableInner() {
+        return isBrowserAvailable();
     }
 
     @Override
