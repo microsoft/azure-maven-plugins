@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.lib.auth.model;
 
 import com.azure.core.management.AzureEnvironment;
-import com.microsoft.azure.toolkit.lib.auth.TenantCredential;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +31,4 @@ public class AccountEntity {
     private boolean available;
 
     private Throwable lastError;
-
-    private TenantCredential tenantCredential;
 }

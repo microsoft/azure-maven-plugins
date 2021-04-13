@@ -11,4 +11,8 @@ public class AzureToolkitAuthenticationException extends AzureToolkitRuntimeExce
     public AzureToolkitAuthenticationException(String error) {
         super(error);
     }
+
+    public AzureToolkitAuthenticationException(String error, Throwable cause) {
+        super(error, cause);
+    }
 }

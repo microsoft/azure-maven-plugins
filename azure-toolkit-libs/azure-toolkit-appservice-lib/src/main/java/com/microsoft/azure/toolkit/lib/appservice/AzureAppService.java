@@ -133,7 +133,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return AzureResourceManager.configure()
                 .withLogLevel(logDetailLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
-                .authenticate(account.getTokenCredentialForSubscription(subscriptionId), azureProfile)
+                .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId);
     }
 
