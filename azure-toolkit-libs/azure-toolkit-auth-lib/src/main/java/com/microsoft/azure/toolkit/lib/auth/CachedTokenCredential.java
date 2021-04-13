@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.credential.AccessToken;
+import com.azure.core.credential.SimpleTokenCache;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.identity.implementation.util.ScopeUtil;
@@ -16,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 class CachedTokenCredential implements TokenCredential {
     private final TokenCredential tokenCredential;
-    private final Map<String, AccessToken> accessTokenCache = new ConcurrentHashMap<>();
+    private final Map<String, SimpleTokenCache> tokenCache = new ConcurrentHashMap<>();
 
     public CachedTokenCredential(TokenCredential tokenCredential) {
         this.tokenCredential = tokenCredential;
@@ -25,10 +26,7 @@ class CachedTokenCredential implements TokenCredential {
     @Override
     public Mono<AccessToken> getToken(TokenRequestContext request) {
         String resource = ScopeUtil.scopesToResource(request.getScopes());
-        if (!accessTokenCache.containsKey(resource) || accessTokenCache.get(resource).isExpired()) {
-            accessTokenCache.put(resource,
-                    this.tokenCredential.getToken(request).block());
-        }
-        return Mono.just(accessTokenCache.get(resource));
+        return tokenCache.computeIfAbsent(resource, (ignore) ->
+                new SimpleTokenCache(() -> tokenCredential.getToken(request))).getToken();
     }
 }
