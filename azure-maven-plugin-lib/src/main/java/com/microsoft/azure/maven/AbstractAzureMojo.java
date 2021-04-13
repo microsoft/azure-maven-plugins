@@ -360,6 +360,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
             }
             getTelemetryProxy().addDefaultProperty(AZURE_ENVIRONMENT, environmentName);
+            printCredentialDescription(azureAccount);
         }
         return azureAccount;
     }

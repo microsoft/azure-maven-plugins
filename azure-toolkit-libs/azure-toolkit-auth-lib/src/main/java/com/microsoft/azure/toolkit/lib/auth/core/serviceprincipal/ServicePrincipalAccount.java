@@ -5,16 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.auth.core.serviceprincipal;
 
-import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
-import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
-import com.microsoft.azure.toolkit.lib.auth.TenantCredential;
 import com.microsoft.azure.toolkit.lib.auth.TokenCredentialManager;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
@@ -59,22 +56,10 @@ public class ServicePrincipalAccount extends Account {
         });
     }
 
-    protected TokenCredential createTokenCredential() {
-        TokenCredentialManager tokenCredentialManager = createTokenCredentialManager();
-        // TenantCredential will be replaced by TokenCredentialManager in later PR
-        this.entity.setTenantCredential(new TenantCredential() {
-            @Override
-            protected Mono<AccessToken> getAccessToken(String tenantId, TokenRequestContext request) {
-                return tokenCredentialManager.createTokenCredentialForTenant(tenantId).getToken(request);
-            }
-        });
-        return this.entity.getTenantCredential();
-    }
-
-    protected TokenCredentialManager createTokenCredentialManager() {
+    protected Mono<TokenCredentialManager> createTokenCredentialManager() {
         AzureEnvironment env = ObjectUtils.firstNonNull(configuration.getEnvironment(), Azure.az(AzureCloud.class).getOrDefault());
         this.entity.setEnvironment(env);
-        return new ServicePrincipalTokenCredentialManager(env, createCredential());
+        return Mono.just(new ServicePrincipalTokenCredentialManager(env, createCredential()));
     }
 
     private TokenCredential createCredential() {
