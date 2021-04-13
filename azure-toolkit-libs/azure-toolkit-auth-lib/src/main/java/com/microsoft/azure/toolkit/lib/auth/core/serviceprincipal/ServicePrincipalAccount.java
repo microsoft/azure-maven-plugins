@@ -5,17 +5,24 @@
 
 package com.microsoft.azure.toolkit.lib.auth.core.serviceprincipal;
 
+import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.credential.TokenRequestContext;
+import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.ClientCertificateCredentialBuilder;
 import com.azure.identity.ClientSecretCredentialBuilder;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
-import com.microsoft.azure.toolkit.lib.auth.SingleTenantCredential;
+import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
+import com.microsoft.azure.toolkit.lib.auth.TenantCredential;
+import com.microsoft.azure.toolkit.lib.auth.TokenCredentialManager;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.auth.util.ValidationUtil;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
 
@@ -53,15 +60,30 @@ public class ServicePrincipalAccount extends Account {
     }
 
     protected TokenCredential createTokenCredential() {
-        AzureEnvironmentUtils.setupAzureEnvironment(configuration.getEnvironment());
-        this.entity.setEnvironment(configuration.getEnvironment());
-        TokenCredential clientSecretCredential = StringUtils.isNotBlank(configuration.getCertificate()) ?
+        TokenCredentialManager tokenCredentialManager = createTokenCredentialManager();
+        // TenantCredential will be replaced by TokenCredentialManager in later PR
+        this.entity.setTenantCredential(new TenantCredential() {
+            @Override
+            protected Mono<AccessToken> getAccessToken(String tenantId, TokenRequestContext request) {
+                return tokenCredentialManager.createTokenCredentialForTenant(tenantId).getToken(request);
+            }
+        });
+        return this.entity.getTenantCredential();
+    }
+
+    protected TokenCredentialManager createTokenCredentialManager() {
+        AzureEnvironment env = ObjectUtils.firstNonNull(configuration.getEnvironment(), Azure.az(AzureCloud.class).getOrDefault());
+        this.entity.setEnvironment(env);
+        return new ServicePrincipalTokenCredentialManager(env, createCredential());
+    }
+
+    private TokenCredential createCredential() {
+        AzureEnvironmentUtils.setupAzureEnvironment(entity.getEnvironment());
+        return StringUtils.isNotBlank(configuration.getCertificate()) ?
                 new ClientCertificateCredentialBuilder().clientId(configuration.getClient())
                         .pfxCertificate(configuration.getCertificate(), configuration.getCertificatePassword())
                         .tenantId(configuration.getTenant()).build()
                 : new ClientSecretCredentialBuilder().clientId(configuration.getClient())
                 .clientSecret(configuration.getKey()).tenantId(configuration.getTenant()).build();
-        this.entity.setTenantCredential(new SingleTenantCredential(clientSecretCredential));
-        return clientSecretCredential;
     }
 }
