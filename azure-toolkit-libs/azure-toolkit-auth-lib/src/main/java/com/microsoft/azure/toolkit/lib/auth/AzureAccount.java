@@ -9,6 +9,7 @@ import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
+import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.oauth.OAuthAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.serviceprincipal.ServicePrincipalAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
@@ -184,7 +185,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
         // SP is not there since it requires special constructor argument and it is special(it requires complex auth configuration)
         map.put(AuthType.AZURE_CLI, AzureCliAccount::new);
         map.put(AuthType.OAUTH2, OAuthAccount::new);
-
+        map.put(AuthType.DEVICE_CODE, DeviceCodeAccount::new);
         return map;
     }
 }
