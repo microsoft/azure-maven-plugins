@@ -37,7 +37,8 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
     private static final ClientLogger LOGGER = new ClientLogger(TokenCredentialManager.class);
 
     @Setter
-    protected AzureEnvironment env;
+    @Getter
+    protected AzureEnvironment environment;
 
     @Setter
     @Getter
@@ -54,12 +55,12 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
     }
 
     public Mono<List<String>> listTenants() {
-        return createAzureClient(env).tenants().listAsync().map(Tenant::tenantId).collectList();
+        return createAzureClient(environment).tenants().listAsync().map(Tenant::tenantId).collectList();
     }
 
     public Mono<List<Subscription>> listSubscriptions(List<String> tenantIds) {
         return Flux.fromIterable(tenantIds).parallel().runOn(Schedulers.boundedElastic())
-                .flatMap(tenant -> listSubscriptionsInTenant(createAzureClient(env, tenant), tenant)).sequential().collectList()
+                .flatMap(tenant -> listSubscriptionsInTenant(createAzureClient(environment, tenant), tenant)).sequential().collectList()
                 .map(subscriptionsSet -> subscriptionsSet.stream()
                         .flatMap(Collection::stream)
                         .filter(Utils.distinctByKey(subscription -> StringUtils.lowerCase(subscription.getId())))

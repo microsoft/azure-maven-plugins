@@ -27,7 +27,7 @@ import com.microsoft.azure.toolkit.lib.auth.TokenCredentialManagerWithCache;
 
 class AzureCliTokenCredentialManager extends TokenCredentialManagerWithCache {
     public AzureCliTokenCredentialManager(AzureEnvironment env) {
-        this.env = env;
+        this.environment = env;
         rootCredentialSupplier = () -> new AzureCliTokenCredential(null);
         credentialSupplier = AzureCliTokenCredential::new;
     }

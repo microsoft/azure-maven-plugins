@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.management.AzureEnvironment;
+import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
@@ -24,7 +25,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,63 +66,42 @@ public class AzureAccount implements AzureService, IAzureAccount {
 
     public void logout() {
         if (this.account != null) {
-            Account temp = this.account;
+            Account tempAccount = this.account;
             this.account = null;
-            temp.logout();
-
+            tempAccount.logout();
         }
-    }
-
-    private Mono<Account> authenticateAccounts(List<Account> accounts) {
-        Mono<Account> current = accounts.get(0).login();
-        for (int i = 1; i < accounts.size(); i++) {
-            final Account ac = accounts.get(i);
-            current = current.onErrorResume(e -> ac.login());
-        }
-        return current;
-    }
-
-    public Mono<Account> loginAsync(@Nonnull AuthConfiguration auth) {
-        // update the env state of AzureAccount when auth configuration has an explicit configuration of env
-        Objects.requireNonNull(auth, "Auth configuration is required for login.");
-        Objects.requireNonNull(auth.getType(), "Auth type is required for login.");
-        AuthType type = auth.getType();
-        final List<Account> accounts = new ArrayList<>();
-        if (auth.getType() == AuthType.SERVICE_PRINCIPAL) {
-            accounts.add(new ServicePrincipalAccount(auth));
-        } else {
-            Map<AuthType, Supplier<Account>> accountByType = buildAccountMap();
-            if (auth.getType() == AuthType.AUTO) {
-                accounts.add(new ServicePrincipalAccount(auth));
-                accounts.addAll(accountByType.values().stream().map(Supplier::get).collect(Collectors.toList()));
-            } else {
-                if (!accountByType.containsKey(type)) {
-                    return Mono.error(new LoginFailureException(String.format("Unsupported auth type '%s', supported values are: %s.\"",
-                            type, accountByType.keySet().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", ")))));
-                }
-                accounts.add(accountByType.get(type).get());
-            }
-        }
-
-        return authenticateAccounts(accounts).doOnSuccess(result -> {
-            checkEnv(result, auth.getEnvironment());
-            this.setAccount(result);
-        });
     }
 
     public Mono<Account> loginAsync(AuthType type) {
         Objects.requireNonNull(type, "Please specify auth type in auth configuration.");
-        Map<AuthType, Supplier<Account>> accountByType = buildAccountMap();
-        if (!accountByType.containsKey(type)) {
-            return Mono.error(new LoginFailureException(String.format("Unsupported auth type '%s', supported values are: %s.\"",
-                    type, accountByType.keySet().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", ")))));
+        AuthConfiguration auth = new AuthConfiguration();
+        auth.setType(type);
+        return loginAsync(auth);
+    }
+
+    public Mono<Account> loginAsync(@Nonnull AuthConfiguration auth) {
+        Objects.requireNonNull(auth, "Auth configuration is required for login.");
+        Objects.requireNonNull(auth.getType(), "Auth type is required for login.");
+        Preconditions.checkArgument(auth.getType() != AuthType.AUTO, "Auth type 'auto' is illegal for login.");
+
+        AuthType type = auth.getType();
+        final Account targetAccount;
+        if (auth.getType() == AuthType.SERVICE_PRINCIPAL) {
+            targetAccount = new ServicePrincipalAccount(auth);
+        } else {
+            Map<AuthType, Supplier<Account>> accountByType = buildAccountMap();
+            if (!accountByType.containsKey(type)) {
+                return Mono.error(new LoginFailureException(String.format("Unsupported auth type '%s', supported values are: %s.\"",
+                        type, accountByType.keySet().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", ")))));
+            }
+            targetAccount = accountByType.get(type).get();
         }
-        return loginAsync(accountByType.get(type).get());
+
+        return loginAsync(targetAccount).doOnSuccess(ignore -> checkEnv(targetAccount, auth.getEnvironment()));
     }
 
     public Mono<Account> loginAsync(Account targetAccount) {
         Objects.requireNonNull(targetAccount, "Please specify account to login.");
-
         return targetAccount.login().doOnSuccess(this::setAccount);
     }
 
@@ -136,8 +115,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
     }
 
     private static void checkEnv(Account ac, AzureEnvironment env) {
-        if (env != null && ac.getEnvironment() != null
-                && ac.getEnvironment() != env && ac.isAvailable()) {
+        if (env != null && ac.getEnvironment() != null && ac.getEnvironment() != env && ac.isAvailable()) {
             String expectedEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(env);
             String realEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(ac.getEnvironment());
 
@@ -146,23 +124,23 @@ public class AzureAccount implements AzureService, IAzureAccount {
                 case AZURE_CLI:
                     throw new AzureToolkitAuthenticationException(
                             String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
-                                    "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
-                            realEnv,
-                            expectedEnv));
+                                            "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
+                                    realEnv,
+                                    expectedEnv));
 
                 case AZURE_AUTH_MAVEN_PLUGIN:
                     throw new AzureToolkitAuthenticationException(
                             String.format("The azure cloud from maven login '%s' doesn't match with your auth configuration, " +
-                                    "please switch to other auth method for '%s' environment.",
-                            realEnv,
-                            expectedEnv));
+                                            "please switch to other auth method for '%s' environment.",
+                                    realEnv,
+                                    expectedEnv));
                 case VSCODE:
                     throw new AzureToolkitAuthenticationException(
                             String.format("The azure cloud from vscode '%s' doesn't match with your auth configuration: %s, " +
-                                    "you can change it by pressing F1 in VSCode and find \">azure: sign in to Azure Cloud\" command " +
-                                    "to change azure cloud in vscode.",
-                            realEnv,
-                            expectedEnv));
+                                            "you can change it by pressing F1 in VSCode and find \">azure: sign in to Azure Cloud\" command " +
+                                            "to change azure cloud in vscode.",
+                                    realEnv,
+                                    expectedEnv));
                 default: // empty
 
             }
