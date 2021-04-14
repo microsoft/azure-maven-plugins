@@ -81,8 +81,6 @@
         <groovy.version>2.5.11</groovy.version>
         <junit.version>4.13.1</junit.version>
         <lombok.version>1.18.16</lombok.version>
-        <mockito.version>2.22.0</mockito.version>
-        <powermock.version>2.0.2</powermock.version>
         <rx.version>1.3.8</rx.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
 
