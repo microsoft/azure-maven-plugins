@@ -32,11 +32,26 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.function.Consumer;
 
-import static com.microsoft.azure.common.appservice.DeploymentType.*;
-import static com.microsoft.azure.common.appservice.OperatingSystemEnum.*;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static com.microsoft.azure.common.appservice.DeploymentType.DOCKER;
+import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_BLOB;
+import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
+import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Docker;
+import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Linux;
+import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Windows;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeployMojoTest extends MojoTestBase {
