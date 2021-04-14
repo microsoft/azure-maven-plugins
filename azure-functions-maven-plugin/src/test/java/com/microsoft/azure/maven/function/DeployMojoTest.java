@@ -26,35 +26,19 @@ import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.function.Consumer;
 
-import static com.microsoft.azure.common.appservice.DeploymentType.DOCKER;
-import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_BLOB;
-import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
-import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Docker;
-import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Linux;
-import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Windows;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static com.microsoft.azure.common.appservice.DeploymentType.*;
+import static com.microsoft.azure.common.appservice.OperatingSystemEnum.*;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({FunctionUtils.class})
+@RunWith(MockitoJUnitRunner.class)
 public class DeployMojoTest extends MojoTestBase {
     private DeployMojo mojo = null;
     private DeployMojo mojoSpy = null;
@@ -231,12 +215,14 @@ public class DeployMojoTest extends MojoTestBase {
         doReturn(slot).when(mojoSpy).updateDeploymentSlot(any(), any());
         doCallRealMethod().when(mojoSpy).createDeploymentSlot(any(), any());
         doReturn(null).when(mojoSpy).getResourcePortalUrl(any());
-        PowerMockito.mockStatic(FunctionUtils.class);
-        PowerMockito.when(FunctionUtils.getFunctionDeploymentSlotByName(any(), any())).thenReturn(null);
         final TelemetryProxy telemetryProxy = mock(TelemetryProxy.class);
         doNothing().when(telemetryProxy).addDefaultProperty(any(), any());
         doReturn(telemetryProxy).when(mojoSpy).getTelemetryProxy();
-        mojoSpy.doExecute();
+
+        try (MockedStatic<FunctionUtils> mockFunctionUtils = Mockito.mockStatic(FunctionUtils.class)) {
+            mockFunctionUtils.when(() -> FunctionUtils.getFunctionDeploymentSlotByName(any(), any())).thenReturn(null);
+            mojoSpy.doExecute();
+        }
 
         verify(mojoSpy, times(1)).doExecute();
         verify(mojoSpy, times(1)).createOrUpdateResource();
