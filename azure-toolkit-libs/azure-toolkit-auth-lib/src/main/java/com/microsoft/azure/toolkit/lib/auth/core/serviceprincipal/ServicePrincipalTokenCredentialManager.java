@@ -14,7 +14,7 @@ import javax.annotation.Nonnull;
 class ServicePrincipalTokenCredentialManager extends TokenCredentialManagerWithCache {
 
     public ServicePrincipalTokenCredentialManager(@Nonnull AzureEnvironment env, @Nonnull TokenCredential credential) {
-        this.env = env;
+        this.environment = env;
         this.rootCredentialSupplier = () -> credential;
         this.credentialSupplier = tenant -> credential;
     }

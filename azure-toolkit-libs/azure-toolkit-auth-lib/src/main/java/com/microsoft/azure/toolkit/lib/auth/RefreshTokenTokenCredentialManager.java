@@ -45,9 +45,12 @@ public class RefreshTokenTokenCredentialManager extends TokenCredentialManagerWi
     public static Mono<TokenCredentialManager> createTokenCredentialManager(@Nonnull AzureEnvironment env,
                                                                             @Nonnull String clientId,
                                                                             String refreshToken) {
-        RefreshTokenCredential credential =
-                new RefreshTokenCredential(AzureEnvironmentUtils.getAuthority(env), clientId, "common", refreshToken);
-        return fromCredential(env, clientId, getRootAccessToken(env, credential));
+
+        TokenCredentialManager tcm = new TokenCredentialManager();
+        tcm.setEnvironment(env);
+        tcm.credentialSupplier = tenant -> new RefreshTokenCredential(AzureEnvironmentUtils.getAuthority(env), clientId, tenant, refreshToken);
+        tcm.rootCredentialSupplier = () -> new RefreshTokenCredential(AzureEnvironmentUtils.getAuthority(env), clientId, "common", refreshToken);
+        return Mono.just(tcm);
     }
 
     private static String getRefreshTokenFromMsalToken(MsalToken accessToken) {
@@ -76,10 +79,10 @@ public class RefreshTokenTokenCredentialManager extends TokenCredentialManagerWi
         }
 
         final TokenCredentialManager tokenCredentialManager = new TokenCredentialManagerWithCache();
-        tokenCredentialManager.setEnv(env);
+        tokenCredentialManager.setEnvironment(env);
         tokenCredentialManager.setEmail(getEmailFromMsalToken(token));
-        tokenCredentialManager.setCredentialSupplier(tenantId -> new RefreshTokenCredential(authority, clientId, tenantId, refreshToken));;
-        tokenCredentialManager.setRootCredentialSupplier(() -> request -> Mono.just(token));;
+        tokenCredentialManager.setCredentialSupplier(tenantId -> new RefreshTokenCredential(authority, clientId, tenantId, refreshToken));
+        tokenCredentialManager.setRootCredentialSupplier(() -> request -> Mono.just(token));
         return tokenCredentialManager;
     }
 
@@ -93,8 +96,7 @@ public class RefreshTokenTokenCredentialManager extends TokenCredentialManagerWi
 
     @NotNull
     private static Mono<TokenCredentialManager> fromCredential(@Nonnull AzureEnvironment env, @Nonnull String clientId, Mono<AccessToken> rootAccessToken) {
-        Mono<AccessToken> mono = rootAccessToken;
-        return mono.map(accessToken -> {
+        return rootAccessToken.map(accessToken -> {
             if (accessToken instanceof MsalToken) {
                 return createFromRefreshToken(env, (MsalToken) accessToken, AzureEnvironmentUtils.getAuthority(env), clientId);
             }

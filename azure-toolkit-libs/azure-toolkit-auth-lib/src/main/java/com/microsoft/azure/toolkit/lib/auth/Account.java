@@ -130,19 +130,27 @@ public abstract class Account implements IAccount {
         return mono.flatMap(ignore -> {
             if (this.entity.getSubscriptions() == null) {
                 return this.credentialManager.listSubscriptions(this.entity.getTenantIds())
-                .map(subscriptions -> {
-                    // reset tenant id again when all subscriptions
-                    entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
-                    entity.setSubscriptions(subscriptions);
-                    entity.setEmail(credentialManager.getEmail());
-                    selectSubscriptionInner(subscriptions, this.entity.getSelectedSubscriptionIds());
-                    this.entity.setAuthenticated(true);
-                    return true;
-                });
+                        .map(subscriptions -> {
+                            // reset tenant id again when all subscriptions
+                            entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
+                            entity.setSubscriptions(subscriptions);
+                            return true;
+                        });
             }
-            this.entity.setAuthenticated(true);
             return Mono.just(true);
-        }).map(ignore -> this);
+        }).map(ignore -> {
+            finishLogin();
+            return this;
+        });
+    }
+
+    private void finishLogin() {
+        this.entity.setAuthenticated(true);
+        selectSubscriptionInner(getSubscriptions(), this.entity.getSelectedSubscriptionIds());
+        // select all when no subs are selected
+        if (this.getSelectedSubscriptions().isEmpty()) {
+            getSubscriptions().forEach(subscription -> subscription.setSelected(true));
+        }
     }
 
     /***
@@ -158,6 +166,10 @@ public abstract class Account implements IAccount {
             if (this.entity.getTenantIds() == null) {
                 this.entity.setTenantIds(tenantIds);
             }
+            if (StringUtils.isNotBlank(credentialManager.getEmail())) {
+                entity.setEmail(credentialManager.getEmail());
+            }
+            entity.setEnvironment(credentialManager.getEnvironment());
         }).map(ignore -> {
             this.entity.setAvailable(true);
             return true;
@@ -177,7 +189,8 @@ public abstract class Account implements IAccount {
         if (this.entity.isAvailable() && CollectionUtils.isNotEmpty(getSubscriptions())) {
             final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
             if (selectedSubscriptions != null && selectedSubscriptions.size() == 1) {
-                details.add(String.format("Default subscription: %s", TextUtils.cyan(selectedSubscriptions.get(0).getId())));
+                details.add(String.format("Default subscription: %s (%s)", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
+                        TextUtils.cyan(selectedSubscriptions.get(0).getId())));
             }
         }
 
