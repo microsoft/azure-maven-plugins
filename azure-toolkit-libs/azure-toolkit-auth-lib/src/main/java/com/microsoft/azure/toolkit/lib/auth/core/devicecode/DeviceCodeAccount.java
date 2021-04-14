@@ -57,21 +57,9 @@ public class DeviceCodeAccount extends Account {
         return Mono.just(true);
     }
 
-    private TokenCredential createCredential() {
-        if (executorService.isShutdown()) {
-            throw new AzureToolkitAuthenticationException("Cannot device login twice.");
-        }
-        AzureEnvironmentUtils.setupAzureEnvironment(this.entity.getEnvironment());
-        DeviceCodeCredentialBuilder builder = new DeviceCodeCredentialBuilder();
-        return builder.clientId(IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID)
-                .executorService(executorService)
-                .challengeConsumer(deviceCodeFuture::complete).build();
-    }
-
     protected Mono<TokenCredentialManager> createTokenCredentialManager() {
         AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
-        this.entity.setEnvironment(env);
-        return RefreshTokenTokenCredentialManager.createTokenCredentialManager(env, getClientId(), createCredential());
+        return RefreshTokenTokenCredentialManager.createTokenCredentialManager(env, getClientId(), createCredential(env));
     }
 
     @Override
@@ -91,6 +79,17 @@ public class DeviceCodeAccount extends Account {
         } catch (InterruptedException | ExecutionException e) {
             throw new AzureToolkitAuthenticationException(e.getMessage());
         }
+    }
+
+    private TokenCredential createCredential(AzureEnvironment env) {
+        if (executorService.isShutdown()) {
+            throw new AzureToolkitAuthenticationException("Cannot device login twice.");
+        }
+        AzureEnvironmentUtils.setupAzureEnvironment(env);
+        DeviceCodeCredentialBuilder builder = new DeviceCodeCredentialBuilder();
+        return builder.clientId(IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID)
+                .executorService(executorService)
+                .challengeConsumer(deviceCodeFuture::complete).build();
     }
 
     private static ExecutorService createExecutorService() {

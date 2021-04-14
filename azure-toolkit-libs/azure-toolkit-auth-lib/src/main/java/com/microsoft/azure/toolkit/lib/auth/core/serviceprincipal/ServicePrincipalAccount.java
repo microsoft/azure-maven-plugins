@@ -58,12 +58,11 @@ public class ServicePrincipalAccount extends Account {
 
     protected Mono<TokenCredentialManager> createTokenCredentialManager() {
         AzureEnvironment env = ObjectUtils.firstNonNull(configuration.getEnvironment(), Azure.az(AzureCloud.class).getOrDefault());
-        this.entity.setEnvironment(env);
-        return Mono.just(new ServicePrincipalTokenCredentialManager(env, createCredential()));
+        return Mono.just(new ServicePrincipalTokenCredentialManager(env, createCredential(env)));
     }
 
-    private TokenCredential createCredential() {
-        AzureEnvironmentUtils.setupAzureEnvironment(entity.getEnvironment());
+    private TokenCredential createCredential(AzureEnvironment env) {
+        AzureEnvironmentUtils.setupAzureEnvironment(env);
         return StringUtils.isNotBlank(configuration.getCertificate()) ?
                 new ClientCertificateCredentialBuilder().clientId(configuration.getClient())
                         .pfxCertificate(configuration.getCertificate(), configuration.getCertificatePassword())

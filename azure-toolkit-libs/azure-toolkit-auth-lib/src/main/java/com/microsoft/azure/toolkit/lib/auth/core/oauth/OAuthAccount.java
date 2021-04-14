@@ -47,17 +47,16 @@ public class OAuthAccount extends Account {
         });
     }
 
-    protected TokenCredential createCredential() {
-        AzureEnvironmentUtils.setupAzureEnvironment(this.entity.getEnvironment());
+    protected Mono<TokenCredentialManager> createTokenCredentialManager() {
+        AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
+        return RefreshTokenTokenCredentialManager.createTokenCredentialManager(env, getClientId(), createCredential(env));
+    }
+
+    protected static TokenCredential createCredential(AzureEnvironment env) {
+        AzureEnvironmentUtils.setupAzureEnvironment(env);
         return new InteractiveBrowserCredentialBuilder()
                 .redirectUrl("http://localhost:" + FreePortFinder.findFreeLocalPort())
                 .build();
-    }
-
-    protected Mono<TokenCredentialManager> createTokenCredentialManager() {
-        AzureEnvironment env = Azure.az(AzureCloud.class).getOrDefault();
-        this.entity.setEnvironment(env);
-        return RefreshTokenTokenCredentialManager.createTokenCredentialManager(env, getClientId(), createCredential());
     }
 
     private static boolean isBrowserAvailable() {
