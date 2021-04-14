@@ -189,7 +189,7 @@ public abstract class Account implements IAccount {
         if (this.entity.isAvailable() && CollectionUtils.isNotEmpty(getSubscriptions())) {
             final List<Subscription> selectedSubscriptions = getSelectedSubscriptions();
             if (selectedSubscriptions != null && selectedSubscriptions.size() == 1) {
-                details.add(String.format("Default subscription: %s (%s)", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
+                details.add(String.format("Default subscription: %s(%s)", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
                         TextUtils.cyan(selectedSubscriptions.get(0).getId())));
             }
         }
