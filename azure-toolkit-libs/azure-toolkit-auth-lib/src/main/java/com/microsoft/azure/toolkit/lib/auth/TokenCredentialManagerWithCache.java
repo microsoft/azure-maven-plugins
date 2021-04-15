@@ -24,7 +24,7 @@ public class TokenCredentialManagerWithCache extends TokenCredentialManager {
                 key -> new CachedTokenCredential(super.createTokenCredentialForTenant(tenantId)));
     }
 
-    class CachedTokenCredential implements TokenCredential {
+    static class CachedTokenCredential implements TokenCredential {
         // cache for different resources on the same tenant
         private final Map<String, SimpleTokenCache> tokenCache = new ConcurrentHashMap<>();
 
