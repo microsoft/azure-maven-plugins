@@ -19,10 +19,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,8 +48,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({System.class, AzureAuthHelperLegacy.class, Log.class})
+@RunWith(MockitoJUnitRunner.class)
 public class AzureAuthHelperTest {
     @Mock
     AbstractAzureMojo mojo;
@@ -93,8 +92,6 @@ public class AzureAuthHelperTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        PowerMockito.mockStatic(Log.class);
-        when(Log.isDebugEnabled()).thenReturn(false);
     }
 
     @Test
@@ -130,9 +127,10 @@ public class AzureAuthHelperTest {
 
         // <subscriptionId> is null
         when(mojo.getSubscriptionId()).thenReturn(null);
-        PowerMockito.mockStatic(AzureAuthHelperLegacy.class);
-        PowerMockito.doReturn(false).when(AzureAuthHelperLegacy.class, "isInCloudShell");
-        helperSpy.getAzureClient();
+        try (MockedStatic<AzureAuthHelperLegacy> mockAuthHelper = Mockito.mockStatic(AzureAuthHelperLegacy.class)) {
+            mockAuthHelper.when(AzureAuthHelperLegacy::isInCloudShell).thenReturn(false);
+            helperSpy.getAzureClient();
+        }
         verify(authenticated, never()).withSubscription(any(String.class));
         verify(authenticated, times(1)).withDefaultSubscription();
     }
@@ -140,14 +138,15 @@ public class AzureAuthHelperTest {
     @Test
     public void testGetAzureClientInCloudShell() throws Exception {
         final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
-        final AzureAuthHelperLegacy helperSpy = PowerMockito.spy(helper);
+        final AzureAuthHelperLegacy helperSpy = spy(helper);
 
-        PowerMockito.mockStatic(AzureAuthHelperLegacy.class);
-        PowerMockito.doReturn(true).when(AzureAuthHelperLegacy.class, "isInCloudShell");
-        PowerMockito.doReturn("TestSubscription").when(AzureAuthHelperLegacy.class, "getSubscriptionOfCloudShell");
-        PowerMockito.doReturn(authenticated).when(helperSpy).getAuthObj();
+        doReturn(authenticated).when(helperSpy).getAuthObj();
+        try (MockedStatic<AzureAuthHelperLegacy> mockAuthHelper = Mockito.mockStatic(AzureAuthHelperLegacy.class)) {
+            mockAuthHelper.when(AzureAuthHelperLegacy::isInCloudShell).thenReturn(true);
+            mockAuthHelper.when(AzureAuthHelperLegacy::getSubscriptionOfCloudShell).thenReturn("TestSubscription");
+            helperSpy.getAzureClient();
+        }
 
-        helperSpy.getAzureClient();
         verify(authenticated, times(1)).withSubscription(any(String.class));
         verify(authenticated, never()).withDefaultSubscription();
     }
@@ -156,11 +155,13 @@ public class AzureAuthHelperTest {
     public void testGetLogLevel() {
         final AzureAuthHelperLegacy helper = new AzureAuthHelperLegacy(mojo);
 
-        when(Log.isDebugEnabled()).thenReturn(false);
-        assertSame(LogLevel.NONE, helper.getLogLevel());
+        try (MockedStatic<Log> mockLog = Mockito.mockStatic(Log.class)) {
+            mockLog.when(Log::isDebugEnabled).thenReturn(false);
+            assertSame(LogLevel.NONE, helper.getLogLevel());
 
-        when(Log.isDebugEnabled()).thenReturn(true);
-        assertSame(LogLevel.BODY_AND_HEADERS, helper.getLogLevel());
+            mockLog.when(Log::isDebugEnabled).thenReturn(true);
+            assertSame(LogLevel.BODY_AND_HEADERS, helper.getLogLevel());
+        }
     }
 
     @Test

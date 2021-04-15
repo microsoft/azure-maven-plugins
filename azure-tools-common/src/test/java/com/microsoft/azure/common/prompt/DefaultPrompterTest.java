@@ -7,15 +7,12 @@ package com.microsoft.azure.common.prompt;
 
 import com.microsoft.azure.common.TestHelper;
 import com.microsoft.azure.common.utils.SneakyThrowUtils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,16 +21,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ DefaultPrompter.class, BufferedReader.class })
+@RunWith(MockitoJUnitRunner.class)
 public class DefaultPrompterTest {
     private final BufferedReader reader = mock(BufferedReader.class);
     private final DefaultPrompter prompter = new DefaultPrompter();
@@ -270,7 +261,7 @@ public class DefaultPrompterTest {
 
     @Test
     public void testClose() throws Exception {
-        PowerMockito.doNothing().when(reader).close();
+        doNothing().when(reader).close();
         this.prompter.close();
     }
 }

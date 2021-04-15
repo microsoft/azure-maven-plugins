@@ -15,14 +15,13 @@ import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,24 +30,11 @@ import java.util.Map;
 
 import static com.microsoft.azure.common.function.Constants.INTERNAL_STORAGE_KEY;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({MSDeployArtifactHandlerImpl.class, FunctionArtifactHelper.class})
+@RunWith(MockitoJUnitRunner.class)
 public class MSDeployArtifactHandlerImplTest {
     private MSDeployArtifactHandlerImpl handler;
 
@@ -74,19 +60,17 @@ public class MSDeployArtifactHandlerImplTest {
         final AppSetting storageSetting = mock(AppSetting.class);
 
         mapSettings.put(INTERNAL_STORAGE_KEY, storageSetting);
-        doReturn(mapSettings).when(deployTarget).getAppSettings();
-        doReturn(storageSetting).when(mapSettings).get(anyString());
         buildHandler();
 
-        PowerMockito.mockStatic(FunctionArtifactHelper.class);
-        when(FunctionArtifactHelper.getCloudStorageAccount(any())).thenReturn(null);
         doReturn("").when(handlerSpy).uploadPackageToAzureStorage(file, null, "");
         doReturn("").when(handlerSpy).getBlobName();
-        doReturn(mapSettings).when(deployTarget).getAppSettings();
         doNothing().when(handlerSpy).deployWithPackageUri(eq(deployTarget), eq(""), any(Runnable.class));
         doReturn(file).when(handlerSpy).createZipPackage();
 
-        handlerSpy.publish(deployTarget);
+        try (MockedStatic<FunctionArtifactHelper> mockArtifactHelper = Mockito.mockStatic(FunctionArtifactHelper.class)) {
+            mockArtifactHelper.when(() -> FunctionArtifactHelper.getCloudStorageAccount(deployTarget)).thenReturn(null);
+            handlerSpy.publish(deployTarget);
+        }
 
         verify(handlerSpy, times(1)).publish(deployTarget);
         verify(handlerSpy, times(1)).createZipPackage();
@@ -128,13 +112,7 @@ public class MSDeployArtifactHandlerImplTest {
 
     @Test
     public void deployWithPackageUri() throws Exception {
-        final FunctionApp app = mock(FunctionApp.class);
         final DeployTarget deployTarget = mock(DeployTarget.class);
-        final WithPackageUri withPackageUri = mock(WithPackageUri.class);
-        doReturn(withPackageUri).when(app).deploy();
-        final WithExecute withExecute = mock(WithExecute.class);
-        doReturn(withExecute).when(withPackageUri).withPackageUri(anyString());
-        doReturn(withExecute).when(withExecute).withExistingDeploymentsDeleted(false);
         final Runnable runnable = mock(Runnable.class);
         doNothing().when(deployTarget).msDeploy("uri", false);
         buildHandler();

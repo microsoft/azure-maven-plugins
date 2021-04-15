@@ -26,9 +26,9 @@ import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.function.Consumer;
 
@@ -53,8 +53,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({FunctionUtils.class})
+@RunWith(MockitoJUnitRunner.class)
 public class DeployMojoTest extends MojoTestBase {
     private DeployMojo mojo = null;
     private DeployMojo mojoSpy = null;
@@ -231,12 +230,14 @@ public class DeployMojoTest extends MojoTestBase {
         doReturn(slot).when(mojoSpy).updateDeploymentSlot(any(), any());
         doCallRealMethod().when(mojoSpy).createDeploymentSlot(any(), any());
         doReturn(null).when(mojoSpy).getResourcePortalUrl(any());
-        PowerMockito.mockStatic(FunctionUtils.class);
-        PowerMockito.when(FunctionUtils.getFunctionDeploymentSlotByName(any(), any())).thenReturn(null);
         final TelemetryProxy telemetryProxy = mock(TelemetryProxy.class);
         doNothing().when(telemetryProxy).addDefaultProperty(any(), any());
         doReturn(telemetryProxy).when(mojoSpy).getTelemetryProxy();
-        mojoSpy.doExecute();
+
+        try (MockedStatic<FunctionUtils> mockFunctionUtils = Mockito.mockStatic(FunctionUtils.class)) {
+            mockFunctionUtils.when(() -> FunctionUtils.getFunctionDeploymentSlotByName(any(), any())).thenReturn(null);
+            mojoSpy.doExecute();
+        }
 
         verify(mojoSpy, times(1)).doExecute();
         verify(mojoSpy, times(1)).createOrUpdateResource();
