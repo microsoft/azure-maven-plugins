@@ -5,12 +5,15 @@
 
 package com.microsoft.azure.maven.springcloud.config;
 
+import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.maven.model.Resource;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
+@Getter
 public class AppDeploymentMavenConfig {
     private Integer cpu;
     private Integer memoryInGB;
@@ -19,43 +22,13 @@ public class AppDeploymentMavenConfig {
     private String jvmOptions;
     private String runtimeVersion;
     private Boolean enablePersistentStorage;
+    @Nullable
     private Map<String, String> environment;
+    @Nullable
     private List<Resource> resources;
-
-    public Integer getCpu() {
-        return cpu;
-    }
-
-    public Integer getMemoryInGB() {
-        return memoryInGB;
-    }
-
-    public Integer getInstanceCount() {
-        return instanceCount;
-    }
-
-    public String getDeploymentName() {
-        return deploymentName;
-    }
-
-    public Map<String, String> getEnvironment() {
-        return environment;
-    }
-
-    public List<Resource> getResources() {
-        return resources;
-    }
 
     public Boolean isEnablePersistentStorage() {
         return BooleanUtils.isTrue(enablePersistentStorage);
-    }
-
-    public String getJvmOptions() {
-        return jvmOptions;
-    }
-
-    public String getRuntimeVersion() {
-        return runtimeVersion;
     }
 
     public AppDeploymentMavenConfig withCpu(Integer cpu) {

@@ -118,7 +118,7 @@ public abstract class AzureTaskContext {
 
         public void pushOperation(final IAzureOperation operation) {
             if (this.isOrphan()) {
-                log.warning(String.format("orphan context[%s] is setup", this));
+                log.info(String.format("orphan context[%s] is setup", this));
             }
             this.operations.push(operation);
         }
@@ -128,7 +128,7 @@ public abstract class AzureTaskContext {
             final IAzureOperation popped = this.operations.pop();
             if (this.isOrphan() && this.operations.isEmpty()) {
                 AzureTaskContext.context.remove();
-                log.warning(String.format("orphan context[%s] is disposed", this));
+                log.info(String.format("orphan context[%s] is disposed", this));
             }
             return popped;
         }

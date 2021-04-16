@@ -12,6 +12,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class MavenArtifactUtils {
     private static final String MULTI_ARTIFACT = "Multiple artifacts(%s) could be deployed, please specify " +
         "the target artifact in plugin configurations.";
 
+    @Nullable
     public static File getArtifactFromTargetFolder(MavenProject project) throws MojoExecutionException {
         final String targetFolder = project.getBuild().getDirectory();
         final Collection<File> files = FileUtils.listFiles(new File(targetFolder), ARTIFACT_EXTENSIONS, true);
@@ -47,10 +49,11 @@ public class MavenArtifactUtils {
         }
     }
 
-    public static List<File> getArtifacts(List<Resource> resources) {
-        final List<File> result = new ArrayList<>();
-        resources.forEach(resource -> result.addAll(getArtifacts(resource)));
-        return result;
+    public static List<File> getArtifacts(@Nullable List<Resource> resources) {
+        if (resources != null) {
+            return resources.stream().flatMap(r -> getArtifacts(r).stream()).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 
     public static List<File> getArtifacts(Resource resource) {
@@ -69,7 +72,11 @@ public class MavenArtifactUtils {
                 .collect(Collectors.toList());
     }
 
+    @Nullable
     public static File getExecutableJarFiles(Collection<File> files) throws MojoExecutionException {
+        if (files.isEmpty()) {
+            return null;
+        }
         final List<File> executableJars = files.stream().filter(MavenArtifactUtils::isExecutableJar).collect(Collectors.toList());
         if (executableJars.isEmpty()) {
             throw new MojoExecutionException(ARTIFACT_NOT_SUPPORTED);
@@ -77,7 +84,7 @@ public class MavenArtifactUtils {
         // Throw exception when there are multi runnable artifacts
         if (executableJars.size() > 1) {
             final String artifactNameLists = executableJars.stream()
-                .map(File::getName).collect(Collectors.joining(","));
+                    .map(File::getName).collect(Collectors.joining(","));
             throw new MojoExecutionException(String.format(MULTI_ARTIFACT, artifactNameLists));
         }
         return executableJars.get(0);
