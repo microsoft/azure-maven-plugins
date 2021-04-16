@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
@@ -44,4 +45,6 @@ public interface IAppService extends IResource {
     Runtime getRuntime();
 
     PublishingProfile getPublishingProfile();
+
+    DiagnosticConfig getDiagnosticConfig();
 }

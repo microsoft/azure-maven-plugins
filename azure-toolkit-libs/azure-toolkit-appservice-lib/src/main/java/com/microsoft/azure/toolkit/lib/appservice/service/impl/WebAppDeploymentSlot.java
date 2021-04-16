@@ -103,6 +103,11 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     }
 
     @Override
+    public DiagnosticConfig getDiagnosticConfig() {
+        return AppServiceUtils.fromWebAppDiagnosticLogs(getDeploymentSlotInner().diagnosticLogsConfig());
+    }
+
+    @Override
     public WebAppDeploymentSlotEntity entity() {
         return slotEntity;
     }

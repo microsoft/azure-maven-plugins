@@ -6,17 +6,25 @@ package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.fluent.models.SiteLogsConfigInner;
 import com.azure.resourcemanager.appservice.models.AppServicePlan;
+import com.azure.resourcemanager.appservice.models.ApplicationLogsConfig;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
+import com.azure.resourcemanager.appservice.models.FileSystemApplicationLogsConfig;
+import com.azure.resourcemanager.appservice.models.FileSystemHttpLogsConfig;
+import com.azure.resourcemanager.appservice.models.HttpLogsConfig;
 import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.SkuDescription;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.appservice.models.WebAppBasic;
+import com.azure.resourcemanager.appservice.models.WebAppDiagnosticLogs;
+import com.azure.resourcemanager.resources.fluentcore.model.HasInnerModel;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.LogLevel;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
@@ -28,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 
 class AppServiceUtils {
 
@@ -188,11 +197,38 @@ class AppServiceUtils {
         }
     }
 
+    static DiagnosticConfig fromWebAppDiagnosticLogs(WebAppDiagnosticLogs webAppDiagnosticLogs) {
+        final DiagnosticConfig.DiagnosticConfigBuilder builder = DiagnosticConfig.builder();
+        final com.azure.resourcemanager.appservice.models.LogLevel applicationLogLevel = Optional.ofNullable(webAppDiagnosticLogs)
+                .map(HasInnerModel::innerModel)
+                .map(SiteLogsConfigInner::applicationLogs)
+                .map(ApplicationLogsConfig::fileSystem)
+                .map(FileSystemApplicationLogsConfig::level).orElse(null);
+        if (applicationLogLevel != null && applicationLogLevel != com.azure.resourcemanager.appservice.models.LogLevel.OFF) {
+            builder.enableApplicationLog(true).applicationLogLevel(LogLevel.fromString(applicationLogLevel.toString()));
+        } else {
+            builder.enableApplicationLog(false);
+        }
+        final FileSystemHttpLogsConfig httpLogsConfig = Optional.ofNullable(webAppDiagnosticLogs)
+                .map(HasInnerModel::innerModel)
+                .map(SiteLogsConfigInner::httpLogs)
+                .map(HttpLogsConfig::fileSystem).orElse(null);
+        if (httpLogsConfig != null) {
+            builder.enableWebServerLogging(true).webServerLogQuota(httpLogsConfig.retentionInMb())
+                    .webServerRetentionPeriod(httpLogsConfig.retentionInDays())
+                    .enableDetailedErrorMessage(webAppDiagnosticLogs.detailedErrorMessages())
+                    .enableFailedRequestTracing(webAppDiagnosticLogs.failedRequestsTracing());
+        } else {
+            builder.enableWebServerLogging(false);
+        }
+        return builder.build();
+    }
+
     static void defineDiagnosticConfigurationForWebAppBase(final WebAppBase.DefinitionStages.WithCreate withCreate, final DiagnosticConfig diagnosticConfig) {
         if (diagnosticConfig.isEnableApplicationLog()) {
             withCreate.defineDiagnosticLogsConfiguration()
                     .withApplicationLogging()
-                    .withLogLevel(com.azure.resourcemanager.appservice.models.LogLevel.fromString(diagnosticConfig.getApplicationLogLevel().toString()))
+                    .withLogLevel(com.azure.resourcemanager.appservice.models.LogLevel.fromString(diagnosticConfig.getApplicationLogLevel().getValue()))
                     .withApplicationLogsStoredOnFileSystem();
         }
         if (diagnosticConfig.isEnableWebServerLogging()) {
@@ -209,7 +245,7 @@ class AppServiceUtils {
         if (diagnosticConfig.isEnableApplicationLog()) {
             update.updateDiagnosticLogsConfiguration()
                     .withApplicationLogging()
-                    .withLogLevel(com.azure.resourcemanager.appservice.models.LogLevel.fromString(diagnosticConfig.getApplicationLogLevel().toString()))
+                    .withLogLevel(com.azure.resourcemanager.appservice.models.LogLevel.fromString(diagnosticConfig.getApplicationLogLevel().getValue()))
                     .withApplicationLogsStoredOnFileSystem();
         }
         if (diagnosticConfig.isEnableWebServerLogging()) {
