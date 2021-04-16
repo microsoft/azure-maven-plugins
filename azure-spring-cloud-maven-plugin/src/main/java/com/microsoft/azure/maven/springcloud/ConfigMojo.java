@@ -35,6 +35,7 @@ import org.dom4j.DocumentException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -343,6 +344,7 @@ public class ConfigMojo extends AbstractMojoBase {
         this.wrapper.putCommonVariable("subscriptions", subscriptions);
         final Subscription select = this.wrapper.handleSelectOne("select-subscriptions", subscriptions, null,
             t -> String.format("%s (%s)", t.getName(), t.getId()));
+        com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(select.getId()));
         return select.getId();
     }
 
