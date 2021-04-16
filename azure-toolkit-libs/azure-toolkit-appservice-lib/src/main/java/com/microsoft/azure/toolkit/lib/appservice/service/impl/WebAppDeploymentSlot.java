@@ -8,6 +8,7 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
+import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.WebApp;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
@@ -19,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlotCreator;
+import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlotUpdater;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -26,14 +28,13 @@ import reactor.core.publisher.Flux;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Optional;
 
 public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
     private WebAppDeploymentSlotEntity slotEntity;
 
     private DeploymentSlot deploymentSlotInner;
-    private AzureResourceManager azureClient;
+    private final AzureResourceManager azureClient;
 
     public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureClient) {
         this.slotEntity = deploymentSlot;
@@ -49,6 +50,11 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     @Override
     public IWebAppDeploymentSlotCreator create() {
         return new WebAppDeploymentSlotCreator();
+    }
+
+    @Override
+    public IWebAppDeploymentSlotUpdater update() {
+        return new WebAppDeploymentSlotUpdater();
     }
 
     @Override
@@ -157,8 +163,8 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
         private String name;
         private String configurationSource = CONFIGURATION_SOURCE_PARENT;
-        private Optional<Map<String, String>> appSettings = null;
-        private Optional<DiagnosticConfig> diagnosticConfig = null;
+        private Map<String, String> appSettings = null;
+        private DiagnosticConfig diagnosticConfig = null;
 
         @Override
         public IWebAppDeploymentSlotCreator withName(String name) {
@@ -168,7 +174,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
         @Override
         public IWebAppDeploymentSlotCreator withAppSettings(Map<String, String> appSettings) {
-            this.appSettings = Optional.ofNullable(appSettings);
+            this.appSettings = appSettings;
             return this;
         }
 
@@ -180,7 +186,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
         @Override
         public IWebAppDeploymentSlotCreator withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
-            this.diagnosticConfig = Optional.ofNullable(diagnosticConfig);
+            this.diagnosticConfig = diagnosticConfig;
             return this;
         }
 
@@ -207,13 +213,45 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
                     withCreate = blank.withConfigurationFromDeploymentSlot(deploymentSlot);
                     break;
             }
-            if (appSettings != null && appSettings.isPresent()) {
-                withCreate.withAppSettings(appSettings.get());
+            if (getAppSettings() != null) {
+                withCreate.withAppSettings(getAppSettings());
             }
-            if (getDiagnosticConfig() != null && getDiagnosticConfig().isPresent()) {
-                AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig().get());
+            if (getDiagnosticConfig() != null) {
+                AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig());
             }
             WebAppDeploymentSlot.this.deploymentSlotInner = withCreate.create();
+            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.deploymentSlotInner);
+            return WebAppDeploymentSlot.this;
+        }
+    }
+
+    @Getter
+    private class WebAppDeploymentSlotUpdater implements IWebAppDeploymentSlotUpdater {
+        private Map<String, String> appSettings = null;
+        private DiagnosticConfig diagnosticConfig = null;
+
+        @Override
+        public WebAppDeploymentSlotUpdater withAppSettings(Map<String, String> appSettings) {
+            this.appSettings = appSettings;
+            return this;
+        }
+
+        @Override
+        public WebAppDeploymentSlotUpdater withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
+            this.diagnosticConfig = diagnosticConfig;
+            return this;
+        }
+
+        @Override
+        public WebAppDeploymentSlot commit() {
+            final DeploymentSlotBase.Update<DeploymentSlot> update = getDeploymentSlotInner().update();
+            if (getAppSettings() != null) {
+                update.withAppSettings(getAppSettings());
+            }
+            if (getDiagnosticConfig() != null) {
+                AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig());
+            }
+            WebAppDeploymentSlot.this.deploymentSlotInner = update.apply();
             WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.deploymentSlotInner);
             return WebAppDeploymentSlot.this;
         }
