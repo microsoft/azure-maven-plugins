@@ -16,7 +16,9 @@ import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
@@ -27,13 +29,21 @@ import java.util.stream.Collectors;
 
 
 public abstract class Account implements IAccount {
+    protected static final String TOOLKIT_TOKEN_CACHE_NAME = "azure-toolkit.cache";
+
     @Getter
     protected AccountEntity entity;
+
+    @Setter(AccessLevel.PACKAGE)
+    @Getter(AccessLevel.PROTECTED)
+    protected boolean enablePersistence = false;
 
     protected TokenCredentialManager credentialManager;
 
     public Account() {
         this.entity = new AccountEntity();
+        this.entity.setClientId(this.getClientId());
+        this.entity.setType(this.getAuthType());
     }
 
     public abstract AuthType getAuthType();

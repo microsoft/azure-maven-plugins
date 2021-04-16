@@ -18,6 +18,10 @@ public class AccountEntity {
 
     private AzureEnvironment environment;
 
+    private AuthType type;
+
+    private String clientId;
+
     private String email;
 
     private boolean authenticated;
