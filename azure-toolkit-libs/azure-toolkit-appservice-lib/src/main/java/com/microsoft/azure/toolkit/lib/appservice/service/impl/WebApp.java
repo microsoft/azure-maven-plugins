@@ -28,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Flux;
 
 import java.io.File;
 import java.util.List;
@@ -113,6 +114,11 @@ public class WebApp implements IWebApp {
     @Override
     public DiagnosticConfig getDiagnosticConfig() {
         return AppServiceUtils.fromWebAppDiagnosticLogs(getWebAppInner().diagnosticLogsConfig());
+    }
+
+    @Override
+    public Flux<String> streamAllLogsAsync() {
+        return getWebAppInner().streamAllLogsAsync();
     }
 
     @Override

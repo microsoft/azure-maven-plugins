@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlotC
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Flux;
 
 import java.io.File;
 import java.util.Map;
@@ -105,6 +106,11 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     @Override
     public DiagnosticConfig getDiagnosticConfig() {
         return AppServiceUtils.fromWebAppDiagnosticLogs(getDeploymentSlotInner().diagnosticLogsConfig());
+    }
+
+    @Override
+    public Flux<String> streamAllLogsAsync() {
+        return getDeploymentSlotInner().streamAllLogsAsync();
     }
 
     @Override

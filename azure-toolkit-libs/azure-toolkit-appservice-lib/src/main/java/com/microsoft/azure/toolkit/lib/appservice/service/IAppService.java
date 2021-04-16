@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
+import reactor.core.publisher.Flux;
 
 import java.io.File;
 
@@ -47,4 +48,6 @@ public interface IAppService extends IResource {
     PublishingProfile getPublishingProfile();
 
     DiagnosticConfig getDiagnosticConfig();
+
+    Flux<String> streamAllLogsAsync();
 }
