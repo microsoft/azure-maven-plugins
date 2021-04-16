@@ -42,6 +42,8 @@ public abstract class Account implements IAccount {
 
     public Account() {
         this.entity = new AccountEntity();
+        this.entity.setClientId(this.getClientId());
+        this.entity.setType(this.getAuthType());
     }
 
     public abstract AuthType getAuthType();
