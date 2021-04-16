@@ -6,12 +6,14 @@ package com.microsoft.azure.toolkit.lib.appservice.entity;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder(toBuilder = true)
-public class AppServicePlanEntity {
+public class AppServicePlanEntity implements IAzureResourceEntity {
+    private String subscriptionId;
     private String id;
     private String name;
     private String region;

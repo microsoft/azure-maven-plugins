@@ -5,11 +5,13 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
+import lombok.Setter;
 
 @Getter
-@SuperBuilder(toBuilder = true)
+@Setter
 public class Subscription {
     private String id;
     private String name;
+    private String tenantId;
+    private boolean selected;
 }

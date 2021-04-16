@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.auth.util;
 
+import com.azure.core.management.AzureEnvironment;
 import com.azure.core.util.Configuration;
-import com.microsoft.azure.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,12 +20,12 @@ public class AzureEnvironmentUtils {
     static {
         // the first alias is the cloud name in azure cli
         // the second alias is the display name, all other aliases are only used in our toolkit
-        putAliasMap(AzureEnvironment.AZURE, "AzureCloud", "azure", "azure_cloud");
-        putAliasMap(AzureEnvironment.AZURE_CHINA, "AzureChinaCloud", "azure_china", "AzureChina", "azure_china_cloud");
+        putAliasMap(AzureEnvironment.AZURE, "AzureCloud", "azure", "azure_cloud", "GLOBAL");
+        putAliasMap(AzureEnvironment.AZURE_CHINA, "AzureChinaCloud", "azure_china", "AzureChina", "azure_china_cloud", "CHINA");
         // the TYPO:azure_german comes from azure cli: https://docs.microsoft.com/en-us/azure/germany/germany-get-started-connect-with-cli
         putAliasMap(AzureEnvironment.AZURE_GERMANY, "AzureGermanCloud", "azure_germany", "azure_german",
-            "azure_germany_cloud", "azure_german_cloud", "AzureGerman", "AzureGermany");
-        putAliasMap(AzureEnvironment.AZURE_US_GOVERNMENT, "AzureUSGovernment", "azure_us_government");
+            "azure_germany_cloud", "azure_german_cloud", "AzureGerman", "AzureGermany", "GERMAN");
+        putAliasMap(AzureEnvironment.AZURE_US_GOVERNMENT, "AzureUSGovernment", "azure_us_government", "US_GOVERNMENT");
     }
 
     public static String azureEnvironmentToString(AzureEnvironment azureEnvironment) {
@@ -43,15 +43,17 @@ public class AzureEnvironmentUtils {
     }
 
     public static void setupAzureEnvironment(AzureEnvironment env) {
-        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.identity", "off");
-        setPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.msal4jextensions", "off");
-        if (env != null && env != AzureEnvironment.AZURE) {
+        if (env != null) {
             // change the default azure env after it is initialized in azure identity
             // see code at
             // https://github.com/Azure/azure-sdk-for-java/blob/32f8f7ca8b44035b2e5520c5e10455f42500a778/sdk/identity/azure-identity/
             // src/main/java/com/azure/identity/implementation/IdentityClientOptions.java#L42
-            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.activeDirectoryEndpoint());
+            Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_AZURE_AUTHORITY_HOST, env.getActiveDirectoryEndpoint());
         }
+    }
+
+    public static String getAuthority(AzureEnvironment environment) {
+        return environment.getActiveDirectoryEndpoint().replaceAll("/+$", "");
     }
 
     /**
@@ -69,11 +71,5 @@ public class AzureEnvironmentUtils {
 
     private static void putAliasMap(AzureEnvironment env, String... aliases) {
         AZURE_CLOUD_ALIAS_MAP.put(env, aliases);
-    }
-
-    private static void setPropertyIfNotExist(String key, String value) {
-        if (StringUtils.isBlank(System.getProperty(key))) {
-            System.setProperty(key, value);
-        }
     }
 }

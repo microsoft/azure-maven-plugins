@@ -11,6 +11,7 @@ import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.WebApp.Update;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
@@ -36,15 +37,13 @@ public class WebApp implements IWebApp {
 
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     private WebAppEntity entity;
-    private AzureAppService azureAppService;
 
     private AzureResourceManager azureClient;
     private com.azure.resourcemanager.appservice.models.WebApp webAppInner;
 
-    public WebApp(WebAppEntity entity, AzureAppService azureAppService) {
+    public WebApp(WebAppEntity entity, AzureResourceManager azureClient) {
         this.entity = entity;
-        this.azureAppService = azureAppService;
-        this.azureClient = azureAppService.getAzureResourceManager();
+        this.azureClient = azureClient;
     }
 
     @Override
@@ -54,7 +53,7 @@ public class WebApp implements IWebApp {
 
     @Override
     public IAppServicePlan plan() {
-        return azureAppService.appServicePlan(getWebAppInner().appServicePlanId());
+        return Azure.az(AzureAppService.class).appServicePlan(getWebAppInner().appServicePlanId());
     }
 
     @Override
@@ -125,13 +124,13 @@ public class WebApp implements IWebApp {
         final WebAppDeploymentSlotEntity slotEntity = WebAppDeploymentSlotEntity.builder().name(slotName)
             .resourceGroup(getWebAppInner().resourceGroupName())
             .webappName(getWebAppInner().name()).build();
-        return new WebAppDeploymentSlot(slotEntity, azureAppService);
+        return new WebAppDeploymentSlot(slotEntity, azureClient);
     }
 
     @Override
     public List<IWebAppDeploymentSlot> deploymentSlots() {
         return getWebAppInner().deploymentSlots().list().stream()
-            .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureAppService))
+            .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureClient))
             .collect(Collectors.toList());
     }
 
@@ -260,7 +259,7 @@ public class WebApp implements IWebApp {
         }
 
         private Update updateAppServicePlan(Update update, AppServicePlanEntity newServicePlan) {
-            final AppServicePlanEntity currentServicePlan = azureAppService.appServicePlan(getWebAppInner().appServicePlanId()).entity();
+            final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppService.class).appServicePlan(getWebAppInner().appServicePlanId()).entity();
             if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
                 (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
                     StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {

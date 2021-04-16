@@ -23,14 +23,14 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
 
 @Getter
-public class SpringCloudAppEntity implements IAzureEntity {
+public class SpringCloudAppEntity implements IAzureResourceEntity {
     private final SpringCloudClusterEntity cluster;
     private final String name;
     @Getter(AccessLevel.PACKAGE)
@@ -67,5 +67,15 @@ public class SpringCloudAppEntity implements IAzureEntity {
 
     public String getActiveDeployment() {
         return this.inner.properties().activeDeploymentName();
+    }
+
+    @Override
+    public String getId() {
+        return inner.id();
+    }
+
+    @Override
+    public String getSubscriptionId() {
+        return cluster.getSubscriptionId();
     }
 }

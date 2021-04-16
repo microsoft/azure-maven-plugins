@@ -16,7 +16,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class Utils {
     private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
@@ -49,5 +55,14 @@ public class Utils {
 
     public static String getId(Object obj) {
         return Integer.toHexString(System.identityHashCode(obj));
+    }
+
+    public static <K, V> Map<K, V> groupByIgnoreDuplicate(Collection<V> list, Function<? super V, ? extends K> keyMapper) {
+        return list.stream().collect(Collectors.toMap(keyMapper, item -> item, (item1, item2) -> item1));
+    }
+
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
     }
 }

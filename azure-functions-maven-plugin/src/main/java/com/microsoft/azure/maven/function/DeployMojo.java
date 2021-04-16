@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.common.Utils;
 import com.microsoft.azure.common.applicationinsights.ApplicationInsightsManager;
 import com.microsoft.azure.common.appservice.DeployTargetType;
@@ -46,7 +46,9 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.ProjectUtils;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCredentialWrapper;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -519,13 +521,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private ApplicationInsightsComponent getOrCreateApplicationInsights(boolean enableCreation) throws AzureAuthFailureException, AzureExecutionException {
-        final AzureCredentialWrapper credentials = getAzureCredentialWrapper();
-        if (credentials == null) {
-            Log.warn(APPLICATION_INSIGHTS_NOT_SUPPORTED);
-            return null;
-        }
+        final Account account = Azure.az(AzureAccount.class).account();
         final String subscriptionId = getAzureClient().subscriptionId();
-        final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(credentials.getAzureTokenCredentials(),
+        final ApplicationInsightsManager applicationInsightsManager = new ApplicationInsightsManager(
+                account.getTokenCredentialV1(subscriptionId),
                 subscriptionId, getUserAgent());
         return StringUtils.isNotEmpty(getAppInsightsInstance()) ?
                 getApplicationInsights(applicationInsightsManager, getAppInsightsInstance()) :
@@ -551,10 +550,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         try {
             Log.info(APPLICATION_INSIGHTS_CREATE_START);
             final ApplicationInsightsComponent resource = applicationInsightsManager.createApplicationInsights(getResourceGroup(), name, getRegion());
-
-            final AzureCredentialWrapper azureCredentialWrapper = getAzureCredentialWrapper();
-            final AzureEnvironment environment = azureCredentialWrapper.getEnv();
-
+            final AzureEnvironment environment = Azure.az(AzureAccount.class).account().getEnvironment();
             Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.name(), getPortalUrl(environment), resource.id()));
             return resource;
         } catch (Exception e) {

@@ -168,6 +168,7 @@ class AppServiceUtils {
     static AppServicePlanEntity fromAppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
         return AppServicePlanEntity.builder()
             .id(appServicePlan.id())
+            .subscriptionId(Utils.getSubscriptionId(appServicePlan.id()))
             .name(appServicePlan.name())
             .region(appServicePlan.regionName())
             .resourceGroup(appServicePlan.resourceGroupName())

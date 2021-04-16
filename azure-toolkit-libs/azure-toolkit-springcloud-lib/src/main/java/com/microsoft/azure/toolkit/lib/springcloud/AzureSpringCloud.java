@@ -23,45 +23,61 @@
 package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.AzureConfiguration;
+import com.microsoft.azure.toolkit.lib.AzureService;
+import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudClusterManager;
+import com.microsoft.rest.LogLevel;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class AzureSpringCloud {
-    private final AppPlatformManager client;
-    private final SpringCloudClusterManager clusterManager;
-
-    private AzureSpringCloud(AppPlatformManager client) {
-        this.client = client;
-        this.clusterManager = new SpringCloudClusterManager(this.client);
+public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> implements AzureService {
+    public AzureSpringCloud() { // for SPI
+        super(AzureSpringCloud::new);
     }
 
-    public static AzureSpringCloud az(AppPlatformManager client) {
-        return new AzureSpringCloud(client);
+    private AzureSpringCloud(@Nonnull final List<Subscription> subscriptions) { // for creating scoped AzureSpringCloud
+        super(AzureSpringCloud::new, subscriptions);
     }
 
     @Nonnull
     public SpringCloudCluster cluster(@Nonnull SpringCloudClusterEntity cluster) {
-        return new SpringCloudCluster(cluster, this.client);
-    }
-
-    public SpringCloudCluster cluster(String name, String resourceGroup) {
-        final SpringCloudClusterEntity cluster = this.clusterManager.get(name, resourceGroup);
-        Objects.requireNonNull(cluster, String.format("cluster(%s) is not found in resource group(%s)", name, resourceGroup));
-        return this.cluster(cluster);
+        final AppPlatformManager client = this.getClient(cluster.getSubscriptionId());
+        return new SpringCloudCluster(cluster, client);
     }
 
     public SpringCloudCluster cluster(String name) {
-        final SpringCloudClusterEntity cluster = this.clusterManager.get(name);
-        Objects.requireNonNull(cluster, String.format("cluster(%s) is not found", name));
-        return this.cluster(cluster);
+        return this.clusters().stream()
+            .filter((s) -> Objects.equals(s.name(), name))
+            .findAny().orElse(null);
     }
 
     public List<SpringCloudCluster> clusters() {
-        final List<SpringCloudClusterEntity> clusters = this.clusterManager.getAll();
-        return clusters.stream().map(this::cluster).collect(Collectors.toList());
+        return this.getSubscriptions().stream()
+            .map(s -> getClient(s.getId()))
+            .map(SpringCloudClusterManager::new)
+            .flatMap(m -> m.getAll().stream())
+            .map(this::cluster)
+            .collect(Collectors.toList());
+    }
+
+    @Cacheable(cacheName = "AppPlatformManager", key = "$subscriptionId")
+    protected AppPlatformManager getClient(final String subscriptionId) {
+        final Account account = Azure.az(AzureAccount.class).account();
+        final AzureConfiguration config = Azure.az().config();
+        final LogLevel logLevel = config.getLogLevel();
+        final String userAgent = config.getUserAgent();
+        return AppPlatformManager.configure()
+            .withLogLevel(logLevel)
+            .withUserAgent(userAgent)
+            .authenticate(account.getTokenCredentialV1(subscriptionId), subscriptionId);
     }
 }
