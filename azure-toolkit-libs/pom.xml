@@ -127,6 +127,11 @@
                 <version>${azure.core.http.netty.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-core-http-netty</artifactId>
+                <version>${azure.core.http.netty.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-auth-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
