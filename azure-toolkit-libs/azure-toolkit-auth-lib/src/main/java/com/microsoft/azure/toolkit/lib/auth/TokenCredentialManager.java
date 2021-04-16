@@ -6,6 +6,9 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.http.HttpClient;
+import com.azure.core.http.ProxyOptions;
+import com.azure.core.http.netty.NettyAsyncHttpClientBuilder;
 import com.azure.core.http.policy.FixedDelay;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.http.policy.RetryPolicy;
@@ -17,6 +20,7 @@ import com.azure.resourcemanager.resources.models.Tenant;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import io.netty.resolver.DefaultAddressResolverGroup;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +28,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -96,9 +101,21 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
         return configureAzure().authenticate(this.rootCredentialSupplier.get(), profile);
     }
 
+    /**
+     * TODO: share the same code for creating AzureResourceManager.Configurable
+     */
     private static AzureResourceManager.Configurable configureAzure() {
+        reactor.netty.http.client.HttpClient nettyHttpClient =
+                reactor.netty.http.client.HttpClient.create()
+                        .resolver(DefaultAddressResolverGroup.INSTANCE);
+        NettyAsyncHttpClientBuilder builder = new NettyAsyncHttpClientBuilder(nettyHttpClient);
+        if (Azure.az().config().getHttpProxy() != null) {
+            builder.proxy(new ProxyOptions(ProxyOptions.Type.HTTP, Azure.az().config().getHttpProxy()));
+        }
+
         // disable retry for getting tenant and subscriptions
         return AzureResourceManager.configure()
+                .withHttpClient(builder.build())
                 .withPolicy(createUserAgentPolicy())
                 .withRetryPolicy(new RetryPolicy(new FixedDelay(0, Duration.ofSeconds(0))));
     }

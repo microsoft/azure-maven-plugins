@@ -91,7 +91,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
         } else {
             Map<AuthType, Supplier<Account>> accountByType = buildAccountMap();
             if (!accountByType.containsKey(type)) {
-                return Mono.error(new LoginFailureException(String.format("Unsupported auth type '%s', supported values are: %s.\"",
+                return Mono.error(new LoginFailureException(String.format("Unsupported auth type '%s', supported values are: %s.",
                         type, accountByType.keySet().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", ")))));
             }
             targetAccount = accountByType.get(type).get();
