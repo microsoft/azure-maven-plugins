@@ -15,6 +15,7 @@ public class DockerConfiguration {
     private String registryUrl;
     private String userName;
     private String password;
+    private String startUpCommand;
 
     public boolean isPublic() {
         return StringUtils.isAllEmpty(userName, password);
