@@ -46,10 +46,6 @@ public class AzureAccount implements AzureService, IAzureAccount {
     @Setter(AccessLevel.PRIVATE)
     private Account account;
 
-    @Setter
-    @Getter
-    private boolean enablePersistence = false;
-
     /**
      * @return the current account
      * @throws AzureToolkitAuthenticationException if not initialized
@@ -174,7 +170,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
         }
     }
 
-    public Mono<Account> loginAsync(AuthType type, boolean enablePersistence) {
+    public Mono<Account> loginAsync(@Nonnull AuthType type, boolean enablePersistence) {
         Objects.requireNonNull(type, "Please specify auth type in auth configuration.");
         AuthConfiguration auth = new AuthConfiguration();
         auth.setType(type);
@@ -218,7 +214,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
     }
 
     private static void checkEnv(Account ac, AzureEnvironment env) {
-        if (env != null && ac.getEnvironment() != null && ac.getEnvironment() != env && ac.isAvailable()) {
+        if (env != null && ac.getEnvironment() != null && ac.getEnvironment() != env) {
             String expectedEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(env);
             String realEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(ac.getEnvironment());
 
