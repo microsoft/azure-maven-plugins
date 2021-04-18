@@ -21,6 +21,7 @@ public class WebContainer {
     private static final String JAVA_8 = "Java 8";
     private static final String JAVA_11 = "Java 11";
 
+    public static final WebContainer JAVA_OFF = new WebContainer("");
     public static final WebContainer JAVA_SE = new WebContainer("java se");
     public static final WebContainer TOMCAT_7 = new WebContainer("tomcat 7.0");
     public static final WebContainer TOMCAT_8 = new WebContainer("tomcat 8.0");
@@ -62,7 +63,7 @@ public class WebContainer {
         }
         return values().stream()
             .filter(webContainer -> StringUtils.equalsIgnoreCase(input, webContainer.value))
-            .findFirst().orElse(null);
+            .findFirst().orElse(WebContainer.JAVA_OFF);
     }
 
     @Override

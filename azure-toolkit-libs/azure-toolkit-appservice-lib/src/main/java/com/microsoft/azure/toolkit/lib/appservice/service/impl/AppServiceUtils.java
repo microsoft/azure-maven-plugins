@@ -50,7 +50,7 @@ class AppServiceUtils {
 
     private static Runtime getRuntimeFromLinuxWebApp(WebAppBase webAppBase) {
         if (StringUtils.isEmpty(webAppBase.linuxFxVersion())) {
-            return null;
+            return Runtime.getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
         final String linuxFxVersion = webAppBase.linuxFxVersion().replace("|", " ");
         return Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
@@ -58,16 +58,16 @@ class AppServiceUtils {
 
     private static Runtime getRuntimeFromWindowsWebApp(WebAppBase webAppBase) {
         if (webAppBase.javaVersion() == null || StringUtils.isAnyEmpty(webAppBase.javaContainer(), webAppBase.javaContainerVersion())) {
-            return null;
+            return Runtime.getRuntime(OperatingSystem.WINDOWS, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
         final JavaVersion javaVersion = JavaVersion.values().stream()
             .filter(version -> StringUtils.equals(webAppBase.javaVersion().toString(), version.getValue()))
-            .findFirst().orElse(null);
+            .findFirst().orElse(JavaVersion.OFF);
         final String javaContainer = String.join(" ", webAppBase.javaContainer(), webAppBase.javaContainerVersion());
         final WebContainer webContainer = StringUtils.equalsIgnoreCase(webAppBase.javaContainer(), "java") ? WebContainer.JAVA_SE :
             WebContainer.values().stream()
                 .filter(container -> StringUtils.equalsIgnoreCase(javaContainer, container.getValue()))
-                .findFirst().orElse(null);
+                .findFirst().orElse(WebContainer.JAVA_OFF);
         return Runtime.getRuntime(OperatingSystem.WINDOWS, webContainer, javaVersion);
     }
 

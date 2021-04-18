@@ -59,6 +59,9 @@ public class JavaVersion {
     }
 
     public static JavaVersion fromString(String input) {
+        if(StringUtils.isEmpty(input)){
+            return JavaVersion.OFF;
+        }
         // parse display name first
         if (StringUtils.equalsAnyIgnoreCase(input, JAVA_7_VALUE, JAVA_7_VALUE_TRIM)) {
             return JavaVersion.JAVA_7;
@@ -71,7 +74,7 @@ public class JavaVersion {
         }
         return values().stream()
             .filter(javaVersion -> StringUtils.equalsIgnoreCase(input, javaVersion.getValue()))
-            .findFirst().orElse(null);
+            .findFirst().orElse(JavaVersion.OFF);
     }
 
     @Override
