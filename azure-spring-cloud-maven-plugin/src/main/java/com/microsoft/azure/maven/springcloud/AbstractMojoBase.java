@@ -32,6 +32,7 @@ import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.rest.LogLevel;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -88,39 +89,50 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     @Parameter(property = "auth")
     protected MavenAuthConfiguration auth;
 
+    @Getter
     @Parameter(alias = "public")
     protected Boolean isPublic;
 
     @Parameter(property = "isTelemetryAllowed", defaultValue = "true")
     protected boolean isTelemetryAllowed;
 
+    @Getter
     @Parameter(property = "subscriptionId")
     protected String subscriptionId;
 
+    @Getter
     @Parameter(property = "clusterName")
     protected String clusterName;
 
+    @Getter
     @Parameter(property = "appName")
     protected String appName;
 
+    @Getter
     @Parameter(property = "runtimeVersion")
     protected String runtimeVersion;
 
+    @Getter
     @Parameter(property = "deployment")
     protected AppDeploymentMavenConfig deployment;
 
+    @Getter
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
 
+    @Getter
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
 
+    @Getter
     @Parameter(defaultValue = "${project.build.directory}", readonly = true, required = true)
     protected File buildDirectory;
 
+    @Getter
     @Parameter(defaultValue = "${plugin}", readonly = true, required = true)
     protected PluginDescriptor plugin;
 
+    @Getter
     protected Map<String, String> telemetries;
 
     @Component
@@ -310,7 +322,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected void trackMojoExecution(MojoStatus status) {
         final String eventName = String.format("%s.%s", this.getClass().getSimpleName(), status.name());
-        AppInsightHelper.INSTANCE.trackEvent(eventName, getTelemetryProperties(), false);
+        AppInsightHelper.INSTANCE.trackEvent(eventName, getTelemetries(), false);
     }
 
     protected void tracePluginInformation() {
@@ -347,53 +359,9 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected abstract void doExecute() throws MojoExecutionException, MojoFailureException, AzureExecutionException;
 
-    public boolean isPublic() {
-        return isPublic;
-    }
-
-    public String getSubscriptionId() {
-        return subscriptionId;
-    }
-
-    public String getClusterName() {
-        return clusterName;
-    }
-
-    public String getAppName() {
-        return appName;
-    }
-
-    public String getRuntimeVersion() {
-        return runtimeVersion;
-    }
-
-    public AppDeploymentMavenConfig getDeployment() {
-        return deployment;
-    }
-
-    public MavenProject getProject() {
-        return project;
-    }
-
-    public MavenSession getSession() {
-        return session;
-    }
-
-    public File getBuildDirectory() {
-        return buildDirectory;
-    }
-
-    public PluginDescriptor getPlugin() {
-        return plugin;
-    }
-
     public SpringCloudAppConfig getConfiguration() {
         final ConfigurationParser parser = ConfigurationParser.getInstance();
         return parser.parse(this);
-    }
-
-    public Map<String, String> getTelemetryProperties() {
-        return telemetries;
     }
 
     private String getUserAgent() {
