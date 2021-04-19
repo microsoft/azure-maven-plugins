@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.common.exception;
 
+import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 import lombok.extern.java.Log;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import javax.annotation.Nullable;
 import java.io.InterruptedIOException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -51,7 +53,7 @@ public abstract class AzureExceptionHandler {
 
     public void handleException(Throwable throwable, @Nullable AzureExceptionAction... action) {
         log.log(Level.WARNING, "caught an error in AzureExceptionHandler", throwable);
-        final Boolean backgrounded = AzureTaskContext.current().getBackgrounded();
+        final Boolean backgrounded = Optional.ofNullable(AzureTaskContext.current().getTask()).map(AzureTask::getBackgrounded).orElse(null);
         if (Objects.nonNull(backgrounded)) {
             onHandleException(throwable, backgrounded, action);
             return;

@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.common.task;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperationTitle;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,10 +24,10 @@ public class AzureTask<T> implements IAzureOperation {
     @Builder.Default
     @Setter
     private boolean backgroundable = true;
+    @Setter
+    @Getter
+    private Boolean backgrounded = null;
     private final IAzureOperationTitle title;
-
-    @Setter(AccessLevel.PACKAGE)
-    private AzureTaskContext.Node context;
 
     public AzureTask(Runnable runnable) {
         this(runnable, Modality.DEFAULT);
