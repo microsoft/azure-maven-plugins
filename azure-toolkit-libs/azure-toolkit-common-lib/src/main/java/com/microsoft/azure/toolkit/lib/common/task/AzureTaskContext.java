@@ -96,16 +96,15 @@ public abstract class AzureTaskContext {
     }
 
     public static class Node extends AzureTaskContext {
-        @Setter
-        @Getter
-        private Boolean backgrounded = null;
         @Getter
         private AzureTaskContext parent;
         protected boolean disposed;
+        private boolean async = false;
+
         @Getter
         @Setter(AccessLevel.PACKAGE)
+        @Nullable
         private AzureTask<?> task;
-        private boolean async = false;
 
         private Node(final AzureTaskContext parent) {
             super();
