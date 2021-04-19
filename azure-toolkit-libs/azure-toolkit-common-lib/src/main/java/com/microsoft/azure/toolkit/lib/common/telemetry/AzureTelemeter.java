@@ -50,38 +50,38 @@ public class AzureTelemeter {
         final Map<String, String> properties = serialize(op);
         properties.put(TIMESTAMP, Instant.now().toString());
         properties.put(OP_ACTION, OP_ACTION_CREATE);
-        AzureTelemeter.log(Telemetry.Type.INFO, properties);
+        AzureTelemeter.log(AzureTelemetry.Type.INFO, properties);
     }
 
     public static void beforeEnter(final IAzureOperation op) {
         final Map<String, String> properties = serialize(op);
         properties.put(TIMESTAMP, Instant.now().toString());
         properties.put(OP_ACTION, OP_ACTION_ENTER);
-        AzureTelemeter.log(Telemetry.Type.OP_START, properties);
+        AzureTelemeter.log(AzureTelemetry.Type.OP_START, properties);
     }
 
     public static void afterExit(final IAzureOperation op) {
         final Map<String, String> properties = serialize(op);
         properties.put(TIMESTAMP, Instant.now().toString());
         properties.put(OP_ACTION, OP_ACTION_EXIT);
-        AzureTelemeter.log(Telemetry.Type.OP_END, properties);
+        AzureTelemeter.log(AzureTelemetry.Type.OP_END, properties);
     }
 
     public static void onError(final IAzureOperation op, Throwable error) {
         final Map<String, String> properties = serialize(op);
         properties.put(TIMESTAMP, Instant.now().toString());
         properties.put(OP_ACTION, OP_ACTION_ERROR);
-        AzureTelemeter.log(Telemetry.Type.ERROR, properties, error);
+        AzureTelemeter.log(AzureTelemetry.Type.ERROR, properties, error);
     }
 
-    public static void log(final Telemetry.Type type, final Map<String, String> properties, final Throwable e) {
+    public static void log(final AzureTelemetry.Type type, final Map<String, String> properties, final Throwable e) {
         if (Objects.nonNull(e)) {
             properties.putAll(serialize(e));
         }
         AzureTelemeter.log(type, properties);
     }
 
-    public static void log(final Telemetry.Type type, final Map<String, String> properties) {
+    public static void log(final AzureTelemetry.Type type, final Map<String, String> properties) {
         if (client != null) {
             properties.putAll(getCommonProperties());
             final String eventName = getEventNamePrefix() + "/" + type.name();

@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
-public class Telemetry {
+public class AzureTelemetry {
     public enum Type {
         OP_START,
         OP_END,
