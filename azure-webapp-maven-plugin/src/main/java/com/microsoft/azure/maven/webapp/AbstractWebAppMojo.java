@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -416,6 +417,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
                 final List<Subscription> subscriptions = account.getSubscriptions();
                 final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
                 checkSubscription(subscriptions, targetSubscriptionId);
+                com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
                 appServiceClient = Azure.az(AzureAppService.class).subscription(targetSubscriptionId);
                 printCurrentSubscription(appServiceClient);
             } catch (AzureLoginException | AzureExecutionException | IOException e) {
