@@ -11,4 +11,6 @@ public interface IAzureOperation {
     String getName();
 
     String getType();
+
+    Object getTitle();
 }
