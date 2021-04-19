@@ -43,7 +43,7 @@ public class AppServiceFileService {
     @Nullable
     @AzureOperation(
         name = "appservice|file.get.path",
-        params = {"$path", "@app.name()"},
+        params = {"path", "this.app.name()"},
         type = AzureOperation.Type.SERVICE
     )
     public AppServiceFile getFileByPath(String path) {
@@ -57,7 +57,7 @@ public class AppServiceFileService {
 
     @AzureOperation(
         name = "appservice|file.list.dir",
-        params = {"$dir", "@app.name()"},
+        params = {"dir", "this.app.name()"},
         type = AzureOperation.Type.SERVICE
     )
     public List<? extends AppServiceFile> getFilesInDirectory(String dir) {
@@ -73,7 +73,7 @@ public class AppServiceFileService {
 
     @AzureOperation(
         name = "appservice|file.get_content",
-        params = {"$path", "@app.name()"},
+        params = {"path", "this.app.name()"},
         type = AzureOperation.Type.SERVICE
     )
     public Observable<byte[]> getFileContent(final String path) {
@@ -94,7 +94,7 @@ public class AppServiceFileService {
 
     @AzureOperation(
         name = "appservice|file.upload",
-        params = {"$path", "@app.name()"},
+        params = {"path", "this.app.name()"},
         type = AzureOperation.Type.SERVICE
     )
     public void uploadFileToPath(String content, String path) {
