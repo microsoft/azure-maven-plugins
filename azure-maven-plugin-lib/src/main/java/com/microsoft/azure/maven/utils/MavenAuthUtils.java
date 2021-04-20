@@ -74,4 +74,17 @@ public class MavenAuthUtils {
 
         return authConfiguration;
     }
+
+    public static void disableIdentityLogs() {
+        putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.identity", "off");
+        putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.adal4j", "off");
+        putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.azure.core.credential", "off");
+        putPropertyIfNotExist("org.slf4j.simpleLogger.log.com.microsoft.aad.msal4jextensions", "off");
+    }
+
+    private static void putPropertyIfNotExist(String key, String value) {
+        if (StringUtils.isBlank(System.getProperty(key))) {
+            System.setProperty(key, value);
+        }
+    }
 }

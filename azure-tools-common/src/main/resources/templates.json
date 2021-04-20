@@ -258,6 +258,34 @@
       "files": {
         "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.annotation.*;\nimport com.microsoft.azure.functions.*;\n\n/**\n * Azure Functions with Service Topic Trigger.\n */\npublic class $className$ {\n    /**\n     * This function will be invoked when a new message is received at the Service Bus Topic.\n     */\n    @FunctionName(\"$functionName$\")\n    public void run(\n        @ServiceBusTopicTrigger(\n            name = \"message\",\n            topicName = \"$topicName$\",\n            subscriptionName = \"$subscriptionName$\",\n            connection = \"$connection$\"\n        )\n        String message,\n        final ExecutionContext context\n    ) {\n        context.getLogger().info(\"Java Service Bus Topic trigger function executed.\");\n        context.getLogger().info(message);\n    }\n}"
       }
+    },
+    {
+      "id": "RabbitMQTrigger-Java",
+      "metadata": {
+        "name": "RabbitMQTrigger",
+        "description": "$RabbitMQTrigger_description",
+        "defaultFunctionName": "rabbitMQTriggerJava",
+        "language": "Java",
+        "userPrompt": [
+          "connectionStringSetting",
+          "queueName"
+        ]
+      },
+      "function": {
+        "disabled": false,
+        "bindings": [
+          {
+            "name": "myQueueItem",
+            "type": "rabbitMqTrigger",
+            "direction": "in",
+            "queueName": "",
+            "connectionStringSetting":""
+          }
+        ]
+      },
+      "files": {
+        "function.java": "package $packageName$;\n\nimport com.microsoft.azure.functions.ExecutionContext;\nimport com.microsoft.azure.functions.annotation.FunctionName;\nimport com.microsoft.azure.functions.rabbitmq.annotation.RabbitMQTrigger;\n\n/**\n * Azure Functions with RabbitMQ Trigger.\n *\n * This function will be invoked when a new message is received in RabbitMQ\n * Please add com.microsoft.azure.functions:azure-functions-java-library-rabbitmq to your project dependencies\n * You may get the example and latest version in https://search.maven.org/artifact/com.microsoft.azure.functions/azure-functions-java-library-rabbitmq\n * \n */\npublic class $className$ {\n    @FunctionName(\"$functionName$\")\n    public void run(\n            @RabbitMQTrigger(\n                    connectionStringSetting = \"$connectionStringSetting$\",\n                    queueName = \"$queueName$\"\n            ) String input,\n            final ExecutionContext context) {\n        context.getLogger().info(\"Java RabbitMQ trigger processed a request.\" + input);\n    }\n}"
+      }
     }
   ]
 }

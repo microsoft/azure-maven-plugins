@@ -24,7 +24,7 @@ public class ConfigurationParser {
             .clusterName(springMojo.getClusterName())
             .deployment(config)
             .runtimeVersion(springMojo.getRuntimeVersion())
-            .isPublic(springMojo.isPublic())
+            .isPublic(springMojo.getIsPublic())
             .subscriptionId(springMojo.getSubscriptionId())
             .build();
     }
@@ -36,7 +36,7 @@ public class ConfigurationParser {
         return SpringCloudDeploymentConfig.builder()
             .cpu(rawConfig.getCpu())
             .deploymentName(rawConfig.getDeploymentName())
-            .artifact(IArtifact.fromFile(artifact))
+            .artifact(artifact != null ? IArtifact.fromFile(artifact) : null)
             .enablePersistentStorage(rawConfig.isEnablePersistentStorage())
             .environment(rawConfig.getEnvironment())
             .instanceCount(rawConfig.getInstanceCount())

@@ -7,6 +7,7 @@ package com.microsoft.azure.maven.utils;
 
 import com.azure.core.util.Configuration;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 
@@ -15,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.settings.Proxy;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,6 +40,8 @@ public class ProxyUtils {
             Log.info(String.format("Use %s proxy: %s:%s", source, TextUtils.cyan(proxyManager.getHttpProxyHost()),
                     TextUtils.cyan(Integer.toString(proxyManager.getHttpProxyPort()))));
 
+            // set proxy for azure-identity according to https://docs.microsoft.com/en-us/azure/developer/java/sdk/proxying
+            Azure.az().config().setHttpProxy((InetSocketAddress) proxyManager.getProxy().address());
             Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY,
                     String.format("http://%s:%s", proxyManager.getHttpProxyHost(), proxyManager.getHttpProxyPort()));
         }
