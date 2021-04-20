@@ -16,18 +16,17 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 @Getter
+@Setter
 public class AzureTask<T> implements IAzureOperation {
     private final Modality modality;
     private final Supplier<T> supplier;
     private final Object project;
     private final boolean cancellable;
-    @Builder.Default
-    @Setter
-    private boolean backgroundable = true;
-    @Setter
-    @Getter
-    private Boolean backgrounded = null;
     private final IAzureOperationTitle title;
+    private IAzureOperation parent;
+    @Builder.Default
+    private boolean backgroundable = true;
+    private Boolean backgrounded = null;
 
     public AzureTask(Runnable runnable) {
         this(runnable, Modality.DEFAULT);
@@ -128,6 +127,11 @@ public class AzureTask<T> implements IAzureOperation {
     @Override
     public String getType() {
         return "ASYNC";
+    }
+
+    @Override
+    public String toString() {
+        return String.format("{name:'%s'}", this.getName());
     }
 
     public enum Modality {

@@ -9,13 +9,17 @@ import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.ExpressionUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.aspect.MethodInvocation;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Arrays;
 
-@Getter
 @SuperBuilder
 public class AzureOperationRef extends MethodInvocation implements IAzureOperation {
+
+    @Getter
+    @Setter
+    private IAzureOperation parent;
 
     @Override
     public String toString() {
