@@ -106,7 +106,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         final AnnotationHandler annotationHandler = getAnnotationHandler();
 
-        Set<Method> methods = null;
+        final Set<Method> methods;
         try {
             methods = findAnnotatedMethods(annotationHandler);
         } catch (MalformedURLException e) {
@@ -154,7 +154,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         return new AnnotationHandlerImpl();
     }
 
-    protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws AzureExecutionException, MalformedURLException {
+    protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws MalformedURLException {
         Log.info("");
         Log.info(SEARCH_FUNCTIONS);
         Set<Method> functions;
@@ -223,12 +223,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected String getScriptFilePath() {
-        return new StringBuilder()
-                .append("..")
-                .append("/")
-                .append(getFinalName())
-                .append(".jar")
-                .toString();
+        return String.format("../%s.jar", getFinalName());
     }
 
     //endregion
@@ -241,7 +236,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         if (configMap.size() == 0) {
             Log.info(VALIDATE_SKIP);
         } else {
-            configMap.values().forEach(config -> config.validate());
+            configMap.values().forEach(FunctionConfiguration::validate);
             Log.info(VALIDATE_DONE);
         }
     }
@@ -390,12 +385,11 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected JsonObject readHostJson() {
-        final JsonParser parser = new JsonParser();
         final File hostJson = new File(project.getBasedir(), HOST_JSON);
         try (final FileInputStream fis = new FileInputStream(hostJson);
              final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
             final String jsonRaw = scanner.useDelimiter("\\Z").next();
-            return parser.parse(jsonRaw).getAsJsonObject();
+            return JsonParser.parseString(jsonRaw).getAsJsonObject();
         } catch (IOException e) {
             return null;
         }
