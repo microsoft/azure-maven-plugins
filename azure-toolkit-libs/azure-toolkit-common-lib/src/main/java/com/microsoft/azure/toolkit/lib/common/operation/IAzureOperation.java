@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
+import javax.annotation.Nullable;
+
 public interface IAzureOperation {
     String getId();
 
@@ -13,4 +15,9 @@ public interface IAzureOperation {
     String getType();
 
     Object getTitle();
+
+    void setParent(IAzureOperation operation);
+
+    @Nullable
+    IAzureOperation getParent();
 }

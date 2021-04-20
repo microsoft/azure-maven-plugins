@@ -7,14 +7,16 @@ package com.microsoft.azure.toolkit.lib.common.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 public class AzureTelemeter {
     private static final String SERVICE_NAME = "serviceName";
@@ -92,8 +94,7 @@ public class AzureTelemeter {
 
     @Nonnull
     private static Map<String, String> serialize(@Nonnull final IAzureOperation op) {
-        final Deque<IAzureOperation> ctxOperations = AzureTaskContext.getContextOperations();
-        final Optional<IAzureOperation> parent = Optional.ofNullable(ctxOperations.peekFirst());
+        final Optional<IAzureOperation> parent = Optional.ofNullable(op.getParent());
         final Map<String, String> properties = new HashMap<>();
         final String name = op.getName().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice|file.list.dir`
         final String[] parts = name.split("\\."); // ["appservice|file", "list", "dir"]
