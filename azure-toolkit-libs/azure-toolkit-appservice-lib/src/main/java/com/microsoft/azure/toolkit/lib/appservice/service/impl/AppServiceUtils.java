@@ -197,6 +197,7 @@ class AppServiceUtils {
         }
     }
 
+
     static DiagnosticConfig fromWebAppDiagnosticLogs(WebAppDiagnosticLogs webAppDiagnosticLogs) {
         final DiagnosticConfig.DiagnosticConfigBuilder builder = DiagnosticConfig.builder();
         final com.azure.resourcemanager.appservice.models.LogLevel applicationLogLevel = Optional.ofNullable(webAppDiagnosticLogs)
@@ -213,7 +214,7 @@ class AppServiceUtils {
                 .map(HasInnerModel::innerModel)
                 .map(SiteLogsConfigInner::httpLogs)
                 .map(HttpLogsConfig::fileSystem).orElse(null);
-        if (httpLogsConfig != null) {
+        if (httpLogsConfig != null && httpLogsConfig.enabled()) {
             builder.enableWebServerLogging(true).webServerLogQuota(httpLogsConfig.retentionInMb())
                     .webServerRetentionPeriod(httpLogsConfig.retentionInDays())
                     .enableDetailedErrorMessage(webAppDiagnosticLogs.detailedErrorMessages())
@@ -242,19 +243,23 @@ class AppServiceUtils {
     }
 
     static void updateDiagnosticConfigurationForWebAppBase(final WebAppBase.Update update, final DiagnosticConfig diagnosticConfig) {
+        final WebAppDiagnosticLogs.UpdateStages.Blank<WebAppBase.Update> blank = update.updateDiagnosticLogsConfiguration();
         if (diagnosticConfig.isEnableApplicationLog()) {
-            update.updateDiagnosticLogsConfiguration()
-                    .withApplicationLogging()
+            blank.withApplicationLogging()
                     .withLogLevel(com.azure.resourcemanager.appservice.models.LogLevel.fromString(diagnosticConfig.getApplicationLogLevel().getValue()))
-                    .withApplicationLogsStoredOnFileSystem();
+                    .withApplicationLogsStoredOnFileSystem().parent();
+        } else {
+            blank.withoutApplicationLogging().parent();
         }
         if (diagnosticConfig.isEnableWebServerLogging()) {
-            update.updateDiagnosticLogsConfiguration().withWebServerLogging()
+            blank.withWebServerLogging()
                     .withWebServerLogsStoredOnFileSystem()
                     .withWebServerFileSystemQuotaInMB(diagnosticConfig.getWebServerLogQuota())
                     .withLogRetentionDays(diagnosticConfig.getWebServerRetentionPeriod())
                     .withDetailedErrorMessages(diagnosticConfig.isEnableDetailedErrorMessage())
-                    .withFailedRequestTracing(diagnosticConfig.isEnableFailedRequestTracing());
+                    .withFailedRequestTracing(diagnosticConfig.isEnableFailedRequestTracing()).parent();
+        } else {
+            blank.withoutWebServerLogging().parent();
         }
     }
 }
