@@ -12,19 +12,10 @@ import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 @Getter
 @SuperBuilder
 public class AzureOperationRef extends MethodInvocation implements IAzureOperation {
-    @Override
-    public boolean equals(final Object obj) {
-        if (!(obj instanceof AzureOperationRef)) {
-            return false;
-        }
-        final AzureOperationRef operation = (AzureOperationRef) obj;
-        return Objects.equals(operation.getMethod(), this.getMethod());
-    }
 
     @Override
     public String toString() {
