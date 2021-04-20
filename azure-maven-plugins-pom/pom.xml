@@ -39,7 +39,7 @@
         <maven.version>3.3.3</maven.version>
 
         <azure.toolkit-lib.version>0.6.0</azure.toolkit-lib.version>
-        <azure.tools-common.version>0.14.0-SNAPSHOT</azure.tools-common.version>
+        <azure.tools-common.version>0.14.0</azure.tools-common.version>
         <azure.maven-plugin-lib.version>1.9.0</azure.maven-plugin-lib.version>
 
         <azure.ai.version>2.6.2</azure.ai.version>
