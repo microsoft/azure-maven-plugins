@@ -58,6 +58,12 @@
     "cosmosDBIn_leaseCollectionName_label": "Collection name for leases",
     "cosmosDBIn_leaseCollectionName_help": "Name of the collection to store the leases.",
     "cosmosDBIn_createIfNotExists_label": "Create lease collection if it does not exist",
-    "cosmosDBIn_createIfNotExists_help": "Checks for existence and automatically creates the leases collection."
+    "cosmosDBIn_createIfNotExists_help": "Checks for existence and automatically creates the leases collection.",
+    "RabbitMQTrigger_description" : "A function that will be run whenever a message is added to a specified RabbitMQ queue",
+    "rabbitMqTrigger_displayName" : "RabbitMQ",
+    "rabbitMqIn_connectionStringSetting_label" : "Connection string setting name",
+    "rabbitMqIn_connectionStringSetting_help" : "The name of the app setting containing your RabbitMQ connection.",
+    "rabbitMqIn_queueName_label" : "Queue name",
+    "rabbitMqIn_queueName_help" : "This is the queue name."
   }
 }
