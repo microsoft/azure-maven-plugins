@@ -71,7 +71,7 @@ public class DeviceCodeAccount extends Account {
     }
 
     public Mono<Account> continueLogin() {
-        return loginMono;
+        return loginMono.flatMap(ac -> super.continueLogin());
     }
 
     public DeviceCodeInfo getDeviceCode() {

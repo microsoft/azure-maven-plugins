@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 public class AzureAccount implements AzureService, IAzureAccount {
 
-    @Setter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PACKAGE)
     private Account account;
 
     /**
@@ -75,15 +75,24 @@ public class AzureAccount implements AzureService, IAzureAccount {
     }
 
     public AzureAccount login(@Nonnull AuthType type, boolean enablePersistence) {
-        return blockMonoAndReturnThis(loginAsync(type, enablePersistence));
+        if (type == AuthType.DEVICE_CODE) {
+            throw new IllegalArgumentException("You shall not call login in sync mode for device code login, you need to call loginAsync instead.");
+        }
+        return finishLogin(loginAsync(type, enablePersistence));
     }
 
     public AzureAccount login(@Nonnull Account targetAccount, boolean enablePersistence) {
-        return blockMonoAndReturnThis(loginAsync(targetAccount, enablePersistence));
+        if (targetAccount.getAuthType() == AuthType.DEVICE_CODE) {
+            throw new IllegalArgumentException("You shall not call login in sync mode for device code login, you need to call loginAsync instead.");
+        }
+        return finishLogin(loginAsync(targetAccount, enablePersistence));
     }
 
     public AzureAccount login(@Nonnull AuthConfiguration auth, boolean enablePersistence) {
-        return blockMonoAndReturnThis(loginAsync(auth, enablePersistence));
+        if (auth.getType() == AuthType.DEVICE_CODE) {
+            throw new IllegalArgumentException("You shall not call login in sync mode for device code login, you need to call loginAsync instead.");
+        }
+        return finishLogin(loginAsync(auth, enablePersistence));
     }
 
     public void logout() {
@@ -200,12 +209,12 @@ public class AzureAccount implements AzureService, IAzureAccount {
     public Mono<Account> loginAsync(Account targetAccount, boolean enablePersistence) {
         Objects.requireNonNull(targetAccount, "Please specify account to login.");
         targetAccount.setEnablePersistence(enablePersistence);
-        return targetAccount.login().doOnSuccess(this::setAccount);
+        return targetAccount.login();
     }
 
-    private AzureAccount blockMonoAndReturnThis(Mono<Account> mono) {
+    private AzureAccount finishLogin(Mono<Account> mono) {
         try {
-            mono.block();
+            mono.flatMap(Account::continueLogin).block();
             return this;
         } catch (Throwable ex) {
             throw new AzureToolkitAuthenticationException("Cannot login due to error: " + ex.getMessage());
