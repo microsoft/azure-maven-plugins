@@ -312,7 +312,7 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void selectAppCluster() throws IOException, InvalidConfigurationException {
-        final AzureSpringCloud az = Azure.az(AzureSpringCloud.class);
+        final AzureSpringCloud az = Azure.az(AzureSpringCloud.class).subscription(subscriptionId);
         if (StringUtils.isNotBlank(clusterName)) {
             final SpringCloudCluster cluster = az.cluster(this.clusterName);
             if (cluster.exists()) {
