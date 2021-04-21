@@ -16,8 +16,6 @@ import lombok.extern.java.Log;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -26,39 +24,22 @@ public abstract class AzureTaskContext {
     private static final ThreadLocal<Node> context = new ThreadLocal<>();
 
     protected long threadId = -1;
-    protected final Deque<IAzureOperation> operations;
+    @Nullable
+    protected IAzureOperation operation;
+    @Getter
+    protected AzureTaskContext parent;
 
-    private AzureTaskContext() {
-        this.operations = new ArrayDeque<>();
-    }
-
-    private AzureTaskContext(final long threadId, final Deque<IAzureOperation> operations) {
-        this.operations = operations;
+    private AzureTaskContext(final long threadId, @Nullable final IAzureOperation operation) {
+        this.operation = operation;
         this.threadId = threadId;
     }
 
-    public Deque<IAzureOperation> getOperations() {
-        return new ArrayDeque<>(this.operations);
+    @Nullable
+    public IAzureOperation currentOperation() {
+        return this.operation;
     }
 
-    public static Deque<IAzureOperation> getContextOperations(Node node) {
-        final Deque<IAzureOperation> ops = new ArrayDeque<>(node.operations);
-        AzureTaskContext parent = node.parent;
-        while (Objects.nonNull(parent)) {
-            ops.addAll(parent.operations);
-            if (parent instanceof Node) {
-                parent = ((Node) parent).parent;
-            } else {
-                break;
-            }
-        }
-        return ops;
-    }
-
-    public static Deque<IAzureOperation> getContextOperations() {
-        return getContextOperations(AzureTaskContext.current());
-    }
-
+    @Nonnull
     public static Node current() {
         Node ctxNode = AzureTaskContext.context.get();
         if (Objects.isNull(ctxNode)) {
@@ -79,7 +60,9 @@ public abstract class AzureTaskContext {
         } catch (final Throwable throwable) {
             AzureExceptionHandler.onRxException(throwable);
             Optional.ofNullable(context.getTask()).ifPresent(task -> {
+                final IAzureOperation popped = AzureTaskContext.current().popOperation();
                 AzureTelemeter.onError(task, throwable);
+                assert Objects.equals(task, popped) : String.format("popped op[%s] is not the task[%s] throwing exception", popped, task);
             });
         } finally {
             Optional.ofNullable(context.getTask()).ifPresent(task -> {
@@ -96,43 +79,44 @@ public abstract class AzureTaskContext {
     }
 
     public static class Node extends AzureTaskContext {
-        @Setter
-        @Getter
-        private Boolean backgrounded = null;
-        @Getter
-        private AzureTaskContext parent;
         protected boolean disposed;
-        @Getter
-        @Setter(AccessLevel.PACKAGE)
-        private AzureTask<?> task;
         private boolean async = false;
 
-        private Node(final AzureTaskContext parent) {
-            super();
+        @Getter
+        @Setter(AccessLevel.PACKAGE)
+        @Nullable
+        private AzureTask<?> task;
+
+        private Node(@Nullable final AzureTaskContext parent) {
+            super(-1, Optional.ofNullable(parent).map(p -> p.operation).orElse(null));
             this.parent = parent;
         }
 
         public boolean isOrphan() {
-            return Objects.isNull(this.parent);
+            return Objects.isNull(this.parent) && Objects.isNull(this.operation);
         }
 
         public void pushOperation(final IAzureOperation operation) {
             if (this.isOrphan()) {
                 log.info(String.format("orphan context[%s] is setup", this));
             }
-            this.operations.push(operation);
+            operation.setParent(this.operation);
+            this.operation = operation;
         }
 
         @Nullable
         public IAzureOperation popOperation() {
-            final IAzureOperation popped = this.operations.pop();
-            if (this.isOrphan() && this.operations.isEmpty()) {
+            final IAzureOperation popped = this.operation;
+            assert popped != null : "popped operation is null";
+            this.operation = popped.getParent();
+            if (this.isOrphan()) {
                 AzureTaskContext.context.remove();
                 log.info(String.format("orphan context[%s] is disposed", this));
             }
             return popped;
         }
 
+        @Nonnull
         Node derive() {
             final long threadId = Thread.currentThread().getId();
             final Node current = AzureTaskContext.current();
@@ -141,8 +125,7 @@ public abstract class AzureTaskContext {
                 log.warning(String.format("[threadId:%s] deriving from a disposed context[%s]", threadId, this));
             }
             this.threadId = this.threadId > 0 ? this.threadId : threadId;
-            final Snapshot snapshot = new Snapshot(this);
-            return new Node(snapshot);
+            return new Node(this);
         }
 
         private void setup() {
@@ -183,29 +166,8 @@ public abstract class AzureTaskContext {
 
         public String toString() {
             final String id = getId();
-            if (this.parent instanceof Snapshot) {
-                final String orId = ((Snapshot) this.parent).origin.getId();
-                return String.format("{id: %s, threadId:%s, snapshot@parent.origin:%s, disposed:%s}", id, this.threadId, orId, this.disposed);
-            } else {
-                final String prId = Optional.ofNullable(this.parent).map(AzureTaskContext::getId).orElse("/");
-                return String.format("{id: %s, threadId:%s, parent:%s, disposed:%s}", id, this.threadId, prId, this.disposed);
-            }
-        }
-    }
-
-    public static class Snapshot extends AzureTaskContext {
-        @Getter
-        private final Node origin; // snapshot refers original context
-
-        private Snapshot(@Nonnull final AzureTaskContext.Node origin) {
-            super(origin.threadId, AzureTaskContext.getContextOperations(origin));
-            this.origin = origin;
-        }
-
-        public String toString() {
-            final String id = getId();
-            final String orId = this.origin.getId();
-            return String.format("{id: %s, threadId:%s, origin:%s}", id, this.threadId, orId);
+            final String prId = Optional.ofNullable(this.parent).map(AzureTaskContext::getId).orElse("/");
+            return String.format("{id: %s, threadId:%s, parent:%s, disposed:%s}", id, this.threadId, prId, this.disposed);
         }
     }
 }

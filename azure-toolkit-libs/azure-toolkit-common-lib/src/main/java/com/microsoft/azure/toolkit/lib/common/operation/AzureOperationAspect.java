@@ -37,16 +37,20 @@ public final class AzureOperationAspect {
     public void afterReturning(JoinPoint point) {
         final AzureOperationRef current = toOperationRef(point);
         final AzureOperationRef operation = (AzureOperationRef) AzureTaskContext.current().popOperation();
+        // TODO: this cannot ensure same operation actually, considering recursive call
+        assert Objects.nonNull(operation) && operation.getMethod().equals(current.getMethod()) :
+                String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
         AzureTelemeter.afterExit(operation);
-        assert Objects.equals(current, operation) : String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
     }
 
     @AfterThrowing(pointcut = "operation()", throwing = "e")
     public void afterThrowing(JoinPoint point, Throwable e) throws Throwable {
         final AzureOperationRef current = toOperationRef(point);
         final AzureOperationRef operation = (AzureOperationRef) AzureTaskContext.current().popOperation();
+        // TODO: this cannot ensure same operation actually, considering recursive call
+        assert Objects.nonNull(operation) && operation.getMethod().equals(current.getMethod()) :
+                String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
         AzureTelemeter.onError(operation, e);
-        assert Objects.equals(current, operation) : String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
         if (!(e instanceof RuntimeException)) {
             throw e; // do not wrap checked exception
         }
