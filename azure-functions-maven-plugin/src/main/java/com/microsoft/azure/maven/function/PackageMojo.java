@@ -32,15 +32,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.filtering.MavenFilteringException;
-import org.apache.maven.shared.filtering.MavenResourcesExecution;
-import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,10 +43,10 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,30 +60,36 @@ import java.util.stream.Collectors;
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class PackageMojo extends AbstractFunctionMojo {
-    public static final String SEARCH_FUNCTIONS = "Step 1 of 7: Searching for Azure Functions entry points";
+    public static final String SEARCH_FUNCTIONS = "Step 1 of 8: Searching for Azure Functions entry points";
     public static final String FOUND_FUNCTIONS = " Azure Functions entry point(s) found.";
     public static final String NO_FUNCTIONS = "Azure Functions entry point not found, plugin will exit.";
-    public static final String GENERATE_CONFIG = "Step 2 of 7: Generating Azure Functions configurations";
+    public static final String GENERATE_CONFIG = "Step 2 of 8: Generating Azure Functions configurations";
     public static final String GENERATE_SKIP = "No Azure Functions found. Skip configuration generation.";
     public static final String GENERATE_DONE = "Generation done.";
-    public static final String VALIDATE_CONFIG = "Step 3 of 7: Validating generated configurations";
+    public static final String VALIDATE_CONFIG = "Step 3 of 8: Validating generated configurations";
     public static final String VALIDATE_SKIP = "No configurations found. Skip validation.";
     public static final String VALIDATE_DONE = "Validation done.";
-    public static final String SAVE_HOST_JSON = "Step 4 of 7: Saving host.json";
-    public static final String SAVE_FUNCTION_JSONS = "Step 5 of 7: Saving configurations to function.json";
+    public static final String SAVING_HOST_JSON = "Step 4 of 8: Saving host.json";
+    public static final String SAVING_LOCAL_SETTINGS_JSON = "Step 5 of 8: Saving local.settings.json";
+    public static final String SAVE_FUNCTION_JSONS = "Step 6 of 8: Saving configurations to function.json";
     public static final String SAVE_SKIP = "No configurations found. Skip save.";
     public static final String SAVE_FUNCTION_JSON = "Starting processing function: ";
     public static final String SAVE_SUCCESS = "Successfully saved to ";
-    public static final String COPY_JARS = "Step 6 of 7: Copying JARs to staging directory";
+    public static final String COPY_JARS = "Step 7 of 8: Copying JARs to staging directory";
     public static final String COPY_SUCCESS = "Copied successfully.";
-    public static final String INSTALL_EXTENSIONS = "Step 7 of 7: Installing function extensions if needed";
+    public static final String INSTALL_EXTENSIONS = "Step 8 of 8: Installing function extensions if needed";
     public static final String SKIP_INSTALL_EXTENSIONS_HTTP = "Skip install Function extension for HTTP Trigger Functions";
     public static final String INSTALL_EXTENSIONS_FINISH = "Function extension installation done.";
     public static final String BUILD_SUCCESS = "Successfully built Azure Functions.";
 
     public static final String FUNCTION_JSON = "function.json";
     public static final String HOST_JSON = "host.json";
+    public static final String LOCAL_SETTINGS_JSON = "local.settings.json";
     public static final String EXTENSION_BUNDLE = "extensionBundle";
+    private static final String DEFAULT_LOCAL_SETTINGS_JSON = "{ \"IsEncrypted\": false, \"Values\": " +
+            "{ \"FUNCTIONS_WORKER_RUNTIME\": \"java\" } }";
+    private static final String DEFAULT_HOST_JSON = "{\"version\":\"2.0\",\"extensionBundle\":" +
+            "{\"id\":\"Microsoft.Azure.Functions.ExtensionBundle\",\"version\":\"[1.*, 2.0.0)\"}}\n";
 
     private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION =
         {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
@@ -105,7 +106,7 @@ public class PackageMojo extends AbstractFunctionMojo {
 
         final AnnotationHandler annotationHandler = getAnnotationHandler();
 
-        Set<Method> methods = null;
+        final Set<Method> methods;
         try {
             methods = findAnnotatedMethods(annotationHandler);
         } catch (MalformedURLException e) {
@@ -125,7 +126,9 @@ public class PackageMojo extends AbstractFunctionMojo {
         final ObjectWriter objectWriter = getObjectWriter();
 
         try {
-            copyHostJsonFile(objectWriter);
+            copyHostJson();
+
+            copyLocalSettingsJson();
 
             writeFunctionJsonFiles(objectWriter, configMap);
 
@@ -151,7 +154,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         return new AnnotationHandlerImpl();
     }
 
-    protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws AzureExecutionException, MalformedURLException {
+    protected Set<Method> findAnnotatedMethods(final AnnotationHandler handler) throws MalformedURLException {
         Log.info("");
         Log.info(SEARCH_FUNCTIONS);
         Set<Method> functions;
@@ -220,12 +223,7 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected String getScriptFilePath() {
-        return new StringBuilder()
-                .append("..")
-                .append("/")
-                .append(getFinalName())
-                .append(".jar")
-                .toString();
+        return String.format("../%s.jar", getFinalName());
     }
 
     //endregion
@@ -238,7 +236,7 @@ public class PackageMojo extends AbstractFunctionMojo {
         if (configMap.size() == 0) {
             Log.info(VALIDATE_SKIP);
         } else {
-            configMap.values().forEach(config -> config.validate());
+            configMap.values().forEach(FunctionConfiguration::validate);
             Log.info(VALIDATE_DONE);
         }
     }
@@ -269,17 +267,31 @@ public class PackageMojo extends AbstractFunctionMojo {
         Log.info(SAVE_SUCCESS + functionJsonFile.getAbsolutePath());
     }
 
-    protected void copyHostJsonFile(final ObjectWriter objectWriter) throws IOException {
+    protected void copyHostJson() throws IOException {
         Log.info("");
-        Log.info(SAVE_HOST_JSON);
-        final File sourceFile = new File(project.getBasedir(), HOST_JSON);
-        final File targetFile = Paths.get(getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
-        if (sourceFile.exists()) {
-            FileUtils.copyFile(sourceFile, targetFile);
+        Log.info(SAVING_HOST_JSON);
+        final File sourceHostJsonFile = new File(project.getBasedir(), HOST_JSON);
+        final File destHostJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), HOST_JSON).toFile();
+        copyFilesWithDefaultContent(sourceHostJsonFile, destHostJsonFile, DEFAULT_HOST_JSON);
+        Log.info(SAVE_SUCCESS + destHostJsonFile.getAbsolutePath());
+    }
+
+    protected void copyLocalSettingsJson() throws IOException {
+        Log.info("");
+        Log.info(SAVING_LOCAL_SETTINGS_JSON);
+        final File sourceLocalSettingsJsonFile = new File(project.getBasedir(), LOCAL_SETTINGS_JSON);
+        final File destLocalSettingsJsonFile = Paths.get(getDeploymentStagingDirectoryPath(), LOCAL_SETTINGS_JSON).toFile();
+        copyFilesWithDefaultContent(sourceLocalSettingsJsonFile, destLocalSettingsJsonFile, DEFAULT_LOCAL_SETTINGS_JSON);
+        Log.info(SAVE_SUCCESS + destLocalSettingsJsonFile.getAbsolutePath());
+    }
+
+    private static void copyFilesWithDefaultContent(File source, File dest, String defaultContent)
+            throws IOException {
+        if (source != null && source.exists()) {
+            FileUtils.copyFile(source, dest);
         } else {
-            writeObjectToFile(objectWriter, new Object(), targetFile);
+            FileUtils.write(dest, defaultContent, Charset.defaultCharset());
         }
-        Log.info(SAVE_SUCCESS + targetFile.getAbsolutePath());
     }
 
     protected void writeObjectToFile(final ObjectWriter objectWriter, final Object object, final File targetFile)
@@ -302,16 +314,20 @@ public class PackageMojo extends AbstractFunctionMojo {
 
     //region Copy Jars to stage directory
 
-    protected void copyJarsToStageDirectory() throws IOException {
+    protected void copyJarsToStageDirectory() throws IOException, AzureExecutionException {
         final String stagingDirectory = getDeploymentStagingDirectoryPath();
         Log.info("");
         Log.info(COPY_JARS + stagingDirectory);
-        copyResources(
-                getProject(),
-                getSession(),
-                getMavenResourcesFiltering(),
-                getResources(),
-                stagingDirectory);
+        final File libFolder = Paths.get(stagingDirectory, "lib").toFile();
+        if (libFolder.exists()) {
+            FileUtils.cleanDirectory(libFolder);
+        }
+        for (final Artifact artifact : project.getArtifacts()) {
+            if (!StringUtils.equalsIgnoreCase(artifact.getArtifactId(), "azure-functions-java-library")) {
+                FileUtils.copyFileToDirectory(artifact.getFile(), libFolder);
+            }
+        }
+        FileUtils.copyFileToDirectory(getArtifactFile(), new File(stagingDirectory));
         Log.info(COPY_SUCCESS);
     }
 
@@ -369,12 +385,11 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected JsonObject readHostJson() {
-        final JsonParser parser = new JsonParser();
         final File hostJson = new File(project.getBasedir(), HOST_JSON);
         try (final FileInputStream fis = new FileInputStream(hostJson);
              final Scanner scanner = new Scanner(new BOMInputStream(fis))) {
             final String jsonRaw = scanner.useDelimiter("\\Z").next();
-            return parser.parse(jsonRaw).getAsJsonObject();
+            return JsonParser.parseString(jsonRaw).getAsJsonObject();
         } catch (IOException e) {
             return null;
         }
@@ -400,52 +415,6 @@ public class PackageMojo extends AbstractFunctionMojo {
             throw new AzureExecutionException(CAN_NOT_FIND_ARTIFACT);
         }
         return result;
-    }
-
-    /**
-     * Copy resources to target directory using Maven resource filtering so that we don't have to handle
-     * recursive directory listing and pattern matching.
-     * In order to disable filtering, the "filtering" property is force set to False.
-     *
-     * @param project
-     * @param session
-     * @param filtering
-     * @param resources
-     * @param targetDirectory
-     * @throws IOException
-     */
-    private static void copyResources(final MavenProject project, final MavenSession session,
-                                     final MavenResourcesFiltering filtering, final List<Resource> resources,
-                                     final String targetDirectory) throws IOException {
-        for (final Resource resource : resources) {
-            final String targetPath = resource.getTargetPath() == null ? "" : resource.getTargetPath();
-            resource.setTargetPath(Paths.get(targetDirectory, targetPath).toString());
-            resource.setFiltering(false);
-        }
-
-        final MavenResourcesExecution mavenResourcesExecution = new MavenResourcesExecution(
-            resources,
-            new File(targetDirectory),
-            project,
-            "UTF-8",
-            null,
-            Collections.EMPTY_LIST,
-            session
-        );
-
-        // Configure executor
-        mavenResourcesExecution.setEscapeWindowsPaths(true);
-        mavenResourcesExecution.setInjectProjectBuildFilters(false);
-        mavenResourcesExecution.setOverwrite(true);
-        mavenResourcesExecution.setIncludeEmptyDirs(false);
-        mavenResourcesExecution.setSupportMultiLineFiltering(false);
-
-        // Filter resources
-        try {
-            filtering.filterResources(mavenResourcesExecution);
-        } catch (MavenFilteringException ex) {
-            throw new IOException("Failed to copy resources", ex);
-        }
     }
 
     protected void trackFunctionProperties(Map<String, FunctionConfiguration> configMap) {
