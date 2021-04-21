@@ -24,8 +24,6 @@ public class AccountEntity {
 
     private String email;
 
-    private boolean authenticated;
-
     private List<Subscription> subscriptions;
 
     private List<String> selectedSubscriptionIds;

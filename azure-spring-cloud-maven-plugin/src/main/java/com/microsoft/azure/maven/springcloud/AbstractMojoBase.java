@@ -221,7 +221,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
                 }
                 // prompt if oauth or device code
                 promptForOAuthOrDeviceCodeLogin(account.getAuthType());
-                return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(account).account());
+                return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).loginAsync(account, false).block());
             } else {
                 // user specify SP related configurations
                 return doServicePrincipalLogin(auth);
@@ -229,7 +229,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         } else {
             // user specifies the auth type explicitly
             promptForOAuthOrDeviceCodeLogin(auth.getType());
-            return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(auth).account());
+            return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).loginAsync(auth, false).block());
         }
     }
 
@@ -239,10 +239,8 @@ public abstract class AbstractMojoBase extends AbstractMojo {
             final DeviceCodeInfo challenge = deviceCodeAccount.getDeviceCode();
             System.out.println(StringUtils.replace(challenge.getMessage(), challenge.getUserCode(),
                     TextUtils.cyan(challenge.getUserCode())));
-            return deviceCodeAccount.continueLogin().block();
-        } else {
-            return account;
         }
+        return account.continueLogin().block();
     }
 
     private static void promptAzureEnvironment(AzureEnvironment env) {
