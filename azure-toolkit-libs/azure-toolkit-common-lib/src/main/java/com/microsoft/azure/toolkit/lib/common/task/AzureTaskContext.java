@@ -20,18 +20,34 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Log
-public abstract class AzureTaskContext {
-    private static final ThreadLocal<Node> context = new ThreadLocal<>();
+public class AzureTaskContext {
+    private static final ThreadLocal<AzureTaskContext> context = new ThreadLocal<>();
 
-    protected long threadId = -1;
+    protected long threadId;
     @Nullable
     protected IAzureOperation operation;
     @Getter
+    @Nullable
     protected AzureTaskContext parent;
+    @Getter
+    @Setter(AccessLevel.PACKAGE)
+    @Nullable
+    private AzureTask<?> task;
 
-    private AzureTaskContext(final long threadId, @Nullable final IAzureOperation operation) {
-        this.operation = operation;
-        this.threadId = threadId;
+    private AzureTaskContext(@Nullable final AzureTaskContext parent) {
+        this.operation = Optional.ofNullable(parent).map(p -> p.operation).orElse(null);
+        this.threadId = -1;
+        this.parent = parent;
+    }
+
+    @Nonnull
+    public static AzureTaskContext current() {
+        AzureTaskContext ctxNode = AzureTaskContext.context.get();
+        if (Objects.isNull(ctxNode)) {
+            ctxNode = new AzureTaskContext(null);
+            AzureTaskContext.context.set(ctxNode);
+        }
+        return ctxNode;
     }
 
     @Nullable
@@ -39,17 +55,27 @@ public abstract class AzureTaskContext {
         return this.operation;
     }
 
-    @Nonnull
-    public static Node current() {
-        Node ctxNode = AzureTaskContext.context.get();
-        if (Objects.isNull(ctxNode)) {
-            ctxNode = new Node(null);
-            AzureTaskContext.context.set(ctxNode);
+    public void pushOperation(final IAzureOperation operation) {
+        if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
+            log.info(String.format("orphan context[%s] is setup", this));
         }
-        return ctxNode;
+        operation.setParent(this.operation);
+        this.operation = operation;
     }
 
-    public static void run(final Runnable runnable, Node context) {
+    @Nullable
+    public IAzureOperation popOperation() {
+        final IAzureOperation popped = this.operation;
+        assert popped != null : "popped operation is null";
+        this.operation = popped.getParent();
+        if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
+            AzureTaskContext.context.remove();
+            log.info(String.format("orphan context[%s] is disposed", this));
+        }
+        return popped;
+    }
+
+    public static void run(final Runnable runnable, AzureTaskContext context) {
         try {
             context.setup();
             Optional.ofNullable(context.getTask()).ifPresent(task -> {
@@ -74,100 +100,42 @@ public abstract class AzureTaskContext {
         }
     }
 
+    @Nonnull
+    AzureTaskContext derive() {
+        final long threadId = Thread.currentThread().getId();
+        final AzureTaskContext current = AzureTaskContext.current();
+        assert this == current : String.format("[threadId:%s] deriving context from context[%s] in context[%s].", threadId, this, current);
+        this.threadId = this.threadId > 0 ? this.threadId : threadId;
+        return new AzureTaskContext(this);
+    }
+
+    private void setup() {
+        final AzureTaskContext current = AzureTaskContext.current();
+        final long threadId = Thread.currentThread().getId();
+        assert current.threadId == -1 || current.threadId == threadId : String.format("[threadId:%s] illegal thread context[%s]", threadId, current);
+        this.threadId = threadId; // we can not decide in which thread this task will run until here.
+        this.parent = current;
+        AzureTaskContext.context.set(this);
+    }
+
+    private void dispose() {
+        final AzureTaskContext current = AzureTaskContext.current();
+        final long threadId = Thread.currentThread().getId();
+        assert this == current && this.threadId == threadId : String.format("[threadId:%s] disposing context[%s] in context[%s].", threadId, this, current);
+        if (this.parent == null || this.threadId != this.parent.threadId) { // this is the root task of current thread.
+            AzureTaskContext.context.remove();
+        } else { // this is not the root task of current thread.
+            AzureTaskContext.context.set(this.parent);
+        }
+    }
+
     public String getId() {
         return Utils.getId(this);
     }
 
-    public static class Node extends AzureTaskContext {
-        protected boolean disposed;
-        private boolean async = false;
-
-        @Getter
-        @Setter(AccessLevel.PACKAGE)
-        @Nullable
-        private AzureTask<?> task;
-
-        private Node(@Nullable final AzureTaskContext parent) {
-            super(-1, Optional.ofNullable(parent).map(p -> p.operation).orElse(null));
-            this.parent = parent;
-        }
-
-        public boolean isOrphan() {
-            return Objects.isNull(this.parent) && Objects.isNull(this.operation);
-        }
-
-        public void pushOperation(final IAzureOperation operation) {
-            if (this.isOrphan()) {
-                log.info(String.format("orphan context[%s] is setup", this));
-            }
-            operation.setParent(this.operation);
-            this.operation = operation;
-        }
-
-        @Nullable
-        public IAzureOperation popOperation() {
-            final IAzureOperation popped = this.operation;
-            assert popped != null : "popped operation is null";
-            this.operation = popped.getParent();
-            if (this.isOrphan()) {
-                AzureTaskContext.context.remove();
-                log.info(String.format("orphan context[%s] is disposed", this));
-            }
-            return popped;
-        }
-
-        @Nonnull
-        Node derive() {
-            final long threadId = Thread.currentThread().getId();
-            final Node current = AzureTaskContext.current();
-            assert this == current : String.format("[threadId:%s] deriving context from context[%s] in context[%s].", threadId, this, current);
-            if (this.disposed) {
-                log.warning(String.format("[threadId:%s] deriving from a disposed context[%s]", threadId, this));
-            }
-            this.threadId = this.threadId > 0 ? this.threadId : threadId;
-            return new Node(this);
-        }
-
-        private void setup() {
-            final Node current = AzureTaskContext.current();
-            final long threadId = Thread.currentThread().getId();
-            assert current.threadId == -1 || current.threadId == threadId : String.format("[threadId:%s] illegal thread context[%s]", threadId, current);
-            if (this.threadId > 0 || this.disposed) {
-                log.warning(String.format("[threadId:%s] context[%s] already setup/disposed", threadId, this));
-            }
-            this.threadId = threadId; // we can not decide in which thread this task will run until here.
-            this.async = threadId != current.threadId;
-            if (threadId == current.threadId) { // this task runs in the same thread as parent.
-                this.parent = current;
-            }
-            AzureTaskContext.context.set(this);
-        }
-
-        private void dispose() {
-            final Node current = AzureTaskContext.current();
-            final long threadId = Thread.currentThread().getId();
-            assert this == current && this.threadId == threadId : String.format("[threadId:%s] disposing context[%s] in context[%s].", threadId, this, current);
-            if (this.disposed) {
-                log.warning(String.format("[threadId:%s] disposing a disposed context[%s].", threadId, this));
-            }
-            this.disposed = true;
-            if (this.parent instanceof Node) { // this is not the root task of current thread.
-                assert this.threadId == this.parent.threadId : String.format("current[%s].threadId != current.parent[%s].threadId", this, this.parent);
-                assert !this.async : String.format("disposing async task context[%s](parent[%s]) in sync mode", this, this.parent);
-                AzureTaskContext.context.set((Node) this.parent);
-            } else { // this is the root task of current thread.
-                assert this.async : String.format("disposing sync task context[%s](parent[%s]) in async mode", this, this.parent);
-                if (this.threadId == this.parent.threadId) {
-                    log.warning(String.format("[threadId:%s] thread/threadId is reused.", threadId));
-                }
-                AzureTaskContext.context.remove();
-            }
-        }
-
-        public String toString() {
-            final String id = getId();
-            final String prId = Optional.ofNullable(this.parent).map(AzureTaskContext::getId).orElse("/");
-            return String.format("{id: %s, threadId:%s, parent:%s, disposed:%s}", id, this.threadId, prId, this.disposed);
-        }
+    public String toString() {
+        final String id = getId();
+        final String prId = Optional.ofNullable(this.parent).map(AzureTaskContext::getId).orElse("/");
+        return String.format("{id: %s, threadId:%s, parent:%s}", id, this.threadId, prId);
     }
 }
