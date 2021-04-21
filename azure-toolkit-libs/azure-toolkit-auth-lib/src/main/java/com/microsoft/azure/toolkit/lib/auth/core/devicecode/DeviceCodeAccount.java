@@ -9,6 +9,7 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeCredentialBuilder;
 import com.azure.identity.DeviceCodeInfo;
+import com.azure.identity.TokenCachePersistenceOptions;
 import com.azure.identity.implementation.util.IdentityConstants;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -70,7 +71,7 @@ public class DeviceCodeAccount extends Account {
     }
 
     public Mono<Account> continueLogin() {
-        return loginMono;
+        return loginMono.flatMap(ac -> super.continueLogin());
     }
 
     public DeviceCodeInfo getDeviceCode() {
@@ -87,6 +88,9 @@ public class DeviceCodeAccount extends Account {
         }
         AzureEnvironmentUtils.setupAzureEnvironment(env);
         DeviceCodeCredentialBuilder builder = new DeviceCodeCredentialBuilder();
+        if (isEnablePersistence()) {
+            builder.tokenCachePersistenceOptions(new TokenCachePersistenceOptions().setName(TOOLKIT_TOKEN_CACHE_NAME));
+        }
         return builder.clientId(IdentityConstants.DEVELOPER_SINGLE_SIGN_ON_ID)
                 .executorService(executorService)
                 .challengeConsumer(deviceCodeFuture::complete).build();
