@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.management.appservice.LogLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;

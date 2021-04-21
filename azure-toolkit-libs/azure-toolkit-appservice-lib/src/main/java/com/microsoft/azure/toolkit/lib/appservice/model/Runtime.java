@@ -56,11 +56,12 @@ public class Runtime {
     public static Runtime getRuntimeFromLinuxFxVersion(String linuxFxVersion) {
         final String[] runtimeDetails = linuxFxVersion.split("-");
         if (runtimeDetails.length != 2) {
-            return null;
+            return getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
         final String javaVersionRaw = runtimeDetails[1];
         final String webContainerRaw = runtimeDetails[0];
-        final JavaVersion javaVersion = StringUtils.containsIgnoreCase(javaVersionRaw, "java11") ? JavaVersion.JAVA_11 : JavaVersion.JAVA_8;
+        final JavaVersion javaVersion = StringUtils.containsAny(StringUtils.lowerCase(javaVersionRaw), "java", "jre") ?
+                StringUtils.containsIgnoreCase(javaVersionRaw, "11") ? JavaVersion.JAVA_11 : JavaVersion.JAVA_8 : JavaVersion.OFF;
         final WebContainer webContainer = WebContainer.fromString(webContainerRaw);
         return getRuntime(OperatingSystem.LINUX, webContainer, javaVersion);
     }

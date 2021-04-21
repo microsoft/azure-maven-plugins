@@ -98,6 +98,8 @@
         <free.port.finder.version>1.0</free.port.finder.version>
         <jjwt.version>0.9.1</jjwt.version>
         <reflections.version>0.9.12</reflections.version>
+        <azure.core.version>1.15.0</azure.core.version>
+        <azure.core-http-netty.version>1.9.1</azure.core-http-netty.version>
         <nimbusds.oauth2.oidc.sdk.version>7.1.1</nimbusds.oauth2.oidc.sdk.version>
         <okhttp.version>4.9.1</okhttp.version>
     </properties>
@@ -262,6 +264,14 @@
                         <artifactId>oauth2-oidc-sdk</artifactId>
                     </exclusion>
                     <exclusion>
+                        <groupId>com.azure</groupId>
+                        <artifactId>azure-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.azure</groupId>
+                        <artifactId>azure-core-http-netty</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>org.linguafranca.pwdb</groupId>
                         <artifactId>KeePassJava2</artifactId>
                     </exclusion>
@@ -282,6 +292,17 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-core</artifactId>
+                <version>${azure.core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-core-http-netty</artifactId>
+                <version>${azure.core-http-netty.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.nimbusds</groupId>
