@@ -42,8 +42,6 @@ public abstract class Account implements IAccount {
 
     public Account() {
         this.entity = new AccountEntity();
-        this.entity.setClientId(this.getClientId());
-        this.entity.setType(this.getAuthType());
     }
 
     public abstract AuthType getAuthType();
@@ -148,6 +146,11 @@ public abstract class Account implements IAccount {
             finishLogin();
             return this;
         });
+    }
+
+    public Mono<Account> continueLogin() {
+        Azure.az(AzureAccount.class).setAccount(this);
+        return Mono.just(this);
     }
 
     private void finishLogin() {
