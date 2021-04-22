@@ -66,7 +66,8 @@ public class DeviceCodeAccount extends Account {
     @Override
     protected Mono<Account> login() {
         Mono<Account> map = Mono.fromFuture(deviceCodeFuture).map(ignore -> this);
-        loginMono = super.login().doFinally(r -> executorService.shutdown()).subscribeOn(Schedulers.boundedElastic()).cache();
+        loginMono = super.login().subscribeOn(Schedulers.boundedElastic()).cache()
+                .doOnCancel(executorService::shutdownNow).doFinally(ignore -> executorService.shutdown());
         return map.doOnCancel(executorService::shutdownNow).doOnSubscribe(ignore -> loginMono.subscribe());
     }
 
