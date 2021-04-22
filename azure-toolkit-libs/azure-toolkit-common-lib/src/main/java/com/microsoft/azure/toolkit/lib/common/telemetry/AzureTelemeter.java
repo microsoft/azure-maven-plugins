@@ -6,12 +6,17 @@
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Properties;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Property;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Parameter;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -99,8 +104,36 @@ public class AzureTelemeter {
         properties.put(OP_NAME, name);
         properties.put(OP_TYPE, op.getType());
         properties.putAll(actionContext.getProperties());
+        if (op instanceof AzureOperationRef) {
+            properties.putAll(getParameterProperties((AzureOperationRef) op));
+        }
         properties.putAll(operationContext.getProperties());
         return properties;
+    }
+
+    private static Map<String, String> getParameterProperties(AzureOperationRef ref) {
+        final HashMap<String, String> properties = new HashMap<>();
+        final Object[] paramValues = ref.getParamValues();
+        final Parameter[] parameters = ref.getMethod().getParameters();
+        for (int i = 0; i < parameters.length; i++) {
+            final Parameter param = parameters[i];
+            final Object value = paramValues[i];
+            Optional.ofNullable(param.getAnnotation(Property.class))
+                    .map(Property::value)
+                    .map(n -> Property.PARAM_NAME.equals(n) ? param.getName() : n)
+                    .ifPresent((name) -> properties.put(name, Optional.ofNullable(value).map(Object::toString).orElse("")));
+            Optional.ofNullable(param.getAnnotation(Properties.class))
+                    .map(Properties::value)
+                    .map(AzureTelemeter::instantiate)
+                    .map(converter -> converter.convert(value))
+                    .ifPresent(properties::putAll);
+        }
+        return properties;
+    }
+
+    @SneakyThrows
+    private static <U> U instantiate(Class<? extends U> clazz) {
+        return clazz.newInstance();
     }
 
     @Nonnull
