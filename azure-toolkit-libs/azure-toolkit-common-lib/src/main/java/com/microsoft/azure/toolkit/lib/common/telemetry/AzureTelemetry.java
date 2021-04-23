@@ -6,12 +6,20 @@
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +36,45 @@ public class AzureTelemetry {
         INFO,
         WARNING,
         ERROR
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.PARAMETER)
+    public @interface Property {
+
+        String PARAM_NAME = "<param_name>";
+
+        /**
+         * alias of {@code name}
+         */
+        String value() default PARAM_NAME;
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.PARAMETER)
+    public @interface Properties {
+
+        /**
+         * alias of {@code converter}
+         */
+        Class<? extends Converter> value() default DefaultConverter.class;
+
+        interface Converter<T> {
+            @Nonnull
+            Map<String, String> convert(@Nullable T obj);
+        }
+
+        class DefaultConverter implements Converter<Object> {
+            private static final ObjectMapper objectMapper = new ObjectMapper();
+            private static final TypeReference<Map<String, String>> type = new TypeReference<Map<String, String>>() {
+            };
+
+            @Override
+            @Nonnull
+            public Map<String, String> convert(@Nullable Object obj) {
+                return Optional.ofNullable(obj).map(o -> objectMapper.convertValue(o, type)).orElse(new HashMap<>());
+            }
+        }
     }
 
     @Nonnull
@@ -64,6 +111,10 @@ public class AzureTelemetry {
 
         public void setProperty(String key, String val) {
             this.properties.put(key, val);
+        }
+
+        public void setProperties(Map<String, String> properties) {
+            this.properties.putAll(properties);
         }
 
         public String getProperty(String key) {
