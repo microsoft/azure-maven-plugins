@@ -221,35 +221,34 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deployArtifacts(IAppService target, WebAppConfig config) throws AzureExecutionException {
-        final List<WebAppArtifact> artifactsWithType = config.getWebAppArtifacts().stream()
+        final List<WebAppArtifact> artifactsOneDeploy = config.getWebAppArtifacts().stream()
                 .filter(artifact -> artifact.getDeployType() != null)
                 .collect(Collectors.toList());
-        artifactsWithType.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+        artifactsOneDeploy.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
 
         // This is the codes for one deploy API, for current release, will replace it with zip all files and deploy with zip deploy
-        final List<WebAppArtifact> artifactsWithNoType = config.getWebAppArtifacts().stream()
+        final List<WebAppArtifact> artifacts = config.getWebAppArtifacts().stream()
                 .filter(artifact -> artifact.getDeployType() == null)
                 .collect(Collectors.toList());
 
-        if (CollectionUtils.isEmpty(artifactsWithNoType)) {
+        if (CollectionUtils.isEmpty(artifacts)) {
             return;
         }
         // call correspond deploy method when deploy artifact only
-        if (artifactsWithNoType.size() == 1) {
-            final WebAppArtifact artifact = artifactsWithNoType.get(0);
-            final DeployType deployType = target.getRuntime().getWebContainer() == WebContainer.JBOSS_72 ? DeployType.EAR :
-                    getDeployTypeFromFile(artifact.getFile());
+        if (artifacts.size() == 1) {
+            final WebAppArtifact artifact = artifacts.get(0);
+            final DeployType deployType = getDeployTypeFromFile(artifact.getFile());
             target.deploy(deployType, artifact.getFile(), artifact.getPath());
             return;
         }
         // Support deploy multi war to different paths
-        if (DeployUtils.isAllWarArtifacts(artifactsWithNoType)) {
-            artifactsWithNoType.forEach(resource -> target.deploy(getDeployTypeFromFile(resource.getFile()), resource.getFile(), resource.getPath()));
+        if (DeployUtils.isAllWarArtifacts(artifacts)) {
+            artifacts.forEach(resource -> target.deploy(getDeployTypeFromFile(resource.getFile()), resource.getFile(), resource.getPath()));
             return;
         }
         // package all resource and do zip deploy
         // todo: migrate to use one deploy
-        deployArtifactsWithZipDeploy(target, artifactsWithNoType);
+        deployArtifactsWithZipDeploy(target, artifacts);
     }
 
     private void deployArtifactsWithZipDeploy(IAppService target, List<WebAppArtifact> artifacts) throws AzureExecutionException {
