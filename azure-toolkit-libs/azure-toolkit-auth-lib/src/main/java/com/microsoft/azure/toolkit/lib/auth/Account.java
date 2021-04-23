@@ -115,12 +115,8 @@ public abstract class Account implements IAccount {
         }
     }
 
-    protected Mono<TokenCredentialManager> initializeTokenCredentialManager() {
-        return this.preLoginCheck()// step 1: check avail //TODO: rename
-                .flatMap(ignore -> {
-                    // step 2: create TokenCredentialManager
-                    return createTokenCredentialManager();
-                });
+    private Mono<TokenCredentialManager> initializeTokenCredentialManager() {
+        return createTokenCredentialManager().doOnSuccess(tokenCredentialManager -> this.credentialManager = tokenCredentialManager);
     }
 
     protected abstract Mono<TokenCredentialManager> createTokenCredentialManager();
@@ -168,23 +164,25 @@ public abstract class Account implements IAccount {
      * @return Mono = true if this account is available
      */
     private Mono<Boolean> loginStep1() {
-        return checkAvailable().flatMap(ignore -> initializeTokenCredentialManager()).flatMap(credentialManager -> {
-            this.credentialManager = credentialManager;
-            return this.credentialManager.listTenants();
-        }).doOnSuccess(tenantIds -> {
-            this.entity.setType(this.getAuthType());
-            this.entity.setClientId(this.getClientId());
-            if (this.entity.getTenantIds() == null) {
-                this.entity.setTenantIds(tenantIds);
-            }
-            if (StringUtils.isNotBlank(credentialManager.getEmail())) {
-                entity.setEmail(credentialManager.getEmail());
-            }
-            entity.setEnvironment(credentialManager.getEnvironment());
-        }).map(ignore -> {
-            this.entity.setAvailable(true);
-            return true;
-        });
+        // step 1: check avail
+        // step 2: create TokenCredentialManager
+        // step 3: list tenant using TokenCredentialManager
+        // step 4: fill account entity
+        return checkAvailable().flatMap(ignore -> initializeTokenCredentialManager()).flatMap(credentialManager ->
+                    credentialManager.listTenants()).doOnSuccess(tenantIds -> {
+                        this.entity.setType(this.getAuthType());
+                        this.entity.setClientId(this.getClientId());
+                        if (this.entity.getTenantIds() == null) {
+                            this.entity.setTenantIds(tenantIds);
+                        }
+                        if (StringUtils.isNotBlank(credentialManager.getEmail())) {
+                            entity.setEmail(credentialManager.getEmail());
+                        }
+                        entity.setEnvironment(credentialManager.getEnvironment());
+                    }).map(ignore -> {
+                        this.entity.setAvailable(true);
+                        return true;
+                    });
     }
 
     @Override
