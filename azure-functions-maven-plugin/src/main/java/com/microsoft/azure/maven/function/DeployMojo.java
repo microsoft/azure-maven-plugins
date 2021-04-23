@@ -40,6 +40,7 @@ import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.Wi
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
+import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
@@ -277,6 +278,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected FunctionRuntimeHandler getFunctionRuntimeHandler() throws AzureAuthFailureException, AzureExecutionException {
         final FunctionRuntimeHandler.Builder<?> builder;
         final OperatingSystemEnum os = getOsEnum();
+        validateServicePlanRuntime(os);
         switch (os) {
             case Windows:
                 builder = new WindowsFunctionRuntimeHandler.Builder();
@@ -305,6 +307,18 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .javaVersion(parsedJavaVersion)
                 .azure(getAzureClient())
                 .build();
+    }
+
+    private void validateServicePlanRuntime(OperatingSystemEnum os) throws AzureExecutionException, AzureAuthFailureException {
+        final AppServicePlan servicePlan = AppServiceUtils.getAppServicePlan(getAppServicePlanName(), getAzureClient(),
+                getResourceGroup(), getAppServicePlanResourceGroup());
+        if (servicePlan != null) {
+            if ((servicePlan.operatingSystem() == OperatingSystem.LINUX && os == OperatingSystemEnum.Windows) ||
+                    (servicePlan.operatingSystem() == OperatingSystem.WINDOWS && os != OperatingSystemEnum.Windows)) {
+                throw new AzureExecutionException(String.format("%s service plan can not be used for %s function",
+                        StringUtils.capitalize(servicePlan.operatingSystem().name()), StringUtils.lowerCase(os.name())));
+            }
+        }
     }
 
     protected OperatingSystemEnum getOsEnum() throws AzureExecutionException {
