@@ -230,7 +230,7 @@ class AppServiceUtils {
             withCreate.defineDiagnosticLogsConfiguration()
                     .withApplicationLogging()
                     .withLogLevel(com.azure.resourcemanager.appservice.models.LogLevel.fromString(diagnosticConfig.getApplicationLogLevel().getValue()))
-                    .withApplicationLogsStoredOnFileSystem();
+                    .withApplicationLogsStoredOnFileSystem().attach();
         }
         if (diagnosticConfig.isEnableWebServerLogging()) {
             withCreate.defineDiagnosticLogsConfiguration().withWebServerLogging()
@@ -238,7 +238,7 @@ class AppServiceUtils {
                     .withWebServerFileSystemQuotaInMB(diagnosticConfig.getWebServerLogQuota())
                     .withLogRetentionDays(diagnosticConfig.getWebServerRetentionPeriod())
                     .withDetailedErrorMessages(diagnosticConfig.isEnableDetailedErrorMessage())
-                    .withFailedRequestTracing(diagnosticConfig.isEnableFailedRequestTracing());
+                    .withFailedRequestTracing(diagnosticConfig.isEnableFailedRequestTracing()).attach();
         }
     }
 
