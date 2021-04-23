@@ -6,6 +6,9 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.http.HttpClient;
+import com.azure.core.http.ProxyOptions;
+import com.azure.core.http.okhttp.OkHttpAsyncHttpClientBuilder;
 import com.azure.core.http.policy.FixedDelay;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.http.policy.RetryPolicy;
@@ -24,6 +27,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +35,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
 
 public class TokenCredentialManager implements TenantProvider, SubscriptionProvider {
     private static final ClientLogger LOGGER = new ClientLogger(TokenCredentialManager.class);
@@ -96,9 +99,18 @@ public class TokenCredentialManager implements TenantProvider, SubscriptionProvi
         return configureAzure().authenticate(this.rootCredentialSupplier.get(), profile);
     }
 
+    /**
+     * TODO: share the same code for creating AzureResourceManager.Configurable
+     */
     private static AzureResourceManager.Configurable configureAzure() {
+        OkHttpAsyncHttpClientBuilder builder = new OkHttpAsyncHttpClientBuilder();
+        if (Azure.az().config().getHttpProxy() != null) {
+            builder.proxy(new ProxyOptions(ProxyOptions.Type.HTTP, Azure.az().config().getHttpProxy()));
+        }
+
         // disable retry for getting tenant and subscriptions
         return AzureResourceManager.configure()
+                .withHttpClient(builder.build())
                 .withPolicy(createUserAgentPolicy())
                 .withRetryPolicy(new RetryPolicy(new FixedDelay(0, Duration.ofSeconds(0))));
     }

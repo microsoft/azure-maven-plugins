@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.lib.common.task;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperationTitle;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,18 +16,17 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 @Getter
+@Setter
 public class AzureTask<T> implements IAzureOperation {
     private final Modality modality;
     private final Supplier<T> supplier;
     private final Object project;
     private final boolean cancellable;
-    @Builder.Default
-    @Setter
-    private boolean backgroundable = true;
     private final IAzureOperationTitle title;
-
-    @Setter(AccessLevel.PACKAGE)
-    private AzureTaskContext.Node context;
+    private IAzureOperation parent;
+    @Builder.Default
+    private boolean backgroundable = true;
+    private Boolean backgrounded = null;
 
     public AzureTask(Runnable runnable) {
         this(runnable, Modality.DEFAULT);
@@ -123,12 +121,17 @@ public class AzureTask<T> implements IAzureOperation {
 
     @Override
     public String getName() {
-        return Optional.ofNullable(this.getTitle()).map(IAzureOperationTitle::getName).orElse("<unknown>.<unknown>");
+        return Optional.ofNullable(this.getTitle()).map(IAzureOperationTitle::getName).orElse(UNKNOWN_NAME);
     }
 
     @Override
     public String getType() {
         return "ASYNC";
+    }
+
+    @Override
+    public String toString() {
+        return String.format("{name:'%s'}", this.getName());
     }
 
     public enum Modality {

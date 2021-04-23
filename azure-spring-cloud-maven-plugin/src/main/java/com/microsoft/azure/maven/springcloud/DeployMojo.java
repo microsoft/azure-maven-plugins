@@ -83,7 +83,7 @@ public class DeployMojo extends AbstractMojoBase {
         final ScaleSettings scaleSettings = deploymentConfig.getScaleSettings();
         final String runtimeVersion = deploymentConfig.getJavaVersion();
 
-        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).cluster(clusterName);
+        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).subscription(appConfig.getSubscriptionId()).cluster(clusterName);
         final SpringCloudApp app = cluster.app(appName);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),

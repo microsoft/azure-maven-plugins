@@ -11,5 +11,7 @@ public interface IWebAppDeploymentSlot extends IAppService {
 
     IWebAppDeploymentSlotCreator create();
 
+    IWebAppDeploymentSlotUpdater update();
+
     WebAppDeploymentSlotEntity entity();
 }

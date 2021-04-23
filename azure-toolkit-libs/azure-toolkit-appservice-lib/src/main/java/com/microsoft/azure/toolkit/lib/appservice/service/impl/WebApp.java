@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
@@ -27,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Flux;
 
 import java.io.File;
 import java.util.List;
@@ -107,6 +109,16 @@ public class WebApp implements IWebApp {
     public PublishingProfile getPublishingProfile() {
         final com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile = getWebAppInner().getPublishingProfile();
         return PublishingProfile.createFromServiceModel(publishingProfile);
+    }
+
+    @Override
+    public DiagnosticConfig getDiagnosticConfig() {
+        return AppServiceUtils.fromWebAppDiagnosticLogs(getWebAppInner().diagnosticLogsConfig());
+    }
+
+    @Override
+    public Flux<String> streamAllLogsAsync() {
+        return getWebAppInner().streamAllLogsAsync();
     }
 
     @Override
@@ -216,16 +228,19 @@ public class WebApp implements IWebApp {
         DefinitionStages.WithCreate createDockerWebApp(DefinitionStages.Blank blank, ResourceGroup resourceGroup, AppServicePlan appServicePlan,
                                                        DockerConfiguration dockerConfiguration) {
             final DefinitionStages.WithLinuxAppFramework withLinuxAppFramework =
-                blank.withExistingLinuxPlan(appServicePlan).withExistingResourceGroup(resourceGroup);
+                    blank.withExistingLinuxPlan(appServicePlan).withExistingResourceGroup(resourceGroup);
+            final DefinitionStages.WithStartUpCommand withStartUpCommand;
             if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
-                return withLinuxAppFramework.withPublicDockerHubImage(dockerConfiguration.getImage());
+                withStartUpCommand = withLinuxAppFramework.withPublicDockerHubImage(dockerConfiguration.getImage());
+            } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
+                withStartUpCommand = withLinuxAppFramework.withPrivateDockerHubImage(dockerConfiguration.getImage())
+                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+            } else {
+
+                withStartUpCommand = withLinuxAppFramework.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
+                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
-            if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
-                return withLinuxAppFramework.withPrivateDockerHubImage(dockerConfiguration.getImage())
-                    .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
-            }
-            return withLinuxAppFramework.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
-                .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+            return withStartUpCommand.withStartUpCommand(dockerConfiguration.getStartUpCommand());
         }
     }
 
@@ -290,15 +305,17 @@ public class WebApp implements IWebApp {
                         .withWebContainer(AppServiceUtils.toWindowsWebContainer(newRuntime));
                 case DOCKER:
                     final DockerConfiguration dockerConfiguration = getDockerConfiguration().get();
+                    final com.azure.resourcemanager.appservice.models.WebApp.UpdateStages.WithStartUpCommand withStartUpCommand;
                     if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
-                        return update.withPublicDockerHubImage(dockerConfiguration.getImage());
+                        withStartUpCommand = update.withPublicDockerHubImage(dockerConfiguration.getImage());
+                    } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
+                        withStartUpCommand = update.withPrivateDockerHubImage(dockerConfiguration.getImage())
+                                .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    } else {
+                        withStartUpCommand = update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
+                                .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
                     }
-                    if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
-                        return update.withPrivateDockerHubImage(dockerConfiguration.getImage())
-                            .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
-                    }
-                    return update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
-                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+                    return withStartUpCommand.withStartUpCommand(dockerConfiguration.getStartUpCommand());
                 default:
                     throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
             }

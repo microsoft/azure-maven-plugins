@@ -39,6 +39,7 @@ import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthentication
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.maven.execution.MavenSession;
@@ -65,6 +66,7 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -343,7 +345,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             final List<Subscription> subscriptions = account.getSubscriptions();
             final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
             checkSubscription(subscriptions, targetSubscriptionId);
-
+            com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
             this.subscriptionId = targetSubscriptionId;
             return AzureClientFactory.getAzureClient(getUserAgent(), targetSubscriptionId);
         } catch (AzureLoginException | IOException e) {
@@ -364,19 +366,16 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     private Account login(@Nonnull com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
         promptAzureEnvironment(auth.getEnvironment());
+        MavenAuthUtils.disableIdentityLogs();
         accountLogin(auth);
         final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
-        if (account.getAuthType() == AuthType.OAUTH2 || account.getAuthType() == AuthType.DEVICE_CODE) {
-            if (account.getAuthType() == AuthType.DEVICE_CODE) {
-                handleDeviceCodeAccount(account);
-            }
-        }
+        final boolean isInteractiveLogin = account.getAuthType() == AuthType.OAUTH2 || account.getAuthType() == AuthType.DEVICE_CODE;
         final AzureEnvironment env = account.getEnvironment();
         final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
         if (env != AzureEnvironment.AZURE && env != auth.getEnvironment()) {
             Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
         }
-        printCredentialDescription(account);
+        printCredentialDescription(account, isInteractiveLogin);
         getTelemetryProxy().addDefaultProperty(AZURE_ENVIRONMENT, environmentName);
         return account;
     }
@@ -396,7 +395,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 }
                 // prompt if oauth or device code
                 promptForOAuthOrDeviceCodeLogin(account.getAuthType());
-                return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(account).account());
+                return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).loginAsync(account, false).block());
             } else {
                 // user specify SP related configurations
                 return doServicePrincipalLogin(auth);
@@ -404,7 +403,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         } else {
             // user specifies the auth type explicitly
             promptForOAuthOrDeviceCodeLogin(auth.getType());
-            return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(auth).account());
+            return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).loginAsync(auth, false).block());
         }
     }
 
@@ -414,10 +413,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             final DeviceCodeInfo challenge = deviceCodeAccount.getDeviceCode();
             System.out.println(StringUtils.replace(challenge.getMessage(), challenge.getUserCode(),
                     TextUtils.cyan(challenge.getUserCode())));
-            return deviceCodeAccount.continueLogin().block();
-        } else {
-            return account;
         }
+        return account.continueLogin().block();
     }
 
     private static void promptAzureEnvironment(AzureEnvironment env) {
@@ -459,8 +456,22 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         });
     }
 
-    private static void printCredentialDescription(Account account) {
-        System.out.println(account.toString());
+    private static void printCredentialDescription(Account account, boolean skipType) {
+        if (skipType) {
+            if (CollectionUtils.isNotEmpty(account.getSubscriptions())) {
+                final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
+                if (selectedSubscriptions != null && selectedSubscriptions.size() == 1) {
+                    System.out.println(String.format("Default subscription: %s(%s)", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
+                            TextUtils.cyan(selectedSubscriptions.get(0).getId())));
+                }
+            }
+
+            if (StringUtils.isNotEmpty(account.getEntity().getEmail())) {
+                System.out.println(String.format("Username: %s", TextUtils.cyan(account.getEntity().getEmail())));
+            }
+        } else {
+            System.out.println(account.toString());
+        }
     }
 
     public TelemetryProxy getTelemetryProxy() {
@@ -717,6 +728,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (StringUtils.isBlank(targetSubscriptionId)) {
             return selectSubscription(subscriptions.toArray(new Subscription[0]));
         }
+
         return targetSubscriptionId;
     }
 

@@ -270,6 +270,31 @@
           "help": "$cosmosDBIn_createIfNotExists_help"
         }
       ]
+    },
+    {
+      "type": "rabbitMqTrigger",
+      "displayName": "$rabbitMqTrigger_displayName",
+      "direction": "trigger",
+      "enabledInTryMode": false,
+      "settings": [
+        {
+          "name": "connectionStringSetting",
+          "value": "string",
+          "defaultValue": "",
+          "resource": "RabbitMQ",
+          "required": true,
+          "label": "$rabbitMqIn_connectionStringSetting_label",
+          "help": "$rabbitMqIn_connectionStringSetting_help"
+        },
+        {
+          "name": "queueName",
+          "value": "string",
+          "defaultValue": "myqueue",
+          "required": true,
+          "label": "$rabbitMqIn_queueName_label",
+          "help": "$rabbitMqIn_queueName_help"
+        }
+      ]
     }
   ]
 }

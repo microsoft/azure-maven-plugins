@@ -24,7 +24,7 @@ public class JavaVersion {
     private static final String JAVA_11_VALUE = "Java 11";
     private static final String JAVA_11_VALUE_TRIM = "Java11";
 
-    public static final JavaVersion OFF = new JavaVersion("null");
+    public static final JavaVersion OFF = new JavaVersion("<null>");
     public static final JavaVersion JAVA_7 = new JavaVersion("1.7");
     public static final JavaVersion JAVA_8 = new JavaVersion("1.8");
     public static final JavaVersion JAVA_11 = new JavaVersion("11");
@@ -52,13 +52,16 @@ public class JavaVersion {
         JAVA_ZULU_1_7_0_191, JAVA_8, JAVA_1_8_0_25, JAVA_1_8_0_60, JAVA_1_8_0_73, JAVA_1_8_0_111, JAVA_1_8_0_144, JAVA_1_8_0_172, JAVA_ZULU_1_8_0_172,
         JAVA_ZULU_1_8_0_92, JAVA_ZULU_1_8_0_102, JAVA_1_8_0_181, JAVA_ZULU_1_8_0_181, JAVA_1_8_0_202, JAVA_ZULU_1_8_0_202, JAVA_11, JAVA_ZULU_11_0_2));
 
-    private String value;
+    private final String value;
 
     public static List<JavaVersion> values() {
         return values;
     }
 
     public static JavaVersion fromString(String input) {
+        if(StringUtils.isEmpty(input)){
+            return JavaVersion.OFF;
+        }
         // parse display name first
         if (StringUtils.equalsAnyIgnoreCase(input, JAVA_7_VALUE, JAVA_7_VALUE_TRIM)) {
             return JavaVersion.JAVA_7;
@@ -71,7 +74,7 @@ public class JavaVersion {
         }
         return values().stream()
             .filter(javaVersion -> StringUtils.equalsIgnoreCase(input, javaVersion.getValue()))
-            .findFirst().orElse(null);
+            .findFirst().orElse(JavaVersion.OFF);
     }
 
     @Override

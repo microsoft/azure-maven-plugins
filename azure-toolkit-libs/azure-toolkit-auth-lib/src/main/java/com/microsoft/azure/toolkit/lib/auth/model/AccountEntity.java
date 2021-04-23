@@ -18,9 +18,11 @@ public class AccountEntity {
 
     private AzureEnvironment environment;
 
-    private String email;
+    private AuthType type;
 
-    private boolean authenticated;
+    private String clientId;
+
+    private String email;
 
     private List<Subscription> subscriptions;
 

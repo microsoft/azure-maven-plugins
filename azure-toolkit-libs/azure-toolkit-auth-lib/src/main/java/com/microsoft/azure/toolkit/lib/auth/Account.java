@@ -16,7 +16,9 @@ import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
@@ -27,8 +29,14 @@ import java.util.stream.Collectors;
 
 
 public abstract class Account implements IAccount {
+    protected static final String TOOLKIT_TOKEN_CACHE_NAME = "azure-toolkit.cache";
+
     @Getter
     protected AccountEntity entity;
+
+    @Setter(AccessLevel.PACKAGE)
+    @Getter(AccessLevel.PROTECTED)
+    protected boolean enablePersistence = false;
 
     protected TokenCredentialManager credentialManager;
 
@@ -45,10 +53,6 @@ public abstract class Account implements IAccount {
     }
 
     protected abstract Mono<Boolean> preLoginCheck();
-
-    public boolean isAvailable() {
-        return this.entity.isAvailable();
-    }
 
     public TokenCredential getTokenCredentialForTenant(String tenantId) {
         requireAuthenticated();
@@ -122,7 +126,7 @@ public abstract class Account implements IAccount {
     protected abstract Mono<TokenCredentialManager> createTokenCredentialManager();
 
     public Mono<Boolean> checkAvailable() {
-        return loginStep1();
+        return preLoginCheck().doOnSuccess(avail -> this.entity.setAvailable(avail));
     }
 
     protected Mono<Account> login() {
@@ -144,12 +148,17 @@ public abstract class Account implements IAccount {
         });
     }
 
+    public Mono<Account> continueLogin() {
+        Azure.az(AzureAccount.class).setAccount(this);
+        return Mono.just(this);
+    }
+
     private void finishLogin() {
-        this.entity.setAuthenticated(true);
         selectSubscriptionInner(getSubscriptions(), this.entity.getSelectedSubscriptionIds());
         // select all when no subs are selected
         if (this.getSelectedSubscriptions().isEmpty()) {
             getSubscriptions().forEach(subscription -> subscription.setSelected(true));
+            this.entity.setSelectedSubscriptionIds(getSubscriptions().stream().map(Subscription::getId).collect(Collectors.toList()));
         }
     }
 
@@ -159,10 +168,12 @@ public abstract class Account implements IAccount {
      * @return Mono = true if this account is available
      */
     private Mono<Boolean> loginStep1() {
-        return initializeTokenCredentialManager().flatMap(credentialManager -> {
+        return checkAvailable().flatMap(ignore -> initializeTokenCredentialManager()).flatMap(credentialManager -> {
             this.credentialManager = credentialManager;
             return this.credentialManager.listTenants();
         }).doOnSuccess(tenantIds -> {
+            this.entity.setType(this.getAuthType());
+            this.entity.setClientId(this.getClientId());
             if (this.entity.getTenantIds() == null) {
                 this.entity.setTenantIds(tenantIds);
             }
@@ -180,8 +191,8 @@ public abstract class Account implements IAccount {
     public String toString() {
         final List<String> details = new ArrayList<>();
 
-        if (!this.entity.isAvailable() || !this.entity.isAuthenticated()) {
-            return "<account not logged in>";
+        if (!this.entity.isAvailable()) {
+            return "<account not available>";
         }
         if (getAuthType() != null) {
             details.add(String.format("Auth type: %s", TextUtils.cyan(getAuthType().toString())));
@@ -216,8 +227,11 @@ public abstract class Account implements IAccount {
     }
 
     private void requireAuthenticated() {
-        if (!this.entity.isAvailable() || !this.entity.isAuthenticated()) {
-            throw new AzureToolkitAuthenticationException("Please signed in first.");
+        if (!this.entity.isAvailable()) {
+            throw new AzureToolkitAuthenticationException("Account is not available.");
+        }
+        if (CollectionUtils.isEmpty(this.entity.getTenantIds()) || CollectionUtils.isEmpty(this.entity.getSubscriptions())) {
+            throw new AzureToolkitAuthenticationException("No subscriptions are available, please sign-in first.");
         }
     }
 }

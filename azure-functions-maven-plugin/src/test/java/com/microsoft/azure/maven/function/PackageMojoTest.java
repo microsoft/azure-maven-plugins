@@ -7,10 +7,6 @@ package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.common.function.handlers.AnnotationHandler;
 import com.microsoft.azure.common.function.handlers.AnnotationHandlerImpl;
-
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,15 +38,12 @@ public class PackageMojoTest extends MojoTestBase {
         ReflectionUtils.setVariableValueInObject(mojoSpy, "finalName", "artifact-0.1.0");
         doReturn(mock(AnnotationHandler.class)).when(mojoSpy).getAnnotationHandler();
         doReturn(methods).when(mojoSpy).findAnnotatedMethods(any());
-        doReturn("target/azure-functions").when(mojoSpy).getDeploymentStagingDirectoryPath();
-        doReturn("target").when(mojoSpy).getBuildDirectoryAbsolutePath();
-        doReturn(mock(MavenProject.class)).when(mojoSpy).getProject();
-        doReturn(mock(MavenSession.class)).when(mojoSpy).getSession();
         doReturn(false).when(mojoSpy).isInstallingExtensionNeeded(any());
-        doReturn(mock(MavenResourcesFiltering.class)).when(mojoSpy).getMavenResourcesFiltering();
-        doNothing().when(mojoSpy).copyHostJsonFile(any());
+        doNothing().when(mojoSpy).copyHostJson();
+        doNothing().when(mojoSpy).copyLocalSettingsJson();
         doNothing().when(mojoSpy).promptCompileInfo();
         doNothing().when(mojoSpy).trackFunctionProperties(any());
+        doNothing().when(mojoSpy).copyJarsToStageDirectory();
         mojoSpy.doExecute();
     }
 

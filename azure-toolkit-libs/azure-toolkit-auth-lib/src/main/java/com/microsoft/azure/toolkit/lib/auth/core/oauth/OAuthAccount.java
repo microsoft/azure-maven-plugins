@@ -8,12 +8,13 @@ package com.microsoft.azure.toolkit.lib.auth.core.oauth;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.InteractiveBrowserCredentialBuilder;
+import com.azure.identity.TokenCachePersistenceOptions;
 import com.azure.identity.implementation.util.IdentityConstants;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
-import com.microsoft.azure.toolkit.lib.auth.TokenCredentialManager;
 import com.microsoft.azure.toolkit.lib.auth.RefreshTokenTokenCredentialManager;
+import com.microsoft.azure.toolkit.lib.auth.TokenCredentialManager;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
@@ -52,10 +53,13 @@ public class OAuthAccount extends Account {
         return RefreshTokenTokenCredentialManager.createTokenCredentialManager(env, getClientId(), createCredential(env));
     }
 
-    protected static TokenCredential createCredential(AzureEnvironment env) {
+    protected TokenCredential createCredential(AzureEnvironment env) {
         AzureEnvironmentUtils.setupAzureEnvironment(env);
-        return new InteractiveBrowserCredentialBuilder()
-                .redirectUrl("http://localhost:" + FreePortFinder.findFreeLocalPort())
+        InteractiveBrowserCredentialBuilder builder = new InteractiveBrowserCredentialBuilder();
+        if (isEnablePersistence()) {
+            builder.tokenCachePersistenceOptions(new TokenCachePersistenceOptions().setName(TOOLKIT_TOKEN_CACHE_NAME));
+        }
+        return builder.redirectUrl("http://localhost:" + FreePortFinder.findFreeLocalPort())
                 .build();
     }
 
