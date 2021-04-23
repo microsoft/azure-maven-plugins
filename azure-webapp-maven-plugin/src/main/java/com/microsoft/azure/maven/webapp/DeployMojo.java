@@ -10,6 +10,7 @@ import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
@@ -33,8 +34,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -269,9 +272,12 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deployExternalResources(IAppService target) throws AzureExecutionException {
-        final List<Resource> resources = this.deployment == null ? null : this.deployment.getResources();
-        final List<Resource> externalResources = resources.stream().filter(DeployUtils::isExternalResource).collect(Collectors.toList());
-        DeployUtils.deployResourcesWithFtp(target, externalResources);
+        DeployUtils.deployResourcesWithFtp(target, filterResources(DeployUtils::isExternalResource));
     }
 
+    private List<? extends Resource> filterResources(Predicate<? super Resource> predicate) {
+        final List<DeploymentResource> resources = this.deployment == null ? Collections.emptyList() : this.deployment.getResources();
+        return resources.stream()
+                .filter(predicate).collect(Collectors.toList());
+    }
 }

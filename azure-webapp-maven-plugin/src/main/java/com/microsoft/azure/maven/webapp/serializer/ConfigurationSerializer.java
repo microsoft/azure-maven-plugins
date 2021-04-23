@@ -30,7 +30,7 @@ public abstract class ConfigurationSerializer {
     public abstract void saveToXML(Element document)
         throws MojoFailureException;
 
-    protected DOMElement createResourcesNode(List<Resource> resources) {
+    protected DOMElement createResourcesNode(List<? extends Resource> resources) {
         final DOMElement resourceRootNode = new DOMElement("resources");
         for (final Resource resource : resources) {
             final DOMElement resourceNode = new DOMElement("resource");

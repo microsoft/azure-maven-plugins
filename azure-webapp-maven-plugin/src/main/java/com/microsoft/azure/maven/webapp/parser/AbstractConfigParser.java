@@ -113,10 +113,11 @@ public abstract class AbstractConfigParser {
         }
     }
 
-    protected static List<WebAppArtifact> parseArtifactsFromResources(List<Resource> resources) {
-        return CollectionUtils.isEmpty(resources) ? Collections.EMPTY_LIST :
+    protected static List<WebAppArtifact> parseArtifactsFromResources(List<? extends Resource> resources) {
+        return CollectionUtils.isEmpty(resources) ? Collections.emptyList() :
                 resources.stream()
-                        .filter(resource -> !DeployUtils.isExternalResource(resource)) // filter out external resources
+                        // filter out external resources
+                        .filter(resource -> !DeployUtils.isExternalResource(resource) && !DeployUtils.isOneDeployResource(resource))
                         .flatMap(resource -> convertResourceToArtifact(resource).stream()).collect(Collectors.toList());
     }
 

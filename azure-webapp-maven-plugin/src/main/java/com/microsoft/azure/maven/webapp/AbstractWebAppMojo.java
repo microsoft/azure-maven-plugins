@@ -170,7 +170,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      */
     @Deprecated
     @Parameter(property = "webapp.resources")
-    protected List<Resource> resources;
+    protected List<? extends Resource> resources;
 
     /**
      * Skip execution.
@@ -311,7 +311,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     @Override
-    public List<Resource> getResources() {
+    public List<? extends Resource> getResources() {
         return resources == null ? Collections.emptyList() : resources;
     }
 

@@ -34,4 +34,9 @@ public class DeployType {
             .filter(deployType -> StringUtils.equalsIgnoreCase(deployType.getValue(), input))
             .findFirst().orElse(null);
     }
+
+    @Override
+    public String toString() {
+        return this.value;
+    }
 }
