@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
+import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.DeployOptions;
@@ -27,16 +28,19 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class WebApp implements IWebApp {
-
+    private static final ClientLogger LOGGER = new ClientLogger(WebApp.class);
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     private WebAppEntity entity;
 
@@ -84,8 +88,11 @@ public class WebApp implements IWebApp {
     }
 
     @Override
-    public void deploy(DeployType deployType, File targetFile, String targetPath) {
+    public void deploy(@Nonnull DeployType deployType, @Nonnull File targetFile, @Nullable String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
+        LOGGER.info(String.format("Deploying (%s)[%s] %s ...", TextUtils.cyan(targetFile.toString()),
+                TextUtils.cyan(deployType.toString()),
+                StringUtils.isBlank(targetPath) ? "" : (" to " + TextUtils.green(targetPath))));
         getWebAppInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 

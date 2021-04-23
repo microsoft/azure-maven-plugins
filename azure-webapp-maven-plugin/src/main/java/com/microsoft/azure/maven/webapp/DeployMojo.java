@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -220,26 +221,35 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deployArtifacts(IAppService target, WebAppConfig config) throws AzureExecutionException {
+        final List<WebAppArtifact> artifactsWithType = config.getWebAppArtifacts().stream()
+                .filter(artifact -> artifact.getDeployType() != null)
+                .collect(Collectors.toList());
+        artifactsWithType.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+
         // This is the codes for one deploy API, for current release, will replace it with zip all files and deploy with zip deploy
-        final List<WebAppArtifact> artifacts = config.getWebAppArtifacts();
-        if (CollectionUtils.isEmpty(artifacts)) {
+        final List<WebAppArtifact> artifactsWithNoType = config.getWebAppArtifacts().stream()
+                .filter(artifact -> artifact.getDeployType() == null)
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(artifactsWithNoType)) {
             return;
         }
         // call correspond deploy method when deploy artifact only
-        if (artifacts.size() == 1) {
-            final WebAppArtifact artifact = artifacts.get(0);
-            final DeployType deployType = target.getRuntime().getWebContainer() == WebContainer.JBOSS_72 ? DeployType.EAR : artifact.getDeployType();
+        if (artifactsWithNoType.size() == 1) {
+            final WebAppArtifact artifact = artifactsWithNoType.get(0);
+            final DeployType deployType = target.getRuntime().getWebContainer() == WebContainer.JBOSS_72 ? DeployType.EAR :
+                    getDeployTypeFromFile(artifact.getFile());
             target.deploy(deployType, artifact.getFile(), artifact.getPath());
             return;
         }
         // Support deploy multi war to different paths
-        if (DeployUtils.isAllWarArtifacts(artifacts)) {
-            artifacts.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+        if (DeployUtils.isAllWarArtifacts(artifactsWithNoType)) {
+            artifactsWithNoType.forEach(resource -> target.deploy(getDeployTypeFromFile(resource.getFile()), resource.getFile(), resource.getPath()));
             return;
         }
         // package all resource and do zip deploy
         // todo: migrate to use one deploy
-        deployArtifactsWithZipDeploy(target, artifacts);
+        deployArtifactsWithZipDeploy(target, artifactsWithNoType);
     }
 
     private void deployArtifactsWithZipDeploy(IAppService target, List<WebAppArtifact> artifacts) throws AzureExecutionException {
@@ -279,5 +289,17 @@ public class DeployMojo extends AbstractWebAppMojo {
         final List<DeploymentResource> resources = this.deployment == null ? Collections.emptyList() : this.deployment.getResources();
         return resources.stream()
                 .filter(predicate).collect(Collectors.toList());
+    }
+
+    private static DeployType getDeployTypeFromFile(File file) {
+        final DeployType type = DeployType.fromString(FilenameUtils.getExtension(file.getName()));
+        if (type == null) {
+            return DeployType.ZIP;
+        }
+        // filter the strange file with name like 'foo.static', 'bar.startup'
+        if (StringUtils.equalsIgnoreCase(type.getFileExt(), FilenameUtils.getExtension(file.getName()))) {
+            return type;
+        }
+        return DeployType.ZIP;
     }
 }
