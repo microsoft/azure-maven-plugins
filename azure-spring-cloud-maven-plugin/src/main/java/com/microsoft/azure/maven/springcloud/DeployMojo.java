@@ -11,6 +11,7 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResource
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils.DEFAULT_DEPLOYMENT_NAME;
 
@@ -74,6 +76,7 @@ public class DeployMojo extends AbstractMojoBase {
         final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
         final IArtifact artifact = deploymentConfig.getArtifact();
         final File file = Objects.nonNull(artifact) ? artifact.getFile() : MavenArtifactUtils.getArtifactFromTargetFolder(project);
+        Optional.ofNullable(file).orElseThrow(() -> new AzureToolkitRuntimeException("Deployment artifact can not be null"));
         final boolean enableDisk = appConfig.getDeployment() != null && appConfig.getDeployment().isEnablePersistentStorage();
         final String clusterName = appConfig.getClusterName();
         final String appName = appConfig.getAppName();
@@ -84,6 +87,7 @@ public class DeployMojo extends AbstractMojoBase {
         final String runtimeVersion = deploymentConfig.getJavaVersion();
 
         final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).subscription(appConfig.getSubscriptionId()).cluster(clusterName);
+        Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Service(%s) is not found", clusterName)));
         final SpringCloudApp app = cluster.app(appName);
         final String deploymentName = StringUtils.firstNonBlank(
             deploymentConfig.getDeploymentName(),
