@@ -87,7 +87,7 @@ public class AzureCliUtils {
     }
 
     public static @Nonnull List<AzureCliSubscription> listSubscriptions() {
-        final JsonArray result = executeAzCommandJson("az account list --output json --all").getAsJsonArray();
+        final JsonArray result = executeAzCommandJson("az account list --output json").getAsJsonArray();
         final List<AzureCliSubscription> list = new ArrayList<>();
         if (result != null) {
             result.forEach(j -> {
