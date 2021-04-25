@@ -11,6 +11,7 @@ import com.azure.identity.SharedTokenCacheCredential;
 import com.azure.identity.SharedTokenCacheCredentialBuilder;
 import com.azure.identity.TokenCachePersistenceOptions;
 import com.google.common.base.Preconditions;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
@@ -189,7 +190,9 @@ public class AzureAccount implements AzureService, IAzureAccount {
         Objects.requireNonNull(auth, "Auth configuration is required for login.");
         Objects.requireNonNull(auth.getType(), "Auth type is required for login.");
         Preconditions.checkArgument(auth.getType() != AuthType.AUTO, "Auth type 'auto' is illegal for login.");
-
+        if (auth.getEnvironment() != null) {
+            Azure.az(AzureCloud.class).set(auth.getEnvironment());
+        }
         AuthType type = auth.getType();
         final Account targetAccount;
         if (auth.getType() == AuthType.SERVICE_PRINCIPAL) {
@@ -203,7 +206,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
             targetAccount = accountByType.get(type).get();
         }
 
-        return loginAsync(targetAccount, enablePersistence).doOnSuccess(ignore -> checkEnv(targetAccount, auth.getEnvironment()));
+        return loginAsync(targetAccount, enablePersistence);
     }
 
     public Mono<Account> loginAsync(Account targetAccount, boolean enablePersistence) {
@@ -221,38 +224,6 @@ public class AzureAccount implements AzureService, IAzureAccount {
         }
     }
 
-    private static void checkEnv(Account ac, AzureEnvironment env) {
-        if (env != null && ac.getEnvironment() != null && ac.getEnvironment() != env) {
-            String expectedEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(env);
-            String realEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(ac.getEnvironment());
-
-            // conflicting configuration of azure environment
-            switch (ac.getAuthType()) {
-                case AZURE_CLI:
-                    throw new AzureToolkitAuthenticationException(
-                            String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
-                                            "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
-                                    realEnv,
-                                    expectedEnv));
-
-                case AZURE_AUTH_MAVEN_PLUGIN:
-                    throw new AzureToolkitAuthenticationException(
-                            String.format("The azure cloud from maven login '%s' doesn't match with your auth configuration, " +
-                                            "please switch to other auth method for '%s' environment.",
-                                    realEnv,
-                                    expectedEnv));
-                case VSCODE:
-                    throw new AzureToolkitAuthenticationException(
-                            String.format("The azure cloud from vscode '%s' doesn't match with your auth configuration: %s, " +
-                                            "you can change it by pressing F1 in VSCode and find \">azure: sign in to Azure Cloud\" command " +
-                                            "to change azure cloud in vscode.",
-                                    realEnv,
-                                    expectedEnv));
-                default: // empty
-
-            }
-        }
-    }
 
     private static Map<AuthType, Supplier<Account>> buildAccountMap() {
         Map<AuthType, Supplier<Account>> map = new LinkedHashMap<>();
