@@ -5,18 +5,7 @@
 
 package com.microsoft.azure.maven.springcloud;
 
-import com.azure.core.management.AzureEnvironment;
-import com.azure.identity.DeviceCodeInfo;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
-import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
-import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
-import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
-import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
@@ -28,13 +17,13 @@ import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.ProxyUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
-import com.microsoft.azure.tools.exception.InvalidConfigurationException;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.tools.exception.InvalidConfigurationException;
 import com.microsoft.rest.LogLevel;
 import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -46,12 +35,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
-import reactor.core.publisher.Mono;
 
-import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -72,7 +59,6 @@ import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_PLUGIN_VERSION;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_PUBLIC;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_RUNTIME_VERSION;
-import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_SUBSCRIPTION_ID;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_WITHIN_PARENT_POM;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_VALUE_AUTH_POM_CONFIGURATION;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_VALUE_ERROR_CODE_FAILURE;
@@ -85,6 +71,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     private static final String AZURE_ENVIRONMENT = "azureEnvironment";
     private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
     private static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
+    private static final String SUBSCRIPTION_TEMPLATE = "Subscription: %s(%s)";
     private static final String PROXY = "proxy";
     private static final String AUTH_TYPE = "authType";
 
@@ -176,128 +163,20 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         }
     }
 
-    protected void initExecution() throws MavenDecryptException, AzureExecutionException, LoginFailureException {
+    protected void initExecution() throws MavenDecryptException, AzureExecutionException, IOException {
         // init proxy manager
         ProxyUtils.initProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
         // Init telemetries
         initTelemetry();
-        telemetries.put(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
+
         Azure.az().config().setLogLevel(LogLevel.NONE);
         Azure.az().config().setUserAgent(getUserAgent());
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
-        login(MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
-    }
-
-    private Account login(@Nonnull com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
-        promptAzureEnvironment(auth.getEnvironment());
-        MavenAuthUtils.disableIdentityLogs();
-        accountLogin(auth);
-        final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
-        final boolean isInteractiveLogin = account.getAuthType() == AuthType.OAUTH2 || account.getAuthType() == AuthType.DEVICE_CODE;
-        final AzureEnvironment env = account.getEnvironment();
-        final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
-        if (env != AzureEnvironment.AZURE && env != auth.getEnvironment()) {
-            Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
-        }
-        printCredentialDescription(account, isInteractiveLogin);
-        telemetries.put(AUTH_TYPE, getAuthType());
-        telemetries.put(AZURE_ENVIRONMENT, environmentName);
-        return account;
-    }
-
-    private static Account accountLogin(@Nonnull com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
-
-        if (auth.getEnvironment() != null) {
-            com.microsoft.azure.toolkit.lib.Azure.az(AzureCloud.class).set(auth.getEnvironment());
-        }
-        // handle null type
-        if (auth.getType() == null || auth.getType() == AuthType.AUTO) {
-            if (StringUtils.isAllBlank(auth.getCertificate(), auth.getCertificatePassword(), auth.getKey())) {
-                // not service principal configuration, will list accounts and try them one by one
-                final Account account = findFirstAvailableAccount().block();
-                if (account == null) {
-                    throw new AzureToolkitAuthenticationException("There are no accounts available.");
-                }
-                // prompt if oauth or device code
-                promptForOAuthOrDeviceCodeLogin(account.getAuthType());
-                return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).loginAsync(account, false).block());
-            } else {
-                // user specify SP related configurations
-                return doServicePrincipalLogin(auth);
-            }
-        } else {
-            // user specifies the auth type explicitly
-            promptForOAuthOrDeviceCodeLogin(auth.getType());
-            return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).loginAsync(auth, false).block());
-        }
-    }
-
-    private static Account handleDeviceCodeAccount(Account account) {
-        if (account instanceof DeviceCodeAccount) {
-            final DeviceCodeAccount deviceCodeAccount = (DeviceCodeAccount) account;
-            final DeviceCodeInfo challenge = deviceCodeAccount.getDeviceCode();
-            System.out.println(StringUtils.replace(challenge.getMessage(), challenge.getUserCode(),
-                    TextUtils.cyan(challenge.getUserCode())));
-        }
-        return account.continueLogin().block();
-    }
-
-    private static void promptAzureEnvironment(AzureEnvironment env) {
-        if (env != null && env != AzureEnvironment.AZURE) {
-            Log.prompt(String.format("Auth environment: %s", TextUtils.cyan(AzureEnvironmentUtils.azureEnvironmentToString(env))));
-        }
-    }
-
-    private static void promptForOAuthOrDeviceCodeLogin(AuthType authType) {
-        if (authType == AuthType.OAUTH2 || authType == AuthType.DEVICE_CODE) {
-            Log.prompt(String.format("Auth type: %s", TextUtils.cyan(authType.toString())));
-        }
-    }
-
-    private static Mono<Account> findFirstAvailableAccount() {
-        final List<Account> accounts = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).accounts();
-        if (accounts.isEmpty()) {
-            return Mono.error(new AzureToolkitAuthenticationException("There are no accounts available."));
-        }
-        Mono<Account> current = checkAccountAvailable(accounts.get(0));
-        for (int i = 1; i < accounts.size(); i++) {
-            final Account ac = accounts.get(i);
-            current = current.onErrorResume(e -> checkAccountAvailable(ac));
-        }
-        return current;
-    }
-
-    private static Account doServicePrincipalLogin(com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
-        auth.setType(AuthType.SERVICE_PRINCIPAL);
-        return com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(auth).account();
-    }
-
-    private static Mono<Account> checkAccountAvailable(Account account) {
-        return account.checkAvailable().map(avail -> {
-            if (avail) {
-                return account;
-            }
-            throw new AzureToolkitAuthenticationException(String.format("Cannot login with auth type: %s", account.getAuthType()));
-        });
-    }
-
-    private static void printCredentialDescription(Account account, boolean skipType) {
-        if (skipType) {
-            if (CollectionUtils.isNotEmpty(account.getSubscriptions())) {
-                final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
-                if (selectedSubscriptions != null && selectedSubscriptions.size() == 1) {
-                    System.out.println(String.format("Default subscription: %s(%s)", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
-                            TextUtils.cyan(selectedSubscriptions.get(0).getId())));
-                }
-            }
-
-            if (StringUtils.isNotEmpty(account.getEntity().getEmail())) {
-                System.out.println(String.format("Username: %s", TextUtils.cyan(account.getEntity().getEmail())));
-            }
-        } else {
-            System.out.println(account.toString());
-        }
+        final Account account = MavenAuthUtils.login(MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
+        telemetries.put(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
+        // env in account should be present
+        telemetries.put(AZURE_ENVIRONMENT, AzureEnvironmentUtils.azureEnvironmentToString(account.getEnvironment()));
     }
 
     protected String getAuthType() {
@@ -352,7 +231,6 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         telemetries.put(TELEMETRY_KEY_INSTANCE_COUNT, String.valueOf(configuration.getDeployment().getInstanceCount()));
         telemetries.put(TELEMETRY_KEY_JVM_OPTIONS,
                 String.valueOf(StringUtils.isEmpty(configuration.getDeployment().getJvmOptions())));
-        telemetries.put(TELEMETRY_KEY_SUBSCRIPTION_ID, configuration.getSubscriptionId());
     }
 
     protected void traceAuth() {
@@ -381,7 +259,4 @@ public abstract class AbstractMojoBase extends AbstractMojo {
                 : String.format("%s/%s", plugin.getArtifactId(), plugin.getVersion());
     }
 
-    protected static String highlightDefaultValue(String defaultValue) {
-        return StringUtils.isBlank(defaultValue) ? "" : String.format(" [%s]", TextUtils.blue(defaultValue));
-    }
 }

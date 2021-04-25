@@ -14,6 +14,7 @@ import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
@@ -323,7 +324,7 @@ public class ConfigMojo extends AbstractMojoBase {
         }
         final List<SpringCloudCluster> clusters = az.clusters();
         this.wrapper.putCommonVariable("clusters", clusters);
-        final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, c -> c.name());
+        final SpringCloudCluster targetAppCluster = this.wrapper.handleSelectOne("select-ASC", clusters, null, IAzureEntityManager::name);
         if (targetAppCluster != null) {
             this.appSettings.setClusterName(targetAppCluster.name());
             getLog().info(String.format("Using service: %s", TextUtils.blue(targetAppCluster.name())));
@@ -331,16 +332,14 @@ public class ConfigMojo extends AbstractMojoBase {
     }
 
     private void selectSubscription() throws IOException, InvalidConfigurationException {
-        // TODO: getAzureTokenCredentials will check auth for null, but maven will always map a default AuthConfiguration
-
         if (StringUtils.isBlank(subscriptionId)) {
-            final List<Subscription> subscriptions = Azure.az(AzureAccount.class).account().getSelectedSubscriptions();
+            final List<Subscription> subscriptions = Azure.az(AzureAccount.class).account().getSubscriptions();
             subscriptionId = (CollectionUtils.isNotEmpty(subscriptions) && subscriptions.size() == 1) ? subscriptions.get(0).getId() : promptSubscription();
         }
     }
 
     private String promptSubscription() throws IOException, InvalidConfigurationException {
-        final List<Subscription> subscriptions = Azure.az(AzureAccount.class).getSubscriptions();
+        final List<Subscription> subscriptions = Azure.az(AzureAccount.class).account().getSubscriptions();
         this.wrapper.putCommonVariable("subscriptions", subscriptions);
         final Subscription select = this.wrapper.handleSelectOne("select-subscriptions", subscriptions, null,
             t -> String.format("%s (%s)", t.getName(), t.getId()));

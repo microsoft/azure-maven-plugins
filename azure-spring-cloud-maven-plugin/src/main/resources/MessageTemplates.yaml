@@ -29,7 +29,7 @@ required:         true
 auto_select:      true
 message:
   empty_options:  "Cannot find any subscriptions."
-  auto_select:    "There is only one subscription (***{{ subscriptions[0].displayName() }}***) in your account, will use it automatically."
+  auto_select:    "There is only one subscription (***{{ subscriptions[0].getName() }}***) in your account, will use it automatically."
   select_none:    "You have not selected any subscriptions, 'config' will terminate."
 default_index:    0
 

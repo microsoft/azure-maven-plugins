@@ -28,6 +28,7 @@ import com.microsoft.azure.maven.queryer.MavenPluginQueryer;
 import com.microsoft.azure.maven.queryer.QueryFactory;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.maven.utils.MavenUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
@@ -560,8 +561,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
             return null;
         }
         options.addAll(javaOrDockerWebapps);
-        return new CustomTextIoStringListReader<WebAppOption>(() -> textIO.getTextTerminal(), null)
-                .withCustomPrompt(String.format("Please choose a %s Web App%s: ", webAppType, highlightDefaultValue(WebAppOption.CREATE_NEW.toString())))
+        return new CustomTextIoStringListReader<WebAppOption>(textIO::getTextTerminal, null)
+                .withCustomPrompt(String.format("Please choose a %s Web App%s: ", webAppType, MavenUtils.highlightDefaultValue(WebAppOption.CREATE_NEW.toString())))
                 .withNumberedPossibleValues(options).withDefaultValue(WebAppOption.CREATE_NEW)
                 .read(String.format("%s Web Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.displayName())));
     }

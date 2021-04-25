@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.maven.utils;
 
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
@@ -38,6 +40,10 @@ public class MavenUtils {
         }
 
         return null;
+    }
+
+    public static String highlightDefaultValue(String defaultValue) {
+        return StringUtils.isBlank(defaultValue) ? "" : String.format(" [%s]", TextUtils.blue(defaultValue));
     }
 
     private MavenUtils() {

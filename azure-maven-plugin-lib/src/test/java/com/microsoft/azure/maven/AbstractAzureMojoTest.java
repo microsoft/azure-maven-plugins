@@ -32,7 +32,7 @@ import static com.microsoft.azure.maven.AbstractAzureMojo.INSTALLATION_ID_KEY;
 import static com.microsoft.azure.maven.AbstractAzureMojo.PLUGIN_NAME_KEY;
 import static com.microsoft.azure.maven.AbstractAzureMojo.PLUGIN_VERSION_KEY;
 import static com.microsoft.azure.maven.AbstractAzureMojo.SESSION_ID_KEY;
-import static com.microsoft.azure.maven.AbstractAzureMojo.SUBSCRIPTION_ID_KEY;
+import static com.microsoft.azure.maven.AbstractAzureMojo.TELEMETRY_KEY_SUBSCRIPTION_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -183,7 +183,7 @@ public class AbstractAzureMojoTest {
         assertTrue(map.containsKey(INSTALLATION_ID_KEY));
         assertTrue(map.containsKey(PLUGIN_NAME_KEY));
         assertTrue(map.containsKey(PLUGIN_VERSION_KEY));
-        assertTrue(map.containsKey(SUBSCRIPTION_ID_KEY));
+        assertTrue(map.containsKey(TELEMETRY_KEY_SUBSCRIPTION_ID));
         assertTrue(map.containsKey(SESSION_ID_KEY));
     }
 }

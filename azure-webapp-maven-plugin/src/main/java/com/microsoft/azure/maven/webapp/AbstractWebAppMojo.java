@@ -14,6 +14,7 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
@@ -415,9 +416,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             try {
                 final Account account = getAzureAccount();
                 final List<Subscription> subscriptions = account.getSubscriptions();
-                final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
-                checkSubscription(subscriptions, targetSubscriptionId);
-                com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
+                final String targetSubscriptionId = MavenAuthUtils.getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
+                MavenAuthUtils.checkSubscription(subscriptions, targetSubscriptionId);
                 appServiceClient = Azure.az(AzureAppService.class).subscription(targetSubscriptionId);
                 printCurrentSubscription(appServiceClient);
             } catch (AzureLoginException | AzureExecutionException | IOException e) {

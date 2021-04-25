@@ -5,14 +5,19 @@
 
 package com.microsoft.azure.maven.springcloud;
 
+import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.prompt.DefaultPrompter;
 import com.microsoft.azure.common.prompt.IPrompter;
 import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
+import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
@@ -23,7 +28,6 @@ import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.tools.utils.RxUtils;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -41,6 +45,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_SUBSCRIPTION_ID;
 import static com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils.DEFAULT_DEPLOYMENT_NAME;
 
 @Mojo(name = "deploy")
@@ -52,10 +57,10 @@ public class DeployMojo extends AbstractMojoBase {
     private static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     private static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     private static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
-        "packaging %s, only jar is supported";
+            "packaging %s, only jar is supported";
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
-        "you can check the app status from Azure Portal.";
+            "you can check the app status from Azure Portal.";
     private static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
     private static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
 
@@ -65,12 +70,23 @@ public class DeployMojo extends AbstractMojoBase {
     @Parameter(property = "prompt")
     private boolean prompt;
 
-    @SneakyThrows
     @Override
-    protected void doExecute() {
+    protected void doExecute() throws MojoExecutionException, MojoFailureException {
         if (!checkProjectPackaging(project) || !checkConfiguration()) {
             return;
         }
+        final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+        final List<Subscription> subscriptions = account.getSubscriptions();
+        final String targetSubscriptionId;
+        try {
+            targetSubscriptionId = MavenAuthUtils.getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
+            MavenAuthUtils.checkSubscription(subscriptions, targetSubscriptionId);
+            this.subscriptionId = targetSubscriptionId;
+            telemetries.put(TELEMETRY_KEY_SUBSCRIPTION_ID, subscriptionId);
+        } catch (IOException | AzureExecutionException e) {
+            throw new MojoExecutionException("Cannot get subscription id due to error: " + e.getMessage(), e);
+        }
+
         // Init spring clients, and prompt users to confirm
         final SpringCloudAppConfig appConfig = this.getConfiguration();
         final SpringCloudDeploymentConfig deploymentConfig = appConfig.getDeployment();
@@ -85,15 +101,14 @@ public class DeployMojo extends AbstractMojoBase {
         final String jvmOptions = deploymentConfig.getJvmOptions();
         final ScaleSettings scaleSettings = deploymentConfig.getScaleSettings();
         final String runtimeVersion = deploymentConfig.getJavaVersion();
-
         final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class).subscription(appConfig.getSubscriptionId()).cluster(clusterName);
         Optional.ofNullable(cluster).orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Service(%s) is not found", clusterName)));
         final SpringCloudApp app = cluster.app(appName);
         final String deploymentName = StringUtils.firstNonBlank(
-            deploymentConfig.getDeploymentName(),
-            appConfig.getActiveDeploymentName(),
-            app.getActiveDeploymentName(),
-            DEFAULT_DEPLOYMENT_NAME
+                deploymentConfig.getDeploymentName(),
+                appConfig.getActiveDeploymentName(),
+                app.getActiveDeploymentName(),
+                DEFAULT_DEPLOYMENT_NAME
         );
         final SpringCloudDeployment deployment = app.deployment(deploymentName);
 
@@ -112,16 +127,16 @@ public class DeployMojo extends AbstractMojoBase {
         final SpringCloudApp.Creator appCreator = app.create();
         final SpringCloudApp.Uploader artifactUploader = app.uploadArtifact(file.getPath());
         final SpringCloudDeployment.Updater deploymentModifier = (toCreateDeployment ? deployment.create() : deployment.update())
-            .configEnvironmentVariables(env)
-            .configJvmOptions(jvmOptions)
-            .configScaleSettings(scaleSettings)
-            .configRuntimeVersion(runtimeVersion)
-            .configArtifact(artifactUploader.getArtifact());
+                .configEnvironmentVariables(env)
+                .configJvmOptions(jvmOptions)
+                .configScaleSettings(scaleSettings)
+                .configRuntimeVersion(runtimeVersion)
+                .configArtifact(artifactUploader.getArtifact());
         final SpringCloudApp.Updater appUpdater = app.update()
-            // active deployment should keep active.
-            .activate(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null))
-            .setPublic(appConfig.isPublic())
-            .enablePersistentDisk(enableDisk);
+                // active deployment should keep active.
+                .activate(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null))
+                .setPublic(appConfig.isPublic())
+                .enablePersistentDisk(enableDisk);
 
         if (toCreateApp) {
             tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, () -> {
@@ -198,8 +213,8 @@ public class DeployMojo extends AbstractMojoBase {
         final DeploymentResourceStatus status = deployment.entity().getStatus();
         log.info("Deployment Status: {}", color(status.toString()));
         deployment.entity().getInstances().forEach(instance ->
-            log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
-                instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
+                log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
+                        instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
     }
 
     private static String color(String status) {
