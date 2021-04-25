@@ -75,7 +75,7 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
             return "Please config the <runtime> in pom.xml.";
         }
         final String javaVersionRaw = runtime.getJavaVersionRaw();
-        if (JavaVersion.fromString(javaVersionRaw) == null) {
+        if (JavaVersion.fromString(javaVersionRaw) == JavaVersion.OFF) {
             return String.format("Unsupported value %s for <javaVersion> in pom.xml, please refer %s.", runtime.getJavaVersionRaw(), RUNTIME_CONFIG_REFERENCE);
         }
         return null;
@@ -87,7 +87,7 @@ public class V2ConfigurationValidator extends AbstractConfigurationValidator {
         if (runtime == null) {
             return "Please config the <runtime> in pom.xml.";
         }
-        if (WebContainer.fromString(runtime.getWebContainerRaw()) == null) {
+        if (WebContainer.fromString(runtime.getWebContainerRaw()) == WebContainer.JAVA_OFF) {
             return String.format("Unsupported value %s for <webContainer> in pom.xml, please refer %s.",
                     runtime.getWebContainerRaw(), RUNTIME_CONFIG_REFERENCE);
         }
