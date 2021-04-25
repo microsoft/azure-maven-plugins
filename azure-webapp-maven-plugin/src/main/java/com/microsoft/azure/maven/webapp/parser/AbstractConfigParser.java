@@ -68,7 +68,7 @@ public abstract class AbstractConfigParser {
     }
 
     public String getAppServicePlanResourceGroup() throws AzureExecutionException {
-        validate(validator::validateResourceGroup);
+        validate(validator::validateAppServicePlanResourceGroup);
         return mojo.getAppServicePlanResourceGroup();
     }
 

@@ -16,6 +16,7 @@ public abstract class AbstractConfigurationValidator {
     public static final String APP_NAME_PATTERN = "[a-zA-Z0-9\\-]{2,60}";
     public static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9\\.\\_\\-\\(\\)]{1,90}";
     public static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
+    public static final String APP_SERVICE_PLAN_NAME_PATTERN = "[a-zA-Z0-9\\-]{1,40}";
 
     protected final AbstractWebAppMojo mojo;
 
@@ -70,7 +71,25 @@ public abstract class AbstractConfigurationValidator {
     }
 
     public String validateAppServicePlan() {
-        // todo: add validation for app service plan name
+        final String servicePlanName = mojo.getAppServicePlanName();
+        if (StringUtils.isEmpty(servicePlanName)) {
+            return null;
+        }
+        if (!servicePlanName.matches(APP_SERVICE_PLAN_NAME_PATTERN)) {
+            return String.format("Invalid value for <appServicePlanName>, it need to match the pattern %s", APP_SERVICE_PLAN_NAME_PATTERN);
+        }
+        return null;
+    }
+
+    public String validateAppServicePlanResourceGroup() {
+        final String servicePlanResourceGroup = mojo.getAppServicePlanResourceGroup();
+        if (StringUtils.isEmpty(servicePlanResourceGroup)) {
+            return null;
+        }
+        if (servicePlanResourceGroup.endsWith(".") || !servicePlanResourceGroup.matches(RESOURCE_GROUP_PATTERN)) {
+            return "Invalid value for <appServicePlanResourceGroup>, it only allow alphanumeric characters, periods, underscores," +
+                    " hyphens and parenthesis and cannot end in a period.";
+        }
         return null;
     }
 
