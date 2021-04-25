@@ -7,7 +7,6 @@ package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
@@ -30,10 +29,8 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -416,26 +413,15 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
             try {
                 final Account account = getAzureAccount();
                 final List<Subscription> subscriptions = account.getSubscriptions();
-                final String targetSubscriptionId = MavenAuthUtils.getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
+                final String targetSubscriptionId = MavenAuthUtils.getTargetSubscriptionId(getSubscriptionId(), subscriptions,
+                        account.getSelectedSubscriptions());
                 MavenAuthUtils.checkSubscription(subscriptions, targetSubscriptionId);
                 appServiceClient = Azure.az(AzureAppService.class).subscription(targetSubscriptionId);
-                printCurrentSubscription(appServiceClient);
             } catch (AzureLoginException | AzureExecutionException | IOException e) {
                 throw new AzureExecutionException(String.format("Cannot authenticate due to error %s", e.getMessage()), e);
             }
         }
         return appServiceClient;
-    }
-
-    // todo: Replace same method in AbstractAzureMojo after function track2 migration
-    protected void printCurrentSubscription(AzureAppService appServiceClient) {
-        if (appServiceClient == null) {
-            return;
-        }
-        final Subscription subscription = appServiceClient.getDefaultSubscription();
-        if (subscription != null) {
-            Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
-        }
     }
 
     @Override

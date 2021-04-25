@@ -562,7 +562,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
         options.addAll(javaOrDockerWebapps);
         return new CustomTextIoStringListReader<WebAppOption>(textIO::getTextTerminal, null)
-                .withCustomPrompt(String.format("Please choose a %s Web App%s: ", webAppType, MavenUtils.highlightDefaultValue(WebAppOption.CREATE_NEW.toString())))
+                .withCustomPrompt(String.format("Please choose a %s Web App%s: ", webAppType,
+                        MavenUtils.highlightDefaultValue(WebAppOption.CREATE_NEW.toString())))
                 .withNumberedPossibleValues(options).withDefaultValue(WebAppOption.CREATE_NEW)
                 .read(String.format("%s Web Apps in subscription %s:", webAppType, TextUtils.blue(targetSubscription.displayName())));
     }
