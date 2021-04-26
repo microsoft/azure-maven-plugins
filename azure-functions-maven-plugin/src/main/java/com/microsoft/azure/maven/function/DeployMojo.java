@@ -54,6 +54,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -141,6 +142,16 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9._\\-()]{1,90}";
     private static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
     private static final String APP_SERVICE_PLAN_NAME_PATTERN = "[a-zA-Z0-9\\-]{1,40}";
+    private static final String EMPTY_APP_NAME = "Please config the <appName> in pom.xml.";
+    private static final String INVALID_APP_NAME = "The <appName> only allow alphanumeric characters, hyphens and cannot start or end in a hyphen.";
+    private static final String EMPTY_RESOURCE_GROUP = "Please config the <resourceGroup> in pom.xml.";
+    private static final String INVALID_RESOURCE_GROUP_NAME = "The <resourceGroup> only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.";
+    private static final String INVALID_SERVICE_PLAN_NAME = "Invalid value for <appServicePlanName>, it need to match the pattern %s";
+    private static final String INVALID_SERVICE_PLAN_RESOURCE_GROUP_NAME = "Invalid value for <appServicePlanResourceGroup>, it only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.";
+    private static final String EMPTY_SLOT_NAME = "Please config the <name> of <deploymentSlot> in pom.xml";
+    private static final String INVALID_SLOT_NAME = "Invalid value of <name> inside <deploymentSlot> in pom.xml, it needs to match the pattern '%s'";
+    private static final String INVALID_REGION = "The value of <region> is not supported, please correct it in pom.xml.";
+    private static final String EMPTY_IMAGE_NAME = "Please config the <image> of <runtime> in pom.xml.";
 
     private JavaVersion parsedJavaVersion;
 
@@ -203,6 +214,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected FunctionApp createFunctionApp(final FunctionRuntimeHandler runtimeHandler) throws AzureAuthFailureException, AzureExecutionException {
+        Validate.isTrue(StringUtils.isNotEmpty(region), "<region> is required when creating new resource");
         Log.info(FUNCTION_APP_CREATE_START);
         getTelemetryProxy().addDefaultProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
         validateApplicationInsightsConfiguration();
@@ -407,40 +419,40 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected void validateParameters() throws AzureExecutionException {
         // app name
         if (StringUtils.isBlank(appName)) {
-            throw new AzureToolkitRuntimeException("Please config the <appName> in pom.xml.");
+            throw new AzureToolkitRuntimeException(EMPTY_APP_NAME);
         }
         if (appName.startsWith("-") || !appName.matches(APP_NAME_PATTERN)) {
-            throw new AzureToolkitRuntimeException("The <appName> only allow alphanumeric characters, hyphens and cannot start or end in a hyphen.");
+            throw new AzureToolkitRuntimeException(INVALID_APP_NAME);
         }
         // resource group
         if (StringUtils.isBlank(resourceGroup)) {
-            throw new AzureToolkitRuntimeException("Please config the <resourceGroup> in pom.xml.");
+            throw new AzureToolkitRuntimeException(EMPTY_RESOURCE_GROUP);
         }
         if (resourceGroup.endsWith(".") || !resourceGroup.matches(RESOURCE_GROUP_PATTERN)) {
-            throw new AzureToolkitRuntimeException("The <resourceGroup> only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.");
+            throw new AzureToolkitRuntimeException(INVALID_RESOURCE_GROUP_NAME);
         }
         // asp name & resource group
         if (StringUtils.isNotEmpty(appServicePlanName) && !appServicePlanName.matches(APP_SERVICE_PLAN_NAME_PATTERN)) {
-            throw new AzureToolkitRuntimeException(String.format("Invalid value for <appServicePlanName>, it need to match the pattern %s", APP_SERVICE_PLAN_NAME_PATTERN));
+            throw new AzureToolkitRuntimeException(String.format(INVALID_SERVICE_PLAN_NAME, APP_SERVICE_PLAN_NAME_PATTERN));
         }
         if (StringUtils.isNotEmpty(appServicePlanResourceGroup) &&
                 (appServicePlanResourceGroup.endsWith(".") || !appServicePlanResourceGroup.matches(RESOURCE_GROUP_PATTERN))) {
-            throw new AzureToolkitRuntimeException("Invalid value for <appServicePlanResourceGroup>, it only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.");
+            throw new AzureToolkitRuntimeException(INVALID_SERVICE_PLAN_RESOURCE_GROUP_NAME);
         }
         // slot name
         if (deploymentSlotSetting != null && StringUtils.isEmpty(deploymentSlotSetting.getName())) {
-            throw new AzureToolkitRuntimeException("Please config the <name> of <deploymentSlot> in pom.xml");
+            throw new AzureToolkitRuntimeException(EMPTY_SLOT_NAME);
         }
         if (deploymentSlotSetting != null && !deploymentSlotSetting.getName().matches(SLOT_NAME_PATTERN)) {
-            throw new AzureToolkitRuntimeException(String.format("Invalid value of <name> inside <deploymentSlot> in pom.xml, it needs to match the pattern '%s'", SLOT_NAME_PATTERN));
+            throw new AzureToolkitRuntimeException(String.format(INVALID_SLOT_NAME, SLOT_NAME_PATTERN));
         }
         // region
         if (StringUtils.isNotEmpty(region) && Region.fromName(region) == null) {
-            throw new AzureToolkitRuntimeException("The value of <region> is not supported, please correct it in pom.xml.");
+            throw new AzureToolkitRuntimeException(INVALID_REGION);
         }
         // image
         if (getOsEnum() == OperatingSystemEnum.Docker && StringUtils.isEmpty(runtime.getImage())) {
-            throw new AzureExecutionException("Please config the <image> of <runtime> in pom.xml.");
+            throw new AzureExecutionException(EMPTY_IMAGE_NAME);
         }
     }
 
