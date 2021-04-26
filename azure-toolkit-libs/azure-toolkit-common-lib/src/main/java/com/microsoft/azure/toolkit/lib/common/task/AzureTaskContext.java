@@ -57,7 +57,7 @@ public class AzureTaskContext {
 
     public void pushOperation(final IAzureOperation operation) {
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
-            log.info(String.format("orphan context[%s] is setup", this));
+            log.fine(String.format("orphan context[%s] is setup", this));
         }
         operation.setParent(this.operation);
         this.operation = operation;
@@ -70,7 +70,7 @@ public class AzureTaskContext {
         this.operation = popped.getParent();
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
             AzureTaskContext.context.remove();
-            log.info(String.format("orphan context[%s] is disposed", this));
+            log.fine(String.format("orphan context[%s] is disposed", this));
         }
         return popped;
     }
