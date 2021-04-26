@@ -50,6 +50,7 @@ import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -96,8 +97,6 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown, supported values are: " +
             "ftp, zip, msdeploy, run_from_blob and run_from_zip.";
     private static final String APPINSIGHTS_INSTRUMENTATION_KEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
-    private static final String APPLICATION_INSIGHTS_NOT_SUPPORTED = "Application Insights features are not supported with" +
-            " current authentication, skip related steps.";
     private static final String APPLICATION_INSIGHTS_CONFIGURATION_CONFLICT = "Contradictory configurations for application insights," +
             " specify 'appInsightsKey' or 'appInsightsInstance' if you want to enable it, and specify " +
             "'disableAppInsights=true' if you want to disable it.";
@@ -138,6 +137,10 @@ public class DeployMojo extends AbstractFunctionMojo {
             "isn't configured, setting up the default value.";
     private static final String CREATE_NEW_FUNCTION_APP = "isCreateNewFunctionApp";
     private static final String RUNNING = "Running";
+    private static final String APP_NAME_PATTERN = "[a-zA-Z0-9\\-]{2,60}";
+    private static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9._\\-()]{1,90}";
+    private static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
+    private static final String APP_SERVICE_PLAN_NAME_PATTERN = "[a-zA-Z0-9\\-]{1,40}";
 
     private JavaVersion parsedJavaVersion;
 
@@ -150,7 +153,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     @Override
     protected void doExecute() throws AzureExecutionException {
         try {
-            validateAppName();
+            validateParameters();
 
             parseConfiguration();
 
@@ -399,7 +402,49 @@ public class DeployMojo extends AbstractFunctionMojo {
         parsedJavaVersion = FunctionUtils.parseJavaVersion(getRuntime().getJavaVersion());
     }
 
-    public void processAppSettingsWithDefaultValue() {
+    // todo: Extract validator for all maven toolkits
+    @Deprecated
+    protected void validateParameters() throws AzureExecutionException {
+        // app name
+        if (StringUtils.isBlank(appName)) {
+            throw new AzureToolkitRuntimeException("Please config the <appName> in pom.xml.");
+        }
+        if (appName.startsWith("-") || !appName.matches(APP_NAME_PATTERN)) {
+            throw new AzureToolkitRuntimeException("The <appName> only allow alphanumeric characters, hyphens and cannot start or end in a hyphen.");
+        }
+        // resource group
+        if (StringUtils.isBlank(resourceGroup)) {
+            throw new AzureToolkitRuntimeException("Please config the <resourceGroup> in pom.xml.");
+        }
+        if (resourceGroup.endsWith(".") || !resourceGroup.matches(RESOURCE_GROUP_PATTERN)) {
+            throw new AzureToolkitRuntimeException("The <resourceGroup> only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.");
+        }
+        // asp name & resource group
+        if (StringUtils.isNotEmpty(appServicePlanName) && !appServicePlanName.matches(APP_SERVICE_PLAN_NAME_PATTERN)) {
+            throw new AzureToolkitRuntimeException(String.format("Invalid value for <appServicePlanName>, it need to match the pattern %s", APP_SERVICE_PLAN_NAME_PATTERN));
+        }
+        if (StringUtils.isNotEmpty(appServicePlanResourceGroup) &&
+                (appServicePlanResourceGroup.endsWith(".") || !appServicePlanResourceGroup.matches(RESOURCE_GROUP_PATTERN))) {
+            throw new AzureToolkitRuntimeException("Invalid value for <appServicePlanResourceGroup>, it only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.");
+        }
+        // slot name
+        if (deploymentSlotSetting != null && StringUtils.isEmpty(deploymentSlotSetting.getName())) {
+            throw new AzureToolkitRuntimeException("Please config the <name> of <deploymentSlot> in pom.xml");
+        }
+        if (deploymentSlotSetting != null && !deploymentSlotSetting.getName().matches(SLOT_NAME_PATTERN)) {
+            throw new AzureToolkitRuntimeException(String.format("Invalid value of <name> inside <deploymentSlot> in pom.xml, it needs to match the pattern '%s'", SLOT_NAME_PATTERN));
+        }
+        // region
+        if (StringUtils.isNotEmpty(region) && Region.fromName(region) == null) {
+            throw new AzureToolkitRuntimeException("The value of <region> is not supported, please correct it in pom.xml.");
+        }
+        // image
+        if (getOsEnum() == OperatingSystemEnum.Docker && StringUtils.isEmpty(runtime.getImage())) {
+            throw new AzureExecutionException("Please config the <image> of <runtime> in pom.xml.");
+        }
+    }
+
+    private void processAppSettingsWithDefaultValue() {
         if (appSettings == null) {
             appSettings = new Properties();
         }

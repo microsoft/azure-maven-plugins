@@ -20,6 +20,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
@@ -89,13 +90,14 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     //region Getter
 
-    public PricingTier getPricingTier() throws AzureExecutionException {
+    public PricingTier getPricingTier() {
         if (StringUtils.isEmpty(pricingTier)) {
             return null;
         }
-        final ElasticPremiumPricingTier elasticPremiumPricingTier = ElasticPremiumPricingTier.fromString(pricingTier);
-        return elasticPremiumPricingTier != null ? elasticPremiumPricingTier.toPricingTier()
-                : AppServiceUtils.getPricingTierFromString(pricingTier);
+        return Optional.ofNullable(ElasticPremiumPricingTier.fromString(pricingTier))
+                .map(ElasticPremiumPricingTier::toPricingTier)
+                .orElse(Optional.ofNullable(AppServiceUtils.getPricingTierFromString(pricingTier))
+                        .orElseThrow(() -> new AzureToolkitRuntimeException("Invalid value for <pricingTier>")));
     }
 
     public String getRegion() {
