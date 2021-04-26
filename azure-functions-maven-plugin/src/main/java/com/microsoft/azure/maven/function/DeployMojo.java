@@ -145,9 +145,11 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String EMPTY_APP_NAME = "Please config the <appName> in pom.xml.";
     private static final String INVALID_APP_NAME = "The <appName> only allow alphanumeric characters, hyphens and cannot start or end in a hyphen.";
     private static final String EMPTY_RESOURCE_GROUP = "Please config the <resourceGroup> in pom.xml.";
-    private static final String INVALID_RESOURCE_GROUP_NAME = "The <resourceGroup> only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.";
+    private static final String INVALID_RESOURCE_GROUP_NAME = "The <resourceGroup> only allow alphanumeric characters, periods, underscores, " +
+            "hyphens and parenthesis and cannot end in a period.";
     private static final String INVALID_SERVICE_PLAN_NAME = "Invalid value for <appServicePlanName>, it need to match the pattern %s";
-    private static final String INVALID_SERVICE_PLAN_RESOURCE_GROUP_NAME = "Invalid value for <appServicePlanResourceGroup>, it only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.";
+    private static final String INVALID_SERVICE_PLAN_RESOURCE_GROUP_NAME = "Invalid value for <appServicePlanResourceGroup>, " +
+            "it only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.";
     private static final String EMPTY_SLOT_NAME = "Please config the <name> of <deploymentSlot> in pom.xml";
     private static final String INVALID_SLOT_NAME = "Invalid value of <name> inside <deploymentSlot> in pom.xml, it needs to match the pattern '%s'";
     private static final String INVALID_REGION = "The value of <region> is not supported, please correct it in pom.xml.";
@@ -389,9 +391,10 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected boolean isDedicatedPricingTier() throws AzureExecutionException {
         try {
-            final FunctionApp functionApp = getFunctionApp();
-            final AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlanByAppService(functionApp);
-            final PricingTier functionPricingTier = appServicePlan.pricingTier();
+            final PricingTier functionPricingTier = Optional.ofNullable(getFunctionApp())
+                    .map(AppServiceUtils::getAppServicePlanByAppService)
+                    .map(AppServicePlan::pricingTier)
+                    .orElseThrow(() -> new AzureExecutionException(FAILED_TO_GET_FUNCTION_APP_PRICING_TIER));
             return PricingTier.getAll().stream().anyMatch(pricingTier -> pricingTier.equals(functionPricingTier));
         } catch (AzureAuthFailureException e) {
             throw new AzureExecutionException(FAILED_TO_GET_FUNCTION_APP_PRICING_TIER, e);
@@ -531,23 +534,20 @@ public class DeployMojo extends AbstractFunctionMojo {
      * @throws InterruptedException Throw when thread was interrupted while sleeping between retry
      */
     private List<FunctionResource> listFunctions() throws AzureExecutionException, AzureAuthFailureException, InterruptedException {
-        final FunctionApp functionApp = getFunctionApp();
         for (int i = 0; i < LIST_TRIGGERS_MAX_RETRY; i++) {
             Thread.sleep(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS * 1000);
             Log.info(String.format(SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION, i + 1, LIST_TRIGGERS_MAX_RETRY));
             try {
-                functionApp.syncTriggers();
+                Optional.ofNullable(getFunctionApp()).ifPresent(FunctionApp::syncTriggers);
                 final List<FunctionResource> triggers = getAzureClient().appServices().functionApps()
                         .listFunctions(getResourceGroup(), getAppName()).stream()
-                        .map(envelope -> FunctionResource.parseFunction(envelope))
-                        .filter(function -> function != null)
+                        .map(FunctionResource::parseFunction)
                         .collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(triggers)) {
                     return triggers;
                 }
             } catch (RuntimeException e) {
                 // swallow service exception while list triggers
-                continue;
             }
         }
         throw new AzureExecutionException(NO_TRIGGERS_FOUNDED);
@@ -565,7 +565,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (appSettings.containsKey(APPINSIGHTS_INSTRUMENTATION_KEY)) {
             return;
         }
-        String instrumentationKey = null;
+        final String instrumentationKey;
         if (StringUtils.isNotEmpty(getAppInsightsKey())) {
             instrumentationKey = getAppInsightsKey();
             if (!Utils.isGUID(instrumentationKey)) {
