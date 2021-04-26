@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -98,9 +99,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private IWebApp createWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) throws AzureExecutionException {
-        if (webAppConfig.getRuntime() == null) {
-            throw new AzureExecutionException(NO_RUNTIME_CONFIG);
-        }
+        Validate.notNull(webAppConfig.getRuntime(), NO_RUNTIME_CONFIG);
         getTelemetryProxy().addDefaultProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         final ResourceGroup resourceGroup = getOrCreateResourceGroup(webAppConfig);
         final IAppServicePlan appServicePlan = getOrCreateAppServicePlan(webAppConfig);
@@ -143,6 +142,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         try {
             return azureResourceManager.resourceGroups().getByName(webAppConfig.getResourceGroup());
         } catch (ManagementException e) {
+            Validate.notNull(webAppConfig.getRegion(), "<region> is required when creating new resource group");
             Log.info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion().getName()));
             getTelemetryProxy().addDefaultProperty(CREATE_NEW_RESOURCE_GROUP, String.valueOf(true));
             final ResourceGroup result = azureResourceManager.resourceGroups().define(webAppConfig.getResourceGroup())
@@ -158,6 +158,8 @@ public class DeployMojo extends AbstractWebAppMojo {
         final String servicePlanGroup = getServicePlanResourceGroup(webAppConfig);
         final IAppServicePlan appServicePlan = az.appServicePlan(servicePlanGroup, servicePlanName);
         if (!appServicePlan.exists()) {
+            Validate.notNull(webAppConfig.getPricingTier(), "<pricingTier> is required when creating new app service plan");
+            Validate.notNull(webAppConfig.getRegion(), "<region> is required when creating new app service plan");
             Log.info(CREATE_APP_SERVICE_PLAN);
             getTelemetryProxy().addDefaultProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
             appServicePlan.create()
