@@ -68,15 +68,14 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     @Override
     protected void doExecute() throws AzureExecutionException {
-        // initialize library client
-        az = getOrCreateAzureAppServiceClient();
-
         final WebAppConfig config = getWebAppConfig();
         final IAppService target = createOrUpdateResource(config);
         deploy(target, config);
     }
 
     private IAppService createOrUpdateResource(final WebAppConfig config) throws AzureExecutionException {
+        az = getOrCreateAzureAppServiceClient(); // initialize library client
+
         if (StringUtils.isEmpty(config.getDeploymentSlotName())) {
             final IWebApp webApp = getWebApp(config);
             return webApp.exists() ? updateWebApp(webApp, config) : createWebApp(webApp, config);
