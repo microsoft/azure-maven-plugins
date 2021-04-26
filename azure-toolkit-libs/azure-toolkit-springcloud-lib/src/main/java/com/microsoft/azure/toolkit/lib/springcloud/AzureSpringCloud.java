@@ -38,6 +38,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> implements AzureService {
@@ -76,7 +77,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
     protected AppPlatformManager getClient(final String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
-        final LogLevel logLevel = config.getLogLevel();
+        final LogLevel logLevel = Optional.ofNullable(config.getLogLevel()).orElse(LogLevel.NONE);
         final String userAgent = config.getUserAgent();
         return AppPlatformManager.configure()
             .withLogLevel(logLevel)
