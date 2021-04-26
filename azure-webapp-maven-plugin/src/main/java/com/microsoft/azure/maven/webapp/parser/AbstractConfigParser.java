@@ -49,7 +49,8 @@ public abstract class AbstractConfigParser {
         return mojo.getResourceGroup();
     }
 
-    public String getDeploymentSlotName() {
+    public String getDeploymentSlotName() throws AzureExecutionException {
+        validate(validator::validateDeploymentSlot);
         return mojo.getDeploymentSlotSetting() == null ? null : mojo.getDeploymentSlotSetting().getName();
     }
 
