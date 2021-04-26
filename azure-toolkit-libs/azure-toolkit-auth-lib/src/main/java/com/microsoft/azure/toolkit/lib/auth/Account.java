@@ -170,19 +170,19 @@ public abstract class Account implements IAccount {
         // step 4: fill account entity
         return checkAvailable().flatMap(ignore -> initializeTokenCredentialManager()).flatMap(credentialManager ->
                     credentialManager.listTenants()).doOnSuccess(tenantIds -> {
-                        this.entity.setType(this.getAuthType());
-                        this.entity.setClientId(this.getClientId());
-                        if (this.entity.getTenantIds() == null) {
-                            this.entity.setTenantIds(tenantIds);
-                        }
-                        if (StringUtils.isNotBlank(credentialManager.getEmail())) {
-                            entity.setEmail(credentialManager.getEmail());
-                        }
-                        entity.setEnvironment(credentialManager.getEnvironment());
-                    }).map(ignore -> {
-                        this.entity.setAvailable(true);
-                        return true;
-                    });
+            this.entity.setType(this.getAuthType());
+            this.entity.setClientId(this.getClientId());
+            if (this.entity.getTenantIds() == null) {
+                this.entity.setTenantIds(tenantIds);
+            }
+            if (StringUtils.isNotBlank(credentialManager.getEmail())) {
+                entity.setEmail(credentialManager.getEmail());
+            }
+            entity.setEnvironment(credentialManager.getEnvironment());
+        }).map(ignore -> {
+            this.entity.setAvailable(true);
+            return true;
+        });
     }
 
     @Override
