@@ -65,10 +65,10 @@ public class CacheManager {
         final boolean toUseCache = StringUtils.isBlank(condition) || ExpressionUtils.evaluate(condition, invocation, true);
         final Cache<Object, Object> cache = caches.get(name);
         if (toUseCache) {
-            log.log(Level.INFO, String.format("loading data from cache[%s.%s] on method[%s]", name, key, signature.getName()));
+            log.fine(String.format("loading data from cache[%s.%s] on method[%s]", name, key, signature.getName()));
             return readCache(cache, key, point);
         }
-        log.log(Level.INFO, String.format("skipping cache[%s.%s] on method[%s]", name, key, signature.getName()));
+        log.fine(String.format("skipping cache[%s.%s] on method[%s]", name, key, signature.getName()));
         final Object result = point.proceed();
         if (Objects.nonNull(result)) {
             cache.put(key, Optional.of(result));
@@ -89,7 +89,7 @@ public class CacheManager {
         final boolean toEvictCache = StringUtils.isBlank(condition) || ExpressionUtils.evaluate(condition, invocation, true);
 
         if (toEvictCache) {
-            log.log(Level.INFO, String.format("evict cache[%s.%s] on method[%s]", name, key, signature.getName()));
+            log.fine(String.format("evict cache[%s.%s] on method[%s]", name, key, signature.getName()));
             invalidateCache(name, key);
         }
         return point.proceed();
@@ -97,18 +97,18 @@ public class CacheManager {
 
     private void invalidateCache(@Nullable final String name, @Nullable final String key) throws ExecutionException {
         if (StringUtils.isBlank(name)) {
-            log.log(Level.WARNING, "cache name is not specified when invalidating cache");
+            log.warning("cache name is not specified when invalidating cache");
         } else if (StringUtils.equals(CacheEvict.ALL, name)) { // invalidate all cache entries if cache name not specified
-            log.log(Level.INFO, "invalidate all caches");
+            log.fine("invalidate all caches");
             caches.invalidateAll();
         } else {
             if (StringUtils.isBlank(key)) {
-                log.log(Level.WARNING, String.format("key is not specified when invalidating cache[%s]", name));
+                log.warning(String.format("key is not specified when invalidating cache[%s]", name));
             } else if (StringUtils.equals(CacheEvict.ALL, key)) { // invalidate all cache entries of named cache if only cache name is specified
-                log.log(Level.INFO, String.format("invalidate all entries in cache[%s]", name));
+                log.fine(String.format("invalidate all entries in cache[%s]", name));
                 caches.invalidate(name);
             } else { // invalidate key specified cache entry of named cache if both cache name and key are specified
-                log.log(Level.INFO, String.format("invalidate cache entry[%s.%s]", name, key));
+                log.fine(String.format("invalidate cache entry[%s.%s]", name, key));
                 caches.get(name).invalidate(key);
             }
         }
@@ -117,10 +117,10 @@ public class CacheManager {
     private Object readCache(Cache<Object, Object> cache, String key, ProceedingJoinPoint point) throws Throwable {
         final Optional<?> result = (Optional<?>) cache.get(key, () -> {
             try {
-                log.log(Level.INFO, String.format("cache[%s] miss on method[%s]", key, point.getSignature().getName()));
+                log.fine(String.format("cache[%s] miss on method[%s]", key, point.getSignature().getName()));
                 return Optional.ofNullable(point.proceed());
             } catch (final Throwable throwable) {
-                log.log(Level.INFO, String.format("error occurs on loading data into cache[%s] on method[%s]", key, point.getSignature().getName()), throwable);
+                log.log(Level.FINE, String.format("error occurs on loading data into cache[%s] on method[%s]", key, point.getSignature().getName()), throwable);
                 return Optional.of(throwable);
             }
         });
