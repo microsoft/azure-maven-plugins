@@ -9,8 +9,11 @@ import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeInfo;
 import com.microsoft.azure.common.exceptions.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.maven.model.SubscriptionOption;
+import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
@@ -46,14 +49,20 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
+import org.beryx.textio.TextIO;
+import org.beryx.textio.TextIoFactory;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_AUTH_METHOD;
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_CPU;
@@ -81,6 +90,9 @@ import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY
 import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_VALUE_USER_ERROR;
 
 public abstract class AbstractMojoBase extends AbstractMojo {
+    private static final String SUBSCRIPTION_NOT_SPECIFIED = "Subscription ID was not specified, using the first subscription in current account," +
+            " please refer https://github.com/microsoft/azure-maven-plugins/wiki/Authentication#subscription for more information.";
+    private static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
     private static final String INIT_FAILURE = "InitFailure";
     private static final String AZURE_ENVIRONMENT = "azureEnvironment";
     private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
@@ -186,10 +198,15 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         Azure.az().config().setUserAgent(getUserAgent());
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
-        login(MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
+        try {
+            login(MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
+        } catch (IOException | AzureLoginException ex) {
+            throw new LoginFailureException("Cannot login to Azure due to error: " + ex.getMessage(), ex);
+        }
     }
 
-    private Account login(@Nonnull com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
+    private Account login(@Nonnull com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth)
+            throws IOException, AzureExecutionException, AzureLoginException {
         promptAzureEnvironment(auth.getEnvironment());
         MavenAuthUtils.disableIdentityLogs();
         accountLogin(auth);
@@ -201,6 +218,12 @@ public abstract class AbstractMojoBase extends AbstractMojo {
             Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
         }
         printCredentialDescription(account, isInteractiveLogin);
+
+        final List<Subscription> subscriptions = account.getSubscriptions();
+        final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
+        checkSubscription(subscriptions, targetSubscriptionId);
+        com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
+        this.subscriptionId = targetSubscriptionId;
         telemetries.put(AUTH_TYPE, getAuthType());
         telemetries.put(AZURE_ENVIRONMENT, environmentName);
         return account;
@@ -266,6 +289,60 @@ public abstract class AbstractMojoBase extends AbstractMojo {
             current = current.onErrorResume(e -> checkAccountAvailable(ac));
         }
         return current;
+    }
+
+    // copied from AbstractAzureMojo, need to refactor
+    private static String getTargetSubscriptionId(String defaultSubscriptionId,
+                                                  List<Subscription> subscriptions,
+                                                  List<Subscription> selectedSubscriptions) throws AzureExecutionException {
+        String targetSubscriptionId = defaultSubscriptionId;
+
+        if (StringUtils.isBlank(targetSubscriptionId) && selectedSubscriptions.size() == 1) {
+            targetSubscriptionId = selectedSubscriptions.get(0).getId();
+        }
+
+        if (StringUtils.isBlank(targetSubscriptionId)) {
+            return selectSubscription(subscriptions.toArray(new Subscription[0]));
+        }
+
+        return targetSubscriptionId;
+    }
+
+    private static void checkSubscription(List<Subscription> subscriptions, String targetSubscriptionId) throws AzureLoginException {
+        if (StringUtils.isEmpty(targetSubscriptionId)) {
+            Log.warn(SUBSCRIPTION_NOT_SPECIFIED);
+            return;
+        }
+        final Optional<Subscription> optionalSubscription = subscriptions.stream()
+                .filter(subscription -> StringUtils.equals(subscription.getId(), targetSubscriptionId))
+                .findAny();
+        if (!optionalSubscription.isPresent()) {
+            throw new AzureLoginException(String.format(SUBSCRIPTION_NOT_FOUND, targetSubscriptionId));
+        }
+    }
+
+    private static String selectSubscription(Subscription[] subscriptions) throws AzureExecutionException {
+        if (subscriptions.length == 0) {
+            throw new AzureExecutionException("Cannot find any subscriptions in current account.");
+        }
+        if (subscriptions.length == 1) {
+            Log.info(String.format("There is only one subscription '%s' in your account, will use it automatically.",
+                    TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
+            return subscriptions[0].getId();
+        }
+        final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(SubscriptionOption::new)
+                .sorted()
+                .collect(Collectors.toList());
+        final SubscriptionOption defaultValue = wrapSubs.get(0);
+        final TextIO textIO = TextIoFactory.getTextIO();
+        final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(textIO::getTextTerminal, null)
+                .withCustomPrompt(String.format("Please choose a subscription%s: ",
+                        highlightDefaultValue(defaultValue == null ? null : defaultValue.getSubscriptionName())))
+                .withNumberedPossibleValues(wrapSubs).withDefaultValue(defaultValue).read("Available subscriptions:");
+        if (subscriptionOptionSelected == null) {
+            throw new AzureExecutionException("You must select a subscription.");
+        }
+        return subscriptionOptionSelected.getSubscription().getId();
     }
 
     private static Account doServicePrincipalLogin(com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
@@ -362,7 +439,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
 
     protected void traceDeployment(boolean newApp, boolean newDeployment, SpringCloudAppConfig configuration) {
         final boolean isDeploymentNameGiven = configuration.getDeployment() != null &&
-            StringUtils.isNotEmpty(configuration.getDeployment().getDeploymentName());
+                StringUtils.isNotEmpty(configuration.getDeployment().getDeploymentName());
         telemetries.put(TELEMETRY_KEY_IS_CREATE_NEW_APP, String.valueOf(newApp));
         telemetries.put(TELEMETRY_KEY_IS_CREATE_DEPLOYMENT, String.valueOf(newDeployment));
         telemetries.put(TELEMETRY_KEY_IS_DEPLOYMENT_NAME_GIVEN, String.valueOf(isDeploymentNameGiven));
