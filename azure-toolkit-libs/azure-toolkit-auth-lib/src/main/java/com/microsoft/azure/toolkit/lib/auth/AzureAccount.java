@@ -24,7 +24,6 @@ import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
-import io.jsonwebtoken.lang.Collections;
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -107,15 +106,17 @@ public class AzureAccount implements AzureService, IAzureAccount {
     private Mono<Account> restoreLogin(@Nonnull AccountEntity accountEntity) {
         Preconditions.checkNotNull(accountEntity.getEnvironment(), "Azure environment for account entity is required.");
         Preconditions.checkNotNull(accountEntity.getType(), "Auth type for account entity is required.");
-        Preconditions.checkArgument(!Collections.isEmpty(accountEntity.getTenantIds()),
-                "At least one tenant id is required.");
-        Account target = null;
+        Account target;
         if (Arrays.asList(AuthType.DEVICE_CODE, AuthType.OAUTH2).contains(accountEntity.getType())) {
             AzureEnvironmentUtils.setupAzureEnvironment(accountEntity.getEnvironment());
             SharedTokenCacheCredentialBuilder builder = new SharedTokenCacheCredentialBuilder();
             SharedTokenCacheCredential credential = builder
                     .tokenCachePersistenceOptions(new TokenCachePersistenceOptions().setName(Account.TOOLKIT_TOKEN_CACHE_NAME))
-                    .username(accountEntity.getEmail()).tenantId(accountEntity.getTenantIds().get(0)).clientId(accountEntity.getClientId())
+                    // default tenant id in azure identity is organizations
+                    // see https://github.com/Azure/azure-sdk-for-java/blob/026664ea871586e681ab674e0332b6cc2352c655
+                    // /sdk/identity/azure-identity/src/main/java/com/azure/identity/implementation/IdentityClient.java#L139
+                    .username(accountEntity.getEmail()).tenantId(accountEntity.getTenantIds() == null ? "organizations" :
+                            accountEntity.getTenantIds().get(0)).clientId(accountEntity.getClientId())
                     .build();
 
             target = new SimpleAccount(accountEntity, credential);
@@ -145,8 +146,6 @@ public class AzureAccount implements AzureService, IAzureAccount {
         public SimpleAccount(@Nonnull AccountEntity accountEntity, @Nonnull TokenCredential credential) {
             Preconditions.checkNotNull(accountEntity.getEnvironment(), "Azure environment for account entity is required.");
             Preconditions.checkNotNull(accountEntity.getType(), "Auth type for account entity is required.");
-            Preconditions.checkArgument(!Collections.isEmpty(accountEntity.getTenantIds()),
-                    "At least one tenant id is required.");
             this.entity = new AccountEntity();
             this.entity.setClientId(accountEntity.getClientId());
             this.entity.setType(accountEntity.getType());
@@ -223,7 +222,6 @@ public class AzureAccount implements AzureService, IAzureAccount {
             throw new AzureToolkitAuthenticationException("Cannot login due to error: " + ex.getMessage());
         }
     }
-
 
     private static Map<AuthType, Supplier<Account>> buildAccountMap() {
         Map<AuthType, Supplier<Account>> map = new LinkedHashMap<>();

@@ -168,8 +168,7 @@ public abstract class Account implements IAccount {
         // step 2: create TokenCredentialManager
         // step 3: list tenant using TokenCredentialManager
         // step 4: fill account entity
-        return checkAvailable().flatMap(ignore -> initializeTokenCredentialManager()).flatMap(credentialManager ->
-                    credentialManager.listTenants()).doOnSuccess(tenantIds -> {
+        return checkAvailable().flatMap(ignore -> initializeTokenCredentialManager()).flatMap(TokenCredentialManager::listTenants).doOnSuccess(tenantIds -> {
             this.entity.setType(this.getAuthType());
             this.entity.setClientId(this.getClientId());
             if (this.entity.getTenantIds() == null) {
@@ -228,8 +227,8 @@ public abstract class Account implements IAccount {
         if (!this.entity.isAvailable()) {
             throw new AzureToolkitAuthenticationException("Account is not available.");
         }
-        if (CollectionUtils.isEmpty(this.entity.getTenantIds()) || CollectionUtils.isEmpty(this.entity.getSubscriptions())) {
-            throw new AzureToolkitAuthenticationException("No subscriptions are available, please sign-in first.");
+        if (this.credentialManager == null || this.entity.getTenantIds() == null || this.entity.getSubscriptions() == null) {
+            throw new AzureToolkitAuthenticationException("Please sign-in first.");
         }
     }
 }
