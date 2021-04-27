@@ -198,8 +198,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
         @Override
         public WebAppDeploymentSlot commit() {
-            final WebAppDeploymentSlotEntity entity = WebAppDeploymentSlot.this.entity();
-            final WebApp webApp = azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getWebappName());
+            final WebApp webApp = getParentWebApp();
             final DeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
             final DeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default
@@ -213,7 +212,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
                     break;
                 default:
                     try {
-                        final DeploymentSlot deploymentSlot = Optional.ofNullable(getParentWebApp().deploymentSlots().getByName(configurationSource))
+                        final DeploymentSlot deploymentSlot = Optional.ofNullable(webApp.deploymentSlots().getByName(configurationSource))
                                 .orElseThrow(() -> new AzureToolkitRuntimeException(CONFIGURATION_SOURCE_DOES_NOT_EXISTS));
                         withCreate = blank.withConfigurationFromDeploymentSlot(deploymentSlot);
                     } catch (ManagementException e) {
