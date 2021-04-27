@@ -45,7 +45,7 @@ public class ExpressionUtils {
         try {
             final Template tpl = engine.createTemplate(fixed);
             return tpl.make(bindings).toString();
-        } catch (final ClassNotFoundException | IOException e) {
+        } catch (final Throwable e) { // swallow all exceptions during render
             log.log(Level.SEVERE, String.format(INVALID_TEMPLATE, template, bindings), e);
         }
         return template;
