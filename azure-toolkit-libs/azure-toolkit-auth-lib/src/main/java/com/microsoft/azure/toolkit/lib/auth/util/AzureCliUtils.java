@@ -139,7 +139,8 @@ public class AzureCliUtils {
                 switcher = LINUX_MAC_SWITCHER;
             }
 
-            final ProcessBuilder builder = new ProcessBuilder(starter, switcher, command);
+            final String commandWithMacPathFix = isWindows ? command : String.format("export PATH=$PATH:/usr/local/bin ; %s", command);
+            final ProcessBuilder builder = new ProcessBuilder(starter, switcher, commandWithMacPathFix);
             final String workingDirectory = getSafeWorkingDirectory();
             if (workingDirectory != null) {
                 builder.directory(new File(workingDirectory));
