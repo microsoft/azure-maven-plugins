@@ -96,7 +96,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         }
         return Optional.ofNullable(ElasticPremiumPricingTier.fromString(pricingTier))
                 .map(ElasticPremiumPricingTier::toPricingTier)
-                .orElse(Optional.ofNullable(AppServiceUtils.getPricingTierFromString(pricingTier))
+                .orElseGet(() -> Optional.ofNullable(AppServiceUtils.getPricingTierFromString(pricingTier))
                         .orElseThrow(() -> new AzureToolkitRuntimeException("Invalid value for <pricingTier>")));
     }
 
