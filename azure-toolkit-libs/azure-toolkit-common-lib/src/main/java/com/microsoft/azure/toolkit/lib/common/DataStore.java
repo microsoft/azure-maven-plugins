@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * better not override equals() & hashcode() if use default get/set
+ * better not override equals() and hashcode() if use default get/set
  */
 public interface DataStore {
     @Nonnull
