@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.maven.prompt;
 
-import com.microsoft.azure.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.TestHelper;
+import lombok.Lombok;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Assert;
@@ -44,7 +44,7 @@ public class DefaultPrompterTest {
                 try {
                     when(reader.readLine()).thenReturn(" 10 ");
                 } catch (IOException e) {
-                    SneakyThrowUtils.sneakyThrow(e);
+                    throw Lombok.sneakyThrow(e);
                 }
                 return InputValidateResult.error("cannot input bar");
             }

@@ -9,8 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jackson.JsonLoader;
-import com.microsoft.azure.common.utils.SneakyThrowUtils;
 
+import lombok.Lombok;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class SchemaValidatorTest {
             try {
                 this.validator.collectSingleProperty("App", prop.getKey(), prop.getValue());
             } catch (JsonProcessingException e) {
-                SneakyThrowUtils.sneakyThrow(e);
+                throw Lombok.sneakyThrow(e);
             }
         });
 
@@ -47,7 +47,7 @@ public class SchemaValidatorTest {
             try {
                 this.validator.collectSingleProperty("Deployment", prop.getKey(), prop.getValue());
             } catch (JsonProcessingException e) {
-                SneakyThrowUtils.sneakyThrow(e);
+                throw Lombok.sneakyThrow(e);
             }
         });
 

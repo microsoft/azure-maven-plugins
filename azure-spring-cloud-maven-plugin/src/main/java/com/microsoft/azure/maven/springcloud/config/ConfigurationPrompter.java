@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.springcloud.config;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jackson.JsonLoader;
-import com.microsoft.azure.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.maven.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.prompt.IPrompter;
 import com.microsoft.azure.maven.prompt.InputValidateResult;
@@ -17,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.maven.utils.TemplateUtils;
 
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
+import lombok.Lombok;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.logging.Log;
@@ -77,7 +77,7 @@ public class ConfigurationPrompter {
                 try {
                     this.validator.collectSingleProperty(resourceName, prop.getKey(), prop.getValue());
                 } catch (JsonProcessingException e) {
-                    SneakyThrowUtils.sneakyThrow(e);
+                    throw Lombok.sneakyThrow(e);
                 }
             });
         }

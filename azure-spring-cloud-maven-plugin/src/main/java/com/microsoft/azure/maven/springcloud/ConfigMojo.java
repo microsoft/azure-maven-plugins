@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.maven.springcloud;
 
-import com.microsoft.azure.common.utils.SneakyThrowUtils;
 import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
@@ -20,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
+import lombok.Lombok;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
@@ -267,7 +267,7 @@ public class ConfigMojo extends AbstractMojoBase {
                 ConfigurationUpdater.updateAppConfigToPom(null, this.project, plugin);
             }
         } catch (DocumentException | IOException e) {
-            return SneakyThrowUtils.sneakyThrow(e);
+            throw Lombok.sneakyThrow(e);
         }
         return targetProjects.size();
     }
