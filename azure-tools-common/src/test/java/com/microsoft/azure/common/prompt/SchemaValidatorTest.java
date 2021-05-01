@@ -3,12 +3,13 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.common.validation;
+package com.microsoft.azure.common.prompt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jackson.JsonLoader;
+import com.microsoft.azure.common.prompt.SchemaValidator;
 import com.microsoft.azure.common.utils.SneakyThrowUtils;
 
 import org.apache.commons.collections4.IteratorUtils;
