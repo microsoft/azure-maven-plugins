@@ -35,7 +35,7 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.Dep
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +48,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Log
+@Slf4j
 public class AzureSpringCloudConfigUtils {
     public static final String DEFAULT_DEPLOYMENT_NAME = "default";
     public static final String DEFAULT_ARTIFACT_RELATIVE_PATH = "<default>";
@@ -94,8 +94,7 @@ public class AzureSpringCloudConfigUtils {
         if (matcher.matches()) {
             return Objects.equals(matcher.group(3), "8") ? SpringCloudJavaVersion.JAVA_8 : SpringCloudJavaVersion.JAVA_11;
         } else {
-            log.warning(String.format("%s is not a valid runtime version, supported values are Java 8 and Java 11," +
-                " using Java 8 in this deployment.", fixedRuntimeVersion));
+            log.warn("{} is not a valid runtime version, supported values are Java 8 and Java 11, using Java 8 in this deployment.", fixedRuntimeVersion);
             return DEFAULT_RUNTIME_VERSION;
         }
     }

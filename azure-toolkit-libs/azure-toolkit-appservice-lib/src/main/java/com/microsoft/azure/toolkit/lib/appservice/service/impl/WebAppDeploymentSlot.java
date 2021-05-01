@@ -28,6 +28,7 @@ import reactor.core.publisher.Flux;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Optional;
 
 public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
@@ -132,17 +133,21 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     }
 
     private synchronized void refreshDeploymentSlotInner() {
+        final WebApp parentWebApp = getParentWebApp();
         try {
-            final WebApp webAppService = StringUtils.isNotEmpty(slotEntity.getId()) ?
-                azureClient.webApps().getById(slotEntity.getId().substring(0, slotEntity.getId().indexOf("/slots"))) :
-                azureClient.webApps().getByResourceGroup(slotEntity.getResourceGroup(), slotEntity.getWebappName());
-            deploymentSlotInner = StringUtils.isNotEmpty(slotEntity.getId()) ? webAppService.deploymentSlots().getById(slotEntity.getId()) :
-                webAppService.deploymentSlots().getByName(slotEntity.getName());
+            deploymentSlotInner = StringUtils.isNotEmpty(slotEntity.getId()) ? parentWebApp.deploymentSlots().getById(slotEntity.getId()) :
+                parentWebApp.deploymentSlots().getByName(slotEntity.getName());
             slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(deploymentSlotInner);
         } catch (ManagementException e) {
             // SDK will throw exception when resource not founded
             deploymentSlotInner = null;
         }
+    }
+
+    private WebApp getParentWebApp() {
+        return StringUtils.isNotEmpty(slotEntity.getId()) ?
+                azureClient.webApps().getById(slotEntity.getId().substring(0, slotEntity.getId().indexOf("/slots"))) :
+                azureClient.webApps().getByResourceGroup(slotEntity.getResourceGroup(), slotEntity.getWebappName());
     }
 
     @Override
@@ -160,6 +165,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
         public static final String CONFIGURATION_SOURCE_NEW = "new";
         public static final String CONFIGURATION_SOURCE_PARENT = "parent";
         private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current web app";
+        private static final String FAILED_TO_GET_CONFIGURATION_SOURCE = "Failed to get configuration source slot";
 
         private String name;
         private String configurationSource = CONFIGURATION_SOURCE_PARENT;
@@ -192,8 +198,7 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
         @Override
         public WebAppDeploymentSlot commit() {
-            final WebAppDeploymentSlotEntity entity = WebAppDeploymentSlot.this.entity();
-            final WebApp webApp = azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getWebappName());
+            final WebApp webApp = getParentWebApp();
             final DeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
             final DeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default
@@ -206,11 +211,13 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
                     withCreate = blank.withConfigurationFromParent();
                     break;
                 default:
-                    final DeploymentSlot deploymentSlot = deploymentSlotInner.parent().deploymentSlots().getByName(configurationSource);
-                    if (deploymentSlot == null) {
-                        throw new AzureToolkitRuntimeException(CONFIGURATION_SOURCE_DOES_NOT_EXISTS);
+                    try {
+                        final DeploymentSlot deploymentSlot = Optional.ofNullable(webApp.deploymentSlots().getByName(configurationSource))
+                                .orElseThrow(() -> new AzureToolkitRuntimeException(CONFIGURATION_SOURCE_DOES_NOT_EXISTS));
+                        withCreate = blank.withConfigurationFromDeploymentSlot(deploymentSlot);
+                    } catch (ManagementException e) {
+                        throw new AzureToolkitRuntimeException(FAILED_TO_GET_CONFIGURATION_SOURCE, e);
                     }
-                    withCreate = blank.withConfigurationFromDeploymentSlot(deploymentSlot);
                     break;
             }
             if (getAppSettings() != null) {

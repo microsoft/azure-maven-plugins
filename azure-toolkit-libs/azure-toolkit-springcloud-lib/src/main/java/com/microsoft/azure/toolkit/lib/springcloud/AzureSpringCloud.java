@@ -35,8 +35,10 @@ import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudClusterMan
 import com.microsoft.rest.LogLevel;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> implements AzureService {
@@ -54,12 +56,14 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
         return new SpringCloudCluster(cluster, client);
     }
 
-    public SpringCloudCluster cluster(String name) {
+    @Nullable
+    public SpringCloudCluster cluster(@Nonnull String name) {
         return this.clusters().stream()
             .filter((s) -> Objects.equals(s.name(), name))
             .findAny().orElse(null);
     }
 
+    @Nonnull
     public List<SpringCloudCluster> clusters() {
         return this.getSubscriptions().stream()
             .map(s -> getClient(s.getId()))
@@ -73,7 +77,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
     protected AppPlatformManager getClient(final String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
-        final LogLevel logLevel = config.getLogLevel();
+        final LogLevel logLevel = Optional.ofNullable(config.getLogLevel()).orElse(LogLevel.NONE);
         final String userAgent = config.getUserAgent();
         return AppPlatformManager.configure()
             .withLogLevel(logLevel)

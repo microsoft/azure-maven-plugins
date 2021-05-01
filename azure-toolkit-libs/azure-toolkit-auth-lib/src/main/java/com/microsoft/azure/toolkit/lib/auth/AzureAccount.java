@@ -11,6 +11,7 @@ import com.azure.identity.SharedTokenCacheCredential;
 import com.azure.identity.SharedTokenCacheCredentialBuilder;
 import com.azure.identity.TokenCachePersistenceOptions;
 import com.google.common.base.Preconditions;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
@@ -23,7 +24,6 @@ import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
-import io.jsonwebtoken.lang.Collections;
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -106,15 +106,17 @@ public class AzureAccount implements AzureService, IAzureAccount {
     private Mono<Account> restoreLogin(@Nonnull AccountEntity accountEntity) {
         Preconditions.checkNotNull(accountEntity.getEnvironment(), "Azure environment for account entity is required.");
         Preconditions.checkNotNull(accountEntity.getType(), "Auth type for account entity is required.");
-        Preconditions.checkArgument(!Collections.isEmpty(accountEntity.getTenantIds()),
-                "At least one tenant id is required.");
-        Account target = null;
+        Account target;
         if (Arrays.asList(AuthType.DEVICE_CODE, AuthType.OAUTH2).contains(accountEntity.getType())) {
             AzureEnvironmentUtils.setupAzureEnvironment(accountEntity.getEnvironment());
             SharedTokenCacheCredentialBuilder builder = new SharedTokenCacheCredentialBuilder();
             SharedTokenCacheCredential credential = builder
                     .tokenCachePersistenceOptions(new TokenCachePersistenceOptions().setName(Account.TOOLKIT_TOKEN_CACHE_NAME))
-                    .username(accountEntity.getEmail()).tenantId(accountEntity.getTenantIds().get(0)).clientId(accountEntity.getClientId())
+                    // default tenant id in azure identity is organizations
+                    // see https://github.com/Azure/azure-sdk-for-java/blob/026664ea871586e681ab674e0332b6cc2352c655
+                    // /sdk/identity/azure-identity/src/main/java/com/azure/identity/implementation/IdentityClient.java#L139
+                    .username(accountEntity.getEmail()).tenantId(accountEntity.getTenantIds() == null ? "organizations" :
+                            accountEntity.getTenantIds().get(0)).clientId(accountEntity.getClientId())
                     .build();
 
             target = new SimpleAccount(accountEntity, credential);
@@ -144,8 +146,6 @@ public class AzureAccount implements AzureService, IAzureAccount {
         public SimpleAccount(@Nonnull AccountEntity accountEntity, @Nonnull TokenCredential credential) {
             Preconditions.checkNotNull(accountEntity.getEnvironment(), "Azure environment for account entity is required.");
             Preconditions.checkNotNull(accountEntity.getType(), "Auth type for account entity is required.");
-            Preconditions.checkArgument(!Collections.isEmpty(accountEntity.getTenantIds()),
-                    "At least one tenant id is required.");
             this.entity = new AccountEntity();
             this.entity.setClientId(accountEntity.getClientId());
             this.entity.setType(accountEntity.getType());
@@ -189,7 +189,9 @@ public class AzureAccount implements AzureService, IAzureAccount {
         Objects.requireNonNull(auth, "Auth configuration is required for login.");
         Objects.requireNonNull(auth.getType(), "Auth type is required for login.");
         Preconditions.checkArgument(auth.getType() != AuthType.AUTO, "Auth type 'auto' is illegal for login.");
-
+        if (auth.getEnvironment() != null) {
+            Azure.az(AzureCloud.class).set(auth.getEnvironment());
+        }
         AuthType type = auth.getType();
         final Account targetAccount;
         if (auth.getType() == AuthType.SERVICE_PRINCIPAL) {
@@ -203,7 +205,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
             targetAccount = accountByType.get(type).get();
         }
 
-        return loginAsync(targetAccount, enablePersistence).doOnSuccess(ignore -> checkEnv(targetAccount, auth.getEnvironment()));
+        return loginAsync(targetAccount, enablePersistence);
     }
 
     public Mono<Account> loginAsync(Account targetAccount, boolean enablePersistence) {
@@ -218,39 +220,6 @@ public class AzureAccount implements AzureService, IAzureAccount {
             return this;
         } catch (Throwable ex) {
             throw new AzureToolkitAuthenticationException("Cannot login due to error: " + ex.getMessage());
-        }
-    }
-
-    private static void checkEnv(Account ac, AzureEnvironment env) {
-        if (env != null && ac.getEnvironment() != null && ac.getEnvironment() != env) {
-            String expectedEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(env);
-            String realEnv = AzureEnvironmentUtils.getCloudNameForAzureCli(ac.getEnvironment());
-
-            // conflicting configuration of azure environment
-            switch (ac.getAuthType()) {
-                case AZURE_CLI:
-                    throw new AzureToolkitAuthenticationException(
-                            String.format("The azure cloud from azure cli '%s' doesn't match with your auth configuration, " +
-                                            "you can change it by executing 'az cloud set --name=%s' command to change the cloud in azure cli.",
-                                    realEnv,
-                                    expectedEnv));
-
-                case AZURE_AUTH_MAVEN_PLUGIN:
-                    throw new AzureToolkitAuthenticationException(
-                            String.format("The azure cloud from maven login '%s' doesn't match with your auth configuration, " +
-                                            "please switch to other auth method for '%s' environment.",
-                                    realEnv,
-                                    expectedEnv));
-                case VSCODE:
-                    throw new AzureToolkitAuthenticationException(
-                            String.format("The azure cloud from vscode '%s' doesn't match with your auth configuration: %s, " +
-                                            "you can change it by pressing F1 in VSCode and find \">azure: sign in to Azure Cloud\" command " +
-                                            "to change azure cloud in vscode.",
-                                    realEnv,
-                                    expectedEnv));
-                default: // empty
-
-            }
         }
     }
 

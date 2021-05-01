@@ -57,7 +57,7 @@ public class AzureTaskContext {
 
     public void pushOperation(final IAzureOperation operation) {
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
-            log.info(String.format("orphan context[%s] is setup", this));
+            log.fine(String.format("orphan context[%s] is setup", this));
         }
         operation.setParent(this.operation);
         this.operation = operation;
@@ -70,7 +70,7 @@ public class AzureTaskContext {
         this.operation = popped.getParent();
         if (Objects.isNull(this.parent) && Objects.isNull(this.operation)) {
             AzureTaskContext.context.remove();
-            log.info(String.format("orphan context[%s] is disposed", this));
+            log.fine(String.format("orphan context[%s] is disposed", this));
         }
         return popped;
     }
@@ -83,6 +83,11 @@ public class AzureTaskContext {
                 AzureTaskContext.current().pushOperation(task);
             });
             runnable.run();
+            Optional.ofNullable(context.getTask()).ifPresent(task -> {
+                final IAzureOperation popped = AzureTaskContext.current().popOperation();
+                AzureTelemeter.afterExit(task);
+                assert Objects.equals(task, popped) : String.format("popped op[%s] is not the exiting async task[%s]", popped, task);
+            });
         } catch (final Throwable throwable) {
             AzureExceptionHandler.onRxException(throwable);
             Optional.ofNullable(context.getTask()).ifPresent(task -> {
@@ -91,11 +96,6 @@ public class AzureTaskContext {
                 assert Objects.equals(task, popped) : String.format("popped op[%s] is not the task[%s] throwing exception", popped, task);
             });
         } finally {
-            Optional.ofNullable(context.getTask()).ifPresent(task -> {
-                final IAzureOperation popped = AzureTaskContext.current().popOperation();
-                AzureTelemeter.afterExit(task);
-                assert Objects.equals(task, popped) : String.format("popped op[%s] is not the exiting async task[%s]", popped, task);
-            });
             context.dispose();
         }
     }

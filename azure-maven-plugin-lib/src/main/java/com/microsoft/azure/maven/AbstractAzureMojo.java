@@ -324,12 +324,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                     TextUtils.blue(SubscriptionOption.getSubscriptionName(subscriptions[0]))));
             return subscriptions[0].getId();
         }
-        final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(t -> new SubscriptionOption(t))
+        final List<SubscriptionOption> wrapSubs = Arrays.stream(subscriptions).map(SubscriptionOption::new)
                 .sorted()
                 .collect(Collectors.toList());
         final SubscriptionOption defaultValue = wrapSubs.get(0);
         final TextIO textIO = TextIoFactory.getTextIO();
-        final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(() -> textIO.getTextTerminal(), null)
+        final SubscriptionOption subscriptionOptionSelected = new CustomTextIoStringListReader<SubscriptionOption>(textIO::getTextTerminal, null)
                 .withCustomPrompt(String.format("Please choose a subscription%s: ",
                         highlightDefaultValue(defaultValue == null ? null : defaultValue.getSubscriptionName())))
                 .withNumberedPossibleValues(wrapSubs).withDefaultValue(defaultValue).read("Available subscriptions:");
@@ -359,6 +359,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             mavenAuthConfiguration.setType(getAuthType());
 
             SystemPropertyUtils.injectCommandLineParameter("auth", mavenAuthConfiguration, MavenAuthConfiguration.class);
+            com.microsoft.azure.toolkit.lib.Azure.az().config().setUserAgent(getUserAgent());
             azureAccount = login(MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
         }
         return azureAccount;

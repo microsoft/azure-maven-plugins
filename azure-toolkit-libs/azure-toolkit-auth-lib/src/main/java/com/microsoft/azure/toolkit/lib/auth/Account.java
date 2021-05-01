@@ -115,12 +115,8 @@ public abstract class Account implements IAccount {
         }
     }
 
-    protected Mono<TokenCredentialManager> initializeTokenCredentialManager() {
-        return this.preLoginCheck()// step 1: check avail //TODO: rename
-                .flatMap(ignore -> {
-                    // step 2: create TokenCredentialManager
-                    return createTokenCredentialManager();
-                });
+    private Mono<TokenCredentialManager> initializeTokenCredentialManager() {
+        return createTokenCredentialManager().doOnSuccess(tokenCredentialManager -> this.credentialManager = tokenCredentialManager);
     }
 
     protected abstract Mono<TokenCredentialManager> createTokenCredentialManager();
@@ -168,10 +164,11 @@ public abstract class Account implements IAccount {
      * @return Mono = true if this account is available
      */
     private Mono<Boolean> loginStep1() {
-        return checkAvailable().flatMap(ignore -> initializeTokenCredentialManager()).flatMap(credentialManager -> {
-            this.credentialManager = credentialManager;
-            return this.credentialManager.listTenants();
-        }).doOnSuccess(tenantIds -> {
+        // step 1: check avail
+        // step 2: create TokenCredentialManager
+        // step 3: list tenant using TokenCredentialManager
+        // step 4: fill account entity
+        return checkAvailable().flatMap(ignore -> initializeTokenCredentialManager()).flatMap(TokenCredentialManager::listTenants).doOnSuccess(tenantIds -> {
             this.entity.setType(this.getAuthType());
             this.entity.setClientId(this.getClientId());
             if (this.entity.getTenantIds() == null) {
@@ -230,8 +227,8 @@ public abstract class Account implements IAccount {
         if (!this.entity.isAvailable()) {
             throw new AzureToolkitAuthenticationException("Account is not available.");
         }
-        if (CollectionUtils.isEmpty(this.entity.getTenantIds()) || CollectionUtils.isEmpty(this.entity.getSubscriptions())) {
-            throw new AzureToolkitAuthenticationException("No subscriptions are available, please sign-in first.");
+        if (this.credentialManager == null || this.entity.getTenantIds() == null || this.entity.getSubscriptions() == null) {
+            throw new AzureToolkitAuthenticationException("Please sign-in first.");
         }
     }
 }
