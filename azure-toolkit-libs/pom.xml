@@ -7,7 +7,6 @@
     <artifactId>azure-toolkit-libs</artifactId>
     <version>0.7.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Libs for Azure Toolkits</name>
     <description>Wrapped libs for Microsoft Azure Toolkits</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
 
