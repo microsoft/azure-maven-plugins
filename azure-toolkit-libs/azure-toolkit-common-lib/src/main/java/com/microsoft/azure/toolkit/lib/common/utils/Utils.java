@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.utils;
 
+import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.exception.CommandExecuteException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -21,11 +22,29 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class Utils {
     private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
+
+    public static String calcXmlIndent(String[] lines, int row, int column) {
+        Preconditions.checkNotNull(lines, "The parameter 'lines' cannot be null");
+        Preconditions.checkArgument(lines.length > row && row >= 0, "The parameter 'row' overflows.");
+        final String line = lines[row];
+        Preconditions.checkArgument(line != null, "Encounter null on row: " + row);
+        Preconditions.checkArgument(line.length() >= column && column >= 0, "The parameter 'column' overflows");
+
+        final StringBuilder buffer = new StringBuilder();
+        final int pos = line.lastIndexOf('<', column) - 1; // skip the current tag like : <tag>
+        for (int i = 0; i <= pos; i++) {
+            if (line.charAt(i) == '\t') {
+                buffer.append('\t');
+            } else {
+                buffer.append(' ');
+            }
+        }
+        return buffer.toString();
+    }
 
     public static String executeCommandAndGetOutput(final String cmd, File cwd)
         throws IOException, InterruptedException {
