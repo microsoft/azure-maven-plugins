@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.common.utils;
 
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
