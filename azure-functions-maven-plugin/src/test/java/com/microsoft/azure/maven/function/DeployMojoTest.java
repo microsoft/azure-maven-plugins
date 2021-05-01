@@ -9,7 +9,7 @@ import com.microsoft.azure.common.appservice.DeployTargetType;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
 import com.microsoft.azure.common.deploytarget.DeployTarget;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.common.function.handlers.runtime.FunctionRuntimeHandler;
 import com.microsoft.azure.common.function.handlers.runtime.WindowsFunctionRuntimeHandler;

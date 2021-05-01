@@ -8,7 +8,7 @@ package com.microsoft.azure.maven;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeInfo;
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.common.utils.GetHashMac;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;

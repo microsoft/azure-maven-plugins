@@ -6,7 +6,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.common.appservice.DockerImageType;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;

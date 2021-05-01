@@ -9,7 +9,7 @@ import com.microsoft.azure.arm.utils.SdkContext;
 import com.microsoft.azure.common.appservice.ConfigurationSourceType;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.docker.IDockerCredentialProvider;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.common.function.utils.FunctionUtils;

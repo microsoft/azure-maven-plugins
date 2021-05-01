@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.common.function.handlers;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.configurations.FunctionConfiguration;
 
 import java.lang.reflect.Method;

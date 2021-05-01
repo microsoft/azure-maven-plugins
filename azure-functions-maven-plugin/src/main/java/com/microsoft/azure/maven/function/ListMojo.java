@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 
 import org.apache.commons.io.IOUtils;

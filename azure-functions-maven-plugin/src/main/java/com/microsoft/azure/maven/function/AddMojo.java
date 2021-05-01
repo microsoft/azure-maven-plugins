@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.template.BindingTemplate;
 import com.microsoft.azure.common.function.template.FunctionSettingTemplate;
 import com.microsoft.azure.common.function.template.FunctionTemplate;

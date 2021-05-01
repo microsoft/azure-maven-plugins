@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.common.appservice;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 
 import org.apache.commons.lang3.StringUtils;
 

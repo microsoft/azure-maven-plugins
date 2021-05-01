@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.common.handlers.runtime;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.common.utils.AppServiceUtils;
 import com.microsoft.azure.management.Azure;

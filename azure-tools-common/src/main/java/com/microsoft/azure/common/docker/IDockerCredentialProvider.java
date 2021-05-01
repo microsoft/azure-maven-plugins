@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.common.docker;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 
 public interface IDockerCredentialProvider {
     String getUsername() throws AzureExecutionException;

@@ -6,7 +6,7 @@
 package com.microsoft.azure.common.handlers;
 
 import com.microsoft.azure.common.deploytarget.DeployTarget;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 
 public interface ArtifactHandler<T extends DeployTarget> {
     void publish(T deployTarget) throws AzureExecutionException;

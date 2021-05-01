@@ -8,7 +8,7 @@ package com.microsoft.azure.common.function.utils;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.common.function.template.BindingTemplate;
 import com.microsoft.azure.common.function.template.BindingsTemplate;

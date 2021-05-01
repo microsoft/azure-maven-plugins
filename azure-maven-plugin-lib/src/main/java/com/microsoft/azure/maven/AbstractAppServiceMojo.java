@@ -8,7 +8,7 @@ package com.microsoft.azure.maven;
 import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;

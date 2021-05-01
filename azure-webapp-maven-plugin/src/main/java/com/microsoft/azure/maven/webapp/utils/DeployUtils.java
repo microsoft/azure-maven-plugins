@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.webapp.utils;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;

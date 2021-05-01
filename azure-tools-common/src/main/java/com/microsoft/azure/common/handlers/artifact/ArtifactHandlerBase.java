@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.common.handlers.artifact;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.handlers.ArtifactHandler;
 import com.microsoft.azure.common.project.IProject;
 

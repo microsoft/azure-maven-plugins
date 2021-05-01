@@ -6,7 +6,7 @@
 package com.microsoft.azure.common;
 
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 
 import org.junit.Test;
 

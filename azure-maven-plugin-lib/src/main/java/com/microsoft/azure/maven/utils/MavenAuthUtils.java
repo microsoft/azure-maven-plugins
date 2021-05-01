@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.utils;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.exception.InvalidConfigurationException;

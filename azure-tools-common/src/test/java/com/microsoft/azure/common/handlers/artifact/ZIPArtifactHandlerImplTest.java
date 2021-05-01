@@ -7,7 +7,7 @@ package com.microsoft.azure.common.handlers.artifact;
 
 import com.microsoft.azure.common.appservice.DeployTargetType;
 import com.microsoft.azure.common.deploytarget.DeployTarget;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.management.appservice.WebApp;
 
 import org.junit.Before;

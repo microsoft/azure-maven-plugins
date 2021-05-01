@@ -6,7 +6,7 @@
 package com.microsoft.azure.common.function.handlers.artifact;
 
 import com.microsoft.azure.common.deploytarget.DeployTarget;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.Constants;
 import com.microsoft.azure.management.appservice.AppSetting;
 import com.microsoft.azure.management.appservice.FunctionApp;
