@@ -3,9 +3,10 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.common.handlers.artifact;
+package com.microsoft.azure.common.appservice.handlers.artifact;
 
 import com.microsoft.azure.common.appservice.DeployTarget;
+import com.microsoft.azure.common.appservice.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.project.IProject;
 

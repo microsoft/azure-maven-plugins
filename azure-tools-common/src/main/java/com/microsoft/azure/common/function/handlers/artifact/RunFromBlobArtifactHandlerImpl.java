@@ -8,7 +8,7 @@ package com.microsoft.azure.common.function.handlers.artifact;
 import com.microsoft.azure.common.appservice.DeployTarget;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.AzureStorageHelper;
-import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
+import com.microsoft.azure.common.appservice.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.storage.CloudStorageAccount;

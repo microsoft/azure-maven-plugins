@@ -3,10 +3,10 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.common.handlers.runtime;
+package com.microsoft.azure.common.appservice.handlers.runtime;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.common.handlers.RuntimeHandler;
+import com.microsoft.azure.common.appservice.handlers.RuntimeHandler;
 import com.microsoft.azure.common.appservice.AppServiceUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;

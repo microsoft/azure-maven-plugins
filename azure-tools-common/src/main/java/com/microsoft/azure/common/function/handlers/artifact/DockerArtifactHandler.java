@@ -6,7 +6,7 @@
 package com.microsoft.azure.common.function.handlers.artifact;
 
 import com.microsoft.azure.common.appservice.DeployTarget;
-import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
+import com.microsoft.azure.common.appservice.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 
 public class DockerArtifactHandler extends ArtifactHandlerBase {

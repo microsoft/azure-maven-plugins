@@ -7,7 +7,7 @@ package com.microsoft.azure.common.function.handlers.artifact;
 
 import com.microsoft.azure.common.appservice.DeployTarget;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.common.appservice.handlers.artifact.ZIPArtifactHandlerImpl;
 
 import static com.microsoft.azure.common.function.Constants.APP_SETTING_WEBSITE_RUN_FROM_PACKAGE;
 

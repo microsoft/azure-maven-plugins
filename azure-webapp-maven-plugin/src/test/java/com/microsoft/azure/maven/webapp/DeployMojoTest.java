@@ -6,9 +6,9 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.common.appservice.DeploymentType;
+import com.microsoft.azure.common.appservice.handlers.ArtifactHandler;
+import com.microsoft.azure.common.appservice.handlers.RuntimeHandler;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.common.handlers.ArtifactHandler;
-import com.microsoft.azure.common.handlers.RuntimeHandler;
 import com.microsoft.azure.common.appservice.AppServiceUtils;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;

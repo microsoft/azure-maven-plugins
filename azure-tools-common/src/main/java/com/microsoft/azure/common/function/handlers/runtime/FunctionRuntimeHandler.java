@@ -13,7 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.common.function.utils.FunctionUtils;
-import com.microsoft.azure.common.handlers.runtime.BaseRuntimeHandler;
+import com.microsoft.azure.common.appservice.handlers.runtime.BaseRuntimeHandler;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
