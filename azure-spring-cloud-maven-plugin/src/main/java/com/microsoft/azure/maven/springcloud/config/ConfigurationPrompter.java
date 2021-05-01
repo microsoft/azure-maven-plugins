@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.common.validation.SchemaValidator;
 import com.microsoft.azure.maven.utils.TemplateUtils;
 
-import com.microsoft.azure.tools.exception.InvalidConfigurationException;
+import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.logging.Log;

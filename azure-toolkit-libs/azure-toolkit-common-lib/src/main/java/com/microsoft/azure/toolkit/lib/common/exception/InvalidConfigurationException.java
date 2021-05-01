@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.tools.exception;
+package com.microsoft.azure.toolkit.lib.common.exception;
 
 public class InvalidConfigurationException extends Exception {
 
