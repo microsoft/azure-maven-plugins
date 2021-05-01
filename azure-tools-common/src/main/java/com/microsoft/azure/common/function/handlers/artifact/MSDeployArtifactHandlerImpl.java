@@ -10,7 +10,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.AzureStorageHelper;
 import com.microsoft.azure.common.function.Constants;
 import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
-import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;

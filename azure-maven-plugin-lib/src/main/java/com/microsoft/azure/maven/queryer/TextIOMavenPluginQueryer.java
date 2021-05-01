@@ -4,7 +4,7 @@
  */
 package com.microsoft.azure.maven.queryer;
 
-import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;

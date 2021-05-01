@@ -26,7 +26,7 @@ import com.microsoft.azure.common.function.handlers.CommandHandler;
 import com.microsoft.azure.common.function.handlers.CommandHandlerImpl;
 import com.microsoft.azure.common.function.handlers.FunctionCoreToolsHandler;
 import com.microsoft.azure.common.function.handlers.FunctionCoreToolsHandlerImpl;
-import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;

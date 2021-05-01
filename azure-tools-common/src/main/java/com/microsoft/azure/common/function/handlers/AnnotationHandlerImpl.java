@@ -11,7 +11,7 @@ import com.microsoft.azure.common.function.bindings.BindingEnum;
 import com.microsoft.azure.common.function.bindings.BindingFactory;
 import com.microsoft.azure.common.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.common.function.configurations.Retry;
-import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.functions.annotation.ExponentialBackoffRetry;
 import com.microsoft.azure.functions.annotation.FixedDelayRetry;
 import com.microsoft.azure.functions.annotation.FunctionName;

@@ -11,7 +11,7 @@ import com.microsoft.azure.common.function.template.FunctionSettingTemplate;
 import com.microsoft.azure.common.function.template.FunctionTemplate;
 import com.microsoft.azure.common.function.template.TemplateResources;
 import com.microsoft.azure.common.function.utils.FunctionUtils;
-import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;

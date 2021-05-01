@@ -7,7 +7,7 @@ package com.microsoft.azure.common.handlers.artifact;
 
 import com.microsoft.azure.common.deploytarget.DeployTarget;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 
 import org.zeroturnaround.zip.ZipUtil;
 

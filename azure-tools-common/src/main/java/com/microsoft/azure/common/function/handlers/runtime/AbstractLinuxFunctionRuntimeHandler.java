@@ -6,7 +6,7 @@
 package com.microsoft.azure.common.function.handlers.runtime;
 
 import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
-import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 

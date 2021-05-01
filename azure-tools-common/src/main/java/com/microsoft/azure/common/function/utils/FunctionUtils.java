@@ -14,7 +14,7 @@ import com.microsoft.azure.common.function.template.BindingTemplate;
 import com.microsoft.azure.common.function.template.BindingsTemplate;
 import com.microsoft.azure.common.function.template.FunctionTemplate;
 import com.microsoft.azure.common.function.template.FunctionTemplates;
-import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;

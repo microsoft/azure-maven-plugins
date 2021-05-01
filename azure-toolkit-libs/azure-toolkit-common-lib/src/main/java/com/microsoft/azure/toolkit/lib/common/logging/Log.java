@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.common.logging;
+package com.microsoft.azure.toolkit.lib.common.logging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

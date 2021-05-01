@@ -8,7 +8,7 @@ package com.microsoft.azure.common.function.handlers;
 import com.github.zafarkhaja.semver.Version;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.utils.CommandUtils;
-import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 
 import java.io.File;
 
