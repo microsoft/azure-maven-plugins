@@ -3,12 +3,13 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.common.prompt;
+package com.microsoft.azure.maven.prompt;
 
-import com.microsoft.azure.common.TestHelper;
 import com.microsoft.azure.common.utils.SneakyThrowUtils;
+import com.microsoft.azure.maven.TestHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -130,20 +131,20 @@ public class DefaultPrompterTest {
                 "You have select no entities", integers, t -> t.toString(), false,
                 "to select none", Collections.emptyList());
 
-        assertEquals("0", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("0", TestHelper.joinIntegers(selected));
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
                 "You have select no entities", integers, t -> t.toString(), false,
                 "to select none", Collections.emptyList());
-        assertEquals("0,1", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("0,1", TestHelper.joinIntegers(selected));
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
                 "You have select no entities", integers, t -> t.toString(), false,
                 "to select none", Collections.emptyList());
-        assertEquals("0,1,2,3,4", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("0,1,2,3,4", TestHelper.joinIntegers(selected));
 
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
                 "You have select no entities", integers, t -> t.toString(), false,
                 "to select none", Collections.emptyList());
-        assertEquals("2,3,4,5,6,7,8,9,0,1", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("2,3,4,5,6,7,8,9,0,1", TestHelper.joinIntegers(selected));
 
         when(reader.readLine()).thenReturn("bad value").thenReturn("100").thenReturn("");
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
@@ -161,7 +162,7 @@ public class DefaultPrompterTest {
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
         "You have select no entities", integers, t -> t.toString(), true,
         "to select none", Arrays.asList(4, 5));
-        assertEquals("4,5", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("4,5", TestHelper.joinIntegers(selected));
     }
 
     @Test
@@ -175,20 +176,20 @@ public class DefaultPrompterTest {
                 "You have select no entities", integers, t -> t.toString(), true,
                 "to select none", Collections.emptyList());
 
-        assertEquals("0", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("0", TestHelper.joinIntegers(selected));
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
                 "You have select no entities", integers, t -> t.toString(), true,
                 "to select none", Collections.emptyList());
-        assertEquals("0,1", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("0,1", TestHelper.joinIntegers(selected));
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
                 "You have select no entities", integers, t -> t.toString(), true,
                 "to select none", Collections.emptyList());
-        assertEquals("0,1,2,3,4", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("0,1,2,3,4", TestHelper.joinIntegers(selected));
 
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
                 "You have select no entities", integers, t -> t.toString(), true,
                 "to select none", Collections.emptyList());
-        assertEquals("2,3,4,5,6,7,8,9,0,1", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("2,3,4,5,6,7,8,9,0,1", TestHelper.joinIntegers(selected));
 
         when(reader.readLine()).thenReturn("bad value").thenReturn("100").thenReturn("");
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
@@ -206,7 +207,7 @@ public class DefaultPrompterTest {
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
         "You have select no entities", integers, t -> t.toString(), true,
         "to select none", Arrays.asList(4, 5));
-        assertEquals("4,5", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("4,5", TestHelper.joinIntegers(selected));
     }
 
     @Test
@@ -214,7 +215,7 @@ public class DefaultPrompterTest {
         final List<Integer> selected = prompter.promoteMultipleEntities("This is header", "Please input range",
                 "You have select no entities", Collections.singletonList(100), t -> t.toString(), false,
                 "to select none", Collections.emptyList());
-        assertEquals("100", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("100", TestHelper.joinIntegers(selected));
     }
 
     @Test
@@ -223,7 +224,7 @@ public class DefaultPrompterTest {
         final List<Integer> selected = prompter.promoteMultipleEntities("This is header", "Please input range",
                 "You have select no entities", Arrays.asList(98, 99, 100), t -> t.toString(), false,
                 "to select none", Collections.emptyList());
-        assertEquals("99", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("99", TestHelper.joinIntegers(selected));
     }
 
     @Test
@@ -238,7 +239,7 @@ public class DefaultPrompterTest {
         selected = prompter.promoteMultipleEntities("This is header", "Please input range",
                 "You have select no entities", Collections.singletonList(100), t -> t.toString(), true,
                 "to select none", Collections.emptyList());
-        assertEquals("100", TestHelper.joinIntegers(selected));
+        Assert.assertEquals("100", TestHelper.joinIntegers(selected));
     }
 
     @Test

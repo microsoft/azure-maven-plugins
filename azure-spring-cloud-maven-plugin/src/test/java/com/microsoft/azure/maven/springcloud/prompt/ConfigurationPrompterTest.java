@@ -4,8 +4,7 @@
  */
 package com.microsoft.azure.maven.springcloud.prompt;
 
-import com.microsoft.azure.common.prompt.IPrompter;
-
+import com.microsoft.azure.maven.prompt.IPrompter;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import org.apache.commons.collections4.MapUtils;

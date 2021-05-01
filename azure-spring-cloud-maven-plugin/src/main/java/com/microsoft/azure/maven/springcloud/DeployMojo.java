@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.maven.springcloud;
 
-import com.microsoft.azure.common.prompt.DefaultPrompter;
-import com.microsoft.azure.common.prompt.IPrompter;
 import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
+import com.microsoft.azure.maven.prompt.DefaultPrompter;
+import com.microsoft.azure.maven.prompt.IPrompter;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;

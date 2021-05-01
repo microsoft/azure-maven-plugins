@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.common.prompt;
+package com.microsoft.azure.maven.prompt;
 
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 
