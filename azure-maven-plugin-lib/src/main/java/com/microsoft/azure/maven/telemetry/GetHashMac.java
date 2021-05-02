@@ -10,7 +10,7 @@
  *      Location in the repo: /Utils/azuretools-core/src/com/microsoft/azuretools/azurecommons/util/GetHashMac.java
  */
 
-package com.microsoft.azure.common.utils;
+package com.microsoft.azure.maven.telemetry;
 
 import org.apache.commons.lang3.StringUtils;
 
