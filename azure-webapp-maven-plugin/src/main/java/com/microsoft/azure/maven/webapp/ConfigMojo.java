@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
@@ -362,10 +362,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final OperatingSystemEnum defaultOs = configuration.getOs() == null ? OperatingSystemEnum.Linux :
                 configuration.getOs();
         final String os = queryer.assureInputFromUser("OS", defaultOs, String.format("Define value for OS [%s]:", defaultOs.toString()));
-        builder.os(Utils.parseOperationSystem(os));
-        if (initial || pricingTierNotSupport(Utils.parseOperationSystem(os), configuration.getPricingTier())) {
+        builder.os(OperatingSystemEnum.fromString(os));
+        if (initial || pricingTierNotSupport(OperatingSystemEnum.fromString(os), configuration.getPricingTier())) {
             String defaultPricingTier = configuration.getPricingTierOrDefault();
-            final List<String> availablePriceList = getAvailablePricingTierList(Utils.parseOperationSystem(os));
+            final List<String> availablePriceList = getAvailablePricingTierList(OperatingSystemEnum.fromString(os));
             if (!availablePriceList.contains(defaultPricingTier)) {
                 Log.warn(String.format("'%s' is not supported in '%s'", defaultPricingTier, os));
                 defaultPricingTier = AppServiceUtils.convertPricingTierToString(WebAppConfiguration.DEFAULT_PRICINGTIER);

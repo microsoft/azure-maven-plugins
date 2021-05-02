@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
-import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.common.appservice.OperatingSystemEnum;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
@@ -83,7 +83,7 @@ public class MavenRuntimeConfig {
 
     public OperatingSystemEnum getOsEnum() {
         try {
-            return Utils.parseOperationSystem(this.os);
+            return OperatingSystemEnum.fromString(this.os);
         } catch (AzureExecutionException e) {
             return null;
         }

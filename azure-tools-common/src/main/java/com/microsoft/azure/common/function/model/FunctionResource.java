@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.common.function.model;
 
-import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.management.appservice.FunctionEnvelope;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

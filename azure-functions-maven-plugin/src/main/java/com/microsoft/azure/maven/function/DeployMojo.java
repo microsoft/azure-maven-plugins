@@ -6,7 +6,7 @@
 package com.microsoft.azure.maven.function;
 
 import com.azure.core.management.AzureEnvironment;
-import com.microsoft.azure.common.Utils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.common.appservice.DeployTargetType;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
@@ -322,7 +322,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected OperatingSystemEnum getOsEnum() throws AzureExecutionException {
         final String os = runtime == null ? null : runtime.getOs();
-        return StringUtils.isEmpty(os) ? RuntimeConfiguration.DEFAULT_OS : Utils.parseOperationSystem(os);
+        return StringUtils.isEmpty(os) ? RuntimeConfiguration.DEFAULT_OS : OperatingSystemEnum.fromString(os);
     }
 
     protected ArtifactHandler getArtifactHandler() throws AzureExecutionException {
