@@ -5,18 +5,18 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.common.appservice.DeployTargetType;
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.common.appservice.DeploymentType;
-import com.microsoft.azure.common.appservice.DeployTarget;
-import com.microsoft.azure.common.appservice.handlers.ArtifactHandler;
-import com.microsoft.azure.common.appservice.handlers.artifact.FTPArtifactHandlerImpl;
-import com.microsoft.azure.common.appservice.handlers.artifact.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTargetType;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTarget;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.ArtifactHandler;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.FTPArtifactHandlerImpl;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.ZIPArtifactHandlerImpl;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.common.function.handlers.artifact.MSDeployArtifactHandlerImpl;
-import com.microsoft.azure.common.function.handlers.runtime.FunctionRuntimeHandler;
-import com.microsoft.azure.common.function.handlers.runtime.WindowsFunctionRuntimeHandler;
-import com.microsoft.azure.common.function.utils.FunctionUtils;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.artifact.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.runtime.FunctionRuntimeHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.runtime.WindowsFunctionRuntimeHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
 import com.microsoft.azure.management.appservice.FunctionApp.Update;
@@ -32,12 +32,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.function.Consumer;
 
-import static com.microsoft.azure.common.appservice.DeploymentType.DOCKER;
-import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_BLOB;
-import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
-import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Docker;
-import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Linux;
-import static com.microsoft.azure.common.appservice.OperatingSystemEnum.Windows;
+import static com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType.DOCKER;
+import static com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType.RUN_FROM_BLOB;
+import static com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType.RUN_FROM_ZIP;
+import static com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum.Docker;
+import static com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum.Linux;
+import static com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum.Windows;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;

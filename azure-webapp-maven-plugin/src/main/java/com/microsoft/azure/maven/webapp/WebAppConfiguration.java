@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.common.appservice.OperatingSystemEnum;
-import com.microsoft.azure.common.appservice.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;

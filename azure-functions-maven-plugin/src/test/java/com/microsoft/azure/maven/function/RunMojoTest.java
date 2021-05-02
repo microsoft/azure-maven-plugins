@@ -6,9 +6,9 @@
 package com.microsoft.azure.maven.function;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.common.function.handlers.CommandHandler;
-import com.microsoft.azure.common.function.handlers.CommandHandlerImpl;
-import com.microsoft.azure.common.function.utils.CommandUtils;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.CommandHandlerImpl;
+import com.microsoft.azure.toolkit.lib.legacy.function.utils.CommandUtils;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

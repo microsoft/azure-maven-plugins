@@ -45,7 +45,6 @@
 
     <modules>
         <module>build-tools</module>
-        <module>azure-tools-common</module>
         <module>azure-toolkit-libs</module>
         <module>azure-maven-plugin-lib</module>
         <module>azure-webapp-maven-plugin</module>
@@ -355,12 +354,6 @@
                 <artifactId>java-semver</artifactId>
                 <version>${semver.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-tools-common</artifactId>
-                <version>${azure.maven-plugin-lib.version}</version>
-            </dependency>
-
             <!-- JAXB For Application Insight Issue -->
             <dependency>
                 <groupId>jakarta.xml.bind</groupId>

@@ -6,11 +6,11 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
-import com.microsoft.azure.common.appservice.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.AppSetting;

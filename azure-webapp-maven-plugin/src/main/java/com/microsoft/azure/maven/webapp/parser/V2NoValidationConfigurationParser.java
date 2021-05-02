@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
-import com.microsoft.azure.common.appservice.OperatingSystemEnum;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.management.appservice.JavaVersion;
@@ -14,7 +14,7 @@ import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 
 @Deprecated

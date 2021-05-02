@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.maven.webapp.serializer;
 
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.common.appservice.OperatingSystemEnum;
-import com.microsoft.azure.common.appservice.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
 import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
