@@ -6,7 +6,7 @@
 package com.microsoft.azure.common.function.handlers.runtime;
 
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
-import com.microsoft.azure.common.utils.AppServiceUtils;
+import com.microsoft.azure.common.appservice.AppServiceUtils;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.FunctionRuntimeStack;

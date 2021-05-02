@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.common.deploytarget;
+package com.microsoft.azure.common.appservice;
 
 import com.microsoft.azure.common.appservice.DeployTargetType;
 import com.microsoft.azure.management.appservice.AppSetting;

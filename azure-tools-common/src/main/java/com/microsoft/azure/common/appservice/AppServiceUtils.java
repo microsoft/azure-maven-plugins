@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.common.utils;
+package com.microsoft.azure.common.appservice;
 
 import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;

@@ -5,11 +5,8 @@
 
 package com.microsoft.azure.common.function.handlers.artifact;
 
-import com.microsoft.azure.common.deploytarget.DeployTarget;
+import com.microsoft.azure.common.appservice.DeployTarget;
 import com.microsoft.azure.management.appservice.AppSetting;
-import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.WebDeployment.DefinitionStages.WithExecute;
-import com.microsoft.azure.management.appservice.WebDeployment.DefinitionStages.WithPackageUri;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
 import com.microsoft.azure.storage.blob.CloudBlobClient;

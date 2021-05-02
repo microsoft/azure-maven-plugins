@@ -7,7 +7,7 @@ package com.microsoft.azure.common.function.handlers.runtime;
 
 import com.microsoft.azure.common.appservice.DockerImageType;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.common.utils.AppServiceUtils;
+import com.microsoft.azure.common.appservice.AppServiceUtils;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;

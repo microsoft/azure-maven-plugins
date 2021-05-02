@@ -6,7 +6,7 @@
 package com.microsoft.azure.maven.webapp.deploytarget;
 
 import com.microsoft.azure.common.appservice.DeployTargetType;
-import com.microsoft.azure.common.deploytarget.DeployTarget;
+import com.microsoft.azure.common.appservice.DeployTarget;
 import com.microsoft.azure.management.appservice.WebApp;
 
 import java.io.File;

@@ -8,7 +8,7 @@ package com.microsoft.azure.maven.function;
 import com.microsoft.azure.common.appservice.DeployTargetType;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
-import com.microsoft.azure.common.deploytarget.DeployTarget;
+import com.microsoft.azure.common.appservice.DeployTarget;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.function.handlers.artifact.MSDeployArtifactHandlerImpl;
 import com.microsoft.azure.common.function.handlers.runtime.FunctionRuntimeHandler;

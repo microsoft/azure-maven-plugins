@@ -6,7 +6,7 @@
 
 package com.microsoft.azure.maven.webapp.models;
 
-import com.microsoft.azure.common.utils.AppServiceUtils;
+import com.microsoft.azure.common.appservice.AppServiceUtils;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.implementation.SiteConfigResourceInner;
