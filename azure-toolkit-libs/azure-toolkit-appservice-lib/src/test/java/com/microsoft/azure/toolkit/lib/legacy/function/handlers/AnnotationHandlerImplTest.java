@@ -37,6 +37,7 @@ import com.microsoft.azure.functions.annotation.TableOutput;
 import com.microsoft.azure.functions.annotation.TimerTrigger;
 import com.microsoft.azure.functions.annotation.TwilioSmsOutput;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.reflections.util.ClasspathHelper;
 
