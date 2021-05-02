@@ -7,7 +7,6 @@ package com.microsoft.azure.maven.function;
 
 import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.common.Utils;
-import com.microsoft.azure.common.applicationinsights.ApplicationInsightsManager;
 import com.microsoft.azure.common.appservice.DeployTargetType;
 import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.common.appservice.DeploymentType;
