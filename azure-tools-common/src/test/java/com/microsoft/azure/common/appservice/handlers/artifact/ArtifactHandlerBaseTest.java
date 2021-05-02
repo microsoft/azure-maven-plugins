@@ -6,9 +6,8 @@
 package com.microsoft.azure.common.appservice.handlers.artifact;
 
 import com.microsoft.azure.common.appservice.DeployTarget;
-import com.microsoft.azure.common.appservice.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.common.project.IProject;
+import com.microsoft.azure.toolkit.lib.common.IProject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

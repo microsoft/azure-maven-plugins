@@ -5,8 +5,7 @@
 
 package com.microsoft.azure.maven;
 
-import com.microsoft.azure.common.project.IProject;
-import com.microsoft.azure.common.project.JavaProject;
+import com.microsoft.azure.toolkit.lib.common.IProject;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;

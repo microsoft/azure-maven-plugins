@@ -7,7 +7,7 @@ package com.microsoft.azure.common.appservice.handlers.artifact;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.common.appservice.handlers.ArtifactHandler;
-import com.microsoft.azure.common.project.IProject;
+import com.microsoft.azure.toolkit.lib.common.IProject;
 
 import java.io.File;
 
