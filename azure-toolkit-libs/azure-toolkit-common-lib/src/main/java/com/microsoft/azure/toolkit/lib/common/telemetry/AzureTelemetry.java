@@ -9,8 +9,8 @@ package com.microsoft.azure.toolkit.lib.common.telemetry;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
-import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -79,23 +79,22 @@ public class AzureTelemetry {
 
     @Nonnull
     public static Context getContext() {
-        return Optional.ofNullable(IAzureOperation.current())
-                .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context()))
-                .orElse(new AzureTelemetry.Context());
+        return getContext(IAzureOperation.current());
     }
 
     @Nonnull
-    public static Context getActionContext() {
-        return Optional.ofNullable(IAzureOperation.current())
-                .map(IAzureOperation::getActionParent)
-                .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context()))
-                .orElse(new AzureTelemetry.Context());
+    public static AzureTelemetry.Context getContext(@Nullable IAzureOperation operation) {
+        return Optional.ofNullable(operation)
+                .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context(operation)))
+                .orElse(new AzureTelemetry.Context(operation));
     }
 
     @Getter
-    public static class Context {
-        @Getter(AccessLevel.PACKAGE)
+    @RequiredArgsConstructor
+    public static class Context implements IAzureOperation.IContext {
         private final Map<String, String> properties = new ConcurrentHashMap<>();
+        @Nullable
+        private final IAzureOperation operation;
 
         public void setCreateAt(Instant createAt) {
             this.properties.put(OP_CREATE_AT, createAt.toString());
@@ -119,6 +118,15 @@ public class AzureTelemetry {
 
         public String getProperty(String key) {
             return this.properties.get(key);
+        }
+
+        @Nonnull
+        public Map<String, String> getActionProperties() {
+            return Optional.ofNullable(this.operation)
+                    .map(IAzureOperation::getActionParent)
+                    .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context(o)))
+                    .map(Context::getProperties)
+                    .orElse(new HashMap<>());
         }
     }
 }
