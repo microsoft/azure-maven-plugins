@@ -10,7 +10,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 
 import javax.annotation.Nullable;
 
-public interface IAzureOperation extends DataStore {
+public interface IAzureOperation extends DataStore<IAzureOperation.IContext> {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
 
     String getId();
@@ -51,5 +51,9 @@ public interface IAzureOperation extends DataStore {
     @Nullable
     static IAzureOperation current() {
         return AzureTaskContext.current().currentOperation();
+    }
+
+    interface IContext {
+
     }
 }

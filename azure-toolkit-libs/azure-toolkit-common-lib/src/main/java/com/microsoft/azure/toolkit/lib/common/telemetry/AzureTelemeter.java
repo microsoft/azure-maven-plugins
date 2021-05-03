@@ -47,23 +47,23 @@ public class AzureTelemeter {
     private static TelemetryClient client;
 
     public static void afterCreate(@Nonnull final IAzureOperation op) {
-        final AzureTelemetry.Context context = op.get(AzureTelemetry.Context.class, new AzureTelemetry.Context());
+        final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
         context.setCreateAt(Instant.now());
     }
 
     public static void beforeEnter(@Nonnull final IAzureOperation op) {
-        final AzureTelemetry.Context context = op.get(AzureTelemetry.Context.class, new AzureTelemetry.Context());
+        final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
         context.setEnterAt(Instant.now());
     }
 
     public static void afterExit(@Nonnull final IAzureOperation op) {
-        final AzureTelemetry.Context context = op.get(AzureTelemetry.Context.class, new AzureTelemetry.Context());
+        final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
         context.setExitAt(Instant.now());
         AzureTelemeter.log(AzureTelemetry.Type.INFO, serialize(op));
     }
 
     public static void onError(@Nonnull final IAzureOperation op, Throwable error) {
-        final AzureTelemetry.Context context = op.get(AzureTelemetry.Context.class, new AzureTelemetry.Context());
+        final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
         context.setExitAt(Instant.now());
         AzureTelemeter.log(AzureTelemetry.Type.ERROR, serialize(op), error);
     }
@@ -86,10 +86,8 @@ public class AzureTelemeter {
 
     @Nonnull
     private static Map<String, String> serialize(@Nonnull final IAzureOperation op) {
-        final AzureTelemetry.Context operationContext = op.get(AzureTelemetry.Context.class, new AzureTelemetry.Context());
-        final AzureTelemetry.Context actionContext = Optional.ofNullable(op.getActionParent())
-                .map(o -> o.get(AzureTelemetry.Context.class))
-                .orElse(new AzureTelemetry.Context());
+        final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
+        final Map<String, String> actionProperties = context.getActionProperties();
         final Optional<IAzureOperation> parent = Optional.ofNullable(op.getParent());
         final Map<String, String> properties = new HashMap<>();
         final String name = op.getName().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice|file.list.dir`
@@ -103,11 +101,11 @@ public class AzureTelemeter {
         properties.put(OP_PARENT_ID, parent.map(IAzureOperation::getId).orElse("/"));
         properties.put(OP_NAME, name);
         properties.put(OP_TYPE, op.getType());
-        properties.putAll(actionContext.getProperties());
+        properties.putAll(actionProperties);
         if (op instanceof AzureOperationRef) {
             properties.putAll(getParameterProperties((AzureOperationRef) op));
         }
-        properties.putAll(operationContext.getProperties());
+        properties.putAll(context.getProperties());
         return properties;
     }
 
