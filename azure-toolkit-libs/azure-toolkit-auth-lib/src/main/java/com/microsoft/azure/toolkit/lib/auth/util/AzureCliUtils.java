@@ -164,7 +164,8 @@ public class AzureCliUtils {
                 output.append(line);
             }
 
-            final String processOutput = output.toString();
+            final String processOutput = StringUtils.replace(output.toString(),
+                    "Argument '--tenant' is in preview. It may be changed/removed in a future release.", "");
             process.waitFor(10, TimeUnit.SECONDS);
             if (process.exitValue() != 0) {
                 if (processOutput.length() > 0) {
@@ -182,13 +183,13 @@ public class AzureCliUtils {
 
             try {
                 if (StringUtils.startsWith(StringUtils.trim(processOutput), "[")) {
-                    return JsonUtils.getGson().fromJson(output.toString(), JsonArray.class);
+                    return JsonUtils.getGson().fromJson(processOutput, JsonArray.class);
                 } else {
-                    return JsonUtils.getGson().fromJson(output.toString(), JsonObject.class);
+                    return JsonUtils.getGson().fromJson(processOutput, JsonObject.class);
                 }
             } catch (JsonParseException ex) {
                 throw new AzureToolkitAuthenticationException(String.format("Cannot execute command '%s', the output '%s' cannot be parsed as a JSON.",
-                        command, output.toString()));
+                        command, processOutput));
             }
         } catch (IOException | InterruptedException e) {
             throw new AzureToolkitAuthenticationException(e.getMessage());

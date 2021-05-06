@@ -4,7 +4,7 @@
  */
 package com.microsoft.azure.maven.webapp.parser;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.webapp.DeployMojo;
 import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;

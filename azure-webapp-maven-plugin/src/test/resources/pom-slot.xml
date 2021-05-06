@@ -15,7 +15,7 @@
                     </authentication>
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
-                    <deploymentSlot implementation="com.microsoft.azure.common.appservice.DeploymentSlotSetting">
+                    <deploymentSlot implementation="com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting">
                         <name>slot</name>
                         <configurationSource>test</configurationSource>
                     </deploymentSlot>

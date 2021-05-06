@@ -6,8 +6,8 @@
 package com.microsoft.azure.maven;
 
 import com.google.common.base.Preconditions;
-import com.microsoft.azure.common.docker.IDockerCredentialProvider;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.legacy.docker.IDockerCredentialProvider;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.settings.Server;

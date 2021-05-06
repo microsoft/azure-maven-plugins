@@ -6,32 +6,31 @@
 package com.microsoft.azure.maven.function;
 
 import com.azure.core.management.AzureEnvironment;
-import com.microsoft.azure.common.Utils;
-import com.microsoft.azure.common.applicationinsights.ApplicationInsightsManager;
-import com.microsoft.azure.common.appservice.DeployTargetType;
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.common.appservice.DeploymentType;
-import com.microsoft.azure.common.appservice.OperatingSystemEnum;
-import com.microsoft.azure.common.deploytarget.DeployTarget;
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
-import com.microsoft.azure.common.function.configurations.FunctionExtensionVersion;
-import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
-import com.microsoft.azure.common.function.handlers.artifact.DockerArtifactHandler;
-import com.microsoft.azure.common.function.handlers.artifact.MSDeployArtifactHandlerImpl;
-import com.microsoft.azure.common.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
-import com.microsoft.azure.common.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
-import com.microsoft.azure.common.function.handlers.runtime.DockerFunctionRuntimeHandler;
-import com.microsoft.azure.common.function.handlers.runtime.FunctionRuntimeHandler;
-import com.microsoft.azure.common.function.handlers.runtime.LinuxFunctionRuntimeHandler;
-import com.microsoft.azure.common.function.handlers.runtime.WindowsFunctionRuntimeHandler;
-import com.microsoft.azure.common.function.model.FunctionResource;
-import com.microsoft.azure.common.function.utils.FunctionUtils;
-import com.microsoft.azure.common.handlers.ArtifactHandler;
-import com.microsoft.azure.common.handlers.artifact.ArtifactHandlerBase;
-import com.microsoft.azure.common.handlers.artifact.FTPArtifactHandlerImpl;
-import com.microsoft.azure.common.handlers.artifact.ZIPArtifactHandlerImpl;
-import com.microsoft.azure.common.logging.Log;
-import com.microsoft.azure.common.utils.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTargetType;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTarget;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.ArtifactHandler;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.ArtifactHandlerBase;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.FTPArtifactHandlerImpl;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.ZIPArtifactHandlerImpl;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
+import com.microsoft.azure.toolkit.lib.legacy.function.configurations.RuntimeConfiguration;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.artifact.DockerArtifactHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.artifact.MSDeployArtifactHandlerImpl;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.artifact.RunFromBlobArtifactHandlerImpl;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.artifact.RunFromZipArtifactHandlerImpl;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.runtime.DockerFunctionRuntimeHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.runtime.FunctionRuntimeHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.runtime.LinuxFunctionRuntimeHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.runtime.WindowsFunctionRuntimeHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.model.FunctionResource;
+import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.management.applicationinsights.v2015_05_01.ApplicationInsightsComponent;
 import com.microsoft.azure.management.appservice.AppServicePlan;
@@ -66,10 +65,10 @@ import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.common.appservice.DeploymentType.DOCKER;
-import static com.microsoft.azure.common.appservice.DeploymentType.EMPTY;
-import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_BLOB;
-import static com.microsoft.azure.common.appservice.DeploymentType.RUN_FROM_ZIP;
+import static com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType.DOCKER;
+import static com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType.EMPTY;
+import static com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType.RUN_FROM_BLOB;
+import static com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType.RUN_FROM_ZIP;
 
 /**
  * Deploy artifacts to target Azure Functions in Azure. If target Azure Functions doesn't exist, it will be created.
@@ -323,7 +322,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected OperatingSystemEnum getOsEnum() throws AzureExecutionException {
         final String os = runtime == null ? null : runtime.getOs();
-        return StringUtils.isEmpty(os) ? RuntimeConfiguration.DEFAULT_OS : Utils.parseOperationSystem(os);
+        return StringUtils.isEmpty(os) ? RuntimeConfiguration.DEFAULT_OS : OperatingSystemEnum.fromString(os);
     }
 
     protected ArtifactHandler getArtifactHandler() throws AzureExecutionException {
