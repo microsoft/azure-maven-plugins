@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.maven.utils;
 
-import com.microsoft.azure.common.utils.IndentUtil;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -58,7 +58,7 @@ public class PomUtils {
 
     public static String formatNode(String originalXml, LocationAwareElement parent, Element newNode) {
         final String[] originXmlLines = TextUtils.splitLines(originalXml);
-        final String baseIndent = IndentUtil.calcXmlIndent(originXmlLines, parent.getLineNumber() - 1,
+        final String baseIndent = Utils.calcXmlIndent(originXmlLines, parent.getLineNumber() - 1,
             parent.getColumnNumber() - 2);
         final String placeHolder = String.format("@PLACEHOLDER_RANDOM_%s@", RandomUtils.nextLong());
         final Text placeHolderNode = new DefaultText("\n" + placeHolder);

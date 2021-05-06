@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.maven.webapp.validator;
 
-import com.microsoft.azure.common.utils.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
-import com.microsoft.azure.common.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 
 import org.apache.commons.lang3.StringUtils;
 

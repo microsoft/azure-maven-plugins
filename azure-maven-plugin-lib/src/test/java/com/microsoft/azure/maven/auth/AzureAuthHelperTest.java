@@ -6,7 +6,7 @@
 package com.microsoft.azure.maven.auth;
 
 import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.credentials.ApplicationTokenCredentials;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.AbstractAzureMojo;

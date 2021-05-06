@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.common.exceptions.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import org.apache.commons.lang3.StringUtils;

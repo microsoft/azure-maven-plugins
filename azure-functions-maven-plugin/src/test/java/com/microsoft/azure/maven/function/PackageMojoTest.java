@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.common.function.handlers.AnnotationHandler;
-import com.microsoft.azure.common.function.handlers.AnnotationHandlerImpl;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.AnnotationHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.AnnotationHandlerImpl;
 import org.codehaus.plexus.util.ReflectionUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;

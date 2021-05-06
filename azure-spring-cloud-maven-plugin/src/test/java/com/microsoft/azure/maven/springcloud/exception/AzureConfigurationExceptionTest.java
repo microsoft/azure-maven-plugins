@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.springcloud.exception;
 
-import com.microsoft.azure.tools.exception.InvalidConfigurationException;
+import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
