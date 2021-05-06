@@ -134,6 +134,10 @@ public class AzureTask<T> implements IAzureOperation {
         return String.format("{name:'%s'}", this.getName());
     }
 
+    public T execute(){
+        return this.getSupplier().get();
+    }
+
     public enum Modality {
         DEFAULT, ANY, NONE
     }

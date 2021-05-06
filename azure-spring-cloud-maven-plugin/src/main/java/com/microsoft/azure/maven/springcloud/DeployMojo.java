@@ -53,7 +53,6 @@ public class DeployMojo extends AbstractMojoBase {
     private static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     private static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
         "packaging %s, only jar is supported";
-    private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
         "you can check the app status from Azure Portal.";
     private static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
@@ -97,18 +96,11 @@ public class DeployMojo extends AbstractMojoBase {
         );
         final SpringCloudDeployment deployment = app.deployment(deploymentName);
 
-        final String CREATE_APP_TITLE = String.format("Create new app(%s) on service(%s)", TextUtils.cyan(appName), TextUtils.cyan(clusterName));
-        final String UPDATE_APP_TITLE = String.format("Update app(%s) of service(%s)", TextUtils.cyan(appName), TextUtils.cyan(clusterName));
-        final String CREATE_DEPLOYMENT_TITLE = String.format("Create new deployment(%s) in app(%s)", TextUtils.cyan(deploymentName), TextUtils.cyan(appName));
-        final String UPDATE_DEPLOYMENT_TITLE = String.format("Update deployment(%s) of app(%s)", TextUtils.cyan(deploymentName), TextUtils.cyan(appName));
-        final String UPLOAD_ARTIFACT_TITLE = String.format("Upload artifact(%s) to app(%s)", TextUtils.cyan(file.getPath()), TextUtils.cyan(appName));
-
         final boolean toCreateApp = !app.exists();
         final boolean toCreateDeployment = !deployment.exists();
 
         traceDeployment(toCreateApp, toCreateDeployment, appConfig);
 
-        final List<AzureTask<?>> tasks = new ArrayList<>();
         final SpringCloudApp.Creator appCreator = app.create();
         final SpringCloudApp.Uploader artifactUploader = app.uploadArtifact(file.getPath());
         final SpringCloudDeployment.Updater deploymentModifier = (toCreateDeployment ? deployment.create() : deployment.update())
@@ -123,35 +115,25 @@ public class DeployMojo extends AbstractMojoBase {
             .setPublic(appConfig.isPublic())
             .enablePersistentDisk(enableDisk);
 
+        final String CREATE_APP_TITLE = String.format("Create new app(%s) on service(%s)", TextUtils.cyan(appName), TextUtils.cyan(clusterName));
+        final String UPDATE_APP_TITLE = String.format("Update app(%s) of service(%s)", TextUtils.cyan(appName), TextUtils.cyan(clusterName));
+        final String CREATE_DEPLOYMENT_TITLE = String.format("Create new deployment(%s) in app(%s)", TextUtils.cyan(deploymentName), TextUtils.cyan(appName));
+        final String UPDATE_DEPLOYMENT_TITLE = String.format("Update deployment(%s) of app(%s)", TextUtils.cyan(deploymentName), TextUtils.cyan(appName));
+        final String UPLOAD_ARTIFACT_TITLE = String.format("Upload artifact(%s) to app(%s)", TextUtils.cyan(file.getPath()), TextUtils.cyan(appName));
+        final String DEPLOYMENT_TITLE = toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE;
+
+        final List<AzureTask<?>> tasks = new ArrayList<>();
         if (toCreateApp) {
-            tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, () -> {
-                log.info("Creating app({})...", TextUtils.cyan(appName));
-                appCreator.commit();
-                log.info("Successfully created the app.");
-            }));
+            tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, appCreator::commit));
         }
-        tasks.add(new AzureTask<Void>(UPLOAD_ARTIFACT_TITLE, () -> {
-            log.info("Uploading artifact({}) to Azure...", TextUtils.cyan(file.getPath()));
-            artifactUploader.commit();
-            log.info("Successfully uploaded the artifact.");
-        }));
-        tasks.add(new AzureTask<Void>(toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE, () -> {
-            log.info(toCreateDeployment ? "Creating deployment({})..." : "Updating deployment({})...", TextUtils.cyan(deploymentName));
-            deploymentModifier.commit();
-            log.info(toCreateDeployment ? "Successfully created the deployment" : "Successfully updated the deployment");
-        }));
+        tasks.add(new AzureTask<Void>(UPLOAD_ARTIFACT_TITLE, artifactUploader::commit));
+        tasks.add(new AzureTask<Void>(DEPLOYMENT_TITLE, deploymentModifier::commit));
         if (!appUpdater.isSkippable()) {
-            tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> {
-                log.info("Updating app({})...", TextUtils.cyan(appName));
-                appUpdater.commit();
-                log.info("Successfully updated the app.");
-                log.warn(UPDATE_APP_WARNING);
-            }));
+            tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, appUpdater::commit));
         }
 
         tasks.add(new AzureTask<Void>(() -> {
             if (!noWait) {
-                log.info("Getting deployment status...");
                 if (!deployment.waitUntilReady(GET_STATUS_TIMEOUT)) {
                     log.warn(GET_DEPLOYMENT_STATUS_TIMEOUT);
                 }
@@ -164,7 +146,7 @@ public class DeployMojo extends AbstractMojoBase {
             log.warn("Deployment is cancelled!");
             return;
         }
-        tasks.forEach((task) -> task.getSupplier().get());
+        tasks.forEach(AzureTask::execute);
     }
 
     protected boolean confirm(List<AzureTask<?>> tasks) throws MojoFailureException {
