@@ -6,10 +6,10 @@
 package com.microsoft.azure.maven.webapp.serializer;
 
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoFailureException;
 import org.dom4j.Element;
 import org.dom4j.dom.DOMElement;
@@ -30,11 +30,11 @@ public abstract class ConfigurationSerializer {
     public abstract void saveToXML(Element document)
         throws MojoFailureException;
 
-    protected DOMElement createResourcesNode(List<? extends Resource> resources) {
+    protected DOMElement createResourcesNode(List<DeploymentResource> resources) {
         final DOMElement resourceRootNode = new DOMElement("resources");
-        for (final Resource resource : resources) {
+        for (final DeploymentResource resource : resources) {
             final DOMElement resourceNode = new DOMElement("resource");
-
+            XMLUtils.addNotEmptyElement(resourceNode, "type", resource.getType());
             XMLUtils.addNotEmptyElement(resourceNode, "filtering", resource.getFiltering());
             XMLUtils.addNotEmptyElement(resourceNode, "mergeId", resource.getMergeId());
             XMLUtils.addNotEmptyElement(resourceNode, "targetPath", resource.getTargetPath());

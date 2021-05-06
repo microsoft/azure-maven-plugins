@@ -7,8 +7,10 @@ package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -83,5 +85,17 @@ public class DeployType {
     @Override
     public String toString() {
         return this.value;
+    }
+
+    public static DeployType getDeployTypeFromFile(File file) {
+        final DeployType type = DeployType.fromString(FilenameUtils.getExtension(file.getName()));
+        if (type == null) {
+            return DeployType.ZIP;
+        }
+        // filter the strange file with name like 'foo.static', 'bar.startup'
+        if (StringUtils.equalsIgnoreCase(type.getFileExt(), FilenameUtils.getExtension(file.getName()))) {
+            return type;
+        }
+        return DeployType.ZIP;
     }
 }

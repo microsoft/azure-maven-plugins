@@ -6,6 +6,7 @@
 package com.microsoft.azure.maven;
 
 import com.azure.core.management.AzureEnvironment;
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
@@ -14,7 +15,6 @@ import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.nio.file.Paths;
@@ -134,7 +134,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         return deploymentSlotSetting;
     }
 
-    public List<? extends Resource> getResources() {
+    public List<DeploymentResource> getResources() {
         return Collections.EMPTY_LIST;
     }
 
