@@ -25,7 +25,7 @@ Mavan plugins supports Azure Cli and some other auth methods, see [Authenticatio
 You can prepare your application for Azure Web App easily with one command:
 
 ```shell
-mvn com.microsoft.azure:azure-webapp-maven-plugin:1.12.0:config
+mvn com.microsoft.azure:azure-webapp-maven-plugin:1.14.0:config
 ```
 
 This command adds a `azure-webapp-maven-plugin` plugin and related configuration by prompting you to select an existing Azure Web App or create a new one. Then you can deploy your Java app to Azure using the following command:
