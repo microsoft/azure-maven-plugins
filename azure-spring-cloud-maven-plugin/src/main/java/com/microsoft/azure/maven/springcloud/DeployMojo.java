@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.maven.springcloud;
 
-import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
 import com.microsoft.azure.maven.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.prompt.IPrompter;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
@@ -39,9 +38,9 @@ public class DeployMojo extends AbstractMojoBase {
     private static final String PROJECT_SKIP = "Packaging type is pom, taking no actions.";
     private static final String PROJECT_NO_CONFIGURATION = "Configuration does not exist, taking no actions.";
     private static final String PROJECT_NOT_SUPPORT = "`azure-spring-cloud:deploy` does not support maven project with " +
-        "packaging %s, only jar is supported";
+            "packaging %s, only jar is supported";
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
-        "you can check the app status from Azure Portal.";
+            "you can check the app status from Azure Portal.";
     private static final String CONFIRM_PROMPT_START = "`azure-spring-cloud:deploy` will perform the following tasks";
     private static final String CONFIRM_PROMPT_CONFIRM = "Perform the above tasks? (Y/n):";
 
@@ -106,11 +105,10 @@ public class DeployMojo extends AbstractMojoBase {
     }
 
     protected void printStatus(SpringCloudDeployment deployment) {
-        final DeploymentResourceStatus status = deployment.entity().getStatus();
-        log.info("Deployment Status: {}", color(status.toString()));
+        log.info("Deployment Status: {}", color(deployment.entity().getStatus().toString()));
         deployment.entity().getInstances().forEach(instance ->
-            log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
-                instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
+                log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
+                        instance.name(), color(instance.status()), instance.reason(), instance.discoveryStatus())));
     }
 
     private static String color(String status) {

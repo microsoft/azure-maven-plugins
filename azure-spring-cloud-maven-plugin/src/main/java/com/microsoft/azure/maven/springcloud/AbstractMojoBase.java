@@ -22,7 +22,6 @@ import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
@@ -158,7 +157,6 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     protected Settings settings;
 
     protected Long timeStart;
-    private AppPlatformManager manager;
 
     @Parameter(property = "authType")
     protected String authType;

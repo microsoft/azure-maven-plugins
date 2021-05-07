@@ -44,34 +44,6 @@
             <artifactId>azure-toolkit-common-lib</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-mgmt-resources</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-client-runtime</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.rest</groupId>
-            <artifactId>client-runtime</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure.appplatform.v2020_07_01</groupId>
-            <artifactId>azure-mgmt-appplatform</artifactId>
-            <version>${appplatform.sdk.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.microsoft.azure</groupId>
-                    <artifactId>azure-client-runtime</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
             <scope>provided</scope>
