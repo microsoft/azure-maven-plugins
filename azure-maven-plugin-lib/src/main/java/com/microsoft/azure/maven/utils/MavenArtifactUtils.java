@@ -12,6 +12,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,11 +33,10 @@ public class MavenArtifactUtils {
     private static final String MULTI_ARTIFACT = "Multiple artifacts(%s) could be deployed, please specify " +
         "the target artifact in plugin configurations.";
 
-    @Nullable
-    public static File getArtifactFromTargetFolder(MavenProject project) throws MojoExecutionException {
+    @Nonnull
+    public static Collection<File> getArtifactFiles(MavenProject project) {
         final String targetFolder = project.getBuild().getDirectory();
-        final Collection<File> files = FileUtils.listFiles(new File(targetFolder), ARTIFACT_EXTENSIONS, true);
-        return getExecutableJarFiles(files);
+        return FileUtils.listFiles(new File(targetFolder), ARTIFACT_EXTENSIONS, true);
     }
 
     public static boolean isExecutableJar(File file) {
@@ -58,7 +58,7 @@ public class MavenArtifactUtils {
 
     public static List<File> getArtifacts(Resource resource) {
         if (CollectionUtils.isEmpty(resource.getIncludes())) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         final DirectoryScanner directoryScanner = new DirectoryScanner();
         directoryScanner.setBasedir(resource.getDirectory());
