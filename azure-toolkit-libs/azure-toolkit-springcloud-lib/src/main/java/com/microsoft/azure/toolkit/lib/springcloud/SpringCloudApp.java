@@ -12,8 +12,9 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.Res
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.model.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudAppManager;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
@@ -76,21 +77,25 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         return this.cluster;
     }
 
+    @AzureOperation(name = "springcloud|app.start", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp start() {
         this.deploymentManager.start(this.getActiveDeploymentName(), this.entity());
         return this;
     }
 
+    @AzureOperation(name = "springcloud|app.stop", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp stop() {
         this.deploymentManager.stop(this.getActiveDeploymentName(), this.entity());
         return this;
     }
 
+    @AzureOperation(name = "springcloud|app.restart", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp restart() {
         this.deploymentManager.restart(this.getActiveDeploymentName(), this.entity());
         return this;
     }
 
+    @AzureOperation(name = "springcloud|app.remove", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp remove() {
         this.appManager.remove(this.entity());
         return this;
@@ -141,6 +146,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
 
         @SneakyThrows
         @Override
+        @AzureOperation(name = "springcloud|app.upload_artifact", params = {"this.path", "this.app.name()"}, type = Type.SERVICE)
         public SpringCloudApp commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(String.format("Start uploading artifact(%s) to App(%s)...", messager.value(this.path), messager.value(this.app.name())));
@@ -191,6 +197,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         }
 
         @Override
+        @AzureOperation(name = "springcloud|app.update", params = {"this.app.name()"}, type = Type.SERVICE)
         public SpringCloudApp commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
             if (this.isSkippable()) {
@@ -214,6 +221,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
             super(app);
         }
 
+        @AzureOperation(name = "springcloud|app.create", params = {"this.app.name()"}, type = Type.SERVICE)
         public SpringCloudApp commit() {
             final String appName = this.app.name();
             final SpringCloudClusterEntity cluster = this.app.cluster.entity();

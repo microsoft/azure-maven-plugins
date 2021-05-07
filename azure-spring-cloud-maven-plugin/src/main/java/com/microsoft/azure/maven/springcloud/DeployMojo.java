@@ -9,6 +9,7 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResource
 import com.microsoft.azure.maven.prompt.DefaultPrompter;
 import com.microsoft.azure.maven.prompt.IPrompter;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
@@ -52,6 +53,7 @@ public class DeployMojo extends AbstractMojoBase {
 
     @SneakyThrows
     @Override
+    @AzureOperation(name = "springcloud|app.create_update_mojo", type = AzureOperation.Type.ACTION)
     protected void doExecute() {
         if (!checkProjectPackaging(project) || !checkConfiguration()) {
             return;
