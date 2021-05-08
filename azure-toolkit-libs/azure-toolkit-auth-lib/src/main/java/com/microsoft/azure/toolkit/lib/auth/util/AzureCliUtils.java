@@ -5,44 +5,27 @@
 
 package com.microsoft.azure.toolkit.lib.auth.util;
 
-import com.azure.core.exception.ClientAuthenticationException;
-import com.azure.core.util.CoreUtils;
-import com.azure.identity.CredentialUnavailableException;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
+import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
+import com.vdurmont.semver4j.Semver;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class AzureCliUtils {
-    private static final boolean isWindows = System.getProperty("os.name").contains("Windows");
-    private static final String WINDOWS_STARTER = "cmd.exe";
-    private static final String LINUX_MAC_STARTER = "/bin/sh";
-    private static final String WINDOWS_SWITCHER = "/c";
-    private static final String LINUX_MAC_SWITCHER = "-c";
-    private static final String DEFAULT_WINDOWS_SYSTEM_ROOT = System.getenv("SystemRoot");
-    private static final String DEFAULT_MAC_LINUX_PATH = "/bin/";
-    private static final String WINDOWS_PROCESS_ERROR_MESSAGE = "'az' is not recognized";
-    private static final String LINUX_MAC_PROCESS_ERROR_MESSAGE = "(.*)az:(.*)not found";
     private static final String MIN_VERSION = "2.11.0";
 
     public static void ensureMinimumCliVersion() {
         try {
-            final JsonObject result = AzureCliUtils.executeAzCommandJson("az version --output json").getAsJsonObject();
-            String cliVersion = result.get("azure-cli").getAsString();
+            final JsonObject result = JsonUtils.getGson().fromJson(AzureCliUtils.executeAzureCli("az version --output json"), JsonObject.class);
+            final String cliVersion = result.get("azure-cli").getAsString();
             // we require at least azure cli version 2.11.0
             if (compareWithMinimVersion(cliVersion) < 0) {
                 throw new AzureToolkitAuthenticationException(String.format("Your azure cli version '%s' is too old, " +
@@ -55,39 +38,10 @@ public class AzureCliUtils {
         }
     }
 
-    private static int compareWithMinimVersion(String version) {
-        String[] v1s = version.split("\\.");
-        String[] v2s = MIN_VERSION.split("\\.");
-        int i = 0;
-        for (; i < v1s.length && i < v2s.length && i < 3; i++) {
-            int v1 = Integer.parseInt(v1s[i]);
-            int v2 = Integer.parseInt(v2s[i]);
-            if (v1 > v2) {
-                return 1;
-            }
-            if (v2 > v1) {
-                return -1;
-            }
-        }
-        if (i < v1s.length) {
-            for (; i < v1s.length; i++) {
-                if (Integer.parseInt(v1s[i]) != 0) {
-                    return 1;
-                }
-            }
-        }
-        if (i < v2s.length) {
-            for (; i < v2s.length; i++) {
-                if (Integer.parseInt(v2s[i]) != 0) {
-                    return -1;
-                }
-            }
-        }
-        return 0;
-    }
-
-    public static @Nonnull List<AzureCliSubscription> listSubscriptions() {
-        final JsonArray result = executeAzCommandJson("az account list --output json").getAsJsonArray();
+    @Nonnull
+    public static List<AzureCliSubscription> listSubscriptions() {
+        final String jsonString = executeAzureCli("az account list --output json");
+        final JsonArray result = JsonUtils.getGson().fromJson(jsonString, JsonArray.class);
         final List<AzureCliSubscription> list = new ArrayList<>();
         if (result != null) {
             result.forEach(j -> {
@@ -116,106 +70,23 @@ public class AzureCliUtils {
             });
             return list;
         }
+
         throw new AzureToolkitAuthenticationException(
                 "Cannot list subscriptions by command `az account list`, please make sure you have signed in azure cli using `az login`");
     }
 
-    /**
-     * Modified code based on https://github.com/Azure/azure-sdk-for-java/blob/master
-     * /sdk/identity/azure-identity/src/main/java/com/azure/identity/implementation/IdentityClient.java#L411
-     *
-     * @param command the az command to be executed
-     */
-    public static JsonElement executeAzCommandJson(String command) {
-        BufferedReader reader = null;
+    @Nonnull
+    public static String executeAzureCli(@Nonnull String command) {
         try {
-            final String starter;
-            final String switcher;
-            if (isWindows) {
-                starter = WINDOWS_STARTER;
-                switcher = WINDOWS_SWITCHER;
-            } else {
-                starter = LINUX_MAC_STARTER;
-                switcher = LINUX_MAC_SWITCHER;
-            }
-
-            final String commandWithMacPathFix = isWindows ? command : String.format("export PATH=$PATH:/usr/local/bin ; %s", command);
-            final ProcessBuilder builder = new ProcessBuilder(starter, switcher, commandWithMacPathFix);
-            final String workingDirectory = getSafeWorkingDirectory();
-            if (workingDirectory != null) {
-                builder.directory(new File(workingDirectory));
-            } else {
-                throw new IllegalStateException("A Safe Working directory could not be found to execute command from.");
-            }
-            builder.redirectErrorStream(true);
-            final Process process = builder.start();
-            reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-            String line;
-            final StringBuilder output = new StringBuilder();
-            while (true) {
-                line = reader.readLine();
-                if (line == null) {
-                    break;
-                }
-                if (line.startsWith(WINDOWS_PROCESS_ERROR_MESSAGE) || line.matches(LINUX_MAC_PROCESS_ERROR_MESSAGE)) {
-                    throw new CredentialUnavailableException(
-                            "AzureCliTenantCredential authentication unavailable. Azure CLI not installed.");
-                }
-                output.append(line);
-            }
-
-            final String processOutput = StringUtils.replace(output.toString(),
-                    "Argument '--tenant' is in preview. It may be changed/removed in a future release.", "");
-            process.waitFor(10, TimeUnit.SECONDS);
-            if (process.exitValue() != 0) {
-                if (processOutput.length() > 0) {
-                    final String redactedOutput = redactInfo(processOutput);
-                    if (redactedOutput.contains("az login") || redactedOutput.contains("az account set")) {
-                        throw new CredentialUnavailableException(
-                                "AzureCliTenantCredential authentication unavailable. Please run 'az login' to set up account. " +
-                                        "Detailed error is: " + processOutput);
-                    }
-                    throw new ClientAuthenticationException(redactedOutput, null);
-                } else {
-                    throw new ClientAuthenticationException("Failed to invoke Azure CLI ", null);
-                }
-            }
-
-            try {
-                if (StringUtils.startsWith(StringUtils.trim(processOutput), "[")) {
-                    return JsonUtils.getGson().fromJson(processOutput, JsonArray.class);
-                } else {
-                    return JsonUtils.getGson().fromJson(processOutput, JsonObject.class);
-                }
-            } catch (JsonParseException ex) {
-                throw new AzureToolkitAuthenticationException(String.format("Cannot execute command '%s', the output '%s' cannot be parsed as a JSON.",
-                        command, processOutput));
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new AzureToolkitAuthenticationException(e.getMessage());
-        } finally {
-            try {
-                if (reader != null) {
-                    reader.close();
-                }
-            } catch (IOException e) {
-                // ignore
-            }
+            return CommandUtils.exec(command);
+        } catch (IOException e) {
+            throw new AzureToolkitAuthenticationException(
+                    String.format("Cannot execute azure cli command '%s' due to error: %s.", command, e.getMessage()));
         }
     }
 
-    private static String getSafeWorkingDirectory() {
-        if (isWindows) {
-            if (CoreUtils.isNullOrEmpty(DEFAULT_WINDOWS_SYSTEM_ROOT)) {
-                return null;
-            }
-            return DEFAULT_WINDOWS_SYSTEM_ROOT + "\\system32";
-        } else {
-            return DEFAULT_MAC_LINUX_PATH;
-        }
-    }
-
-    private static String redactInfo(String input) {
-        return input.replaceAll("\"accessToken\": \"(.*?)(\"|$)", "****");
+    private static int compareWithMinimVersion(String version) {
+        final Semver current = new Semver(version);
+        return current.compareTo(new Semver(MIN_VERSION));
     }
 }
