@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.maven.webapp.validator;
 
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 
@@ -48,7 +48,7 @@ public abstract class AbstractConfigurationValidator {
     }
 
     public String validatePricingTier() {
-        if (mojo.getPricingTier() != null && AppServiceUtils.getPricingTierFromString(mojo.getPricingTier()) == null) {
+        if (mojo.getPricingTier() != null && PricingTier.fromString(mojo.getPricingTier()) == null) {
             return "Unknown value of the pricingTier.";
         }
         return null;
