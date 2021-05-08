@@ -134,7 +134,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         return deploymentSlotSetting;
     }
 
-    public List<Resource> getResources() {
+    public List<? extends Resource> getResources() {
         return Collections.EMPTY_LIST;
     }
 

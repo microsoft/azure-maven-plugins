@@ -124,7 +124,7 @@ public class V1ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    public List<Resource> getResources() {
+    public List<? extends Resource> getResources() {
         return mojo.getResources();
     }
 }

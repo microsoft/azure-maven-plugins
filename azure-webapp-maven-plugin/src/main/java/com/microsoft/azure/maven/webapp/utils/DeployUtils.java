@@ -7,6 +7,7 @@ package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
@@ -39,11 +40,18 @@ public class DeployUtils {
     private static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
     public static boolean isExternalResource(Resource resource) {
+        if (isOneDeployResource(resource)) {
+            return false;
+        }
         final Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
         return !target.startsWith(FTP_ROOT);
     }
 
-    public static void deployResourcesWithFtp(IAppService appService, List<Resource> externalResources) throws AzureExecutionException {
+    public static boolean isOneDeployResource(Resource resource) {
+        return resource instanceof DeploymentResource && StringUtils.isNotBlank(((DeploymentResource) resource).getType());
+    }
+
+    public static void deployResourcesWithFtp(IAppService appService, List<? extends Resource> externalResources) throws AzureExecutionException {
         if (externalResources.isEmpty()) {
             return;
         }
@@ -73,9 +81,9 @@ public class DeployUtils {
         }
     }
 
-    public static String getAbsoluteTargetPath(String targetPath) {
+    public static String getAbsoluteTargetPath(String targetPathParam) {
         // convert null to empty string
-        targetPath = StringUtils.defaultString(targetPath);
+        final String targetPath = StringUtils.defaultString(targetPathParam);
         return StringUtils.startsWith(targetPath, "/") ? targetPath :
                 FTP_ROOT.resolve(Paths.get(targetPath)).normalize().toString();
     }
@@ -99,7 +107,7 @@ public class DeployUtils {
 
     private static File getProjectJarArtifact(final List<File> artifacts, final String finalName) throws AzureExecutionException {
         final List<File> executableArtifacts = artifacts.stream()
-                .filter(file -> isExecutableJar(file)).collect(Collectors.toList());
+                .filter(DeployUtils::isExecutableJar).collect(Collectors.toList());
         final File finalArtifact = executableArtifacts.stream()
                 .filter(file -> StringUtils.equals(finalName, file.getName())).findFirst().orElse(null);
         if (executableArtifacts.size() == 0) {

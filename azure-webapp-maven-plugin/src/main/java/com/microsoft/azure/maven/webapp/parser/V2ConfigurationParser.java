@@ -110,7 +110,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected List<Resource> getResources() {
+    protected List<? extends Resource> getResources() {
         final Deployment deployment = mojo.getDeployment();
         return deployment == null ? null : deployment.getResources();
     }
