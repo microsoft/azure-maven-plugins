@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -220,21 +221,29 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deployArtifacts(IAppService target, WebAppConfig config) throws AzureExecutionException {
+        final List<WebAppArtifact> artifactsOneDeploy = config.getWebAppArtifacts().stream()
+                .filter(artifact -> artifact.getDeployType() != null)
+                .collect(Collectors.toList());
+        artifactsOneDeploy.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+
         // This is the codes for one deploy API, for current release, will replace it with zip all files and deploy with zip deploy
-        final List<WebAppArtifact> artifacts = config.getWebAppArtifacts();
+        final List<WebAppArtifact> artifacts = config.getWebAppArtifacts().stream()
+                .filter(artifact -> artifact.getDeployType() == null)
+                .collect(Collectors.toList());
+
         if (CollectionUtils.isEmpty(artifacts)) {
             return;
         }
         // call correspond deploy method when deploy artifact only
         if (artifacts.size() == 1) {
             final WebAppArtifact artifact = artifacts.get(0);
-            final DeployType deployType = target.getRuntime().getWebContainer() == WebContainer.JBOSS_72 ? DeployType.EAR : artifact.getDeployType();
+            final DeployType deployType = getDeployTypeFromFile(artifact.getFile());
             target.deploy(deployType, artifact.getFile(), artifact.getPath());
             return;
         }
         // Support deploy multi war to different paths
         if (DeployUtils.isAllWarArtifacts(artifacts)) {
-            artifacts.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+            artifacts.forEach(resource -> target.deploy(getDeployTypeFromFile(resource.getFile()), resource.getFile(), resource.getPath()));
             return;
         }
         // package all resource and do zip deploy
@@ -279,5 +288,17 @@ public class DeployMojo extends AbstractWebAppMojo {
         final List<DeploymentResource> resources = this.deployment == null ? Collections.emptyList() : this.deployment.getResources();
         return resources.stream()
                 .filter(predicate).collect(Collectors.toList());
+    }
+
+    private static DeployType getDeployTypeFromFile(File file) {
+        final DeployType type = DeployType.fromString(FilenameUtils.getExtension(file.getName()));
+        if (type == null) {
+            return DeployType.ZIP;
+        }
+        // filter the strange file with name like 'foo.static', 'bar.startup'
+        if (StringUtils.equalsIgnoreCase(type.getFileExt(), FilenameUtils.getExtension(file.getName()))) {
+            return type;
+        }
+        return DeployType.ZIP;
     }
 }

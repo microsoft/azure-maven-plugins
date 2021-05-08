@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @RequiredArgsConstructor
@@ -23,6 +25,29 @@ public class DeployType {
     public static final DeployType SCRIPT_STARTUP = new DeployType("startup");
     public static final DeployType ZIP = new DeployType("zip");
 
+    private static final Map<DeployType, String> TYPE_TO_TARGET_DIRECTORY_MAP = new HashMap<>();
+    private static final Map<DeployType, String> DEPLOY_TYPE_TO_FILE_EXTENSION_MAP = new HashMap<>();
+
+    private static final String WWWROOT = "/home/site/wwwroot/";
+
+    static {
+        TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.JAR, WWWROOT);
+        TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.EAR, WWWROOT);
+        TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.STATIC, WWWROOT);
+        TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.ZIP, WWWROOT);
+        TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.WAR, WWWROOT + "/webapps/");
+        TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.SCRIPT_STARTUP, "/home/site/scripts/");
+        TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.JAR_LIB, "/home/site/libs/");
+    }
+
+    static {
+        DEPLOY_TYPE_TO_FILE_EXTENSION_MAP.put(DeployType.JAR, "jar");
+        DEPLOY_TYPE_TO_FILE_EXTENSION_MAP.put(DeployType.EAR, "ear");
+        DEPLOY_TYPE_TO_FILE_EXTENSION_MAP.put(DeployType.WAR, "war");
+        DEPLOY_TYPE_TO_FILE_EXTENSION_MAP.put(DeployType.JAR_LIB, "jar");
+        DEPLOY_TYPE_TO_FILE_EXTENSION_MAP.put(DeployType.ZIP, "zip");
+    }
+
     private final String value;
 
     public static List<DeployType> values() {
@@ -33,6 +58,26 @@ public class DeployType {
         return values().stream()
             .filter(deployType -> StringUtils.equalsIgnoreCase(deployType.getValue(), input))
             .findFirst().orElse(null);
+    }
+
+    public String getFileExt() {
+        return DEPLOY_TYPE_TO_FILE_EXTENSION_MAP.get(this);
+    }
+
+    public boolean requireSingleFile() {
+        return Arrays.asList(DeployType.WAR, DeployType.JAR, DeployType.EAR, DeployType.SCRIPT_STARTUP, DeployType.ZIP).contains(this);
+    }
+
+    public boolean requirePath() {
+        return Arrays.asList(DeployType.JAR_LIB, DeployType.STATIC).contains(this);
+    }
+
+    public boolean ignorePath() {
+        return Arrays.asList(DeployType.JAR, DeployType.EAR, DeployType.SCRIPT_STARTUP).contains(this);
+    }
+
+    public String getTargetPathPrefix() {
+        return TYPE_TO_TARGET_DIRECTORY_MAP.get(this);
     }
 
     @Override
