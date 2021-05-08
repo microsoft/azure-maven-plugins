@@ -9,13 +9,14 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.microsoft.azure.management.appplatform.v2020_07_01.RuntimeVersion;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.model.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,7 +25,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-@Slf4j
 public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDeploymentEntity> {
     @Getter
     private final SpringCloudApp app;
@@ -70,6 +70,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     }
 
     public boolean waitUntilReady(int timeoutInSeconds) {
+        AzureMessager.getMessager().info("Getting deployment status...");
         final SpringCloudDeployment deployment = Utils.pollUntil(this::refresh, AzureSpringCloudConfigUtils::isDeploymentDone, timeoutInSeconds);
         return AzureSpringCloudConfigUtils.isDeploymentDone(deployment);
     }
@@ -150,30 +151,36 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         public SpringCloudDeployment commit() {
+            final IAzureMessager messager = AzureMessager.getMessager();
             // FIXME: start workaround for bug: can not scale when updating other properties
             final ScaleSettings scaleSettings = AzureSpringCloudConfigUtils.getScaleSettings(this.resource);
             if (Objects.nonNull(scaleSettings) && !AzureSpringCloudConfigUtils.isEmpty(scaleSettings)) {
+                messager.info(String.format("Start scaling deployment(%s)...", messager.value(this.deployment.name())));
                 this.scale(scaleSettings);
+                messager.success(String.format("Deployment(%s) is successfully scaled.", messager.value(this.deployment.name())));
             }
             // end workaround;
             this.configArtifact(this.delayableArtifact);
             if (Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.sku())) {
-                log.info("Skip updating deployment({}) since its properties is not changed.", this.deployment.name());
+                messager.info(String.format("Skip updating deployment(%s) since its properties is not changed.", this.deployment.name()));
                 return this.deployment;
             }
+            messager.info(String.format("Start updating deployment(%s)...", messager.value(this.deployment.name())));
             this.deployment.remote = this.deployment.deploymentManager.update(this.resource, this.deployment.entity());
+            messager.success(String.format("Deployment(%s) is successfully updated", messager.value(this.deployment.name())));
             return this.deployment.start();
         }
 
         private void scale(@Nonnull ScaleSettings scaleSettings) {
-            log.info("Scaling deployment({})...", TextUtils.cyan(this.deployment.name()));
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(String.format("Start scaling deployment(%s)...", messager.value(this.deployment.name())));
             final DeploymentResourceInner tempResource = new DeploymentResourceInner();
             AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(tempResource, this.deployment)
                 .withCpu(scaleSettings.getCpu()).withMemoryInGB(scaleSettings.getMemoryInGB());
             AzureSpringCloudConfigUtils.getOrCreateSku(tempResource, this.deployment)
                 .withCapacity(scaleSettings.getCapacity());
             this.deployment.remote = this.deployment.deploymentManager.update(tempResource, this.deployment.entity());
-            log.info("Successfully scaled the deployment.");
+            messager.success(String.format("Deployment(%s) is successfully scaled.", messager.value(this.deployment.name())));
         }
     }
 
@@ -183,10 +190,13 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         public SpringCloudDeployment commit() {
+            final IAzureMessager messager = AzureMessager.getMessager();
             this.configArtifact(this.delayableArtifact);
             final String deploymentName = this.deployment.name();
             final SpringCloudAppEntity app = this.deployment.app.entity();
+            messager.info(String.format("Start creating deployment(%s)...", messager.value(this.deployment.name())));
             this.deployment.remote = this.deployment.deploymentManager.create(this.resource, deploymentName, app);
+            messager.success(String.format("Deployment(%s) is successfully created", messager.value(this.deployment.name())));
             return this.deployment.start();
         }
     }
