@@ -65,7 +65,7 @@ public class V1ConfigParser extends AbstractConfigParser {
             case WAR:
                 return Arrays.asList(WebAppArtifact.builder().file(getFileToDeploy(mojo.getWarFile())).deployType(DeployType.JAR).build());
             default:
-                return parseArtifactsFromResources(mojo.getResources());
+                return convertResourceToArtifacts(mojo.getResources());
         }
     }
 

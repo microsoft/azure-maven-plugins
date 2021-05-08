@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
@@ -17,7 +18,6 @@ import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Before;
@@ -119,7 +119,7 @@ public class ConfigurationParserTest {
             }
 
             @Override
-            protected List<Resource> getResources() {
+            protected List<DeploymentResource> getResources() {
                 return null;
             }
         };

@@ -24,9 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.zeroturnaround.zip.ZipUtil;
@@ -237,13 +235,13 @@ public class DeployMojo extends AbstractWebAppMojo {
         // call correspond deploy method when deploy artifact only
         if (artifacts.size() == 1) {
             final WebAppArtifact artifact = artifacts.get(0);
-            final DeployType deployType = getDeployTypeFromFile(artifact.getFile());
+            final DeployType deployType = DeployType.getDeployTypeFromFile(artifact.getFile());
             target.deploy(deployType, artifact.getFile(), artifact.getPath());
             return;
         }
         // Support deploy multi war to different paths
         if (DeployUtils.isAllWarArtifacts(artifacts)) {
-            artifacts.forEach(resource -> target.deploy(getDeployTypeFromFile(resource.getFile()), resource.getFile(), resource.getPath()));
+            artifacts.forEach(resource -> target.deploy(DeployType.getDeployTypeFromFile(resource.getFile()), resource.getFile(), resource.getPath()));
             return;
         }
         // package all resource and do zip deploy
@@ -281,24 +279,12 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deployExternalResources(IAppService target) throws AzureExecutionException {
-        DeployUtils.deployResourcesWithFtp(target, filterResources(DeployUtils::isExternalResource));
+        DeployUtils.deployResourcesWithFtp(target, filterResources(DeploymentResource::isExternalResource));
     }
 
-    private List<? extends Resource> filterResources(Predicate<? super Resource> predicate) {
+    private List<DeploymentResource> filterResources(Predicate<DeploymentResource> predicate) {
         final List<DeploymentResource> resources = this.deployment == null ? Collections.emptyList() : this.deployment.getResources();
         return resources.stream()
                 .filter(predicate).collect(Collectors.toList());
-    }
-
-    private static DeployType getDeployTypeFromFile(File file) {
-        final DeployType type = DeployType.fromString(FilenameUtils.getExtension(file.getName()));
-        if (type == null) {
-            return DeployType.ZIP;
-        }
-        // filter the strange file with name like 'foo.static', 'bar.startup'
-        if (StringUtils.equalsIgnoreCase(type.getFileExt(), FilenameUtils.getExtension(file.getName()))) {
-            return type;
-        }
-        return DeployType.ZIP;
     }
 }

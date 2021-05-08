@@ -12,7 +12,6 @@ import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
-import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
@@ -120,58 +119,65 @@ public abstract class AbstractConfigParser {
         }
     }
 
-    protected static List<WebAppArtifact> parseArtifactsFromResources(List<? extends Resource> resources) throws AzureExecutionException {
+    protected static List<WebAppArtifact> convertResourceToArtifacts(List<DeploymentResource> resources) throws AzureExecutionException {
         try {
             return CollectionUtils.isEmpty(resources) ? Collections.emptyList() :
                     resources.stream()
                             // filter out external resources
-                            .filter(resource -> !DeployUtils.isExternalResource(resource))
-                            .flatMap(resource -> convertResourceToArtifact(resource).stream()).collect(Collectors.toList());
+                            .filter(resource -> !resource.isExternalResource())
+                            .flatMap(resource -> convertResourceToArtifacts(resource).stream()).collect(Collectors.toList());
         } catch (Throwable ex) {
             throw new AzureExecutionException(String.format("Cannot parse deployment resources due to error: %s.", ex.getMessage()), ex);
         }
     }
 
-    protected static List<WebAppArtifact> convertResourceToArtifact(Resource resource) throws AzureToolkitRuntimeException {
-        final boolean isDeploymentResource = DeployUtils.isOneDeployResource(resource);
-        final List<File> artifacts = MavenArtifactUtils.getArtifacts(resource);
-        DeployType type = null;
-        if (isDeploymentResource) {
-            final String typeString = ((DeploymentResource) resource).getType();
-            type = DeployType.fromString(typeString);
-            Objects.requireNonNull(type, () -> String.format("Unsupported resource type '%s', please change to one from this list: %s", typeString,
-                    DeployType.values().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", "))));
-            if (type.requireSingleFile() && artifacts.size() > 1) {
-                throw new AzureToolkitRuntimeException(String.format("Multiple files are found for resource type('%s'), only one file is allowed.",
-                        type));
-            }
+    private static List<WebAppArtifact> convertResourceToArtifacts(DeploymentResource resource) throws AzureToolkitRuntimeException {
+        final boolean isOneDeploymentResource = resource.isOneDeployResource();
+        if (isOneDeploymentResource) {
+            return convertOneDeployResourceToArtifacts(resource);
+        }
+        return convertLegacyResourceToArtifacts(resource);
+    }
 
-            if (artifacts.isEmpty()) {
-                Log.warn(String.format("Cannot find any files defined by resource(%s)",
-                        StringUtils.firstNonBlank(resource.toString())));
-            }
-            if (type.ignorePath() && StringUtils.isNotBlank(resource.getTargetPath())) {
-                throw new AzureToolkitRuntimeException(String.format("'<targetPath>' is not allowed for deployable type('%s').",
-                        type));
-            }
-            if (StringUtils.isNotBlank(type.getFileExt())) {
-                final String expectFileExtension = type.getFileExt();
-                for (final File file : artifacts) {
-                    if (!StringUtils.equalsIgnoreCase(FilenameUtils.getExtension(file.getName()), expectFileExtension)) {
-                        throw new AzureToolkitRuntimeException(String.format("Wrong file '%s' Deployable type('%s'), expected file type '%s'",
-                                file.toString(),
-                                type
-                                , expectFileExtension));
-                    }
+    private static List<WebAppArtifact> convertLegacyResourceToArtifacts(DeploymentResource resource) {
+        final List<File> artifacts = MavenArtifactUtils.getArtifacts(resource);
+        return artifacts.stream()
+                .map(file -> WebAppArtifact.builder().file(file).deployType(DeployType.getDeployTypeFromFile(file)).path(resource.getTargetPath()).build())
+                .collect(Collectors.toList());
+    }
+
+    private static List<WebAppArtifact> convertOneDeployResourceToArtifacts(Resource resource) {
+        final List<File> artifacts = MavenArtifactUtils.getArtifacts(resource);
+        final String typeString = ((DeploymentResource) resource).getType();
+        final DeployType type = DeployType.fromString(typeString);
+        Objects.requireNonNull(type, () -> String.format("Unsupported resource type '%s', please change to one from this list: %s", typeString,
+                DeployType.values().stream().map(Object::toString).map(StringUtils::lowerCase).collect(Collectors.joining(", "))));
+        if (type.requireSingleFile() && artifacts.size() > 1) {
+            throw new AzureToolkitRuntimeException(String.format("Multiple files are found for resource type('%s'), only one file is allowed.",
+                    type));
+        }
+
+        if (artifacts.isEmpty()) {
+            Log.warn(String.format("Cannot find any files defined by resource(%s)",
+                    StringUtils.firstNonBlank(resource.toString())));
+        }
+        if (type.ignorePath() && StringUtils.isNotBlank(resource.getTargetPath())) {
+            throw new AzureToolkitRuntimeException(String.format("'<targetPath>' is not allowed for deployable type('%s').",
+                    type));
+        }
+        if (StringUtils.isNotBlank(type.getFileExt())) {
+            final String expectFileExtension = type.getFileExt();
+            for (final File file : artifacts) {
+                if (!StringUtils.equalsIgnoreCase(FilenameUtils.getExtension(file.getName()), expectFileExtension)) {
+                    throw new AzureToolkitRuntimeException(String.format("Wrong file '%s' Deployable type('%s'), expected file type '%s'",
+                            file, type, expectFileExtension));
                 }
             }
         }
-        final DeployType finalType = type;
         return artifacts.stream()
-                .map(file -> WebAppArtifact.builder().file(file).deployType(finalType).path(
-                        finalType == null ? resource.getTargetPath() : getRemotePath(finalType, resource, file)
-                ).build())
+                .map(file -> WebAppArtifact.builder().file(file).deployType(type).path(getRemotePath(type, resource, file)).build())
                 .collect(Collectors.toList());
+
     }
 
     private static String getRemotePath(@Nonnull DeployType type, Resource resource, File file) {

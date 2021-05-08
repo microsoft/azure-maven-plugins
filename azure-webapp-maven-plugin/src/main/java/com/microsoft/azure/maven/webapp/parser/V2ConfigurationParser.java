@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.management.appservice.JavaVersion;
@@ -15,8 +16,6 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
-
-import org.apache.maven.model.Resource;
 
 import java.util.List;
 import java.util.Locale;
@@ -110,7 +109,7 @@ public class V2ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected List<? extends Resource> getResources() {
+    protected List<DeploymentResource> getResources() {
         final Deployment deployment = mojo.getDeployment();
         return deployment == null ? null : deployment.getResources();
     }
