@@ -6,65 +6,92 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
+import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.appplatform.models.SpringApp;
+import com.azure.resourcemanager.appplatform.models.SpringService;
+import com.azure.resourcemanager.appplatform.models.SpringServices;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
-import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudClusterManager;
+import lombok.AccessLevel;
+import lombok.Getter;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class SpringCloudCluster implements IAzureEntityManager<SpringCloudClusterEntity> {
-    private final AppPlatformManager client;
-    private final SpringCloudClusterManager clusterManager;
+    @Getter
+    @Nonnull
+    final SpringServices client;
+    @Nonnull
     private final SpringCloudClusterEntity local;
-    private SpringCloudClusterEntity remote;
-    private boolean refreshed;
+    @Nullable
+    @Getter(AccessLevel.PACKAGE)
+    private SpringService remote;
 
-    public SpringCloudCluster(SpringCloudClusterEntity cluster, AppPlatformManager client) {
-        this.local = cluster;
+    public SpringCloudCluster(@Nonnull SpringCloudClusterEntity entity, @Nonnull SpringServices client) {
+        this.local = entity;
         this.client = client;
-        this.clusterManager = new SpringCloudClusterManager(client);
+        this.remote = entity.getRemote(); // cluster entity must has a SpringService instance when created.
     }
 
     @Override
     public boolean exists() {
-        if (!this.refreshed) {
-            this.refresh();
-        }
         return Objects.nonNull(this.remote);
     }
 
+    @Nonnull
     public SpringCloudClusterEntity entity() {
-        return Objects.nonNull(this.remote) ? this.remote : this.local;
+        final SpringService remote = Objects.nonNull(this.remote) ? this.remote : this.local.getRemote();
+        return new SpringCloudClusterEntity(remote); // prevent inconsistent properties between local and remote when local's properties is modified.
     }
 
+    @Nonnull
     public String id() {
         return this.entity().getId();
     }
 
-    public SpringCloudApp app(SpringCloudAppEntity app) {
+    @Nonnull
+    public SpringCloudApp app(final String name) {
+        if (this.exists() && Objects.nonNull(this.remote)) {
+            try {
+                final SpringApp app = this.remote.apps().getByName(name);
+                return this.app(app);
+            } catch (ManagementException ignored) {
+            }
+        }
+        // if app with `name` not exist or this cluster removed?
+        return this.app(new SpringCloudAppEntity(name, this.local));
+    }
+
+    @Nonnull
+    SpringCloudApp app(@Nonnull SpringApp app) {
+        return this.app(new SpringCloudAppEntity(app, this.entity()));
+    }
+
+    @Nonnull
+    public SpringCloudApp app(@Nonnull SpringCloudAppEntity app) {
         return new SpringCloudApp(app, this);
     }
 
-    public SpringCloudApp app(final String name) {
-        final SpringCloudClusterEntity cluster = this.entity();
-        return new SpringCloudApp(SpringCloudAppEntity.fromName(name, cluster), this);
-    }
-
+    @Nonnull
     public List<SpringCloudApp> apps() {
-        final SpringCloudClusterEntity cluster = this.entity();
-        return this.clusterManager.getApps(cluster).stream().map(this::app).collect(Collectors.toList());
+        if (this.exists() && Objects.nonNull(this.remote)) {
+            return this.remote.apps().list().stream().map(this::app).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 
+    @Nonnull
     public SpringCloudCluster refresh() {
-        final SpringCloudClusterEntity local = this.local;
-        this.remote = this.clusterManager.get(local.getName(), local.getResourceGroup());
-        this.refreshed = true;
+        final SpringCloudClusterEntity entity = this.entity();
+        try {
+            this.remote = this.client.getByResourceGroup(entity.getResourceGroup(), entity.getName());
+        } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
+            this.remote = null;
+        }
         return this;
-    }
-
-    public AppPlatformManager getClient() {
-        return this.client;
     }
 }

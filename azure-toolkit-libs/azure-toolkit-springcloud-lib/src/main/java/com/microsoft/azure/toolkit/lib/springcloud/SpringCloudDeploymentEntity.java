@@ -22,58 +22,69 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentInstance;
-import com.microsoft.azure.management.appplatform.v2020_07_01.DeploymentResourceStatus;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.DeploymentResourceInner;
+import com.azure.resourcemanager.appplatform.models.DeploymentResourceStatus;
+import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.ExternalChildResource;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Getter
 public class SpringCloudDeploymentEntity implements IAzureResourceEntity {
+    @Nonnull
     private final SpringCloudAppEntity app;
+    @Nonnull
     private final String name;
+    @Nullable
+    @JsonIgnore
     @Getter(AccessLevel.PACKAGE)
-    private DeploymentResourceInner inner;
+    @Setter(AccessLevel.PACKAGE)
+    private transient SpringAppDeployment remote;
 
-    private SpringCloudDeploymentEntity(final String name, SpringCloudAppEntity app) {
+    public SpringCloudDeploymentEntity(@Nonnull final String name, @Nonnull SpringCloudAppEntity app) {
         this.name = name;
         this.app = app;
     }
 
-    private SpringCloudDeploymentEntity(DeploymentResourceInner resource, SpringCloudAppEntity app) {
-        this.inner = resource;
-        this.name = resource.name();
+    SpringCloudDeploymentEntity(@Nonnull SpringAppDeployment remote, @Nonnull SpringCloudAppEntity app) {
+        this.remote = remote;
+        this.name = remote.name();
         this.app = app;
     }
 
-    @Nonnull
-    public static SpringCloudDeploymentEntity fromResource(DeploymentResourceInner resource, final SpringCloudAppEntity app) {
-        return new SpringCloudDeploymentEntity(resource, app);
+    public String getStatus() {
+        return Optional.ofNullable(this.remote)
+                .map(SpringAppDeployment::status)
+                .orElse(DeploymentResourceStatus.UNKNOWN).toString();
     }
 
-    public static SpringCloudDeploymentEntity fromName(String name, SpringCloudAppEntity app) {
-        return new SpringCloudDeploymentEntity(name, app);
-    }
-
-    public DeploymentResourceStatus getStatus() {
-        return this.inner.properties().status();
-    }
-
-    public List<DeploymentInstance> getInstances() {
-        return this.inner.properties().instances();
+    public List<SpringCloudDeploymentInstanceEntity> getInstances() {
+        if (Objects.nonNull(this.remote)) {
+            return this.remote.instances().stream()
+                    .map(i -> new SpringCloudDeploymentInstanceEntity(i, this))
+                    .collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 
     public Boolean isActive() {
-        return this.inner.properties().active();
+        return Optional.ofNullable(this.remote).map(SpringAppDeployment::isActive).orElse(false);
     }
 
     @Override
     public String getId() {
-        return inner.id();
+        return Optional.ofNullable(this.remote).map(ExternalChildResource::id)
+                .orElse(this.app.getId() + "/deployments/" + this.name);
     }
 
     @Override

@@ -22,56 +22,52 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
+import com.azure.resourcemanager.appplatform.models.SpringApp;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.ExternalChildResource;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.Optional;
 
 @Getter
 public class SpringCloudAppEntity implements IAzureResourceEntity {
     private final SpringCloudClusterEntity cluster;
     private final String name;
+    @Nullable
+    @JsonIgnore
     @Getter(AccessLevel.PACKAGE)
-    private AppResourceInner inner;
+    @Setter(AccessLevel.PACKAGE)
+    private transient SpringApp remote;
 
-    private SpringCloudAppEntity(String name, SpringCloudClusterEntity cluster) {
+    public SpringCloudAppEntity(@Nonnull final String name, @Nonnull final SpringCloudClusterEntity cluster) {
         this.name = name;
         this.cluster = cluster;
     }
 
-    private SpringCloudAppEntity(AppResourceInner resource, SpringCloudClusterEntity cluster) {
-        this.inner = resource;
+    SpringCloudAppEntity(@Nonnull final SpringApp resource, @Nonnull final SpringCloudClusterEntity cluster) {
+        this.remote = resource;
         this.name = resource.name();
         this.cluster = cluster;
     }
 
-    @Nonnull
-    public static SpringCloudAppEntity fromResource(final AppResourceInner resource, final SpringCloudClusterEntity cluster) {
-        return new SpringCloudAppEntity(resource, cluster);
-    }
-
-    @Nonnull
-    public static SpringCloudAppEntity fromName(final String name, final SpringCloudClusterEntity cluster) {
-        return new SpringCloudAppEntity(name, cluster);
-    }
-
     public boolean isPublic() {
-        return this.inner.properties().publicProperty();
+        return Objects.requireNonNull(this.remote).isPublic();
     }
 
     public String getApplicationUrl() {
-        return this.inner.properties().url();
-    }
-
-    public String getActiveDeployment() {
-        return this.inner.properties().activeDeploymentName();
+        return Objects.requireNonNull(this.remote).url();
     }
 
     @Override
     public String getId() {
-        return inner.id();
+        return Optional.ofNullable(this.remote).map(ExternalChildResource::id)
+                .orElse(this.cluster.getId() + "/apps/" + this.name);
     }
 
     @Override
