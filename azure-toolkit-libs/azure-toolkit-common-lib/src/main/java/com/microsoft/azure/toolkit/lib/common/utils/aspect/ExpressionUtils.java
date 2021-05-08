@@ -5,8 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.common.utils.aspect;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceUtils;
 import com.google.common.collect.ImmutableMap;
-import com.microsoft.azure.management.resources.fluentcore.arm.ResourceUtils;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import lombok.extern.java.Log;
@@ -15,7 +15,6 @@ import org.codehaus.groovy.runtime.MethodClosure;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
