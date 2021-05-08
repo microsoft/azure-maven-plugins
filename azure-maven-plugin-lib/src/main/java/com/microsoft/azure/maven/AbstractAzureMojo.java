@@ -14,6 +14,7 @@ import com.microsoft.azure.maven.telemetry.GetHashMac;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.management.Azure;
@@ -39,6 +40,7 @@ import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthentication
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -539,6 +541,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Override
     public void execute() throws MojoExecutionException {
         try {
+            AzureMessager.setDefaultMessager(new MavenAzureMessager());
             // init proxy manager
             ProxyUtils.initProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
             getTelemetryProxy().addDefaultProperty(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
