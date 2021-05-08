@@ -7,24 +7,26 @@ package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.manager.AppServiceKuduManager;
+import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
+import com.microsoft.azure.toolkit.lib.appservice.model.CommandOutput;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.ProcessInfo;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Objects;
 
 abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
-    @Nullable
-    protected abstract T remote();
 
-    @Nonnull
-    protected T getRemoteResource() {
-        return Objects.requireNonNull(remote(), "Target resource does not exist.");
-    }
+    protected AppServiceKuduManager kuduManager;
 
     @Override
     public void start() {
@@ -90,4 +92,59 @@ abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
     public String name() {
         return getRemoteResource().name();
     }
+
+    @Override
+    public Mono<byte[]> getFileContent(String path) {
+        return getKuduManager().getFileContent(path);
+    }
+
+    @Override
+    public List<? extends AppServiceFile> getFilesInDirectory(String dir) {
+        return getKuduManager().getFilesInDirectory(dir);
+    }
+
+    @Override
+    public void uploadFileToPath(String content, String path) {
+        getKuduManager().uploadFileToPath(content, path);
+    }
+
+    @Override
+    public void createDirectory(String path) {
+        getKuduManager().createDirectory(path);
+    }
+
+    @Override
+    public void deleteFile(String path) {
+        getKuduManager().deleteFile(path);
+    }
+
+    @Override
+    public List<ProcessInfo> listProcess() {
+        return getKuduManager().listProcess();
+    }
+
+    @Override
+    public CommandOutput execute(String command, String dir) {
+        return getKuduManager().execute(command, dir);
+    }
+
+    @Override
+    public TunnelStatus getAppServiceTunnelStatus() {
+        return getKuduManager().getAppServiceTunnelStatus();
+    }
+
+    protected AppServiceKuduManager getKuduManager() {
+        if (kuduManager == null) {
+            kuduManager = AppServiceKuduManager.getClient(getRemoteResource());
+        }
+        return kuduManager;
+    }
+
+    @Nonnull
+    protected T getRemoteResource() {
+        return Objects.requireNonNull(remote(), "Target resource does not exist.");
+    }
+
+    @Nullable
+    protected abstract T remote();
 }
