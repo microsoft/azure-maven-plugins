@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
@@ -35,6 +36,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import com.microsoft.rest.LogLevel;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -189,6 +191,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     }
 
     protected void initExecution() throws MavenDecryptException, AzureExecutionException, LoginFailureException {
+        AzureMessager.setDefaultMessager(new MavenAzureMessager());
         // init proxy manager
         ProxyUtils.initProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
         // Init telemetries

@@ -10,23 +10,27 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.PersistentDisk;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.model.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudAppManager;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity> {
+    private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
+
     @Getter
     private final SpringCloudCluster cluster;
     private final SpringCloudAppManager appManager;
@@ -138,7 +142,10 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         @SneakyThrows
         @Override
         public SpringCloudApp commit() {
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(String.format("Start uploading artifact(%s) to App(%s)...", messager.value(this.path), messager.value(this.app.name())));
             final ResourceUploadDefinitionInner definition = this.app.appManager.uploadArtifact(this.path, this.app.entity());
+            messager.success(String.format("Artifact(%s) is successfully uploaded to App(%s)...", messager.value(this.path), messager.value(this.app.name())));
             this.artifact.setRemotePath(definition.relativePath());
             this.artifact.setUploadUrl(definition.uploadUrl());
             return this.app;
@@ -185,10 +192,14 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
 
         @Override
         public SpringCloudApp commit() {
+            final IAzureMessager messager = AzureMessager.getMessager();
             if (this.isSkippable()) {
-                log.info("skip updating app({}) since its properties is not changed.", this.app.name());
+                messager.info(String.format("skip updating app(%s) since its properties is not changed.", this.app.name()));
             } else {
+                messager.info(String.format("Start updating app(%s)...", messager.value(this.app.name())));
                 this.app.remote = this.app.appManager.update(this.resource, this.app.entity());
+                messager.success(String.format("App(%s) is successfully updated.", messager.value(this.app.name())));
+                messager.warning(UPDATE_APP_WARNING);
             }
             return this.app;
         }
@@ -206,7 +217,10 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         public SpringCloudApp commit() {
             final String appName = this.app.name();
             final SpringCloudClusterEntity cluster = this.app.cluster.entity();
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(String.format("Start creating app(%s)...", messager.value(appName)));
             this.app.remote = this.app.appManager.create(this.resource, appName, cluster);
+            messager.success(String.format("App(%s) is successfully created.", messager.value(appName)));
             return this.app;
         }
     }
