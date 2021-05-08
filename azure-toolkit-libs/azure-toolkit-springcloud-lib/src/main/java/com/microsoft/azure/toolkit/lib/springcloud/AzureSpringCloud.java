@@ -77,7 +77,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
     protected AppPlatformManager getClient(final String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
-        final LogLevel logLevel = Optional.ofNullable(config.getLogLevel()).orElse(LogLevel.NONE);
+        final LogLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(LogLevel::valueOf).orElse(LogLevel.NONE);
         final String userAgent = config.getUserAgent();
         return AppPlatformManager.configure()
             .withLogLevel(logLevel)
