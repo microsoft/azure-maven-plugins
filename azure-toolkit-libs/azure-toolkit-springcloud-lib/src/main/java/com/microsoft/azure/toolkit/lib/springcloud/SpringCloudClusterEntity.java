@@ -22,9 +22,9 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
 import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
-import com.microsoft.azure.management.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import lombok.AccessLevel;
 import lombok.Getter;

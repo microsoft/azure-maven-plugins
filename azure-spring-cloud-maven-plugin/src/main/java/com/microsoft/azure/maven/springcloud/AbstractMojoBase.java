@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.springcloud;
 
+import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeInfo;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
@@ -197,7 +198,7 @@ public abstract class AbstractMojoBase extends AbstractMojo {
         // Init telemetries
         initTelemetry();
         telemetries.put(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
-        Azure.az().config().setLogLevel(LogLevel.NONE);
+        Azure.az().config().setLogLevel(HttpLogDetailLevel.NONE.name());
         Azure.az().config().setUserAgent(getUserAgent());
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
