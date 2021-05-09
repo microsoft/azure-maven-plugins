@@ -61,6 +61,7 @@
         <azure.storage.version>8.0.0</azure.storage.version>
         <azure.version>1.38.1</azure.version>
         <azure.core.http.okhttp.version>1.6.1</azure.core.http.okhttp.version>
+        <azure.storage-file-share.version>12.9.0</azure.storage-file-share.version>
 
         <aspectj.version>1.8.13</aspectj.version>
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
@@ -298,6 +299,12 @@
                 <groupId>com.azure</groupId>
                 <artifactId>azure-core</artifactId>
                 <version>${azure.core.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.azure</groupId>
+                        <artifactId>azure-core-http-netty</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.azure</groupId>
@@ -311,14 +318,14 @@
             </dependency>
             <dependency>
                 <groupId>com.azure</groupId>
-                <artifactId>azure-core</artifactId>
-                <version>${azure.core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-core-http-netty</artifactId>
-                <version>${azure.core-http-netty.version}</version>
+                <artifactId>azure-storage-file-share</artifactId>
+                <version>${azure.storage-file-share.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.azure</groupId>
+                        <artifactId>azure-core-http-netty</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.nimbusds</groupId>

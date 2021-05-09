@@ -11,6 +11,7 @@ import com.microsoft.applicationinsights.channel.concrete.TelemetryChannelBase;
 import com.microsoft.applicationinsights.channel.concrete.inprocess.InProcessTelemetryChannel;
 import com.microsoft.applicationinsights.internal.config.TelemetryConfigurationFactory;
 
+import lombok.Getter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,6 +28,7 @@ public class AppInsightsProxy implements TelemetryProxy {
     public static final String CONFIGURATION_FILE = "ApplicationInsights.xml";
     public static final Pattern INSTRUMENTATION_KEY_PATTERN = Pattern.compile("<InstrumentationKey>(.*)" +
         "</InstrumentationKey>");
+    @Getter
     protected TelemetryClient client;
 
     protected TelemetryConfiguration configuration;

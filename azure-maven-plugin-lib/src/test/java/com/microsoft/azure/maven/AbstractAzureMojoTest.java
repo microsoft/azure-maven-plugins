@@ -136,7 +136,7 @@ public class AbstractAzureMojoTest {
 
     @Test
     public void isTelemetryAllowed() throws Exception {
-        assertTrue(!mojo.isTelemetryAllowed());
+        assertTrue(!mojo.isAllowTelemetry());
     }
 
     @Test
@@ -168,7 +168,7 @@ public class AbstractAzureMojoTest {
         final String message = "test exception message";
         String actualMessage = null;
         try {
-            mojo.handleException(new Exception(message));
+            mojo.onMojoError(new Exception(message));
         } catch (Exception e) {
             actualMessage = e.getMessage();
         }
