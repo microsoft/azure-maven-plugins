@@ -29,14 +29,18 @@ import java.util.stream.Collectors;
 public class MavenArtifactUtils {
     private static final String[] ARTIFACT_EXTENSIONS = {"jar"};
     private static final String ARTIFACT_NOT_SUPPORTED = "Target file does not exist or is not executable, please " +
-        "check the configuration.";
+            "check the configuration.";
     private static final String MULTI_ARTIFACT = "Multiple artifacts(%s) could be deployed, please specify " +
-        "the target artifact in plugin configurations.";
+            "the target artifact in plugin configurations.";
 
     @Nonnull
     public static Collection<File> getArtifactFiles(MavenProject project) {
         final String targetFolder = project.getBuild().getDirectory();
-        return FileUtils.listFiles(new File(targetFolder), ARTIFACT_EXTENSIONS, true);
+        final File directory = new File(targetFolder);
+        if (!directory.isDirectory()) {
+            return new ArrayList<>();
+        }
+        return FileUtils.listFiles(directory, ARTIFACT_EXTENSIONS, true);
     }
 
     public static boolean isExecutableJar(File file) {

@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.common.messager;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import lombok.RequiredArgsConstructor;
 
@@ -18,11 +17,10 @@ public abstract class AzureMessager implements IAzureMessager {
     private static IAzureMessager defaultMessager;
 
     public static synchronized void setDefaultMessager(@Nonnull IAzureMessager messager) {
-        if (AzureMessager.defaultMessager == null) {
+        if (AzureMessager.defaultMessager == null) { // not allow overwriting...
             AzureMessager.defaultMessager = messager;
         } else {
-            // not allow overwriting...
-            throw new AzureToolkitRuntimeException("default messager has already been registered");
+            AzureMessager.getMessager().warning("default messager has already been registered");
         }
     }
 

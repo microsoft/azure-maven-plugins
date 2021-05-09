@@ -54,9 +54,6 @@ public class DeployMojo extends AbstractMojoBase {
     @Override
     @AzureOperation(name = "springcloud|app.create_update_mojo", type = AzureOperation.Type.ACTION)
     protected void doExecute() {
-        if (!checkProjectPackaging(project) || !checkConfiguration()) {
-            return;
-        }
         // Init spring clients, and prompt users to confirm
         final SpringCloudAppConfig appConfig = this.getConfiguration();
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);
@@ -145,5 +142,11 @@ public class DeployMojo extends AbstractMojoBase {
         } else {
             return true;
         }
+    }
+
+    @SneakyThrows
+    @Override
+    protected boolean isSkipMojo() {
+        return !checkProjectPackaging(project) || !checkConfiguration();
     }
 }
