@@ -32,15 +32,19 @@ import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.CommandOutput;
 import com.microsoft.azure.toolkit.lib.appservice.model.ProcessInfo;
 import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
+import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
+import org.apache.commons.codec.binary.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,13 +55,15 @@ import java.util.stream.Collectors;
 public class AppServiceKuduManager {
     private final String host;
     private final KuduService kuduService;
+    private final IAppService appService;
 
-    private AppServiceKuduManager(String host, KuduService kuduService) {
+    private AppServiceKuduManager(String host, KuduService kuduService, IAppService appService) {
         this.host = host;
+        this.appService = appService;
         this.kuduService = kuduService;
     }
 
-    public static AppServiceKuduManager getClient(@Nonnull WebAppBase webAppBase) {
+    public static AppServiceKuduManager getClient(@Nonnull WebAppBase webAppBase, @Nonnull IAppService appService) {
         // refers : https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/resourcemanager/azure-resourcemanager-appservice/src/main/java/
         // com/azure/resourcemanager/appservice/implementation/KuduClient.java
         if (webAppBase.defaultHostname() == null) {
@@ -86,7 +92,7 @@ public class AppServiceKuduManager {
 
         final KuduService kuduService = RestProxy.create(KuduService.class, httpPipeline,
                 SerializerFactory.createDefaultManagementSerializerAdapter());
-        return new AppServiceKuduManager(host, kuduService);
+        return new AppServiceKuduManager(host, kuduService, appService);
     }
 
     public Mono<byte[]> getFileContent(final String path) {
@@ -99,7 +105,17 @@ public class AppServiceKuduManager {
         final Mono<Response<List<AppServiceFile>>> filesInDirectory = this.kuduService.getFilesInDirectory(host, dir);
         return getValueFromResponseMono(filesInDirectory, Collections.emptyList()).stream()
                 .filter(file -> !"text/xml".equals(file.getMime()) || !file.getName().contains("LogFiles-kudu-trace_pending.xml"))
+                .map(file -> file.withApp(appService).withPath(Paths.get(dir, file.getName()).toString()))
                 .collect(Collectors.toList());
+    }
+
+    public AppServiceFile getFileByPath(String path) {
+        final File file = new File(path);
+        final List<? extends AppServiceFile> result = getFilesInDirectory(file.getParent());
+        return result.stream()
+                .filter(appServiceFile -> StringUtils.equals(file.getName(), appServiceFile.getName()))
+                .findFirst()
+                .orElse(null);
     }
 
     public void uploadFileToPath(String content, String path) {

@@ -104,6 +104,11 @@ abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
     }
 
     @Override
+    public AppServiceFile getFileByPath(String path) {
+        return getKuduManager().getFileByPath(path);
+    }
+
+    @Override
     public void uploadFileToPath(String content, String path) {
         getKuduManager().uploadFileToPath(content, path);
     }
@@ -135,7 +140,7 @@ abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
 
     protected AppServiceKuduManager getKuduManager() {
         if (kuduManager == null) {
-            kuduManager = AppServiceKuduManager.getClient(getRemoteResource());
+            kuduManager = AppServiceKuduManager.getClient(getRemoteResource(), this);
         }
         return kuduManager;
     }

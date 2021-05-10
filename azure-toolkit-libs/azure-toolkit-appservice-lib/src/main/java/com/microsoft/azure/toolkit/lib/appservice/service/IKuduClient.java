@@ -18,6 +18,8 @@ public interface IKuduClient {
 
     List<? extends AppServiceFile> getFilesInDirectory(String dir);
 
+    AppServiceFile getFileByPath(String path);
+
     void uploadFileToPath(String content, String path);
 
     void createDirectory(String path);
