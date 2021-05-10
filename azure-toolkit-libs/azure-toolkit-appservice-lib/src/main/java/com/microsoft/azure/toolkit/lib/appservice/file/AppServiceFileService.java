@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.appservice.file;
 import com.google.common.base.Joiner;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.appservice.implementation.AppServiceManager;
+import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.rest.RestClient;
 import lombok.SneakyThrows;

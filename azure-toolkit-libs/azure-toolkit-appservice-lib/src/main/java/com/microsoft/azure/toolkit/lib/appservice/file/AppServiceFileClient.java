@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.file;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import rx.Observable;
