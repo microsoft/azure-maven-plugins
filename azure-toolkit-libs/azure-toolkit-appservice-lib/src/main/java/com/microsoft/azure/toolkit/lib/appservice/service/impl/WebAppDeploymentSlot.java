@@ -22,7 +22,6 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlotU
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Map;
@@ -56,7 +55,6 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
         return new WebAppDeploymentSlotUpdater();
     }
 
-    @Nullable
     @Override
     protected DeploymentSlot getResourceInner() {
         final WebApp parentWebApp = getParentWebApp();

@@ -25,7 +25,6 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
@@ -52,7 +51,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
     @Override
     public IAppServicePlan plan() {
-        return Azure.az(AzureAppService.class).appServicePlan(getResourceInner().appServicePlanId());
+        return Azure.az(AzureAppService.class).appServicePlan(getNonnullResourceInner().appServicePlanId());
     }
 
     @Override
@@ -60,7 +59,6 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         return new WebAppCreator();
     }
 
-    @NotNull
     @Override
     protected com.azure.resourcemanager.appservice.models.WebApp getResourceInner() {
         if (webAppInner == null) {
@@ -74,13 +72,13 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
     @Override
     public void delete() {
-        azureClient.webApps().deleteById(getResourceInner().id());
+        azureClient.webApps().deleteById(getNonnullResourceInner().id());
     }
 
     @Override
     public void deploy(DeployType deployType, File targetFile, String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
-        getResourceInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
+        getNonnullResourceInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
     @Override
@@ -91,26 +89,26 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     @Override
     public IWebAppDeploymentSlot deploymentSlot(String slotName) {
         final WebAppDeploymentSlotEntity slotEntity = WebAppDeploymentSlotEntity.builder().name(slotName)
-            .resourceGroup(getResourceInner().resourceGroupName())
-            .webappName(getResourceInner().name()).build();
+            .resourceGroup(getNonnullResourceInner().resourceGroupName())
+            .webappName(getNonnullResourceInner().name()).build();
         return new WebAppDeploymentSlot(slotEntity, azureClient);
     }
 
     @Override
     public List<IWebAppDeploymentSlot> deploymentSlots() {
-        return getResourceInner().deploymentSlots().list().stream()
+        return getNonnullResourceInner().deploymentSlots().list().stream()
             .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureClient))
             .collect(Collectors.toList());
     }
 
     @Override
     public String id() {
-        return getResourceInner().id();
+        return getNonnullResourceInner().id();
     }
 
     @Override
     public String name() {
-        return getResourceInner().name();
+        return getNonnullResourceInner().name();
     }
 
     public class WebAppCreator extends AbstractAppServiceCreator<WebApp> {
@@ -188,7 +186,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
         @Override
         public WebApp commit() {
-            Update update = getResourceInner().update();
+            Update update = getNonnullResourceInner().update();
             if (getAppServicePlan() != null && getAppServicePlan().isPresent()) {
                 update = updateAppServicePlan(update, getAppServicePlan().get());
             }
@@ -212,7 +210,8 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         }
 
         private Update updateAppServicePlan(Update update, AppServicePlanEntity newServicePlan) {
-            final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppService.class).appServicePlan(getResourceInner().appServicePlanId()).entity();
+            final String servicePlanId = getNonnullResourceInner().appServicePlanId();
+            final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppService.class).appServicePlan(servicePlanId).entity();
             if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
                 (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
                     StringUtils.equalsIgnoreCase(currentServicePlan.getResourceGroup(), newServicePlan.getResourceGroup()))) {
