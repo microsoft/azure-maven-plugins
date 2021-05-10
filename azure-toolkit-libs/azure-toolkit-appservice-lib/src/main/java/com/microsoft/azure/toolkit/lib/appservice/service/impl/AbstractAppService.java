@@ -17,10 +17,10 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
 
@@ -94,7 +94,7 @@ abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
     }
 
     @Override
-    public Mono<byte[]> getFileContent(String path) {
+    public Flux<ByteBuffer> getFileContent(String path) {
         return getKuduManager().getFileContent(path);
     }
 

@@ -95,9 +95,8 @@ public class AppServiceKuduManager {
         return new AppServiceKuduManager(host, kuduService, appService);
     }
 
-    public Mono<byte[]> getFileContent(final String path) {
-        final Flux<ByteBuffer> byteBufferFlux = this.kuduService.getFileContent(host, path).flatMapMany(StreamResponse::getValue);
-        return FluxUtil.collectBytesInByteBufferStream(byteBufferFlux);
+    public Flux<ByteBuffer> getFileContent(final String path) {
+        return this.kuduService.getFileContent(host, path).flatMapMany(StreamResponse::getValue);
     }
 
     public List<? extends AppServiceFile> getFilesInDirectory(String dir) {

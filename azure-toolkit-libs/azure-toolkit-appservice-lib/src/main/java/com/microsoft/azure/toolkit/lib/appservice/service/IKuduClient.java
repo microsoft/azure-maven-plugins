@@ -9,12 +9,14 @@ import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.CommandOutput;
 import com.microsoft.azure.toolkit.lib.appservice.model.ProcessInfo;
 import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 public interface IKuduClient {
-    Mono<byte[]> getFileContent(final String path);
+    Flux<ByteBuffer> getFileContent(final String path);
 
     List<? extends AppServiceFile> getFilesInDirectory(String dir);
 

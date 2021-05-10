@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.appservice.model;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.With;
 
 import java.util.Objects;
@@ -15,6 +16,7 @@ import java.util.Objects;
 @With
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class AppServiceFile {
     private String name;
     private long size;
