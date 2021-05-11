@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -37,8 +38,12 @@ public class AppServicePlan implements IAppServicePlan {
 
     @Override
     public boolean exists() {
-        refreshAppServicePlanInner();
-        return remote != null;
+        try {
+            return remote() != null;
+        } catch (ManagementException e) {
+            // SDK will throw exception when resource not founded
+            return false;
+        }
     }
 
     @Override
@@ -59,17 +64,6 @@ public class AppServicePlan implements IAppServicePlan {
         return new AppServicePlanUpdater();
     }
 
-    public com.azure.resourcemanager.appservice.models.AppServicePlan getRemoteResource() {
-        if (remote == null) {
-            refreshAppServicePlanInner();
-        }
-        return remote;
-    }
-
-    public synchronized void refreshAppServicePlanInner() {
-        remote = AppServiceUtils.getAppServicePlan(entity, azureClient);
-    }
-
     @Override
     public String id() {
         return getRemoteResource().id();
@@ -78,6 +72,20 @@ public class AppServicePlan implements IAppServicePlan {
     @Override
     public String name() {
         return getRemoteResource().name();
+    }
+
+    private com.azure.resourcemanager.appservice.models.AppServicePlan remote() {
+        if (remote == null) {
+            remote = StringUtils.isNotEmpty(entity.getId()) ?
+                    azureClient.appServicePlans().getById(entity.getId()) :
+                    azureClient.appServicePlans().getByResourceGroup(entity.getResourceGroup(), entity.getName());
+            entity = AppServiceUtils.fromAppServicePlan(remote);
+        }
+        return remote;
+    }
+
+    private com.azure.resourcemanager.appservice.models.AppServicePlan getRemoteResource() {
+        return Objects.requireNonNull(remote(), "Target resource does not exist.");
     }
 
     public class AppServicePlanCreator implements IAppServicePlanCreator {

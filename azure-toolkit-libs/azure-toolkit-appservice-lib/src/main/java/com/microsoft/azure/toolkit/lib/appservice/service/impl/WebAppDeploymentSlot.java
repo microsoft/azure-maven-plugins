@@ -56,7 +56,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
     }
 
     @Override
-    protected DeploymentSlot getRemoteResource() {
+    protected DeploymentSlot remote() {
         final WebApp parentWebApp = getParentWebApp();
         if (remote == null) {
             remote = StringUtils.isNotEmpty(slotEntity.getId()) ? parentWebApp.deploymentSlots().getById(slotEntity.getId()) :
@@ -68,13 +68,13 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
 
     @Override
     public void delete() {
-        getNonnullRemoteResource().parent().deploymentSlots().deleteByName(slotEntity.getName());
+        getRemoteResource().parent().deploymentSlots().deleteByName(slotEntity.getName());
     }
 
     @Override
     public void deploy(DeployType deployType, File targetFile, String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
-        getNonnullRemoteResource().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
+        getRemoteResource().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
     @Override
@@ -179,7 +179,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
 
         @Override
         public WebAppDeploymentSlot commit() {
-            final DeploymentSlotBase.Update<DeploymentSlot> update = getNonnullRemoteResource().update();
+            final DeploymentSlotBase.Update<DeploymentSlot> update = getRemoteResource().update();
             if (getAppSettings() != null) {
                 update.withAppSettings(getAppSettings());
             }

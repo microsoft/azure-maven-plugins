@@ -11,41 +11,40 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Optional;
+import java.util.Objects;
 
-public abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
+abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
     @Nullable
-    protected abstract T getRemoteResource();
+    protected abstract T remote();
 
     @Nonnull
-    protected T getNonnullRemoteResource() {
-        return Optional.ofNullable(getRemoteResource()).orElseThrow(() -> new AzureToolkitRuntimeException("Target resource does not exist."));
+    protected T getRemoteResource() {
+        return Objects.requireNonNull(remote(), "Target resource does not exist.");
     }
 
     @Override
     public void start() {
-        getNonnullRemoteResource().start();
+        getRemoteResource().start();
     }
 
     @Override
     public void stop() {
-        getNonnullRemoteResource().stop();
+        getRemoteResource().stop();
     }
 
     @Override
     public void restart() {
-        getNonnullRemoteResource().restart();
+        getRemoteResource().restart();
     }
 
     @Override
     public boolean exists() {
         try {
-            return getRemoteResource() != null;
+            return remote() != null;
         } catch (ManagementException e) {
             // SDK will throw exception when resource not founded
             return false;
@@ -54,41 +53,41 @@ public abstract class AbstractAppService<T extends WebAppBase> implements IAppSe
 
     @Override
     public String hostName() {
-        return getNonnullRemoteResource().defaultHostname();
+        return getRemoteResource().defaultHostname();
     }
 
     @Override
     public String state() {
-        return getNonnullRemoteResource().state();
+        return getRemoteResource().state();
     }
 
     @Override
     public Runtime getRuntime() {
-        return AppServiceUtils.getRuntimeFromWebApp(getNonnullRemoteResource());
+        return AppServiceUtils.getRuntimeFromWebApp(getRemoteResource());
     }
 
     @Override
     public PublishingProfile getPublishingProfile() {
-        return AppServiceUtils.fromPublishingProfile(getNonnullRemoteResource().getPublishingProfile());
+        return AppServiceUtils.fromPublishingProfile(getRemoteResource().getPublishingProfile());
     }
 
     @Override
     public DiagnosticConfig getDiagnosticConfig() {
-        return AppServiceUtils.fromWebAppDiagnosticLogs(getNonnullRemoteResource().diagnosticLogsConfig());
+        return AppServiceUtils.fromWebAppDiagnosticLogs(getRemoteResource().diagnosticLogsConfig());
     }
 
     @Override
     public Flux<String> streamAllLogsAsync() {
-        return getNonnullRemoteResource().streamAllLogsAsync();
+        return getRemoteResource().streamAllLogsAsync();
     }
 
     @Override
     public String id() {
-        return getNonnullRemoteResource().id();
+        return getRemoteResource().id();
     }
 
     @Override
     public String name() {
-        return getNonnullRemoteResource().name();
+        return getRemoteResource().name();
     }
 }
