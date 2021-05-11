@@ -10,8 +10,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
-import java.util.List;
-
 @Getter
 @SuperBuilder(toBuilder = true)
 public class SqlServerEntity implements IAzureResourceEntity {
@@ -30,5 +28,7 @@ public class SqlServerEntity implements IAzureResourceEntity {
     private String fullyQualifiedDomainName;
     private String type;
 
-    private List<Object> sqlFirewallRules;
+    private boolean enableAccessFromAzureServices;
+    private boolean enableAccessFromLocalMachine;
+
 }
