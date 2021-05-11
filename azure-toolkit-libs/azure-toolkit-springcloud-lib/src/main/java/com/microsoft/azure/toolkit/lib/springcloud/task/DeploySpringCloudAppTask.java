@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
@@ -69,6 +70,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final boolean toCreateApp = !app.exists();
         final boolean toCreateDeployment = !deployment.exists();
 
+        AzureTelemetry.getContext().getActionProperties().put("subscriptionId", config.getSubscriptionId());
         AzureTelemetry.getContext().setProperty("isCreateNewApp", String.valueOf(toCreateApp));
         AzureTelemetry.getContext().setProperty("isCreateDeployment", String.valueOf(toCreateDeployment));
         AzureTelemetry.getContext().setProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deploymentConfig.getDeploymentName())));
@@ -107,6 +109,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
     }
 
     @Override
+    @AzureOperation(name = "springcloud|app.create_update", params = {"this.config.getAppName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment execute() {
         this.subTasks.forEach(t->t.getSupplier().get());
         return this.deployment;

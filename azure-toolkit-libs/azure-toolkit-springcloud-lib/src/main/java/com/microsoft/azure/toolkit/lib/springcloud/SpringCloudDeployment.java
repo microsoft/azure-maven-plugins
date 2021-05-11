@@ -11,8 +11,8 @@ import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.Dep
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.model.AzureRemotableArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
@@ -54,6 +54,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         return this.app;
     }
 
+    @AzureOperation(name = "springcloud|deployment.start", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment start() {
         final SpringCloudDeploymentEntity deployment = this.entity();
         this.deploymentManager.start(deployment.getName(), deployment.getApp());
@@ -99,30 +100,30 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
 
         public Updater configEnvironmentVariables(Map<String, String> env) {
             final Map<String, String> oldEnv = Optional.ofNullable(this.deployment.remote)
-                .map(e -> e.getInner().properties().deploymentSettings().environmentVariables()).orElse(null);
+                    .map(e -> e.getInner().properties().deploymentSettings().environmentVariables()).orElse(null);
             if (MapUtils.isNotEmpty(env) && !Objects.equals(env, oldEnv)) {
                 AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
-                    .withEnvironmentVariables(env);
+                        .withEnvironmentVariables(env);
             }
             return this;
         }
 
         public Updater configJvmOptions(String jvmOptions) {
             final String oldJvmOptions = Optional.ofNullable(this.deployment.remote)
-                .map(e -> e.getInner().properties().deploymentSettings().jvmOptions()).orElse(null);
+                    .map(e -> e.getInner().properties().deploymentSettings().jvmOptions()).orElse(null);
             if (StringUtils.isNotBlank(jvmOptions) && !Objects.equals(jvmOptions, oldJvmOptions)) {
                 AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
-                    .withJvmOptions(jvmOptions.trim());
+                        .withJvmOptions(jvmOptions.trim());
             }
             return this;
         }
 
         public Updater configRuntimeVersion(String version) {
             final RuntimeVersion oldRuntimeVersion = Optional.ofNullable(this.deployment.remote)
-                .map(e -> e.getInner().properties().deploymentSettings().runtimeVersion()).orElse(null);
+                    .map(e -> e.getInner().properties().deploymentSettings().runtimeVersion()).orElse(null);
             if (Objects.nonNull(version) && !Objects.equals(oldRuntimeVersion, RuntimeVersion.fromString(version))) {
                 AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
-                    .withRuntimeVersion(RuntimeVersion.fromString(version));
+                        .withRuntimeVersion(RuntimeVersion.fromString(version));
             }
             return this;
         }
@@ -130,26 +131,27 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         public Updater configArtifact(AzureRemotableArtifact artifact) {
             this.delayableArtifact = artifact;
             final String oldPath = Optional.ofNullable(this.deployment.remote)
-                .map(e -> e.getInner().properties().source().relativePath()).orElse(null);
+                    .map(e -> e.getInner().properties().source().relativePath()).orElse(null);
             if (Objects.nonNull(artifact) && Objects.nonNull(artifact.getRemotePath()) && !Objects.equals(artifact.getRemotePath(), oldPath)) {
                 AzureSpringCloudConfigUtils.getOrCreateSource(this.resource, this.deployment)
-                    .withRelativePath(artifact.getRemotePath());
+                        .withRelativePath(artifact.getRemotePath());
             }
             return this;
         }
 
         public Updater configScaleSettings(ScaleSettings newSettings) {
             final ScaleSettings oldSettings = Optional.ofNullable(this.deployment.remote)
-                .map(SpringCloudDeploymentEntity::getInner).map(AzureSpringCloudConfigUtils::getScaleSettings).orElse(null);
+                    .map(SpringCloudDeploymentEntity::getInner).map(AzureSpringCloudConfigUtils::getScaleSettings).orElse(null);
             if (!AzureSpringCloudConfigUtils.isEmpty(newSettings) && !Objects.equals(newSettings, oldSettings)) {
                 AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(this.resource, this.deployment)
-                    .withCpu(newSettings.getCpu()).withMemoryInGB(newSettings.getMemoryInGB());
+                        .withCpu(newSettings.getCpu()).withMemoryInGB(newSettings.getMemoryInGB());
                 AzureSpringCloudConfigUtils.getOrCreateSku(this.resource, this.deployment)
-                    .withCapacity(newSettings.getCapacity());
+                        .withCapacity(newSettings.getCapacity());
             }
             return this;
         }
 
+        @AzureOperation(name = "springcloud|deployment.update", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
         public SpringCloudDeployment commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
             // FIXME: start workaround for bug: can not scale when updating other properties
@@ -171,14 +173,15 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
             return this.deployment.start();
         }
 
+        @AzureOperation(name = "springcloud|deployment.scale", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
         private void scale(@Nonnull ScaleSettings scaleSettings) {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(String.format("Start scaling deployment(%s)...", messager.value(this.deployment.name())));
             final DeploymentResourceInner tempResource = new DeploymentResourceInner();
             AzureSpringCloudConfigUtils.getOrCreateDeploymentSettings(tempResource, this.deployment)
-                .withCpu(scaleSettings.getCpu()).withMemoryInGB(scaleSettings.getMemoryInGB());
+                    .withCpu(scaleSettings.getCpu()).withMemoryInGB(scaleSettings.getMemoryInGB());
             AzureSpringCloudConfigUtils.getOrCreateSku(tempResource, this.deployment)
-                .withCapacity(scaleSettings.getCapacity());
+                    .withCapacity(scaleSettings.getCapacity());
             this.deployment.remote = this.deployment.deploymentManager.update(tempResource, this.deployment.entity());
             messager.success(String.format("Deployment(%s) is successfully scaled.", messager.value(this.deployment.name())));
         }
@@ -189,6 +192,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
             super(manager);
         }
 
+        @AzureOperation(name = "springcloud|deployment.create", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
         public SpringCloudDeployment commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
             this.configArtifact(this.delayableArtifact);
