@@ -29,13 +29,13 @@ import java.util.Optional;
 
 public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> implements IWebAppDeploymentSlot {
 
-    private WebAppDeploymentSlotEntity slotEntity;
+    private WebAppDeploymentSlotEntity entity;
 
     private DeploymentSlot remote;
     private final AzureResourceManager azureClient;
 
     public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureClient) {
-        this.slotEntity = deploymentSlot;
+        this.entity = deploymentSlot;
         this.azureClient = azureClient;
     }
 
@@ -59,16 +59,16 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
     protected DeploymentSlot remote() {
         final WebApp parentWebApp = getParentWebApp();
         if (remote == null) {
-            remote = StringUtils.isNotEmpty(slotEntity.getId()) ? parentWebApp.deploymentSlots().getById(slotEntity.getId()) :
-                    parentWebApp.deploymentSlots().getByName(slotEntity.getName());
-            slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(remote);
+            remote = StringUtils.isNotEmpty(entity.getId()) ? parentWebApp.deploymentSlots().getById(entity.getId()) :
+                    parentWebApp.deploymentSlots().getByName(entity.getName());
+            entity = AppServiceUtils.fromWebAppDeploymentSlot(remote);
         }
         return remote;
     }
 
     @Override
     public void delete() {
-        getRemoteResource().parent().deploymentSlots().deleteByName(slotEntity.getName());
+        getRemoteResource().parent().deploymentSlots().deleteByName(entity.getName());
     }
 
     @Override
@@ -79,13 +79,13 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
 
     @Override
     public WebAppDeploymentSlotEntity entity() {
-        return slotEntity;
+        return entity;
     }
 
     private WebApp getParentWebApp() {
-        return StringUtils.isNotEmpty(slotEntity.getId()) ?
-                azureClient.webApps().getById(slotEntity.getId().substring(0, slotEntity.getId().indexOf("/slots"))) :
-                azureClient.webApps().getByResourceGroup(slotEntity.getResourceGroup(), slotEntity.getWebappName());
+        return StringUtils.isNotEmpty(entity.getId()) ?
+                azureClient.webApps().getById(entity.getId().substring(0, entity.getId().indexOf("/slots"))) :
+                azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getWebappName());
     }
 
     @Getter
@@ -155,7 +155,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
                 AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig());
             }
             WebAppDeploymentSlot.this.remote = withCreate.create();
-            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
+            WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
             return WebAppDeploymentSlot.this;
         }
     }
@@ -187,7 +187,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig());
             }
             WebAppDeploymentSlot.this.remote = update.apply();
-            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
+            WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
             return WebAppDeploymentSlot.this;
         }
     }
