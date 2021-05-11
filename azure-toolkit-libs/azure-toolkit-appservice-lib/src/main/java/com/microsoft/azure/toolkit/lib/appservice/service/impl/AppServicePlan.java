@@ -19,13 +19,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class AppServicePlan implements IAppServicePlan {
 
     private AppServicePlanEntity entity;
     private AzureResourceManager azureClient;
-    private com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlanInner;
+    private com.azure.resourcemanager.appservice.models.AppServicePlan remote;
 
     public AppServicePlan(AppServicePlanEntity appServicePlanEntity, AzureResourceManager azureClient) {
         this.entity = appServicePlanEntity;
@@ -40,7 +39,7 @@ public class AppServicePlan implements IAppServicePlan {
     @Override
     public boolean exists() {
         refreshAppServicePlanInner();
-        return appServicePlanInner != null;
+        return remote != null;
     }
 
     @Override
@@ -50,8 +49,8 @@ public class AppServicePlan implements IAppServicePlan {
 
     @Override
     public List<IWebApp> webapps() {
-        return getAppServicePlanInner().manager().webApps().list().stream()
-            .filter(webapp -> StringUtils.equals(webapp.appServicePlanId(), getAppServicePlanInner().id()))
+        return getRemoteResource().manager().webApps().list().stream()
+            .filter(webapp -> StringUtils.equals(webapp.appServicePlanId(), getRemoteResource().id()))
             .map(webapp -> new WebApp(AppServiceUtils.fromWebAppBasic(webapp), azureClient))
             .collect(Collectors.toList());
     }
@@ -61,25 +60,25 @@ public class AppServicePlan implements IAppServicePlan {
         return new AppServicePlanUpdater();
     }
 
-    public com.azure.resourcemanager.appservice.models.AppServicePlan getAppServicePlanInner() {
-        if (appServicePlanInner == null) {
+    public com.azure.resourcemanager.appservice.models.AppServicePlan getRemoteResource() {
+        if (remote == null) {
             refreshAppServicePlanInner();
         }
-        return appServicePlanInner;
+        return remote;
     }
 
     public synchronized void refreshAppServicePlanInner() {
-        appServicePlanInner = AppServiceUtils.getAppServicePlan(entity, azureClient);
+        remote = AppServiceUtils.getAppServicePlan(entity, azureClient);
     }
 
     @Override
     public String id() {
-        return getAppServicePlanInner().id();
+        return getRemoteResource().id();
     }
 
     @Override
     public String name() {
-        return getAppServicePlanInner().name();
+        return getRemoteResource().name();
     }
 
     public class AppServicePlanCreator implements IAppServicePlanCreator {
@@ -121,12 +120,12 @@ public class AppServicePlan implements IAppServicePlan {
 
         @Override
         public IAppServicePlan commit() {
-            AppServicePlan.this.appServicePlanInner = azureClient.appServicePlans().define(name)
+            AppServicePlan.this.remote = azureClient.appServicePlans().define(name)
                 .withRegion(region.getName())
                 .withExistingResourceGroup(resourceGroup)
                 .withPricingTier(AppServiceUtils.toPricingTier(pricingTier))
                 .withOperatingSystem(convertOS(operatingSystem)).create();
-            AppServicePlan.this.entity = AppServiceUtils.fromAppServicePlan(AppServicePlan.this.appServicePlanInner);
+            AppServicePlan.this.entity = AppServiceUtils.fromAppServicePlan(AppServicePlan.this.remote);
             return AppServicePlan.this;
         }
 
@@ -148,18 +147,18 @@ public class AppServicePlan implements IAppServicePlan {
         @Override
         public AppServicePlan commit() {
             boolean modified = false;
-            com.azure.resourcemanager.appservice.models.AppServicePlan.Update update = appServicePlanInner.update();
+            com.azure.resourcemanager.appservice.models.AppServicePlan.Update update = remote.update();
             if (pricingTier != null && pricingTier.isPresent()) {
                 final com.azure.resourcemanager.appservice.models.PricingTier newPricingTier = AppServiceUtils.toPricingTier(pricingTier.get());
-                if (!Objects.equals(newPricingTier, AppServicePlan.this.getAppServicePlanInner().pricingTier())) {
+                if (!Objects.equals(newPricingTier, AppServicePlan.this.getRemoteResource().pricingTier())) {
                     modified = true;
                     update = update.withPricingTier(newPricingTier);
                 }
             }
             if (modified) {
-                AppServicePlan.this.appServicePlanInner = update.apply();
+                AppServicePlan.this.remote = update.apply();
             }
-            AppServicePlan.this.entity = AppServiceUtils.fromAppServicePlan(AppServicePlan.this.appServicePlanInner);
+            AppServicePlan.this.entity = AppServiceUtils.fromAppServicePlan(AppServicePlan.this.remote);
             return AppServicePlan.this;
         }
     }

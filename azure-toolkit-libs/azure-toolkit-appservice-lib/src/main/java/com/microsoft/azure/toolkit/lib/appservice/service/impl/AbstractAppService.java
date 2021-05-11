@@ -20,32 +20,32 @@ import java.util.Optional;
 
 public abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
     @Nullable
-    protected abstract T getResourceInner();
+    protected abstract T getRemoteResource();
 
     @Nonnull
-    protected T getNonnullResourceInner() {
-        return Optional.ofNullable(getResourceInner()).orElseThrow(() -> new AzureToolkitRuntimeException("Target resource does not exist."));
+    protected T getNonnullRemoteResource() {
+        return Optional.ofNullable(getRemoteResource()).orElseThrow(() -> new AzureToolkitRuntimeException("Target resource does not exist."));
     }
 
     @Override
     public void start() {
-        getNonnullResourceInner().start();
+        getNonnullRemoteResource().start();
     }
 
     @Override
     public void stop() {
-        getNonnullResourceInner().stop();
+        getNonnullRemoteResource().stop();
     }
 
     @Override
     public void restart() {
-        getNonnullResourceInner().restart();
+        getNonnullRemoteResource().restart();
     }
 
     @Override
     public boolean exists() {
         try {
-            return getResourceInner() != null;
+            return getRemoteResource() != null;
         } catch (ManagementException e) {
             // SDK will throw exception when resource not founded
             return false;
@@ -54,41 +54,41 @@ public abstract class AbstractAppService<T extends WebAppBase> implements IAppSe
 
     @Override
     public String hostName() {
-        return getNonnullResourceInner().defaultHostname();
+        return getNonnullRemoteResource().defaultHostname();
     }
 
     @Override
     public String state() {
-        return getNonnullResourceInner().state();
+        return getNonnullRemoteResource().state();
     }
 
     @Override
     public Runtime getRuntime() {
-        return AppServiceUtils.getRuntimeFromWebApp(getNonnullResourceInner());
+        return AppServiceUtils.getRuntimeFromWebApp(getNonnullRemoteResource());
     }
 
     @Override
     public PublishingProfile getPublishingProfile() {
-        return AppServiceUtils.fromPublishingProfile(getNonnullResourceInner().getPublishingProfile());
+        return AppServiceUtils.fromPublishingProfile(getNonnullRemoteResource().getPublishingProfile());
     }
 
     @Override
     public DiagnosticConfig getDiagnosticConfig() {
-        return AppServiceUtils.fromWebAppDiagnosticLogs(getNonnullResourceInner().diagnosticLogsConfig());
+        return AppServiceUtils.fromWebAppDiagnosticLogs(getNonnullRemoteResource().diagnosticLogsConfig());
     }
 
     @Override
     public Flux<String> streamAllLogsAsync() {
-        return getNonnullResourceInner().streamAllLogsAsync();
+        return getNonnullRemoteResource().streamAllLogsAsync();
     }
 
     @Override
     public String id() {
-        return getNonnullResourceInner().id();
+        return getNonnullRemoteResource().id();
     }
 
     @Override
     public String name() {
-        return getNonnullResourceInner().name();
+        return getNonnullRemoteResource().name();
     }
 }

@@ -31,7 +31,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
 
     private WebAppDeploymentSlotEntity slotEntity;
 
-    private DeploymentSlot deploymentSlotInner;
+    private DeploymentSlot remote;
     private final AzureResourceManager azureClient;
 
     public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureClient) {
@@ -56,25 +56,25 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
     }
 
     @Override
-    protected DeploymentSlot getResourceInner() {
+    protected DeploymentSlot getRemoteResource() {
         final WebApp parentWebApp = getParentWebApp();
-        if (deploymentSlotInner == null) {
-            deploymentSlotInner = StringUtils.isNotEmpty(slotEntity.getId()) ? parentWebApp.deploymentSlots().getById(slotEntity.getId()) :
+        if (remote == null) {
+            remote = StringUtils.isNotEmpty(slotEntity.getId()) ? parentWebApp.deploymentSlots().getById(slotEntity.getId()) :
                     parentWebApp.deploymentSlots().getByName(slotEntity.getName());
-            slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(deploymentSlotInner);
+            slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(remote);
         }
-        return deploymentSlotInner;
+        return remote;
     }
 
     @Override
     public void delete() {
-        getNonnullResourceInner().parent().deploymentSlots().deleteByName(slotEntity.getName());
+        getNonnullRemoteResource().parent().deploymentSlots().deleteByName(slotEntity.getName());
     }
 
     @Override
     public void deploy(DeployType deployType, File targetFile, String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
-        getNonnullResourceInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
+        getNonnullRemoteResource().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
     @Override
@@ -154,8 +154,8 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
             if (getDiagnosticConfig() != null) {
                 AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig());
             }
-            WebAppDeploymentSlot.this.deploymentSlotInner = withCreate.create();
-            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.deploymentSlotInner);
+            WebAppDeploymentSlot.this.remote = withCreate.create();
+            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
             return WebAppDeploymentSlot.this;
         }
     }
@@ -179,15 +179,15 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
 
         @Override
         public WebAppDeploymentSlot commit() {
-            final DeploymentSlotBase.Update<DeploymentSlot> update = getNonnullResourceInner().update();
+            final DeploymentSlotBase.Update<DeploymentSlot> update = getNonnullRemoteResource().update();
             if (getAppSettings() != null) {
                 update.withAppSettings(getAppSettings());
             }
             if (getDiagnosticConfig() != null) {
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig());
             }
-            WebAppDeploymentSlot.this.deploymentSlotInner = update.apply();
-            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.deploymentSlotInner);
+            WebAppDeploymentSlot.this.remote = update.apply();
+            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
             return WebAppDeploymentSlot.this;
         }
     }

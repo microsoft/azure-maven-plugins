@@ -37,7 +37,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     private WebAppEntity entity;
 
     private final AzureResourceManager azureClient;
-    private com.azure.resourcemanager.appservice.models.WebApp webAppInner;
+    private com.azure.resourcemanager.appservice.models.WebApp remote;
 
     public WebApp(WebAppEntity entity, AzureResourceManager azureClient) {
         this.entity = entity;
@@ -51,7 +51,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
     @Override
     public IAppServicePlan plan() {
-        return Azure.az(AzureAppService.class).appServicePlan(getNonnullResourceInner().appServicePlanId());
+        return Azure.az(AzureAppService.class).appServicePlan(getNonnullRemoteResource().appServicePlanId());
     }
 
     @Override
@@ -60,25 +60,25 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     }
 
     @Override
-    protected com.azure.resourcemanager.appservice.models.WebApp getResourceInner() {
-        if (webAppInner == null) {
-            webAppInner = StringUtils.isNotEmpty(entity.getId()) ?
+    protected com.azure.resourcemanager.appservice.models.WebApp getRemoteResource() {
+        if (remote == null) {
+            remote = StringUtils.isNotEmpty(entity.getId()) ?
                     azureClient.webApps().getById(entity.getId()) :
                     azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
-            entity = AppServiceUtils.fromWebApp(webAppInner);
+            entity = AppServiceUtils.fromWebApp(remote);
         }
-        return webAppInner;
+        return remote;
     }
 
     @Override
     public void delete() {
-        azureClient.webApps().deleteById(getNonnullResourceInner().id());
+        azureClient.webApps().deleteById(getNonnullRemoteResource().id());
     }
 
     @Override
     public void deploy(DeployType deployType, File targetFile, String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
-        getNonnullResourceInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
+        getNonnullRemoteResource().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
     @Override
@@ -89,26 +89,26 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     @Override
     public IWebAppDeploymentSlot deploymentSlot(String slotName) {
         final WebAppDeploymentSlotEntity slotEntity = WebAppDeploymentSlotEntity.builder().name(slotName)
-            .resourceGroup(getNonnullResourceInner().resourceGroupName())
-            .webappName(getNonnullResourceInner().name()).build();
+            .resourceGroup(getNonnullRemoteResource().resourceGroupName())
+            .webappName(getNonnullRemoteResource().name()).build();
         return new WebAppDeploymentSlot(slotEntity, azureClient);
     }
 
     @Override
     public List<IWebAppDeploymentSlot> deploymentSlots() {
-        return getNonnullResourceInner().deploymentSlots().list().stream()
+        return getNonnullRemoteResource().deploymentSlots().list().stream()
             .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureClient))
             .collect(Collectors.toList());
     }
 
     @Override
     public String id() {
-        return getNonnullResourceInner().id();
+        return getNonnullRemoteResource().id();
     }
 
     @Override
     public String name() {
-        return getNonnullResourceInner().name();
+        return getNonnullRemoteResource().name();
     }
 
     public class WebAppCreator extends AbstractAppServiceCreator<WebApp> {
@@ -141,8 +141,8 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             if (getDiagnosticConfig() != null && getDiagnosticConfig().isPresent()) {
                 AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig().get());
             }
-            WebApp.this.webAppInner = withCreate.create();
-            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.webAppInner);
+            WebApp.this.remote = withCreate.create();
+            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.remote);
             return WebApp.this;
         }
 
@@ -186,7 +186,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
         @Override
         public WebApp commit() {
-            Update update = getNonnullResourceInner().update();
+            Update update = getNonnullRemoteResource().update();
             if (getAppServicePlan() != null && getAppServicePlan().isPresent()) {
                 update = updateAppServicePlan(update, getAppServicePlan().get());
             }
@@ -203,14 +203,14 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig().get());
             }
             if (modified) {
-                WebApp.this.webAppInner = update.apply();
+                WebApp.this.remote = update.apply();
             }
-            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.webAppInner);
+            WebApp.this.entity = AppServiceUtils.fromWebApp(WebApp.this.remote);
             return WebApp.this;
         }
 
         private Update updateAppServicePlan(Update update, AppServicePlanEntity newServicePlan) {
-            final String servicePlanId = getNonnullResourceInner().appServicePlanId();
+            final String servicePlanId = getNonnullRemoteResource().appServicePlanId();
             final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppService.class).appServicePlan(servicePlanId).entity();
             if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
                 (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&
