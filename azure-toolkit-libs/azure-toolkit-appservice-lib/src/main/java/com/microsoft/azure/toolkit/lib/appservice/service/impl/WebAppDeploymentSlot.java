@@ -15,8 +15,6 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlotCreator;
@@ -24,21 +22,20 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlotU
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import reactor.core.publisher.Flux;
 
 import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 
-public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
+public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> implements IWebAppDeploymentSlot {
 
-    private WebAppDeploymentSlotEntity slotEntity;
+    private WebAppDeploymentSlotEntity entity;
 
-    private DeploymentSlot deploymentSlotInner;
+    private DeploymentSlot remote;
     private final AzureResourceManager azureClient;
 
     public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureClient) {
-        this.slotEntity = deploymentSlot;
+        this.entity = deploymentSlot;
         this.azureClient = azureClient;
     }
 
@@ -59,105 +56,36 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
     }
 
     @Override
-    public void start() {
-        getDeploymentSlotInner().start();
-    }
-
-    @Override
-    public void stop() {
-        getDeploymentSlotInner().stop();
-    }
-
-    @Override
-    public void restart() {
-        getDeploymentSlotInner().restart();
+    protected DeploymentSlot remote() {
+        final WebApp parentWebApp = getParentWebApp();
+        if (remote == null) {
+            remote = StringUtils.isNotEmpty(entity.getId()) ? parentWebApp.deploymentSlots().getById(entity.getId()) :
+                    parentWebApp.deploymentSlots().getByName(entity.getName());
+            entity = AppServiceUtils.fromWebAppDeploymentSlot(remote);
+        }
+        return remote;
     }
 
     @Override
     public void delete() {
-        getDeploymentSlotInner().parent().deploymentSlots().deleteByName(slotEntity.getName());
+        getRemoteResource().parent().deploymentSlots().deleteByName(entity.getName());
     }
 
     @Override
     public void deploy(DeployType deployType, File targetFile, String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
-        getDeploymentSlotInner().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
-    }
-
-    @Override
-    public boolean exists() {
-        refreshDeploymentSlotInner();
-        return deploymentSlotInner != null;
-    }
-
-    @Override
-    public String hostName() {
-        return getDeploymentSlotInner().defaultHostname();
-    }
-
-    @Override
-    public String state() {
-        return getDeploymentSlotInner().state();
-    }
-
-    @Override
-    public Runtime getRuntime() {
-        return AppServiceUtils.getRuntimeFromWebApp(getDeploymentSlotInner());
-    }
-
-    @Override
-    public PublishingProfile getPublishingProfile() {
-        return AppServiceUtils.fromPublishingProfile(getDeploymentSlotInner().getPublishingProfile());
-    }
-
-    @Override
-    public DiagnosticConfig getDiagnosticConfig() {
-        return AppServiceUtils.fromWebAppDiagnosticLogs(getDeploymentSlotInner().diagnosticLogsConfig());
-    }
-
-    @Override
-    public Flux<String> streamAllLogsAsync() {
-        return getDeploymentSlotInner().streamAllLogsAsync();
+        getRemoteResource().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
     @Override
     public WebAppDeploymentSlotEntity entity() {
-        return slotEntity;
-    }
-
-    private com.azure.resourcemanager.appservice.models.DeploymentSlot getDeploymentSlotInner() {
-        if (deploymentSlotInner == null) {
-            refreshDeploymentSlotInner();
-        }
-        return deploymentSlotInner;
-    }
-
-    private synchronized void refreshDeploymentSlotInner() {
-        final WebApp parentWebApp = getParentWebApp();
-        try {
-            deploymentSlotInner = StringUtils.isNotEmpty(slotEntity.getId()) ? parentWebApp.deploymentSlots().getById(slotEntity.getId()) :
-                parentWebApp.deploymentSlots().getByName(slotEntity.getName());
-            slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(deploymentSlotInner);
-        } catch (ManagementException e) {
-            // SDK will throw exception when resource not founded
-            deploymentSlotInner = null;
-        }
+        return entity;
     }
 
     private WebApp getParentWebApp() {
-        return StringUtils.isNotEmpty(slotEntity.getId()) ?
-                azureClient.webApps().getById(slotEntity.getId().substring(0, slotEntity.getId().indexOf("/slots"))) :
-                azureClient.webApps().getByResourceGroup(slotEntity.getResourceGroup(), slotEntity.getWebappName());
-    }
-
-    @Override
-    public String id() {
-        return getDeploymentSlotInner().id();
-    }
-
-    @Override
-    public String name() {
-        return getDeploymentSlotInner().name();
+        return StringUtils.isNotEmpty(entity.getId()) ?
+                azureClient.webApps().getById(entity.getId().substring(0, entity.getId().indexOf("/slots"))) :
+                azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getWebappName());
     }
 
     @Getter
@@ -226,8 +154,8 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
             if (getDiagnosticConfig() != null) {
                 AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig());
             }
-            WebAppDeploymentSlot.this.deploymentSlotInner = withCreate.create();
-            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.deploymentSlotInner);
+            WebAppDeploymentSlot.this.remote = withCreate.create();
+            WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
             return WebAppDeploymentSlot.this;
         }
     }
@@ -251,15 +179,15 @@ public class WebAppDeploymentSlot implements IWebAppDeploymentSlot {
 
         @Override
         public WebAppDeploymentSlot commit() {
-            final DeploymentSlotBase.Update<DeploymentSlot> update = getDeploymentSlotInner().update();
+            final DeploymentSlotBase.Update<DeploymentSlot> update = getRemoteResource().update();
             if (getAppSettings() != null) {
                 update.withAppSettings(getAppSettings());
             }
             if (getDiagnosticConfig() != null) {
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig());
             }
-            WebAppDeploymentSlot.this.deploymentSlotInner = update.apply();
-            WebAppDeploymentSlot.this.slotEntity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.deploymentSlotInner);
+            WebAppDeploymentSlot.this.remote = update.apply();
+            WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
             return WebAppDeploymentSlot.this;
         }
     }
