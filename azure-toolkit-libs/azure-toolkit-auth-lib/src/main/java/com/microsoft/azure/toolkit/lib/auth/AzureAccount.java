@@ -52,7 +52,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class AzureAccount implements AzureService, IAzureAccount {
+public class AzureAccount implements IAzureAccount {
 
     @Setter(AccessLevel.PACKAGE)
     private Account account;
@@ -285,7 +285,7 @@ public class AzureAccount implements AzureService, IAzureAccount {
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
         final HttpLogDetailLevel logDetailLevel = config.getLogLevel() == null ?
-                HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel().name());
+                HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel());
         final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
         return AzureResourceManager.configure()
                 .withLogLevel(logDetailLevel)
