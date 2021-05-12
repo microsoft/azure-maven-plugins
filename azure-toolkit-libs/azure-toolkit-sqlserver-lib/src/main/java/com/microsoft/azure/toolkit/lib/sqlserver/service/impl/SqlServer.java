@@ -45,12 +45,20 @@ public class SqlServer implements ISqlServer {
 
     @Override
     public ISqlServerCreator<? extends ISqlServer> create() {
-        return new SqlServerCreator();
+        return new SqlServerCreator()
+            .withName(entity.getName())
+            .withResourceGroup(entity.getResourceGroup())
+            .withRegion(entity.getRegion())
+            .withAdministratorLogin(entity.getAdministratorLoginName())
+            .withEnableAccessFromAzureServices(entity.isEnableAccessFromAzureServices())
+            .withEnableAccessFromLocalMachine(entity.isEnableAccessFromLocalMachine());
     }
 
     @Override
-    public SqlServerFirewallUpdater update() {
-        return new SqlServerFirewallUpdater();
+    public ISqlServerFirewallUpdater<? extends ISqlServer> update() {
+        return new SqlServerFirewallUpdater()
+            .withEnableAccessFromAzureServices(entity.isEnableAccessFromAzureServices())
+            .withEnableAccessFromLocalMachine(entity.isEnableAccessFromLocalMachine());
     }
 
     private com.azure.resourcemanager.sql.models.SqlServer getSqlServerInner() {

@@ -18,7 +18,7 @@ public class SqlServerUtils {
                 .resourceGroup(server.resourceGroupName())
                 .subscriptionId(ResourceId.fromString(server.id()).subscriptionId())
                 .kind(server.kind())
-                .administratorLogin(server.administratorLogin())
+                .administratorLoginName(server.administratorLogin())
                 .version(server.version())
                 .state(server.state())
                 .fullyQualifiedDomainName(server.fullyQualifiedDomainName())
