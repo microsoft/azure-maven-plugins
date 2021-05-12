@@ -5,19 +5,14 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
-import lombok.AllArgsConstructor;
+import com.microsoft.azure.management.appservice.WebAppBase;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
 
 import java.util.Objects;
 
-@With
+@Deprecated
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class AppServiceFile {
+public class AppServiceFileLegacy {
     private String name;
     private long size;
     private String mtime;
@@ -25,7 +20,7 @@ public class AppServiceFile {
     private String mime;
     private String href;
     private String path;
-    private IAppService app;
+    private WebAppBase app;
 
     public String getId() {
         return String.format("<%s>/%s", this.getApp().id(), this.getPath());
