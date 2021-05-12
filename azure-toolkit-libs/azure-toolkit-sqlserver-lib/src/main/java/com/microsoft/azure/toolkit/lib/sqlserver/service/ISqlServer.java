@@ -12,6 +12,6 @@ public interface ISqlServer {
 
     ISqlServerCreator<? extends ISqlServer> create();
 
-    ISqlServerUpdater<? extends ISqlServer> update();
+    ISqlServerFirewallUpdater<? extends ISqlServer> update();
 
 }
