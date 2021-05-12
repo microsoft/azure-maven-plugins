@@ -6,12 +6,20 @@
 package com.microsoft.azure.toolkit.lib.auth;
 
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.http.policy.HttpLogDetailLevel;
+import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.AzureEnvironment;
+import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.SharedTokenCacheCredential;
 import com.azure.identity.SharedTokenCacheCredentialBuilder;
 import com.azure.identity.TokenCachePersistenceOptions;
+import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.resources.models.Location;
+import com.azure.resourcemanager.resources.models.RegionType;
+import com.azure.resourcemanager.resources.models.Subscription;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
@@ -24,6 +32,9 @@ import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AccessLevel;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +43,7 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -214,6 +226,32 @@ public class AzureAccount implements AzureService, IAzureAccount {
         return targetAccount.login();
     }
 
+    /**
+     * see doc for: az account list-locations -o table
+     */
+    public List<Region> listRegions(String subscriptionId) {
+        return getSubscription(subscriptionId).listLocations().stream()
+                .filter(l -> l.regionType() == RegionType.PHYSICAL) // use distinct since com.azure.core.management.Region impls equals
+                .map(Location::region).distinct().map(AzureAccount::toRegion).collect(Collectors.toList());
+    }
+
+    /**
+     * see doc for: az account list-locations -o table
+     */
+    public List<Region> listRegions() {
+        return Flux.fromIterable(getSubscriptions()).parallel().map(com.microsoft.azure.toolkit.lib.common.model.Subscription::getId)
+                .map(this::listRegions)
+                .sequential().collectList()
+                .map(regionSet -> regionSet.stream()
+                .flatMap(Collection::stream)
+                .filter(Utils.distinctByKey(region -> StringUtils.lowerCase(region.getLabel()))) // cannot distinct since Region doesn't impl equals
+                .collect(Collectors.toList())).block();
+    }
+
+    private static Region toRegion(com.azure.core.management.Region region) {
+        return Optional.ofNullable(Region.fromName(region.name())).orElseGet(() -> new Region(region.name(), region.label() + "*"));
+    }
+
     private AzureAccount finishLogin(Mono<Account> mono) {
         try {
             mono.flatMap(Account::continueLogin).block();
@@ -230,5 +268,37 @@ public class AzureAccount implements AzureService, IAzureAccount {
         map.put(AuthType.OAUTH2, OAuthAccount::new);
         map.put(AuthType.DEVICE_CODE, DeviceCodeAccount::new);
         return map;
+    }
+
+
+    // todo: share codes with other library which leverage track2 mgmt sdk
+    @Cacheable(cacheName = "Subscription", key = "$subscriptionId")
+    private Subscription getSubscription(String subscriptionId) {
+        return getAzureResourceManager(subscriptionId).subscriptions().getById(subscriptionId);
+    }
+
+    // todo: share codes with other library which leverage track2 mgmt sdk
+    @Cacheable(cacheName = "AzureResourceManager", key = "$subscriptionId")
+    private AzureResourceManager getAzureResourceManager(String subscriptionId) {
+        // make sure it is signed in.
+        account();
+        final AzureConfiguration config = Azure.az().config();
+        final String userAgent = config.getUserAgent();
+        final HttpLogDetailLevel logDetailLevel = config.getLogLevel() == null ?
+                HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel().name());
+        final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
+        return AzureResourceManager.configure()
+                .withLogLevel(logDetailLevel)
+                .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
+                .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
+                .withSubscription(subscriptionId);
+    }
+
+    private HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
+        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
+            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
+            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
+            return httpPipelineNextPolicy.process();
+        };
     }
 }
