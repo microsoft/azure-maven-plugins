@@ -7,6 +7,7 @@ package com.microsoft.azure.maven.webapp.utils;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
@@ -14,13 +15,10 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.maven.model.Resource;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.JarInputStream;
@@ -28,7 +26,6 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 public class DeployUtils {
-    private static final Path FTP_ROOT = Paths.get("/site/wwwroot");
     private static final String DEFAULT_APP_SERVICE_JAR_NAME = "app.jar";
     private static final String WEB_CONFIG = "web.config";
     private static final String RENAMING_MESSAGE = "Renaming %s to %s";
@@ -38,12 +35,7 @@ public class DeployUtils {
             "please make sure the resource filter is correct and you have built the jar.";
     private static final String MULTI_EXECUTABLE_JARS = "Multi executable jars found in <resources>, please check the configuration";
 
-    public static boolean isExternalResource(Resource resource) {
-        final Path target = Paths.get(getAbsoluteTargetPath(resource.getTargetPath()));
-        return !target.startsWith(FTP_ROOT);
-    }
-
-    public static void deployResourcesWithFtp(IAppService appService, List<Resource> externalResources) throws AzureExecutionException {
+    public static void deployResourcesWithFtp(IAppService appService, List<DeploymentResource> externalResources) throws AzureExecutionException {
         if (externalResources.isEmpty()) {
             return;
         }
@@ -52,7 +44,7 @@ public class DeployUtils {
         try {
 
             final FTPClient ftpClient = FTPUtils.getFTPClient(serverUrl, publishingProfile.getFtpUsername(), publishingProfile.getFtpPassword());
-            for (final Resource externalResource : externalResources) {
+            for (final DeploymentResource externalResource : externalResources) {
                 uploadResource(externalResource, ftpClient);
             }
         } catch (IOException e) {
@@ -65,19 +57,12 @@ public class DeployUtils {
         return deployTypes.size() == 1 && deployTypes.iterator().next() == DeployType.WAR;
     }
 
-    private static void uploadResource(Resource resource, FTPClient ftpClient) throws IOException {
+    private static void uploadResource(DeploymentResource resource, FTPClient ftpClient) throws IOException {
         final List<File> files = Utils.getArtifacts(resource);
-        final String target = getAbsoluteTargetPath(resource.getTargetPath());
+        final String target = resource.getAbsoluteTargetPath();
         for (final File file : files) {
             FTPUtils.uploadFile(ftpClient, file.getPath(), target);
         }
-    }
-
-    public static String getAbsoluteTargetPath(String targetPath) {
-        // convert null to empty string
-        targetPath = StringUtils.defaultString(targetPath);
-        return StringUtils.startsWith(targetPath, "/") ? targetPath :
-                FTP_ROOT.resolve(Paths.get(targetPath)).normalize().toString();
     }
 
     /**
@@ -99,7 +84,7 @@ public class DeployUtils {
 
     private static File getProjectJarArtifact(final List<File> artifacts, final String finalName) throws AzureExecutionException {
         final List<File> executableArtifacts = artifacts.stream()
-                .filter(file -> isExecutableJar(file)).collect(Collectors.toList());
+                .filter(DeployUtils::isExecutableJar).collect(Collectors.toList());
         final File finalArtifact = executableArtifacts.stream()
                 .filter(file -> StringUtils.equals(finalName, file.getName())).findFirst().orElse(null);
         if (executableArtifacts.size() == 0) {

@@ -13,6 +13,7 @@ import com.azure.identity.implementation.util.ScopeUtil;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureCliUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
@@ -50,7 +51,7 @@ class AzureCliTokenCredentialManager extends TokenCredentialManagerWithCache {
 
             final String azCommand = String.format(CLI_GET_ACCESS_TOKEN_CMD, scopes,
                     (StringUtils.isBlank(tenantId) || isInCloudShell()) ? "" : (" -t " + tenantId));
-            JsonObject result = AzureCliUtils.executeAzCommandJson(azCommand).getAsJsonObject();
+            JsonObject result = JsonUtils.getGson().fromJson(AzureCliUtils.executeAzureCli(azCommand), JsonObject.class);
 
             // copied from https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/identity/azure-identity
             // /src/main/java/com/azure/identity/implementation/IdentityClient.java#L487

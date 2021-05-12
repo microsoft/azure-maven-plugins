@@ -8,6 +8,7 @@ package com.microsoft.azure.maven.webapp;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
@@ -24,7 +25,6 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.zeroturnaround.zip.ZipUtil;
@@ -33,8 +33,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -217,21 +219,29 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deployArtifacts(IAppService target, WebAppConfig config) throws AzureExecutionException {
+        final List<WebAppArtifact> artifactsOneDeploy = config.getWebAppArtifacts().stream()
+                .filter(artifact -> artifact.getDeployType() != null)
+                .collect(Collectors.toList());
+        artifactsOneDeploy.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+
         // This is the codes for one deploy API, for current release, will replace it with zip all files and deploy with zip deploy
-        final List<WebAppArtifact> artifacts = config.getWebAppArtifacts();
+        final List<WebAppArtifact> artifacts = config.getWebAppArtifacts().stream()
+                .filter(artifact -> artifact.getDeployType() == null)
+                .collect(Collectors.toList());
+
         if (CollectionUtils.isEmpty(artifacts)) {
             return;
         }
         // call correspond deploy method when deploy artifact only
         if (artifacts.size() == 1) {
             final WebAppArtifact artifact = artifacts.get(0);
-            final DeployType deployType = target.getRuntime().getWebContainer() == WebContainer.JBOSS_72 ? DeployType.EAR : artifact.getDeployType();
+            final DeployType deployType = DeployType.getDeployTypeFromFile(artifact.getFile());
             target.deploy(deployType, artifact.getFile(), artifact.getPath());
             return;
         }
         // Support deploy multi war to different paths
         if (DeployUtils.isAllWarArtifacts(artifacts)) {
-            artifacts.forEach(resource -> target.deploy(resource.getDeployType(), resource.getFile(), resource.getPath()));
+            artifacts.forEach(resource -> target.deploy(DeployType.getDeployTypeFromFile(resource.getFile()), resource.getFile(), resource.getPath()));
             return;
         }
         // package all resource and do zip deploy
@@ -269,9 +279,12 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deployExternalResources(IAppService target) throws AzureExecutionException {
-        final List<Resource> resources = this.deployment == null ? null : this.deployment.getResources();
-        final List<Resource> externalResources = resources.stream().filter(DeployUtils::isExternalResource).collect(Collectors.toList());
-        DeployUtils.deployResourcesWithFtp(target, externalResources);
+        DeployUtils.deployResourcesWithFtp(target, filterResources(DeploymentResource::isExternalResource));
     }
 
+    private List<DeploymentResource> filterResources(Predicate<DeploymentResource> predicate) {
+        final List<DeploymentResource> resources = this.deployment == null ? Collections.emptyList() : this.deployment.getResources();
+        return resources.stream()
+                .filter(predicate).collect(Collectors.toList());
+    }
 }

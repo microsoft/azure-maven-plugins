@@ -55,7 +55,7 @@ public class V2ConfigParser extends AbstractConfigParser {
         if (mojo.getDeployment() == null || mojo.getDeployment().getResources() == null) {
             return Collections.EMPTY_LIST;
         }
-        return parseArtifactsFromResources(mojo.getDeployment().getResources());
+        return convertResourceToArtifacts(mojo.getDeployment().getResources());
     }
 
     @Override

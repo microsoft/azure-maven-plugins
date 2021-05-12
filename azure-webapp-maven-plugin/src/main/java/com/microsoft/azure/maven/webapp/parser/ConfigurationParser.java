@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
@@ -18,8 +19,6 @@ import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
-
-import org.apache.maven.model.Resource;
 
 import java.util.List;
 
@@ -71,7 +70,7 @@ public abstract class ConfigurationParser {
 
     protected abstract WebContainer getWebContainer() throws AzureExecutionException;
 
-    protected abstract List<Resource> getResources() throws AzureExecutionException;
+    protected abstract List<DeploymentResource> getResources() throws AzureExecutionException;
 
     protected void validate(String errorMessage) throws AzureExecutionException {
         if (errorMessage != null) {

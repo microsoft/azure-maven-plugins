@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.springcloud;
 
+import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeInfo;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
@@ -15,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
@@ -35,7 +37,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
-import com.microsoft.rest.LogLevel;
+import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -189,12 +191,13 @@ public abstract class AbstractMojoBase extends AbstractMojo {
     }
 
     protected void initExecution() throws MavenDecryptException, AzureExecutionException, LoginFailureException {
+        AzureMessager.setDefaultMessager(new MavenAzureMessager());
         // init proxy manager
         ProxyUtils.initProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
         // Init telemetries
         initTelemetry();
         telemetries.put(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
-        Azure.az().config().setLogLevel(LogLevel.NONE);
+        Azure.az().config().setLogLevel(HttpLogDetailLevel.NONE.name());
         Azure.az().config().setUserAgent(getUserAgent());
         trackMojoExecution(MojoStatus.Start);
         final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;

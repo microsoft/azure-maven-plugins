@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
@@ -19,7 +20,6 @@ import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
@@ -56,7 +56,7 @@ public class WebAppConfiguration {
     protected String schemaVersion;
 
     // web app runtime related configurations
-    protected List<Resource> resources;
+    protected List<DeploymentResource> resources;
     protected String stagingDirectoryPath;
     protected String buildDirectoryAbsolutePath;
     protected MavenProject project;
@@ -151,7 +151,7 @@ public class WebAppConfiguration {
         return registryUrl;
     }
 
-    public List<Resource> getResources() {
+    public List<DeploymentResource> getResources() {
         return resources;
     }
 
@@ -254,7 +254,7 @@ public class WebAppConfiguration {
         private String image;
         private String serverId;
         private String registryUrl;
-        private List<Resource> resources;
+        private List<DeploymentResource> resources;
         private String stagingDirectoryPath;
         private String buildDirectoryAbsolutePath;
         private MavenProject project;
@@ -346,7 +346,7 @@ public class WebAppConfiguration {
             return self();
         }
 
-        public Builder resources(final List<Resource> values) {
+        public Builder resources(final List<DeploymentResource> values) {
             this.resources = values;
             return self();
         }

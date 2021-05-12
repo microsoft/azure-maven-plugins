@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DockerImageType;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
@@ -34,7 +35,6 @@ import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
@@ -170,7 +170,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      */
     @Deprecated
     @Parameter(property = "webapp.resources")
-    protected List<Resource> resources;
+    protected List<DeploymentResource> resources;
 
     /**
      * Skip execution.
@@ -311,7 +311,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     @Override
-    public List<Resource> getResources() {
+    public List<DeploymentResource> getResources() {
         return resources == null ? Collections.emptyList() : resources;
     }
 

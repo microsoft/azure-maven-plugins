@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AzureAppService extends SubscriptionScoped<AzureAppService> implements AzureService {
@@ -127,11 +128,10 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
-        final HttpLogDetailLevel logDetailLevel = config.getLogLevel() == null ?
-                HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel().name());
+        final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
         final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
         return AzureResourceManager.configure()
-                .withLogLevel(logDetailLevel)
+                .withLogLevel(logLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId);

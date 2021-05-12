@@ -5,10 +5,9 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
+import com.microsoft.azure.maven.model.DeploymentResource;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.model.Resource;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -17,25 +16,23 @@ public class Deployment {
     private static final String DEFAULT_INCLUDE = "*.%s";
     private static final String DEFAULT_DEPLOYTYPE = "jar";
 
-    protected List<Resource> resources = Collections.emptyList();
+    protected List<DeploymentResource> resources = Collections.emptyList();
 
-    public List<Resource> getResources() {
+    public List<DeploymentResource> getResources() {
         return this.resources;
     }
 
-    public void setResources(final List<Resource> value) {
+    public void setResources(final List<DeploymentResource> value) {
         this.resources = value;
     }
 
     public static Deployment getDefaultDeploymentConfiguration(String deployType) {
         final Deployment result = new Deployment();
-        final Resource resource = new Resource();
-        deployType = StringUtils.isEmpty(deployType) ? DEFAULT_DEPLOYTYPE : deployType;
+        final DeploymentResource resource = new DeploymentResource();
 
         resource.setDirectory(DEFAULT_DIRECTORY);
-        resource.addInclude(String.format(DEFAULT_INCLUDE, deployType));
-
-        result.setResources(Arrays.asList(resource));
+        resource.addInclude(String.format(DEFAULT_INCLUDE, StringUtils.firstNonBlank(deployType, DEFAULT_DEPLOYTYPE)));
+        result.setResources(Collections.singletonList(resource));
         return result;
     }
 }

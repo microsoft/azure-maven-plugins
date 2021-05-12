@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
+import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
@@ -32,7 +33,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -47,6 +47,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -332,13 +333,13 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     @Override
-    public List<Resource> getResources() {
-        final Resource resource = new Resource();
+    public List<DeploymentResource> getResources() {
+        final DeploymentResource resource = new DeploymentResource();
         resource.setDirectory(getBuildDirectoryAbsolutePath());
         resource.setTargetPath("/");
         resource.setFiltering(false);
-        resource.setIncludes(Arrays.asList("*.jar"));
-        return Arrays.asList(resource);
+        resource.setIncludes(Collections.singletonList("*.jar"));
+        return Collections.singletonList(resource);
     }
 
     //endregion

@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.maven.webapp.DeployMojo;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
@@ -72,5 +73,31 @@ public class V2ConfigParserTest {
         doReturn("Java 11").when(runtimeSetting).getJavaVersionRaw();
         doReturn("JBosseap 7.2").when(runtimeSetting).getWebContainerRaw();
         parser.getRuntime();
+    }
+
+    @Test
+    public void getPricingTier() throws AzureExecutionException {
+        // basic
+        doReturn("b1").when(deployMojo).getPricingTier();
+        assertEquals(PricingTier.BASIC_B1, parser.getPricingTier());
+        // standard
+        doReturn("S2").when(deployMojo).getPricingTier();
+        assertEquals(PricingTier.STANDARD_S2, parser.getPricingTier());
+        // premium
+        doReturn("p3").when(deployMojo).getPricingTier();
+        assertEquals(PricingTier.PREMIUM_P3, parser.getPricingTier());
+        // premium v2
+        doReturn("P1v2").when(deployMojo).getPricingTier();
+        assertEquals(PricingTier.PREMIUM_P1V2, parser.getPricingTier());
+        // premium v3
+        doReturn("P3V3").when(deployMojo).getPricingTier();
+        assertEquals(PricingTier.PREMIUM_P3V3, parser.getPricingTier());
+    }
+
+    @Test(expected = AzureExecutionException.class)
+    public void invalidPricingTier() throws AzureExecutionException {
+        // basic
+        doReturn("wrong").when(deployMojo).getPricingTier();
+        parser.getPricingTier();
     }
 }
