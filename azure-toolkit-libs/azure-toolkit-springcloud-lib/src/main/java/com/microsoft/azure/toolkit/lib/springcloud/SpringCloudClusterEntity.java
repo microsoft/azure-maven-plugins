@@ -27,11 +27,13 @@ import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudSku;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 @Getter
 @Setter(AccessLevel.PRIVATE)
@@ -54,7 +56,17 @@ public class SpringCloudClusterEntity implements IAzureResourceEntity {
         this.id = resource.id();
     }
 
-    public Sku getSku() {
-        return this.remote.sku();
+    public SpringCloudSku getSku() {
+        final Sku sku = this.remote.sku();
+        final SpringCloudSku dft = SpringCloudSku.builder()
+            .capacity(500)
+            .name("Standard")
+            .tier("S0")
+            .build();
+        return Optional.ofNullable(sku).map(s -> SpringCloudSku.builder()
+            .capacity(s.capacity())
+            .name(s.name())
+            .tier(s.tier())
+            .build()).orElse(dft);
     }
 }

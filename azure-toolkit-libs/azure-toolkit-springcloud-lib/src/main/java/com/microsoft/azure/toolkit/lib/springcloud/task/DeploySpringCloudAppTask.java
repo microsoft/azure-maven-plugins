@@ -46,8 +46,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final IAzureMessager messager = AzureMessager.getMessager();
         // Init spring clients, and prompt users to confirm
         final SpringCloudDeploymentConfig deploymentConfig = config.getDeployment();
-        final File file = Optional.ofNullable(deploymentConfig.getArtifact()).map(IArtifact::getFile)
-                .orElseThrow(() -> new AzureToolkitRuntimeException("Deployment artifact can not be null"));
+        final File file = Optional.ofNullable(deploymentConfig.getArtifact()).map(IArtifact::getFile).orElse(null);
         final boolean enableDisk = config.getDeployment() != null && config.getDeployment().isEnablePersistentStorage();
         final Map<String, String> env = deploymentConfig.getEnvironment();
         final String jvmOptions = deploymentConfig.getJvmOptions();

@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,6 +31,7 @@ import java.util.regex.Pattern;
 @NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
+@EqualsAndHashCode
 public class SpringCloudDeploymentConfig {
     private static final String DEFAULT_RUNTIME_VERSION = SpringCloudJavaVersion.JAVA_8;
     private static final String RUNTIME_VERSION_PATTERN = "[Jj]ava((\\s)?|_)(8|11)$";
