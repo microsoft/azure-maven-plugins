@@ -21,8 +21,7 @@ public class SqlServerEntity implements IAzureResourceEntity {
     private Region region;
 
     private String kind;
-    private String administratorLogin;
-    private String administratorLoginPassword;
+    private String administratorLoginName;
     private String version;
     private String state;
     private String fullyQualifiedDomainName;
