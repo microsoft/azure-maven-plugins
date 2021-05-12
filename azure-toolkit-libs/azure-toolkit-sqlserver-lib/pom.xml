@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.azure.resourcemanager</groupId>
-            <artifactId>azure-resourcemanager</artifactId>
+            <artifactId>azure-resourcemanager-sql</artifactId>
         </dependency>
 
         <dependency>
