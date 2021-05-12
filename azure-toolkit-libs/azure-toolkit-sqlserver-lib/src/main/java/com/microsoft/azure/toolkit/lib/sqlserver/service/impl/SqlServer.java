@@ -7,13 +7,16 @@ package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.sql.models.SqlFirewallRule;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServer;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerCreator;
-import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerUpdater;
+import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerFirewallUpdater;
 import com.microsoft.azure.toolkit.lib.sqlserver.utils.SqlServerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class SqlServer implements ISqlServer {
     private static final ClientLogger LOGGER = new ClientLogger(SqlServer.class);
@@ -46,8 +49,8 @@ public class SqlServer implements ISqlServer {
     }
 
     @Override
-    public SqlServerUpdater update() {
-        return new SqlServerUpdater();
+    public SqlServerFirewallUpdater update() {
+        return new SqlServerFirewallUpdater();
     }
 
     private com.azure.resourcemanager.sql.models.SqlServer getSqlServerInner() {
@@ -74,35 +77,62 @@ public class SqlServer implements ISqlServer {
         @Override
         public SqlServer commit() {
             // todo: Add validation for required parameters
+            // create
             final com.azure.resourcemanager.sql.models.SqlServer server = SqlServer.this.azureClient.sqlServers().define(getName())
-                    .withRegion(getRegion().getName())
-                    .withExistingResourceGroup(getResourceGroupName())
-                    .withAdministratorLogin(getAdministratorLogin())
-                    .withAdministratorPassword(getAdministratorLoginPassword())
-                    .create();
-            if (isEnableAccessFromAzureServices()) {
-                server.enableAccessFromAzureServices();
-            }
-            if (isEnableAccessFromLocalMachine()) {
-                // server.firewallRules().define("").withIpAddressRange("", "").create();
-            }
+                .withRegion(getRegion().getName())
+                .withExistingResourceGroup(getResourceGroupName())
+                .withAdministratorLogin(getAdministratorLogin())
+                .withAdministratorPassword(getAdministratorLoginPassword())
+                .create();
+            // update inner property
             SqlServer.this.sqlServerInner = server;
             // update entity properties after created sql server successfully.
             SqlServer.this.entity = SqlServerUtils.fromSqlServer(server);
+            // update
+            if (isEnableAccessFromAzureServices() || isEnableAccessFromLocalMachine()) {
+                new SqlServerFirewallUpdater().withEnableAccessFromAzureServices(isEnableAccessFromAzureServices())
+                    .withEnableAccessFromLocalMachine(isEnableAccessFromLocalMachine()).commit();
+            }
             return SqlServer.this;
         }
     }
 
-    class SqlServerUpdater extends ISqlServerUpdater.AbstractSqlServerUpdater<SqlServer> {
+    class SqlServerFirewallUpdater extends ISqlServerFirewallUpdater.AbstractSqlServerFirewallUpdater<SqlServer> {
 
         @Override
         public SqlServer commit() {
-            /**
-             * TODO(qianjin): implementation
-             */
+            List<SqlFirewallRule> firewallRuleList = sqlServerInner.firewallRules().list();
+            if (isEnableAccessFromAzureServices()) {
+                sqlServerInner.enableAccessFromAzureServices();
+            } else if (serverEnableAccessFromAzureServices(firewallRuleList)) {
+                sqlServerInner.removeAccessFromAzureServices();
+            }
+            if (isEnableAccessFromLocalMachine()) {
+                enableAccessFromLocalMachine();
+            } else if (serverEnableAccessFromLocalMachine(firewallRuleList)) {
+                removeAccessFromLocalMachine();
+            }
+            refreshWebAppInner();
             // update entity properties after updated sql server successfully.
             SqlServer.this.entity = SqlServerUtils.fromSqlServer(null);
             return null;
+        }
+
+        private boolean serverEnableAccessFromAzureServices(List<SqlFirewallRule> firewallRuleList) {
+            return false;
+            //sqlServerInner.firewallRules().list().stream().findAny(f -> StringUtils.equals(f));
+        }
+
+        private boolean serverEnableAccessFromLocalMachine(List<SqlFirewallRule> firewallRuleList) {
+            return false;
+        }
+
+        private void enableAccessFromLocalMachine() {
+            sqlServerInner.firewallRules().define("").withIpAddress("").create();
+        }
+
+        private void removeAccessFromLocalMachine() {
+            sqlServerInner.firewallRules().delete("");
         }
     }
 
