@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.WebApp;
+import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
@@ -84,7 +85,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
 
     private WebApp getParentWebApp() {
         return StringUtils.isNotEmpty(entity.getId()) ?
-                azureClient.webApps().getById(entity.getId().substring(0, entity.getId().indexOf("/slots"))) :
+                azureClient.webApps().getById(ResourceId.fromString(entity().getId()).parent().id()) :
                 azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getWebappName());
     }
 
