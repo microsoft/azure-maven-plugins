@@ -53,7 +53,7 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
         return new SqlServer(entity, getAzureResourceManager(subscriptionId));
     }
 
-    public ISqlServer sqlServer(com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
+    private ISqlServer sqlServer(com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
         return new SqlServer(sqlServerInner, getAzureResourceManager(sqlServerInner.manager().subscriptionId()));
     }
 
@@ -62,7 +62,6 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
                 .map(subscription -> getAzureResourceManager(subscription.getId()))
                 .flatMap(azureResourceManager -> azureResourceManager.sqlServers().list().stream())
                 .collect(Collectors.toList()).stream()
-                //.map(server -> sqlServer(server.id()))
                 .map(server -> sqlServer(server))
                 .collect(Collectors.toList());
     }
