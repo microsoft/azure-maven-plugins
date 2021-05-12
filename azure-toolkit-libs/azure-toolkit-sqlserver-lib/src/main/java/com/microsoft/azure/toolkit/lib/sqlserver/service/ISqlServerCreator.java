@@ -5,9 +5,10 @@
 package com.microsoft.azure.toolkit.lib.sqlserver.service;
 
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import lombok.Getter;
 
-public interface ISqlServerCreator<T> {
+public interface ISqlServerCreator<T> extends ICommittable<T> {
 
     ISqlServerCreator<T> withName(String name);
 
@@ -22,8 +23,6 @@ public interface ISqlServerCreator<T> {
     ISqlServerCreator<T> withEnableAccessFromAzureServices(boolean enableAccessFromAzureServices);
 
     ISqlServerCreator<T> withEnableAccessFromLocalMachine(boolean enableAccessFromLocalMachine);
-
-    T commit();
 
     @Getter
     abstract class AbstractSqlServerCreator<T> implements ISqlServerCreator<T> {

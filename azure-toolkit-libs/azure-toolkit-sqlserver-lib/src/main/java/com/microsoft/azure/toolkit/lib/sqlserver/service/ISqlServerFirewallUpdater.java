@@ -4,15 +4,14 @@
  */
 package com.microsoft.azure.toolkit.lib.sqlserver.service;
 
+import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import lombok.Getter;
 
-public interface ISqlServerFirewallUpdater<T> {
+public interface ISqlServerFirewallUpdater<T> extends ICommittable<T> {
 
     ISqlServerFirewallUpdater<T> withEnableAccessFromAzureServices(boolean enableAccessFromAzureServices);
 
     ISqlServerFirewallUpdater<T> withEnableAccessFromLocalMachine(boolean enableAccessFromLocalMachine);
-
-    T commit();
 
     @Getter
     abstract class AbstractSqlServerFirewallUpdater<T> implements ISqlServerFirewallUpdater<T> {
