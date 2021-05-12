@@ -10,6 +10,8 @@ public interface ISqlServer {
 
     SqlServerEntity entity();
 
+    void delete();
+
     ISqlServerCreator<? extends ISqlServer> create();
 
     ISqlServerFirewallUpdater<? extends ISqlServer> update();
