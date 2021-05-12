@@ -38,6 +38,7 @@
         <module>azure-toolkit-auth-lib</module>
         <module>azure-toolkit-springcloud-lib</module>
         <module>azure-toolkit-appservice-lib</module>
+        <module>azure-toolkit-sqlserver-lib</module>
     </modules>
 
     <properties>
