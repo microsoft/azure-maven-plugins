@@ -101,16 +101,6 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             .collect(Collectors.toList());
     }
 
-    @Override
-    public String id() {
-        return getRemoteResource().id();
-    }
-
-    @Override
-    public String name() {
-        return getRemoteResource().name();
-    }
-
     public class WebAppCreator extends AbstractAppServiceCreator<WebApp> {
         // todo: Add validation for required parameters
         @Override
