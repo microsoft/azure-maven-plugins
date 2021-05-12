@@ -20,6 +20,9 @@ public class SqlServerEntity implements IAzureResourceEntity {
     private String subscriptionId;
     private Region region;
 
+    /**
+     * TODO(qianjin): for type, state and kind, give the possible values in javadoc
+     */
     private String kind;
     private String administratorLoginName;
     private String version;
