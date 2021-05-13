@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.file;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFileLegacy;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.http.Body;
@@ -18,6 +19,7 @@ import rx.Observable;
 
 import java.util.List;
 
+@Deprecated
 public interface KuduFileClient extends AppServiceFileClient {
     @Headers({
         "Content-Type: application/json; charset=utf-8",
@@ -32,7 +34,7 @@ public interface KuduFileClient extends AppServiceFileClient {
         "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps getFilesInDirectory"
     })
     @GET("api/vfs/{path}/")
-    Observable<List<AppServiceFile>> getFilesInDirectory(@Path("path") String path);
+    Observable<List<AppServiceFileLegacy>> getFilesInDirectory(@Path("path") String path);
 
     @Headers({
         "Content-Type: application/json; charset=utf-8",

@@ -14,7 +14,7 @@ import reactor.core.publisher.Flux;
 
 import java.io.File;
 
-public interface IAppService extends IResource {
+public interface IAppService extends IResource, IKuduClient {
     void start();
 
     void stop();

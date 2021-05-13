@@ -197,7 +197,6 @@ class AppServiceUtils {
         }
     }
 
-
     static DiagnosticConfig fromWebAppDiagnosticLogs(WebAppDiagnosticLogs webAppDiagnosticLogs) {
         final DiagnosticConfig.DiagnosticConfigBuilder builder = DiagnosticConfig.builder();
         final com.azure.resourcemanager.appservice.models.LogLevel applicationLogLevel = Optional.ofNullable(webAppDiagnosticLogs)
