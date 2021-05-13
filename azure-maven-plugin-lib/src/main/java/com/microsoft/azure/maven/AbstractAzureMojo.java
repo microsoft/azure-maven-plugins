@@ -222,7 +222,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Getter
     protected AppInsightsProxy telemetryProxy;
     @Getter
-    protected Map<String, String> telemetries;
+    protected Map<String, String> telemetries = new HashMap<>();
 
     @Getter
     private final String sessionId = UUID.randomUUID().toString();
