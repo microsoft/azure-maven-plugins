@@ -22,56 +22,73 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
+import com.azure.resourcemanager.appplatform.models.PersistentDisk;
+import com.azure.resourcemanager.appplatform.models.SpringApp;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.ExternalChildResource;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Optional;
 
 @Getter
 public class SpringCloudAppEntity implements IAzureResourceEntity {
     private final SpringCloudClusterEntity cluster;
     private final String name;
+    @Nullable
+    @JsonIgnore
     @Getter(AccessLevel.PACKAGE)
-    private AppResourceInner inner;
+    @Setter(AccessLevel.PACKAGE)
+    private transient SpringApp remote;
 
-    private SpringCloudAppEntity(String name, SpringCloudClusterEntity cluster) {
+    public SpringCloudAppEntity(@Nonnull final String name, @Nonnull final SpringCloudClusterEntity cluster) {
         this.name = name;
         this.cluster = cluster;
     }
 
-    private SpringCloudAppEntity(AppResourceInner resource, SpringCloudClusterEntity cluster) {
-        this.inner = resource;
+    SpringCloudAppEntity(@Nonnull final SpringApp resource, @Nonnull final SpringCloudClusterEntity cluster) {
+        this.remote = resource;
         this.name = resource.name();
         this.cluster = cluster;
     }
 
-    @Nonnull
-    public static SpringCloudAppEntity fromResource(final AppResourceInner resource, final SpringCloudClusterEntity cluster) {
-        return new SpringCloudAppEntity(resource, cluster);
-    }
-
-    @Nonnull
-    public static SpringCloudAppEntity fromName(final String name, final SpringCloudClusterEntity cluster) {
-        return new SpringCloudAppEntity(name, cluster);
-    }
-
     public boolean isPublic() {
-        return this.inner.properties().publicProperty();
+        return Optional.ofNullable(this.remote).map(SpringApp::isPublic).orElse(false);
     }
 
+    @Nullable
     public String getApplicationUrl() {
-        return this.inner.properties().url();
+        final String url = Optional.ofNullable(this.remote).map(SpringApp::url).orElse(null);
+        return StringUtils.isBlank(url) || url.equalsIgnoreCase("None") ? null : url;
     }
 
-    public String getActiveDeployment() {
-        return this.inner.properties().activeDeploymentName();
+    public String getTestUrl() {
+        return Optional.ofNullable(this.remote).map(SpringApp::activeDeploymentName).map(d -> {
+            final String key = this.cluster.getRemote().listTestKeys().primaryTestEndpoint();
+            return String.format("%s/%s/%s", key, this.name, d);
+        }).orElse(null);
     }
 
     @Override
     public String getId() {
-        return inner.id();
+        return Optional.ofNullable(this.remote).map(ExternalChildResource::id)
+            .orElse(this.cluster.getId() + "/apps/" + this.name);
+    }
+
+    public SpringCloudPersistentDisk getPersistentDisk() {
+        final PersistentDisk disk = Optional.ofNullable(this.remote).map(SpringApp::persistentDisk).orElse(null);
+        return Optional.ofNullable(disk).filter(d -> d.sizeInGB() > 0)
+            .map(d -> SpringCloudPersistentDisk.builder()
+                .sizeInGB(disk.sizeInGB())
+                .mountPath(disk.mountPath())
+                .usedInGB(disk.usedInGB()).build())
+            .orElse(null);
     }
 
     @Override

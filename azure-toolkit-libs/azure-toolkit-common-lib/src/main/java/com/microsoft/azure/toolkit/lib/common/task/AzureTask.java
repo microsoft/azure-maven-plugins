@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.task;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperationTitle;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,7 @@ import java.util.function.Supplier;
 @Setter
 public class AzureTask<T> implements IAzureOperation {
     private final Modality modality;
+    @Getter(AccessLevel.NONE)
     private final Supplier<T> supplier;
     private final Object project;
     private final boolean cancellable;
@@ -27,6 +29,10 @@ public class AzureTask<T> implements IAzureOperation {
     @Builder.Default
     private boolean backgroundable = true;
     private Boolean backgrounded = null;
+
+    public AzureTask() {
+        this((Supplier<T>) null);
+    }
 
     public AzureTask(Runnable runnable) {
         this(runnable, Modality.DEFAULT);
@@ -134,8 +140,12 @@ public class AzureTask<T> implements IAzureOperation {
         return String.format("{name:'%s'}", this.getName());
     }
 
-    public T execute(){
-        return this.getSupplier().get();
+    public Supplier<T> getSupplier() {
+        return Optional.ofNullable(this.supplier).orElse(this::execute);
+    }
+
+    public T execute() {
+        throw new UnsupportedOperationException();
     }
 
     public enum Modality {

@@ -22,7 +22,12 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppPlatformManager;
+import com.azure.core.http.policy.HttpLogDetailLevel;
+import com.azure.core.http.policy.HttpPipelinePolicy;
+import com.azure.core.management.profile.AzureProfile;
+import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appplatform.models.SpringService;
+import com.azure.resourcemanager.appplatform.models.SpringServices;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
@@ -31,8 +36,6 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudClusterManager;
-import com.microsoft.rest.LogLevel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -50,38 +53,56 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
         super(AzureSpringCloud::new, subscriptions);
     }
 
-    @Nonnull
-    public SpringCloudCluster cluster(@Nonnull SpringCloudClusterEntity cluster) {
-        final AppPlatformManager client = this.getClient(cluster.getSubscriptionId());
-        return new SpringCloudCluster(cluster, client);
-    }
-
     @Nullable
     public SpringCloudCluster cluster(@Nonnull String name) {
         return this.clusters().stream()
-            .filter((s) -> Objects.equals(s.name(), name))
-            .findAny().orElse(null);
+                .filter((s) -> Objects.equals(s.name(), name))
+                .findAny().orElse(null);
+    }
+
+    @Nonnull
+    SpringCloudCluster cluster(@Nonnull SpringService remote) {
+        return this.cluster(new SpringCloudClusterEntity(remote));
+    }
+
+    @Nonnull
+    private SpringCloudCluster cluster(@Nonnull SpringCloudClusterEntity cluster) {
+        return new SpringCloudCluster(cluster, this.getClient(cluster.getSubscriptionId()));
     }
 
     @Nonnull
     public List<SpringCloudCluster> clusters() {
         return this.getSubscriptions().stream()
-            .map(s -> getClient(s.getId()))
-            .map(SpringCloudClusterManager::new)
-            .flatMap(m -> m.getAll().stream())
-            .map(this::cluster)
-            .collect(Collectors.toList());
+                .map(s -> getClient(s.getId()))
+                .flatMap(c -> c.list().stream())
+                .map(this::cluster)
+                .collect(Collectors.toList());
     }
 
-    @Cacheable(cacheName = "AppPlatformManager", key = "$subscriptionId")
-    protected AppPlatformManager getClient(final String subscriptionId) {
+    @Cacheable(cacheName = "SpringServices", key = "$subscriptionId")
+    protected SpringServices getClient(final String subscriptionId) {
+        return getAzureResourceManager(subscriptionId).springServices();
+    }
+
+    @Cacheable(cacheName = "AzureResourceManager", key = "$subscriptionId")
+    private AzureResourceManager getAzureResourceManager(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
-        final LogLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(LogLevel::valueOf).orElse(LogLevel.NONE);
         final String userAgent = config.getUserAgent();
-        return AppPlatformManager.configure()
-            .withLogLevel(logLevel)
-            .withUserAgent(userAgent)
-            .authenticate(account.getTokenCredentialV1(subscriptionId), subscriptionId);
+        final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
+        final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
+        return AzureResourceManager.configure()
+                .withLogLevel(logLevel)
+                .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
+                .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
+                .withSubscription(subscriptionId);
+    }
+
+    private HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
+        return (httpPipelineCallContext, httpPipelineNextPolicy) -> {
+            final String previousUserAgent = httpPipelineCallContext.getHttpRequest().getHeaders().getValue("User-Agent");
+            httpPipelineCallContext.getHttpRequest().setHeader("User-Agent", String.format("%s %s", userAgent, previousUserAgent));
+            return httpPipelineNextPolicy.process();
+        };
     }
 }

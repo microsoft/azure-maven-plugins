@@ -6,220 +6,264 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.management.appplatform.v2020_07_01.PersistentDisk;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.AppResourceInner;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ResourceUploadDefinitionInner;
+import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.appplatform.implementation.SpringAppImpl;
+import com.azure.resourcemanager.appplatform.models.PersistentDisk;
+import com.azure.resourcemanager.appplatform.models.SpringApp;
+import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
-import com.microsoft.azure.toolkit.lib.springcloud.model.AzureRemotableArtifact;
-import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudAppManager;
-import com.microsoft.azure.toolkit.lib.springcloud.service.SpringCloudDeploymentManager;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.text.MessageFormat;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity> {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
 
     @Getter
-    private final SpringCloudCluster cluster;
-    private final SpringCloudAppManager appManager;
+    @Nonnull
+    final SpringCloudCluster cluster;
+    @Nonnull
     private final SpringCloudAppEntity local;
-    private final SpringCloudDeploymentManager deploymentManager;
-    private SpringCloudAppEntity remote;
+    @Nullable
+    @Getter(AccessLevel.PACKAGE)
+    private SpringApp remote;
     private boolean refreshed;
 
-    public SpringCloudApp(SpringCloudAppEntity app, SpringCloudCluster cluster) {
+    public SpringCloudApp(@Nonnull SpringCloudAppEntity app, @Nonnull SpringCloudCluster cluster) {
         this.local = app;
+        this.remote = this.local.getRemote();
         this.cluster = cluster;
-        this.appManager = new SpringCloudAppManager(cluster.getClient());
-        this.deploymentManager = new SpringCloudDeploymentManager(cluster.getClient());
     }
 
     @Override
     public boolean exists() {
-        if (!this.refreshed) {
+        if (Objects.isNull(this.remote) && !this.refreshed) {
             this.refresh();
         }
         return Objects.nonNull(this.remote);
     }
 
+    @Nonnull
     public SpringCloudAppEntity entity() {
-        return Objects.nonNull(this.remote) ? this.remote : this.local;
+        final SpringApp remote = Objects.nonNull(this.remote) ? this.remote : this.local.getRemote();
+        if (Objects.isNull(remote)) {
+            return this.local;
+        }
+        // prevent inconsistent properties between local and remote when local's properties is modified.
+        return new SpringCloudAppEntity(remote, this.cluster.entity());
     }
 
+    @Nonnull
+    public SpringCloudDeployment deployment(final String name) {
+        if (this.exists()) {
+            try {
+                final SpringAppDeployment deployment = Objects.requireNonNull(this.remote).deployments().getByName(name);
+                return this.deployment(deployment);
+            } catch (ManagementException ignored) {
+            }
+        }
+        return this.deployment(new SpringCloudDeploymentEntity(name, this.entity()));
+    }
+
+    @Nonnull
+    SpringCloudDeployment deployment(final SpringAppDeployment deployment) {
+        return this.deployment(new SpringCloudDeploymentEntity(deployment, this.entity()));
+    }
+
+    @Nonnull
     public SpringCloudDeployment deployment(SpringCloudDeploymentEntity deployment) {
         return new SpringCloudDeployment(deployment, this);
     }
 
-    public SpringCloudDeployment deployment(final String name) {
-        final SpringCloudAppEntity app = this.entity();
-        return new SpringCloudDeployment(SpringCloudDeploymentEntity.fromName(name, app), this);
+    @Nullable
+    public SpringCloudDeployment activeDeployment() {
+        assert this.exists() && Objects.nonNull(this.remote) : String.format("app(%s) not exist", this.name());
+        final SpringAppDeployment active = this.remote.getActiveDeployment();
+        if (Objects.isNull(active)) {
+            return null;
+        }
+        return this.deployment(active);
     }
 
+    @Nonnull
     public List<SpringCloudDeployment> deployments() {
-        final SpringCloudAppEntity app = this.entity();
-        return this.appManager.getDeployments(app).stream().map(this::deployment).collect(Collectors.toList());
+        if (this.exists()) {
+            return Objects.requireNonNull(this.remote).deployments().list().stream().map(this::deployment).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 
-    public SpringCloudCluster cluster() {
-        return this.cluster;
-    }
-
+    @AzureOperation(name = "springcloud|app.start", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp start() {
-        this.deploymentManager.start(this.getActiveDeploymentName(), this.entity());
+        this.deployment(this.getActiveDeploymentName()).start();
         return this;
     }
 
+    @AzureOperation(name = "springcloud|app.stop", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp stop() {
-        this.deploymentManager.stop(this.getActiveDeploymentName(), this.entity());
+        this.deployment(this.getActiveDeploymentName()).stop();
         return this;
     }
 
+    @AzureOperation(name = "springcloud|app.restart", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp restart() {
-        this.deploymentManager.restart(this.getActiveDeploymentName(), this.entity());
+        this.deployment(this.getActiveDeploymentName()).restart();
         return this;
     }
 
+    @AzureOperation(name = "springcloud|app.remove", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp remove() {
-        this.appManager.remove(this.entity());
+        if (this.exists() && Objects.nonNull(this.remote)) {
+            this.remote.parent().apps().deleteByName(this.name());
+        }
         return this;
     }
 
     @Nonnull
     @Override
     public SpringCloudApp refresh() {
-        final SpringCloudAppEntity app = this.entity();
-        final SpringCloudClusterEntity cluster = this.cluster.entity();
-        this.remote = this.appManager.get(app.getName(), cluster);
+        final SpringCloudApp _this = this.cluster.app(this.entity().getName());
+        this.updateRemote(_this.entity().getRemote());
         this.refreshed = true;
         return this;
     }
 
-    public Uploader uploadArtifact(String path) {
-        return new Uploader(path, this);
+    private void updateRemote(SpringApp remote) {
+        this.remote = remote;
+        this.local.setRemote(this.remote);
     }
 
     public Creator create() {
+        assert this.cluster.exists() : String.format("cluster(%s) not exist", this.cluster.name());
         return new Creator(this);
     }
 
     @Nonnull
-    public Updater update() {
+    public Updater update() throws AzureToolkitRuntimeException {
+        assert this.exists() : String.format("app(%s) not exist", this.name());
         return new Updater(this);
     }
 
+    @Nullable
     public String getActiveDeploymentName() {
-        if (!this.refreshed) {
-            this.refresh();
+        if (this.exists() && Objects.nonNull(this.remote)) {
+            return this.remote.getActiveDeployment().name();
         }
-        return Optional.ofNullable(this.remote).map(r -> this.remote.getActiveDeployment()).orElse(null);
+        return null;
     }
 
-    public static class Uploader implements ICommittable<SpringCloudApp> {
+    public static abstract class Modifier implements ICommittable<SpringCloudApp> {
+        public static final String DEFAULT_DISK_MOUNT_PATH = "/persistent";
+        /**
+         * @see <a href=https://azure.microsoft.com/en-us/pricing/details/spring-cloud/>Pricing - Azure Spring Cloud</a>
+         */
+        public static final int BASIC_TIER_DEFAULT_DISK_SIZE = 1;
+        /**
+         * @see <a href=https://azure.microsoft.com/en-us/pricing/details/spring-cloud/>Pricing - Azure Spring Cloud</a>
+         */
+        public static final int STANDARD_TIER_DEFAULT_DISK_SIZE = 50;
 
-        private final SpringCloudApp app;
-        private final String path;
-        @Getter
-        private final AzureRemotableArtifact artifact;
-
-        public Uploader(String path, SpringCloudApp app) {
-            this.path = path;
-            this.app = app;
-            this.artifact = new AzureRemotableArtifact(this.path);
-        }
-
-        @SneakyThrows
-        @Override
-        public SpringCloudApp commit() {
-            final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(String.format("Start uploading artifact(%s) to App(%s)...", messager.value(this.path), messager.value(this.app.name())));
-            final ResourceUploadDefinitionInner definition = this.app.appManager.uploadArtifact(this.path, this.app.entity());
-            messager.success(String.format("Artifact(%s) is successfully uploaded to App(%s)...", messager.value(this.path), messager.value(this.app.name())));
-            this.artifact.setRemotePath(definition.relativePath());
-            this.artifact.setUploadUrl(definition.uploadUrl());
-            return this.app;
-        }
-    }
-
-    public static class Updater implements ICommittable<SpringCloudApp> {
+        @Nonnull
         protected final SpringCloudApp app;
-        protected final AppResourceInner resource;
+        protected SpringAppImpl modifier;
+        @Getter
+        protected boolean skippable = true;
+
+        protected Modifier(@Nonnull SpringCloudApp app) {
+            this.app = app;
+        }
+
+        public Modifier activate(String deploymentName) {
+            final String oldDeploymentName = this.app.getActiveDeploymentName();
+            if (StringUtils.isNotBlank(deploymentName) && !Objects.equals(oldDeploymentName, deploymentName)) {
+                this.skippable = false;
+                this.modifier.withActiveDeployment(deploymentName);
+            }
+            return this;
+        }
+
+        public Modifier setPublic(Boolean isPublic) {
+            final Boolean oldPublic = this.modifier.isPublic();
+            if (Objects.nonNull(isPublic) && !Objects.equals(oldPublic, isPublic)) {
+                this.skippable = false;
+                if (isPublic) {
+                    this.modifier.withDefaultPublicEndpoint();
+                } else {
+                    this.modifier.withoutDefaultPublicEndpoint();
+                }
+            }
+            return this;
+        }
+
+        public Modifier enablePersistentDisk(Boolean enable) {
+            final PersistentDisk oldDisk = this.modifier.persistentDisk();
+            final boolean enabled = Objects.nonNull(oldDisk) && oldDisk.sizeInGB() > 0;
+            if (Objects.nonNull(enable) && !Objects.equals(enable, enabled)) {
+                this.skippable = false;
+                if (enable) {
+                    if (Objects.requireNonNull(this.app.cluster.getRemote()).sku().tier().toLowerCase().startsWith("s")) {
+                        this.modifier.withPersistentDisk(STANDARD_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH);
+                    } else {
+                        this.modifier.withPersistentDisk(BASIC_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH);
+                    }
+                } else {
+                    this.modifier.withPersistentDisk(0, null);
+                }
+            }
+            return this;
+        }
+    }
+
+    public static class Updater extends Modifier {
 
         public Updater(SpringCloudApp app) {
-            this.app = app;
-            this.resource = new AppResourceInner();
-        }
-
-        public Updater activate(String deploymentName) {
-            final String oldDeploymentName = Optional.ofNullable(this.app.remote).map(SpringCloudAppEntity::getActiveDeployment).orElse(null);
-            if (StringUtils.isNotBlank(deploymentName) && !Objects.equals(oldDeploymentName, deploymentName)) {
-                AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
-                    .withActiveDeploymentName(deploymentName);
-            }
-            return this;
-        }
-
-        public Updater setPublic(Boolean isPublic) {
-            final Boolean oldPublic = Optional.ofNullable(this.app.remote).map(e -> e.getInner().properties().publicProperty()).orElse(null);
-            if (Objects.nonNull(isPublic) && !Objects.equals(oldPublic, isPublic)) {
-                AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
-                    .withPublicProperty(isPublic);
-            }
-            return this;
-        }
-
-        public Updater enablePersistentDisk(Boolean enable) {
-            final boolean enabled = Optional.ofNullable(this.app.remote).map(e -> e.getInner().properties().persistentDisk())
-                .filter(d -> d.sizeInGB() > 0).isPresent();
-            if (Objects.nonNull(enable) && !Objects.equals(enable, enabled)) {
-                final PersistentDisk newDisk = enable ? AzureSpringCloudConfigUtils.getOrCreatePersistentDisk(this.resource, this.app) : null;
-                AzureSpringCloudConfigUtils.getOrCreateProperties(this.resource, this.app)
-                    .withPersistentDisk(newDisk);
-            }
-            return this;
+            super(app);
+            this.modifier = ((SpringAppImpl) Objects.requireNonNull(this.app.remote).update());
         }
 
         @Override
+        @AzureOperation(name = "springcloud|app.update", params = {"this.app.name()"}, type = Type.SERVICE)
         public SpringCloudApp commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
-            if (this.isSkippable()) {
-                messager.info(String.format("skip updating app(%s) since its properties is not changed.", this.app.name()));
+            if (this.skippable) {
+                messager.info(String.format("skip updating app(%s) since nothing is changed.", this.app.name()));
             } else {
                 messager.info(String.format("Start updating app(%s)...", messager.value(this.app.name())));
-                this.app.remote = this.app.appManager.update(this.resource, this.app.entity());
+                this.app.updateRemote(this.modifier.apply());
                 messager.success(String.format("App(%s) is successfully updated.", messager.value(this.app.name())));
                 messager.warning(UPDATE_APP_WARNING);
             }
             return this.app;
         }
-
-        public boolean isSkippable() {
-            return Objects.isNull(this.resource.properties()) && Objects.isNull(this.resource.location());
-        }
     }
 
-    public static class Creator extends Updater {
+    public static class Creator extends Modifier {
+        private final SpringAppImpl modifier;
+
         public Creator(SpringCloudApp app) {
             super(app);
+            this.modifier = ((SpringAppImpl) Objects.requireNonNull(this.app.cluster.getRemote()).apps().define(app.name()).withDefaultActiveDeployment());
         }
 
+        @AzureOperation(name = "springcloud|app.create", params = {"this.app.name()"}, type = Type.SERVICE)
         public SpringCloudApp commit() {
             final String appName = this.app.name();
-            final SpringCloudClusterEntity cluster = this.app.cluster.entity();
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(String.format("Start creating app(%s)...", messager.value(appName)));
-            this.app.remote = this.app.appManager.create(this.resource, appName, cluster);
+            this.app.updateRemote(this.modifier.create());
             messager.success(String.format("App(%s) is successfully created.", messager.value(appName)));
             return this.app;
         }

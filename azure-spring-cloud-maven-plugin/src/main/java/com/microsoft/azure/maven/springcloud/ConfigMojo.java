@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.maven.springcloud;
 
-import com.microsoft.azure.management.Azure.Authenticated;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
@@ -14,16 +13,16 @@ import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
 import lombok.Lombok;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -41,10 +40,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.microsoft.azure.maven.springcloud.TelemetryConstants.TELEMETRY_KEY_POM_FILE_MODIFIED;
 
 /**
  * The Mojo for 'config' goal.
@@ -78,11 +76,6 @@ public class ConfigMojo extends AbstractMojoBase {
     private Map<MavenProject, String> appNameByProject;
 
     /**
-     * The azure client for get list of subscriptions.
-     */
-    private Authenticated azure;
-
-    /**
      * The app settings collected from user.
      */
     private AppRawConfig appSettings;
@@ -105,7 +98,7 @@ public class ConfigMojo extends AbstractMojoBase {
     private boolean advancedOptions;
 
     @Override
-    protected void doExecute() throws MojoFailureException {
+    protected void doExecute() throws AzureExecutionException {
         if (!settings.isInteractiveMode()) {
             throw new UnsupportedOperationException("The goal 'config' must be run at interactive mode.");
         }
@@ -143,7 +136,7 @@ public class ConfigMojo extends AbstractMojoBase {
             confirmAndSave();
         } catch (IOException | InvalidConfigurationException |
                 UnsupportedOperationException e) {
-            throw new MojoFailureException(e.getMessage());
+            throw new AzureExecutionException(e.getMessage());
         } finally {
             if (this.wrapper != null) {
                 try {
@@ -316,7 +309,7 @@ public class ConfigMojo extends AbstractMojoBase {
         final AzureSpringCloud az = Azure.az(AzureSpringCloud.class).subscription(subscriptionId);
         if (StringUtils.isNotBlank(clusterName)) {
             final SpringCloudCluster cluster = az.cluster(this.clusterName);
-            if (cluster.exists()) {
+            if (Objects.nonNull(cluster) && cluster.exists()) {
                 this.appSettings.setClusterName(cluster.name());
                 return;
             }
@@ -343,7 +336,7 @@ public class ConfigMojo extends AbstractMojoBase {
         final List<Subscription> selectedSubscriptions = Azure.az(AzureAccount.class).account().getSelectedSubscriptions();
         this.wrapper.putCommonVariable("subscriptions", subscriptions);
         final Subscription select = this.wrapper.handleSelectOne("select-subscriptions", subscriptions,
-                CollectionUtils.isNotEmpty(selectedSubscriptions) ? selectedSubscriptions.get(0) : null,
+            CollectionUtils.isNotEmpty(selectedSubscriptions) ? selectedSubscriptions.get(0) : null,
             t -> String.format("%s (%s)", t.getName(), t.getId()));
         com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(select.getId()));
         return select.getId();
