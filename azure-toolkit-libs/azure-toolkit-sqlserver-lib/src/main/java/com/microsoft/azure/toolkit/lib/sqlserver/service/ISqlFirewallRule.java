@@ -4,4 +4,6 @@ public interface ISqlFirewallRule {
 
     ISqlFirewallRuleCreator<? extends ISqlFirewallRule> create();
 
+    void delete();
+
 }

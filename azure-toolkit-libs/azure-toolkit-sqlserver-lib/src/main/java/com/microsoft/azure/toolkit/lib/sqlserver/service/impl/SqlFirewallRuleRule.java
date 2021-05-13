@@ -26,6 +26,11 @@ public class SqlFirewallRuleRule implements ISqlFirewallRule {
                 .withEndIpAddress(entity.getEndIpAddress());
     }
 
+    @Override
+    public void delete() {
+        sqlServerInner.firewallRules().delete(entity.getName());
+    }
+
     class SqlFirewallRuleCreator extends ISqlFirewallRuleCreator.AbstractSqlFirewallRuleCreator<SqlFirewallRuleRule> {
 
         @Override
