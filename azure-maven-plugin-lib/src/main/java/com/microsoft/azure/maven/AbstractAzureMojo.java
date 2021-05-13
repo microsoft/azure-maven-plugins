@@ -5,19 +5,10 @@
 
 package com.microsoft.azure.maven;
 
+import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeInfo;
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
-import com.microsoft.azure.maven.telemetry.GetHashMac;
-import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
-import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
-import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
-import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
-import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthConfiguration;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
@@ -27,20 +18,31 @@ import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.model.SubscriptionOption;
 import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
+import com.microsoft.azure.maven.telemetry.GetHashMac;
 import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
-import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.ProxyUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
+import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
+import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
+import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -116,9 +118,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     //region Properties
 
+    @Getter
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
 
+    @Getter
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
 
@@ -132,9 +136,11 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
      * The system settings for Maven. This is the instance resulting from
      * merging global and user-level settings files.
      */
+    @Getter
     @Parameter(defaultValue = "${settings}", readonly = true, required = true)
     protected Settings settings;
 
+    @Getter
     @Component(role = MavenResourcesFiltering.class, hint = "default")
     protected MavenResourcesFiltering mavenResourcesFiltering;
 
@@ -168,6 +174,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
      *
      * @since 0.1.0
      */
+    @Getter
     @Parameter(property = "allowTelemetry", defaultValue = "true")
     protected boolean allowTelemetry;
 
@@ -177,6 +184,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
      *
      * @since 0.1.0
      */
+    @Getter
     @Parameter(property = "failsOnError", defaultValue = "true")
     protected boolean failsOnError;
 
@@ -209,37 +217,22 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     private Account azureAccount;
 
-    private Azure azure;
+    private com.microsoft.azure.management.Azure azure;
 
-    private TelemetryProxy telemetryProxy;
+    @Getter
+    protected AppInsightsProxy telemetryProxy;
+    @Getter
+    protected Map<String, String> telemetries = new HashMap<>();
 
-    private String sessionId = UUID.randomUUID().toString();
+    @Getter
+    private final String sessionId = UUID.randomUUID().toString();
 
-    private String installationId = GetHashMac.getHashMac();
+    private final String installationId = GetHashMac.getHashMac();
 
     //endregion
 
-    //region Getter
-
-    public MavenProject getProject() {
-        return project;
-    }
-
-    public MavenSession getSession() {
-        return session;
-    }
-
     public String getBuildDirectoryAbsolutePath() {
         return buildDirectory.getAbsolutePath();
-    }
-
-    public MavenResourcesFiltering getMavenResourcesFiltering() {
-        return mavenResourcesFiltering;
-    }
-
-    @Override
-    public Settings getSettings() {
-        return settings;
     }
 
     @Override
@@ -251,18 +244,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public String getSubscriptionId() {
         return StringUtils.firstNonBlank(subscriptionId, (azure == null || azure.getCurrentSubscription() == null) ?
                 null : azure.getCurrentSubscription().subscriptionId());
-    }
-
-    public boolean isTelemetryAllowed() {
-        return allowTelemetry;
-    }
-
-    public boolean isFailingOnError() {
-        return failsOnError;
-    }
-
-    public String getSessionId() {
-        return sessionId;
     }
 
     public String getInstallationId() {
@@ -279,7 +260,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     @Override
     public String getUserAgent() {
-        return isTelemetryAllowed() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
+        return isAllowTelemetry() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
                 INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
                 : String.format("%s/%s", getPluginName(), getPluginVersion());
     }
@@ -294,7 +275,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return NumberUtils.toInt(httpProxyPort, 0);
     }
 
-    public Azure getAzureClient() throws AzureAuthFailureException, AzureExecutionException {
+    public com.microsoft.azure.management.Azure getAzureClient() throws AzureAuthFailureException, AzureExecutionException {
         if (azure == null) {
             if (this.authentication != null && (this.authentication.getFile() != null || StringUtils.isNotBlank(authentication.getServerId()))) {
                 // TODO: remove the old way of authentication
@@ -305,10 +286,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
             }
             printCurrentSubscription(azure);
-            getTelemetryProxy().addDefaultProperty(AUTH_TYPE, getAuthType());
-            getTelemetryProxy().addDefaultProperty(AUTH_METHOD, getActualAuthType());
+            telemetryProxy.addDefaultProperty(AUTH_TYPE, getAuthType());
+            telemetryProxy.addDefaultProperty(AUTH_METHOD, getActualAuthType());
             // Repopulate subscriptionId in case it is not configured.
-            getTelemetryProxy().addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
+            telemetryProxy.addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
         }
         return azure;
     }
@@ -341,13 +322,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return subscriptionOptionSelected.getSubscription().getId();
     }
 
-    protected Azure getOrCreateAzureClient() throws AzureAuthFailureException, AzureExecutionException {
+    protected com.microsoft.azure.management.Azure getOrCreateAzureClient() throws AzureAuthFailureException, AzureExecutionException {
         try {
             final Account account = getAzureAccount();
             final List<Subscription> subscriptions = account.getSubscriptions();
             final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
             checkSubscription(subscriptions, targetSubscriptionId);
-            com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
+            Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
             this.subscriptionId = targetSubscriptionId;
             return AzureClientFactory.getAzureClient(getUserAgent(), targetSubscriptionId);
         } catch (AzureLoginException | IOException e) {
@@ -361,17 +342,17 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             mavenAuthConfiguration.setType(getAuthType());
 
             SystemPropertyUtils.injectCommandLineParameter("auth", mavenAuthConfiguration, MavenAuthConfiguration.class);
-            com.microsoft.azure.toolkit.lib.Azure.az().config().setUserAgent(getUserAgent());
+            Azure.az().config().setUserAgent(getUserAgent());
             azureAccount = login(MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
         }
         return azureAccount;
     }
 
-    private Account login(@Nonnull com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
+    protected Account login(@Nonnull com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
         promptAzureEnvironment(auth.getEnvironment());
         MavenAuthUtils.disableIdentityLogs();
         accountLogin(auth);
-        final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+        final Account account = Azure.az(AzureAccount.class).account();
         final boolean isInteractiveLogin = account.getAuthType() == AuthType.OAUTH2 || account.getAuthType() == AuthType.DEVICE_CODE;
         final AzureEnvironment env = account.getEnvironment();
         final String environmentName = AzureEnvironmentUtils.azureEnvironmentToString(env);
@@ -379,14 +360,15 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             Log.prompt(String.format(USING_AZURE_ENVIRONMENT, TextUtils.cyan(environmentName)));
         }
         printCredentialDescription(account, isInteractiveLogin);
-        getTelemetryProxy().addDefaultProperty(AZURE_ENVIRONMENT, environmentName);
+        telemetryProxy.addDefaultProperty(AUTH_TYPE, getAuthType());
+        telemetryProxy.addDefaultProperty(AZURE_ENVIRONMENT, environmentName);
         return account;
     }
 
     private static Account accountLogin(@Nonnull com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
 
         if (auth.getEnvironment() != null) {
-            com.microsoft.azure.toolkit.lib.Azure.az(AzureCloud.class).set(auth.getEnvironment());
+            Azure.az(AzureCloud.class).set(auth.getEnvironment());
         }
         // handle null type
         if (auth.getType() == null || auth.getType() == AuthType.AUTO) {
@@ -398,7 +380,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 }
                 // prompt if oauth or device code
                 promptForOAuthOrDeviceCodeLogin(account.getAuthType());
-                return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).loginAsync(account, false).block());
+                return handleDeviceCodeAccount(Azure.az(AzureAccount.class).loginAsync(account, false).block());
             } else {
                 // user specify SP related configurations
                 return doServicePrincipalLogin(auth);
@@ -406,7 +388,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         } else {
             // user specifies the auth type explicitly
             promptForOAuthOrDeviceCodeLogin(auth.getType());
-            return handleDeviceCodeAccount(com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).loginAsync(auth, false).block());
+            return handleDeviceCodeAccount(Azure.az(AzureAccount.class).loginAsync(auth, false).block());
         }
     }
 
@@ -433,7 +415,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     private static Mono<Account> findFirstAvailableAccount() {
-        final List<Account> accounts = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).accounts();
+        final List<Account> accounts = Azure.az(AzureAccount.class).accounts();
         if (accounts.isEmpty()) {
             return Mono.error(new AzureToolkitAuthenticationException("There are no accounts available."));
         }
@@ -447,7 +429,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     private static Account doServicePrincipalLogin(com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
         auth.setType(AuthType.SERVICE_PRINCIPAL);
-        return com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).login(auth).account();
+        return Azure.az(AzureAccount.class).login(auth).account();
     }
 
     private static Mono<Account> checkAccountAvailable(Account account) {
@@ -459,41 +441,36 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         });
     }
 
-    private static void printCredentialDescription(Account account, boolean skipType) {
+    protected static void printCredentialDescription(Account account, boolean skipType) {
         if (skipType) {
             if (CollectionUtils.isNotEmpty(account.getSubscriptions())) {
                 final List<Subscription> selectedSubscriptions = account.getSelectedSubscriptions();
                 if (selectedSubscriptions != null && selectedSubscriptions.size() == 1) {
-                    System.out.println(String.format("Default subscription: %s(%s)", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
-                            TextUtils.cyan(selectedSubscriptions.get(0).getId())));
+                    System.out.printf("Default subscription: %s(%s)%n", TextUtils.cyan(selectedSubscriptions.get(0).getName()),
+                            TextUtils.cyan(selectedSubscriptions.get(0).getId()));
                 }
             }
 
             if (StringUtils.isNotEmpty(account.getEntity().getEmail())) {
-                System.out.println(String.format("Username: %s", TextUtils.cyan(account.getEntity().getEmail())));
+                System.out.printf("Username: %s%n", TextUtils.cyan(account.getEntity().getEmail()));
             }
         } else {
             System.out.println(account.toString());
         }
     }
 
-    public TelemetryProxy getTelemetryProxy() {
-        if (telemetryProxy == null) {
-            initTelemetry();
-        }
-        return telemetryProxy;
-    }
-
-    protected void initTelemetry() {
+    protected void initTelemetryProxy() {
         telemetryProxy = new AppInsightsProxy(this);
-        if (!isTelemetryAllowed()) {
+        if (!isAllowTelemetry()) {
             telemetryProxy.trackEvent(TELEMETRY_NOT_ALLOWED);
             telemetryProxy.disable();
+        } else {
+            AzureTelemeter.setClient(telemetryProxy.getClient());
         }
     }
 
     //endregion
-    protected static void printCurrentSubscription(Azure azure) {
+    protected static void printCurrentSubscription(com.microsoft.azure.management.Azure azure) {
         if (azure == null) {
             return;
         }
@@ -517,7 +494,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     public String getActualAuthType() {
-        final Account account = com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account();
+        final Account account = Azure.az(AzureAccount.class).account();
         if (account != null) {
             return account.getAuthType().toString();
         }
@@ -542,9 +519,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public void execute() throws MojoExecutionException {
         try {
             AzureMessager.setDefaultMessager(new MavenAzureMessager());
+            Azure.az().config().setLogLevel(HttpLogDetailLevel.NONE.name());
+            Azure.az().config().setUserAgent(getUserAgent());
             // init proxy manager
             ProxyUtils.initProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
-            getTelemetryProxy().addDefaultProperty(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
+            initTelemetryProxy();
+            telemetryProxy.addDefaultProperty(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
             // Work around for Application Insights Java SDK:
             // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.
             // An issue has been filed at https://github.com/Microsoft/ApplicationInsights-Java/issues/416
@@ -559,19 +539,19 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
             if (isSkipMojo()) {
                 Log.info("Skip execution.");
-                trackMojoSkip();
+                onSkipped();
             } else {
-                trackMojoStart();
+                beforeMojoExecution();
 
                 doExecute();
 
-                trackMojoSuccess();
+                afterMojoExecution();
             }
         } catch (Exception e) {
             if (e instanceof AzureToolkitAuthenticationException) {
                 throw new MojoExecutionException(String.format("Cannot authenticate due to error: %s", e.getMessage()), e);
             }
-            handleException(e);
+            onMojoError(e);
         } finally {
             // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
             // into endless loop when close, we need to call it in main thread.
@@ -598,49 +578,39 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     /**
      * Entry point of sub-class. Sub-class should implement this method to do real work.
-     *
-     * @throws AzureExecutionException
      */
     protected abstract void doExecute() throws AzureExecutionException;
 
-    //endregion
-
-    //region Telemetry
-
-    protected void trackMojoSkip() {
-        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".skip");
+    protected void onSkipped() {
+        telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".skip");
     }
 
-    protected void trackMojoStart() {
-        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".start");
+    protected void beforeMojoExecution() {
+        telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".start", this.getTelemetries(), false);
     }
 
-    protected void trackMojoSuccess() {
-        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".success", recordJvmUpTime(new HashMap<>()));
+    protected void afterMojoExecution() {
+        telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".success", recordJvmUpTime(new HashMap<>()));
     }
 
     protected void trackMojoFailure(final String message) {
         final Map<String, String> failureParameters = new HashMap<>();
         failureParameters.put(FAILURE_REASON, message);
-        getTelemetryProxy().trackEvent(this.getClass().getSimpleName() + ".failure", recordJvmUpTime(failureParameters));
+        telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".failure", recordJvmUpTime(failureParameters));
     }
-
-    //endregion
-
-    //region Helper methods
 
     protected static String highlightDefaultValue(String defaultValue) {
         return StringUtils.isBlank(defaultValue) ? "" : String.format(" [%s]", TextUtils.blue(defaultValue));
     }
 
-    protected void handleException(final Exception exception) throws MojoExecutionException {
+    protected void onMojoError(final Exception exception) throws MojoExecutionException {
         String message = exception.getMessage();
         if (StringUtils.isEmpty(message)) {
             message = exception.toString();
         }
         trackMojoFailure(message);
 
-        if (isFailingOnError()) {
+        if (isFailsOnError()) {
             throw new MojoExecutionException(message, exception);
         } else {
             Log.error(message);
@@ -655,7 +625,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             throw new AzureExecutionException(e.getMessage(), e);
         } finally {
             final long endTime = System.currentTimeMillis();
-            getTelemetryProxy().addDefaultProperty(String.format("%s-cost", name), String.valueOf(endTime - startTime));
+            telemetryProxy.addDefaultProperty(String.format("%s-cost", name), String.valueOf(endTime - startTime));
         }
     }
 
@@ -697,7 +667,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    protected class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
+    protected static class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
         @Override
         public void uncaughtException(Thread t, Throwable e) {
             Log.debug("uncaughtException: " + e);
