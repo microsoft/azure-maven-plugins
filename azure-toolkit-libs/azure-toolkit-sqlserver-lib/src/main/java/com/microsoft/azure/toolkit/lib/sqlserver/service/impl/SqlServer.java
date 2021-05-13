@@ -11,13 +11,15 @@ import com.azure.resourcemanager.sql.SqlServerManager;
 import com.azure.resourcemanager.sql.models.SqlFirewallRule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
+import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerFirewallEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServer;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerCreator;
-import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerFirewallUpdater;
+import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerUpdater;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SqlServer implements ISqlServer {
     private static final ClientLogger LOGGER = new ClientLogger(SqlServer.class);
@@ -61,17 +63,15 @@ public class SqlServer implements ISqlServer {
     }
 
     @Override
-    public ISqlServerFirewallUpdater<? extends ISqlServer> update() {
-        return new SqlServerFirewallUpdater()
+    public ISqlServerUpdater<? extends ISqlServer> update() {
+        return new SqlServerUpdater()
             .withEnableAccessFromAzureServices(entity.isEnableAccessFromAzureServices())
             .withEnableAccessFromLocalMachine(entity.isEnableAccessFromLocalMachine());
     }
 
-    private com.azure.resourcemanager.sql.models.SqlServer getSqlServerInner() {
-        if (sqlServerInner == null) {
-            refreshWebAppInner();
-        }
-        return sqlServerInner;
+    @Override
+    public List<SqlServerFirewallEntity> firewallRules() {
+        return sqlServerInner.firewallRules().list().stream().map(e -> formSqlServerFirewallRule(e)).collect(Collectors.toList());
     }
 
     private SqlServerEntity fromSqlServer(com.azure.resourcemanager.sql.models.SqlServer server) {
@@ -86,6 +86,15 @@ public class SqlServer implements ISqlServer {
                 .state(server.state())
                 .fullyQualifiedDomainName(server.fullyQualifiedDomainName())
                 .type(server.type())
+                .build();
+    }
+
+    private SqlServerFirewallEntity formSqlServerFirewallRule(SqlFirewallRule firewallRuleInner) {
+        return SqlServerFirewallEntity.builder().id(firewallRuleInner.id())
+                .name(firewallRuleInner.name())
+                .startIpAddress(firewallRuleInner.startIpAddress())
+                .endIpAddress(firewallRuleInner.endIpAddress())
+                .subscriptionId(firewallRuleInner.sqlServerName())
                 .build();
     }
 
@@ -113,56 +122,41 @@ public class SqlServer implements ISqlServer {
                 .withAdministratorLogin(getAdministratorLogin())
                 .withAdministratorPassword(getAdministratorLoginPassword())
                 .create();
-            // update inner property
-            SqlServer.this.sqlServerInner = server;
-            // update entity properties after created sql server successfully.
-            SqlServer.this.entity = SqlServer.this.fromSqlServer(server);
             // update
             if (isEnableAccessFromAzureServices() || isEnableAccessFromLocalMachine()) {
-                new SqlServerFirewallUpdater().withEnableAccessFromAzureServices(isEnableAccessFromAzureServices())
-                    .withEnableAccessFromLocalMachine(isEnableAccessFromLocalMachine()).commit();
+                SqlServer.this.update().commit();
             }
+            // refresh entity
+            SqlServer.this.refreshWebAppInner();
             return SqlServer.this;
         }
     }
 
-    class SqlServerFirewallUpdater extends ISqlServerFirewallUpdater.AbstractSqlServerFirewallUpdater<SqlServer> {
+    class SqlServerUpdater extends ISqlServerUpdater.AbstractSqlServerUpdater<SqlServer> {
 
         @Override
         public SqlServer commit() {
-            List<SqlFirewallRule> firewallRuleList = sqlServerInner.firewallRules().list();
+            // update
             if (isEnableAccessFromAzureServices()) {
                 sqlServerInner.enableAccessFromAzureServices();
-            } else if (serverEnableAccessFromAzureServices(firewallRuleList)) {
+            } else {
                 sqlServerInner.removeAccessFromAzureServices();
             }
+            // update common rule
             if (isEnableAccessFromLocalMachine()) {
-                enableAccessFromLocalMachine();
-            } else if (serverEnableAccessFromLocalMachine(firewallRuleList)) {
-                removeAccessFromLocalMachine();
+                SqlServerFirewallEntity firewallEntity = SqlServerFirewallEntity.builder().name("").startIpAddress("").endIpAddress("").build();
+                new SqlServerFirewall(firewallEntity, sqlServerInner).create().commit();
+            } else {
+                sqlServerInner.firewallRules().delete("");
             }
-            refreshWebAppInner();
-            // update entity properties after updated sql server successfully.
-            SqlServer.this.entity = SqlServer.this.fromSqlServer(null);
-            return null;
-        }
-
-        private boolean serverEnableAccessFromAzureServices(List<SqlFirewallRule> firewallRuleList) {
-            return false;
-            //sqlServerInner.firewallRules().list().stream().findAny(f -> StringUtils.equals(f));
-        }
-
-        private boolean serverEnableAccessFromLocalMachine(List<SqlFirewallRule> firewallRuleList) {
-            return false;
-        }
-
-        private void enableAccessFromLocalMachine() {
-            sqlServerInner.firewallRules().define("").withIpAddress("").create();
-        }
-
-        private void removeAccessFromLocalMachine() {
-            sqlServerInner.firewallRules().delete("");
+            // refresh entity
+            SqlServer.this.refreshWebAppInner();
+            return SqlServer.this;
         }
     }
+
+
+
+
 
 }

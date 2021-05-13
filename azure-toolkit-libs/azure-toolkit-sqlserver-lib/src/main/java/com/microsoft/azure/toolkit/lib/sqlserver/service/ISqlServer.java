@@ -5,6 +5,9 @@
 package com.microsoft.azure.toolkit.lib.sqlserver.service;
 
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
+import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerFirewallEntity;
+
+import java.util.List;
 
 public interface ISqlServer {
 
@@ -14,6 +17,8 @@ public interface ISqlServer {
 
     ISqlServerCreator<? extends ISqlServer> create();
 
-    ISqlServerFirewallUpdater<? extends ISqlServer> update();
+    ISqlServerUpdater<? extends ISqlServer> update();
+
+    List<SqlServerFirewallEntity> firewallRules();
 
 }
