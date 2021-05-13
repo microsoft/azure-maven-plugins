@@ -7,35 +7,35 @@ package com.microsoft.azure.toolkit.lib.sqlserver.service;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import lombok.Getter;
 
-public interface ISqlServerFirewallCreator<T> extends ICommittable<T> {
+public interface ISqlFirewallRuleCreator<T> extends ICommittable<T> {
 
-    ISqlServerFirewallCreator<T> withName(String name);
+    ISqlFirewallRuleCreator<T> withName(String name);
 
-    ISqlServerFirewallCreator<T> wihStartIpAddress(String startIpAddress);
+    ISqlFirewallRuleCreator<T> wihStartIpAddress(String startIpAddress);
 
-    ISqlServerFirewallCreator<T> withEndIpAddress(String endIpAddress);
+    ISqlFirewallRuleCreator<T> withEndIpAddress(String endIpAddress);
 
     @Getter
-    abstract class AbstractSqlServerFirewallCreator<T> implements ISqlServerFirewallCreator<T> {
+    abstract class AbstractSqlFirewallRuleCreator<T> implements ISqlFirewallRuleCreator<T> {
 
         private String name;
         private String startIpAddress;
         private String endIpAddress;
 
         @Override
-        public ISqlServerFirewallCreator<T> withName(String name) {
+        public ISqlFirewallRuleCreator<T> withName(String name) {
             this.name = name;
             return this;
         }
 
         @Override
-        public ISqlServerFirewallCreator<T> wihStartIpAddress(String startIpAddress) {
+        public ISqlFirewallRuleCreator<T> wihStartIpAddress(String startIpAddress) {
             this.startIpAddress = startIpAddress;
             return this;
         }
 
         @Override
-        public ISqlServerFirewallCreator<T> withEndIpAddress(String endIpAddress) {
+        public ISqlFirewallRuleCreator<T> withEndIpAddress(String endIpAddress) {
             this.endIpAddress = endIpAddress;
             return this;
         }

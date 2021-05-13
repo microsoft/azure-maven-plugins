@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder(toBuilder = true)
-public class SqlServerFirewallEntity implements IAzureResourceEntity {
+public class SqlFirewallRuleEntity implements IAzureResourceEntity {
 
     private String name;
     private String id;

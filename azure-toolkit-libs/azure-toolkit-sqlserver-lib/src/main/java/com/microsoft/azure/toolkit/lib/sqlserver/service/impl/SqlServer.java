@@ -8,10 +8,9 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
-import com.azure.resourcemanager.sql.models.SqlFirewallRule;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlFirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
-import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerFirewallEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServer;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerCreator;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerUpdater;
@@ -70,7 +69,7 @@ public class SqlServer implements ISqlServer {
     }
 
     @Override
-    public List<SqlServerFirewallEntity> firewallRules() {
+    public List<SqlFirewallRuleEntity> firewallRules() {
         return sqlServerInner.firewallRules().list().stream().map(e -> formSqlServerFirewallRule(e)).collect(Collectors.toList());
     }
 
@@ -89,8 +88,8 @@ public class SqlServer implements ISqlServer {
                 .build();
     }
 
-    private SqlServerFirewallEntity formSqlServerFirewallRule(SqlFirewallRule firewallRuleInner) {
-        return SqlServerFirewallEntity.builder().id(firewallRuleInner.id())
+    private SqlFirewallRuleEntity formSqlServerFirewallRule(com.azure.resourcemanager.sql.models.SqlFirewallRule firewallRuleInner) {
+        return SqlFirewallRuleEntity.builder().id(firewallRuleInner.id())
                 .name(firewallRuleInner.name())
                 .startIpAddress(firewallRuleInner.startIpAddress())
                 .endIpAddress(firewallRuleInner.endIpAddress())
@@ -144,8 +143,8 @@ public class SqlServer implements ISqlServer {
             }
             // update common rule
             if (isEnableAccessFromLocalMachine()) {
-                SqlServerFirewallEntity firewallEntity = SqlServerFirewallEntity.builder().name("").startIpAddress("").endIpAddress("").build();
-                new SqlServerFirewall(firewallEntity, sqlServerInner).create().commit();
+                SqlFirewallRuleEntity firewallEntity = SqlFirewallRuleEntity.builder().name("").startIpAddress("").endIpAddress("").build();
+                new SqlFirewallRuleRule(firewallEntity, sqlServerInner).create().commit();
             } else {
                 sqlServerInner.firewallRules().delete("");
             }
