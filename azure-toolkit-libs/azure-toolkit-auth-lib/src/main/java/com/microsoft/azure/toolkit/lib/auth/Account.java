@@ -216,6 +216,14 @@ public abstract class Account implements IAccount {
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot find subscription with id '%s'", subscriptionId)));
     }
 
+    @Override
+    public Subscription getSubscription(String subscriptionId) {
+        return getSubscriptions().stream()
+                .filter(s -> StringUtils.equalsIgnoreCase(subscriptionId, s.getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot find subscription with id '%s'", subscriptionId)));
+    }
+
     private static void selectSubscriptionInner(List<Subscription> subscriptions, List<String> subscriptionIds) {
         // select subscriptions
         if (CollectionUtils.isNotEmpty(subscriptionIds) && CollectionUtils.isNotEmpty(subscriptions)) {
