@@ -67,6 +67,12 @@ public class Region {
     public static final Region GOV_US_TEXAS = new Region("usgovtexas", "US Gov Texas");
     public static final Region GOV_US_DOD_EAST = new Region("usdodeast", "US DoD East");
     public static final Region GOV_US_DOD_CENTRAL = new Region("usdodcentral", "US DoD Central");
+
+    public static final Region US_WEST3 = new Region("westus3", "West US 3");
+    public static final Region US_CENTRAL_EUAP = new Region("centraluseuap", "Central US EUAP");
+    public static final Region US_EAST2_EUAP = new Region("eastus2euap", "East US 2 EUAP");
+    public static final Region INDIA_JIO_WEST = new Region("jioindiawest", "Jio India West");
+
     private final String name;
     private final String label;
 
@@ -76,7 +82,8 @@ public class Region {
             SWITZERLAND_NORTH, FRANCE_SOUTH, GERMANY_NORTH, NORWAY_WEST, SWITZERLAND_WEST, UK_WEST, AUSTRALIA_EAST, ASIA_SOUTHEAST, INDIA_CENTRAL,
             ASIA_EAST, JAPAN_EAST, KOREA_CENTRAL, AUSTRALIA_CENTRAL, AUSTRALIA_CENTRAL2, AUSTRALIA_SOUTHEAST, JAPAN_WEST, KOREA_SOUTH, INDIA_SOUTH,
             INDIA_WEST, UAE_NORTH, UAE_CENTRAL, SOUTHAFRICA_NORTH, SOUTHAFRICA_WEST, CHINA_NORTH, CHINA_EAST, CHINA_NORTH2, CHINA_EAST2, GERMANY_CENTRAL,
-            GERMANY_NORTHEAST, GOV_US_VIRGINIA, GOV_US_IOWA, GOV_US_ARIZONA, GOV_US_TEXAS, GOV_US_DOD_EAST, GOV_US_DOD_CENTRAL);
+            GERMANY_NORTHEAST, GOV_US_VIRGINIA, GOV_US_IOWA, GOV_US_ARIZONA, GOV_US_TEXAS, GOV_US_DOD_EAST, GOV_US_DOD_CENTRAL, US_WEST3,
+            US_CENTRAL_EUAP, US_EAST2_EUAP, INDIA_JIO_WEST);
     }
 
     public static Region fromName(String value) {

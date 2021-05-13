@@ -3,15 +3,16 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.appservice.file;
+package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import com.microsoft.azure.management.appservice.WebAppBase;
 import lombok.Data;
 
 import java.util.Objects;
 
+@Deprecated
 @Data
-public class AppServiceFile {
+public class AppServiceFileLegacy {
     private String name;
     private long size;
     private String mtime;
