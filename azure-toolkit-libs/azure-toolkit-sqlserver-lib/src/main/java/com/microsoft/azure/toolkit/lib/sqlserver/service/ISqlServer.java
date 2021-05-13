@@ -13,7 +13,7 @@ public interface ISqlServer {
 
     SqlServerEntity entity();
 
-    void delete();
+    ISqlServerDeleter<? extends ISqlServer> delete();
 
     ISqlServerCreator<? extends ISqlServer> create();
 
