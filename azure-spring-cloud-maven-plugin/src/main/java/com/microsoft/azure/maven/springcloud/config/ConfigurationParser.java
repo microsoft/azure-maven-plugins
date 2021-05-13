@@ -18,7 +18,7 @@ import java.util.List;
 public class ConfigurationParser {
     public SpringCloudAppConfig parse(AbstractMojoBase springMojo) {
         final AppDeploymentMavenConfig rawConfig = springMojo.getDeployment();
-        final SpringCloudDeploymentConfig config = ConfigurationParser.toDeploymentConfig(rawConfig);
+        final SpringCloudDeploymentConfig config = ConfigurationParser.toDeploymentConfig(rawConfig, springMojo);
         return SpringCloudAppConfig.builder()
             .appName(springMojo.getAppName())
             .clusterName(springMojo.getClusterName())
@@ -30,8 +30,11 @@ public class ConfigurationParser {
     }
 
     @SneakyThrows
-    private static SpringCloudDeploymentConfig toDeploymentConfig(AppDeploymentMavenConfig rawConfig) {
+    private static SpringCloudDeploymentConfig toDeploymentConfig(AppDeploymentMavenConfig rawConfig, AbstractMojoBase mojo) {
         final List<File> artifacts = MavenArtifactUtils.getArtifacts(rawConfig.getResources());
+        if (artifacts.isEmpty()) {
+            artifacts.addAll(MavenArtifactUtils.getArtifactFiles(mojo.getProject()));
+        }
         final File artifact = MavenArtifactUtils.getExecutableJarFiles(artifacts);
         return SpringCloudDeploymentConfig.builder()
             .cpu(rawConfig.getCpu())
