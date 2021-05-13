@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.sqlserver.SqlServerManagerFactory;
+import com.microsoft.azure.toolkit.lib.sqlserver.model.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.impl.SqlServer;
 import org.apache.commons.lang3.StringUtils;
@@ -62,10 +63,10 @@ public class AzureSqlServer extends SubscriptionScoped<AzureSqlServer> implement
                 .collect(Collectors.toList());
     }
 
-    public boolean checkNameAvailability(String subscriptionId, String name) {
+    public CheckNameAvailabilityResultEntity checkNameAvailability(String subscriptionId, String name) {
         SqlServerManager manager = SqlServerManagerFactory.create(subscriptionId);
-        CheckNameAvailabilityResult nameAvailabilityResult = manager.sqlServers().checkNameAvailability(name);
-        return nameAvailabilityResult.isAvailable();
+        CheckNameAvailabilityResult result = manager.sqlServers().checkNameAvailability(name);
+        return new CheckNameAvailabilityResultEntity(result.isAvailable(), result.unavailabilityReason(), result.unavailabilityMessage());
     }
 
     public boolean checkRegionCapability(String subscriptionId, String region) {
