@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.springcloud.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,7 @@ import org.apache.commons.lang3.BooleanUtils;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class SpringCloudAppConfig {
     private String subscriptionId;
     private String clusterName;

@@ -8,7 +8,6 @@ package com.microsoft.azure.maven;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.maven.auth.AuthenticationSetting;
-import com.microsoft.azure.maven.telemetry.TelemetryProxy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -68,9 +67,6 @@ public class AbstractAzureMojoTest {
     @Mock
     Azure azure;
 
-    @Mock
-    TelemetryProxy telemetryProxy;
-
     @InjectMocks
     private AbstractAzureMojo mojo = new AbstractAzureMojo() {
         @Override
@@ -87,6 +83,7 @@ public class AbstractAzureMojoTest {
         ReflectionUtils.setVariableValueInObject(mojo, "subscriptionId", SUBSCRIPTION_ID);
         ReflectionUtils.setVariableValueInObject(mojo, "allowTelemetry", false);
         ReflectionUtils.setVariableValueInObject(mojo, "failsOnError", true);
+        mojo.initTelemetryProxy();
     }
 
     @Test
@@ -130,13 +127,8 @@ public class AbstractAzureMojoTest {
     }
 
     @Test
-    public void getTelemetryProxy() {
-        assertEquals(telemetryProxy, mojo.getTelemetryProxy());
-    }
-
-    @Test
     public void isTelemetryAllowed() throws Exception {
-        assertTrue(!mojo.isTelemetryAllowed());
+        assertFalse(mojo.isAllowTelemetry());
     }
 
     @Test
@@ -168,7 +160,7 @@ public class AbstractAzureMojoTest {
         final String message = "test exception message";
         String actualMessage = null;
         try {
-            mojo.handleException(new Exception(message));
+            mojo.onMojoError(new Exception(message));
         } catch (Exception e) {
             actualMessage = e.getMessage();
         }
