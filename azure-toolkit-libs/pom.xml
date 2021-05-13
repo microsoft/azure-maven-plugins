@@ -267,6 +267,11 @@
                 <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-sql</artifactId>
+                <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-mgmt-appservice</artifactId>
                 <version>${azure.version}</version>
