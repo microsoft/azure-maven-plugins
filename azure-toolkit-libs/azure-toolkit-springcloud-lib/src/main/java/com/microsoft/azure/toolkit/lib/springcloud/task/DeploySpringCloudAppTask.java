@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloudConfigUtils.DEFAULT_DEPLOYMENT_NAME;
-
 @Getter
 public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
+    public static final String DEFAULT_DEPLOYMENT_NAME = "default";
+
     private final SpringCloudAppConfig config;
     private final List<AzureTask<?>> subTasks;
     private SpringCloudDeployment deployment;
@@ -75,36 +75,28 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         AzureTelemetry.getContext().setProperty("isCreateDeployment", String.valueOf(toCreateDeployment));
         AzureTelemetry.getContext().setProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deploymentConfig.getDeploymentName())));
 
-        final SpringCloudApp.Creator appCreator = app.create();
-        final SpringCloudApp.Uploader artifactUploader = app.uploadArtifact(file.getPath());
-        final SpringCloudDeployment.Updater deploymentModifier = (toCreateDeployment ? deployment.create() : deployment.update())
-                .configEnvironmentVariables(env)
-                .configJvmOptions(jvmOptions)
-                .configScaleSettings(scaleSettings)
-                .configRuntimeVersion(runtimeVersion)
-                .configArtifact(artifactUploader.getArtifact());
-        final SpringCloudApp.Updater appUpdater = app.update()
-                // active deployment should keep active.
-                .activate(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null))
-                .setPublic(config.isPublic())
-                .enablePersistentDisk(enableDisk);
-
         final String CREATE_APP_TITLE = String.format("Create new app(%s) on service(%s)", messager.value(appName), messager.value(clusterName));
         final String UPDATE_APP_TITLE = String.format("Update app(%s) of service(%s)", messager.value(appName), messager.value(clusterName));
         final String CREATE_DEPLOYMENT_TITLE = String.format("Create new deployment(%s) in app(%s)", messager.value(deploymentName), messager.value(appName));
         final String UPDATE_DEPLOYMENT_TITLE = String.format("Update deployment(%s) of app(%s)", messager.value(deploymentName), messager.value(appName));
-        final String UPLOAD_ARTIFACT_TITLE = String.format("Upload artifact(%s) to app(%s)", messager.value(file.getPath()), messager.value(appName));
         final String DEPLOYMENT_TITLE = toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE;
 
         final List<AzureTask<?>> tasks = new ArrayList<>();
         if (toCreateApp) {
-            tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, appCreator::commit));
+            tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, () -> app.create().commit()));
         }
-        tasks.add(new AzureTask<Void>(UPLOAD_ARTIFACT_TITLE, artifactUploader::commit));
-        tasks.add(new AzureTask<Void>(DEPLOYMENT_TITLE, deploymentModifier::commit));
-        if (!appUpdater.isSkippable()) {
-            tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, appUpdater::commit));
-        }
+        tasks.add(new AzureTask<Void>(DEPLOYMENT_TITLE, () -> (toCreateDeployment ? deployment.create() : deployment.update())
+            .configEnvironmentVariables(env)
+            .configJvmOptions(jvmOptions)
+            .configScaleSettings(scaleSettings)
+            .configRuntimeVersion(runtimeVersion)
+            .configArtifact(file)
+            .commit()));
+        tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> app.update()
+            // active deployment should keep active.
+            .activate(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null))
+            .setPublic(config.isPublic())
+            .enablePersistentDisk(enableDisk).commit()));
         return tasks;
     }
 

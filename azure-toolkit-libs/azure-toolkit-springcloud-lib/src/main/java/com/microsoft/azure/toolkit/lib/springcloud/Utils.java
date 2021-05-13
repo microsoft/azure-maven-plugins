@@ -5,13 +5,15 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.storage.file.CloudFile;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.azure.resourcemanager.appplatform.models.DeploymentResourceStatus;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
-import java.io.File;
-import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -19,13 +21,27 @@ import java.util.function.Predicate;
 public class Utils {
     private static final int POLLING_INTERVAL = 1;
 
-    public static void uploadFileToStorage(File file, String sasUrl) throws AzureToolkitRuntimeException {
-        try {
-            final CloudFile cloudFile = new CloudFile(new URI(sasUrl));
-            cloudFile.uploadFromFile(file.getPath());
-        } catch (Exception e) {
-            throw new AzureToolkitRuntimeException(e.getMessage(), e);
+    protected static final List<String> DEPLOYMENT_PROCESSING_STATUS =
+            Arrays.asList(DeploymentResourceStatus.COMPILING.toString(), DeploymentResourceStatus.ALLOCATING.toString(), DeploymentResourceStatus.UPGRADING.toString());
+
+    public static boolean isDeploymentDone(SpringCloudDeployment deployment) {
+        if (deployment == null) {
+            return false;
         }
+        final String deploymentResourceStatus = deployment.entity().getStatus();
+        if (DEPLOYMENT_PROCESSING_STATUS.contains(deploymentResourceStatus)) {
+            return false;
+        }
+        final String finalDiscoverStatus = BooleanUtils.isTrue(deployment.entity().isActive()) ? "UP" : "OUT_OF_SERVICE";
+        final List<SpringCloudDeploymentInstanceEntity> instanceList = deployment.entity().getInstances();
+        if (CollectionUtils.isEmpty(instanceList)) {
+            return false;
+        }
+        final boolean isInstanceDeployed = instanceList.stream().noneMatch(instance ->
+                StringUtils.equalsIgnoreCase(instance.status(), "waiting") || StringUtils.equalsIgnoreCase(instance.status(), "pending"));
+        final boolean isInstanceDiscovered = instanceList.stream().allMatch(instance ->
+                StringUtils.equalsIgnoreCase(instance.discoveryStatus(), finalDiscoverStatus));
+        return isInstanceDeployed && isInstanceDiscovered;
     }
 
     /**
@@ -51,12 +67,12 @@ public class Utils {
      * @return the first resource which fit the predicate or the last result before timeout
      */
     public static <T> T pollUntil(Callable<T> callable, Predicate<T> predicate, int timeOutInSeconds, int pollingInterval) {
-        final long timeout = System.currentTimeMillis() + timeOutInSeconds * 1000;
+        final long timeout = System.currentTimeMillis() + timeOutInSeconds * 1000L;
         return Observable.interval(pollingInterval, TimeUnit.SECONDS)
-            .timeout(timeOutInSeconds, TimeUnit.SECONDS)
-            .flatMap(aLong -> Observable.fromCallable(callable))
-            .subscribeOn(Schedulers.io())
-            .takeUntil(resource -> predicate.test(resource) || System.currentTimeMillis() > timeout)
-            .toBlocking().last();
+                .timeout(timeOutInSeconds, TimeUnit.SECONDS)
+                .flatMap(aLong -> Observable.fromCallable(callable))
+                .subscribeOn(Schedulers.io())
+                .takeUntil(resource -> predicate.test(resource) || System.currentTimeMillis() > timeout)
+                .toBlocking().last();
     }
 }

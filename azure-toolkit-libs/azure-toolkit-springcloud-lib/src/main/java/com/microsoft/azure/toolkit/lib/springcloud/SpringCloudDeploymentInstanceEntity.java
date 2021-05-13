@@ -22,39 +22,39 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.azure.resourcemanager.appplatform.models.Sku;
-import com.azure.resourcemanager.appplatform.models.SpringService;
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.azure.resourcemanager.appplatform.models.DeploymentInstance;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 
 import javax.annotation.Nonnull;
 
 @Getter
-@Setter(AccessLevel.PRIVATE)
-public class SpringCloudClusterEntity implements IAzureResourceEntity {
-    private final String subscriptionId;
-    private final String resourceGroup;
+public class SpringCloudDeploymentInstanceEntity {
+    @Nonnull
+    private final SpringCloudDeploymentEntity deployment;
+    @Nonnull
     private final String name;
-    private final String id;
     @Nonnull
     @JsonIgnore
     @Getter(AccessLevel.PACKAGE)
-    private transient SpringService remote;
+    private final transient DeploymentInstance remote;
 
-    SpringCloudClusterEntity(@Nonnull final SpringService resource) {
-        this.remote = resource;
-        final ResourceId id = ResourceId.fromString(this.remote.id());
-        this.resourceGroup = id.resourceGroupName();
-        this.subscriptionId = id.subscriptionId();
-        this.name = resource.name();
-        this.id = resource.id();
+    SpringCloudDeploymentInstanceEntity(@Nonnull DeploymentInstance remote, @Nonnull SpringCloudDeploymentEntity deployment) {
+        this.remote = remote;
+        this.name = remote.name();
+        this.deployment = deployment;
     }
 
-    public Sku getSku() {
-        return this.remote.sku();
+    public String status() {
+        return this.remote.status();
+    }
+
+    public String reason() {
+        return this.remote.reason();
+    }
+
+    public String discoveryStatus() {
+        return this.remote.discoveryStatus();
     }
 }
