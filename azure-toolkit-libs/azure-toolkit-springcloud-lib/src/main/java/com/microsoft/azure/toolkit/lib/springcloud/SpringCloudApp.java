@@ -88,6 +88,16 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         return new SpringCloudDeployment(deployment, this);
     }
 
+    @Nullable
+    public SpringCloudDeployment activeDeployment() {
+        assert this.exists() && Objects.nonNull(this.remote) : String.format("app(%s) not exist", this.name());
+        final SpringAppDeployment active = this.remote.getActiveDeployment();
+        if (Objects.isNull(active)) {
+            return null;
+        }
+        return this.deployment(active);
+    }
+
     @Nonnull
     public List<SpringCloudDeployment> deployments() {
         if (this.exists()) {
