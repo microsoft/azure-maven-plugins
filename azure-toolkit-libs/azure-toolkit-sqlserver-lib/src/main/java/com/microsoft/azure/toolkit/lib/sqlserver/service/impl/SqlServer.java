@@ -180,28 +180,17 @@ public class SqlServer implements ISqlServer {
          */
         private String getPublicIp(final com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
             // try to get public IP by ping SQL Server
-            String connectionUrl =
-                    "jdbc:sqlserver://%s.database.windows.net:1433;"
-                            + "database=AdventureWorks;"
-                            + "user=%s@%s;"
-                            //+ "password=yourpassword;"
-                            + "encrypt=true;"
-                            + "trustServerCertificate=false;"
-                            + "loginTimeout=30;";
+            String connectionUrl = "jdbc:sqlserver://%s.database.windows.net:1433;user=%s@%s;encrypt=true;trustServerCertificate=false;loginTimeout=30;";
             connectionUrl = String.format(connectionUrl, entity.getName(), entity.getAdministratorLoginName(), entity.getName());
-            ;
             try {
                 Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
                 DriverManager.getConnection(connectionUrl);
-                // Code here.
             } catch (SQLException e) {
-                e.printStackTrace();
                 String ip = NetUtils.parseIpAddressFromMessage(e.getMessage());
                 if (StringUtils.isNotBlank(ip)) {
                     return ip;
                 }
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
             }
             // Alternatively, get public IP by ping public URL
             return NetUtils.getPublicIp();
