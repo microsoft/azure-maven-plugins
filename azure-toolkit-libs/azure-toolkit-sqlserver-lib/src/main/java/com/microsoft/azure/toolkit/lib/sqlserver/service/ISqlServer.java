@@ -4,8 +4,8 @@
  */
 package com.microsoft.azure.toolkit.lib.sqlserver.service;
 
-import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlFirewallRuleEntity;
+import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public interface ISqlServer {
 
     SqlServerEntity entity();
 
-    ISqlServerDeleter<? extends ISqlServer> delete();
+    void delete();
 
     ISqlServerCreator<? extends ISqlServer> create();
 

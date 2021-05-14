@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlFirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServer;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerCreator;
-import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerDeleter;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerUpdater;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -48,11 +47,12 @@ public class SqlServer implements ISqlServer {
     }
 
     @Override
-    public ISqlServerDeleter<? extends ISqlServer> delete() {
-        return new SqlServerDeleter()
-            .withId(entity.getId())
-            .withName(entity.getName())
-            .withResourceGroup(entity.getResourceGroup());
+    public void delete() {
+        if (StringUtils.isNotBlank(entity.getId())) {
+            SqlServer.this.manager.sqlServers().deleteById(entity.getId());
+        } else if (StringUtils.isNotBlank(entity.getResourceGroup()) && StringUtils.isNotBlank(entity.getName())) {
+            SqlServer.this.manager.sqlServers().deleteByResourceGroup(entity.getResourceGroup(), entity.getName());
+        }
     }
 
     @Override
@@ -187,19 +187,6 @@ public class SqlServer implements ISqlServer {
             }
             // Alternatively, get public IP by ping public URL
             return NetUtils.getPublicIp();
-        }
-    }
-
-    class SqlServerDeleter extends ISqlServerDeleter.AbstractSqlServerDeleter<SqlServer> {
-
-        @Override
-        public SqlServer commit() {
-            if (StringUtils.isNotBlank(getId())) {
-                SqlServer.this.manager.sqlServers().deleteById(getId());
-            } else if (StringUtils.isNotBlank(getResourceGroup()) && StringUtils.isNotBlank(getName())) {
-                SqlServer.this.manager.sqlServers().deleteByResourceGroup(getResourceGroup(), getName());
-            }
-            return SqlServer.this;
         }
     }
 

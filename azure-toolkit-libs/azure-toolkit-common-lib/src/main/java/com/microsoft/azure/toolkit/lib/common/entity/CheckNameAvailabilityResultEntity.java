@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.sqlserver.model;
+package com.microsoft.azure.toolkit.lib.common.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.sqlserver.SqlServerManagerFactory;
-import com.microsoft.azure.toolkit.lib.sqlserver.model.CheckNameAvailabilityResultEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.CheckNameAvailabilityResultEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.impl.SqlServer;
 import org.apache.commons.lang3.StringUtils;
