@@ -76,7 +76,7 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
     }
 
     public List<ApplicationInsightsEntity> list() {
-        return getSubscriptions().stream()
+        return getSubscriptions().stream().parallel()
                 .map(subscription -> getApplicationInsightsManager(subscription.getId()))
                 .flatMap(manager -> manager.components().list().stream())
                 .map(ApplicationInsights::getFromApplicationInsightsComponent)
