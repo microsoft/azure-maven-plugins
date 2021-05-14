@@ -36,6 +36,7 @@
     <modules>
         <module>azure-toolkit-common-lib</module>
         <module>azure-toolkit-auth-lib</module>
+        <module>azure-toolkit-resource-lib</module>
         <module>azure-toolkit-springcloud-lib</module>
         <module>azure-toolkit-appservice-lib</module>
         <module>azure-toolkit-sqlserver-lib</module>

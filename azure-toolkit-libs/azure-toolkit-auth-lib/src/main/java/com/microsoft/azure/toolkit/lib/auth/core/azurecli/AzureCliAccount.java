@@ -35,6 +35,7 @@ public class AzureCliAccount extends Account {
         return Mono.fromCallable(() -> {
             AzureCliUtils.ensureMinimumCliVersion();
             AzureCliUtils.executeAzureCli("az account get-access-token --output json");
+
             List<AzureCliSubscription> subscriptions = AzureCliUtils.listSubscriptions();
             if (subscriptions.isEmpty()) {
                 throw new AzureToolkitAuthenticationException("Cannot find any subscriptions in current account.");
