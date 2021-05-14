@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
 import javax.annotation.Nonnull;
@@ -32,6 +33,10 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
         super(ApplicationInsights::new, subscriptions);
     }
 
+    public boolean exists(@Nonnull String resourceGroup, @Nonnull String name) {
+        return exists(getDefaultSubscription().getId(), resourceGroup, name);
+    }
+
     public boolean exists(@Nonnull String subscriptionId, @Nonnull String resourceGroup, @Nonnull String name) {
         try {
             return get(subscriptionId, resourceGroup, name) != null;
@@ -41,7 +46,7 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
         }
     }
 
-    public ApplicationInsightsEntity getByName(@Nonnull String resourceGroup, @Nonnull String name) {
+    public ApplicationInsightsEntity get(@Nonnull String resourceGroup, @Nonnull String name) {
         return get(getDefaultSubscription().getId(), resourceGroup, name);
     }
 
@@ -49,6 +54,10 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
         return Optional.ofNullable(getApplicationInsightsManager(subscriptionId).components().getByResourceGroup(resourceGroup, name))
                 .map(ApplicationInsights::getFromApplicationInsightsComponent)
                 .orElse(null);
+    }
+
+    public ApplicationInsightsEntity create(@Nonnull String resourceGroup, @Nonnull Region region, @Nonnull String name) {
+        return create(getDefaultSubscription().getId(), resourceGroup, region, name);
     }
 
     /**
@@ -60,9 +69,9 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
      * @param name           name for resource to create
      * @return ApplicationInsightsEntity for created resource
      */
-    public ApplicationInsightsEntity create(@Nonnull String subscriptionId, @Nonnull String resourceGroup, @Nonnull String region, @Nonnull String name) {
+    public ApplicationInsightsEntity create(@Nonnull String subscriptionId, @Nonnull String resourceGroup, @Nonnull Region region, @Nonnull String name) {
         final ApplicationInsightsComponent component = getApplicationInsightsManager(subscriptionId).components().define(name)
-                .withRegion(region).withExistingResourceGroup(resourceGroup).withKind("web").withApplicationType(ApplicationType.WEB).create();
+                .withRegion(region.getName()).withExistingResourceGroup(resourceGroup).withKind("web").withApplicationType(ApplicationType.WEB).create();
         return getFromApplicationInsightsComponent(component);
     }
 
@@ -74,6 +83,10 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
                 .collect(Collectors.toList());
     }
 
+    public void delete(@Nonnull String resourceGroup, @Nonnull String name) {
+        delete(getDefaultSubscription().getId(), resourceGroup, name);
+    }
+
     public void delete(@Nonnull String subscriptionId, @Nonnull String resourceGroup, @Nonnull String name) {
         getApplicationInsightsManager(subscriptionId).components().deleteByResourceGroup(resourceGroup, name);
     }
@@ -81,11 +94,12 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
     @Cacheable(cacheName = "ApplicationInsightsManager", key = "$subscriptionId")
     private ApplicationInsightsManager getApplicationInsightsManager(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
+        final String tenantId = account.getSubscription(subscriptionId).getTenantId();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
         final HttpLogOptions logOptions = new HttpLogOptions();
         logOptions.setLogLevel(Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE));
-        final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
+        final AzureProfile azureProfile = new AzureProfile(tenantId, subscriptionId, account.getEnvironment());
         return ApplicationInsightsManager
                 .configure()
                 .withLogOptions(logOptions)
