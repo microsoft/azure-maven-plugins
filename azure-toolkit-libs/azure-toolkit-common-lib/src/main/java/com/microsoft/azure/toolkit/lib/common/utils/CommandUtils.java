@@ -80,7 +80,7 @@ public class CommandUtils {
         try {
             executor.execute(commandLine);
             if (!mergeErrorStream && err.size() > 0) {
-                log.warn(err.toString());
+                log.warn(StringUtils.trim(err.toString()));
             }
             return out.toString();
         } catch (ExecuteException e) {
