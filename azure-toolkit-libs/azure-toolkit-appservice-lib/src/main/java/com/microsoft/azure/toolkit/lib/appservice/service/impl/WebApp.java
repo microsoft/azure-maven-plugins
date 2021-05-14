@@ -108,6 +108,11 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             .collect(Collectors.toList());
     }
 
+    @Override
+    public void swap(String slotName) {
+        getRemoteResource().swap(slotName);
+    }
+
     public class WebAppCreator extends AbstractAppServiceCreator<WebApp> {
         // todo: Add validation for required parameters
         @Override
