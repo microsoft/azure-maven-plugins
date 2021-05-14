@@ -18,8 +18,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlotCreator;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlotUpdater;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -47,12 +45,12 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
     }
 
     @Override
-    public IWebAppDeploymentSlotCreator create() {
+    public Creator create() {
         return new WebAppDeploymentSlotCreator();
     }
 
     @Override
-    public IWebAppDeploymentSlotUpdater update() {
+    public Updater update() {
         return new WebAppDeploymentSlotUpdater();
     }
 
@@ -90,7 +88,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
     }
 
     @Getter
-    public class WebAppDeploymentSlotCreator implements IWebAppDeploymentSlotCreator {
+    public class WebAppDeploymentSlotCreator implements Creator {
         public static final String CONFIGURATION_SOURCE_NEW = "new";
         public static final String CONFIGURATION_SOURCE_PARENT = "parent";
         private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current web app";
@@ -102,25 +100,25 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
         private DiagnosticConfig diagnosticConfig = null;
 
         @Override
-        public IWebAppDeploymentSlotCreator withName(String name) {
+        public Creator withName(String name) {
             this.name = name;
             return this;
         }
 
         @Override
-        public IWebAppDeploymentSlotCreator withAppSettings(Map<String, String> appSettings) {
+        public Creator withAppSettings(Map<String, String> appSettings) {
             this.appSettings = appSettings;
             return this;
         }
 
         @Override
-        public IWebAppDeploymentSlotCreator withConfigurationSource(String configurationSource) {
+        public Creator withConfigurationSource(String configurationSource) {
             this.configurationSource = configurationSource;
             return this;
         }
 
         @Override
-        public IWebAppDeploymentSlotCreator withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
+        public Creator withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
             this.diagnosticConfig = diagnosticConfig;
             return this;
         }
@@ -162,7 +160,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
     }
 
     @Getter
-    private class WebAppDeploymentSlotUpdater implements IWebAppDeploymentSlotUpdater {
+    private class WebAppDeploymentSlotUpdater implements Updater {
         private Map<String, String> appSettings = null;
         private DiagnosticConfig diagnosticConfig = null;
 
