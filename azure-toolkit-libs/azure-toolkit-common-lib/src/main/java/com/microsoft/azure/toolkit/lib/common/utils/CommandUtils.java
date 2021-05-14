@@ -9,7 +9,6 @@ package com.microsoft.azure.toolkit.lib.common.utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -44,20 +43,7 @@ public class CommandUtils {
         return executeCommandAndGetOutput(starter, switcher, commandWithPath, new File(workingDirectory));
     }
 
-    // used in: PluginsAndFeatures/azure-toolkit-for-intellij/src/com/microsoft/azure/toolkit/intellij/function/runner/localrun/FunctionRunState.java
-    public static String executeCommandAndGetOutput(final String commandWithoutArgs, final String[] args, final File directory) throws IOException {
-
-        return executeCommandAndGetOutput(commandWithoutArgs, args, directory, false);
-    }
-
-    public static String executeCommandAndGetOutput(final String commandWithoutArgs, final String[] args, final File directory,
-                                                    final boolean mergeErrorStream) throws IOException {
-        final CommandLine commandLine = new CommandLine(commandWithoutArgs);
-        commandLine.addArguments(args);
-        return executeCommandAndGetOutput(commandLine, directory, mergeErrorStream);
-    }
-
-    public static String executeCommandAndGetOutput(final String starter, final String switcher, final String commandWithArgs,
+    private static String executeCommandAndGetOutput(final String starter, final String switcher, final String commandWithArgs,
                                                     final File directory) throws IOException {
         final CommandLine commandLine = new CommandLine(starter);
         commandLine.addArgument(switcher, false);
@@ -65,27 +51,20 @@ public class CommandUtils {
         return executeCommandAndGetOutput(commandLine, directory);
     }
 
-    public static String executeCommandAndGetOutput(final CommandLine commandLine, final File directory) throws IOException {
-        return executeCommandAndGetOutput(commandLine, directory, false);
-    }
-
-    public static String executeCommandAndGetOutput(final CommandLine commandLine, final File directory, final boolean mergeErrorStream) throws IOException {
+    private static String executeCommandAndGetOutput(final CommandLine commandLine, final File directory) throws IOException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final ByteArrayOutputStream err = mergeErrorStream ? out : new ByteArrayOutputStream();
+        final ByteArrayOutputStream err = new ByteArrayOutputStream();
         final PumpStreamHandler streamHandler = new PumpStreamHandler(out, err);
         final DefaultExecutor executor = new DefaultExecutor();
         executor.setWorkingDirectory(directory);
         executor.setStreamHandler(streamHandler);
-        executor.setExitValues(null);
+        executor.setExitValues(new int[] {0});
         try {
             executor.execute(commandLine);
-            if (!mergeErrorStream && err.size() > 0) {
+            if (err.size() > 0) {
                 log.warn(StringUtils.trim(err.toString()));
             }
             return out.toString();
-        } catch (ExecuteException e) {
-            // swallow execute exception and return empty
-            return StringUtils.EMPTY;
         } finally {
             out.close();
             err.close();
