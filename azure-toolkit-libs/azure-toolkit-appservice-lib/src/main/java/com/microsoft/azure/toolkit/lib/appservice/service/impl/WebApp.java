@@ -27,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,22 +36,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class WebApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp> implements IWebApp {
+public class WebApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp, WebAppEntity> implements IWebApp {
     private static final ClientLogger LOGGER = new ClientLogger(WebApp.class);
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
-    private WebAppEntity entity;
 
     private final AzureResourceManager azureClient;
-    private com.azure.resourcemanager.appservice.models.WebApp remote;
 
     public WebApp(WebAppEntity entity, AzureResourceManager azureClient) {
         this.entity = entity;
         this.azureClient = azureClient;
-    }
-
-    @Override
-    public WebAppEntity entity() {
-        return entity;
     }
 
     @Override
@@ -63,15 +57,17 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         return new WebAppCreator();
     }
 
+    @NotNull
+    @Override
+    protected WebAppEntity getEntityFromRemoteResource(@NotNull com.azure.resourcemanager.appservice.models.WebApp remote) {
+        return AppServiceUtils.fromWebApp(remote);
+    }
+
     @Override
     protected com.azure.resourcemanager.appservice.models.WebApp remote() {
-        if (remote == null) {
-            remote = StringUtils.isNotEmpty(entity.getId()) ?
-                    azureClient.webApps().getById(entity.getId()) :
-                    azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
-            entity = AppServiceUtils.fromWebApp(remote);
-        }
-        return remote;
+        return StringUtils.isNotEmpty(entity.getId()) ?
+                azureClient.webApps().getById(entity.getId()) :
+                azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
     }
 
     @Override

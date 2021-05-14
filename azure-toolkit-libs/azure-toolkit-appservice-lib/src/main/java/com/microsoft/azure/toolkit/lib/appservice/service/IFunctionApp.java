@@ -9,7 +9,7 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 
 import java.util.List;
 
-public interface IFunctionApp extends IFunctionAppBase{
+public interface IFunctionApp extends IFunctionAppBase<FunctionAppEntity> {
     FunctionAppEntity entity();
 
     IAppServicePlan plan();

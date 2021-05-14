@@ -21,16 +21,14 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 
-public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> implements IWebAppDeploymentSlot {
+public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, WebAppDeploymentSlotEntity> implements IWebAppDeploymentSlot {
 
-    private WebAppDeploymentSlotEntity entity;
-
-    private DeploymentSlot remote;
     private final AzureResourceManager azureClient;
 
     public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureClient) {
@@ -54,15 +52,17 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
         return new WebAppDeploymentSlotUpdater();
     }
 
+    @NotNull
+    @Override
+    protected WebAppDeploymentSlotEntity getEntityFromRemoteResource(@NotNull DeploymentSlot remote) {
+        return AppServiceUtils.fromWebAppDeploymentSlot(remote);
+    }
+
     @Override
     protected DeploymentSlot remote() {
         final WebApp parentWebApp = getParentWebApp();
-        if (remote == null) {
-            remote = StringUtils.isNotEmpty(entity.getId()) ? parentWebApp.deploymentSlots().getById(entity.getId()) :
-                    parentWebApp.deploymentSlots().getByName(entity.getName());
-            entity = AppServiceUtils.fromWebAppDeploymentSlot(remote);
-        }
-        return remote;
+        return StringUtils.isNotEmpty(entity.getId()) ? parentWebApp.deploymentSlots().getById(entity.getId()) :
+                parentWebApp.deploymentSlots().getByName(entity.getName());
     }
 
     @Override
@@ -74,11 +74,6 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot> imp
     public void deploy(DeployType deployType, File targetFile, String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
         getRemoteResource().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
-    }
-
-    @Override
-    public WebAppDeploymentSlotEntity entity() {
-        return entity;
     }
 
     private WebApp getParentWebApp() {
