@@ -73,9 +73,10 @@ public interface ISqlServerCreator<T> extends ICommittable<T> {
 
         @Override
         public ISqlServerCreator<T> withEnableAccessFromLocalMachine(boolean enableAccessFromLocalMachine) {
-            this.enableAccessFromLocalMachine = this.enableAccessFromLocalMachine;
+            this.enableAccessFromLocalMachine = enableAccessFromLocalMachine;
             return this;
         }
+
     }
 
 }
