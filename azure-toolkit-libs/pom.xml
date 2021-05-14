@@ -38,6 +38,7 @@
         <module>azure-toolkit-auth-lib</module>
         <module>azure-toolkit-springcloud-lib</module>
         <module>azure-toolkit-appservice-lib</module>
+        <module>azure-toolkit-applicationinsights-lib</module>
     </modules>
 
     <properties>
@@ -308,11 +309,6 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-core</artifactId>
-                <version>${azure.core.version}</version>
             </dependency>
 
             <dependency>
