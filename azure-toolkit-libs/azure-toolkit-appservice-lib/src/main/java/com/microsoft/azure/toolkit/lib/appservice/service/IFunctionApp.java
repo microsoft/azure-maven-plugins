@@ -27,4 +27,6 @@ public interface IFunctionApp extends IFunctionAppBase<FunctionAppEntity> {
     void triggerFunction(String functionName);
 
     void swap(String slotName);
+
+    void syncTriggers();
 }
