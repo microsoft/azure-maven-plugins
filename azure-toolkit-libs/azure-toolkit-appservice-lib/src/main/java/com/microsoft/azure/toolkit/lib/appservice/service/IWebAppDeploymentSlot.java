@@ -6,7 +6,7 @@ package com.microsoft.azure.toolkit.lib.appservice.service;
 
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 
-public interface IWebAppDeploymentSlot extends IAppService {
+public interface IWebAppDeploymentSlot extends IWebAppBase {
     IWebApp webApp();
 
     IWebAppDeploymentSlotCreator create();
