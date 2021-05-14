@@ -77,7 +77,7 @@ public class SqlServer implements ISqlServer {
 
     @Override
     public List<SqlFirewallRuleEntity> firewallRules() {
-        return sqlServerInner.firewallRules().list().stream().map(e -> formSqlServerFirewallRule(e)).collect(Collectors.toList());
+        return sqlServerInner.firewallRules().list().stream().map(this::formSqlServerFirewallRule).collect(Collectors.toList());
     }
 
     private SqlServerEntity fromSqlServer(com.azure.resourcemanager.sql.models.SqlServer server) {
