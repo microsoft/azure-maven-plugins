@@ -10,8 +10,6 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlanCreator;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlanUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +30,7 @@ public class AppServicePlan implements IAppServicePlan {
     }
 
     @Override
-    public IAppServicePlanCreator create() {
+    public Creator create() {
         return new AppServicePlanCreator();
     }
 
@@ -88,7 +86,7 @@ public class AppServicePlan implements IAppServicePlan {
         return Objects.requireNonNull(remote(), "Target resource does not exist.");
     }
 
-    public class AppServicePlanCreator implements IAppServicePlanCreator {
+    public class AppServicePlanCreator implements Creator {
         private String name;
         private Region region;
         private String resourceGroup;
@@ -96,31 +94,31 @@ public class AppServicePlan implements IAppServicePlan {
         private OperatingSystem operatingSystem;
 
         @Override
-        public IAppServicePlanCreator withName(String name) {
+        public Creator withName(String name) {
             this.name = name;
             return this;
         }
 
         @Override
-        public IAppServicePlanCreator withRegion(Region region) {
+        public Creator withRegion(Region region) {
             this.region = region;
             return this;
         }
 
         @Override
-        public IAppServicePlanCreator withResourceGroup(String resourceGroup) {
+        public Creator withResourceGroup(String resourceGroup) {
             this.resourceGroup = resourceGroup;
             return this;
         }
 
         @Override
-        public IAppServicePlanCreator withPricingTier(PricingTier pricingTier) {
+        public Creator withPricingTier(PricingTier pricingTier) {
             this.pricingTier = pricingTier;
             return this;
         }
 
         @Override
-        public IAppServicePlanCreator withOperatingSystem(OperatingSystem operatingSystem) {
+        public Creator withOperatingSystem(OperatingSystem operatingSystem) {
             this.operatingSystem = operatingSystem;
             return this;
         }
@@ -143,7 +141,7 @@ public class AppServicePlan implements IAppServicePlan {
         }
     }
 
-    public class AppServicePlanUpdater implements IAppServicePlanUpdater {
+    public class AppServicePlanUpdater implements Updater {
         private PricingTier pricingTier;
 
         public AppServicePlanUpdater withPricingTier(PricingTier pricingTier) {
