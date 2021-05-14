@@ -39,11 +39,21 @@ public class AppServicePlan implements IAppServicePlan {
     }
 
     @Override
-    public IAzureEntityManager<AppServicePlanEntity> refresh() {
+    public AppServicePlan refresh() {
         this.remote = remote();
         this.entity = Optional.ofNullable(this.remote).map(AppServiceUtils::fromAppServicePlan)
                 .orElseThrow(() -> new AzureToolkitRuntimeException("Target resource does not exist."));
         return this;
+    }
+
+    @Override
+    public String name() {
+        return getRemoteResource().name();
+    }
+
+    @Override
+    public String id() {
+        return getRemoteResource().id();
     }
 
     @Override

@@ -35,7 +35,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends IAzureResource
     protected T remote;
 
     @Override
-    public IAzureEntityManager<R> refresh() {
+    public AbstractAppService<T, R> refresh() {
         this.remote = remote();
         this.entity = Optional.ofNullable(this.remote).map(this::getEntityFromRemoteResource)
                 .orElseThrow(() -> new AzureToolkitRuntimeException("Target resource does not exist."));
@@ -55,6 +55,16 @@ abstract class AbstractAppService<T extends WebAppBase, R extends IAzureResource
     @Override
     public void restart() {
         getRemoteResource().restart();
+    }
+
+    @Override
+    public String name() {
+        return getRemoteResource().name();
+    }
+
+    @Override
+    public String id() {
+        return getRemoteResource().id();
     }
 
     @Override
