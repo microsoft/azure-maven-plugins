@@ -43,19 +43,6 @@ public class CommandUtils {
         return executeCommandAndGetOutput(starter, switcher, commandWithPath, new File(workingDirectory));
     }
 
-    // used in: PluginsAndFeatures/azure-toolkit-for-intellij/src/com/microsoft/azure/toolkit/intellij/function/runner/localrun/FunctionRunState.java
-    public static String executeCommandAndGetOutput(final String commandWithoutArgs, final String[] args, final File directory) throws IOException {
-
-        return executeCommandAndGetOutput(commandWithoutArgs, args, directory, false);
-    }
-
-    public static String executeCommandAndGetOutput(final String commandWithoutArgs, final String[] args, final File directory,
-                                                    final boolean mergeErrorStream) throws IOException {
-        final CommandLine commandLine = new CommandLine(commandWithoutArgs);
-        commandLine.addArguments(args);
-        return executeCommandAndGetOutput(commandLine, directory, mergeErrorStream);
-    }
-
     private static String executeCommandAndGetOutput(final String starter, final String switcher, final String commandWithArgs,
                                                     final File directory) throws IOException {
         final CommandLine commandLine = new CommandLine(starter);
@@ -65,12 +52,8 @@ public class CommandUtils {
     }
 
     private static String executeCommandAndGetOutput(final CommandLine commandLine, final File directory) throws IOException {
-        return executeCommandAndGetOutput(commandLine, directory, false);
-    }
-
-    private static String executeCommandAndGetOutput(final CommandLine commandLine, final File directory, final boolean mergeErrorStream) throws IOException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final ByteArrayOutputStream err = mergeErrorStream ? out : new ByteArrayOutputStream();
+        final ByteArrayOutputStream err = new ByteArrayOutputStream();
         final PumpStreamHandler streamHandler = new PumpStreamHandler(out, err);
         final DefaultExecutor executor = new DefaultExecutor();
         executor.setWorkingDirectory(directory);
@@ -78,7 +61,7 @@ public class CommandUtils {
         executor.setExitValues(new int[] {0});
         try {
             executor.execute(commandLine);
-            if (!mergeErrorStream && err.size() > 0) {
+            if (err.size() > 0) {
                 log.warn(err.toString());
             }
             return out.toString();
