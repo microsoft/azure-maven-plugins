@@ -118,11 +118,11 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
     private static ApplicationInsightsEntity getFromApplicationInsightsComponent(final ApplicationInsightsComponent component) {
         final ResourceId resourceId = ResourceId.fromString(component.id());
         return ApplicationInsightsEntity.builder()
-                .resourceId(component.id())
+                .id(component.id())
+                .name(component.name())
                 .subscriptionId(resourceId.subscriptionId())
                 .resourceGroup(resourceId.resourceGroupName())
-                .resourceName(component.name())
-                .location(component.location())
+                .region(Region.fromName(component.location()))
                 .instrumentationKey(component.instrumentationKey())
                 .kind(component.kind())
                 .type(component.type())
