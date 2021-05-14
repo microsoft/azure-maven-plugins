@@ -5,10 +5,10 @@
 package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
-import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.utils.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlFirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SqlServer implements ISqlServer {
-    private static final ClientLogger LOGGER = new ClientLogger(SqlServer.class);
-    private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     private SqlServerEntity entity;
 
     private final SqlServerManager manager;
@@ -175,16 +173,11 @@ public class SqlServer implements ISqlServer {
             return ruleName;
         }
 
-        /**
-         * TODO: refactor test connection codes into common lib.
-         */
         private String getPublicIp(final com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
             // try to get public IP by ping SQL Server
-            String connectionUrl = "jdbc:sqlserver://%s.database.windows.net:1433;user=%s@%s;encrypt=true;trustServerCertificate=false;loginTimeout=30;";
-            connectionUrl = String.format(connectionUrl, entity.getName(), entity.getAdministratorLoginName(), entity.getName());
             try {
                 Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-                DriverManager.getConnection(connectionUrl);
+                DriverManager.getConnection(JdbcUrl.sqlserver(sqlServerInner.name()).toString());
             } catch (SQLException e) {
                 String ip = NetUtils.parseIpAddressFromMessage(e.getMessage());
                 if (StringUtils.isNotBlank(ip)) {
