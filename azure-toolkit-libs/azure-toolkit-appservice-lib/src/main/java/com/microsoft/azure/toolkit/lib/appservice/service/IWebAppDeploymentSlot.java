@@ -9,7 +9,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 
 import java.util.Map;
 
-public interface IWebAppDeploymentSlot extends IWebAppBase {
+public interface IWebAppDeploymentSlot extends IWebAppBase<WebAppDeploymentSlotEntity> {
     IWebApp webApp();
 
     Creator create();

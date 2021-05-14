@@ -8,7 +8,7 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 
 import java.util.List;
 
-public interface IWebApp extends IWebAppBase {
+public interface IWebApp extends IWebAppBase<WebAppEntity> {
     WebAppEntity entity();
 
     IAppServicePlan plan();

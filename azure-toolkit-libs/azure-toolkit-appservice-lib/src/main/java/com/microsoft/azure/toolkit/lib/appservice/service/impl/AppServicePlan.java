@@ -11,11 +11,15 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AppServicePlan implements IAppServicePlan {
@@ -32,6 +36,14 @@ public class AppServicePlan implements IAppServicePlan {
     @Override
     public Creator create() {
         return new AppServicePlanCreator();
+    }
+
+    @Override
+    public IAzureEntityManager<AppServicePlanEntity> refresh() {
+        this.remote = remote();
+        this.entity = Optional.ofNullable(this.remote).map(AppServiceUtils::fromAppServicePlan)
+                .orElseThrow(() -> new AzureToolkitRuntimeException("Target resource does not exist."));
+        return this;
     }
 
     @Override
@@ -62,28 +74,18 @@ public class AppServicePlan implements IAppServicePlan {
         return new AppServicePlanUpdater();
     }
 
-    @Override
-    public String id() {
-        return getRemoteResource().id();
-    }
-
-    @Override
-    public String name() {
-        return getRemoteResource().name();
-    }
-
     private com.azure.resourcemanager.appservice.models.AppServicePlan remote() {
-        if (remote == null) {
-            remote = StringUtils.isNotEmpty(entity.getId()) ?
-                    azureClient.appServicePlans().getById(entity.getId()) :
-                    azureClient.appServicePlans().getByResourceGroup(entity.getResourceGroup(), entity.getName());
-            entity = AppServiceUtils.fromAppServicePlan(remote);
-        }
-        return remote;
+        return StringUtils.isNotEmpty(entity.getId()) ?
+                azureClient.appServicePlans().getById(entity.getId()) :
+                azureClient.appServicePlans().getByResourceGroup(entity.getResourceGroup(), entity.getName());
     }
 
+    @Nonnull
     private com.azure.resourcemanager.appservice.models.AppServicePlan getRemoteResource() {
-        return Objects.requireNonNull(remote(), "Target resource does not exist.");
+        if (remote == null) {
+            refresh();
+        }
+        return Objects.requireNonNull(remote, "Target resource does not exist.");
     }
 
     public class AppServicePlanCreator implements Creator {
