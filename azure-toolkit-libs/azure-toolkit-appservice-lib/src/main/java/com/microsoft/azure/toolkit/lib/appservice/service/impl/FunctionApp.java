@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.legacy.function.model.FunctionResource;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +67,11 @@ public class FunctionApp extends AbstractAppService<com.azure.resourcemanager.ap
 
     @Override
     public List<FunctionEntity> listFunctions() {
-        return null;
+        return azureClient.functionApps()
+                .listFunctions(getRemoteResource().resourceGroupName(), getRemoteResource().name()).stream()
+                .map(AppServiceUtils::fromFunctionAppEnvelope)
+                .filter(function -> function != null)
+                .collect(Collectors.toList());
     }
 
     @Override

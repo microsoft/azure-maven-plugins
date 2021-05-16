@@ -15,6 +15,7 @@ import com.azure.resourcemanager.appservice.models.FileSystemHttpLogsConfig;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
+import com.azure.resourcemanager.appservice.models.FunctionEnvelope;
 import com.azure.resourcemanager.appservice.models.HttpLogsConfig;
 import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.SkuDescription;
@@ -25,6 +26,7 @@ import com.azure.resourcemanager.resources.fluentcore.model.HasInnerModel;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppEntity;
+import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
@@ -40,10 +42,17 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 class AppServiceUtils {
+    private static final String SCRIPT_FILE = "scriptFile";
+    private static final String ENTRY_POINT = "entryPoint";
+    private static final String BINDINGS = "bindings";
 
     static Runtime getRuntimeFromWebApp(WebAppBase webAppBase) {
         if (StringUtils.startsWithIgnoreCase(webAppBase.linuxFxVersion(), "docker")) {
@@ -304,5 +313,36 @@ class AppServiceUtils {
         } else {
             blank.withoutWebServerLogging().parent();
         }
+    }
+
+    public static FunctionEntity fromFunctionAppEnvelope(FunctionEnvelope functionEnvelope) {
+        final Object config = functionEnvelope.config();
+        if (!(config instanceof Map)) {
+            return null;
+        }
+        final Map envelopeConfigMap = (Map) config;
+        final String scriptFile = (String) (envelopeConfigMap).get(SCRIPT_FILE);
+        final String entryPoint = (String) (envelopeConfigMap).get(ENTRY_POINT);
+        final Object bindingListObject = ((Map) config).get(BINDINGS);
+        final List<FunctionEntity.BindingEntity> bindingEntities =
+                (List<FunctionEntity.BindingEntity>) Optional.ofNullable(bindingListObject instanceof List ? (List) bindingListObject : null)
+                        .map(list -> list.stream().filter(item -> item instanceof Map).map(map -> fromJsonBinding((Map) map)).collect(Collectors.toList()))
+                        .orElse(Collections.emptyList());
+        return FunctionEntity.builder()
+                .name(functionEnvelope.innerModel().name())
+                .entryPoint(entryPoint)
+                .scriptFile(scriptFile)
+                .bindingList(bindingEntities)
+                .functionAppId(functionEnvelope.functionAppId())
+                .triggerId(functionEnvelope.innerModel().id())
+                .triggerUrl(functionEnvelope.innerModel().invokeUrlTemplate())
+                .build();
+    }
+
+    private static FunctionEntity.BindingEntity fromJsonBinding(Map bindingProperties) {
+        return FunctionEntity.BindingEntity.builder()
+                .type((String) bindingProperties.get("type"))
+                .direction((String) bindingProperties.get("direction"))
+                .name((String) bindingProperties.get("name")).build();
     }
 }
