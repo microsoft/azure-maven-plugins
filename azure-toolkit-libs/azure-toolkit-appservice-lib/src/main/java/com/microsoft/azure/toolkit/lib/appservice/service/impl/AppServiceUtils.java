@@ -12,6 +12,9 @@ import com.azure.resourcemanager.appservice.models.ApplicationLogsConfig;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FileSystemApplicationLogsConfig;
 import com.azure.resourcemanager.appservice.models.FileSystemHttpLogsConfig;
+import com.azure.resourcemanager.appservice.models.FunctionApp;
+import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
+import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.HttpLogsConfig;
 import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.SkuDescription;
@@ -20,6 +23,8 @@ import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.azure.resourcemanager.appservice.models.WebAppDiagnosticLogs;
 import com.azure.resourcemanager.resources.fluentcore.model.HasInnerModel;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
+import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
+import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
@@ -136,13 +141,38 @@ class AppServiceUtils {
             .findFirst().orElse(null);
     }
 
+    static FunctionAppEntity fromFunctionApp(FunctionApp functionApp) {
+        return FunctionAppEntity.builder().name(functionApp.name())
+                .id(functionApp.id())
+                .region(Region.fromName(functionApp.regionName()))
+                .resourceGroup(functionApp.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(functionApp.id()))
+                .runtime(getRuntimeFromWebApp(functionApp))
+                .appServicePlanId(functionApp.appServicePlanId())
+                .defaultHostName(functionApp.defaultHostname())
+                .appSettings(Utils.normalizeAppSettings(functionApp.getAppSettings()))
+                .build();
+    }
+
+    static FunctionAppEntity fromFunctionAppBasic(FunctionAppBasic functionApp) {
+        return FunctionAppEntity.builder().name(functionApp.name())
+                .id(functionApp.id())
+                .region(Region.fromName(functionApp.regionName()))
+                .resourceGroup(functionApp.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(functionApp.id()))
+                .runtime(null)
+                .appServicePlanId(functionApp.appServicePlanId())
+                .defaultHostName(functionApp.defaultHostname())
+                .build();
+    }
+
     static WebAppEntity fromWebApp(WebAppBase webAppBase) {
         return WebAppEntity.builder().name(webAppBase.name())
             .id(webAppBase.id())
             .region(Region.fromName(webAppBase.regionName()))
             .resourceGroup(webAppBase.resourceGroupName())
             .subscriptionId(Utils.getSubscriptionId(webAppBase.id()))
-            .runtime(null)
+            .runtime(getRuntimeFromWebApp(webAppBase))
             .appServicePlanId(webAppBase.appServicePlanId())
             .defaultHostName(webAppBase.defaultHostname())
             .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()))
@@ -160,6 +190,20 @@ class AppServiceUtils {
             .build();
     }
 
+    static FunctionAppDeploymentSlotEntity fromFunctionAppDeploymentSlot(FunctionDeploymentSlot deploymentSlot) {
+        return FunctionAppDeploymentSlotEntity.builder()
+                .name(deploymentSlot.name())
+                .functionAppName(deploymentSlot.parent().name())
+                .id(deploymentSlot.id())
+                .resourceGroup(deploymentSlot.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
+                .runtime(null)
+                .appServicePlanId(deploymentSlot.appServicePlanId())
+                .defaultHostName(deploymentSlot.defaultHostname())
+                .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
+                .build();
+    }
+
     static WebAppDeploymentSlotEntity fromWebAppDeploymentSlot(DeploymentSlot deploymentSlot) {
         return WebAppDeploymentSlotEntity.builder()
             .name(deploymentSlot.name())
@@ -167,7 +211,7 @@ class AppServiceUtils {
             .id(deploymentSlot.id())
             .resourceGroup(deploymentSlot.resourceGroupName())
             .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-            .runtime(null)
+            .runtime(getRuntimeFromWebApp(deploymentSlot))
             .appServicePlanId(deploymentSlot.appServicePlanId())
             .defaultHostName(deploymentSlot.defaultHostname())
             .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
