@@ -22,13 +22,18 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.microsoft.azure.arm.resources.ResourceId;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.ServiceResourceInner;
-import com.microsoft.azure.management.appplatform.v2020_07_01.implementation.SkuInner;
+import com.azure.resourcemanager.appplatform.models.Sku;
+import com.azure.resourcemanager.appplatform.models.SpringService;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudSku;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+
+import javax.annotation.Nonnull;
+import java.util.Optional;
 
 @Getter
 @Setter(AccessLevel.PRIVATE)
@@ -37,23 +42,31 @@ public class SpringCloudClusterEntity implements IAzureResourceEntity {
     private final String resourceGroup;
     private final String name;
     private final String id;
+    @Nonnull
+    @JsonIgnore
     @Getter(AccessLevel.PACKAGE)
-    private ServiceResourceInner inner;
+    private transient SpringService remote;
 
-    private SpringCloudClusterEntity(ServiceResourceInner resource) {
-        this.inner = resource;
-        final ResourceId id = ResourceId.fromString(this.inner.id());
+    SpringCloudClusterEntity(@Nonnull final SpringService resource) {
+        this.remote = resource;
+        final ResourceId id = ResourceId.fromString(this.remote.id());
         this.resourceGroup = id.resourceGroupName();
         this.subscriptionId = id.subscriptionId();
         this.name = resource.name();
         this.id = resource.id();
     }
 
-    public static SpringCloudClusterEntity fromResource(ServiceResourceInner resource) {
-        return new SpringCloudClusterEntity(resource);
-    }
-
-    public SkuInner getSku() {
-        return this.inner.sku();
+    public SpringCloudSku getSku() {
+        final Sku sku = this.remote.sku();
+        final SpringCloudSku dft = SpringCloudSku.builder()
+            .capacity(500)
+            .name("Standard")
+            .tier("S0")
+            .build();
+        return Optional.ofNullable(sku).map(s -> SpringCloudSku.builder()
+            .capacity(s.capacity())
+            .name(s.name())
+            .tier(s.tier())
+            .build()).orElse(dft);
     }
 }

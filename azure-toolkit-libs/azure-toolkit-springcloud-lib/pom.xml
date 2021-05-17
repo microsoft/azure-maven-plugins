@@ -13,27 +13,17 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-storage-file-share</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.azure.resourcemanager</groupId>
+            <artifactId>azure-resourcemanager-appplatform</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-common-lib</artifactId>
         </dependency>
-        <!-- azure lib for spring cloud-->
-        <dependency>
-            <groupId>com.microsoft.azure.appplatform.v2020_07_01</groupId>
-            <artifactId>azure-mgmt-appplatform</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-client-runtime</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.rest</groupId>
-            <artifactId>client-runtime</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-storage</artifactId>
-        </dependency>
-
         <!-- javax annotations e.g. @Nonnull -->
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
