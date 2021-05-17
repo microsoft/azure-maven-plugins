@@ -116,6 +116,9 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             final DefinitionStages.Blank blank = WebApp.this.azureClient.webApps().define(getName());
             final Runtime runtime = getRuntime();
             final AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlan(getAppServicePlanEntity(), azureClient);
+            if (appServicePlan == null) {
+                throw new AzureToolkitRuntimeException("Target app service plan not exists");
+            }
             final ResourceGroup resourceGroup = WebApp.this.azureClient.resourceGroups().getByName(getResourceGroup());
             final DefinitionStages.WithCreate withCreate;
             switch (runtime.getOperatingSystem()) {
