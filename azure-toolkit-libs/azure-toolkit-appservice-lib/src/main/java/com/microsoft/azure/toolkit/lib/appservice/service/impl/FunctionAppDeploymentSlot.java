@@ -27,7 +27,7 @@ import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 
-public class FunctionAppDeploymentSlot extends AbstractAppService<FunctionDeploymentSlot, FunctionAppDeploymentSlotEntity>
+public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymentSlot, FunctionAppDeploymentSlotEntity>
         implements IFunctionAppDeploymentSlot {
 
     private final AzureResourceManager azureClient;
@@ -50,16 +50,6 @@ public class FunctionAppDeploymentSlot extends AbstractAppService<FunctionDeploy
     @Override
     public Updater update() {
         return new FunctionAppDeploymentSlotUpdater();
-    }
-
-    @Override
-    public void deploy(File targetFile) {
-
-    }
-
-    @Override
-    public void deploy(File targetFile, FunctionDeployType functionDeployType) {
-
     }
 
     @NotNull

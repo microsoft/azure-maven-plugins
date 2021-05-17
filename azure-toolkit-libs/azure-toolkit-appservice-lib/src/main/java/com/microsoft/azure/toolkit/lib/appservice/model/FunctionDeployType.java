@@ -13,7 +13,6 @@ import java.util.Arrays;
 public enum FunctionDeployType {
     FTP,
     ZIP,
-    EMPTY,
     MSDEPLOY,
     RUN_FROM_ZIP,
     RUN_FROM_BLOB;
@@ -21,9 +20,6 @@ public enum FunctionDeployType {
     private static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown.";
 
     public static FunctionDeployType fromString(final String input) throws AzureExecutionException {
-        if (StringUtils.isEmpty(input)) {
-            return EMPTY;
-        }
         return Arrays.stream(FunctionDeployType.values())
                 .filter(type -> StringUtils.equalsAnyIgnoreCase(type.name(), input))
                 .findFirst().orElseThrow(() -> new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE));
