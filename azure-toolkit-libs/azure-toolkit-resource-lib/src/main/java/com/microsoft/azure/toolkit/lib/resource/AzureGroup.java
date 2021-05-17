@@ -18,12 +18,14 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AzureGroup extends SubscriptionScoped<AzureGroup> implements AzureService {
 
@@ -35,44 +37,63 @@ public class AzureGroup extends SubscriptionScoped<AzureGroup> implements AzureS
         super(AzureGroup::new, subscriptions);
     }
 
-    public List<ResourceGroupEntity> list() {
+    public List<ResourceGroup> list() {
         return Flux.fromIterable(getSubscriptions()).parallel()
                 .map(subscription -> getResourceManager(subscription.getId()))
                 .flatMap(azureResourceManager -> azureResourceManager.resourceGroups().listAsync())
-                .map(ResourceGroupEntity::fromResource)
+                .map(AzureGroup::fromResource)
                 .sequential().collectList().block();
     }
 
-    public ResourceGroupEntity getById(@Nonnull String idStr) {
+    public List<ResourceGroup> list(String subscriptionId) {
+        return getResourceManager(subscriptionId).resourceGroups().listAsync()
+                .map(AzureGroup::fromResource)
+                .collect(Collectors.toList()).block();
+    }
+
+    public ResourceGroup getById(@Nonnull String idStr) {
         final ResourceId id = ResourceId.fromString(idStr);
         return get(id.subscriptionId(), id.resourceGroupName());
     }
 
-    public ResourceGroupEntity getByName(@Nonnull String name) {
+    public ResourceGroup getByName(@Nonnull String name) {
         return get(getDefaultSubscription().getId(), name);
     }
 
-    public ResourceGroupEntity get(@Nonnull String subscriptionId, @Nonnull String name) {
-        return ResourceGroupEntity.fromResource(getResourceManager(subscriptionId).resourceGroups().getByName(name));
+    public ResourceGroup get(@Nonnull String subscriptionId, @Nonnull String name) {
+        return fromResource(getResourceManager(subscriptionId).resourceGroups().getByName(name));
     }
 
-    public ResourceGroupEntity create(String name, String region) {
+    public ResourceGroup create(String name, String region) {
         if (StringUtils.isNoneBlank(name, region)) {
             final com.azure.resourcemanager.resources.models.ResourceGroup result = getResourceManager(getDefaultSubscription().getId())
                     .resourceGroups().define(name)
                     .withRegion(region).create();
-            return ResourceGroupEntity.fromResource(result);
+            return fromResource(result);
         }
         throw new AzureToolkitRuntimeException("Please provide both name and region to create a resource group.");
     }
 
     public void delete(String name) {
-        getResourceManager(getDefaultSubscription().getId())
+        delete(getDefaultSubscription().getId(), name);
+    }
+
+    public void delete(String subscriptionId, String name) {
+        getResourceManager(subscriptionId)
                 .resourceGroups().deleteByName(name);
     }
 
+    private static ResourceGroup fromResource(@Nonnull com.azure.resourcemanager.resources.models.ResourceGroup resource) {
+        final ResourceId resourceId = ResourceId.fromString(resource.id());
+        String subscriptionId = resourceId.subscriptionId();
+        String name = resource.name();
+        String region = resource.regionName();
+        String id = resource.id();
+        return ResourceGroup.builder().subscriptionId(subscriptionId).id(id).name(name).region(region).build();
+    }
+
     @Cacheable(cacheName = "ResourceManager", key = "$subscriptionId")
-    public ResourceManager getResourceManager(String subscriptionId) {
+    private ResourceManager getResourceManager(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
