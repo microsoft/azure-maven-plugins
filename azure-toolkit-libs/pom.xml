@@ -39,6 +39,7 @@
         <module>azure-toolkit-resource-lib</module>
         <module>azure-toolkit-springcloud-lib</module>
         <module>azure-toolkit-appservice-lib</module>
+        <module>azure-toolkit-sqlserver-lib</module>
     </modules>
 
     <properties>
@@ -254,6 +255,11 @@
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager</artifactId>
+                <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-sql</artifactId>
                 <version>${azure.resourcemanager.version}</version>
             </dependency>
             <dependency>
