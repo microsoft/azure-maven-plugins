@@ -57,7 +57,7 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
             LOGGER.info(UPLOAD_PACKAGE_DONE + blob.getUri().toString());
             return packageUri;
         } catch (AzureExecutionException e) {
-            throw new AzureToolkitRuntimeException("Failed to update package to azure storage", e);
+            throw new AzureToolkitRuntimeException("Failed to upload package to azure storage", e);
         }
     }
 

@@ -14,7 +14,7 @@ import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.AzureStorageHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,22 +38,22 @@ public class RunFromBlobFunctionDeployHandler implements IFunctionDeployHandler 
             final String sasToken = AzureStorageHelper.getSASToken(blob, Period.ofYears(SAS_EXPIRE_DATE_BY_YEAR));
             DeployUtils.updateFunctionAppSetting(target, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, sasToken);
         } catch (AzureExecutionException e) {
-            throw new AzureToolkitRuntimeException("Failed to update package to azure storage", e);
+            throw new AzureToolkitRuntimeException("Failed to upload package to azure storage", e);
         }
     }
 
     private CloudBlockBlob deployArtifactToAzureStorage(WebAppBase deployTarget, File zipPackage, CloudStorageAccount storageAccount)
             throws AzureExecutionException {
-        Log.prompt(String.format(DEPLOY_START, deployTarget.name()));
+        AzureMessager.getMessager().info(String.format(DEPLOY_START, deployTarget.name()));
         final CloudBlobContainer container = getOrCreateArtifactContainer(storageAccount);
         final String blobName = getBlobName(deployTarget, zipPackage);
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 container.getName(), blobName, BlobContainerPublicAccessType.OFF);
-        Log.prompt(String.format(DEPLOY_FINISH, deployTarget.defaultHostname()));
+        AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, deployTarget.defaultHostname()));
         return blob;
     }
 
-    private CloudBlobContainer getOrCreateArtifactContainer(final CloudStorageAccount storageAccount) throws AzureExecutionException {
+    private CloudBlobContainer getOrCreateArtifactContainer(final CloudStorageAccount storageAccount) {
         final CloudBlobClient blobContainer = storageAccount.createCloudBlobClient();
         try {
             final CloudBlobContainer container = blobContainer.getContainerReference(DEPLOYMENT_PACKAGE_CONTAINER);
@@ -75,7 +75,7 @@ public class RunFromBlobFunctionDeployHandler implements IFunctionDeployHandler 
         }
         permissions.setPublicAccess(BlobContainerPublicAccessType.OFF);
         container.uploadPermissions(permissions);
-        Log.info(String.format(UPDATE_ACCESS_LEVEL_TO_PRIVATE, DEPLOYMENT_PACKAGE_CONTAINER));
+        AzureMessager.getMessager().info(String.format(UPDATE_ACCESS_LEVEL_TO_PRIVATE, DEPLOYMENT_PACKAGE_CONTAINER));
     }
 
     private String getBlobName(final WebAppBase deployTarget, final File zipPackage) {
