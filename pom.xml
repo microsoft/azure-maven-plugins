@@ -164,7 +164,16 @@
                 <artifactId>azure-toolkit-appservice-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-applicationinsights-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-resource-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
             <!-- https://mvnrepository.com/artifact/com.microsoft.azure.applicationinsights.v2015_05_01/azure-mgmt-insights -->
             <dependency>
                 <groupId>com.microsoft.azure.applicationinsights.v2015_05_01</groupId>
