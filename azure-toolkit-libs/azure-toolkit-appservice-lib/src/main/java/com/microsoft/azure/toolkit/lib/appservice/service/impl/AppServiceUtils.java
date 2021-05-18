@@ -353,6 +353,7 @@ class AppServiceUtils {
         return FunctionEntity.BindingEntity.builder()
                 .type((String) bindingProperties.get("type"))
                 .direction((String) bindingProperties.get("direction"))
-                .name((String) bindingProperties.get("name")).build();
+                .name((String) bindingProperties.get("name"))
+                .properties(bindingProperties).build();
     }
 }
