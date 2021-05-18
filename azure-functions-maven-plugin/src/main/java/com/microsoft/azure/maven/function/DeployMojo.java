@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
+import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
@@ -30,10 +31,10 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.resource.AzureGroup;
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupEntity;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -80,7 +81,6 @@ public class DeployMojo extends AbstractFunctionMojo {
             "Application Insights if needed.";
     private static final String INSTRUMENTATION_KEY_IS_NOT_VALID = "Instrumentation key is not valid, " +
             "please update the application insights configuration";
-    private static final String FAILED_TO_LIST_TRIGGERS = "Deployment succeeded, but failed to list http trigger urls.";
     private static final String UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS = "Some http trigger urls cannot be displayed " +
             "because they are non-anonymous. To access the non-anonymous triggers, please refer https://aka.ms/azure-functions-key.";
     private static final String HTTP_TRIGGER_URLS = "HTTP Trigger Urls:";
@@ -129,6 +129,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         final IFunctionAppBase target = createOrUpdateResource();
 
         deployArtifact(target);
+
         if (target instanceof IFunctionApp) {
             listHTTPTriggerUrls((IFunctionApp) target);
         }
@@ -152,9 +153,9 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    private IFunctionApp createFunctionApp(final IFunctionApp functionApp) throws AzureExecutionException {
+    protected IFunctionApp createFunctionApp(final IFunctionApp functionApp) throws AzureExecutionException {
         getTelemetryProxy().addDefaultProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
-        final ResourceGroupEntity resourceGroup = getOrCreateResourceGroup();
+        final ResourceGroup resourceGroup = getOrCreateResourceGroup();
         final IAppServicePlan appServicePlan = getOrCreateAppServicePlan();
         Log.info(String.format(CREATE_FUNCTION_APP, getAppName()));
         final Runtime runtime = getParsedRuntime();
@@ -204,13 +205,13 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Invalid pricing tier %s", pricingTier)));
     }
 
-    private ResourceGroupEntity getOrCreateResourceGroup() {
+    private ResourceGroup getOrCreateResourceGroup() {
         try {
             return Azure.az(AzureGroup.class).getByName(getResourceGroup());
         } catch (ManagementException e) {
             Log.info(String.format(CREATE_RESOURCE_GROUP, getResourceGroup(), getRegion()));
             getTelemetryProxy().addDefaultProperty(CREATE_NEW_RESOURCE_GROUP, String.valueOf(true));
-            final ResourceGroupEntity result = Azure.az(AzureGroup.class).create(getResourceGroup(), getRegion());
+            final ResourceGroup result = Azure.az(AzureGroup.class).create(getResourceGroup(), getRegion());
             Log.info(String.format(CREATE_RESOURCE_GROUP_DONE, result.getName()));
             return result;
         }
@@ -241,7 +242,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .password(credentialProvider.getPassword()).build();
     }
 
-    private IFunctionApp updateFunctionApp(final IFunctionApp functionApp) throws AzureExecutionException {
+    protected IFunctionApp updateFunctionApp(final IFunctionApp functionApp) throws AzureExecutionException {
         // update app service plan
         Log.info(String.format(UPDATE_FUNCTION_APP, functionApp.name()));
         final IAppServicePlan currentPlan = functionApp.plan();
@@ -252,13 +253,15 @@ public class DeployMojo extends AbstractFunctionMojo {
         } else if (StringUtils.isNotEmpty(pricingTier)) {
             targetServicePlan.update().withPricingTier(getParsedPricingTier()).commit();
         }
+        // update app settings
         final Map<String, String> appSettings = getAppSettings();
+        final IAppServiceUpdater<? extends IFunctionApp> update = functionApp.update();
         if (isDisableAppInsights()) {
-            // todo: support disable ai when update
+            update.withoutAppSettings(APPINSIGHTS_INSTRUMENTATION_KEY);
         } else {
             bindApplicationInsights(appSettings, false);
         }
-        final IFunctionApp result = functionApp.update().withPlan(targetServicePlan.id())
+        final IFunctionApp result = update.withPlan(targetServicePlan.id())
                 .withRuntime(getRawRuntime())
                 .withDockerConfiguration(getDockerConfiguration())
                 .withAppSettings(appSettings)
@@ -287,12 +290,14 @@ public class DeployMojo extends AbstractFunctionMojo {
     protected IFunctionAppDeploymentSlot updateDeploymentSlot(final IFunctionAppDeploymentSlot deploymentSlot) throws AzureExecutionException {
         Log.info(FUNCTION_SLOT_UPDATE);
         final Map<String, String> appSettings = getAppSettings();
+        final IFunctionAppDeploymentSlot.Updater update = deploymentSlot.update();
+        // todo: remove duplicate codes with update function
         if (isDisableAppInsights()) {
-            // todo: support disable ai when update
+            update.withoutAppSettings(APPINSIGHTS_INSTRUMENTATION_KEY);
         } else {
             bindApplicationInsights(appSettings, false);
         }
-        final IFunctionAppDeploymentSlot result = deploymentSlot.update().withAppSettings(appSettings).commit();
+        final IFunctionAppDeploymentSlot result = update.withAppSettings(appSettings).commit();
         Log.info(String.format(FUNCTION_SLOT_UPDATE_DONE, result.name()));
         return deploymentSlot;
     }
@@ -305,7 +310,9 @@ public class DeployMojo extends AbstractFunctionMojo {
         final RunnableWithException deployRunnable = deployType == null ? () -> target.deploy(file) : () -> target.deploy(file, deployType);
         executeWithTimeRecorder(deployRunnable, DEPLOY);
         // todo: check function status after deployment
-        target.start();
+        if (!StringUtils.equalsIgnoreCase(target.state(), RUNNING)) {
+            target.start();
+        }
         Log.info(String.format(DEPLOY_FINISH, getResourcePortalUrl(target.id())));
     }
 
@@ -328,8 +335,8 @@ public class DeployMojo extends AbstractFunctionMojo {
                         StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
                 .collect(Collectors.toList());
         final List<FunctionEntity> anonymousTriggers = httpFunction.stream()
-                .filter(bindingResource -> StringUtils.equalsIgnoreCase((CharSequence) bindingResource.getTrigger().getProperties().get(AUTH_LEVEL),
-                        AuthorizationLevel.ANONYMOUS.toString()))
+                .filter(bindingResource ->
+                        StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), AuthorizationLevel.ANONYMOUS.toString()))
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(httpFunction) || CollectionUtils.isEmpty(anonymousTriggers)) {
             Log.info(NO_ANONYMOUS_HTTP_TRIGGER);
