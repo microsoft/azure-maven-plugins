@@ -229,6 +229,7 @@ public class AzureAccount implements IAzureAccount {
     /**
      * see doc for: az account list-locations -o table
      */
+    @Cacheable(cacheName = "Regions", key = "$subscriptionId")
     public List<Region> listRegions(String subscriptionId) {
         return getSubscription(subscriptionId).listLocations().stream()
                 .filter(l -> l.regionType() == RegionType.PHYSICAL) // use distinct since com.azure.core.management.Region impls equals
