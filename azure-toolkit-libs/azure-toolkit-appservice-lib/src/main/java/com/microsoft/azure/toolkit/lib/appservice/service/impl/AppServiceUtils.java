@@ -57,23 +57,33 @@ class AppServiceUtils {
     private static final String ENTRY_POINT = "entryPoint";
     private static final String BINDINGS = "bindings";
 
-    static Runtime getRuntimeFromWebApp(WebAppBase webAppBase) {
+    static Runtime getRuntimeFromAppService(WebAppBase webAppBase) {
         if (StringUtils.startsWithIgnoreCase(webAppBase.linuxFxVersion(), "docker")) {
             return Runtime.DOCKER;
         }
         return webAppBase.operatingSystem() == com.azure.resourcemanager.appservice.models.OperatingSystem.WINDOWS ?
-            getRuntimeFromWindowsWebApp(webAppBase) : getRuntimeFromLinuxWebApp(webAppBase);
+            getRuntimeFromWindowsAppService(webAppBase) : getRuntimeFromLinuxAppService(webAppBase);
     }
 
-    private static Runtime getRuntimeFromLinuxWebApp(WebAppBase webAppBase) {
+    private static Runtime getRuntimeFromLinuxAppService(WebAppBase webAppBase) {
         if (StringUtils.isEmpty(webAppBase.linuxFxVersion())) {
             return Runtime.getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
         final String linuxFxVersion = webAppBase.linuxFxVersion().replace("|", " ");
+        return StringUtils.containsIgnoreCase(webAppBase.innerModel().kind(), "function") ?
+                getRuntimeFromLinuxFunctionApp(linuxFxVersion) : getRuntimeFromLinuxWebApp(linuxFxVersion);
+    }
+
+    private static Runtime getRuntimeFromLinuxWebApp(String linuxFxVersion) {
         return Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
     }
 
-    private static Runtime getRuntimeFromWindowsWebApp(WebAppBase webAppBase) {
+    private static Runtime getRuntimeFromLinuxFunctionApp(String linuxFxVersion) {
+        final JavaVersion javaVersion = JavaVersion.fromString(linuxFxVersion);
+        return Runtime.getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, javaVersion);
+    }
+
+    private static Runtime getRuntimeFromWindowsAppService(WebAppBase webAppBase) {
         if (webAppBase.javaVersion() == null || StringUtils.isAnyEmpty(webAppBase.javaContainer(), webAppBase.javaContainerVersion())) {
             return Runtime.getRuntime(OperatingSystem.WINDOWS, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
@@ -166,7 +176,7 @@ class AppServiceUtils {
                 .region(Region.fromName(functionApp.regionName()))
                 .resourceGroup(functionApp.resourceGroupName())
                 .subscriptionId(Utils.getSubscriptionId(functionApp.id()))
-                .runtime(getRuntimeFromWebApp(functionApp))
+                .runtime(getRuntimeFromAppService(functionApp))
                 .appServicePlanId(functionApp.appServicePlanId())
                 .defaultHostName(functionApp.defaultHostname())
                 .appSettings(Utils.normalizeAppSettings(functionApp.getAppSettings()))
@@ -191,7 +201,7 @@ class AppServiceUtils {
             .region(Region.fromName(webAppBase.regionName()))
             .resourceGroup(webAppBase.resourceGroupName())
             .subscriptionId(Utils.getSubscriptionId(webAppBase.id()))
-            .runtime(getRuntimeFromWebApp(webAppBase))
+            .runtime(getRuntimeFromAppService(webAppBase))
             .appServicePlanId(webAppBase.appServicePlanId())
             .defaultHostName(webAppBase.defaultHostname())
             .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()))
@@ -216,7 +226,7 @@ class AppServiceUtils {
                 .id(deploymentSlot.id())
                 .resourceGroup(deploymentSlot.resourceGroupName())
                 .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-                .runtime(null)
+                .runtime(getRuntimeFromAppService(deploymentSlot))
                 .appServicePlanId(deploymentSlot.appServicePlanId())
                 .defaultHostName(deploymentSlot.defaultHostname())
                 .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
@@ -230,7 +240,7 @@ class AppServiceUtils {
             .id(deploymentSlot.id())
             .resourceGroup(deploymentSlot.resourceGroupName())
             .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-            .runtime(getRuntimeFromWebApp(deploymentSlot))
+            .runtime(getRuntimeFromAppService(deploymentSlot))
             .appServicePlanId(deploymentSlot.appServicePlanId())
             .defaultHostName(deploymentSlot.defaultHostname())
             .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
