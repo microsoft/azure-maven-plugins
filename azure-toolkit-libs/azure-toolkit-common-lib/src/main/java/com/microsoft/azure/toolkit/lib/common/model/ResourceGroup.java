@@ -4,12 +4,15 @@
  */
 package com.microsoft.azure.toolkit.lib.common.model;
 
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder(toBuilder = true)
-public class ResourceGroup {
+public class ResourceGroup implements IAzureResourceEntity {
     private String id;
     private String name;
+    private String subscriptionId;
+    private String region;
 }
