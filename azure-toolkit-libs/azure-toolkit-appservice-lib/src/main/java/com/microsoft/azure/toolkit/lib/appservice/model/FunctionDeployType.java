@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -20,12 +20,12 @@ public enum FunctionDeployType {
 
     private static final String UNKNOWN_DEPLOYMENT_TYPE = "The value of <deploymentType> is unknown.";
 
-    public static FunctionDeployType fromString(final String input) throws AzureExecutionException {
+    public static FunctionDeployType fromString(final String input) {
         if (StringUtils.isEmpty(input)) {
             return EMPTY;
         }
         return Arrays.stream(FunctionDeployType.values())
                 .filter(type -> StringUtils.equalsAnyIgnoreCase(type.name(), input))
-                .findFirst().orElseThrow(() -> new AzureExecutionException(UNKNOWN_DEPLOYMENT_TYPE));
+                .findFirst().orElseThrow(() -> new AzureToolkitRuntimeException(UNKNOWN_DEPLOYMENT_TYPE));
     }
 }
