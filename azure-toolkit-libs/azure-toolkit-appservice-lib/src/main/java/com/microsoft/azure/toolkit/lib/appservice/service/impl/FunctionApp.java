@@ -18,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSl
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceCreator;
@@ -29,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import io.jsonwebtoken.lang.Collections;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.RandomUtils;
@@ -37,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -228,10 +227,13 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             if (getRuntime() != null && getRuntime().isPresent()) {
                 update = updateRuntime(update, getRuntime().get());
             }
-            if (getAppSettings() != null && getAppSettings().isPresent()) {
-                // todo: enhance app settings update, as now we could only add new app settings but can not remove existing values
+            if (!Collections.isEmpty(getAppSettingsToAdd())) {
                 modified = true;
-                update.withAppSettings(getAppSettings().get());
+                update.withAppSettings(getAppSettingsToAdd());
+            }
+            if (!Collections.isEmpty(getAppSettingsToRemove())) {
+                modified = true;
+                getAppSettingsToRemove().forEach(update::withoutAppSetting);
             }
             if (getDiagnosticConfig() != null && getDiagnosticConfig().isPresent()) {
                 modified = true;
