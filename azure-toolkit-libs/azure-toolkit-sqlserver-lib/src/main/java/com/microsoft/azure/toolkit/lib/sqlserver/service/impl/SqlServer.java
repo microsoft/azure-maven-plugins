@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.utils.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
@@ -57,6 +59,8 @@ public class SqlServer implements ISqlServer {
             SqlServer.this.manager.sqlServers().deleteById(entity.getId());
         } else if (StringUtils.isNotBlank(entity.getResourceGroup()) && StringUtils.isNotBlank(entity.getName())) {
             SqlServer.this.manager.sqlServers().deleteByResourceGroup(entity.getResourceGroup(), entity.getName());
+        } else {
+            throw new AzureToolkitRuntimeException("Missing necessary parameters to delete SQL Server.");
         }
     }
 
