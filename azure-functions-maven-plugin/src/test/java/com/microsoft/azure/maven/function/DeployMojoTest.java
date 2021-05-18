@@ -5,24 +5,17 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTargetType;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTarget;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.ArtifactHandler;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.FTPArtifactHandlerImpl;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.ZIPArtifactHandlerImpl;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.legacy.function.handlers.artifact.MSDeployArtifactHandlerImpl;
-import com.microsoft.azure.toolkit.lib.legacy.function.handlers.runtime.FunctionRuntimeHandler;
-import com.microsoft.azure.toolkit.lib.legacy.function.handlers.runtime.WindowsFunctionRuntimeHandler;
-import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.FunctionApp.DefinitionStages.WithCreate;
-import com.microsoft.azure.management.appservice.FunctionApp.Update;
 import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.telemetry.TelemetryProxy;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTarget;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTargetType;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.ArtifactHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.handlers.runtime.FunctionRuntimeHandler;
+import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -31,19 +24,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.function.Consumer;
-
-import static com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType.DOCKER;
-import static com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType.RUN_FROM_BLOB;
-import static com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType.RUN_FROM_ZIP;
-import static com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum.Docker;
-import static com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum.Linux;
-import static com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum.Windows;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
@@ -78,17 +61,11 @@ public class DeployMojoTest extends MojoTestBase {
     @Ignore
     public void doExecute() throws Exception {
         final ArtifactHandler handler = mock(ArtifactHandler.class);
-        final FunctionRuntimeHandler runtimeHandler = mock(FunctionRuntimeHandler.class);
         final FunctionApp app = mock(FunctionApp.class);
         doReturn(app).when(mojoSpy).getFunctionApp();
-        doReturn(app).when(mojoSpy).updateFunctionApp(app, runtimeHandler);
-        doReturn(handler).when(mojoSpy).getArtifactHandler();
-        doReturn(runtimeHandler).when(mojoSpy).getFunctionRuntimeHandler();
         doCallRealMethod().when(mojoSpy).createOrUpdateResource();
         final DeployTarget deployTarget = new DeployTarget(app, DeployTargetType.FUNCTION);
-        doNothing().when(mojoSpy).listHTTPTriggerUrls();
-        doNothing().when(mojoSpy).checkArtifactCompileVersion();
-        doNothing().when(mojoSpy).parseConfiguration();
+        doNothing().when(mojoSpy).listHTTPTriggerUrls(any());
         doReturn(null).when(mojoSpy).getResourcePortalUrl(any());
         final TelemetryProxy telemetryProxy = mock(TelemetryProxy.class);
         doNothing().when(telemetryProxy).addDefaultProperty(any(), any());
@@ -96,120 +73,17 @@ public class DeployMojoTest extends MojoTestBase {
         mojoSpy.doExecute();
         verify(mojoSpy, times(1)).createOrUpdateResource();
         verify(mojoSpy, times(1)).doExecute();
-        verify(mojoSpy, times(1)).updateFunctionApp(any(FunctionApp.class), any());
         verify(handler, times(1)).publish(refEq(deployTarget));
         verifyNoMoreInteractions(handler);
     }
 
-    @Test
-    public void createFunctionAppIfNotExist() throws Exception {
-        doReturn(null).when(mojoSpy).getFunctionApp();
-        doReturn(null).when(mojoSpy).getFunctionRuntimeHandler();
-        doReturn(null).when(mojoSpy).createFunctionApp(any());
-
-        mojoSpy.createOrUpdateResource();
-
-        verify(mojoSpy).createFunctionApp(any());
-    }
-
-    @Test
-    public void updateFunctionApp() throws Exception {
-        final FunctionApp app = mock(FunctionApp.class);
-        final Update update = mock(Update.class);
-        doReturn("9db749a0-09d8-4697-a736-52df13820aab").when(mojoSpy).getAppInsightsKey();
-        doNothing().when(mojoSpy).configureAppSettings(any(Consumer.class), anyMap());
-        final FunctionRuntimeHandler functionRuntimeHandler = mock(WindowsFunctionRuntimeHandler.class);
-
-        doReturn(update).when(functionRuntimeHandler).updateAppRuntime(app);
-        mojoSpy.updateFunctionApp(app, functionRuntimeHandler);
-
-        verify(update, times(1)).apply();
-    }
-
-    @Test
-    public void configureAppSettings() throws Exception {
-        final WithCreate withCreate = mock(WithCreate.class);
-
-        mojo.configureAppSettings(withCreate::withAppSettings, mojo.getAppSettings());
-
-        verify(withCreate, times(1)).withAppSettings(anyMap());
-    }
-
-    @Test
     @Ignore
-    public void getMSDeployArtifactHandler() throws AzureExecutionException {
-        final TelemetryProxy mockProxy = mock(TelemetryProxy.class);
-        doReturn(mockProxy).when(mojoSpy).getTelemetryProxy();
-        doNothing().when(mockProxy).addDefaultProperty(any(), any());
-        doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
-        doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
-        doReturn(DeploymentType.MSDEPLOY).when(mojoSpy).getDeploymentType();
-        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
-
-        assertNotNull(handler);
-        assertTrue(handler instanceof MSDeployArtifactHandlerImpl);
-    }
-
-    @Test
-    @Ignore
-    public void getFTPArtifactHandler() throws AzureExecutionException {
-        final TelemetryProxy mockProxy = mock(TelemetryProxy.class);
-        doReturn(mockProxy).when(mojoSpy).getTelemetryProxy();
-        doNothing().when(mockProxy).addDefaultProperty(any(), any());
-        doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
-        doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
-        doReturn(DeploymentType.FTP).when(mojoSpy).getDeploymentType();
-        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
-
-        assertNotNull(handler);
-        assertTrue(handler instanceof FTPArtifactHandlerImpl);
-    }
-
-    @Test
-    @Ignore
-    public void getZIPArtifactHandler() throws AzureExecutionException {
-        final TelemetryProxy mockProxy = mock(TelemetryProxy.class);
-        doReturn(mockProxy).when(mojoSpy).getTelemetryProxy();
-        doNothing().when(mockProxy).addDefaultProperty(any(), any());
-        doReturn("azure-functions-maven-plugin").when(mojoSpy).getPluginName();
-        doReturn("test-path").when(mojoSpy).getBuildDirectoryAbsolutePath();
-        doReturn(DeploymentType.ZIP).when(mojoSpy).getDeploymentType();
-        final ArtifactHandler handler = mojoSpy.getArtifactHandler();
-
-        assertNotNull(handler);
-        assertTrue(handler instanceof ZIPArtifactHandlerImpl);
-    }
-
-    @Test(expected = AzureExecutionException.class)
-    public void getArtifactHandlerThrowException() throws Exception {
-        getMojoFromPom().getArtifactHandler();
-    }
-
-    @Test
-    public void testGetDeploymentTypeByRuntime() throws AzureExecutionException {
-        // Windows
-        doReturn(Windows).when(mojoSpy).getOsEnum();
-        assertEquals(RUN_FROM_ZIP, mojoSpy.getDeploymentTypeByRuntime());
-        // Linux
-        doReturn(Linux).when(mojoSpy).getOsEnum();
-        doReturn(true).when(mojoSpy).isDedicatedPricingTier();
-        assertEquals(RUN_FROM_ZIP, mojoSpy.getDeploymentTypeByRuntime());
-        doReturn(false).when(mojoSpy).isDedicatedPricingTier();
-        assertEquals(RUN_FROM_BLOB, mojoSpy.getDeploymentTypeByRuntime());
-        // Docker
-        doReturn(Docker).when(mojoSpy).getOsEnum();
-        assertEquals(DOCKER, mojoSpy.getDeploymentTypeByRuntime());
-    }
-
     @Test(expected = AzureExecutionException.class)
     public void testDeploymentSlotThrowExceptionIfFunctionNotExists() throws AzureAuthFailureException, AzureExecutionException {
         final DeploymentSlotSetting slotSetting = new DeploymentSlotSetting();
         slotSetting.setName("Exception");
         doReturn(slotSetting).when(mojoSpy).getDeploymentSlotSetting();
         doReturn(null).when(mojoSpy).getFunctionApp();
-        doReturn(null).when(mojoSpy).getFunctionRuntimeHandler();
-        doNothing().when(mojoSpy).parseConfiguration();
-        doNothing().when(mojoSpy).checkArtifactCompileVersion();
         mojoSpy.doExecute();
     }
 
@@ -225,18 +99,14 @@ public class DeployMojoTest extends MojoTestBase {
         final FunctionDeploymentSlot.DefinitionStages.WithCreate mockWithCreate = mock(FunctionDeploymentSlot.DefinitionStages.WithCreate.class);
         doReturn(slot).when(mockWithCreate).create();
         doReturn(mockWithCreate).when(runtimeHandler).createDeploymentSlot(any(), any());
-        doReturn(runtimeHandler).when(mojoSpy).getFunctionRuntimeHandler();
 
         final ArtifactHandler artifactHandler = mock(ArtifactHandler.class);
         doNothing().when(artifactHandler).publish(any());
-        doReturn(artifactHandler).when(mojoSpy).getArtifactHandler();
 
         final FunctionApp app = mock(FunctionApp.class);
         doReturn(app).when(mojoSpy).getFunctionApp();
-        doNothing().when(mojoSpy).parseConfiguration();
-        doNothing().when(mojoSpy).checkArtifactCompileVersion();
-        doReturn(slot).when(mojoSpy).updateDeploymentSlot(any(), any());
-        doCallRealMethod().when(mojoSpy).createDeploymentSlot(any(), any());
+        doReturn(slot).when(mojoSpy).updateDeploymentSlot(any());
+        doCallRealMethod().when(mojoSpy).createDeploymentSlot(any());
         doReturn(null).when(mojoSpy).getResourcePortalUrl(any());
         final TelemetryProxy telemetryProxy = mock(TelemetryProxy.class);
         doNothing().when(telemetryProxy).addDefaultProperty(any(), any());
@@ -249,9 +119,9 @@ public class DeployMojoTest extends MojoTestBase {
 
         verify(mojoSpy, times(1)).doExecute();
         verify(mojoSpy, times(1)).createOrUpdateResource();
-        verify(mojoSpy, times(1)).createDeploymentSlot(any(), any());
+        verify(mojoSpy, times(1)).createDeploymentSlot(any());
         // Will call slot update while creation as we can't modify app settings during creation
-        verify(mojoSpy, times(1)).updateDeploymentSlot(any(), any());
+        verify(mojoSpy, times(1)).updateDeploymentSlot(any());
         verify(artifactHandler, times(1)).publish(any());
         verifyNoMoreInteractions(artifactHandler);
     }
