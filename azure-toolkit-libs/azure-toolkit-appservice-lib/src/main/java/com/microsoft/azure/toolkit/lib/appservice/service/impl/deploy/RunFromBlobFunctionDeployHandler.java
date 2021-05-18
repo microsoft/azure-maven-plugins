@@ -64,7 +64,7 @@ public class RunFromBlobFunctionDeployHandler implements IFunctionDeployHandler 
             }
             return container;
         } catch (URISyntaxException | StorageException e) {
-            throw new AzureExecutionException(FAILED_TO_GET_FUNCTION_APP_ARTIFACT_CONTAINER, e);
+            throw new AzureToolkitRuntimeException(FAILED_TO_GET_FUNCTION_APP_ARTIFACT_CONTAINER, e);
         }
     }
 
