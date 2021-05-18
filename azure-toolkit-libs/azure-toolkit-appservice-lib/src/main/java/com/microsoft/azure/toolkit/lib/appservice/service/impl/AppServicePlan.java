@@ -68,6 +68,9 @@ public class AppServicePlan implements IAppServicePlan {
 
     @Override
     public AppServicePlanEntity entity() {
+        if (remote == null) {
+            refresh();
+        }
         return entity;
     }
 
@@ -164,7 +167,7 @@ public class AppServicePlan implements IAppServicePlan {
         @Override
         public AppServicePlan commit() {
             boolean modified = false;
-            com.azure.resourcemanager.appservice.models.AppServicePlan.Update update = remote.update();
+            com.azure.resourcemanager.appservice.models.AppServicePlan.Update update = getRemoteResource().update();
             if (pricingTier != null) {
                 final com.azure.resourcemanager.appservice.models.PricingTier newPricingTier = AppServiceUtils.toPricingTier(pricingTier);
                 if (!Objects.equals(newPricingTier, AppServicePlan.this.getRemoteResource().pricingTier())) {

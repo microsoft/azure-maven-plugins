@@ -59,23 +59,20 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
 
     @Override
     public String name() {
-        if (StringUtils.isEmpty(entity().getName())) {
-            refresh();
-        }
         return entity().getName();
     }
 
     @Override
     public String id() {
-        if (StringUtils.isEmpty(entity().getId())) {
-            refresh();
-        }
         return entity().getId();
     }
 
     @Override
     @Nonnull
     public R entity() {
+        if (remote == null) {
+            refresh();
+        }
         return entity;
     }
 
@@ -101,9 +98,6 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
 
     @Override
     public Runtime getRuntime() {
-        if (entity().getRuntime() == null) {
-            refresh();
-        }
         return entity().getRuntime();
     }
 
