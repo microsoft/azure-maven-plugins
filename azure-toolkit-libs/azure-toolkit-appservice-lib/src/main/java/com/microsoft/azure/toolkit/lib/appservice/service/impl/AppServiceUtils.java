@@ -216,7 +216,7 @@ class AppServiceUtils {
                 .id(deploymentSlot.id())
                 .resourceGroup(deploymentSlot.resourceGroupName())
                 .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-                .runtime(null)
+                .runtime(getRuntimeFromWebApp(deploymentSlot))
                 .appServicePlanId(deploymentSlot.appServicePlanId())
                 .defaultHostName(deploymentSlot.defaultHostname())
                 .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))

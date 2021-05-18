@@ -11,7 +11,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +43,10 @@ public class FunctionEntity {
         private final String type;
         private final String direction;
         private final String name;
-        private final Map<String, ?> properties;
+        private final Map<String, String> properties;
+
+        public String getProperty(String key) {
+            return Optional.ofNullable(properties).map(map -> map.get(key)).orElse(null);
+        }
     }
 }
