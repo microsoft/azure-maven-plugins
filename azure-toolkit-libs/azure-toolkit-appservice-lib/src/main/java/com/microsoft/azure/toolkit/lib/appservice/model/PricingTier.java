@@ -52,9 +52,9 @@ public class PricingTier {
         return values;
     }
 
-    public static List<PricingTier> valuesForWebApps() {
+    public static List<PricingTier> forWebapps() {
         return values().stream()
-                .filter(pricing -> !StringUtils.equalsAnyIgnoreCase(pricing.tier, "Dynamic", "ElasticPremium"))
+                .filter(pricingTier -> !isExclusivePricingTierForFunctionApp(pricingTier))
                 .collect(Collectors.toList());
     }
 
@@ -62,6 +62,10 @@ public class PricingTier {
         return values().stream()
                 .filter(pricingTier -> StringUtils.equalsIgnoreCase(input, pricingTier.size))
                 .findFirst().orElse(null);
+    }
+
+    public static boolean isExclusivePricingTierForFunctionApp(PricingTier pricingTier) {
+        return StringUtils.equalsAnyIgnoreCase(pricingTier.getTier(), "Dynamic", "ElasticPremium");
     }
 
     @Override
