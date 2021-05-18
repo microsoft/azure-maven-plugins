@@ -10,7 +10,10 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Objects;
 
 public class JdbcUrl {
@@ -36,21 +39,20 @@ public class JdbcUrl {
     }
 
     public static JdbcUrl mysql(String serverHost, String database) {
-        return new JdbcUrl(String.format("jdbc:mysql://%s:3306/%s?serverTimezone=UTC&useSSL=true&requireSSL=false", serverHost, database));
+        return new JdbcUrl(String.format("jdbc:mysql://%s:3306/%s?serverTimezone=UTC&useSSL=true&requireSSL=false", encode(serverHost), encode(database)));
     }
 
     public static JdbcUrl mysql(String serverHost) {
-        return new JdbcUrl(String.format("jdbc:mysql://%s:3306?serverTimezone=UTC&useSSL=true&requireSSL=false", serverHost));
+        return new JdbcUrl(String.format("jdbc:mysql://%s:3306?serverTimezone=UTC&useSSL=true&requireSSL=false", encode(serverHost)));
     }
 
     public static JdbcUrl sqlserver(String serverHost, String database) {
         return new JdbcUrl(String.format(
-            "jdbc:sqlserver://%s.database.windows.net:1433;encrypt=true;trustServerCertificate=false;loginTimeout=30;database=%s;", serverHost, database));
+            "jdbc:sqlserver://%s:1433;encrypt=true;trustServerCertificate=false;loginTimeout=30;database=%s;", encode(serverHost), encode(database)));
     }
 
     public static JdbcUrl sqlserver(String serverHost) {
-        return new JdbcUrl(String.format(
-            "jdbc:sqlserver://%s.database.windows.net:1433;encrypt=true;trustServerCertificate=false;loginTimeout=30;", serverHost));
+        return new JdbcUrl(String.format("jdbc:sqlserver://%s:1433;encrypt=true;trustServerCertificate=false;loginTimeout=30;", encode(serverHost)));
     }
 
     public int getPort() {
@@ -66,25 +68,38 @@ public class JdbcUrl {
         throw new AzureToolkitRuntimeException("unknown jdbc url scheme: %s", this.uri.getScheme());
     }
 
-    public String getHost() {
-        return this.uri.getHost();
-    }
-
-    public String getServer() {
-        return this.getHost();
+    public String getServerHost() {
+        return decode(this.uri.getHost());
     }
 
     public String getDatabase() {
         final String path = this.uri.getPath();
-        return StringUtils.startsWith(path, "/") ? path.substring(1) : path;
+        return decode(StringUtils.startsWith(path, "/") ? path.substring(1) : path);
     }
 
     @Override
     public String toString() {
+        String url = "jdbc:" + uri.toString();
         if (StringUtils.equals(uri.getScheme(), "sqlserver")) {
-            return "jdbc:" + StringUtils.replaceOnce(uri.toString(), "?", ";").replaceAll("&", ";");
+            url = "jdbc:" + StringUtils.replaceOnce(uri.toString(), "?", ";").replaceAll("&", ";");
         }
-        return "jdbc:" + this.uri.toString();
+        return decode(url);
+    }
+
+    private static String encode(String context) {
+        try {
+            return URLEncoder.encode(context, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new AzureToolkitRuntimeException(e.getMessage());
+        }
+    }
+
+    private static String decode(String context) {
+        try {
+            return URLDecoder.decode(context, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new AzureToolkitRuntimeException(e.getMessage());
+        }
     }
 
     @Override
