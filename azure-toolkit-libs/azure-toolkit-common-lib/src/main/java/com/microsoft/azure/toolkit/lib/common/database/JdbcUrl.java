@@ -18,6 +18,9 @@ import java.util.Objects;
 
 public class JdbcUrl {
 
+    private static final int MYSQL_DEFAULT_PORT = 3306;
+    private static final int SQLSERVER_DEFAULT_PORT = 1433;
+
     private final URIBuilder uri;
     private String username;
     private String password;
@@ -41,20 +44,23 @@ public class JdbcUrl {
     }
 
     public static JdbcUrl mysql(String serverHost, String database) {
-        return new JdbcUrl(String.format("jdbc:mysql://%s:3306/%s?serverTimezone=UTC&useSSL=true&requireSSL=false", encode(serverHost), encode(database)));
+        return new JdbcUrl(String.format("jdbc:mysql://%s:%s/%s?serverTimezone=UTC&useSSL=true&requireSSL=false",
+            encode(serverHost), MYSQL_DEFAULT_PORT, encode(database)));
     }
 
     public static JdbcUrl mysql(String serverHost) {
-        return new JdbcUrl(String.format("jdbc:mysql://%s:3306?serverTimezone=UTC&useSSL=true&requireSSL=false", encode(serverHost)));
+        return new JdbcUrl(String.format("jdbc:mysql://%s:%s?serverTimezone=UTC&useSSL=true&requireSSL=false",
+            encode(serverHost), MYSQL_DEFAULT_PORT));
     }
 
     public static JdbcUrl sqlserver(String serverHost, String database) {
-        return new JdbcUrl(String.format(
-            "jdbc:sqlserver://%s:1433;encrypt=true;trustServerCertificate=false;loginTimeout=30;database=%s;", encode(serverHost), encode(database)));
+        return new JdbcUrl(String.format("jdbc:sqlserver://%s:%s;encrypt=true;trustServerCertificate=false;loginTimeout=30;database=%s;",
+            encode(serverHost), SQLSERVER_DEFAULT_PORT, encode(database)));
     }
 
     public static JdbcUrl sqlserver(String serverHost) {
-        return new JdbcUrl(String.format("jdbc:sqlserver://%s:1433;encrypt=true;trustServerCertificate=false;loginTimeout=30;", encode(serverHost)));
+        return new JdbcUrl(String.format("jdbc:sqlserver://%s:%s;encrypt=true;trustServerCertificate=false;loginTimeout=30;",
+            encode(serverHost), SQLSERVER_DEFAULT_PORT));
     }
 
     public int getPort() {
@@ -63,9 +69,9 @@ public class JdbcUrl {
         }
         // default port
         if (StringUtils.equals(this.uri.getScheme(), "mysql")) {
-            return 3306;
+            return MYSQL_DEFAULT_PORT;
         } else if (StringUtils.equals(this.uri.getScheme(), "sqlserver")) {
-            return 1433;
+            return SQLSERVER_DEFAULT_PORT;
         }
         throw new AzureToolkitRuntimeException("unknown jdbc url scheme: %s", this.uri.getScheme());
     }
