@@ -9,6 +9,7 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.maven.model.DeploymentResource;
+import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
@@ -73,11 +74,11 @@ public class DeployMojo extends AbstractWebAppMojo {
         az = getOrCreateAzureAppServiceClient();
 
         final WebAppConfig config = getWebAppConfig();
-        final IAppService target = createOrUpdateResource(config);
+        final IWebAppBase target = createOrUpdateResource(config);
         deploy(target, config);
     }
 
-    private IAppService createOrUpdateResource(final WebAppConfig config) throws AzureExecutionException {
+    private IWebAppBase createOrUpdateResource(final WebAppConfig config) throws AzureExecutionException {
         if (StringUtils.isEmpty(config.getDeploymentSlotName())) {
             final IWebApp webApp = getWebApp(config);
             return webApp.exists() ? updateWebApp(webApp, config) : createWebApp(webApp, config);
@@ -195,7 +196,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         return result;
     }
 
-    private void deploy(IAppService target, WebAppConfig config) throws AzureExecutionException {
+    private void deploy(IWebAppBase target, WebAppConfig config) throws AzureExecutionException {
         if (target.getRuntime().getOperatingSystem() == OperatingSystem.DOCKER) {
             Log.info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
             return;
@@ -218,7 +219,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         return slot;
     }
 
-    private void deployArtifacts(IAppService target, WebAppConfig config) throws AzureExecutionException {
+    private void deployArtifacts(IWebAppBase target, WebAppConfig config) throws AzureExecutionException {
         final List<WebAppArtifact> artifactsOneDeploy = config.getWebAppArtifacts().stream()
                 .filter(artifact -> artifact.getDeployType() != null)
                 .collect(Collectors.toList());
@@ -249,7 +250,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         deployArtifactsWithZipDeploy(target, artifacts);
     }
 
-    private void deployArtifactsWithZipDeploy(IAppService target, List<WebAppArtifact> artifacts) throws AzureExecutionException {
+    private void deployArtifactsWithZipDeploy(IWebAppBase target, List<WebAppArtifact> artifacts) throws AzureExecutionException {
         final File stagingDirectory = prepareStagingDirectory(artifacts);
         // Rename jar once java_se runtime
         if (target.getRuntime().getWebContainer() == WebContainer.JAVA_SE) {
