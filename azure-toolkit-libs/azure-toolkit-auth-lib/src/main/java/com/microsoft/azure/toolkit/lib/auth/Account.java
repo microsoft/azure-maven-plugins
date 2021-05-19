@@ -26,6 +26,7 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public abstract class Account implements IAccount {
@@ -156,6 +157,18 @@ public abstract class Account implements IAccount {
             getSubscriptions().forEach(subscription -> subscription.setSelected(true));
             this.entity.setSelectedSubscriptionIds(getSubscriptions().stream().map(Subscription::getId).collect(Collectors.toList()));
         }
+    }
+
+    public Mono<List<Subscription>> reloadSubscriptions() {
+        List<String> beforeRefreshSelectedSubsIds = this.getSelectedSubscriptions().stream().map(Subscription::getId).collect(Collectors.toList());
+        return this.credentialManager.listSubscriptions(this.entity.getTenantIds())
+                .map(subscriptions -> {
+                    // reset tenant id again when all subscriptions
+                    entity.setTenantIds(subscriptions.stream().map(Subscription::getTenantId).distinct().collect(Collectors.toList()));
+                    entity.setSubscriptions(subscriptions);
+                    this.selectSubscription(beforeRefreshSelectedSubsIds);
+                    return this.getSubscriptions();
+                });
     }
 
     /***
