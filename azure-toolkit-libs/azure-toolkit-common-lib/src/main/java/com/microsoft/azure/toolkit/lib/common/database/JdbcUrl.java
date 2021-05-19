@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.lib.common.utils;
+package com.microsoft.azure.toolkit.lib.common.database;
 
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -19,6 +19,8 @@ import java.util.Objects;
 public class JdbcUrl {
 
     private final URIBuilder uri;
+    private String username;
+    private String password;
 
     private JdbcUrl(String url) {
         Preconditions.checkArgument(StringUtils.startsWith(url, "jdbc:"), "invalid jdbc url.");
@@ -75,6 +77,39 @@ public class JdbcUrl {
     public String getDatabase() {
         final String path = this.uri.getPath();
         return decode(StringUtils.startsWith(path, "/") ? path.substring(1) : path);
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public JdbcUrl setServerHost(String serverHost) {
+        this.uri.setHost(serverHost);
+        return this;
+    }
+
+    public JdbcUrl setDatabase(String database) {
+        this.uri.setPath("/" + database);
+        return this;
+    }
+
+    public JdbcUrl setUsername(String username) {
+        this.username = username;
+        return this;
+    }
+
+    public JdbcUrl setPassword(String password) {
+        this.password = password;
+        return this;
+    }
+
+    public JdbcUrl setPort(int port) {
+        this.uri.setPort(port);
+        return this;
     }
 
     @Override
