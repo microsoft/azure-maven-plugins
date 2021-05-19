@@ -5,13 +5,37 @@
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 
-public interface IWebAppDeploymentSlot extends IWebAppBase {
+import java.util.Map;
+
+public interface IWebAppDeploymentSlot extends IWebAppBase<WebAppDeploymentSlotEntity> {
     IWebApp webApp();
 
-    IWebAppDeploymentSlotCreator create();
+    Creator create();
 
-    IWebAppDeploymentSlotUpdater update();
+    Updater update();
 
     WebAppDeploymentSlotEntity entity();
+
+    interface Creator {
+
+        Creator withName(String name);
+
+        Creator withAppSettings(Map<String, String> appSettings);
+
+        Creator withConfigurationSource(String source);
+
+        Creator withDiagnosticConfig(DiagnosticConfig diagnosticConfig);
+
+        IWebAppDeploymentSlot commit();
+    }
+
+    interface Updater {
+        Updater withAppSettings(Map<String, String> appSettings);
+
+        Updater withDiagnosticConfig(DiagnosticConfig diagnosticConfig);
+
+        IWebAppDeploymentSlot commit();
+    }
 }

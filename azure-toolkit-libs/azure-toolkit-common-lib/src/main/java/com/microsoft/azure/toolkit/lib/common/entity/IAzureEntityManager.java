@@ -32,4 +32,8 @@ public interface IAzureEntityManager<T extends IAzureResourceEntity> {
     default String name() {
         return this.entity().getName();
     }
+
+    default String id() {
+        return this.entity().getId();
+    }
 }

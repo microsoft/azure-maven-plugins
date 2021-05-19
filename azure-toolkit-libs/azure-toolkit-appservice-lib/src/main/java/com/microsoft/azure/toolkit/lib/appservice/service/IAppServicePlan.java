@@ -5,17 +5,41 @@
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import java.util.List;
 
-public interface IAppServicePlan extends IResource {
-    IAppServicePlanCreator create();
+public interface IAppServicePlan extends IAzureEntityManager<AppServicePlanEntity> {
+    Creator create();
 
-    IAppServicePlanUpdater update();
+    Updater update();
 
     boolean exists();
 
     AppServicePlanEntity entity();
 
     List<IWebApp> webapps();
+
+    interface Creator {
+        Creator withName(String name);
+
+        Creator withRegion(Region region);
+
+        Creator withResourceGroup(String resourceGroupName);
+
+        Creator withPricingTier(PricingTier pricingTier);
+
+        Creator withOperatingSystem(OperatingSystem operatingSystem);
+
+        IAppServicePlan commit();
+    }
+
+    interface Updater {
+        Updater withPricingTier(PricingTier pricingTier);
+
+        IAppServicePlan commit();
+    }
 }

@@ -9,7 +9,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 
 import java.util.Map;
 
-public interface IFunctionAppDeploymentSlot extends IFunctionAppBase {
+public interface IFunctionAppDeploymentSlot extends IFunctionAppBase<FunctionAppDeploymentSlotEntity> {
     IFunctionApp functionApp();
 
     Creator create();
