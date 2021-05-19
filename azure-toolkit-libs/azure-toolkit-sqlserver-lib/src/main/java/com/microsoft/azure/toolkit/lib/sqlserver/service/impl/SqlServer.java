@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.utils.JdbcUrl;
@@ -47,9 +46,7 @@ public class SqlServer implements ISqlServer {
 
     @Override
     public SqlServerEntity entity() {
-        if (Objects.isNull(sqlServerInner)) {
-            this.refreshInner();
-        }
+        this.refreshInnerIfNotSet();
         return entity;
     }
 
@@ -84,17 +81,13 @@ public class SqlServer implements ISqlServer {
 
     @Override
     public List<SqlFirewallRuleEntity> firewallRules() {
-        if (Objects.isNull(sqlServerInner)) {
-            this.refreshInner();
-        }
+        this.refreshInnerIfNotSet();
         return sqlServerInner.firewallRules().list().stream().map(this::formSqlServerFirewallRule).collect(Collectors.toList());
     }
 
     @Override
     public List<SqlDatabaseEntity> databases() {
-        if (Objects.isNull(sqlServerInner)) {
-            this.refreshInner();
-        }
+        this.refreshInnerIfNotSet();
         return sqlServerInner.databases().list().stream().map(this::formSqlDatabase).collect(Collectors.toList());
     }
 
@@ -129,6 +122,12 @@ public class SqlServer implements ISqlServer {
             .collation(databaseInner.collation())
             .creationDate(databaseInner.creationDate())
             .build();
+    }
+
+    private void refreshInnerIfNotSet() {
+        if (Objects.isNull(this.sqlServerInner)) {
+            this.refreshInner();
+        }
     }
 
     synchronized void refreshInner() {
@@ -171,9 +170,7 @@ public class SqlServer implements ISqlServer {
 
         @Override
         public SqlServer commit() {
-            if (Objects.isNull(sqlServerInner)) {
-                SqlServer.this.refreshInner();
-            }
+            SqlServer.this.refreshInnerIfNotSet();
             // update
             if (isEnableAccessFromAzureServices()) {
                 sqlServerInner.enableAccessFromAzureServices();
