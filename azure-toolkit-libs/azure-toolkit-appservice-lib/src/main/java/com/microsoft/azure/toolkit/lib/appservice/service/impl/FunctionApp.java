@@ -43,7 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class FunctionApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.FunctionApp, FunctionAppEntity> implements IFunctionApp {
+public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appservice.models.FunctionApp, FunctionAppEntity> implements IFunctionApp {
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     private final AzureResourceManager azureClient;
@@ -105,16 +105,6 @@ public class FunctionApp extends AbstractAppService<com.azure.resourcemanager.ap
     @Override
     public void syncTriggers() {
         getRemoteResource().syncTriggers();
-    }
-
-    @Override
-    public void deploy(File targetFile) {
-
-    }
-
-    @Override
-    public void deploy(File targetFile, FunctionDeployType functionDeployType) {
-
     }
 
     @Override
