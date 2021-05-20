@@ -41,13 +41,13 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
         deployWithPackageUri(webAppBase, packageUri, () -> deletePackageFromAzureStorage(storageAccount, blobName));
     }
 
-    protected String getBlobName(final WebAppBase functionApp) {
+    private String getBlobName(final WebAppBase functionApp) {
         return functionApp.name()
                 .concat(new SimpleDateFormat(".yyyyMMddHHmmssSSS").format(new Date()))
                 .concat(Constants.ZIP_EXT);
     }
 
-    protected String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
+    private String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
                                                  final String blobName) {
         LOGGER.info(UPLOAD_PACKAGE_START);
         try {
@@ -61,7 +61,7 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
         }
     }
 
-    protected void deployWithPackageUri(final WebAppBase target, final String packageUri, Runnable onDeployFinish) {
+    private void deployWithPackageUri(final WebAppBase target, final String packageUri, Runnable onDeployFinish) {
         try {
             LOGGER.info(DEPLOY_PACKAGE_START);
             target.deploy().withPackageUri(packageUri).execute().complete();
@@ -71,7 +71,7 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
         }
     }
 
-    protected void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName) {
+    private void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName) {
         try {
             LOGGER.info(DELETE_PACKAGE_START);
             AzureStorageHelper.deleteBlob(storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);
