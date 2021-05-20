@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import lombok.extern.java.Log;
@@ -31,6 +33,12 @@ public final class AzureOperationAspect {
         final AzureOperationRef operation = toOperationRef(point);
         AzureTelemeter.beforeEnter(operation);
         AzureTaskContext.current().pushOperation(operation);
+        final Object source = point.getThis();
+        if (source instanceof AzureOperationEvent.Source) {
+            final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
+            final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.BEFORE);
+            AzureEventBus.emit(operation.getName(), event);
+        }
     }
 
     @AfterReturning("operation()")
@@ -39,8 +47,14 @@ public final class AzureOperationAspect {
         final AzureOperationRef operation = (AzureOperationRef) AzureTaskContext.current().popOperation();
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && operation.getMethod().equals(current.getMethod()) :
-                String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
+            String.format("popped operation[%s] is not the exiting operation[%s]", current, operation);
         AzureTelemeter.afterExit(operation);
+        final Object source = point.getThis();
+        if (source instanceof AzureOperationEvent.Source) {
+            final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
+            final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.AFTER);
+            AzureEventBus.emit(operation.getName(), event);
+        }
     }
 
     @AfterThrowing(pointcut = "operation()", throwing = "e")
@@ -49,8 +63,14 @@ public final class AzureOperationAspect {
         final AzureOperationRef operation = (AzureOperationRef) AzureTaskContext.current().popOperation();
         // TODO: this cannot ensure same operation actually, considering recursive call
         assert Objects.nonNull(operation) && operation.getMethod().equals(current.getMethod()) :
-                String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
+            String.format("popped operation[%s] is not the operation[%s] throwing exception", current, operation);
         AzureTelemeter.onError(operation, e);
+        final Object source = point.getThis();
+        if (source instanceof AzureOperationEvent.Source) {
+            final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
+            final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.ERROR);
+            AzureEventBus.emit(operation.getName(), event);
+        }
         if (!(e instanceof RuntimeException)) {
             throw e; // do not wrap checked exception
         }

@@ -6,16 +6,11 @@
 package com.microsoft.azure.maven.springcloud;
 
 import com.microsoft.azure.maven.AbstractAzureMojo;
-import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentMavenConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationParser;
-import com.microsoft.azure.maven.utils.MavenAuthUtils;
-import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
-import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.settings.Settings;
@@ -65,18 +60,6 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
 
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
-
-    @SneakyThrows
-    @Override
-    protected void beforeMojoExecution() {
-        super.beforeMojoExecution();
-        final MavenAuthConfiguration mavenAuthConfiguration = auth == null ? new MavenAuthConfiguration() : auth;
-        try {
-            login(MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
-        } catch (AzureLoginException ex) {
-            throw new LoginFailureException("Cannot login to Azure due to error: " + ex.getMessage(), ex);
-        }
-    }
 
     protected void initTelemetryProxy() {
         super.initTelemetryProxy();

@@ -12,6 +12,7 @@ import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -21,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -29,7 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity> {
+public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>, AzureOperationEvent.Source<SpringCloudApp> {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
 
     @Getter
@@ -159,13 +161,13 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
 
     @Nullable
     public String getActiveDeploymentName() {
-        if (this.exists() && Objects.nonNull(this.remote)) {
+        if (this.exists() && Objects.nonNull(this.remote) && Objects.nonNull(this.remote.getActiveDeployment())) {
             return this.remote.getActiveDeployment().name();
         }
         return null;
     }
 
-    public static abstract class Modifier implements ICommittable<SpringCloudApp> {
+    public static abstract class Modifier implements ICommittable<SpringCloudApp>, AzureOperationEvent.Source<SpringCloudApp> {
         public static final String DEFAULT_DISK_MOUNT_PATH = "/persistent";
         /**
          * @see <a href=https://azure.microsoft.com/en-us/pricing/details/spring-cloud/>Pricing - Azure Spring Cloud</a>
@@ -224,6 +226,12 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
                 }
             }
             return this;
+        }
+
+        @NotNull
+        @Override
+        public AzureOperationEvent.Source<SpringCloudApp> getEventSource() {
+            return this.app;
         }
     }
 

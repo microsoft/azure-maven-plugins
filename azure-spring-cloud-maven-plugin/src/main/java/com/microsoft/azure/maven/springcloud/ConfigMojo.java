@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.springcloud;
 
+import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.springcloud.config.AppDeploymentRawConfig;
 import com.microsoft.azure.maven.springcloud.config.AppRawConfig;
 import com.microsoft.azure.maven.springcloud.config.ConfigurationPrompter;
@@ -12,6 +13,7 @@ import com.microsoft.azure.maven.springcloud.config.ConfigurationUpdater;
 import com.microsoft.azure.maven.utils.MavenConfigUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.auth.exception.LoginFailureException;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.InvalidConfigurationException;
@@ -20,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import lombok.Lombok;
+import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecution;
@@ -50,7 +53,7 @@ import java.util.stream.Collectors;
 @Mojo(name = "config", requiresDirectInvocation = true, aggregator = true)
 public class ConfigMojo extends AbstractMojoBase {
     private static final String DEPLOYMENT_TAG = "deployment";
-    private static final List<String> APP_PROPERTIES = Arrays.asList("subscriptionId", "appName", "isPublic");
+    private static final List<String> APP_PROPERTIES = Arrays.asList("appName", "isPublic");
     private static final List<String> DEPLOYMENT_PROPERTIES = Arrays.asList("cpu", "memoryInGB", "instanceCount", "jvmOptions", "runtimeVersion");
 
     private boolean parentMode;
@@ -129,13 +132,15 @@ public class ConfigMojo extends AbstractMojoBase {
                 // no need to proceed when there are no projects need to be configured
                 return;
             }
-            selectSubscription();
+            // select subscription in spring cloud -> config is different from other goals since it is prompted after select project.
+            // set up account and select subscription here
+            getAzureAccount();
+            promptAndSelectSubscription();
 
             selectAppCluster();
             configCommon();
             confirmAndSave();
-        } catch (IOException | InvalidConfigurationException |
-                UnsupportedOperationException e) {
+        } catch (IOException | InvalidConfigurationException | UnsupportedOperationException | MavenDecryptException | LoginFailureException e) {
             throw new AzureExecutionException(e.getMessage());
         } finally {
             if (this.wrapper != null) {
@@ -324,11 +329,14 @@ public class ConfigMojo extends AbstractMojoBase {
         }
     }
 
-    private void selectSubscription() throws IOException, InvalidConfigurationException {
+    @SneakyThrows
+    protected void promptAndSelectSubscription() {
         if (StringUtils.isBlank(subscriptionId)) {
             final List<Subscription> subscriptions = Azure.az(AzureAccount.class).account().getSubscriptions();
             subscriptionId = (CollectionUtils.isNotEmpty(subscriptions) && subscriptions.size() == 1) ? subscriptions.get(0).getId() : promptSubscription();
         }
+        // use selectSubscription to set selected subscriptions in account and print current subscription
+        selectSubscription();
     }
 
     private String promptSubscription() throws IOException, InvalidConfigurationException {
