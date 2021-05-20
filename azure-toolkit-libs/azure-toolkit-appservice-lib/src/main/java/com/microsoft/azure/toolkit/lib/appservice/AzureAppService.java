@@ -13,12 +13,15 @@ import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
+import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.AppServicePlan;
+import com.microsoft.azure.toolkit.lib.appservice.service.impl.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
@@ -43,6 +46,35 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     private AzureAppService(@Nonnull final List<Subscription> subscriptions) {
         super(AzureAppService::new, subscriptions);
+    }
+
+    public IFunctionApp functionApp(String id) {
+        final FunctionAppEntity functionAppEntity = FunctionAppEntity.builder().id(id).build();
+        return functionApp(functionAppEntity);
+    }
+
+    public IFunctionApp functionApp(String resourceGroup, String name) {
+        return functionApp(getDefaultSubscription().getId(), resourceGroup, name);
+    }
+
+    public IFunctionApp functionApp(String subscriptionId, String resourceGroup, String name) {
+        final FunctionAppEntity functionAppEntity = FunctionAppEntity.builder().subscriptionId(subscriptionId).resourceGroup(resourceGroup).name(name).build();
+        return functionApp(functionAppEntity);
+    }
+
+    public IFunctionApp functionApp(FunctionAppEntity functionAppEntity) {
+        final String subscriptionId = getSubscriptionFromResourceEntity(functionAppEntity);
+        return new FunctionApp(functionAppEntity, getAzureResourceManager(subscriptionId));
+    }
+
+    public List<IFunctionApp> functionApps() {
+        return getSubscriptions().stream()
+                .map(subscription -> getAzureResourceManager(subscription.getId()))
+                .flatMap(azureResourceManager -> azureResourceManager.functionApps().list().stream())
+                .collect(Collectors.toList()).stream()
+                .filter(webAppBasic -> StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
+                .map(webAppBasic -> functionApp(webAppBasic.id()))
+                .collect(Collectors.toList());
     }
 
     public IWebApp webapp(String id) {
