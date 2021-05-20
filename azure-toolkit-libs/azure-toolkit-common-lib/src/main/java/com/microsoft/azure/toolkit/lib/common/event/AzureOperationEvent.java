@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
 package com.microsoft.azure.toolkit.lib.common.event;
 
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
@@ -13,6 +18,12 @@ public class AzureOperationEvent<T extends AzureOperationEvent.Source<T>> implem
     private final AzureOperationRef operation;
     private final Stage stage;
 
+    @Nonnull
+    @Override
+    public String getType() {
+        return operation.getName();
+    }
+
     public T getPayload() {
         return this.source;
     }
@@ -25,6 +36,6 @@ public class AzureOperationEvent<T extends AzureOperationEvent.Source<T>> implem
     }
 
     public enum Stage {
-        BEFORE, AFTER, THROW
+        BEFORE, AFTER, ERROR
     }
 }

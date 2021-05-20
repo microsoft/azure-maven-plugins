@@ -68,7 +68,7 @@ public final class AzureOperationAspect {
         final Object source = point.getThis();
         if (source instanceof AzureOperationEvent.Source) {
             final AzureOperationEvent.Source<?> target = ((AzureOperationEvent.Source<?>) source).getEventSource();
-            final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.THROW);
+            final AzureOperationEvent<?> event = new AzureOperationEvent(target, operation, AzureOperationEvent.Stage.ERROR);
             AzureEventBus.emit(operation.getName(), event);
         }
         if (!(e instanceof RuntimeException)) {
