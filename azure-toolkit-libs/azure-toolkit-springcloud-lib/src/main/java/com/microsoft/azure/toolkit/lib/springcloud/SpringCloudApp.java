@@ -161,7 +161,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
 
     @Nullable
     public String getActiveDeploymentName() {
-        if (this.exists() && Objects.nonNull(this.remote)) {
+        if (this.exists() && Objects.nonNull(this.remote) && Objects.nonNull(this.remote.getActiveDeployment())) {
             return this.remote.getActiveDeployment().name();
         }
         return null;
