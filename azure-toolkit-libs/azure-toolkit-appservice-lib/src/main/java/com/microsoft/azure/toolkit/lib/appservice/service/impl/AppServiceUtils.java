@@ -16,6 +16,7 @@ import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FunctionEnvelope;
+import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack;
 import com.azure.resourcemanager.appservice.models.HttpLogsConfig;
 import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.SkuDescription;
@@ -38,9 +39,11 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -91,6 +94,13 @@ class AppServiceUtils {
             return stackRuntime != null && Objects.equals(stackRuntime.getJavaVersion(), runtime.getJavaVersion()) &&
                 Objects.equals(stackRuntime.getWebContainer(), runtime.getWebContainer());
         }).findFirst().orElse(null);
+    }
+
+    static FunctionRuntimeStack toFunctionRuntimeStack(@Nonnull Runtime runtime) {
+        if (runtime.getOperatingSystem() != OperatingSystem.LINUX) {
+            throw new AzureToolkitRuntimeException(String.format("Can not convert %s runtime to FunctionRuntimeStack", runtime.getOperatingSystem()));
+        }
+        return runtime.getJavaVersion() == JavaVersion.JAVA_8 ? FunctionRuntimeStack.JAVA_8 : FunctionRuntimeStack.JAVA_11;
     }
 
     static com.azure.resourcemanager.appservice.models.WebContainer toWindowsWebContainer(Runtime runtime) {
