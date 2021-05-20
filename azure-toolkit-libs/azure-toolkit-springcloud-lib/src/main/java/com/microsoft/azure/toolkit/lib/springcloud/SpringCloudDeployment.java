@@ -12,6 +12,7 @@ import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -19,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,7 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDeploymentEntity> {
+public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDeploymentEntity>, AzureOperationEvent.Source<SpringCloudDeployment> {
     @Getter
     @Nonnull
     final SpringCloudApp app;
@@ -122,7 +124,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         return this.update().configScaleSettings(scaleSettings).commit();
     }
 
-    public abstract static class Modifier implements ICommittable<SpringCloudDeployment> {
+    public abstract static class Modifier implements ICommittable<SpringCloudDeployment>, AzureOperationEvent.Source<SpringCloudDeployment> {
         protected final SpringCloudDeployment deployment;
         protected SpringAppDeploymentImpl modifier;
         protected ScaleSettings newScaleSettings;
@@ -188,6 +190,12 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
                 this.newScaleSettings = newSettings;
             }
             return this;
+        }
+
+        @NotNull
+        @Override
+        public AzureOperationEvent.Source<SpringCloudDeployment> getEventSource() {
+            return this.deployment;
         }
     }
 
