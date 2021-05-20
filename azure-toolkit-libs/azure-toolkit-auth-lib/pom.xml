@@ -124,6 +124,12 @@
                     <outxml>true</outxml>
                     <forceAjcCompile>true</forceAjcCompile>
                     <sources/><!-- this is important!-->
+                    <aspectLibraries>
+                        <aspectLibrary>
+                            <groupId>com.microsoft.azure</groupId>
+                            <artifactId>azure-toolkit-common-lib</artifactId>
+                        </aspectLibrary>
+                    </aspectLibraries>
                 </configuration>
                 <executions>
                     <execution>

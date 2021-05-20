@@ -11,6 +11,7 @@ import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.SpringServices;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -21,7 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SpringCloudCluster implements IAzureEntityManager<SpringCloudClusterEntity> {
+public class SpringCloudCluster implements IAzureEntityManager<SpringCloudClusterEntity>, AzureOperationEvent.Source<SpringCloudCluster> {
     @Getter
     @Nonnull
     final SpringServices client;
@@ -46,11 +47,6 @@ public class SpringCloudCluster implements IAzureEntityManager<SpringCloudCluste
     public SpringCloudClusterEntity entity() {
         final SpringService remote = Objects.nonNull(this.remote) ? this.remote : this.local.getRemote();
         return new SpringCloudClusterEntity(remote); // prevent inconsistent properties between local and remote when local's properties is modified.
-    }
-
-    @Nonnull
-    public String id() {
-        return this.entity().getId();
     }
 
     @Nonnull

@@ -25,7 +25,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.profile.AzureProfile;
-import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.SpringServices;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -81,21 +81,16 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
 
     @Cacheable(cacheName = "SpringServices", key = "$subscriptionId")
     protected SpringServices getClient(final String subscriptionId) {
-        return getAzureResourceManager(subscriptionId).springServices();
-    }
-
-    @Cacheable(cacheName = "AzureResourceManager", key = "$subscriptionId")
-    private AzureResourceManager getAzureResourceManager(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
         final HttpLogDetailLevel logLevel = Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE);
-        final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
-        return AzureResourceManager.configure()
+        final AzureProfile azureProfile = new AzureProfile(null, subscriptionId, account.getEnvironment());
+        return AppPlatformManager.configure()
                 .withLogLevel(logLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
-                .withSubscription(subscriptionId);
+                .springServices();
     }
 
     private HttpPipelinePolicy getUserAgentPolicy(String userAgent) {
