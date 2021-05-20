@@ -21,6 +21,8 @@ public interface IAppServiceUpdater<T> {
 
     IAppServiceUpdater<T> withAppSettings(Map<String, String> appSettings);
 
+    IAppServiceUpdater<T> withoutAppSettings(String key);
+
     IAppServiceUpdater<T> withDiagnosticConfig(DiagnosticConfig diagnosticConfig);
 
     T commit();

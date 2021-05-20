@@ -24,6 +24,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -156,12 +159,19 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
     @Getter
     private class WebAppDeploymentSlotUpdater implements Updater {
-        private Map<String, String> appSettings = null;
+        private final List<String> appSettingsToRemove = new ArrayList<>();
+        private final Map<String, String> appSettingsToAdd = new HashMap<>();
         private DiagnosticConfig diagnosticConfig = null;
 
         @Override
+        public Updater withoutAppSettings(String key) {
+            this.appSettingsToRemove.add(key);
+            return this;
+        }
+
+        @Override
         public WebAppDeploymentSlotUpdater withAppSettings(Map<String, String> appSettings) {
-            this.appSettings = appSettings;
+            this.appSettingsToAdd.putAll(appSettings);
             return this;
         }
 
@@ -174,8 +184,11 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
         @Override
         public WebAppDeploymentSlot commit() {
             final DeploymentSlotBase.Update<DeploymentSlot> update = getRemoteResource().update();
-            if (getAppSettings() != null) {
-                update.withAppSettings(getAppSettings());
+            if (getAppSettingsToAdd() != null) {
+                update.withAppSettings(getAppSettingsToAdd());
+            }
+            if (getAppSettingsToRemove() != null) {
+                getAppSettingsToRemove().forEach(update::withoutAppSetting);
             }
             if (getDiagnosticConfig() != null) {
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig());

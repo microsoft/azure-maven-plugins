@@ -7,14 +7,11 @@ package com.microsoft.azure.maven;
 
 import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.maven.model.DeploymentResource;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-
-import com.microsoft.azure.management.appservice.WebAppBase;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.nio.file.Paths;
@@ -150,9 +147,9 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         this.deploymentSlotSetting = slotSetting;
     }
 
-    public String getResourcePortalUrl(WebAppBase resource) throws AzureAuthFailureException, AzureExecutionException {
+    public String getResourcePortalUrl(String id) {
         final AzureEnvironment environment = Azure.az(AzureAccount.class).account().getEnvironment();
-        return String.format(PORTAL_URL_PATTERN, getPortalUrl(environment), resource.id());
+        return String.format(PORTAL_URL_PATTERN, getPortalUrl(environment), id);
     }
 
     protected static String getPortalUrl(AzureEnvironment azureEnvironment) {

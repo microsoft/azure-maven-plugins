@@ -32,6 +32,8 @@ public interface IWebAppDeploymentSlot extends IWebAppBase<WebAppDeploymentSlotE
     }
 
     interface Updater {
+        Updater withoutAppSettings(String key);
+
         Updater withAppSettings(Map<String, String> appSettings);
 
         Updater withDiagnosticConfig(DiagnosticConfig diagnosticConfig);

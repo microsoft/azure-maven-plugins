@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import io.jsonwebtoken.lang.Collections;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -194,10 +195,13 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             if (getRuntime() != null && getRuntime().isPresent()) {
                 update = updateRuntime(update, getRuntime().get());
             }
-            if (getAppSettings() != null && getAppSettings().isPresent()) {
-                // todo: enhance app settings update, as now we could only add new app settings but can not remove existing values
+            if (!Collections.isEmpty(getAppSettingsToAdd())) {
                 modified = true;
-                update.withAppSettings(getAppSettings().get());
+                update.withAppSettings(getAppSettingsToAdd());
+            }
+            if (!Collections.isEmpty(getAppSettingsToRemove())) {
+                modified = true;
+                getAppSettingsToRemove().forEach(update::withoutAppSetting);
             }
             if (getDiagnosticConfig() != null && getDiagnosticConfig().isPresent()) {
                 modified = true;
