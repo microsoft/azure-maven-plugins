@@ -54,6 +54,10 @@ public class DeployMojo extends AbstractMojoBase {
     @Override
     @AzureOperation(name = "springcloud|app.create_update_mojo", type = AzureOperation.Type.ACTION)
     protected void doExecute() {
+        // set up account and select subscription here in `deploy`, since in some cases, `config` will not need to sign in
+        getAzureAccount();
+        selectSubscription();
+
         // Init spring clients, and prompt users to confirm
         final SpringCloudAppConfig appConfig = this.getConfiguration();
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);

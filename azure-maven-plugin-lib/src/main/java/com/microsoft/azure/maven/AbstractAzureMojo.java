@@ -43,6 +43,7 @@ import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -107,8 +108,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             "For more information, please go to https://aka.ms/azure-maven-config.\n";
     protected static final String SUBSCRIPTION_TEMPLATE = "Subscription: %s(%s)";
     protected static final String USING_AZURE_ENVIRONMENT = "Using Azure environment: %s.";
-    protected static final String SUBSCRIPTION_NOT_SPECIFIED = "Subscription ID was not specified, using the first subscription in current account," +
-            " please refer https://github.com/microsoft/azure-maven-plugins/wiki/Authentication#subscription for more information.";
     protected static final String SUBSCRIPTION_NOT_FOUND = "Subscription %s was not found in current account.";
 
     private static final String INVALID_AZURE_ENVIRONMENT = "Invalid environment string '%s', please replace it with one of " +
@@ -275,6 +274,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return NumberUtils.toInt(httpProxyPort, 0);
     }
 
+    @Deprecated
     public com.microsoft.azure.management.Azure getAzureClient() throws AzureAuthFailureException, AzureExecutionException {
         if (azure == null) {
             if (this.authentication != null && (this.authentication.getFile() != null || StringUtils.isNotBlank(authentication.getServerId()))) {
@@ -322,15 +322,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return subscriptionOptionSelected.getSubscription().getId();
     }
 
+    @Deprecated
     protected com.microsoft.azure.management.Azure getOrCreateAzureClient() throws AzureAuthFailureException, AzureExecutionException {
         try {
-            final Account account = getAzureAccount();
-            final List<Subscription> subscriptions = account.getSubscriptions();
-            final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
-            checkSubscription(subscriptions, targetSubscriptionId);
-            Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
-            this.subscriptionId = targetSubscriptionId;
-            return AzureClientFactory.getAzureClient(getUserAgent(), targetSubscriptionId);
+            getAzureAccount();
+            selectSubscription();
+            return AzureClientFactory.getAzureClient(getUserAgent(), this.subscriptionId);
         } catch (AzureLoginException | IOException e) {
             throw new AzureAuthFailureException(e.getMessage());
         }
@@ -346,6 +343,18 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             azureAccount = login(MavenAuthUtils.buildAuthConfiguration(session, settingsDecrypter, mavenAuthConfiguration));
         }
         return azureAccount;
+    }
+
+    @SneakyThrows
+    protected void selectSubscription() {
+        final Account account = Azure.az(AzureAccount.class).account();
+        final List<Subscription> subscriptions = account.getSubscriptions();
+        final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
+        checkSubscription(subscriptions, targetSubscriptionId);
+        account.selectSubscription(Collections.singletonList(targetSubscriptionId));
+        final Subscription subscription = account.getSubscription(targetSubscriptionId);
+        Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
+        this.subscriptionId = targetSubscriptionId;
     }
 
     protected Account login(@Nonnull com.microsoft.azure.toolkit.lib.auth.model.AuthConfiguration auth) {
@@ -708,7 +717,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
 
     protected static void checkSubscription(List<Subscription> subscriptions, String targetSubscriptionId) throws AzureLoginException {
         if (StringUtils.isEmpty(targetSubscriptionId)) {
-            Log.warn(SUBSCRIPTION_NOT_SPECIFIED);
             return;
         }
         final Optional<Subscription> optionalSubscription = subscriptions.stream()
