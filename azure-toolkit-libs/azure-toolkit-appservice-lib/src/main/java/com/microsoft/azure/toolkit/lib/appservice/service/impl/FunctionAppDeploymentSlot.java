@@ -8,6 +8,8 @@ import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.microsoft.azure.arm.resources.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
@@ -30,7 +32,7 @@ public class FunctionAppDeploymentSlot extends AbstractAppService<FunctionDeploy
 
     @Override
     public IFunctionApp functionApp() {
-        return null;
+        return Azure.az(AzureAppService.class).functionApp(getRemoteResource().id());
     }
 
     @Override
@@ -56,12 +58,12 @@ public class FunctionAppDeploymentSlot extends AbstractAppService<FunctionDeploy
     @NotNull
     @Override
     protected FunctionAppDeploymentSlotEntity getEntityFromRemoteResource(@NotNull FunctionDeploymentSlot remote) {
-        return null;
+        return AppServiceUtils.fromFunctionAppDeploymentSlot(remote);
     }
 
     @Override
     public void delete() {
-
+        getParentWebApp().deploymentSlots().deleteById(getRemoteResource().id());
     }
 
     @Nullable
