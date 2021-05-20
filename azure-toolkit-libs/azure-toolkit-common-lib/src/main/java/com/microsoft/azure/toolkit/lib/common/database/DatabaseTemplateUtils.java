@@ -11,7 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 @Builder
 public class DatabaseTemplateUtils {
 
-    private static final String DEFAULT_DRIVER_CLASS_NAME = "com.mysql.cj.jdbc.Driver";
+    private static final String DEFAULT_MYSQL_DRIVER_CLASS_NAME = "com.mysql.cj.jdbc.Driver";
+    private static final String DEFAULT_SQLSERVER_DRIVER_CLASS_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     private static final String DEFAULT_PASSWORD = "${your_password}";
     private static final String DEFAULT_USERNAME = "${your_username}";
 
@@ -26,14 +27,14 @@ public class DatabaseTemplateUtils {
             + "myDbConn = DriverManager.getConnection(url, \"%s\", \"%s\");";
 
     public static String toSpringTemplate(JdbcUrl jdbcUrl, String driverClassName) {
-        String driverClass = StringUtils.isNotBlank(driverClassName) ? driverClassName : DEFAULT_DRIVER_CLASS_NAME;
+        String driverClass = StringUtils.isNotBlank(driverClassName) ? driverClassName : DEFAULT_MYSQL_DRIVER_CLASS_NAME;
         String url = jdbcUrl.toString();
         String username = StringUtils.isNotBlank(jdbcUrl.getUsername()) ? jdbcUrl.getUsername() : DEFAULT_USERNAME;
         String password = StringUtils.isNotBlank(jdbcUrl.getPassword()) ? jdbcUrl.getPassword() : DEFAULT_PASSWORD;
         return String.format(PROPERTY_PATTERN_SPRING, driverClass, url, username, password);
     }
 
-    public static String toSpringTemplate(JdbcUrl jdbcUrl) {
+    public static String toJdbcTemplate(JdbcUrl jdbcUrl) {
         String url = jdbcUrl.toString();
         String username = StringUtils.isNotBlank(jdbcUrl.getUsername()) ? jdbcUrl.getUsername() : DEFAULT_USERNAME;
         String password = StringUtils.isNotBlank(jdbcUrl.getPassword()) ? jdbcUrl.getPassword() : DEFAULT_PASSWORD;
