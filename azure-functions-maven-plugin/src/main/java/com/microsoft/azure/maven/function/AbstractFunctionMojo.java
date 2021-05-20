@@ -112,7 +112,7 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return getOrCreateAzureAppServiceClient().functionApp(getResourceGroup(), getAppName());
     }
 
-    public RuntimeConfiguration getRuntime() {
+    public RuntimeConfiguration getRuntimeConfiguration() {
         return runtime;
     }
 

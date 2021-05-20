@@ -4,13 +4,13 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service.impl.deploy;
 
-import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.AzureStorageHelper;
 import com.microsoft.azure.toolkit.lib.legacy.function.Constants;
 
@@ -20,7 +20,6 @@ import java.time.Period;
 import java.util.Date;
 
 public class MSFunctionDeployHandler implements IFunctionDeployHandler {
-    private static final ClientLogger LOGGER = new ClientLogger(MSFunctionDeployHandler.class);
     private static final String DEPLOYMENT_PACKAGE_CONTAINER = "java-functions-deployment-packages";
     private static final String UPLOAD_PACKAGE_START = "Step 1 of 3: Uploading ZIP file to Azure Storage...";
     private static final String UPLOAD_PACKAGE_DONE = "Successfully uploaded ZIP file to ";
@@ -49,12 +48,12 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
 
     private String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
                                                  final String blobName) {
-        LOGGER.info(UPLOAD_PACKAGE_START);
+        AzureMessager.getMessager().info(UPLOAD_PACKAGE_START);
         try {
             final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                     DEPLOYMENT_PACKAGE_CONTAINER, blobName, BlobContainerPublicAccessType.OFF);
             final String packageUri = AzureStorageHelper.getSASToken(blob, Period.ofDays(1)); // no need for a long period as it will be deleted after deployment
-            LOGGER.info(UPLOAD_PACKAGE_DONE + blob.getUri().toString());
+            AzureMessager.getMessager().info(UPLOAD_PACKAGE_DONE + blob.getUri().toString());
             return packageUri;
         } catch (AzureExecutionException e) {
             throw new AzureToolkitRuntimeException("Failed to upload package to azure storage", e);
@@ -63,9 +62,9 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
 
     private void deployWithPackageUri(final WebAppBase target, final String packageUri, Runnable onDeployFinish) {
         try {
-            LOGGER.info(DEPLOY_PACKAGE_START);
+            AzureMessager.getMessager().info(DEPLOY_PACKAGE_START);
             target.deploy().withPackageUri(packageUri).execute().complete();
-            LOGGER.info(DEPLOY_PACKAGE_DONE);
+            AzureMessager.getMessager().info(DEPLOY_PACKAGE_DONE);
         } finally {
             onDeployFinish.run();
         }
@@ -73,11 +72,11 @@ public class MSFunctionDeployHandler implements IFunctionDeployHandler {
 
     private void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName) {
         try {
-            LOGGER.info(DELETE_PACKAGE_START);
+            AzureMessager.getMessager().info(DELETE_PACKAGE_START);
             AzureStorageHelper.deleteBlob(storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);
-            LOGGER.info(DELETE_PACKAGE_DONE + blobName);
+            AzureMessager.getMessager().info(DELETE_PACKAGE_DONE + blobName);
         } catch (Exception e) {
-            LOGGER.error(DELETE_PACKAGE_FAIL + blobName);
+            AzureMessager.getMessager().error(DELETE_PACKAGE_FAIL + blobName);
         }
     }
 }

@@ -29,7 +29,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeployment
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
@@ -157,8 +157,8 @@ public class DeployMojo extends AbstractFunctionMojo {
         getTelemetryProxy().addDefaultProperty(CREATE_NEW_FUNCTION_APP, String.valueOf(true));
         final ResourceGroup resourceGroup = getOrCreateResourceGroup();
         final IAppServicePlan appServicePlan = getOrCreateAppServicePlan();
-        Log.info(String.format(CREATE_FUNCTION_APP, getAppName()));
-        final Runtime runtime = getParsedRuntime();
+        AzureMessager.getMessager().info(String.format(CREATE_FUNCTION_APP, getAppName()));
+        final Runtime runtime = getRuntimeOrDefault();
         final Map appSettings = getAppSettings();
         // get/create ai instances only if user didn't specify ai connection string in app settings
         bindApplicationInsights(appSettings, true);
@@ -169,7 +169,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                 .withDockerConfiguration(getDockerConfiguration())
                 .withAppSettings(appSettings)
                 .commit();
-        Log.info(String.format(CREATE_FUNCTION_APP_DONE, result.name()));
+        AzureMessager.getMessager().info(String.format(CREATE_FUNCTION_APP_DONE, result.name()));
         return result;
     }
 
@@ -179,16 +179,16 @@ public class DeployMojo extends AbstractFunctionMojo {
         final String servicePlanGroup = getServicePlanResourceGroup();
         final IAppServicePlan appServicePlan = az.appServicePlan(servicePlanGroup, servicePlanName);
         if (!appServicePlan.exists()) {
-            Log.info(CREATE_APP_SERVICE_PLAN);
+            AzureMessager.getMessager().info(CREATE_APP_SERVICE_PLAN);
             getTelemetryProxy().addDefaultProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
             appServicePlan.create()
                     .withName(servicePlanName)
                     .withResourceGroup(servicePlanGroup)
                     .withRegion(getParsedRegion())
                     .withPricingTier(getParsedPricingTier())
-                    .withOperatingSystem(getParsedRuntime().getOperatingSystem())
+                    .withOperatingSystem(getRuntimeOrDefault().getOperatingSystem())
                     .commit();
-            Log.info(String.format(CREATE_APP_SERVICE_DONE, appServicePlan.name()));
+            AzureMessager.getMessager().info(String.format(CREATE_APP_SERVICE_DONE, appServicePlan.name()));
         }
         return appServicePlan;
     }
@@ -209,21 +209,21 @@ public class DeployMojo extends AbstractFunctionMojo {
         try {
             return Azure.az(AzureGroup.class).getByName(getResourceGroup());
         } catch (ManagementException e) {
-            Log.info(String.format(CREATE_RESOURCE_GROUP, getResourceGroup(), getRegion()));
+            AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP, getResourceGroup(), getRegion()));
             getTelemetryProxy().addDefaultProperty(CREATE_NEW_RESOURCE_GROUP, String.valueOf(true));
             final ResourceGroup result = Azure.az(AzureGroup.class).create(getResourceGroup(), getRegion());
-            Log.info(String.format(CREATE_RESOURCE_GROUP_DONE, result.getName()));
+            AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP_DONE, result.getName()));
             return result;
         }
     }
 
-    private Runtime getParsedRuntime() {
+    private Runtime getRuntimeOrDefault() {
         final OperatingSystem os = Optional.ofNullable(runtime.getOs()).map(OperatingSystem::fromString).orElse(OperatingSystem.WINDOWS);
         final JavaVersion javaVersion = Optional.ofNullable(runtime.getJavaVersion()).map(JavaVersion::fromString).orElse(JavaVersion.JAVA_8);
         return Runtime.getRuntime(os, WebContainer.JAVA_OFF, javaVersion);
     }
 
-    private Runtime getRawRuntime() {
+    private Runtime getRuntime() {
         final OperatingSystem os = OperatingSystem.fromString(runtime.getOs());
         final JavaVersion javaVersion = JavaVersion.fromString(runtime.getJavaVersion());
         return Runtime.getRuntime(os, WebContainer.JAVA_OFF, javaVersion);
@@ -244,7 +244,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected IFunctionApp updateFunctionApp(final IFunctionApp functionApp) throws AzureExecutionException {
         // update app service plan
-        Log.info(String.format(UPDATE_FUNCTION_APP, functionApp.name()));
+        AzureMessager.getMessager().info(String.format(UPDATE_FUNCTION_APP, functionApp.name()));
         final IAppServicePlan currentPlan = functionApp.plan();
         IAppServicePlan targetServicePlan = StringUtils.isEmpty(appServicePlanName) ? currentPlan :
                 az.appServicePlan(getServicePlanResourceGroup(), appServicePlanName);
@@ -262,11 +262,11 @@ public class DeployMojo extends AbstractFunctionMojo {
             bindApplicationInsights(appSettings, false);
         }
         final IFunctionApp result = update.withPlan(targetServicePlan.id())
-                .withRuntime(getRawRuntime())
+                .withRuntime(getRuntime())
                 .withDockerConfiguration(getDockerConfiguration())
                 .withAppSettings(appSettings)
                 .commit();
-        Log.info(String.format(UPDATE_FUNCTION_DONE, functionApp.name()));
+        AzureMessager.getMessager().info(String.format(UPDATE_FUNCTION_DONE, functionApp.name()));
         return result;
     }
 
@@ -276,19 +276,19 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected IFunctionAppDeploymentSlot createDeploymentSlot(final IFunctionAppDeploymentSlot deploymentSlot)
             throws AzureExecutionException {
-        Log.info(FUNCTION_SLOT_CREATE_START);
+        AzureMessager.getMessager().info(FUNCTION_SLOT_CREATE_START);
         final DeploymentSlotSetting slotSetting = getDeploymentSlotSetting();
         final Map<String, String> appSettings = getAppSettings();
         bindApplicationInsights(appSettings, false);
         final IFunctionAppDeploymentSlot result = deploymentSlot.create().withAppSettings(appSettings)
                 .withConfigurationSource(slotSetting.getConfigurationSource())
                 .withName(slotSetting.getName()).commit();
-        Log.info(String.format(FUNCTION_SLOT_CREATED, result.name()));
+        AzureMessager.getMessager().info(String.format(FUNCTION_SLOT_CREATED, result.name()));
         return result;
     }
 
     protected IFunctionAppDeploymentSlot updateDeploymentSlot(final IFunctionAppDeploymentSlot deploymentSlot) throws AzureExecutionException {
-        Log.info(FUNCTION_SLOT_UPDATE);
+        AzureMessager.getMessager().info(FUNCTION_SLOT_UPDATE);
         final Map<String, String> appSettings = getAppSettings();
         final IFunctionAppDeploymentSlot.Updater update = deploymentSlot.update();
         // todo: remove duplicate codes with update function
@@ -298,12 +298,12 @@ public class DeployMojo extends AbstractFunctionMojo {
             bindApplicationInsights(appSettings, false);
         }
         final IFunctionAppDeploymentSlot result = update.withAppSettings(appSettings).commit();
-        Log.info(String.format(FUNCTION_SLOT_UPDATE_DONE, result.name()));
+        AzureMessager.getMessager().info(String.format(FUNCTION_SLOT_UPDATE_DONE, result.name()));
         return deploymentSlot;
     }
 
     private void deployArtifact(IFunctionAppBase target) throws AzureExecutionException {
-        Log.info(DEPLOY_START);
+        AzureMessager.getMessager().info(DEPLOY_START);
         final FunctionDeployType deployType = StringUtils.isEmpty(deploymentType) ? null : FunctionDeployType.fromString(deploymentType);
         // For ftp deploy, we need to upload entire staging directory not the zipped package
         final File file = deployType == FunctionDeployType.FTP ? new File(getDeploymentStagingDirectoryPath()) : packageStagingDirectory();
@@ -313,7 +313,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (!StringUtils.equalsIgnoreCase(target.state(), RUNNING)) {
             target.start();
         }
-        Log.info(String.format(DEPLOY_FINISH, getResourcePortalUrl(target.id())));
+        AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, getResourcePortalUrl(target.id())));
     }
 
     private File packageStagingDirectory() {
@@ -335,24 +335,24 @@ public class DeployMojo extends AbstractFunctionMojo {
                         StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
                 .collect(Collectors.toList());
         final List<FunctionEntity> anonymousTriggers = httpFunction.stream()
-                .filter(bindingResource ->
+                .filter(bindingResource -> bindingResource.getTrigger() != null &&
                         StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), AuthorizationLevel.ANONYMOUS.toString()))
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(httpFunction) || CollectionUtils.isEmpty(anonymousTriggers)) {
-            Log.info(NO_ANONYMOUS_HTTP_TRIGGER);
+            AzureMessager.getMessager().info(NO_ANONYMOUS_HTTP_TRIGGER);
             return;
         }
-        Log.info(HTTP_TRIGGER_URLS);
-        anonymousTriggers.forEach(trigger -> Log.info(String.format("\t %s : %s", trigger.getName(), trigger.getTriggerUrl())));
+        AzureMessager.getMessager().info(HTTP_TRIGGER_URLS);
+        anonymousTriggers.forEach(trigger -> AzureMessager.getMessager().info(String.format("\t %s : %s", trigger.getName(), trigger.getTriggerUrl())));
         if (anonymousTriggers.size() < httpFunction.size()) {
-            Log.info(UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS);
+            AzureMessager.getMessager().info(UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS);
         }
     }
 
     private List<FunctionEntity> listFunctions(final IFunctionApp functionApp) {
         for (int i = 0; i < LIST_TRIGGERS_MAX_RETRY; i++) {
             try {
-                Log.info(String.format(SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION, i + 1, LIST_TRIGGERS_MAX_RETRY));
+                AzureMessager.getMessager().info(String.format(SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION, i + 1, LIST_TRIGGERS_MAX_RETRY));
                 functionApp.syncTriggers();
                 final List<FunctionEntity> triggers = functionApp.listFunctions();
                 if (CollectionUtils.isNotEmpty(triggers)) {
@@ -371,7 +371,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     protected void validateArtifactCompileVersion() throws AzureExecutionException {
-        final Runtime runtime = getParsedRuntime();
+        final Runtime runtime = getRuntimeOrDefault();
         if (runtime.getOperatingSystem() == OperatingSystem.DOCKER) {
             return;
         }
@@ -396,13 +396,13 @@ public class DeployMojo extends AbstractFunctionMojo {
                                       String defaultValue, String warningMessage) {
         final String setting = (String) result.get(settingName);
         if (StringUtils.isEmpty(setting)) {
-            Log.info(settingIsEmptyMessage);
+            AzureMessager.getMessager().info(settingIsEmptyMessage);
             result.put(settingName, defaultValue);
             return;
         }
         // Show warning message when user set a different value
         if (!StringUtils.equalsIgnoreCase(setting, defaultValue) && StringUtils.isNotEmpty(warningMessage)) {
-            Log.warn(warningMessage);
+            AzureMessager.getMessager().warning(warningMessage);
         }
     }
 
@@ -461,7 +461,7 @@ public class DeployMojo extends AbstractFunctionMojo {
             resource = null;
         }
         if (resource == null) {
-            Log.warn(String.format(FAILED_TO_GET_APPLICATION_INSIGHTS, appInsightsInstance, getResourceGroup()));
+            AzureMessager.getMessager().warning(String.format(FAILED_TO_GET_APPLICATION_INSIGHTS, appInsightsInstance, getResourceGroup()));
             return createApplicationInsights(appInsightsInstance);
         }
         return resource;
@@ -469,17 +469,17 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     private ApplicationInsightsEntity createApplicationInsights(String name) {
         if (isDisableAppInsights()) {
-            Log.info(SKIP_CREATING_APPLICATION_INSIGHTS);
+            AzureMessager.getMessager().info(SKIP_CREATING_APPLICATION_INSIGHTS);
             return null;
         }
         try {
-            Log.info(APPLICATION_INSIGHTS_CREATE_START);
+            AzureMessager.getMessager().info(APPLICATION_INSIGHTS_CREATE_START);
             final AzureEnvironment environment = Azure.az(AzureAccount.class).account().getEnvironment();
             final ApplicationInsightsEntity resource = Azure.az(ApplicationInsights.class).create(getResourceGroup(), Region.fromName(getRegion()), name);
-            Log.info(String.format(APPLICATION_INSIGHTS_CREATED, resource.getName(), getPortalUrl(environment), resource.getId()));
+            AzureMessager.getMessager().info(String.format(APPLICATION_INSIGHTS_CREATED, resource.getName(), getPortalUrl(environment), resource.getId()));
             return resource;
         } catch (Exception e) {
-            Log.warn(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, e.getMessage()));
+            AzureMessager.getMessager().warning(String.format(APPLICATION_INSIGHTS_CREATE_FAILED, e.getMessage()));
             return null;
         }
     }

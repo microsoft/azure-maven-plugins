@@ -9,7 +9,7 @@ import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.FTPUploader;
 
 import java.io.File;
@@ -35,6 +35,6 @@ public class FTPFunctionDeployHandler implements IFunctionDeployHandler {
             ((FunctionApp) webAppBase).syncTriggers();
         }
 
-        Log.prompt(String.format(DEPLOY_FINISH, webAppBase.defaultHostname()));
+        AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, webAppBase.defaultHostname()));
     }
 }
