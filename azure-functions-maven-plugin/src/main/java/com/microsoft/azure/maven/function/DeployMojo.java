@@ -117,12 +117,31 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION = "Syncing triggers and fetching function information (Attempt %d/%d)...";
     private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app, " +
             "please try recompile the project by `mvn clean package` and deploy again.";
+    private static final String APP_NAME_PATTERN = "[a-zA-Z0-9\\-]{2,60}";
+    private static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9._\\-()]{1,90}";
+    private static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
+    private static final String APP_SERVICE_PLAN_NAME_PATTERN = "[a-zA-Z0-9\\-]{1,40}";
+    private static final String EMPTY_APP_NAME = "Please config the <appName> in pom.xml.";
+    private static final String INVALID_APP_NAME = "The <appName> only allow alphanumeric characters, hyphens and cannot start or end in a hyphen.";
+    private static final String EMPTY_RESOURCE_GROUP = "Please config the <resourceGroup> in pom.xml.";
+    private static final String INVALID_RESOURCE_GROUP_NAME = "The <resourceGroup> only allow alphanumeric characters, periods, underscores, " +
+            "hyphens and parenthesis and cannot end in a period.";
+    private static final String INVALID_SERVICE_PLAN_NAME = "Invalid value for <appServicePlanName>, it need to match the pattern %s";
+    private static final String INVALID_SERVICE_PLAN_RESOURCE_GROUP_NAME = "Invalid value for <appServicePlanResourceGroup>, " +
+            "it only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.";
+    private static final String EMPTY_SLOT_NAME = "Please config the <name> of <deploymentSlot> in pom.xml";
+    private static final String INVALID_SLOT_NAME = "Invalid value of <name> inside <deploymentSlot> in pom.xml, it needs to match the pattern '%s'";
+    private static final String INVALID_REGION = "The value of <region> is not supported, please correct it in pom.xml.";
+    private static final String EMPTY_IMAGE_NAME = "Please config the <image> of <runtime> in pom.xml.";
+    public static final String INVALID_OS = "The value of <os> is not correct, supported values are: windows, linux and docker.";
+    public static final String INVALID_JAVA_VERSION = "Unsupported value %s for <javaVersion> in pom.xml";
+    public static final String INVALID_PRICING_TIER = "Unsupported value %s for <pricingTier> in pom.xml";
 
     private AzureAppService az;
 
     @Override
     protected void doExecute() throws AzureExecutionException {
-        validateParameters();
+        doValidate();
         processAppSettingsWithDefaultValue();
 
         az = getOrCreateAzureAppServiceClient();
@@ -135,10 +154,64 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
     }
 
-    protected void validateParameters() throws AzureExecutionException {
-        validateAppName();
+    protected void doValidate() throws AzureExecutionException {
+        validateParameters();
         validateArtifactCompileVersion();
         validateApplicationInsightsConfiguration();
+    }
+
+    // todo: Extract validator for all maven toolkits
+    @Deprecated
+    protected void validateParameters() {
+        // app name
+        if (StringUtils.isBlank(appName)) {
+            throw new AzureToolkitRuntimeException(EMPTY_APP_NAME);
+        }
+        if (appName.startsWith("-") || !appName.matches(APP_NAME_PATTERN)) {
+            throw new AzureToolkitRuntimeException(INVALID_APP_NAME);
+        }
+        // resource group
+        if (StringUtils.isBlank(resourceGroup)) {
+            throw new AzureToolkitRuntimeException(EMPTY_RESOURCE_GROUP);
+        }
+        if (resourceGroup.endsWith(".") || !resourceGroup.matches(RESOURCE_GROUP_PATTERN)) {
+            throw new AzureToolkitRuntimeException(INVALID_RESOURCE_GROUP_NAME);
+        }
+        // asp name & resource group
+        if (StringUtils.isNotEmpty(appServicePlanName) && !appServicePlanName.matches(APP_SERVICE_PLAN_NAME_PATTERN)) {
+            throw new AzureToolkitRuntimeException(String.format(INVALID_SERVICE_PLAN_NAME, APP_SERVICE_PLAN_NAME_PATTERN));
+        }
+        if (StringUtils.isNotEmpty(appServicePlanResourceGroup) &&
+                (appServicePlanResourceGroup.endsWith(".") || !appServicePlanResourceGroup.matches(RESOURCE_GROUP_PATTERN))) {
+            throw new AzureToolkitRuntimeException(INVALID_SERVICE_PLAN_RESOURCE_GROUP_NAME);
+        }
+        // slot name
+        if (deploymentSlotSetting != null && StringUtils.isEmpty(deploymentSlotSetting.getName())) {
+            throw new AzureToolkitRuntimeException(EMPTY_SLOT_NAME);
+        }
+        if (deploymentSlotSetting != null && !deploymentSlotSetting.getName().matches(SLOT_NAME_PATTERN)) {
+            throw new AzureToolkitRuntimeException(String.format(INVALID_SLOT_NAME, SLOT_NAME_PATTERN));
+        }
+        // region
+        if (StringUtils.isNotEmpty(region) && Region.fromName(region) == null) {
+            throw new AzureToolkitRuntimeException(INVALID_REGION);
+        }
+        // os
+        if (StringUtils.isNotEmpty(runtime.getOs()) && OperatingSystem.fromString(runtime.getOs()) == null) {
+            throw new AzureToolkitRuntimeException(INVALID_OS);
+        }
+        // java version
+        if (StringUtils.isNotEmpty(runtime.getJavaVersion()) && JavaVersion.fromString(runtime.getJavaVersion()) == JavaVersion.OFF) {
+            throw new AzureToolkitRuntimeException(String.format(INVALID_JAVA_VERSION, runtime.getJavaVersion()));
+        }
+        // pricing tier
+        if (StringUtils.isNotEmpty(pricingTier) && PricingTier.fromString(pricingTier) == null) {
+            throw new AzureToolkitRuntimeException(String.format(INVALID_PRICING_TIER, pricingTier));
+        }
+        // docker image
+        if (OperatingSystem.fromString(runtime.getOs()) == OperatingSystem.DOCKER && StringUtils.isEmpty(runtime.getImage())) {
+            throw new AzureToolkitRuntimeException(EMPTY_IMAGE_NAME);
+        }
     }
 
     protected IFunctionAppBase createOrUpdateResource() throws AzureExecutionException {
