@@ -31,6 +31,8 @@ public interface IFunctionAppDeploymentSlot extends IFunctionAppBase<FunctionApp
     }
 
     interface Updater {
+        Updater withoutAppSettings(String key);
+
         Updater withAppSettings(Map<String, String> appSettings);
 
         Updater withDiagnosticConfig(DiagnosticConfig diagnosticConfig);

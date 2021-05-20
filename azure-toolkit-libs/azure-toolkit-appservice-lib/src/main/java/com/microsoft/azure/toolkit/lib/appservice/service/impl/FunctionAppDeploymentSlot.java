@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -23,7 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -152,12 +153,18 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Getter
     private class FunctionAppDeploymentSlotUpdater implements IFunctionAppDeploymentSlot.Updater {
-        private Map<String, String> appSettings = null;
+        private final List<String> appSettingsToRemove = new ArrayList<>();
+        private final Map<String, String> appSettingsToAdd = new HashMap<>();
         private DiagnosticConfig diagnosticConfig = null;
 
         @Override
+        public Updater withoutAppSettings(String key) {
+            appSettingsToRemove.add(key);
+            return this;
+        }
+
         public IFunctionAppDeploymentSlot.Updater withAppSettings(Map<String, String> appSettings) {
-            this.appSettings = appSettings;
+            appSettingsToAdd.putAll(appSettings);
             return this;
         }
 
@@ -170,8 +177,11 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
         @Override
         public FunctionAppDeploymentSlot commit() {
             final DeploymentSlotBase.Update<FunctionDeploymentSlot> update = getRemoteResource().update();
-            if (getAppSettings() != null) {
-                update.withAppSettings(getAppSettings());
+            if (getAppSettingsToAdd() != null) {
+                update.withAppSettings(getAppSettingsToAdd());
+            }
+            if (getAppSettingsToRemove() != null) {
+                getAppSettingsToRemove().forEach(update::withoutAppSetting);
             }
             if (getDiagnosticConfig() != null) {
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig());
