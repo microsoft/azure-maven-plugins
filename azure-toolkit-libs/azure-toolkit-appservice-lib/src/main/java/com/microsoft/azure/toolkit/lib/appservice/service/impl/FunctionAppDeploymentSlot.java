@@ -40,7 +40,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Override
     public IFunctionApp functionApp() {
-        return Azure.az(AzureAppService.class).functionApp(getRemoteResource().id());
+        return Azure.az(AzureAppService.class).functionApp(entity().getResourceGroup(), entity().getFunctionAppName());
     }
 
     @Override
@@ -61,19 +61,19 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Override
     public void delete() {
-        getParentWebApp().deploymentSlots().deleteById(getRemoteResource().id());
+        getParentFunctionApp().deploymentSlots().deleteById(getRemoteResource().id());
     }
 
     @Nullable
     @Override
     protected FunctionDeploymentSlot remote() {
-        final FunctionApp parentFunctionApp = getParentWebApp();
+        final FunctionApp parentFunctionApp = getParentFunctionApp();
         return StringUtils.isNotEmpty(entity.getId()) ?
                 parentFunctionApp.deploymentSlots().getById(entity.getId()) :
                 parentFunctionApp.deploymentSlots().getByName(entity.getName());
     }
 
-    private FunctionApp getParentWebApp() {
+    private FunctionApp getParentFunctionApp() {
         return StringUtils.isNotEmpty(entity.getId()) ?
                 azureClient.functionApps().getById(ResourceId.fromString(entity().getId()).parent().id()) :
                 azureClient.functionApps().getByResourceGroup(entity.getResourceGroup(), entity.getFunctionAppName());
@@ -117,7 +117,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
         @Override
         public IFunctionAppDeploymentSlot commit() {
-            final FunctionApp functionApp = getParentWebApp();
+            final FunctionApp functionApp = getParentFunctionApp();
             final FunctionDeploymentSlot.DefinitionStages.Blank blank = functionApp.deploymentSlots().define(getName());
             final FunctionDeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default

@@ -15,6 +15,8 @@ public class RunFromZipFunctionDeployHandler extends ZIPFunctionDeployHandler {
     @Override
     public void deploy(File file, WebAppBase functionApp) {
         DeployUtils.updateFunctionAppSetting(functionApp, APP_SETTING_WEBSITE_RUN_FROM_PACKAGE, RUN_FROM_PACKAGE_VALUE);
+        // todo: Check status from kudu api, refers https://github.com/Azure/azure-functions-core-tools/blob/dev/src/Azure.Functions.Cli/
+        //  Actions/AzureActions/PublishFunctionAppAction.cs#L515
         try {
             // work around for issue https://dev.azure.com/msazure/Unified%20Platform%20KPIs/_workitems/edit/7481871
             Thread.sleep(20 * 1000);

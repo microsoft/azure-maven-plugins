@@ -17,11 +17,16 @@ import java.security.InvalidKeyException;
 import java.util.Map;
 import java.util.Optional;
 
-public class DeployUtils {
+class DeployUtils {
     private static final String INTERNAL_STORAGE_NOT_FOUND = "Application setting 'AzureWebJobsStorage' not found.";
     private static final String INTERNAL_STORAGE_KEY = "AzureWebJobsStorage";
     private static final String UNSUPPORTED_DEPLOYMENT_TARGET = "Unsupported deployment target, only function is supported";
 
+    /**
+     * Get storage account specified within AzureWebJobsStorage for function app/slot
+     * @param functionApp target function/slot, using WebAppBase here which is the base class for function app/slot in sdk
+     * @return StorageAccount specified in AzureWebJobsStorage
+     */
     static CloudStorageAccount getCloudStorageAccount(final WebAppBase functionApp) {
         final Map<String, AppSetting> settingsMap = functionApp.getAppSettings();
         return Optional.ofNullable(settingsMap)

@@ -71,7 +71,6 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return getSubscriptions().stream()
                 .map(subscription -> getAzureResourceManager(subscription.getId()))
                 .flatMap(azureResourceManager -> azureResourceManager.functionApps().list().stream())
-                .collect(Collectors.toList()).stream()
                 .filter(webAppBasic -> StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
                 .map(webAppBasic -> functionApp(webAppBasic.id()))
                 .collect(Collectors.toList());
@@ -100,7 +99,6 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return getSubscriptions().stream()
                 .map(subscription -> getAzureResourceManager(subscription.getId()))
                 .flatMap(azureResourceManager -> azureResourceManager.webApps().list().stream())
-                .collect(Collectors.toList()).stream()
                 .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
                 .map(webAppBasic -> webapp(webAppBasic.id()))
                 .collect(Collectors.toList());
@@ -132,7 +130,6 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return getSubscriptions().stream()
                 .map(subscription -> getAzureResourceManager(subscription.getId()))
                 .flatMap(azureResourceManager -> azureResourceManager.appServicePlans().list().stream())
-                .collect(Collectors.toList()).stream()
                 .map(appServicePlan -> appServicePlan(appServicePlan.id()))
                 .collect(Collectors.toList());
     }
