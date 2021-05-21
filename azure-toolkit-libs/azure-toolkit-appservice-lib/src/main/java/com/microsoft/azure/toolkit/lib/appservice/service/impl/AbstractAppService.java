@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
 import com.microsoft.azure.toolkit.lib.appservice.manager.AppServiceKuduManager;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.CommandOutput;
@@ -16,6 +17,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
@@ -23,10 +26,21 @@ import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
-abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
+abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBaseEntity> implements IAppService<R> {
 
     protected AppServiceKuduManager kuduManager;
+    protected R entity;
+    protected T remote;
+
+    @Override
+    public AbstractAppService<T, R> refresh() {
+        this.remote = remote();
+        this.entity = Optional.ofNullable(this.remote).map(this::getEntityFromRemoteResource)
+                .orElseThrow(() -> new AzureToolkitRuntimeException("Target resource does not exist."));
+        return this;
+    }
 
     @Override
     public void start() {
@@ -41,6 +55,25 @@ abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
     @Override
     public void restart() {
         getRemoteResource().restart();
+    }
+
+    @Override
+    public String name() {
+        return entity().getName();
+    }
+
+    @Override
+    public String id() {
+        return entity().getId();
+    }
+
+    @Override
+    @Nonnull
+    public R entity() {
+        if (remote == null) {
+            refresh();
+        }
+        return entity;
     }
 
     @Override
@@ -65,7 +98,7 @@ abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
 
     @Override
     public Runtime getRuntime() {
-        return AppServiceUtils.getRuntimeFromWebApp(getRemoteResource());
+        return entity().getRuntime();
     }
 
     @Override
@@ -81,16 +114,6 @@ abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
     @Override
     public Flux<String> streamAllLogsAsync() {
         return getRemoteResource().streamAllLogsAsync();
-    }
-
-    @Override
-    public String id() {
-        return getRemoteResource().id();
-    }
-
-    @Override
-    public String name() {
-        return getRemoteResource().name();
     }
 
     @Override
@@ -147,8 +170,14 @@ abstract class AbstractAppService<T extends WebAppBase> implements IAppService {
 
     @Nonnull
     protected T getRemoteResource() {
-        return Objects.requireNonNull(remote(), "Target resource does not exist.");
+        if (remote == null) {
+            refresh();
+        }
+        return Objects.requireNonNull(remote, "Target resource does not exist.");
     }
+
+    @Nonnull
+    protected abstract R getEntityFromRemoteResource(@Nonnull T remote);
 
     @Nullable
     protected abstract T remote();

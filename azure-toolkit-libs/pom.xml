@@ -40,6 +40,7 @@
         <module>azure-toolkit-springcloud-lib</module>
         <module>azure-toolkit-appservice-lib</module>
         <module>azure-toolkit-sqlserver-lib</module>
+        <module>azure-toolkit-applicationinsights-lib</module>
     </modules>
 
     <properties>
@@ -337,6 +338,11 @@
                         <artifactId>azure-core-http-netty</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-core-http-netty</artifactId>
+                <version>${azure.core-http-netty.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.nimbusds</groupId>

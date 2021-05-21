@@ -4,10 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 
-public interface IAppServicePlanUpdater {
-    IAppServicePlanUpdater withPricingTier(PricingTier pricingTier);
-
-    IAppServicePlan commit();
+public interface IWebAppBase<T extends IAzureResourceEntity> extends IAppService<T>, IOneDeploy{
 }

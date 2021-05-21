@@ -5,19 +5,13 @@
 
 package com.microsoft.azure.maven.function;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.legacy.function.configurations.ElasticPremiumPricingTier;
-import com.microsoft.azure.toolkit.lib.legacy.function.configurations.RuntimeConfiguration;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
-import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.legacy.function.configurations.RuntimeConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 
@@ -89,15 +83,6 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
 
     //region Getter
 
-    public PricingTier getPricingTier() throws AzureExecutionException {
-        if (StringUtils.isEmpty(pricingTier)) {
-            return null;
-        }
-        final ElasticPremiumPricingTier elasticPremiumPricingTier = ElasticPremiumPricingTier.fromString(pricingTier);
-        return elasticPremiumPricingTier != null ? elasticPremiumPricingTier.toPricingTier()
-                : AppServiceUtils.getPricingTierFromString(pricingTier);
-    }
-
     public String getRegion() {
         return region;
     }
@@ -123,12 +108,11 @@ public abstract class AbstractFunctionMojo extends AbstractAppServiceMojo {
         return disableAppInsights;
     }
 
-    @Nullable
-    public FunctionApp getFunctionApp() throws AzureAuthFailureException, AzureExecutionException {
-        return getAzureClient().appServices().functionApps().getByResourceGroup(getResourceGroup(), getAppName());
+    public IFunctionApp getFunctionApp() {
+        return getOrCreateAzureAppServiceClient().functionApp(getResourceGroup(), getAppName());
     }
 
-    public RuntimeConfiguration getRuntime() {
+    public RuntimeConfiguration getRuntimeConfiguration() {
         return runtime;
     }
 

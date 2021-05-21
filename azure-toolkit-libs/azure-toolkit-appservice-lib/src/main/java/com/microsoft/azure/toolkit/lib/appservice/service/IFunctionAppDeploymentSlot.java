@@ -4,22 +4,21 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
-import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
+import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 
 import java.util.Map;
 
-public interface IWebAppDeploymentSlot extends IWebAppBase<WebAppDeploymentSlotEntity> {
-    IWebApp webApp();
+public interface IFunctionAppDeploymentSlot extends IFunctionAppBase<FunctionAppDeploymentSlotEntity> {
+    IFunctionApp functionApp();
 
     Creator create();
 
     Updater update();
 
-    WebAppDeploymentSlotEntity entity();
+    FunctionAppDeploymentSlotEntity entity();
 
     interface Creator {
-
         Creator withName(String name);
 
         Creator withAppSettings(Map<String, String> appSettings);
@@ -28,7 +27,7 @@ public interface IWebAppDeploymentSlot extends IWebAppBase<WebAppDeploymentSlotE
 
         Creator withDiagnosticConfig(DiagnosticConfig diagnosticConfig);
 
-        IWebAppDeploymentSlot commit();
+        IFunctionAppDeploymentSlot commit();
     }
 
     interface Updater {
@@ -38,6 +37,6 @@ public interface IWebAppDeploymentSlot extends IWebAppBase<WebAppDeploymentSlotE
 
         Updater withDiagnosticConfig(DiagnosticConfig diagnosticConfig);
 
-        IWebAppDeploymentSlot commit();
+        IFunctionAppDeploymentSlot commit();
     }
 }

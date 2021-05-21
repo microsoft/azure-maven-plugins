@@ -12,6 +12,11 @@ import com.azure.resourcemanager.appservice.models.ApplicationLogsConfig;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FileSystemApplicationLogsConfig;
 import com.azure.resourcemanager.appservice.models.FileSystemHttpLogsConfig;
+import com.azure.resourcemanager.appservice.models.FunctionApp;
+import com.azure.resourcemanager.appservice.models.FunctionAppBasic;
+import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
+import com.azure.resourcemanager.appservice.models.FunctionEnvelope;
+import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack;
 import com.azure.resourcemanager.appservice.models.HttpLogsConfig;
 import com.azure.resourcemanager.appservice.models.RuntimeStack;
 import com.azure.resourcemanager.appservice.models.SkuDescription;
@@ -20,6 +25,9 @@ import com.azure.resourcemanager.appservice.models.WebAppBasic;
 import com.azure.resourcemanager.appservice.models.WebAppDiagnosticLogs;
 import com.azure.resourcemanager.resources.fluentcore.model.HasInnerModel;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
+import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
+import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppEntity;
+import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
@@ -31,32 +39,51 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 class AppServiceUtils {
+    private static final String SCRIPT_FILE = "scriptFile";
+    private static final String ENTRY_POINT = "entryPoint";
+    private static final String BINDINGS = "bindings";
 
-    static Runtime getRuntimeFromWebApp(WebAppBase webAppBase) {
+    static Runtime getRuntimeFromAppService(WebAppBase webAppBase) {
         if (StringUtils.startsWithIgnoreCase(webAppBase.linuxFxVersion(), "docker")) {
             return Runtime.DOCKER;
         }
         return webAppBase.operatingSystem() == com.azure.resourcemanager.appservice.models.OperatingSystem.WINDOWS ?
-            getRuntimeFromWindowsWebApp(webAppBase) : getRuntimeFromLinuxWebApp(webAppBase);
+            getRuntimeFromWindowsAppService(webAppBase) : getRuntimeFromLinuxAppService(webAppBase);
     }
 
-    private static Runtime getRuntimeFromLinuxWebApp(WebAppBase webAppBase) {
+    private static Runtime getRuntimeFromLinuxAppService(WebAppBase webAppBase) {
         if (StringUtils.isEmpty(webAppBase.linuxFxVersion())) {
             return Runtime.getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
         final String linuxFxVersion = webAppBase.linuxFxVersion().replace("|", " ");
+        return StringUtils.containsIgnoreCase(webAppBase.innerModel().kind(), "function") ?
+                getRuntimeFromLinuxFunctionApp(linuxFxVersion) : getRuntimeFromLinuxWebApp(linuxFxVersion);
+    }
+
+    private static Runtime getRuntimeFromLinuxWebApp(String linuxFxVersion) {
         return Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
     }
 
-    private static Runtime getRuntimeFromWindowsWebApp(WebAppBase webAppBase) {
+    private static Runtime getRuntimeFromLinuxFunctionApp(String linuxFxVersion) {
+        final JavaVersion javaVersion = JavaVersion.fromString(linuxFxVersion);
+        return Runtime.getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, javaVersion);
+    }
+
+    private static Runtime getRuntimeFromWindowsAppService(WebAppBase webAppBase) {
         if (webAppBase.javaVersion() == null || StringUtils.isAnyEmpty(webAppBase.javaContainer(), webAppBase.javaContainerVersion())) {
             return Runtime.getRuntime(OperatingSystem.WINDOWS, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
@@ -77,6 +104,13 @@ class AppServiceUtils {
             return stackRuntime != null && Objects.equals(stackRuntime.getJavaVersion(), runtime.getJavaVersion()) &&
                 Objects.equals(stackRuntime.getWebContainer(), runtime.getWebContainer());
         }).findFirst().orElse(null);
+    }
+
+    static FunctionRuntimeStack toFunctionRuntimeStack(@Nonnull Runtime runtime) {
+        if (runtime.getOperatingSystem() != OperatingSystem.LINUX) {
+            throw new AzureToolkitRuntimeException(String.format("Can not convert %s runtime to FunctionRuntimeStack", runtime.getOperatingSystem()));
+        }
+        return runtime.getJavaVersion() == JavaVersion.JAVA_8 ? FunctionRuntimeStack.JAVA_8 : FunctionRuntimeStack.JAVA_11;
     }
 
     static com.azure.resourcemanager.appservice.models.WebContainer toWindowsWebContainer(Runtime runtime) {
@@ -136,13 +170,38 @@ class AppServiceUtils {
             .findFirst().orElse(null);
     }
 
+    static FunctionAppEntity fromFunctionApp(FunctionApp functionApp) {
+        return FunctionAppEntity.builder().name(functionApp.name())
+                .id(functionApp.id())
+                .region(Region.fromName(functionApp.regionName()))
+                .resourceGroup(functionApp.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(functionApp.id()))
+                .runtime(getRuntimeFromAppService(functionApp))
+                .appServicePlanId(functionApp.appServicePlanId())
+                .defaultHostName(functionApp.defaultHostname())
+                .appSettings(Utils.normalizeAppSettings(functionApp.getAppSettings()))
+                .build();
+    }
+
+    static FunctionAppEntity fromFunctionAppBasic(FunctionAppBasic functionApp) {
+        return FunctionAppEntity.builder().name(functionApp.name())
+                .id(functionApp.id())
+                .region(Region.fromName(functionApp.regionName()))
+                .resourceGroup(functionApp.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(functionApp.id()))
+                .runtime(null)
+                .appServicePlanId(functionApp.appServicePlanId())
+                .defaultHostName(functionApp.defaultHostname())
+                .build();
+    }
+
     static WebAppEntity fromWebApp(WebAppBase webAppBase) {
         return WebAppEntity.builder().name(webAppBase.name())
             .id(webAppBase.id())
             .region(Region.fromName(webAppBase.regionName()))
             .resourceGroup(webAppBase.resourceGroupName())
             .subscriptionId(Utils.getSubscriptionId(webAppBase.id()))
-            .runtime(null)
+            .runtime(getRuntimeFromAppService(webAppBase))
             .appServicePlanId(webAppBase.appServicePlanId())
             .defaultHostName(webAppBase.defaultHostname())
             .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()))
@@ -160,6 +219,20 @@ class AppServiceUtils {
             .build();
     }
 
+    static FunctionAppDeploymentSlotEntity fromFunctionAppDeploymentSlot(FunctionDeploymentSlot deploymentSlot) {
+        return FunctionAppDeploymentSlotEntity.builder()
+                .name(deploymentSlot.name())
+                .functionAppName(deploymentSlot.parent().name())
+                .id(deploymentSlot.id())
+                .resourceGroup(deploymentSlot.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
+                .runtime(getRuntimeFromAppService(deploymentSlot))
+                .appServicePlanId(deploymentSlot.appServicePlanId())
+                .defaultHostName(deploymentSlot.defaultHostname())
+                .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
+                .build();
+    }
+
     static WebAppDeploymentSlotEntity fromWebAppDeploymentSlot(DeploymentSlot deploymentSlot) {
         return WebAppDeploymentSlotEntity.builder()
             .name(deploymentSlot.name())
@@ -167,7 +240,7 @@ class AppServiceUtils {
             .id(deploymentSlot.id())
             .resourceGroup(deploymentSlot.resourceGroupName())
             .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-            .runtime(null)
+            .runtime(getRuntimeFromAppService(deploymentSlot))
             .appServicePlanId(deploymentSlot.appServicePlanId())
             .defaultHostName(deploymentSlot.defaultHostname())
             .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
@@ -260,5 +333,37 @@ class AppServiceUtils {
         } else {
             blank.withoutWebServerLogging().parent();
         }
+    }
+
+    public static FunctionEntity fromFunctionAppEnvelope(FunctionEnvelope functionEnvelope) {
+        final Object config = functionEnvelope.config();
+        if (!(config instanceof Map)) {
+            return null;
+        }
+        final Map envelopeConfigMap = (Map) config;
+        final String scriptFile = (String) (envelopeConfigMap).get(SCRIPT_FILE);
+        final String entryPoint = (String) (envelopeConfigMap).get(ENTRY_POINT);
+        final Object bindingListObject = ((Map) config).get(BINDINGS);
+        final List<FunctionEntity.BindingEntity> bindingEntities =
+                (List<FunctionEntity.BindingEntity>) Optional.ofNullable(bindingListObject instanceof List ? (List) bindingListObject : null)
+                        .map(list -> list.stream().filter(item -> item instanceof Map).map(map -> fromJsonBinding((Map) map)).collect(Collectors.toList()))
+                        .orElse(Collections.emptyList());
+        return FunctionEntity.builder()
+                .name(functionEnvelope.innerModel().name())
+                .entryPoint(entryPoint)
+                .scriptFile(scriptFile)
+                .bindingList(bindingEntities)
+                .functionAppId(functionEnvelope.functionAppId())
+                .triggerId(functionEnvelope.innerModel().id())
+                .triggerUrl(functionEnvelope.innerModel().invokeUrlTemplate())
+                .build();
+    }
+
+    private static FunctionEntity.BindingEntity fromJsonBinding(Map bindingProperties) {
+        return FunctionEntity.BindingEntity.builder()
+                .type((String) bindingProperties.get("type"))
+                .direction((String) bindingProperties.get("direction"))
+                .name((String) bindingProperties.get("name"))
+                .properties(bindingProperties).build();
     }
 }

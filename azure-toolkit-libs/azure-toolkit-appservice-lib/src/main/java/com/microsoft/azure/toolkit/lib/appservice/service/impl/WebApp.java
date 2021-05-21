@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEnt
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceCreator;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpdater;
@@ -26,7 +27,10 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import io.jsonwebtoken.lang.Collections;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,22 +39,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class WebApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp> implements IWebApp {
+public class WebApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp, WebAppEntity> implements IWebApp {
     private static final ClientLogger LOGGER = new ClientLogger(WebApp.class);
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
-    private WebAppEntity entity;
 
     private final AzureResourceManager azureClient;
-    private com.azure.resourcemanager.appservice.models.WebApp remote;
 
     public WebApp(WebAppEntity entity, AzureResourceManager azureClient) {
         this.entity = entity;
         this.azureClient = azureClient;
-    }
-
-    @Override
-    public WebAppEntity entity() {
-        return entity;
     }
 
     @Override
@@ -63,15 +60,17 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         return new WebAppCreator();
     }
 
+    @NotNull
+    @Override
+    protected WebAppEntity getEntityFromRemoteResource(@NotNull com.azure.resourcemanager.appservice.models.WebApp remote) {
+        return AppServiceUtils.fromWebApp(remote);
+    }
+
     @Override
     protected com.azure.resourcemanager.appservice.models.WebApp remote() {
-        if (remote == null) {
-            remote = StringUtils.isNotEmpty(entity.getId()) ?
-                    azureClient.webApps().getById(entity.getId()) :
-                    azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
-            entity = AppServiceUtils.fromWebApp(remote);
-        }
-        return remote;
+        return StringUtils.isNotEmpty(entity.getId()) ?
+                azureClient.webApps().getById(entity.getId()) :
+                azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
     }
 
     @Override
@@ -108,6 +107,11 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             .collect(Collectors.toList());
     }
 
+    @Override
+    public void swap(String slotName) {
+        getRemoteResource().swap(slotName);
+    }
+
     public class WebAppCreator extends AbstractAppServiceCreator<WebApp> {
         // todo: Add validation for required parameters
         @Override
@@ -115,6 +119,9 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             final DefinitionStages.Blank blank = WebApp.this.azureClient.webApps().define(getName());
             final Runtime runtime = getRuntime();
             final AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlan(getAppServicePlanEntity(), azureClient);
+            if (appServicePlan == null) {
+                throw new AzureToolkitRuntimeException("Target app service plan not exists");
+            }
             final ResourceGroup resourceGroup = WebApp.this.azureClient.resourceGroups().getByName(getResourceGroup());
             final DefinitionStages.WithCreate withCreate;
             switch (runtime.getOperatingSystem()) {
@@ -190,10 +197,13 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             if (getRuntime() != null && getRuntime().isPresent()) {
                 update = updateRuntime(update, getRuntime().get());
             }
-            if (getAppSettings() != null && getAppSettings().isPresent()) {
-                // todo: enhance app settings update, as now we could only add new app settings but can not remove existing values
+            if (!Collections.isEmpty(getAppSettingsToAdd())) {
                 modified = true;
-                update.withAppSettings(getAppSettings().get());
+                update.withAppSettings(getAppSettingsToAdd());
+            }
+            if (!Collections.isEmpty(getAppSettingsToRemove())) {
+                modified = true;
+                getAppSettingsToRemove().forEach(update::withoutAppSetting);
             }
             if (getDiagnosticConfig() != null && getDiagnosticConfig().isPresent()) {
                 modified = true;
@@ -227,11 +237,12 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             if (Objects.equals(current, newRuntime)) {
                 return update;
             }
-            if (current.getOperatingSystem() != newRuntime.getOperatingSystem()) {
+            if (newRuntime.getOperatingSystem() != null && current.getOperatingSystem() != newRuntime.getOperatingSystem()) {
                 throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
             }
             modified = true;
-            switch (newRuntime.getOperatingSystem()) {
+            final OperatingSystem operatingSystem = ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), current.getOperatingSystem());
+            switch (operatingSystem) {
                 case LINUX:
                     return update.withBuiltInImage(AppServiceUtils.toLinuxRuntimeStack(newRuntime));
                 case WINDOWS:

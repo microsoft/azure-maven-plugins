@@ -7,16 +7,21 @@ package com.microsoft.azure.maven;
 
 import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.maven.model.DeploymentResource;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.auth.exception.AzureLoginException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-
-import com.microsoft.azure.management.appservice.WebAppBase;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
@@ -103,6 +108,8 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     @Parameter
     protected Properties appSettings;
 
+    protected AzureAppService appServiceClient;
+
     public String getResourceGroup() {
         return resourceGroup;
     }
@@ -150,9 +157,9 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
         this.deploymentSlotSetting = slotSetting;
     }
 
-    public String getResourcePortalUrl(WebAppBase resource) throws AzureAuthFailureException, AzureExecutionException {
+    public String getResourcePortalUrl(String id) {
         final AzureEnvironment environment = Azure.az(AzureAccount.class).account().getEnvironment();
-        return String.format(PORTAL_URL_PATTERN, getPortalUrl(environment), resource.id());
+        return String.format(PORTAL_URL_PATTERN, getPortalUrl(environment), id);
     }
 
     protected static String getPortalUrl(AzureEnvironment azureEnvironment) {
@@ -163,5 +170,33 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
             return "https://portal.azure.cn";
         }
         return azureEnvironment.getPortal();
+    }
+
+    protected AzureAppService getOrCreateAzureAppServiceClient() {
+        if (appServiceClient == null) {
+            try {
+                final Account account = getAzureAccount();
+                final List<Subscription> subscriptions = account.getSubscriptions();
+                final String targetSubscriptionId = getTargetSubscriptionId(getSubscriptionId(), subscriptions, account.getSelectedSubscriptions());
+                checkSubscription(subscriptions, targetSubscriptionId);
+                com.microsoft.azure.toolkit.lib.Azure.az(AzureAccount.class).account().selectSubscription(Collections.singletonList(targetSubscriptionId));
+                appServiceClient = Azure.az(AzureAppService.class).subscription(targetSubscriptionId);
+                printCurrentSubscription(appServiceClient);
+            } catch (AzureLoginException | AzureExecutionException | IOException e) {
+                throw new AzureToolkitRuntimeException(String.format("Cannot authenticate due to error %s", e.getMessage()), e);
+            }
+        }
+        return appServiceClient;
+    }
+
+    // todo: Replace same method in AbstractAzureMojo after function track2 migration
+    protected void printCurrentSubscription(AzureAppService appServiceClient) {
+        if (appServiceClient == null) {
+            return;
+        }
+        final Subscription subscription = appServiceClient.getDefaultSubscription();
+        if (subscription != null) {
+            Log.info(String.format(SUBSCRIPTION_TEMPLATE, TextUtils.cyan(subscription.getName()), TextUtils.cyan(subscription.getId())));
+        }
     }
 }

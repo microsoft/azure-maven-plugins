@@ -11,6 +11,9 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -21,7 +24,8 @@ public abstract class AbstractAppServiceUpdater<T> implements IAppServiceUpdater
     private Optional<Runtime> runtime = null;
     private Optional<PricingTier> pricingTier = null;
     private Optional<AppServicePlanEntity> appServicePlan = null;
-    private Optional<Map<String, String>> appSettings = null;
+    private final List<String> appSettingsToRemove = new ArrayList<>();
+    private final Map<String, String> appSettingsToAdd = new HashMap<>();
 
     @Override
     public IAppServiceUpdater withPlan(String appServicePlanId) {
@@ -48,8 +52,14 @@ public abstract class AbstractAppServiceUpdater<T> implements IAppServiceUpdater
     }
 
     @Override
+    public IAppServiceUpdater withoutAppSettings(String key) {
+        this.appSettingsToRemove.add(key);
+        return this;
+    }
+
+    @Override
     public IAppServiceUpdater<T> withAppSettings(Map appSettings) {
-        this.appSettings = Optional.ofNullable(appSettings);
+        this.appSettingsToAdd.putAll(appSettings);
         return this;
     }
 

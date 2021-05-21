@@ -8,7 +8,7 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 
 import java.util.List;
 
-public interface IWebApp extends IAppService {
+public interface IWebApp extends IWebAppBase<WebAppEntity> {
     WebAppEntity entity();
 
     IAppServicePlan plan();
@@ -20,4 +20,6 @@ public interface IWebApp extends IAppService {
     IWebAppDeploymentSlot deploymentSlot(String slotName);
 
     List<IWebAppDeploymentSlot> deploymentSlots();
+
+    void swap(String slotName);
 }

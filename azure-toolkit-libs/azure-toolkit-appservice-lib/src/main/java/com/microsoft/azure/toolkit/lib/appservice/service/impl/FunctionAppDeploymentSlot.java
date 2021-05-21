@@ -6,87 +6,81 @@ package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
-import com.azure.resourcemanager.appservice.models.DeployOptions;
-import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
-import com.azure.resourcemanager.appservice.models.WebApp;
+import com.azure.resourcemanager.appservice.models.FunctionApp;
+import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
-import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
-import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
+import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, WebAppDeploymentSlotEntity> implements IWebAppDeploymentSlot {
+public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymentSlot, FunctionAppDeploymentSlotEntity>
+        implements IFunctionAppDeploymentSlot {
 
     private final AzureResourceManager azureClient;
 
-    public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureClient) {
+    public FunctionAppDeploymentSlot(FunctionAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureClient) {
         this.entity = deploymentSlot;
         this.azureClient = azureClient;
     }
 
     @Override
-    public IWebApp webApp() {
-        final WebAppDeploymentSlotEntity entity = entity();
-        return Azure.az(AzureAppService.class).webapp(entity.getSubscriptionId(), entity.getResourceGroup(), entity.getWebappName());
+    public IFunctionApp functionApp() {
+        return Azure.az(AzureAppService.class).functionApp(entity().getResourceGroup(), entity().getFunctionAppName());
     }
 
     @Override
     public Creator create() {
-        return new WebAppDeploymentSlotCreator();
+        return new FunctionAppDeploymentSlotCreator();
     }
 
     @Override
     public Updater update() {
-        return new WebAppDeploymentSlotUpdater();
+        return new FunctionAppDeploymentSlotUpdater();
     }
 
     @NotNull
     @Override
-    protected WebAppDeploymentSlotEntity getEntityFromRemoteResource(@NotNull DeploymentSlot remote) {
-        return AppServiceUtils.fromWebAppDeploymentSlot(remote);
-    }
-
-    @Override
-    protected DeploymentSlot remote() {
-        final WebApp parentWebApp = getParentWebApp();
-        return StringUtils.isNotEmpty(entity.getId()) ? parentWebApp.deploymentSlots().getById(entity.getId()) :
-                parentWebApp.deploymentSlots().getByName(entity.getName());
+    protected FunctionAppDeploymentSlotEntity getEntityFromRemoteResource(@NotNull FunctionDeploymentSlot remote) {
+        return AppServiceUtils.fromFunctionAppDeploymentSlot(remote);
     }
 
     @Override
     public void delete() {
-        getRemoteResource().parent().deploymentSlots().deleteByName(entity.getName());
+        getParentFunctionApp().deploymentSlots().deleteById(getRemoteResource().id());
     }
 
+    @Nullable
     @Override
-    public void deploy(DeployType deployType, File targetFile, String targetPath) {
-        final DeployOptions options = new DeployOptions().withPath(targetPath);
-        getRemoteResource().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
+    protected FunctionDeploymentSlot remote() {
+        final FunctionApp parentFunctionApp = getParentFunctionApp();
+        return StringUtils.isNotEmpty(entity.getId()) ?
+                parentFunctionApp.deploymentSlots().getById(entity.getId()) :
+                parentFunctionApp.deploymentSlots().getByName(entity.getName());
     }
 
-    private WebApp getParentWebApp() {
+    private FunctionApp getParentFunctionApp() {
         return StringUtils.isNotEmpty(entity.getId()) ?
-                azureClient.webApps().getById(ResourceId.fromString(entity().getId()).parent().id()) :
-                azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getWebappName());
+                azureClient.functionApps().getById(ResourceId.fromString(entity().getId()).parent().id()) :
+                azureClient.functionApps().getByResourceGroup(entity.getResourceGroup(), entity.getFunctionAppName());
     }
 
     @Getter
-    public class WebAppDeploymentSlotCreator implements Creator {
+    public class FunctionAppDeploymentSlotCreator implements IFunctionAppDeploymentSlot.Creator {
         public static final String CONFIGURATION_SOURCE_NEW = "new";
         public static final String CONFIGURATION_SOURCE_PARENT = "parent";
         private static final String CONFIGURATION_SOURCE_DOES_NOT_EXISTS = "Target slot configuration source does not exists in current web app";
@@ -98,34 +92,34 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
         private DiagnosticConfig diagnosticConfig = null;
 
         @Override
-        public Creator withName(String name) {
+        public IFunctionAppDeploymentSlot.Creator withName(String name) {
             this.name = name;
             return this;
         }
 
         @Override
-        public Creator withAppSettings(Map<String, String> appSettings) {
+        public IFunctionAppDeploymentSlot.Creator withAppSettings(Map<String, String> appSettings) {
             this.appSettings = appSettings;
             return this;
         }
 
         @Override
-        public Creator withConfigurationSource(String configurationSource) {
+        public IFunctionAppDeploymentSlot.Creator withConfigurationSource(String configurationSource) {
             this.configurationSource = configurationSource;
             return this;
         }
 
         @Override
-        public Creator withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
+        public IFunctionAppDeploymentSlot.Creator withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
             this.diagnosticConfig = diagnosticConfig;
             return this;
         }
 
         @Override
-        public WebAppDeploymentSlot commit() {
-            final WebApp webApp = getParentWebApp();
-            final DeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
-            final DeploymentSlot.DefinitionStages.WithCreate withCreate;
+        public IFunctionAppDeploymentSlot commit() {
+            final FunctionApp functionApp = getParentFunctionApp();
+            final FunctionDeploymentSlot.DefinitionStages.Blank blank = functionApp.deploymentSlots().define(getName());
+            final FunctionDeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default
             final String source = StringUtils.isEmpty(configurationSource) ? CONFIGURATION_SOURCE_PARENT : StringUtils.lowerCase(configurationSource);
             switch (source) {
@@ -137,7 +131,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
                     break;
                 default:
                     try {
-                        final DeploymentSlot deploymentSlot = Optional.ofNullable(webApp.deploymentSlots().getByName(configurationSource))
+                        final FunctionDeploymentSlot deploymentSlot = Optional.ofNullable(functionApp.deploymentSlots().getByName(configurationSource))
                                 .orElseThrow(() -> new AzureToolkitRuntimeException(CONFIGURATION_SOURCE_DOES_NOT_EXISTS));
                         withCreate = blank.withConfigurationFromDeploymentSlot(deploymentSlot);
                     } catch (ManagementException e) {
@@ -151,39 +145,38 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
             if (getDiagnosticConfig() != null) {
                 AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, getDiagnosticConfig());
             }
-            WebAppDeploymentSlot.this.remote = withCreate.create();
-            WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
-            return WebAppDeploymentSlot.this;
+            FunctionAppDeploymentSlot.this.remote = withCreate.create();
+            FunctionAppDeploymentSlot.this.entity = AppServiceUtils.fromFunctionAppDeploymentSlot(FunctionAppDeploymentSlot.this.remote);
+            return FunctionAppDeploymentSlot.this;
         }
     }
 
     @Getter
-    private class WebAppDeploymentSlotUpdater implements Updater {
+    private class FunctionAppDeploymentSlotUpdater implements IFunctionAppDeploymentSlot.Updater {
         private final List<String> appSettingsToRemove = new ArrayList<>();
         private final Map<String, String> appSettingsToAdd = new HashMap<>();
         private DiagnosticConfig diagnosticConfig = null;
 
         @Override
         public Updater withoutAppSettings(String key) {
-            this.appSettingsToRemove.add(key);
+            appSettingsToRemove.add(key);
+            return this;
+        }
+
+        public IFunctionAppDeploymentSlot.Updater withAppSettings(Map<String, String> appSettings) {
+            appSettingsToAdd.putAll(appSettings);
             return this;
         }
 
         @Override
-        public WebAppDeploymentSlotUpdater withAppSettings(Map<String, String> appSettings) {
-            this.appSettingsToAdd.putAll(appSettings);
-            return this;
-        }
-
-        @Override
-        public WebAppDeploymentSlotUpdater withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
+        public IFunctionAppDeploymentSlot.Updater withDiagnosticConfig(DiagnosticConfig diagnosticConfig) {
             this.diagnosticConfig = diagnosticConfig;
             return this;
         }
 
         @Override
-        public WebAppDeploymentSlot commit() {
-            final DeploymentSlotBase.Update<DeploymentSlot> update = getRemoteResource().update();
+        public FunctionAppDeploymentSlot commit() {
+            final DeploymentSlotBase.Update<FunctionDeploymentSlot> update = getRemoteResource().update();
             if (getAppSettingsToAdd() != null) {
                 update.withAppSettings(getAppSettingsToAdd());
             }
@@ -193,9 +186,9 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
             if (getDiagnosticConfig() != null) {
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, getDiagnosticConfig());
             }
-            WebAppDeploymentSlot.this.remote = update.apply();
-            WebAppDeploymentSlot.this.entity = AppServiceUtils.fromWebAppDeploymentSlot(WebAppDeploymentSlot.this.remote);
-            return WebAppDeploymentSlot.this;
+            FunctionAppDeploymentSlot.this.remote = update.apply();
+            FunctionAppDeploymentSlot.this.entity = AppServiceUtils.fromFunctionAppDeploymentSlot(FunctionAppDeploymentSlot.this.remote);
+            return FunctionAppDeploymentSlot.this;
         }
     }
 }

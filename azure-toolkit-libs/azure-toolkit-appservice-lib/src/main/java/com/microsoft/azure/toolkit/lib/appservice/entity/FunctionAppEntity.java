@@ -10,5 +10,5 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder(toBuilder = true)
-public class WebAppEntity extends AppServiceBaseEntity {
+public class FunctionAppEntity extends AppServiceBaseEntity{
 }
