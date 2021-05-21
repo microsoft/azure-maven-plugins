@@ -5,13 +5,13 @@
 package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
-import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.common.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
+import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlDatabaseEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlFirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServer;
@@ -23,11 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class SqlServer implements ISqlServer {
-    private static final ClientLogger LOGGER = new ClientLogger(SqlServer.class);
-    private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     private SqlServerEntity entity;
 
     private final SqlServerManager manager;
@@ -47,6 +46,7 @@ public class SqlServer implements ISqlServer {
 
     @Override
     public SqlServerEntity entity() {
+        this.refreshInnerIfNotSet();
         return entity;
     }
 
@@ -81,7 +81,14 @@ public class SqlServer implements ISqlServer {
 
     @Override
     public List<SqlFirewallRuleEntity> firewallRules() {
+        this.refreshInnerIfNotSet();
         return sqlServerInner.firewallRules().list().stream().map(this::formSqlServerFirewallRule).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SqlDatabaseEntity> databases() {
+        this.refreshInnerIfNotSet();
+        return sqlServerInner.databases().list().stream().map(this::formSqlDatabase).collect(Collectors.toList());
     }
 
     private SqlServerEntity fromSqlServer(com.azure.resourcemanager.sql.models.SqlServer server) {
@@ -108,7 +115,22 @@ public class SqlServer implements ISqlServer {
             .build();
     }
 
-    synchronized void refreshWebAppInner() {
+    private SqlDatabaseEntity formSqlDatabase(com.azure.resourcemanager.sql.models.SqlDatabase databaseInner) {
+        return SqlDatabaseEntity.builder().id(databaseInner.id())
+            .name(databaseInner.name())
+            .subscriptionId(ResourceId.fromString(databaseInner.id()).subscriptionId())
+            .collation(databaseInner.collation())
+            .creationDate(databaseInner.creationDate())
+            .build();
+    }
+
+    private void refreshInnerIfNotSet() {
+        if (Objects.isNull(this.sqlServerInner)) {
+            this.refreshInner();
+        }
+    }
+
+    synchronized void refreshInner() {
         try {
             sqlServerInner = StringUtils.isNotEmpty(entity.getId()) ?
                 manager.sqlServers().getById(entity.getId()) :
@@ -124,7 +146,6 @@ public class SqlServer implements ISqlServer {
 
         @Override
         public SqlServer commit() {
-            // todo: Add validation for required parameters
             // create
             sqlServerInner = SqlServer.this.manager.sqlServers().define(getName())
                 .withRegion(getRegion().getName())
@@ -140,17 +161,16 @@ public class SqlServer implements ISqlServer {
                     .commit();
             }
             // refresh entity
-            SqlServer.this.refreshWebAppInner();
+            SqlServer.this.refreshInner();
             return SqlServer.this;
         }
     }
 
     class SqlServerUpdater extends ISqlServerUpdater.AbstractSqlServerUpdater<SqlServer> {
 
-        private static final String NAME_PREFIX_ALLOW_ACCESS_TO_LOCAL = "ClientIPAddress_";
-
         @Override
         public SqlServer commit() {
+            SqlServer.this.refreshInnerIfNotSet();
             // update
             if (isEnableAccessFromAzureServices()) {
                 sqlServerInner.enableAccessFromAzureServices();
@@ -161,34 +181,23 @@ public class SqlServer implements ISqlServer {
             if (isEnableAccessFromLocalMachine()) {
                 final String publicIp = getPublicIp(sqlServerInner);
                 SqlFirewallRuleEntity ruleEntity = SqlFirewallRuleEntity.builder()
-                    .name(getAccessFromLocalFirewallRuleName()).startIpAddress(publicIp).endIpAddress(publicIp).build();
+                    .name(SqlFirewallRuleEntity.ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME).startIpAddress(publicIp).endIpAddress(publicIp).build();
                 new SqlFirewallRuleRule(ruleEntity, sqlServerInner).create().commit();
             } else {
-                SqlFirewallRuleEntity ruleEntity = SqlFirewallRuleEntity.builder().name(getAccessFromLocalFirewallRuleName()).build();
+                SqlFirewallRuleEntity ruleEntity = SqlFirewallRuleEntity.builder().name(SqlFirewallRuleEntity.ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME).build();
                 new SqlFirewallRuleRule(ruleEntity, sqlServerInner).delete();
             }
             // refresh entity
-            SqlServer.this.refreshWebAppInner();
+            SqlServer.this.refreshInner();
             return SqlServer.this;
         }
 
-        private String getAccessFromLocalFirewallRuleName() {
-            final String hostname = NetUtils.getHostName();
-            final String macAddress = NetUtils.getMac();
-            final String ruleName = NAME_PREFIX_ALLOW_ACCESS_TO_LOCAL + hostname + "_" + macAddress;
-            return ruleName;
-        }
-
-        /**
-         * TODO: refactor test connection codes into common lib.
-         */
         private String getPublicIp(final com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
             // try to get public IP by ping SQL Server
-            String connectionUrl = "jdbc:sqlserver://%s.database.windows.net:1433;user=%s@%s;encrypt=true;trustServerCertificate=false;loginTimeout=30;";
-            connectionUrl = String.format(connectionUrl, entity.getName(), entity.getAdministratorLoginName(), entity.getName());
+            String username = SqlServer.this.entity.getAdministratorLoginName() + "@" + SqlServer.this.entity.getName();
             try {
                 Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-                DriverManager.getConnection(connectionUrl);
+                DriverManager.getConnection(JdbcUrl.sqlserver(SqlServer.this.entity.getFullyQualifiedDomainName()).toString(), username, null);
             } catch (SQLException e) {
                 String ip = NetUtils.parseIpAddressFromMessage(e.getMessage());
                 if (StringUtils.isNotBlank(ip)) {
