@@ -246,9 +246,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         @AzureOperation(name = "springcloud|app.update", params = {"this.app.name()"}, type = Type.SERVICE)
         public SpringCloudApp commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
-            if (this.skippable) {
-                messager.info(String.format("skip updating app(%s) since nothing is changed.", this.app.name()));
-            } else {
+            if (!this.skippable) {
                 messager.info(String.format("Start updating app(%s)...", messager.value(this.app.name())));
                 this.app.updateRemote(this.modifier.apply());
                 messager.success(String.format("App(%s) is successfully updated.", messager.value(this.app.name())));
