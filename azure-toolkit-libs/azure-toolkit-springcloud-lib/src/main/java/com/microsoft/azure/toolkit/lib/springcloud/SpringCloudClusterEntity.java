@@ -59,9 +59,9 @@ public class SpringCloudClusterEntity implements IAzureResourceEntity {
     public SpringCloudSku getSku() {
         final Sku sku = this.remote.sku();
         final SpringCloudSku dft = SpringCloudSku.builder()
-            .capacity(500)
-            .name("Standard")
-            .tier("S0")
+            .capacity(25)
+            .name("Basic")
+            .tier("B0")
             .build();
         return Optional.ofNullable(sku).map(s -> SpringCloudSku.builder()
             .capacity(s.capacity())
