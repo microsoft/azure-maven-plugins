@@ -7,9 +7,9 @@ package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
+import com.microsoft.azure.toolkit.lib.common.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.common.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlDatabaseEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlFirewallRuleEntity;
@@ -194,10 +194,10 @@ public class SqlServer implements ISqlServer {
 
         private String getPublicIp(final com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
             // try to get public IP by ping SQL Server
-            String username = SqlServer.this.entity.getAdministratorLoginName() + "@" + SqlServer.this.entity.getName();
+            String username = sqlServerInner.administratorLogin() + "@" + sqlServerInner.name();
             try {
                 Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-                DriverManager.getConnection(JdbcUrl.sqlserver(SqlServer.this.entity.getFullyQualifiedDomainName()).toString(), username, null);
+                DriverManager.getConnection(JdbcUrl.sqlserver(sqlServerInner.fullyQualifiedDomainName()).toString(), username, null);
             } catch (SQLException e) {
                 String ip = NetUtils.parseIpAddressFromMessage(e.getMessage());
                 if (StringUtils.isNotBlank(ip)) {
