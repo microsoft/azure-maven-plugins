@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to the "Maven Plugin for Azure App Service" will be documented in this file.
 - [Change Log](#change-log)
+  - [1.15.0](#1150)
+  - [1.14.0](#1140)
+  - [1.13.0](#1130)
   - [1.12.0](#1120)
   - [1.11.0](#1110)
   - [1.10.0](#1100)
@@ -20,6 +23,17 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.2.0](#120)
   - [1.1.0](#110)
   - [1.0.0](#100)
+
+## 1.15.0
+- Support one deploy api
+
+## 1.14.0
+- Support mutltiple tenants in authentication
+- Fix oauth login issue: cannot select account
+- Switch to track 2 sdk for azure webapp service
+
+## 1.13.0
+- Deprecate azure-auth-helper and use azure identity for authentication 
 
 ## 1.12.0
 - Support JBoss 7.2(EAP) within Linux Azure Web App
