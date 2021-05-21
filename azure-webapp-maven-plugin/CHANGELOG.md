@@ -24,7 +24,7 @@ All notable changes to the "Maven Plugin for Azure App Service" will be document
   - [1.1.0](#110)
   - [1.0.0](#100)
 
-## 1.14.0
+## 1.15.0
 - Support one deploy api
 
 ## 1.14.0
