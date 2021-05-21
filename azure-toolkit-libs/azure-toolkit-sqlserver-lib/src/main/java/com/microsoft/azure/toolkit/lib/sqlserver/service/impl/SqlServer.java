@@ -197,7 +197,7 @@ public class SqlServer implements ISqlServer {
             String username = SqlServer.this.entity.getAdministratorLoginName() + "@" + SqlServer.this.entity.getName();
             try {
                 Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-                DriverManager.getConnection(JdbcUrl.sqlserver(SqlServer.this.entity.getFullyQualifiedDomainName()).toString(), username, null);
+                DriverManager.getConnection(JdbcUrl.sqlserver(SqlServer.this.sqlServerInner.fullyQualifiedDomainName()).toString(), username, null);
             } catch (SQLException e) {
                 String ip = NetUtils.parseIpAddressFromMessage(e.getMessage());
                 if (StringUtils.isNotBlank(ip)) {
