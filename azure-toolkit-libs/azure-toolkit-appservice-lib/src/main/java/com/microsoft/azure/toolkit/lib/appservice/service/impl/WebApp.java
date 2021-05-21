@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEnt
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceCreator;
 import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpdater;
@@ -27,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import io.jsonwebtoken.lang.Collections;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -235,11 +237,12 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             if (Objects.equals(current, newRuntime)) {
                 return update;
             }
-            if (current.getOperatingSystem() != newRuntime.getOperatingSystem()) {
+            if (newRuntime.getOperatingSystem() != null && current.getOperatingSystem() != newRuntime.getOperatingSystem()) {
                 throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
             }
             modified = true;
-            switch (newRuntime.getOperatingSystem()) {
+            final OperatingSystem operatingSystem = ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), current.getOperatingSystem());
+            switch (operatingSystem) {
                 case LINUX:
                     return update.withBuiltInImage(AppServiceUtils.toLinuxRuntimeStack(newRuntime));
                 case WINDOWS:

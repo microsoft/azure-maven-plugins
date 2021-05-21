@@ -133,9 +133,9 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String INVALID_SLOT_NAME = "Invalid value of <name> inside <deploymentSlot> in pom.xml, it needs to match the pattern '%s'";
     private static final String INVALID_REGION = "The value of <region> is not supported, please correct it in pom.xml.";
     private static final String EMPTY_IMAGE_NAME = "Please config the <image> of <runtime> in pom.xml.";
-    public static final String INVALID_OS = "The value of <os> is not correct, supported values are: windows, linux and docker.";
-    public static final String INVALID_JAVA_VERSION = "Unsupported value %s for <javaVersion> in pom.xml";
-    public static final String INVALID_PRICING_TIER = "Unsupported value %s for <pricingTier> in pom.xml";
+    private static final String INVALID_OS = "The value of <os> is not correct, supported values are: windows, linux and docker.";
+    private static final String INVALID_JAVA_VERSION = "Unsupported value %s for <javaVersion> in pom.xml";
+    private static final String INVALID_PRICING_TIER = "Unsupported value %s for <pricingTier> in pom.xml";
 
     private AzureAppService az;
 
@@ -297,6 +297,9 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private Runtime getRuntime() {
+        if (StringUtils.isEmpty(runtime.getOs()) && StringUtils.isEmpty(runtime.getJavaVersion())) {
+            return null;
+        }
         final OperatingSystem os = OperatingSystem.fromString(runtime.getOs());
         final JavaVersion javaVersion = JavaVersion.fromString(runtime.getJavaVersion());
         return Runtime.getRuntime(os, WebContainer.JAVA_OFF, javaVersion);
