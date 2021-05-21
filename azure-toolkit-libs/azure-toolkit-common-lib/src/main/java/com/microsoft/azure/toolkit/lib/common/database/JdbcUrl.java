@@ -39,7 +39,6 @@ public class JdbcUrl {
     }
 
     public static JdbcUrl from(String connectionString) {
-        Preconditions.checkArgument(StringUtils.startsWith(connectionString, "jdbc:"), "invalid jdbc url.");
         return new JdbcUrl(connectionString);
     }
 

@@ -24,20 +24,20 @@ public class DatabaseTemplateUtils {
 
     private static final String PROPERTY_PATTERN_JDBC =
             "String url =\"%s\";" + System.lineSeparator()
-            + "myDbConn = DriverManager.getConnection(url, \"%s\", \"%s\");";
+            + "Connection myDbConnection = DriverManager.getConnection(url, \"%s\", \"%s\");";
 
     public static String toSpringTemplate(JdbcUrl jdbcUrl, String driverClassName) {
-        String driverClass = StringUtils.isNotBlank(driverClassName) ? driverClassName : DEFAULT_MYSQL_DRIVER_CLASS_NAME;
+        String driverClass = StringUtils.firstNonBlank(driverClassName, DEFAULT_MYSQL_DRIVER_CLASS_NAME);
+        String username = StringUtils.firstNonBlank(jdbcUrl.getUsername(), DEFAULT_USERNAME);
+        String password = StringUtils.firstNonBlank(jdbcUrl.getPassword(), DEFAULT_PASSWORD);
         String url = jdbcUrl.toString();
-        String username = StringUtils.isNotBlank(jdbcUrl.getUsername()) ? jdbcUrl.getUsername() : DEFAULT_USERNAME;
-        String password = StringUtils.isNotBlank(jdbcUrl.getPassword()) ? jdbcUrl.getPassword() : DEFAULT_PASSWORD;
         return String.format(PROPERTY_PATTERN_SPRING, driverClass, url, username, password);
     }
 
     public static String toJdbcTemplate(JdbcUrl jdbcUrl) {
+        String username = StringUtils.firstNonBlank(jdbcUrl.getUsername(), DEFAULT_USERNAME);
+        String password = StringUtils.firstNonBlank(jdbcUrl.getPassword(), DEFAULT_PASSWORD);
         String url = jdbcUrl.toString();
-        String username = StringUtils.isNotBlank(jdbcUrl.getUsername()) ? jdbcUrl.getUsername() : DEFAULT_USERNAME;
-        String password = StringUtils.isNotBlank(jdbcUrl.getPassword()) ? jdbcUrl.getPassword() : DEFAULT_PASSWORD;
         return String.format(PROPERTY_PATTERN_JDBC, url, username, password);
     }
 
