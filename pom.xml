@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-maven-plugins</artifactId>
-    <version>1.10.0-SNAPSHOT</version>
+    <version>1.10.0</version>
     <packaging>pom</packaging>
     <description>Maven plugins for Microsoft Azure services</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
@@ -66,8 +66,8 @@
         <maven.shared-utils.version>3.2.1</maven.shared-utils.version>
         <maven.version>3.3.3</maven.version>
 
-        <azure.toolkit-lib.version>0.7.0-SNAPSHOT</azure.toolkit-lib.version>
-        <azure.maven-plugin-lib.version>1.10.0-SNAPSHOT</azure.maven-plugin-lib.version>
+        <azure.toolkit-lib.version>0.7.0</azure.toolkit-lib.version>
+        <azure.maven-plugin-lib.version>1.10.0</azure.maven-plugin-lib.version>
 
         <azure.ai.version>2.6.3</azure.ai.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
@@ -647,7 +647,7 @@
                         <dependency>
                             <groupId>com.microsoft.azure</groupId>
                             <artifactId>maven-plugins-build-tools</artifactId>
-                            <version>1.10.0-SNAPSHOT</version>
+                            <version>1.10.0</version>
                         </dependency>
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
