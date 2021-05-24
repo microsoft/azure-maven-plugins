@@ -81,7 +81,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
     private WebApp getParentWebApp() {
         return StringUtils.isNotEmpty(entity.getId()) ?
-                azureClient.webApps().getById(ResourceId.fromString(entity().getId()).parent().id()) :
+                azureClient.webApps().getById(ResourceId.fromString(entity.getId()).parent().id()) :
                 azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getWebappName());
     }
 

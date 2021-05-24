@@ -75,7 +75,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     private FunctionApp getParentFunctionApp() {
         return StringUtils.isNotEmpty(entity.getId()) ?
-                azureClient.functionApps().getById(ResourceId.fromString(entity().getId()).parent().id()) :
+                azureClient.functionApps().getById(ResourceId.fromString(entity.getId()).parent().id()) :
                 azureClient.functionApps().getByResourceGroup(entity.getResourceGroup(), entity.getFunctionAppName());
     }
 
