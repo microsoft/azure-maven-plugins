@@ -12,7 +12,6 @@ import java.util.stream.StreamSupport;
 
 public class Azure {
     private final AzureConfiguration configuration;
-    private static final ServiceLoader<AzureService> loader = ServiceLoader.load(AzureService.class);
     private static final Azure defaultInstance = new Azure();
 
     private Azure() {
@@ -20,9 +19,9 @@ public class Azure {
     }
 
     public static <T extends AzureService> T az(final Class<T> clazz) {
-        return StreamSupport.stream(loader.spliterator(), false)
-            .filter(clazz::isInstance).findAny().map(clazz::cast)
-            .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Azure service(%s) not supported", clazz.getSimpleName())));
+        return StreamSupport.stream(Holder.loader.spliterator(), false)
+                .filter(clazz::isInstance).findAny().map(clazz::cast)
+                .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Azure service(%s) not supported", clazz.getSimpleName())));
     }
 
     public static Azure az() {
@@ -31,5 +30,9 @@ public class Azure {
 
     public AzureConfiguration config() {
         return this.configuration;
+    }
+
+    private static class Holder {
+        private static final ServiceLoader<AzureService> loader = ServiceLoader.load(AzureService.class);
     }
 }
