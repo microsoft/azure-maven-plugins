@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import lombok.Getter;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -136,7 +137,8 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
 
         public Modifier configEnvironmentVariables(@Nullable Map<String, String> env) {
             final Map<String, String> oldEnv = Optional.ofNullable(this.modifier.settings()).map(DeploymentSettings::environmentVariables).orElse(null);
-            if (!Objects.equals(env, oldEnv) && Objects.nonNull(env)) {
+            final boolean allEmpty = MapUtils.isEmpty(env) && MapUtils.isEmpty(oldEnv);
+            if (!allEmpty && !Objects.equals(env, oldEnv) && Objects.nonNull(env)) {
                 this.skippable = false;
                 env.forEach((key, value) -> {
                     if (StringUtils.isBlank(value)) {
@@ -150,10 +152,11 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         }
 
         public Modifier configJvmOptions(@Nullable String jvmOptions) {
+            final String newJvmOptions = Optional.ofNullable(jvmOptions).map(String::trim).orElse("");
             final String oldJvmOptions = Optional.ofNullable(this.modifier.settings()).map(DeploymentSettings::jvmOptions).orElse(null);
-            if (!Objects.equals(jvmOptions, oldJvmOptions)) {
+            if (!StringUtils.isAllBlank(newJvmOptions, oldJvmOptions) && !Objects.equals(newJvmOptions, oldJvmOptions)) {
                 this.skippable = false;
-                this.modifier.withJvmOptions(jvmOptions);
+                this.modifier.withJvmOptions(newJvmOptions);
             }
             return this;
         }
@@ -192,6 +195,20 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
             return this;
         }
 
+        @AzureOperation(name = "springcloud|deployment.scale", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
+        protected SpringCloudDeployment scale(ScaleSettings settings) {
+            if (Objects.isNull(settings) || settings.isEmpty()) {
+                return this.deployment;
+            }
+            final IAzureMessager messager = AzureMessager.getMessager();
+            messager.info(String.format("Start scaling deployment(%s)...", messager.value(this.deployment.name())));
+            final SpringAppDeploymentImpl modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote).update());
+            modifier.withCpu(settings.getCpu()).withMemory(settings.getMemoryInGB()).withInstance(settings.getCapacity());
+            this.deployment.updateRemote(modifier.apply());
+            messager.success(String.format("Deployment(%s) is successfully scaled.", messager.value(this.deployment.name())));
+            return this.deployment;
+        }
+
         @NotNull
         @Override
         public AzureOperationEvent.Source<SpringCloudDeployment> getEventSource() {
@@ -208,28 +225,12 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         @AzureOperation(name = "springcloud|deployment.update", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
         public SpringCloudDeployment commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
-            if (this.skippable) {
-                messager.info(String.format("Skip updating deployment(%s) since its properties is not changed.", this.deployment.name()));
-            } else {
+            if (!this.skippable) {
                 messager.info(String.format("Start updating deployment(%s)...", messager.value(this.deployment.name())));
                 this.deployment.updateRemote(this.modifier.apply());
                 messager.success(String.format("Deployment(%s) is successfully updated", messager.value(this.deployment.name())));
             }
             return this.scale(this.newScaleSettings);
-        }
-
-        @AzureOperation(name = "springcloud|deployment.scale", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
-        public SpringCloudDeployment scale(ScaleSettings settings) {
-            if (Objects.isNull(settings) || settings.isEmpty()) {
-                return this.deployment;
-            }
-            final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(String.format("Start scaling deployment(%s)...", messager.value(this.deployment.name())));
-            final SpringAppDeploymentImpl modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote).update());
-            modifier.withCpu(settings.getCpu()).withMemory(settings.getMemoryInGB()).withInstance(settings.getCapacity());
-            this.deployment.updateRemote(modifier.apply());
-            messager.success(String.format("Deployment(%s) is successfully scaled.", messager.value(this.deployment.name())));
-            return this.deployment;
         }
     }
 
@@ -243,13 +244,9 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         public SpringCloudDeployment commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(String.format("Start creating deployment(%s)...", messager.value(this.deployment.name())));
-            final ScaleSettings settings = this.newScaleSettings;
-            if (Objects.nonNull(settings) && !settings.isEmpty()) {
-                modifier.withCpu(settings.getCpu()).withMemory(settings.getMemoryInGB()).withInstance(settings.getCapacity());
-            }
             this.deployment.updateRemote(this.modifier.create());
             messager.success(String.format("Deployment(%s) is successfully created", messager.value(this.deployment.name())));
-            return this.deployment.start();
+            return this.scale(this.newScaleSettings);
         }
     }
 }
