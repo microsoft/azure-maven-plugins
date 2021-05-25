@@ -475,6 +475,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             telemetryProxy.disable();
         } else {
             AzureTelemeter.setClient(telemetryProxy.getClient());
+            AzureTelemeter.setCommonProperties(this.getTelemetryProperties());
+            AzureTelemeter.setEventNamePrefix("AzurePlugin.Maven");
         }
     }
 
