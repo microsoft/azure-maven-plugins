@@ -225,7 +225,9 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         @AzureOperation(name = "springcloud|deployment.update", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
         public SpringCloudDeployment commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
-            if (!this.skippable) {
+            if (this.skippable) {
+                messager.info(String.format("Skip updating deployment(%s) since its properties is not changed.", this.deployment.name()));
+            } else {
                 messager.info(String.format("Start updating deployment(%s)...", messager.value(this.deployment.name())));
                 this.deployment.updateRemote(this.modifier.apply());
                 messager.success(String.format("Deployment(%s) is successfully updated", messager.value(this.deployment.name())));
