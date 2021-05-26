@@ -51,6 +51,7 @@ public class PricingTier {
             Arrays.asList(CONSUMPTION, ELASTIC_PREMIUM_EP1, ELASTIC_PREMIUM_EP2, ELASTIC_PREMIUM_EP3)));
     private static final List<PricingTier> values =
             Collections.unmodifiableList(new ArrayList<>(new HashSet<>(ListUtils.union(WEB_APP_PRICING, FUNCTION_PRICING))));
+    private static final String CONSUMPTION_SIZE = "consumption";
 
     private final String tier;
     private final String size;
@@ -60,6 +61,9 @@ public class PricingTier {
     }
 
     public static PricingTier fromString(String size) {
+        if (StringUtils.equalsIgnoreCase(CONSUMPTION_SIZE, size)) {
+            return PricingTier.CONSUMPTION;
+        }
         return values().stream()
                 .filter(pricingTier -> StringUtils.equalsIgnoreCase(size, pricingTier.size))
                 .findFirst().orElse(null);
