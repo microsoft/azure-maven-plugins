@@ -5,10 +5,13 @@ import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.core.management.profile.AzureProfile;
+import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationType;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
+import com.azure.resourcemanager.resources.models.Providers;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.AzureService;
@@ -100,10 +103,16 @@ public class ApplicationInsights extends SubscriptionScoped<ApplicationInsights>
         final HttpLogOptions logOptions = new HttpLogOptions();
         logOptions.setLogLevel(Optional.ofNullable(config.getLogLevel()).map(HttpLogDetailLevel::valueOf).orElse(HttpLogDetailLevel.NONE));
         final AzureProfile azureProfile = new AzureProfile(tenantId, subscriptionId, account.getEnvironment());
+        // todo: migrate resource provider related codes to common library
+        final Providers providers = AzureResourceManager.configure()
+                .withPolicy(getUserAgentPolicy(userAgent))
+                .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
+                .withSubscription(subscriptionId).providers();
         return ApplicationInsightsManager
                 .configure()
                 .withLogOptions(logOptions)
                 .withPolicy(getUserAgentPolicy(userAgent))
+                .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile);
     }
 
