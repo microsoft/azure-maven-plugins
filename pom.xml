@@ -67,7 +67,7 @@
         <maven.shared-utils.version>3.2.1</maven.shared-utils.version>
         <maven.version>3.3.3</maven.version>
 
-        <azure.toolkit-lib.version>0.7.0</azure.toolkit-lib.version>
+        <azure.toolkit-lib.version>0.7.1</azure.toolkit-lib.version>
         <azure.maven-plugin-lib.version>1.10.0</azure.maven-plugin-lib.version>
 
         <azure.ai.version>2.6.3</azure.ai.version>
