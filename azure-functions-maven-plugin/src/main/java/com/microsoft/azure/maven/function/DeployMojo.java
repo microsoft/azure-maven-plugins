@@ -137,6 +137,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String INVALID_JAVA_VERSION = "Unsupported value %s for <javaVersion> in pom.xml";
     private static final String INVALID_PRICING_TIER = "Unsupported value %s for <pricingTier> in pom.xml";
     private static final String FAILED_TO_LIST_TRIGGERS = "Deployment succeeded, but failed to list http trigger urls.";
+    private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
 
     private AzureAppService az;
 
@@ -380,6 +381,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private void deployArtifact(IFunctionAppBase target) throws AzureExecutionException {
+        if (target.getRuntime().getOperatingSystem() == OperatingSystem.DOCKER) {
+            AzureMessager.getMessager().info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
+            return;
+        }
         AzureMessager.getMessager().info(DEPLOY_START);
         final FunctionDeployType deployType = StringUtils.isEmpty(deploymentType) ? null : FunctionDeployType.fromString(deploymentType);
         // For ftp deploy, we need to upload entire staging directory not the zipped package
