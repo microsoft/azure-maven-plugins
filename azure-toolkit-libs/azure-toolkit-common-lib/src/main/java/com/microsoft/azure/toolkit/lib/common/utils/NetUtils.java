@@ -48,7 +48,10 @@ public class NetUtils {
                 sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
             }
             return sb.toString();
-        } catch (Exception e) {
+            /**
+             * TODO: refactor it to adopt exception case in mac.
+             */
+        } catch (Throwable e) {
             return "UNKNOWN_MAC";
         }
     }
@@ -57,7 +60,7 @@ public class NetUtils {
         String hostname = "UNKNOWN_HOST";
         try {
             hostname = InetAddress.getLocalHost().getHostName();
-        } catch (Exception e) {
+        } catch (Throwable e) {
         }
         return hostname;
     }
