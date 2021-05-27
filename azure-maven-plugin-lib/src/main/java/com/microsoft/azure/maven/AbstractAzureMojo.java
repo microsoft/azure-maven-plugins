@@ -370,6 +370,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
         printCredentialDescription(account, isInteractiveLogin);
         telemetryProxy.addDefaultProperty(AUTH_TYPE, getAuthType());
+        telemetryProxy.addDefaultProperty(AUTH_METHOD, getActualAuthType());
         telemetryProxy.addDefaultProperty(AZURE_ENVIRONMENT, environmentName);
         return account;
     }
@@ -475,6 +476,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             telemetryProxy.disable();
         } else {
             AzureTelemeter.setClient(telemetryProxy.getClient());
+            AzureTelemeter.setCommonProperties(this.getTelemetryProperties());
+            AzureTelemeter.setEventNamePrefix("AzurePlugin.Maven");
         }
     }
 
@@ -711,7 +714,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         if (StringUtils.isBlank(targetSubscriptionId)) {
             return selectSubscription(subscriptions.toArray(new Subscription[0]));
         }
-
+        telemetryProxy.addDefaultProperty(SUBSCRIPTION_ID_KEY, targetSubscriptionId);
         return targetSubscriptionId;
     }
 

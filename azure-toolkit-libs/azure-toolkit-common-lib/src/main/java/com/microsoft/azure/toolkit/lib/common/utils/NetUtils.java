@@ -13,9 +13,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,8 +48,11 @@ public class NetUtils {
                 sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
             }
             return sb.toString();
-        } catch (UnknownHostException | SocketException e) {
-            return StringUtils.EMPTY;
+            /**
+             * TODO: refactor it to adopt exception case in mac.
+             */
+        } catch (Throwable e) {
+            return "UNKNOWN_MAC";
         }
     }
 
@@ -59,7 +60,7 @@ public class NetUtils {
         String hostname = "UNKNOWN_HOST";
         try {
             hostname = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
+        } catch (Throwable e) {
         }
         return hostname;
     }

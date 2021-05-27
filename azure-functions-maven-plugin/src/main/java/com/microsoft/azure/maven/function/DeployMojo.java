@@ -136,6 +136,8 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String INVALID_OS = "The value of <os> is not correct, supported values are: windows, linux and docker.";
     private static final String INVALID_JAVA_VERSION = "Unsupported value %s for <javaVersion> in pom.xml";
     private static final String INVALID_PRICING_TIER = "Unsupported value %s for <pricingTier> in pom.xml";
+    private static final String FAILED_TO_LIST_TRIGGERS = "Deployment succeeded, but failed to list http trigger urls.";
+    private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
 
     private AzureAppService az;
 
@@ -379,6 +381,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private void deployArtifact(IFunctionAppBase target) throws AzureExecutionException {
+        if (target.getRuntime().getOperatingSystem() == OperatingSystem.DOCKER) {
+            AzureMessager.getMessager().info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
+            return;
+        }
         AzureMessager.getMessager().info(DEPLOY_START);
         final FunctionDeployType deployType = StringUtils.isEmpty(deploymentType) ? null : FunctionDeployType.fromString(deploymentType);
         // For ftp deploy, we need to upload entire staging directory not the zipped package
@@ -405,23 +411,28 @@ public class DeployMojo extends AbstractFunctionMojo {
      * List anonymous HTTP Triggers url after deployment
      */
     protected void listHTTPTriggerUrls(IFunctionApp target) {
-        final List<FunctionEntity> triggers = listFunctions(target);
-        final List<FunctionEntity> httpFunction = triggers.stream()
-                .filter(function -> function.getTrigger() != null &&
-                        StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
-                .collect(Collectors.toList());
-        final List<FunctionEntity> anonymousTriggers = httpFunction.stream()
-                .filter(bindingResource -> bindingResource.getTrigger() != null &&
-                        StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), AuthorizationLevel.ANONYMOUS.toString()))
-                .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(httpFunction) || CollectionUtils.isEmpty(anonymousTriggers)) {
-            AzureMessager.getMessager().info(NO_ANONYMOUS_HTTP_TRIGGER);
-            return;
-        }
-        AzureMessager.getMessager().info(HTTP_TRIGGER_URLS);
-        anonymousTriggers.forEach(trigger -> AzureMessager.getMessager().info(String.format("\t %s : %s", trigger.getName(), trigger.getTriggerUrl())));
-        if (anonymousTriggers.size() < httpFunction.size()) {
-            AzureMessager.getMessager().info(UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS);
+        try {
+            final List<FunctionEntity> triggers = listFunctions(target);
+            final List<FunctionEntity> httpFunction = triggers.stream()
+                    .filter(function -> function.getTrigger() != null &&
+                            StringUtils.equalsIgnoreCase(function.getTrigger().getType(), HTTP_TRIGGER))
+                    .collect(Collectors.toList());
+            final List<FunctionEntity> anonymousTriggers = httpFunction.stream()
+                    .filter(bindingResource -> bindingResource.getTrigger() != null &&
+                            StringUtils.equalsIgnoreCase(bindingResource.getTrigger().getProperty(AUTH_LEVEL), AuthorizationLevel.ANONYMOUS.toString()))
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(httpFunction) || CollectionUtils.isEmpty(anonymousTriggers)) {
+                AzureMessager.getMessager().info(NO_ANONYMOUS_HTTP_TRIGGER);
+                return;
+            }
+            AzureMessager.getMessager().info(HTTP_TRIGGER_URLS);
+            anonymousTriggers.forEach(trigger -> AzureMessager.getMessager().info(String.format("\t %s : %s", trigger.getName(), trigger.getTriggerUrl())));
+            if (anonymousTriggers.size() < httpFunction.size()) {
+                AzureMessager.getMessager().info(UNABLE_TO_LIST_NONE_ANONYMOUS_HTTP_TRIGGERS);
+            }
+        } catch (RuntimeException e) {
+            // show warning instead of exception for list triggers
+            AzureMessager.getMessager().warning(FAILED_TO_LIST_TRIGGERS);
         }
     }
 

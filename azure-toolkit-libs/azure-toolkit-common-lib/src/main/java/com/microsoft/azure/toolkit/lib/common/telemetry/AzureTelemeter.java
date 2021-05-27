@@ -16,6 +16,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.Parameter;
 import java.time.Instant;
 import java.util.HashMap;
@@ -38,12 +39,15 @@ public class AzureTelemeter {
     private static final String ERROR_STACKTRACE = "errorStackTrace";
     @Getter
     @Setter
+    @Nullable
     private static String eventNamePrefix;
     @Getter
     @Setter
+    @Nullable
     private static Map<String, String> commonProperties;
     @Getter
     @Setter
+    @Nullable
     private static TelemetryClient client;
 
     public static void afterCreate(@Nonnull final IAzureOperation op) {
@@ -77,8 +81,8 @@ public class AzureTelemeter {
 
     public static void log(final AzureTelemetry.Type type, final Map<String, String> properties) {
         if (client != null) {
-            properties.putAll(getCommonProperties());
-            final String eventName = getEventNamePrefix() + "/" + type.name();
+            properties.putAll(Optional.ofNullable(getCommonProperties()).orElse(new HashMap<>()));
+            final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.name();
             client.trackEvent(eventName, properties, null);
             client.flush();
         }

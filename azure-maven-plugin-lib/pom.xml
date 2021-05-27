@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>azure-maven-plugin-lib</artifactId>
+    <name>Azure Maven Plugin Library</name>
     <description>Common library for Azure Maven Plugins</description>
     <url>https://github.com/microsoft/azure-maven-plugins</url>
 
