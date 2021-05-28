@@ -7,6 +7,7 @@ package com.microsoft.azure.maven.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
+import com.microsoft.azure.toolkit.lib.common.utils.HashMacUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ public enum AppInsightHelper implements TelemetryProxy {
     AppInsightHelper() {
         sessionId = UUID.randomUUID().toString();
         defaultProperties.put(TELEMETRY_KEY_SESSION_ID, sessionId);
-        defaultProperties.put(TELEMETRY_KEY_INSTALLATIONID, GetHashMac.getHashMac());
+        defaultProperties.put(TELEMETRY_KEY_INSTALLATIONID, HashMacUtils.getHashMac());
         initTelemetryHttpClient();
     }
 
@@ -79,7 +80,7 @@ public enum AppInsightHelper implements TelemetryProxy {
     }
 
     public String getInstallationId() {
-        return GetHashMac.getHashMac();
+        return HashMacUtils.getHashMac();
     }
 
     public void addDefaultProperty(String key, String value) {

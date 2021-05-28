@@ -38,24 +38,6 @@ public class NetUtils {
         return ip;
     }
 
-    public static String getMac() {
-        try {
-            InetAddress ip = InetAddress.getLocalHost();
-            NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-            byte[] mac = network.getHardwareAddress();
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < mac.length; i++) {
-                sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
-            }
-            return sb.toString();
-            /**
-             * TODO: refactor it to adopt exception case in mac.
-             */
-        } catch (Throwable e) {
-            return "UNKNOWN_MAC";
-        }
-    }
-
     public static String getHostName() {
         String hostname = "UNKNOWN_HOST";
         try {

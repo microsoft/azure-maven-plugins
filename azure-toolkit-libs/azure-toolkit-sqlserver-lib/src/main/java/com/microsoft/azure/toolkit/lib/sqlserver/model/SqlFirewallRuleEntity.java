@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.lib.sqlserver.model;
 
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.common.utils.MacUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
@@ -14,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 public class SqlFirewallRuleEntity implements IAzureResourceEntity {
 
-    public static final String ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME = "ClientIPAddress_" + NetUtils.getHostName() + "_" + NetUtils.getMac();
+    public static final String ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME = "ClientIPAddress_" + NetUtils.getHostName() + "_" + MacUtils.getMac();
     public static final String ACCESS_FROM_AZURE_SERVICES_FIREWALL_RULE_NAME = "AllowAllWindowsAzureIps";
 
     private String name;
