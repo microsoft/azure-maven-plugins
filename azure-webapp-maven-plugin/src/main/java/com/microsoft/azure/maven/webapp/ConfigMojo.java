@@ -89,7 +89,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static final String SETTING_REGISTRY_USERNAME = "DOCKER_REGISTRY_SERVER_USERNAME";
     private static final String SERVER_ID_TEMPLATE = "Please add a server in Maven settings.xml related to username: %s and put the serverId here";
 
-    private static final List<String> WEB_APP_PROPERTIES = Arrays.asList("subscriptionId", "resourceGroup", "appName", "runtime", "deployment", "region",
+    private static final List<String> WEB_APP_PROPERTIES = Arrays.asList("resourceGroup", "appName", "runtime", "deployment", "region",
             "appServicePlanResourceGroup", "appServicePlanName", "deploymentSlot");
 
     private MavenPluginQueryer queryer;
