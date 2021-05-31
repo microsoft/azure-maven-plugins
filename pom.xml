@@ -78,6 +78,7 @@
         <azure.eventhubs-eph.version>3.2.2</azure.eventhubs-eph.version>
         <azure.function.version>1.4.2</azure.function.version>
         <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
+        <azure.storage.version>8.6.6</azure.storage.version>
         <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
         <azure.version>1.41.1</azure.version>
 
@@ -127,6 +128,11 @@
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.checkstyle-plugin.version>3.1.2</maven.checkstyle-plugin.version>
         <okhttp.version>5.0.0-alpha.2</okhttp.version>
+        <asm.verison>9.1</asm.verison>
+        <nimbus-jose-jwt.version>9.9.3</nimbus-jose-jwt.version>
+        <joda-time.version>2.10.10</joda-time.version>
+        <httpcore.version>4.4.14</httpcore.version>
+        <plexus-interpolation.version>1.26</plexus-interpolation.version>
     </properties>
 
     <dependencyManagement>
@@ -182,6 +188,11 @@
                 <groupId>com.microsoft.azure.applicationinsights.v2015_05_01</groupId>
                 <artifactId>azure-mgmt-insights</artifactId>
                 <version>${azure.mgmt-insights.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-storage</artifactId>
+                <version>${azure.storage.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.errorprone</groupId>
@@ -537,6 +548,12 @@
                 <artifactId>azure-eventhubs</artifactId>
                 <version>${azure.eventhubs.version}</version>
                 <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.microsoft.azure</groupId>
+                        <artifactId>azure-client-authentication</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
@@ -580,6 +597,48 @@
                 <version>${jacoco.version}</version>
                 <classifier>runtime</classifier>
             </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${asm.verison}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-tree</artifactId>
+                <version>${asm.verison}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-analysis</artifactId>
+                <version>${asm.verison}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-util</artifactId>
+                <version>${asm.verison}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${nimbus-jose-jwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>${joda-time.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>${httpcore.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-interpolation</artifactId>
+                <version>${plexus-interpolation.version}</version>
+            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 

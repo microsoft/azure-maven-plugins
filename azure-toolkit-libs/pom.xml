@@ -58,6 +58,7 @@
         <azure.aad.version>1.6.7</azure.aad.version>
         <azure.applicationinsights.version>2.6.3</azure.applicationinsights.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
+        <azure.resourcemanager-applicationinsights.version>1.0.0-beta.1</azure.resourcemanager-applicationinsights.version>
         <azure.azure-mgmt-appplatform.version>1.0.0-beta</azure.azure-mgmt-appplatform.version>
         <azure.client.version>1.7.12</azure.client.version>
         <azure.identity.version>1.3.0</azure.identity.version>
@@ -67,7 +68,7 @@
         <azure.eventhubs.version>3.2.2</azure.eventhubs.version>
         <azure.eventhubs-eph.version>3.2.2</azure.eventhubs-eph.version>
         <azure.core.http.okhttp.version>1.6.2</azure.core.http.okhttp.version>
-        <azure.storage-file-share.version>12.10.0-beta.1</azure.storage-file-share.version>
+        <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
 
         <aspectj.version>1.9.7.M3</aspectj.version>
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
@@ -84,7 +85,6 @@
         <httpclient.version>4.5.13</httpclient.version>
         <jackson.version>2.12.3</jackson.version>
         <jacoco.version>0.8.7</jacoco.version>
-        <jacoco.version>0.8.5</jacoco.version>
         <jansi.version>2.3.2</jansi.version>
         <jetbrains.annotations.version>21.0.1</jetbrains.annotations.version>
         <json.schema.validator.version>2.2.14</json.schema.validator.version>
@@ -94,6 +94,7 @@
         <mockito.version>3.10.0</mockito.version>
         <rx.version>1.3.8</rx.version>
         <slf4j-api.version>2.0.0-alpha1</slf4j-api.version>
+        <snakeyaml.version>1.28</snakeyaml.version>
         <spring-test.version>5.3.7</spring-test.version>
 
         <maven.plugin-tools.version>3.6.1</maven.plugin-tools.version>
@@ -114,7 +115,10 @@
         <okhttp.version>5.0.0-alpha.2</okhttp.version>
         <commons-exec.version>1.3</commons-exec.version>
         <semver4j.version>3.1.0</semver4j.version>
-        <azure.storage-file-share.version>12.10.0-beta.1</azure.storage-file-share.version>
+        <asm.verison>9.1</asm.verison>
+        <nimbus-jose-jwt.version>9.9.3</nimbus-jose-jwt.version>
+        <joda-time.version>2.10.10</joda-time.version>
+        <httpcore.version>4.4.14</httpcore.version>
     </properties>
 
     <dependencyManagement>
@@ -140,6 +144,11 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-auth-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -312,6 +321,18 @@
                         <groupId>com.azure</groupId>
                         <artifactId>azure-core-http-netty</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.datatype</groupId>
+                        <artifactId>jackson-datatype-jsr310</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.dataformat</groupId>
+                        <artifactId>jackson-dataformat-xml</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -325,25 +346,19 @@
                 <version>${okhttp.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>${httpclient.version}</version>
-        </dependency>
-            <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp</artifactId>
+                <artifactId>logging-interceptor</artifactId>
                 <version>${okhttp.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-storage-file-share</artifactId>
-                <version>${azure.storage-file-share.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.azure</groupId>
-                        <artifactId>azure-core-http-netty</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp-urlconnection</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure</groupId>
@@ -381,6 +396,29 @@
                 <version>${azure.aad.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-applicationinsights</artifactId>
+                <version>${azure.resourcemanager-applicationinsights.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.azure</groupId>
+                        <artifactId>azure-core-management</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-eventhubs</artifactId>
+                <version>${azure.eventhubs.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.microsoft.azure</groupId>
+                        <artifactId>azure-client-authentication</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>${commons.collections4.version}</version>
@@ -411,6 +449,26 @@
                 <version>${semver4j.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${asm.verison}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-tree</artifactId>
+                <version>${asm.verison}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-analysis</artifactId>
+                <version>${asm.verison}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-util</artifactId>
+                <version>${asm.verison}</version>
+            </dependency>
+            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
@@ -422,6 +480,22 @@
                 <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${nimbus-jose-jwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>${joda-time.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>${httpcore.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
     <build>
