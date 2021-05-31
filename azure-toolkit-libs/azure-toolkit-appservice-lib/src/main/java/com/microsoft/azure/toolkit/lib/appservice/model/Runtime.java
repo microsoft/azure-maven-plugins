@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @AllArgsConstructor
@@ -94,5 +96,17 @@ public class Runtime {
     @Override
     public int hashCode() {
         return Objects.hash(operatingSystem, webContainer, javaVersion);
+    }
+
+    @Override
+    public String toString() {
+        if (OperatingSystem.DOCKER.equals(operatingSystem)) {
+            return "Docker";
+        }
+
+        return Stream.of(getOperatingSystem(), getJavaVersion(), getWebContainer())
+            .filter(Objects::nonNull)
+            .map(Object::toString)
+            .collect(Collectors.joining("|"));
     }
 }

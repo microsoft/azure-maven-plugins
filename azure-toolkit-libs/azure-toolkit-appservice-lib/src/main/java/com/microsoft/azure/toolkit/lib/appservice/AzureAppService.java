@@ -16,6 +16,9 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
@@ -35,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -104,6 +108,11 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
                 .collect(Collectors.toList());
     }
 
+    public @Nonnull List<Runtime> listWebAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
+        return Runtime.values().stream().filter(r -> Objects.equals(os, r.getOperatingSystem()) && Objects.equals(version, r.getJavaVersion()))
+            .collect(Collectors.toList());
+    }
+
     public IAppServicePlan appServicePlan(String id) {
         final AppServicePlanEntity appServicePlanEntity = AppServicePlanEntity.builder().id(id).build();
         return appServicePlan(appServicePlanEntity);
@@ -143,7 +152,12 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     public IWebAppDeploymentSlot deploymentSlot(String subscriptionId, String resourceGroup, String appName, String slotName) {
-        return deploymentSlot(WebAppDeploymentSlotEntity.builder().subscriptionId(subscriptionId).resourceGroup(resourceGroup).webappName(appName).name(slotName).build());
+        return deploymentSlot(WebAppDeploymentSlotEntity.builder()
+            .subscriptionId(subscriptionId)
+            .resourceGroup(resourceGroup)
+            .webappName(appName)
+            .name(slotName)
+            .build());
     }
 
     public IWebAppDeploymentSlot deploymentSlot(WebAppDeploymentSlotEntity deploymentSlot) {

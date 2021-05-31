@@ -91,4 +91,9 @@ public class Region {
             .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label))
             .findFirst().orElse(null);
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
