@@ -12,7 +12,7 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.SkuName;
 import com.microsoft.azure.management.appservice.WebAppBase;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -57,7 +57,7 @@ public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHan
                 getRuntimeStack().getLinuxFxVersionForConsumptionPlan() : getRuntimeStack().getLinuxFxVersionForDedicatedPlan();
         if (!StringUtils.equals(deploymentSlot.linuxFxVersion(), targetFxVersion)) {
             // Update runtime in deployment slot is not supported with current SDK
-            Log.warn("Updating runtime of linux deployment slot is not supported in current version");
+            AzureMessager.getMessager().warning("Updating runtime of linux deployment slot is not supported in current version");
         }
         return deploymentSlot.update();
     }

@@ -12,7 +12,7 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
@@ -105,7 +105,7 @@ public class AppServiceUtils {
         if (pricingTier == null || pricingTier.equals(appServicePlan.pricingTier())) {
             return appServicePlan;
         }
-        Log.prompt(UPDATE_APP_SERVICE_PLAN);
+        AzureMessager.getMessager().info(UPDATE_APP_SERVICE_PLAN);
         final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
         return appServicePlanUpdate.withPricingTier(pricingTier).apply();
     }

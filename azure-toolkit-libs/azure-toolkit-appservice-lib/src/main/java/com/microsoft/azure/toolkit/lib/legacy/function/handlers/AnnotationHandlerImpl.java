@@ -10,12 +10,12 @@ import com.microsoft.azure.functions.annotation.FixedDelayRetry;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.StorageAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingFactory;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.Retry;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@Slf4j
 public class AnnotationHandlerImpl implements AnnotationHandler {
 
     private static final String MULTI_RETRY_ANNOTATION = "Fixed delay retry and exponential backoff retry are not compatible, " +
@@ -52,7 +53,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
     }
 
     protected ClassLoader getClassLoader(final List<URL> urlList) {
-        final URL[] urlArray = urlList.toArray(new URL[urlList.size()]);
+        final URL[] urlArray = urlList.toArray(new URL[0]);
         return new URLClassLoader(urlArray, this.getClass().getClassLoader());
     }
 
@@ -63,7 +64,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
             final FunctionName functionAnnotation = method.getAnnotation(FunctionName.class);
             final String functionName = functionAnnotation.value();
             validateFunctionName(configMap.keySet(), functionName);
-            Log.debug("Starting processing function : " + functionName);
+            log.debug("Starting processing function : " + functionName);
             configMap.put(functionName, generateConfiguration(method));
         }
         return configMap;
@@ -133,7 +134,7 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
         for (final Annotation annotation : annotationProvider.get()) {
             final Binding binding = annotationParser.apply(annotation);
             if (binding != null) {
-                Log.debug("Adding binding: " + binding.toString());
+                log.debug("Adding binding: " + binding);
                 bindings.add(binding);
             }
         }
@@ -159,14 +160,14 @@ public class AnnotationHandlerImpl implements AnnotationHandler {
                 .findFirst();
 
         if (storageAccount.isPresent()) {
-            Log.debug("StorageAccount annotation found.");
+            log.debug("StorageAccount annotation found.");
             final String connectionString = ((StorageAccount) storageAccount.get()).value();
             // Replace empty connection string
             bindings.stream().filter(binding -> binding.getBindingEnum().isStorage())
                     .filter(binding -> StringUtils.isEmpty((String) binding.getAttribute("connection")))
                     .forEach(binding -> binding.setAttribute("connection", connectionString));
         } else {
-            Log.debug("No StorageAccount annotation found.");
+            log.debug("No StorageAccount annotation found.");
         }
     }
 }
