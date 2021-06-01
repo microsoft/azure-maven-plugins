@@ -9,7 +9,6 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.ArtifactHandler;
@@ -36,7 +35,6 @@ import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_VERSION_K
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_WEB_CONTAINER_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.OS_KEY;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -85,17 +83,12 @@ public class DeployMojoTest {
 
         assertEquals(null, mojo.getPricingTier());
 
-        assertEquals(null, mojo.getJavaVersion());
-
-        assertEquals(WebContainer.TOMCAT_85, mojo.getJavaWebContainer());
-
         assertEquals(1, mojo.getAppSettings().size());
 
         assertEquals(DeploymentType.EMPTY, mojo.getDeploymentType());
 
         assertEquals(1, mojo.getDeployment().getResources().size());
 
-        assertFalse(mojo.isStopAppDuringDeployment());
     }
 
     @Test
@@ -103,8 +96,6 @@ public class DeployMojoTest {
         final DeployMojo mojo = getMojoFromPom("/pom-windows.xml");
 
         assertEquals(JavaVersion.JAVA_11, mojo.getRuntime().getJavaVersion());
-
-        assertEquals(WebContainer.TOMCAT_85, mojo.getJavaWebContainer());
 
         assertEquals(PricingTier.STANDARD_S2, AppServiceUtils.getPricingTierFromString(mojo.getPricingTier()));
     }
@@ -123,18 +114,6 @@ public class DeployMojoTest {
         assertTrue(map.containsKey(DEPLOYMENT_TYPE_KEY));
         assertTrue(map.containsKey(OS_KEY));
         assertTrue(map.containsKey(DEPLOY_TO_SLOT_KEY));
-    }
-
-    @Test
-    public void getDeploymentSlotSetting() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
-        assertNotNull(mojo.getDeploymentSlotSetting());
-    }
-
-    @Test
-    public void getNUllDeploymentSlotSetting() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        assertNull(mojo.getDeploymentSlotSetting());
     }
 
     @Test

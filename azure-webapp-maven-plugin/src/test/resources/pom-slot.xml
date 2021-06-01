@@ -28,6 +28,7 @@
                             <value>80</value>
                         </property>
                     </appSettings>
+                    <deployment>
                     <resources>
                         <resource>
                             <directory>${baseDir}/target</directory>
@@ -37,6 +38,7 @@
                             </includes>
                         </resource>
                     </resources>
+                    </deployment>
                 </configuration>
             </plugin>
         </plugins>
