@@ -31,25 +31,24 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.6.0</version>
+               <version>1.15.0</version>
                <configuration>
                   <schemaVersion>V2</schemaVersion>
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
-                  <authentication>
+                  <auth>
                     <serverId>${AZURE_AUTH}</serverId>
-                  </authentication>
+                  </auth>
                   
                   <!-- Web App information -->
                   <resourceGroup>${RESOURCEGROUP_NAME}</resourceGroup>
                   <appName>${WEBAPP_NAME}</appName>
                   <region>westeurope</region>
-                  <pricingTier>P1V2</pricingTier>
+                  <pricingTier>P1v2</pricingTier>
                   <!-- Java Runtime Stack for Web App on Windows-->
                   <runtime>
-                    <os>Linux</os>
-                      <!-- for now only jre8 is supported for <javaVersion> of linux web app-->
-                      <javaVersion>jre8</javaVersion>
-                      <webContainer>tomcat 8.5</webContainer>
+                    <os>Linux</os>                      
+                      <javaVersion>Java 8</javaVersion>
+                      <webContainer>Tomcat 8.5</webContainer>
                     </runtime>
                   <appSettings>
                      <property>
@@ -103,19 +102,18 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.6.0</version>
-               <configuration>
-                  <schemaVersion>V2</schemaVersion>
+               <version>1.15.0</version>
+               <configuration>                  
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
-                  <authentication>
+                  <auth>
                     <serverId>${AZURE_AUTH}</serverId>
-                  </authentication>
+                  </auth>
                   
                   <!-- Web App information -->
                   <resourceGroup>${RESOURCEGROUP_NAME}</resourceGroup>
                   <appName>${WEBAPP_NAME}</appName>
                   <region>westeurope</region>
-                  <pricingTier>P1V2</pricingTier>
+                  <pricingTier>P1v2</pricingTier>
                   
                   <!-- Java Runtime Stack for Web App on Windows-->
                   <runtime>
@@ -165,25 +163,24 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.6.0</version>
-               <configuration>
-                  <schemaVersion>V2</schemaVersion>
+               <version>1.15.0</version>
+               <configuration>                  
                   <!-- Reference <serverId> in Maven's settings.xml to authenticate with Azure -->
-                  <authentication>
+                  <auth>
                     <serverId>${AZURE_AUTH}</serverId>
-                  </authentication>
+                  </auth>
                   
                   <!-- Web App information -->
                   <resourceGroup>${RESOURCEGROUP_NAME}</resourceGroup>
                   <appName>${WEBAPP_NAME}</appName>
                   <region>westeurope</region>
-                  <pricingTier>P1V2</pricingTier>
+                  <pricingTier>P1v2</pricingTier>
 
                   <!-- Java Runtime Stack for Web App on Windows-->
                   <runtime>
                     <os>Windows</os>
-                    <javaVersion>1.8</javaVersion>
-                    <webContainer>tomcat 8.5</webContainer>
+                    <javaVersion>Java 8</javaVersion>
+                    <webContainer>Tomcat 8.5</webContainer>
                   </runtime>
                   <!-- Deployment settings -->
                   <deployment>
@@ -221,20 +218,19 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.6.0</version>
-               <configuration>
-                  <schemaVersion>V2</schemaVersion>
+               <version>1.15.0</version>
+               <configuration>                  
                   <!-- Reference ${azure.auth.filePath} from Maven's settings.xml to authenticate with Azure -->
-                  <authentication>
+                  <auth>
                     <file>${azure.auth.filePath}</file>
-                  </authentication>
+                  </auth>
                   
                   <!-- Web App information -->
                   <resourceGroup>${RESOURCEGROUP_NAME}</resourceGroup>
                   <appName>${WEBAPP_NAME}</appName>
                   
                   <region>westeurope</region>
-                  <pricingTier>P1V2</pricingTier>
+                  <pricingTier>P1v2</pricingTier>
                   
                   <!-- Runtime Stack specified by Docker container image -->
                   <runtime>
@@ -267,7 +263,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                <groupId>com.microsoft.azure</groupId>
                <artifactId>azure-webapp-maven-plugin</artifactId>
-               <version>1.6.0</version>
+               <version>1.15.0</version>
                <configuration>
                   
                   <!-- Web App information -->
@@ -306,7 +302,7 @@ The following configuration is applicable for below scenario:
             <plugin>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
-                <version>1.6.0</version>
+                <version>1.15.0</version>
                 <configuration>
                     <authentication>
                         <serverId>${AZURE_AUTH}</serverId>
@@ -323,10 +319,12 @@ The following configuration is applicable for below scenario:
                     </deploymentSlotSetting>
                     
                     <!-- Java Runtime Stack for Web App on Linux-->
-                    <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
-                    
-                    <!-- War Deploy -->
-                    <deploymentType>war</deploymentType>
+                    <runtime>
+                      <os>Windows</os>
+                      <javaVersion>Java 8</javaVersion>
+                      <webContainer>Tomcat 8.5</webContainer>
+                    </runtime>                  
+                
                 </configuration>
             </plugin>
         </plugins>
