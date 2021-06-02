@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class EventHubProcesser {
 
@@ -39,7 +39,7 @@ public class EventHubProcesser {
     private StorageAccount storageAccount;
     private ResourceGroup resourceGroup;
 
-    private ExecutorService executorService = Executors.newCachedThreadPool();
+    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(8);
     private Map<String, EventHubClient> eventHubClientMap = new HashMap<>();
 
     public EventHubProcesser(String resourceGroupName, String namespaceName, String storageAccountName)
@@ -134,7 +134,7 @@ public class EventHubProcesser {
                 .setEventHubName(eventHubName)
                 .setSasKeyName(SAS_KAY_NAME)
                 .setSasKey(getEventHubKey());
-            final EventHubClient eventHubClient = EventHubClient.create(connStr.toString(), executorService).get();
+            final EventHubClient eventHubClient = EventHubClient.createFromConnectionStringSync(connStr.toString(), executorService);
             eventHubClientMap.put(eventHubName, eventHubClient);
             return eventHubClient;
         }
