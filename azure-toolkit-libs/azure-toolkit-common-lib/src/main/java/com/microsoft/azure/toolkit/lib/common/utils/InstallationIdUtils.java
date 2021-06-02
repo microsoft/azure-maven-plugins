@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HashMacUtils {
+public class InstallationIdUtils {
 
     private static final Pattern HASHED_MAC_PATTERN = Pattern.compile("[0-9a-f]{64}");
     // Hashed mac address for iBridge device
@@ -24,7 +24,7 @@ public class HashMacUtils {
     }
 
     public static String getHashMac() {
-        String mac = MacUtils.getMac();
+        String mac = NetUtils.getMac();
         return StringUtils.isNotBlank(mac) ? hash(mac) : null;
     }
 

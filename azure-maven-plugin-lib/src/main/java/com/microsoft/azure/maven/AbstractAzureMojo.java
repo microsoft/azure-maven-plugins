@@ -39,7 +39,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
-import com.microsoft.azure.toolkit.lib.common.utils.HashMacUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
 import lombok.Getter;
@@ -226,7 +226,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Getter
     private final String sessionId = UUID.randomUUID().toString();
 
-    private final String installationId = HashMacUtils.getHashMac();
+    private final String installationId = InstallationIdUtils.getHashMac();
 
     //endregion
 
