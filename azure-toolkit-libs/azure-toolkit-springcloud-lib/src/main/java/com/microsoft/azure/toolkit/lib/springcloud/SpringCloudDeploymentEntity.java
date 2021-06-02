@@ -28,6 +28,7 @@ import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.ExternalChildResource;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentStatus;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -79,10 +80,11 @@ public class SpringCloudDeploymentEntity implements IAzureResourceEntity {
             .orElse(1);
     }
 
-    public String getStatus() {
-        return Optional.ofNullable(this.remote)
+    public SpringCloudDeploymentStatus getStatus() {
+        final String status = Optional.ofNullable(this.remote)
             .map(SpringAppDeployment::status)
             .orElse(DeploymentResourceStatus.UNKNOWN).toString();
+        return SpringCloudDeploymentStatus.valueOf(status.toUpperCase());
     }
 
     public String getRuntimeVersion() {
