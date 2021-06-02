@@ -80,6 +80,18 @@ public class Runtime {
         return values;
     }
 
+    public boolean isWindows() {
+        return Objects.equals(operatingSystem, OperatingSystem.WINDOWS);
+    }
+
+    public boolean isLinux() {
+        return Objects.equals(operatingSystem, OperatingSystem.LINUX);
+    }
+
+    public boolean isDocker() {
+        return Objects.equals(operatingSystem, OperatingSystem.DOCKER);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -100,7 +112,7 @@ public class Runtime {
 
     @Override
     public String toString() {
-        if (OperatingSystem.DOCKER.equals(operatingSystem)) {
+        if (isDocker()) {
             return "Docker";
         }
 

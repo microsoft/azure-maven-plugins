@@ -24,5 +24,6 @@ public class AppServiceBaseEntity implements IAzureResourceEntity {
     private final Runtime runtime;
     private final String appServicePlanId;
     private final String defaultHostName;
+    private final String dockerImageName;
     private final Map<String, String> appSettings;
 }

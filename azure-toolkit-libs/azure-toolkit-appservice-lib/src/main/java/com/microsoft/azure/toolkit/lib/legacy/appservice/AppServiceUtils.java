@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class AppServiceUtils {
     public static PricingTier getPricingTierFromString(final String pricingTierString) {
@@ -51,8 +50,7 @@ public class AppServiceUtils {
     }
 
     public static boolean isDockerAppService(IWebApp webapp) {
-        return webapp != null && webapp.getRuntime() != null &&
-            Objects.equals(webapp.getRuntime().getOperatingSystem(), OperatingSystem.DOCKER);
+        return webapp != null && webapp.getRuntime() != null && webapp.getRuntime().isDocker();
     }
 
 }

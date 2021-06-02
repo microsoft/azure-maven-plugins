@@ -180,7 +180,7 @@ public class ConfigurationParserTest {
         doReturn(session).when(mojo).getSession();
         doReturn("test-staging-path").when(mojo).getDeploymentStagingDirectoryPath();
         doReturn("test-build-directory-path").when(mojo).getBuildDirectoryAbsolutePath();
-        doReturn("p1v2").when(mojo).getPricingTier();
+        doReturn("P1v2").when(mojo).getPricingTier();
 
         doReturn(OperatingSystem.WINDOWS).when(parserSpy).getOs();
         WebAppConfiguration webAppConfiguration = parserSpy.getWebAppConfiguration();
