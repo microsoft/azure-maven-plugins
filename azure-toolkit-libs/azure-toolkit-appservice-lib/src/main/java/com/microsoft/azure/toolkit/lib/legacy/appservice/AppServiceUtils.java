@@ -39,6 +39,10 @@ public class AppServiceUtils {
                 }
             }
         }
+
+        pricingTiers.add(new PricingTier("PremiumV3", "P1v3"));
+        pricingTiers.add(new PricingTier("PremiumV3", "P2v3"));
+        pricingTiers.add(new PricingTier("PremiumV3", "P3v3"));
     }
 
     public static AppServicePlan getAppServicePlan(final String servicePlanName, final Azure azureClient,
