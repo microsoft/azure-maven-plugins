@@ -76,15 +76,14 @@
         <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
         <azure.function.version>1.4.2</azure.function.version>
         <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
-        <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
-        <azure.security.keyvault.keys.version> 4.3.0-beta.8</azure.security.keyvault.keys.version>
-        <azure.security.keyvault.secrets.version> 4.3.0-beta.6</azure.security.keyvault.secrets.version>
-        <azure.security.keyvault.certificates.version>4.2.0-beta.6</azure.security.keyvault.certificates.version>
-        <azure.storage.file.share.version>12.10.0-beta.1</azure.storage.file.share.version>
-        <azure.storage.queue.version>12.10.0-beta.1</azure.storage.queue.version>
-        <azure.storage.blob.version>12.12.0-beta.1</azure.storage.blob.version>
-        <azure.storage.blob.batch.version>12.10.0-beta.1</azure.storage.blob.batch.version>
-        <azure.storage.file.datalake.version> 12.6.0-beta.1</azure.storage.file.datalake.version>
+        <azure.security.keyvault.keys.version>4.2.8</azure.security.keyvault.keys.version>
+        <azure.security.keyvault.secrets.version> 4.2.8</azure.security.keyvault.secrets.version>
+        <azure.security.keyvault.certificates.version>4.1.8</azure.security.keyvault.certificates.version>
+        <azure.storage.file.share.version>12.9.1</azure.storage.file.share.version>
+        <azure.storage.queue.version>12.9.1</azure.storage.queue.version>
+        <azure.storage.blob.version>12.11.1</azure.storage.blob.version>
+        <azure.storage.blob.batch.version>12.9.1</azure.storage.blob.batch.version>
+        <azure.storage.file.datalake.version> 12.5.1</azure.storage.file.datalake.version>
 
         <aspectj.version>1.9.7.M3</aspectj.version>
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
