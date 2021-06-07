@@ -54,62 +54,65 @@
 
         <azure.toolkit-lib.version>${project.version}</azure.toolkit-lib.version>
 
-        <azure.core.version>1.15.0</azure.core.version>
-        <azure.aad.version>1.6.4</azure.aad.version>
+        <azure.core.version>1.16.0</azure.core.version>
+        <azure.aad.version>1.6.7</azure.aad.version>
         <azure.applicationinsights.version>2.6.3</azure.applicationinsights.version>
         <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
         <azure.azure-mgmt-appplatform.version>1.0.0-beta</azure.azure-mgmt-appplatform.version>
         <azure.client.version>1.7.12</azure.client.version>
-        <azure.identity.version>1.3.0-beta.2</azure.identity.version>
-        <azure.resourcemanager.version>2.4.0</azure.resourcemanager.version>
-        <azure.storage.version>8.0.0</azure.storage.version>
-        <azure.version>1.38.1</azure.version>
-        <azure.core.http.okhttp.version>1.6.1</azure.core.http.okhttp.version>
-        <azure.storage-file-share.version>12.9.0</azure.storage-file-share.version>
+        <azure.identity.version>1.3.0</azure.identity.version>
+        <azure.resourcemanager.version>2.5.0</azure.resourcemanager.version>
+        <azure.storage.version>8.6.6</azure.storage.version>
+        <azure.version>1.41.1</azure.version>
+        <azure.eventhubs.version>3.2.2</azure.eventhubs.version>
+        <azure.core.http.okhttp.version>1.6.2</azure.core.http.okhttp.version>
+        <azure.storage-file-share.version>12.9.1</azure.storage-file-share.version>
 
-        <aspectj.version>1.8.13</aspectj.version>
+        <aspectj.version>1.9.7.M3</aspectj.version>
         <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
         <commons.codec.version>1.15</commons.codec.version>
         <commons.collections4.version>4.4</commons.collections4.version>
         <commons.exec.version>1.3</commons.exec.version>
-        <commons.io.version>2.8.0</commons.io.version>
-        <commons.lang3.version>3.11</commons.lang3.version>
-        <commons.net.version>3.6</commons.net.version>
+        <commons.io.version>2.9.0</commons.io.version>
+        <commons.lang3.version>3.12.0</commons.lang3.version>
+        <commons.net.version>3.8.0</commons.net.version>
         <dom4j.version>2.1.3</dom4j.version>
-        <gson.version>2.8.6</gson.version>
-        <guava.version>30.1-jre</guava.version>
-        <httpclient.version>4.5.9</httpclient.version>
-        <jackson.version>2.12.1</jackson.version>
+        <error.prone.core.version>2.7.1</error.prone.core.version>
+        <gson.version>2.8.7</gson.version>
+        <guava.version>30.1.1-jre</guava.version>
+        <httpclient.version>4.5.13</httpclient.version>
+        <okhttp.version>4.9.1</okhttp.version>
+        <jackson.version>2.12.3</jackson.version>
+        <jacoco.version>0.8.7</jacoco.version>
         <jacoco.version>0.8.5</jacoco.version>
-        <jansi.version>1.17.1</jansi.version>
-        <jetbrains.annotations.version>19.0.0</jetbrains.annotations.version>
+        <jansi.version>2.3.2</jansi.version>
+        <jetbrains.annotations.version>21.0.1</jetbrains.annotations.version>
         <json.schema.validator.version>2.2.14</json.schema.validator.version>
-        <groovy.version>2.5.11</groovy.version>
-        <junit.version>4.13.1</junit.version>
-        <lombok.version>1.18.18</lombok.version>
-        <mockito.version>3.9.0</mockito.version>
+        <groovy.version>3.0.8</groovy.version>
+        <junit.version>4.13.2</junit.version>
+        <lombok.version>1.18.20</lombok.version>
+        <mockito.version>3.10.0</mockito.version>
         <rx.version>1.3.8</rx.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
+        <spring-test.version>5.3.7</spring-test.version>
 
         <maven.plugin-tools.version>3.3</maven.plugin-tools.version>
-        <maven.version>3.3.3</maven.version>
+        <maven.version>3.8.1</maven.version>
         <maven.source-plugin.version>2.2.1</maven.source-plugin.version>
         <maven.jar-plugin.version>3.0.2</maven.jar-plugin.version>
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.checkstyle-plugin.version>3.1.0</maven.checkstyle-plugin.version>
         <maven.aspectj-plugin.version>1.12.6</maven.aspectj-plugin.version>
 
-        <google.jsr305.version>3.0.0</google.jsr305.version>
-        <free.port.finder.version>1.0</free.port.finder.version>
+        <google.jsr305.version>3.0.2</google.jsr305.version>
+        <free.port.finder.version>1.1.1</free.port.finder.version>
         <jjwt.version>0.9.1</jjwt.version>
         <reflections.version>0.9.12</reflections.version>
-        <azure.core.version>1.15.0</azure.core.version>
-        <azure.core-http-netty.version>1.9.1</azure.core-http-netty.version>
-        <nimbusds.oauth2.oidc.sdk.version>7.1.1</nimbusds.oauth2.oidc.sdk.version>
-        <okhttp.version>4.9.1</okhttp.version>
+        <azure.core.version>1.16.0</azure.core.version>
+        <azure.core-http-netty.version>1.9.2</azure.core-http-netty.version>
+        <nimbusds.oauth2.oidc.sdk.version>9.7</nimbusds.oauth2.oidc.sdk.version>
         <commons-exec.version>1.3</commons-exec.version>
         <semver4j.version>3.1.0</semver4j.version>
-        <azure.storage-file-share.version>12.9.0</azure.storage-file-share.version>
     </properties>
 
     <dependencyManagement>
