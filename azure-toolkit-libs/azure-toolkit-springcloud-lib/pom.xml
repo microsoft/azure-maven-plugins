@@ -13,10 +13,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.azure</groupId>
-            <artifactId>azure-storage-file-share</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.azure.resourcemanager</groupId>
             <artifactId>azure-resourcemanager-appplatform</artifactId>
         </dependency>
