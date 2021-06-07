@@ -65,57 +65,10 @@
         <maven.plugin-testing-harness.version>3.3.0</maven.plugin-testing-harness.version>
         <maven.plugin-tools.version>3.3</maven.plugin-tools.version>
         <maven.shared-utils.version>3.3.4</maven.shared-utils.version>
-        <maven.version>3.8.1</maven.version>
-
-        <azure.toolkit-lib.version>0.8.0-SNAPSHOT</azure.toolkit-lib.version>
-        <azure.maven-plugin-lib.version>1.11.0-SNAPSHOT</azure.maven-plugin-lib.version>
-
-        <azure.ai.version>2.6.3</azure.ai.version>
-        <azure.applicationinsights-web.version>[2.0,)</azure.applicationinsights-web.version>
-        <azure.appplatform-sdk.version>1.0.0-beta</azure.appplatform-sdk.version>
-        <azure.client.version>1.7.12</azure.client.version>
-        <azure.eventhubs.version>3.2.2</azure.eventhubs.version>
-        <azure.function.version>1.4.2</azure.function.version>
-        <azure.mgmt-insights.version>1.0.0-beta</azure.mgmt-insights.version>
-        <azure.storage.version>8.6.6</azure.storage.version>
-        <azure.storage-blob.version>11.0.1</azure.storage-blob.version>
-        <azure.version>1.41.1</azure.version>
-
-        <codehaus.plexus-utils.version>3.3.0</codehaus.plexus-utils.version>
-        <commons.codec.version>1.15</commons.codec.version>
-        <commons.collections4.version>4.4</commons.collections4.version>
-        <commons.io.version>2.9.0</commons.io.version>
-        <commons.lang3.version>3.12.0</commons.lang3.version>
-        <commons.net.version>3.8.0</commons.net.version>
-        <dom4j.version>2.1.3</dom4j.version>
-        <error.prone.core.version>2.7.1</error.prone.core.version>
-        <evo-inflector.version>1.2.2</evo-inflector.version>
-        <gson.version>2.8.7</gson.version>
-        <guava.version>30.1.1-jre</guava.version>
-        <httpclient.version>4.5.13</httpclient.version>
-        <okhttp.version>4.9.1</okhttp.version>
-        <jackson.version>2.12.3</jackson.version>
-        <jacoco.version>0.8.7</jacoco.version>
-        <jansi.version>2.3.2</jansi.version>
-        <jaxb.version>3.0.2-b01</jaxb.version>
-        <jaxb.bind-api.version>3.0.1</jaxb.bind-api.version>
-        <jaxb.runtime.version>3.0.2-b01</jaxb.runtime.version>
-        <json.schema.validator.version>2.2.14</json.schema.validator.version>
-        <jsonwebtoken.jjwt.version>0.9.1</jsonwebtoken.jjwt.version>
-        <jtwig.core.version>5.87.0.RELEASE</jtwig.core.version>
-        <junit.version>4.13.2</junit.version>
-        <lombok.version>1.18.20</lombok.version>
         <maven3-model-jdom-support.version>1.6</maven3-model-jdom-support.version>
-        <mockito.version>3.10.0</mockito.version>
-        <reflections.version>0.9.12</reflections.version>
-        <semver.version>0.9.0</semver.version>
-        <slf4j-api.version>2.0.0-alpha1</slf4j-api.version>
-        <text-io.version>3.4.1</text-io.version>
-        <snakeyaml.version>1.28</snakeyaml.version>
-        <spring-test.version>5.3.7</spring-test.version>
-        <zt.zip.version>1.14</zt.zip.version>
-
+        <maven.version>3.3.3</maven.version>
         <maven.clean-plugin.version>3.1.0</maven.clean-plugin.version>
+        <maven.dependency-plugin.version>3.1.2</maven.dependency-plugin.version>
         <maven.resources-plugin.version>3.0.2</maven.resources-plugin.version>
         <maven.source-plugin.version>2.2.1</maven.source-plugin.version>
         <maven.compiler-plugin.version>3.8.0</maven.compiler-plugin.version>
@@ -127,107 +80,26 @@
         <maven.invoker-plugin.version>3.1.0</maven.invoker-plugin.version>
         <maven.javadoc-plugin.version>2.9.1</maven.javadoc-plugin.version>
         <maven.checkstyle-plugin.version>3.1.2</maven.checkstyle-plugin.version>
-        <nimbus-jose-jwt.version>9.9.3</nimbus-jose-jwt.version>
-        <joda-time.version>2.10.10</joda-time.version>
-        <httpcore.version>4.4.14</httpcore.version>
-        <plexus-interpolation.version>1.26</plexus-interpolation.version>
+
+        <azure.maven-plugin-lib.version>1.11.0-SNAPSHOT</azure.maven-plugin-lib.version>
+        <jacoco.version>0.8.7</jacoco.version>
+
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp</artifactId>
-                <version>${okhttp.version}</version>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-libs</artifactId>
+                <version>0.8.0-SNAPSHOT</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>logging-interceptor</artifactId>
-                <version>${okhttp.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp-urlconnection</artifactId>
-                <version>${okhttp.version}</version>
-            </dependency>
+            <!-- manage dependencies only related to maven plugin -->
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-toolkit-common-lib</artifactId>
-                <version>${azure.toolkit-lib.version}</version>
-                <scope>compile</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-toolkit-springcloud-lib</artifactId>
-                <version>${azure.toolkit-lib.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-toolkit-auth-lib</artifactId>
-                <version>${azure.toolkit-lib.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-toolkit-appservice-lib</artifactId>
-                <version>${azure.toolkit-lib.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-toolkit-applicationinsights-lib</artifactId>
-                <version>${azure.toolkit-lib.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-toolkit-resource-lib</artifactId>
-                <version>${azure.toolkit-lib.version}</version>
-            </dependency>
-            <!-- https://mvnrepository.com/artifact/com.microsoft.azure.applicationinsights.v2015_05_01/azure-mgmt-insights -->
-            <dependency>
-                <groupId>com.microsoft.azure.applicationinsights.v2015_05_01</groupId>
-                <artifactId>azure-mgmt-insights</artifactId>
-                <version>${azure.mgmt-insights.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-storage</artifactId>
-                <version>${azure.storage.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.errorprone</groupId>
-                <artifactId>error_prone_core</artifactId>
-                <version>${error.prone.core.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-arm-client-runtime</artifactId>
-                <version>${azure.client.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-client-runtime</artifactId>
-                <version>${azure.client.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.rest</groupId>
-                <artifactId>client-runtime</artifactId>
-                <version>${azure.client.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.zeroturnaround</groupId>
-                <artifactId>zt-zip</artifactId>
-                <version>${zt.zip.version}</version>
+                <artifactId>azure-maven-plugin-lib</artifactId>
+                <version>${azure.maven-plugin-lib.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.maven</groupId>
@@ -246,71 +118,37 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>${httpclient.version}</version>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-artifact</artifactId>
+                <version>${maven.version}</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>io.jsonwebtoken</groupId>
-                <artifactId>jjwt</artifactId>
-                <version>${jsonwebtoken.jjwt.version}</version>
+                <groupId>org.apache.maven.shared</groupId>
+                <artifactId>maven-filtering</artifactId>
+                <version>${maven.filtering.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure</artifactId>
-                <version>${azure.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.httpcomponents</groupId>
-                        <artifactId>httpcore</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-compat</artifactId>
+                <version>${maven.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-mgmt-resources</artifactId>
-                <version>${azure.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.apache.httpcomponents</groupId>
-                        <artifactId>httpcore</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>org.apache.maven.plugin-testing</groupId>
+                <artifactId>maven-plugin-testing-harness</artifactId>
+                <version>${maven.plugin-testing-harness.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>${commons.io.version}</version>
+                <groupId>org.commonjava.maven</groupId>
+                <artifactId>maven3-model-jdom-support</artifactId>
+                <version>${maven3-model-jdom-support.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-client-authentication</artifactId>
-                <version>${azure.client.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons.lang3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>${commons.collections4.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>applicationinsights-core</artifactId>
-                <version>${azure.ai.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>org.apache.maven.shared</groupId>
+                <artifactId>maven-shared-utils</artifactId>
+                <version>${maven.shared-utils.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.maven</groupId>
@@ -344,283 +182,6 @@
                 <version>${maven.version}</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>org.codehaus.plexus</groupId>
-                <artifactId>plexus-utils</artifactId>
-                <version>${codehaus.plexus-utils.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-maven-plugin-lib</artifactId>
-                <version>${azure.maven-plugin-lib.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure.functions</groupId>
-                <artifactId>azure-functions-java-library</artifactId>
-                <version>${azure.function.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.reflections</groupId>
-                <artifactId>reflections</artifactId>
-                <version>${reflections.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.github.zafarkhaja</groupId>
-                <artifactId>java-semver</artifactId>
-                <version>${semver.version}</version>
-            </dependency>
-            <!-- JAXB For Application Insight Issue -->
-            <dependency>
-                <groupId>jakarta.xml.bind</groupId>
-                <artifactId>jakarta.xml.bind-api</artifactId>
-                <version>${jaxb.bind-api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jaxb</groupId>
-                <artifactId>jaxb-runtime</artifactId>
-                <version>${jaxb.runtime.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.code.gson</groupId>
-                <artifactId>gson</artifactId>
-                <version>${gson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.fusesource.jansi</groupId>
-                <artifactId>jansi</artifactId>
-                <version>${jansi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.java-json-tools</groupId>
-                <artifactId>json-schema-validator</artifactId>
-                <version>${json.schema.validator.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.errorprone</groupId>
-                        <artifactId>error_prone_annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>jsr305</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven.shared</groupId>
-                <artifactId>maven-filtering</artifactId>
-                <version>${maven.filtering.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-net</groupId>
-                <artifactId>commons-net</artifactId>
-                <version>${commons.net.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j-api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.beryx</groupId>
-                <artifactId>text-io</artifactId>
-                <version>${text-io.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>applicationinsights-web</artifactId>
-                <version>${azure.applicationinsights-web.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dom4j</groupId>
-                <artifactId>dom4j</artifactId>
-                <version>${dom4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.atteo</groupId>
-                <artifactId>evo-inflector</artifactId>
-                <version>${evo-inflector.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>${snakeyaml.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.jtwig</groupId>
-                <artifactId>jtwig-core</artifactId>
-                <version>${jtwig.core.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.ow2.asm</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.commonjava.maven</groupId>
-                <artifactId>maven3-model-jdom-support</artifactId>
-                <version>${maven3-model-jdom-support.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-storage-blob</artifactId>
-                <version>${azure.storage-blob.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven.shared</groupId>
-                <artifactId>maven-shared-utils</artifactId>
-                <version>${maven.shared-utils.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.microsoft.azure.appplatform.v2020_07_01</groupId>
-                <artifactId>azure-mgmt-appplatform</artifactId>
-                <version>${azure.appplatform-sdk.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.microsoft.azure</groupId>
-                        <artifactId>azure-client-runtime</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-artifact</artifactId>
-                <version>${maven.version}</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <!-- TEST -->
-            <dependency>
-                <groupId>commons-codec</groupId>
-                <artifactId>commons-codec</artifactId>
-                <version>${commons.codec.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-test</artifactId>
-                <version>${spring-test.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-eventhubs</artifactId>
-                <version>${azure.eventhubs.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.microsoft.azure</groupId>
-                        <artifactId>azure-client-authentication</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-eventhubs-eph</artifactId>
-                <version>${azure.eventhubs.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-core</artifactId>
-                    </exclusion>
-                </exclusions>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>${mockito.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-compat</artifactId>
-                <version>${maven.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven.plugin-testing</groupId>
-                <artifactId>maven-plugin-testing-harness</artifactId>
-                <version>${maven.plugin-testing-harness.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jacoco</groupId>
-                <artifactId>org.jacoco.agent</artifactId>
-                <version>${jacoco.version}</version>
-                <classifier>runtime</classifier>
-            </dependency>
-            <dependency>
-                <groupId>com.nimbusds</groupId>
-                <artifactId>nimbus-jose-jwt</artifactId>
-                <version>${nimbus-jose-jwt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>joda-time</groupId>
-                <artifactId>joda-time</artifactId>
-                <version>${joda-time.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpcore</artifactId>
-                <version>${httpcore.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.codehaus.plexus</groupId>
-                <artifactId>plexus-interpolation</artifactId>
-                <version>${plexus-interpolation.version}</version>
-            </dependency>
-
-
         </dependencies>
     </dependencyManagement>
 
@@ -636,7 +197,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.1.2</version>
+                    <version>${maven.dependency-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
