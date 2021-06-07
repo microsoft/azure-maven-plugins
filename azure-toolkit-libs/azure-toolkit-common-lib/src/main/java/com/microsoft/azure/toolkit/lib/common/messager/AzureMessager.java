@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -53,6 +55,15 @@ public abstract class AzureMessager {
         @Nullable
         private final IAzureOperation operation;
         private IAzureMessager messager = null;
+        private final Map<String, Object> properties = new HashMap<>();
+
+        public void set(@Nonnull String key, Object val) {
+            this.properties.put(key, val);
+        }
+
+        public Object get(@Nonnull String key) {
+            return this.properties.get(key);
+        }
 
         public void setMessager(@Nonnull IAzureMessager messager) {
             this.messager = messager;
