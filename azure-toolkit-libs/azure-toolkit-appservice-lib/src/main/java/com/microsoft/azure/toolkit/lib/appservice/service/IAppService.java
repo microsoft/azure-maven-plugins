@@ -11,7 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import reactor.core.publisher.Flux;
 
-public interface IAppService<T extends IAzureResourceEntity> extends IKuduClient, IAzureEntityManager<T> {
+public interface IAppService<T extends IAzureResourceEntity> extends IFileClient, IProcessClient, IAzureEntityManager<T> {
     void start();
 
     void stop();

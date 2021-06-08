@@ -32,6 +32,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.CommandOutput;
 import com.microsoft.azure.toolkit.lib.appservice.model.ProcessInfo;
 import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
+import com.microsoft.azure.toolkit.lib.appservice.service.IProcessClient;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
@@ -45,12 +47,11 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class AppServiceKuduManager {
+public class AppServiceKuduManager implements IFileClient, IProcessClient {
     private final String host;
     private final KuduService kuduService;
     private final IAppService appService;
