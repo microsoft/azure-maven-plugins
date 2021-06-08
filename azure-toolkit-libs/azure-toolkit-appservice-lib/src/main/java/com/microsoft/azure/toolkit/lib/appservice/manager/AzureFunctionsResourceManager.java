@@ -24,12 +24,14 @@ import com.azure.core.http.rest.RestProxy;
 import com.azure.core.http.rest.StreamResponse;
 import com.azure.core.management.serializer.SerializerFactory;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
+import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
+import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.azure.resourcemanager.resources.fluentcore.policy.AuthenticationPolicy;
 import com.azure.resourcemanager.resources.fluentcore.policy.AuxiliaryAuthenticationPolicy;
 import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.codec.binary.StringUtils;
@@ -49,23 +51,23 @@ public class AzureFunctionsResourceManager {
 
     private final String host;
     private final FunctionsService functionsService;
-    private final IAppService appService;
+    private final IFunctionAppBase appService;
 
-    private AzureFunctionsResourceManager(FunctionsService functionsService, IAppService appService) {
+    private AzureFunctionsResourceManager(FunctionsService functionsService, IFunctionAppBase appService) {
         this.appService = appService;
         this.functionsService = functionsService;
         this.host = String.format("https://%s", appService.hostName());
     }
 
-    public static AzureFunctionsResourceManager getClient(@Nonnull FunctionApp functionApp, @Nonnull IAppService appService) {
+    public static AzureFunctionsResourceManager getClient(@Nonnull WebAppBase functionApp, @Nonnull IFunctionAppBase appService) {
         // refers : https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/resourcemanager/azure-resourcemanager-appservice/src/main/java/
         // com/azure/resourcemanager/appservice/implementation/KuduClient.java
-        if (functionApp.defaultHostname() == null) {
-            throw new AzureToolkitRuntimeException("Cannot initialize kudu client before web app is created");
+        if (!(functionApp instanceof FunctionApp || functionApp instanceof FunctionDeploymentSlot)){
+            throw new AzureToolkitRuntimeException("Functions resource manager only applies to Azure Functions");
         }
         final List<HttpPipelinePolicy> policies = Utils.getPolicyFromPipeline(functionApp.manager().httpPipeline(), policy ->
                 !(policy instanceof AuthenticationPolicy || policy instanceof ProviderRegistrationPolicy || policy instanceof AuxiliaryAuthenticationPolicy));
-        policies.add(new AddHeadersPolicy(new HttpHeaders(Collections.singletonMap("x-functions-key", functionApp.getMasterKey()))));
+        policies.add(new AddHeadersPolicy(new HttpHeaders(Collections.singletonMap("x-functions-key", appService.getMasterKey()))));
 
         final HttpPipeline httpPipeline = new HttpPipelineBuilder()
                 .policies(policies.toArray(new HttpPipelinePolicy[0]))

@@ -127,6 +127,11 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                 azureClient.functionApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
     }
 
+    @Override
+    public String getMasterKey() {
+        return getRemoteResource().getMasterKey();
+    }
+
     public class FunctionAppCreator extends AbstractAppServiceCreator<FunctionApp> {
         public static final String APP_SETTING_MACHINEKEY_DECRYPTION_KEY = "MACHINEKEY_DecryptionKey";
         public static final String APP_SETTING_WEBSITES_ENABLE_APP_SERVICE_STORAGE = "WEBSITES_ENABLE_APP_SERVICE_STORAGE";
