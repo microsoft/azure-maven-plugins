@@ -35,7 +35,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import org.apache.commons.codec.binary.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -113,7 +113,8 @@ public class AzureFunctionsResourceManager implements IFileClient {
     }
 
     private String getFixedPath(String originPath) {
-        return appService.getRuntime().getOperatingSystem() == OperatingSystem.WINDOWS ? originPath : Paths.get(LINUX_ROOT, originPath).toString();
+        return appService.getRuntime().getOperatingSystem() == OperatingSystem.WINDOWS || StringUtils.startsWithIgnoreCase(originPath, LINUX_ROOT) ?
+                originPath : Paths.get(LINUX_ROOT, originPath).toString();
     }
 
     @Host("{$host}")
