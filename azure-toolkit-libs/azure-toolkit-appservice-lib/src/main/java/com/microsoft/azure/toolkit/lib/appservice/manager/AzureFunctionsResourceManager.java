@@ -12,31 +12,26 @@ import com.azure.core.annotation.Headers;
 import com.azure.core.annotation.Host;
 import com.azure.core.annotation.HostParam;
 import com.azure.core.annotation.PathParam;
-import com.azure.core.annotation.Post;
 import com.azure.core.annotation.Put;
 import com.azure.core.annotation.ServiceInterface;
+import com.azure.core.http.HttpHeaders;
 import com.azure.core.http.HttpPipeline;
 import com.azure.core.http.HttpPipelineBuilder;
+import com.azure.core.http.policy.AddHeadersPolicy;
 import com.azure.core.http.policy.HttpPipelinePolicy;
 import com.azure.core.http.rest.Response;
 import com.azure.core.http.rest.RestProxy;
 import com.azure.core.http.rest.StreamResponse;
 import com.azure.core.management.serializer.SerializerFactory;
-import com.azure.resourcemanager.appservice.models.KuduAuthenticationPolicy;
-import com.azure.resourcemanager.appservice.models.WebAppBase;
+import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.resources.fluentcore.policy.AuthenticationPolicy;
 import com.azure.resourcemanager.resources.fluentcore.policy.AuxiliaryAuthenticationPolicy;
 import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
-import com.microsoft.azure.toolkit.lib.appservice.model.CommandOutput;
-import com.microsoft.azure.toolkit.lib.appservice.model.ProcessInfo;
-import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
-import lombok.Data;
-import lombok.experimental.SuperBuilder;
 import org.apache.commons.codec.binary.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -45,55 +40,49 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class AppServiceKuduManager {
+public class AzureFunctionsResourceManager {
+    private static final String LINUX_ROOT = "home";
+
     private final String host;
-    private final KuduService kuduService;
+    private final FunctionsService functionsService;
     private final IAppService appService;
 
-    private AppServiceKuduManager(String host, KuduService kuduService, IAppService appService) {
-        this.host = host;
+    private AzureFunctionsResourceManager(FunctionsService functionsService, IAppService appService) {
         this.appService = appService;
-        this.kuduService = kuduService;
+        this.functionsService = functionsService;
+        this.host = String.format("https://%s", appService.hostName());
     }
 
-    public static AppServiceKuduManager getClient(@Nonnull WebAppBase webAppBase, @Nonnull IAppService appService) {
+    public static AzureFunctionsResourceManager getClient(@Nonnull FunctionApp functionApp, @Nonnull IAppService appService) {
         // refers : https://github.com/Azure/azure-sdk-for-java/blob/master/sdk/resourcemanager/azure-resourcemanager-appservice/src/main/java/
         // com/azure/resourcemanager/appservice/implementation/KuduClient.java
-        if (webAppBase.defaultHostname() == null) {
+        if (functionApp.defaultHostname() == null) {
             throw new AzureToolkitRuntimeException("Cannot initialize kudu client before web app is created");
         }
-        String host = webAppBase.defaultHostname().toLowerCase(Locale.ROOT)
-                .replace("http://", "")
-                .replace("https://", "");
-        String[] parts = host.split("\\.", 2);
-        host = parts[0] + ".scm." + parts[1];
-        host = "https://" + host;
-
-        final List<HttpPipelinePolicy> policies = Utils.getPolicyFromPipeline(webAppBase.manager().httpPipeline(), policy ->
+        final List<HttpPipelinePolicy> policies = Utils.getPolicyFromPipeline(functionApp.manager().httpPipeline(), policy ->
                 !(policy instanceof AuthenticationPolicy || policy instanceof ProviderRegistrationPolicy || policy instanceof AuxiliaryAuthenticationPolicy));
-        policies.add(new KuduAuthenticationPolicy(webAppBase));
+        policies.add(new AddHeadersPolicy(new HttpHeaders(Collections.singletonMap("x-functions-key", functionApp.getMasterKey()))));
 
         final HttpPipeline httpPipeline = new HttpPipelineBuilder()
                 .policies(policies.toArray(new HttpPipelinePolicy[0]))
-                .httpClient(webAppBase.manager().httpPipeline().getHttpClient())
+                .httpClient(functionApp.manager().httpPipeline().getHttpClient())
                 .build();
-        final KuduService kuduService = RestProxy.create(KuduService.class, httpPipeline,
+        final FunctionsService functionsService = RestProxy.create(FunctionsService.class, httpPipeline,
                 SerializerFactory.createDefaultManagementSerializerAdapter());
-        return new AppServiceKuduManager(host, kuduService, appService);
+        return new AzureFunctionsResourceManager(functionsService, appService);
     }
 
     public Flux<ByteBuffer> getFileContent(final String path) {
-        return this.kuduService.getFileContent(host, path).flatMapMany(StreamResponse::getValue);
+        return this.functionsService.getFileContent(host, getFixedPath(path)).flatMapMany(StreamResponse::getValue);
     }
 
     public List<? extends AppServiceFile> getFilesInDirectory(String dir) {
         // this file is generated by kudu itself, should not be visible to user.
-        return this.kuduService.getFilesInDirectory(host, dir).block().getValue().stream()
+        return this.functionsService.getFilesInDirectory(host, getFixedPath(dir)).block().getValue().stream()
                 .filter(file -> !"text/xml".equals(file.getMime()) || !file.getName().contains("LogFiles-kudu-trace_pending.xml"))
                 .map(file -> file.withApp(appService).withPath(Paths.get(dir, file.getName()).toString()))
                 .collect(Collectors.toList());
@@ -101,7 +90,7 @@ public class AppServiceKuduManager {
 
     public AppServiceFile getFileByPath(String path) {
         final File file = new File(path);
-        final List<? extends AppServiceFile> result = getFilesInDirectory(file.getParent());
+        final List<? extends AppServiceFile> result = getFilesInDirectory(getFixedPath(file.getParent()));
         return result.stream()
                 .filter(appServiceFile -> StringUtils.equals(file.getName(), appServiceFile.getName()))
                 .findFirst()
@@ -109,45 +98,36 @@ public class AppServiceKuduManager {
     }
 
     public void uploadFileToPath(String content, String path) {
-        this.kuduService.saveFile(host, path, content).block();
+        this.functionsService.saveFile(host, getFixedPath(path), content).block();
     }
 
     public void createDirectory(String path) {
-        this.kuduService.createDirectory(host, path).block();
+        this.functionsService.createDirectory(host, getFixedPath(path)).block();
     }
 
     public void deleteFile(String path) {
-        this.kuduService.deleteFile(host, path).block();
+        this.functionsService.deleteFile(host, getFixedPath(path)).block();
     }
 
-    public List<ProcessInfo> listProcess() {
-        return this.kuduService.listProcess(host).block().getValue();
-    }
-
-    public CommandOutput execute(final String command, final String dir) {
-        final CommandRequest commandRequest = CommandRequest.builder().command(command).dir(dir).build();
-        return kuduService.execute(host, JsonUtils.toJson(commandRequest)).block().getValue();
-    }
-
-    public TunnelStatus getAppServiceTunnelStatus() {
-        return this.kuduService.getAppServiceTunnelStatus(host).block().getValue();
+    private String getFixedPath(String originPath) {
+        return appService.getRuntime().getOperatingSystem() == OperatingSystem.WINDOWS ? originPath : Paths.get(LINUX_ROOT, originPath).toString();
     }
 
     @Host("{$host}")
     @ServiceInterface(name = "KuduService")
-    private interface KuduService {
+    private interface FunctionsService {
         @Headers({
                 "Content-Type: application/json; charset=utf-8",
                 "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps getFile"
         })
-        @Get("api/vfs/{path}")
+        @Get("admin/vfs/{path}")
         Mono<StreamResponse> getFileContent(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
                 "Content-Type: application/json; charset=utf-8",
                 "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps getFilesInDirectory"
         })
-        @Get("api/vfs/{path}/")
+        @Get("admin/vfs/{path}/")
         Mono<Response<List<AppServiceFile>>> getFilesInDirectory(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
@@ -155,14 +135,14 @@ public class AppServiceKuduManager {
                 "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps saveFile",
                 "If-Match: *"
         })
-        @Put("api/vfs/{path}")
+        @Put("admin/vfs/{path}")
         Mono<Void> saveFile(@HostParam("$host") String host, @PathParam("path") String path, @BodyParam("application/octet-stream") String content);
 
         @Headers({
                 "Content-Type: application/json; charset=utf-8",
                 "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps createDirectory"
         })
-        @Put("api/vfs/{path}/")
+        @Put("admin/vfs/{path}/")
         Mono<Void> createDirectory(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
@@ -170,37 +150,7 @@ public class AppServiceKuduManager {
                 "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps deleteFile",
                 "If-Match: *"
         })
-        @Delete("api/vfs/{path}")
+        @Delete("admin/vfs/{path}")
         Mono<Void> deleteFile(@HostParam("$host") String host, @PathParam("path") String path);
-
-        @Headers({
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps listProcesses",
-                "x-ms-body-logging: false"
-        })
-        @Get("api/processes")
-        Mono<Response<List<ProcessInfo>>> listProcess(@HostParam("$host") String host);
-
-        @Headers({
-                "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps command",
-                "x-ms-body-logging: false"
-        })
-        @Post("api/command")
-        Mono<Response<CommandOutput>> execute(@HostParam("$host") String host, @BodyParam("json") String command);
-
-        @Headers({
-                "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps AppServiceTunnelStatus",
-                "x-ms-body-logging: false"
-        })
-        @Get("AppServiceTunnel/Tunnel.ashx?GetStatus&GetStatusAPIVer=2")
-        Mono<Response<TunnelStatus>> getAppServiceTunnelStatus(@HostParam("$host") String host);
-    }
-
-    @Data
-    @SuperBuilder(toBuilder = true)
-    public static class CommandRequest {
-        private String command;
-        private String dir;
     }
 }
