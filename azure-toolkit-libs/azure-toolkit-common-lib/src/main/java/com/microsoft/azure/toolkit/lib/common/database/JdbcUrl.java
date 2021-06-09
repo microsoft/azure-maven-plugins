@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.database;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.UnsupportedEncodingException;
@@ -80,8 +81,12 @@ public class JdbcUrl {
     }
 
     public String getDatabase() {
-        final String path = this.uri.getPath();
-        return decode(StringUtils.startsWith(path, "/") ? path.substring(1) : path);
+        if (StringUtils.equals(this.uri.getScheme(), "sqlserver")) {
+            return this.getParameter("database");
+        } else {
+            final String path = this.uri.getPath();
+            return decode(StringUtils.startsWith(path, "/") ? path.substring(1) : path);
+        }
     }
 
     public String getUsername() {
@@ -98,7 +103,11 @@ public class JdbcUrl {
     }
 
     public JdbcUrl setDatabase(String database) {
-        this.uri.setPath("/" + database);
+        if (StringUtils.equals(this.uri.getScheme(), "sqlserver")) {
+            this.uri.setParameter("database", database);
+        } else {
+            this.uri.setPath("/" + database);
+        }
         return this;
     }
 
@@ -115,6 +124,10 @@ public class JdbcUrl {
     public JdbcUrl setPort(int port) {
         this.uri.setPort(port);
         return this;
+    }
+
+    private String getParameter(String param) {
+        return this.uri.getQueryParams().stream().filter(e -> StringUtils.equals(e.getName(), param)).map(NameValuePair::getValue).findFirst().orElse(null);
     }
 
     @Override
