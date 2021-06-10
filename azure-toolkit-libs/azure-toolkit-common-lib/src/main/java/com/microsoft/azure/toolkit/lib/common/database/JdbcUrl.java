@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.database;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.UnsupportedEncodingException;
@@ -16,63 +17,61 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Objects;
 
-public class JdbcUrl {
+public abstract class JdbcUrl {
 
     private static final int MYSQL_DEFAULT_PORT = 3306;
-    private static final int SQLSERVER_DEFAULT_PORT = 1433;
+    private static final int SQL_SERVER_DEFAULT_PORT = 1433;
 
-    private final URIBuilder uri;
+    protected final URIBuilder uri;
     private String username;
     private String password;
 
     private JdbcUrl(String url) {
         Preconditions.checkArgument(StringUtils.startsWith(url, "jdbc:"), "invalid jdbc url.");
-        String convertedUrl = url;
-        if (StringUtils.startsWith(url, "jdbc:sqlserver:")) {
-            convertedUrl = StringUtils.replaceOnce(url, ";", "?").replaceAll(";", "&");
-        }
         try {
-            this.uri = new URIBuilder(convertedUrl.substring(5));
+            this.uri = new URIBuilder(url.substring(5));
         } catch (final URISyntaxException e) {
             throw new AzureToolkitRuntimeException("invalid jdbc url: %s", url);
         }
     }
 
     public static JdbcUrl from(String connectionString) {
-        return new JdbcUrl(connectionString);
+        if (StringUtils.startsWith(connectionString, "jdbc:mysql:")) {
+            return new MySQLJdbcUrl(connectionString);
+        } else if (StringUtils.startsWith(connectionString, "jdbc:sqlserver:")) {
+            return new SQLServerJdbcUrl(connectionString);
+        }
+        throw new AzureToolkitRuntimeException("Unsupported jdbc url: %s", connectionString);
     }
 
     public static JdbcUrl mysql(String serverHost, String database) {
-        return new JdbcUrl(String.format("jdbc:mysql://%s:%s/%s?serverTimezone=UTC&useSSL=true&requireSSL=false",
+        return new MySQLJdbcUrl(String.format("jdbc:mysql://%s:%s/%s?serverTimezone=UTC&useSSL=true&requireSSL=false",
             encode(serverHost), MYSQL_DEFAULT_PORT, encode(database)));
     }
 
     public static JdbcUrl mysql(String serverHost) {
-        return new JdbcUrl(String.format("jdbc:mysql://%s:%s?serverTimezone=UTC&useSSL=true&requireSSL=false",
+        return new MySQLJdbcUrl(String.format("jdbc:mysql://%s:%s?serverTimezone=UTC&useSSL=true&requireSSL=false",
             encode(serverHost), MYSQL_DEFAULT_PORT));
     }
 
     public static JdbcUrl sqlserver(String serverHost, String database) {
-        return new JdbcUrl(String.format("jdbc:sqlserver://%s:%s;encrypt=true;trustServerCertificate=false;loginTimeout=30;database=%s;",
-            encode(serverHost), SQLSERVER_DEFAULT_PORT, encode(database)));
+        return new SQLServerJdbcUrl(String.format("jdbc:sqlserver://%s:%s;encrypt=true;trustServerCertificate=false;loginTimeout=30;database=%s;",
+            encode(serverHost), SQL_SERVER_DEFAULT_PORT, encode(database)));
     }
 
     public static JdbcUrl sqlserver(String serverHost) {
-        return new JdbcUrl(String.format("jdbc:sqlserver://%s:%s;encrypt=true;trustServerCertificate=false;loginTimeout=30;",
-            encode(serverHost), SQLSERVER_DEFAULT_PORT));
+        return new SQLServerJdbcUrl(String.format("jdbc:sqlserver://%s:%s;encrypt=true;trustServerCertificate=false;loginTimeout=30;",
+            encode(serverHost), SQL_SERVER_DEFAULT_PORT));
     }
+
+    abstract int getDefaultPort();
 
     public int getPort() {
         if (this.uri.getPort() >= 0) {
             return this.uri.getPort();
         }
         // default port
-        if (StringUtils.equals(this.uri.getScheme(), "mysql")) {
-            return MYSQL_DEFAULT_PORT;
-        } else if (StringUtils.equals(this.uri.getScheme(), "sqlserver")) {
-            return SQLSERVER_DEFAULT_PORT;
-        }
-        throw new AzureToolkitRuntimeException("unknown jdbc url scheme: %s", this.uri.getScheme());
+        return getDefaultPort();
     }
 
     public String getServerHost() {
@@ -120,9 +119,6 @@ public class JdbcUrl {
     @Override
     public String toString() {
         String url = "jdbc:" + uri.toString();
-        if (StringUtils.equals(uri.getScheme(), "sqlserver")) {
-            url = "jdbc:" + StringUtils.replaceOnce(uri.toString(), "?", ";").replaceAll("&", ";");
-        }
         return decode(url);
     }
 
@@ -157,6 +153,49 @@ public class JdbcUrl {
     @Override
     public int hashCode() {
         return Objects.hash(uri.toString());
+    }
+
+    private static class MySQLJdbcUrl extends JdbcUrl {
+
+        private MySQLJdbcUrl(String url) {
+            super(url);
+        }
+
+        @Override
+        int getDefaultPort() {
+            return MYSQL_DEFAULT_PORT;
+        }
+
+    }
+
+    private static class SQLServerJdbcUrl extends JdbcUrl {
+
+        private SQLServerJdbcUrl(String url) {
+            super(StringUtils.replaceOnce(url, ";", "?").replaceAll(";", "&"));
+        }
+
+        @Override
+        int getDefaultPort() {
+            return SQL_SERVER_DEFAULT_PORT;
+        }
+
+        @Override
+        public JdbcUrl setDatabase(String database) {
+            this.uri.setParameter("database", database);
+            return this;
+        }
+
+        @Override
+        public String getDatabase() {
+            return this.uri.getQueryParams().stream().filter(e -> StringUtils.equals(e.getName(), "database"))
+                    .map(NameValuePair::getValue).findFirst().orElse(null);
+        }
+
+        @Override
+        public String toString() {
+            String url = "jdbc:" + StringUtils.replaceOnce(uri.toString(), "?", ";").replaceAll("&", ";");
+            return JdbcUrl.decode(url);
+        }
     }
 
 }
