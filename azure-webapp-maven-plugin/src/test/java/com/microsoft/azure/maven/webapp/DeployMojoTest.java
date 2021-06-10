@@ -5,16 +5,15 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.ArtifactHandler;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.RuntimeHandler;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
-import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebContainer;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
@@ -28,7 +27,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Map;
 
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.DEPLOYMENT_TYPE_KEY;
@@ -89,32 +87,24 @@ public class DeployMojoTest {
 
         assertEquals(null, mojo.getJavaVersion());
 
-        assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getJavaWebContainer());
-
-        assertFalse(mojo.getContainerSettings().isEmpty());
+        assertEquals(WebContainer.TOMCAT_85, mojo.getJavaWebContainer());
 
         assertEquals(1, mojo.getAppSettings().size());
 
         assertEquals(DeploymentType.EMPTY, mojo.getDeploymentType());
 
-        assertEquals(1, mojo.getResources().size());
+        assertEquals(1, mojo.getDeployment().getResources().size());
 
         assertFalse(mojo.isStopAppDuringDeployment());
-    }
-
-    @Test(expected = AzureExecutionException.class)
-    public void getDeploymentTypeThrowException() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
-        mojo.getDeploymentType();
     }
 
     @Test
     public void getConfigurationForWindows() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-windows.xml");
 
-        assertEquals(JavaVersion.JAVA_8_NEWEST, JavaVersion.fromString(mojo.getJavaVersion()));
+        assertEquals(JavaVersion.JAVA_11, mojo.getRuntime().getJavaVersion());
 
-        assertEquals(WebContainer.TOMCAT_8_5_NEWEST, mojo.getJavaWebContainer());
+        assertEquals(WebContainer.TOMCAT_85, mojo.getJavaWebContainer());
 
         assertEquals(PricingTier.STANDARD_S2, AppServiceUtils.getPricingTierFromString(mojo.getPricingTier()));
     }
@@ -125,10 +115,7 @@ public class DeployMojoTest {
         final DeployMojo spyMojo = spy(mojo);
         ReflectionUtils.setVariableValueInObject(spyMojo, "plugin", plugin);
         doReturn("azure-webapp-maven-plugin").when(plugin).getArtifactId();
-        doReturn(Collections.EMPTY_LIST).when(spyMojo).getResources();
-
         final Map map = spyMojo.getTelemetryProperties();
-
         assertEquals(12, map.size());
         assertTrue(map.containsKey(JAVA_VERSION_KEY));
         assertTrue(map.containsKey(JAVA_WEB_CONTAINER_KEY));

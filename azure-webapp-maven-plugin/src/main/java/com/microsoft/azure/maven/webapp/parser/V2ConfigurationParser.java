@@ -6,19 +6,17 @@
 package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.maven.model.DeploymentResource;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.RuntimeStack;
-import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import java.util.List;
-import java.util.Locale;
 
 @Deprecated
 public class V2ConfigurationParser extends ConfigurationParser {
@@ -28,23 +26,14 @@ public class V2ConfigurationParser extends ConfigurationParser {
     }
 
     @Override
-    protected OperatingSystemEnum getOs() throws AzureExecutionException {
+    protected OperatingSystem getOs() throws AzureExecutionException {
         validate(validator.validateOs());
         final MavenRuntimeConfig runtime = mojo.getRuntime();
         final String os = runtime.getOs();
         if (runtime.isEmpty()) {
             return null;
         }
-        switch (os.toLowerCase(Locale.ENGLISH)) {
-            case "windows":
-                return OperatingSystemEnum.Windows;
-            case "linux":
-                return OperatingSystemEnum.Linux;
-            case "docker":
-                return OperatingSystemEnum.Docker;
-            default:
-                return null;
-        }
+        return OperatingSystem.fromString(os);
     }
 
     @Override
@@ -52,16 +41,6 @@ public class V2ConfigurationParser extends ConfigurationParser {
         validate(validator.validateRegion());
         final String region = mojo.getRegion();
         return Region.fromName(region);
-    }
-
-    @Override
-    protected RuntimeStack getRuntimeStack() throws AzureExecutionException {
-        validate(validator.validateRuntimeStack());
-        final MavenRuntimeConfig runtime = mojo.getRuntime();
-        if (runtime == null || runtime.isEmpty()) {
-            return null;
-        }
-        return runtime.getLinuxRuntime();
     }
 
     @Override

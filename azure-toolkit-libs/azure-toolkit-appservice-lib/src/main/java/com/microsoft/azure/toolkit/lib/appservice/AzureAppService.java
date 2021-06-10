@@ -109,7 +109,8 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     public @Nonnull List<Runtime> listWebAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
-        return Runtime.values().stream().filter(r -> Objects.equals(os, r.getOperatingSystem()) && Objects.equals(version, r.getJavaVersion()))
+        return Runtime.values().stream()
+            .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
             .collect(Collectors.toList());
     }
 

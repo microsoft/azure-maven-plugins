@@ -62,6 +62,13 @@ public class XMLUtils {
         }
     }
 
+    public static void removeSubNode(Element element, String name) {
+        final Element result = element.element(name);
+        if (result != null) {
+            element.remove(result);
+        }
+    }
+
     public static void clearNode(Element element) {
         for (final Element child : element.elements()) {
             if (child.getNodeType() != Node.COMMENT_NODE) {

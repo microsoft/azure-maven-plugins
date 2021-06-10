@@ -7,23 +7,19 @@ package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
-import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.AbstractConfigParser;
-import com.microsoft.azure.maven.webapp.parser.V1ConfigParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigParser;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
-import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DockerImageType;
@@ -288,7 +284,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     public WebContainer getJavaWebContainer() {
         return StringUtils.isEmpty(javaWebContainer) ?
-                WebContainer.TOMCAT_8_5_NEWEST :
+                WebContainer.TOMCAT_85 :
                 WebContainer.fromString(javaWebContainer);
     }
 
@@ -315,10 +311,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     public String getPath() {
         return path;
-    }
-
-    public WebApp getWebApp() throws AzureAuthFailureException, AzureExecutionException {
-        return getAzureClient().webApps().getByResourceGroup(getResourceGroup(), getAppName());
     }
 
     public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {
@@ -393,10 +385,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     protected WebAppConfig getWebAppConfig() throws AzureExecutionException {
-        final SchemaVersion version = SchemaVersion.fromString(getSchemaVersion());
-        final AbstractConfigurationValidator validator = version == SchemaVersion.V2 ?
-                new V2ConfigurationValidator(this) : new V1ConfigurationValidator(this);
-        final AbstractConfigParser parser = version == SchemaVersion.V2 ? new V2ConfigParser(this, validator) : new V1ConfigParser(this, validator);
+        final AbstractConfigurationValidator validator =
+                new V2ConfigurationValidator(this);
+        final AbstractConfigParser parser = new V2ConfigParser(this, validator);
         return parser.parse();
     }
 
