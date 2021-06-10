@@ -31,7 +31,6 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeployment
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import io.jsonwebtoken.lang.Collections;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -94,8 +94,8 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     }
 
     @Override
-    public void triggerFunction(String functionName) {
-        throw new NotImplementedException();
+    public void triggerFunction(String functionName, Object input) {
+        getRemoteResource().triggerFunction(functionName, input);
     }
 
     @Override
@@ -130,6 +130,11 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Override
     public String getMasterKey() {
         return getRemoteResource().getMasterKey();
+    }
+
+    @Override
+    public Map<String, String> listFunctionKeys(String functionName) {
+        return getRemoteResource().listFunctionKeys(functionName);
     }
 
     public class FunctionAppCreator extends AbstractAppServiceCreator<FunctionApp> {

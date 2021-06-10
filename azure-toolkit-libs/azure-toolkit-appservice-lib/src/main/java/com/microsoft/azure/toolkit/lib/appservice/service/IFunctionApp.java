@@ -8,6 +8,7 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IFunctionApp extends IFunctionAppBase<FunctionAppEntity> {
     FunctionAppEntity entity();
@@ -24,7 +25,9 @@ public interface IFunctionApp extends IFunctionAppBase<FunctionAppEntity> {
 
     List<FunctionEntity> listFunctions();
 
-    void triggerFunction(String functionName);
+    Map<String, String> listFunctionKeys(String functionName);
+
+    void triggerFunction(String functionName, Object input);
 
     void swap(String slotName);
 

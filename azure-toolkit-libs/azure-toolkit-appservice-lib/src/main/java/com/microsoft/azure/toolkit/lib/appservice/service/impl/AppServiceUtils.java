@@ -335,7 +335,7 @@ class AppServiceUtils {
         }
     }
 
-    public static FunctionEntity fromFunctionAppEnvelope(FunctionEnvelope functionEnvelope) {
+    public static FunctionEntity fromFunctionAppEnvelope(@Nonnull FunctionEnvelope functionEnvelope) {
         final Object config = functionEnvelope.config();
         if (!(config instanceof Map)) {
             return null;
@@ -349,7 +349,7 @@ class AppServiceUtils {
                         .map(list -> list.stream().filter(item -> item instanceof Map).map(map -> fromJsonBinding((Map) map)).collect(Collectors.toList()))
                         .orElse(Collections.emptyList());
         return FunctionEntity.builder()
-                .name(functionEnvelope.innerModel().name())
+                .name(getFunctionTriggerName(functionEnvelope))
                 .entryPoint(entryPoint)
                 .scriptFile(scriptFile)
                 .bindingList(bindingEntities)
@@ -357,6 +357,12 @@ class AppServiceUtils {
                 .triggerId(functionEnvelope.innerModel().id())
                 .triggerUrl(functionEnvelope.innerModel().invokeUrlTemplate())
                 .build();
+    }
+
+    private static String getFunctionTriggerName(@Nonnull FunctionEnvelope functionEnvelope) {
+        final String fullName = functionEnvelope.innerModel().name();
+        final String[] splitNames = fullName.split("/");
+        return splitNames.length > 1 ? splitNames[1] : fullName;
     }
 
     private static FunctionEntity.BindingEntity fromJsonBinding(Map bindingProperties) {
