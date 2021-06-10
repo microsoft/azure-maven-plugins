@@ -503,6 +503,11 @@
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-resources</artifactId>
+                <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-sql</artifactId>
                 <version>${azure.resourcemanager.version}</version>
             </dependency>

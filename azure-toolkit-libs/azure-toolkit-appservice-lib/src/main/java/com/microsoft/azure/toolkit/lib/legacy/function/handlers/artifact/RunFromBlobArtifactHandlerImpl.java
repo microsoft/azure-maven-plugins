@@ -14,7 +14,8 @@ import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTarget;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.toolkit.lib.legacy.function.AzureStorageHelper;
@@ -63,12 +64,13 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
 
     private CloudBlockBlob deployArtifactToAzureStorage(DeployTarget deployTarget, File zipPackage, CloudStorageAccount storageAccount)
             throws AzureExecutionException {
-        Log.prompt(String.format(DEPLOY_START, deployTarget.getName()));
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(String.format(DEPLOY_START, deployTarget.getName()));
         final CloudBlobContainer container = getOrCreateArtifactContainer(storageAccount);
         final String blobName = getBlobName(deployTarget.getApp(), zipPackage);
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 container.getName(), blobName, BlobContainerPublicAccessType.OFF);
-        Log.prompt(String.format(DEPLOY_FINISH, deployTarget.getDefaultHostName()));
+        messager.success(String.format(DEPLOY_FINISH, deployTarget.getDefaultHostName()));
         return blob;
     }
 
@@ -94,7 +96,7 @@ public class RunFromBlobArtifactHandlerImpl extends ArtifactHandlerBase {
         }
         permissions.setPublicAccess(BlobContainerPublicAccessType.OFF);
         container.uploadPermissions(permissions);
-        Log.info(String.format(UPDATE_ACCESS_LEVEL_TO_PRIVATE, DEPLOYMENT_PACKAGE_CONTAINER));
+        AzureMessager.getMessager().info(String.format(UPDATE_ACCESS_LEVEL_TO_PRIVATE, DEPLOYMENT_PACKAGE_CONTAINER));
     }
 
     private String getBlobName(final WebAppBase deployTarget, final File zipPackage) {

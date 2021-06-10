@@ -8,7 +8,8 @@ package com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTarget;
 
 public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
@@ -35,15 +36,13 @@ public class FTPArtifactHandlerImpl extends ArtifactHandlerBase {
     public void publish(final DeployTarget target) throws AzureExecutionException {
         assureStagingDirectoryNotEmpty();
 
-        Log.prompt(String.format(DEPLOY_START, target.getName()));
-
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(String.format(DEPLOY_START, target.getName()));
         uploadDirectoryToFTP(target);
-
         if (target.getApp() instanceof FunctionApp) {
             ((FunctionApp) target.getApp()).syncTriggers();
         }
-
-        Log.prompt(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+        messager.success(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
     }
 
     protected void uploadDirectoryToFTP(DeployTarget target) throws AzureExecutionException {

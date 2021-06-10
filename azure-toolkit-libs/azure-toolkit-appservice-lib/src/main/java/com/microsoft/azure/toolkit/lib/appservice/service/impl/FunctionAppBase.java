@@ -4,9 +4,11 @@ import com.azure.resourcemanager.appservice.models.WebAppBase;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
+import com.microsoft.azure.toolkit.lib.appservice.manager.AzureFunctionsResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.deploy.FTPFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.deploy.IFunctionDeployHandler;
@@ -20,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 
 public abstract class FunctionAppBase<T extends WebAppBase, R extends AppServiceBaseEntity> extends AbstractAppService<T, R> implements IFunctionAppBase<R> {
+    private AzureFunctionsResourceManager functionsResourceManager;
+
     @Override
     public void deploy(File targetFile) {
         deploy(targetFile, getDefaultDeployType());
@@ -28,6 +32,15 @@ public abstract class FunctionAppBase<T extends WebAppBase, R extends AppService
     @Override
     public void deploy(File targetFile, FunctionDeployType functionDeployType) {
         getDeployHandlerByType(functionDeployType).deploy(targetFile, getRemoteResource());
+    }
+
+    @Override
+    protected IFileClient getFileClient() {
+        // kudu api does not applies to linux consumption, using functions admin api instead
+        if (functionsResourceManager == null) {
+            functionsResourceManager = AzureFunctionsResourceManager.getClient(getRemoteResource(), this);
+        }
+        return functionsResourceManager;
     }
 
     protected FunctionDeployType getDefaultDeployType() {

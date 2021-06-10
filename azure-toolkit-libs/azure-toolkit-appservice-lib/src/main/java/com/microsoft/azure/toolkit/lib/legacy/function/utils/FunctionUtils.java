@@ -5,14 +5,13 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.utils;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.BindingTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.BindingsTemplate;
@@ -23,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -41,19 +41,20 @@ public class FunctionUtils {
         if (StringUtils.isEmpty(javaVersion)) {
             return DEFAULT_JAVA_VERSION;
         }
+        final IAzureMessager messager = AzureMessager.getMessager();
         try {
-            final int version = Integer.valueOf(javaVersion);
+            final int version = Integer.parseInt(javaVersion);
             switch (version) {
                 case 8:
                     return JavaVersion.JAVA_8_NEWEST;
                 case 11:
                     return JavaVersion.JAVA_11;
                 default:
-                    Log.warn(String.format(UNSUPPORTED_JAVA_VERSION, version));
+                    messager.warning(String.format(UNSUPPORTED_JAVA_VERSION, version));
                     return DEFAULT_JAVA_VERSION;
             }
         } catch (NumberFormatException e) {
-            Log.warn(String.format(INVALID_JAVA_VERSION, javaVersion));
+            messager.warning(String.format(INVALID_JAVA_VERSION, javaVersion));
             return DEFAULT_JAVA_VERSION;
         }
     }
@@ -76,12 +77,12 @@ public class FunctionUtils {
 
     public static BindingTemplate loadBindingTemplate(String type) {
         try (final InputStream is = FunctionUtils.class.getResourceAsStream("/bindings.json")) {
-            final String bindingsJsonStr = IOUtils.toString(is, "utf8");
+            final String bindingsJsonStr = IOUtils.toString(is, StandardCharsets.UTF_8);
             final BindingsTemplate bindingsTemplate = new ObjectMapper()
                     .readValue(bindingsJsonStr, BindingsTemplate.class);
             return bindingsTemplate.getBindingTemplateByName(type);
         } catch (IOException e) {
-            Log.warn(LOAD_BINDING_TEMPLATES_FAIL);
+            AzureMessager.getMessager().warning(LOAD_BINDING_TEMPLATES_FAIL);
             // Add task should work without Binding Template, just return null if binding load fail
             return null;
         }
@@ -89,16 +90,15 @@ public class FunctionUtils {
 
     public static List<FunctionTemplate> loadAllFunctionTemplates() throws AzureExecutionException {
         try (final InputStream is = FunctionUtils.class.getResourceAsStream("/templates.json")) {
-            final String templatesJsonStr = IOUtils.toString(is, "utf8");
-            final List<FunctionTemplate> templates = parseTemplateJson(templatesJsonStr);
-            return templates;
+            final String templatesJsonStr = IOUtils.toString(is, StandardCharsets.UTF_8);
+            return parseTemplateJson(templatesJsonStr);
         } catch (Exception e) {
-            Log.error(LOAD_TEMPLATES_FAIL);
+            AzureMessager.getMessager().error(LOAD_TEMPLATES_FAIL);
             throw new AzureExecutionException(LOAD_TEMPLATES_FAIL, e);
         }
     }
 
-    private static List<FunctionTemplate> parseTemplateJson(final String templateJson) throws JsonParseException, JsonMappingException, IOException {
+    private static List<FunctionTemplate> parseTemplateJson(final String templateJson) throws IOException {
         final FunctionTemplates templates = new ObjectMapper().readValue(templateJson, FunctionTemplates.class);
         return templates.getTemplates();
     }

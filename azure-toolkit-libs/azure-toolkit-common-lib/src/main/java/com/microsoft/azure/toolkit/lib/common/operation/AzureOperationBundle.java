@@ -24,16 +24,12 @@ package com.microsoft.azure.toolkit.lib.common.operation;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.PropertyKey;
 
 import java.util.Objects;
 
 public class AzureOperationBundle {
 
-    @NonNls
-    public static final String TITLES = "com.microsoft.azure.toolkit.operation.titles";
     private static Provider provider;
 
     public static synchronized void register(final Provider provider) {
@@ -42,7 +38,7 @@ public class AzureOperationBundle {
         }
     }
 
-    public static IAzureOperationTitle title(@NotNull @PropertyKey(resourceBundle = TITLES) String name, @NotNull Object... params) {
+    public static IAzureOperationTitle title(@NotNull String name, @NotNull Object... params) {
         return MessageBundleBasedOperationTitle.builder().name(name).params(params).build();
     }
 

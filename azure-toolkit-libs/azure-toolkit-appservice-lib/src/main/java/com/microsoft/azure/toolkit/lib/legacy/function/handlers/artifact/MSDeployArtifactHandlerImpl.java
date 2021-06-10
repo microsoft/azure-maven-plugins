@@ -9,7 +9,8 @@ import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.BlobContainerPublicAccessType;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTarget;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.ArtifactHandlerBase;
 import com.microsoft.azure.toolkit.lib.legacy.function.AzureStorageHelper;
@@ -73,10 +74,11 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
     }
 
     protected File createZipPackage() throws AzureExecutionException {
-        Log.prompt("");
-        Log.prompt(CREATE_ZIP_START);
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info("");
+        messager.info(CREATE_ZIP_START);
         final File zipPackage = FunctionArtifactHelper.createFunctionArtifact(stagingDirectoryPath);
-        Log.prompt(CREATE_ZIP_DONE + stagingDirectoryPath.concat(Constants.ZIP_EXT));
+        messager.success(CREATE_ZIP_DONE + stagingDirectoryPath.concat(Constants.ZIP_EXT));
         return zipPackage;
     }
 
@@ -88,31 +90,34 @@ public class MSDeployArtifactHandlerImpl extends ArtifactHandlerBase {
 
     protected String uploadPackageToAzureStorage(final File zipPackage, final CloudStorageAccount storageAccount,
                                                  final String blobName) throws AzureExecutionException {
-        Log.prompt(UPLOAD_PACKAGE_START);
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(UPLOAD_PACKAGE_START);
         final CloudBlockBlob blob = AzureStorageHelper.uploadFileAsBlob(zipPackage, storageAccount,
                 DEPLOYMENT_PACKAGE_CONTAINER, blobName, BlobContainerPublicAccessType.OFF);
         final String packageUri = AzureStorageHelper.getSASToken(blob, Period.ofDays(1)); // no need for a long period as it will be deleted after deployment
-        Log.prompt(UPLOAD_PACKAGE_DONE + blob.getUri().toString());
+        messager.success(UPLOAD_PACKAGE_DONE + blob.getUri().toString());
         return packageUri;
     }
 
     protected void deployWithPackageUri(final DeployTarget target, final String packageUri, Runnable onDeployFinish) {
+        final IAzureMessager messager = AzureMessager.getMessager();
         try {
-            Log.prompt(DEPLOY_PACKAGE_START);
+            messager.info(DEPLOY_PACKAGE_START);
             target.msDeploy(packageUri, false);
-            Log.prompt(DEPLOY_PACKAGE_DONE);
+            messager.success(DEPLOY_PACKAGE_DONE);
         } finally {
             onDeployFinish.run();
         }
     }
 
     protected void deletePackageFromAzureStorage(final CloudStorageAccount storageAccount, final String blobName) {
+        final IAzureMessager messager = AzureMessager.getMessager();
         try {
-            Log.prompt(DELETE_PACKAGE_START);
+            messager.info(DELETE_PACKAGE_START);
             AzureStorageHelper.deleteBlob(storageAccount, DEPLOYMENT_PACKAGE_CONTAINER, blobName);
-            Log.prompt(DELETE_PACKAGE_DONE + blobName);
+            messager.success(DELETE_PACKAGE_DONE + blobName);
         } catch (Exception e) {
-            Log.error(DELETE_PACKAGE_FAIL + blobName);
+            messager.error(DELETE_PACKAGE_FAIL + blobName);
         }
     }
 }
