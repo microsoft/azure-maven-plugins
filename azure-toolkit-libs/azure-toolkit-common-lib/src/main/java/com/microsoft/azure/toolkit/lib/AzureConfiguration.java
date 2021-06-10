@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib;
 
-import com.azure.core.http.policy.HttpLogDetailLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,9 +13,6 @@ import java.net.InetSocketAddress;
 @Getter
 @Setter
 public class AzureConfiguration {
-    /**
-     * {@link HttpLogDetailLevel HttpLogDetailLevel#name()}
-     */
     private String logLevel;
     private String userAgent;
     private String cloud;

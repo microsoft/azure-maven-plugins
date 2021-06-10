@@ -35,7 +35,7 @@ public abstract class FunctionAppBase<T extends WebAppBase, R extends AppService
     }
 
     @Override
-    protected IFileClient getFileManager() {
+    protected IFileClient getFileClient() {
         // kudu api does not applies to linux consumption, using functions admin api instead
         if (functionsResourceManager == null) {
             functionsResourceManager = AzureFunctionsResourceManager.getClient(getRemoteResource(), this);

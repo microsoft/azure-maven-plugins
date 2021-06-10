@@ -7,7 +7,8 @@ package com.microsoft.azure.toolkit.lib.legacy.function.handlers;
 
 import com.github.zafarkhaja.semver.Version;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.CommandUtils;
 
 import java.io.File;
@@ -28,7 +29,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
     public static final String GET_LOCAL_VERSION_FAIL = "Failed to get Azure Functions Core Tools version locally";
     public static final Version LEAST_SUPPORTED_VERSION = Version.valueOf("2.0.1-beta.26");
 
-    private CommandHandler commandHandler;
+    private final CommandHandler commandHandler;
 
     public FunctionCoreToolsHandlerImpl(final CommandHandler commandHandler) {
         this.commandHandler = commandHandler;
@@ -57,11 +58,12 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
         if (localVersion == null || LEAST_SUPPORTED_VERSION.greaterThan(Version.valueOf(localVersion))) {
             throw new AzureExecutionException(CANNOT_AUTO_INSTALL);
         }
+        final IAzureMessager messager = AzureMessager.getMessager();
         // Verify whether local function core tools is the latest version
         if (latestCoreVersion == null) {
-            Log.warn(GET_LATEST_VERSION_FAIL);
+            messager.warning(GET_LATEST_VERSION_FAIL);
         } else if (Version.valueOf(localVersion).lessThan(Version.valueOf(latestCoreVersion))) {
-            Log.warn(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
+            messager.warning(String.format(NEED_UPDATE_FUNCTION_CORE_TOOLS, localVersion, latestCoreVersion));
         }
     }
 
@@ -75,7 +77,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
             Version.valueOf(latestCoreVersion);
             return latestCoreVersion;
         } catch (Exception e) {
-            Log.warn(GET_LATEST_VERSION_FAIL);
+            AzureMessager.getMessager().warning(GET_LATEST_VERSION_FAIL);
             return null;
         }
     }
@@ -90,7 +92,7 @@ public class FunctionCoreToolsHandlerImpl implements FunctionCoreToolsHandler {
             Version.valueOf(localVersion);
             return localVersion;
         } catch (Exception e) {
-            Log.warn(GET_LOCAL_VERSION_FAIL);
+            AzureMessager.getMessager().warning(GET_LOCAL_VERSION_FAIL);
             return null;
         }
     }

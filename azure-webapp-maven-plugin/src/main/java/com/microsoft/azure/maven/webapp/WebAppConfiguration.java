@@ -24,13 +24,14 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 
 public class WebAppConfiguration {
-
-    public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
+    public static final PricingTier DEFAULT_JBOSS_PRICING_TIER = new PricingTier("PremiumV3", "P1v3");
     public static final PricingTier DEFAULT_PRICINGTIER = PricingTier.PREMIUM_P1V2;
+    public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
     public static final JavaVersion DEFAULT_WINDOWS_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
     public static final WebContainer DEFAULT_WINDOWS_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
     public static final String DEFAULT_LINUX_JAVA_VERSION = JavaVersionEnum.JAVA_8.toString();
@@ -213,8 +214,8 @@ public class WebAppConfiguration {
         return region != null ? region.toString() : DEFAULT_REGION.toString();
     }
 
-    public String getPricingTierOrDefault() {
-        return AppServiceUtils.convertPricingTierToString(pricingTier != null ? pricingTier : DEFAULT_PRICINGTIER);
+    public String getPricingTierOrDefault(@Nonnull PricingTier defaultPricingTier) {
+        return AppServiceUtils.convertPricingTierToString(pricingTier != null ? pricingTier : defaultPricingTier);
     }
 
     public String getLinuxJavaVersionOrDefault() {

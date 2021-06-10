@@ -35,9 +35,7 @@ public class AzureEventBus {
         getBus(type).register(new EventListener<T, E>((e) -> listener.accept(e.getPayload())));
     }
 
-    public static <T, E extends AzureEvent<T>> void after(
-            @Nonnull @PropertyKey(resourceBundle = AzureOperationBundle.TITLES) final String operation,
-            @Nonnull Consumer<T> listener) {
+    public static <T, E extends AzureEvent<T>> void after(@Nonnull final String operation, @Nonnull Consumer<T> listener) {
         getBus(operation).register(new EventListener<T, E>((e) -> {
             if (e instanceof AzureOperationEvent && ((AzureOperationEvent<?>) e).getStage() == AzureOperationEvent.Stage.AFTER) {
                 listener.accept(e.getPayload());
@@ -45,9 +43,7 @@ public class AzureEventBus {
         }));
     }
 
-    public static <T, E extends AzureEvent<T>> void before(
-            @Nonnull @PropertyKey(resourceBundle = AzureOperationBundle.TITLES) final String operation,
-            @Nonnull Consumer<T> listener) {
+    public static <T, E extends AzureEvent<T>> void before(@Nonnull final String operation, @Nonnull Consumer<T> listener) {
         getBus(operation).register(new EventListener<T, E>((e) -> {
             if (e instanceof AzureOperationEvent && ((AzureOperationEvent<?>) e).getStage() == AzureOperationEvent.Stage.BEFORE) {
                 listener.accept(e.getPayload());
@@ -55,9 +51,7 @@ public class AzureEventBus {
         }));
     }
 
-    public static <T, E extends AzureEvent<T>> void error(
-            @Nonnull @PropertyKey(resourceBundle = AzureOperationBundle.TITLES) final String operation,
-            @Nonnull Consumer<T> listener) {
+    public static <T, E extends AzureEvent<T>> void error(@Nonnull final String operation, @Nonnull Consumer<T> listener) {
         getBus(operation).register(new EventListener<T, E>((e) -> {
             if (e instanceof AzureOperationEvent && ((AzureOperationEvent<?>) e).getStage() == AzureOperationEvent.Stage.ERROR) {
                 listener.accept(e.getPayload());

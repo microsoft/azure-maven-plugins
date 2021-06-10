@@ -63,6 +63,10 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-client-runtime</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.azure.resourcemanager</groupId>
+            <artifactId>azure-resourcemanager</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.azure</groupId>

@@ -5,12 +5,6 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.AppSetting;
@@ -38,7 +32,13 @@ import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.maven.plugin.MojoFailureException;
@@ -85,7 +85,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static final String CONFIGURATION_NO_RUNTIME = "No runtime configuration, skip it.";
     private static final String SAVING_TO_POM = "Saving configuration to pom.";
 
-    private static final String PRICE_TIER_NOT_AVAIL = "The price tier \"P1\", \"P2\", \"P3\" are only available for Windows runtime, use \"%s\" instead.";
+    private static final String PRICE_TIER_NOT_AVAIL = "The price tier \"%s\" is not available for current OS or runtime, use \"%s\" instead.";
     private static final String NO_JAVA_WEB_APPS = "There are no Java Web Apps in current subscription, please follow the following steps to create a new one.";
     private static final String LONG_LOADING_HINT = "It may take a few minutes to load all Java Web Apps, please be patient.";
     private static final String[] configTypes = { "Application", "Runtime", "DeploymentSlot" };
@@ -210,7 +210,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
         System.out.println("AppName : " + configuration.getAppName());
         System.out.println("ResourceGroup : " + configuration.getResourceGroup());
         System.out.println("Region : " + configuration.getRegion());
-        System.out.println("PricingTier : " + configuration.getPricingTier());
+        if (configuration.getPricingTier() != null) {
+            System.out.println("PricingTier : " + configuration.getPricingTier().toSkuDescription().size());
+        }
 
         if (configuration.getOs() == null) {
             System.out.println(CONFIGURATION_NO_RUNTIME);
@@ -308,13 +310,14 @@ public class ConfigMojo extends AbstractWebAppMojo {
         final String defaultRegion = configuration.getRegionOrDefault();
         final String region = queryer.assureInputFromUser("region", defaultRegion, NOT_EMPTY_REGEX,
                 null, null);
-
-        final String currentPricingTier = configuration.getPricingTierOrDefault();
-        final List<String> availablePriceList = getAvailablePricingTierList(configuration.getOs());
+        final PricingTier defaultPricingTierFromRuntime = isJBossRuntime(configuration.getRuntimeStack()) ?
+            WebAppConfiguration.DEFAULT_JBOSS_PRICING_TIER : WebAppConfiguration.DEFAULT_PRICINGTIER;
+        final String currentPricingTier = configuration.getPricingTierOrDefault(defaultPricingTierFromRuntime);
+        final List<String> availablePriceList = getAvailablePricingTierList(configuration.getOs(), isJBossRuntime(configuration.getRuntimeStack()));
         String defaultPricingTier = currentPricingTier;
         if (availablePriceList.stream().noneMatch(price -> StringUtils.equalsIgnoreCase(price, currentPricingTier))) {
-            defaultPricingTier = AppServiceUtils.convertPricingTierToString(WebAppConfiguration.DEFAULT_PRICINGTIER);
-            Log.warn(String.format(PRICE_TIER_NOT_AVAIL, defaultPricingTier));
+            defaultPricingTier = AppServiceUtils.convertPricingTierToString(defaultPricingTierFromRuntime);
+            Log.warn(String.format(PRICE_TIER_NOT_AVAIL, configuration.getPricingTier().toSkuDescription().size(), defaultPricingTier));
         }
 
         final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier,
@@ -326,6 +329,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 .region(Region.fromName(region))
                 .pricingTier(AppServiceUtils.getPricingTierFromString(pricingTier))
                 .build();
+    }
+
+    private static boolean isJBossRuntime(RuntimeStack runtimeStack) {
+        return runtimeStack != null && StringUtils.equalsIgnoreCase("JBOSSEAP", runtimeStack.stack());
     }
 
     private WebAppConfiguration getSlotConfiguration(WebAppConfiguration configuration)
@@ -363,20 +370,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 configuration.getOs();
         final String os = queryer.assureInputFromUser("OS", defaultOs, String.format("Define value for OS [%s]:", defaultOs.toString()));
         builder.os(OperatingSystemEnum.fromString(os));
-        if (initial || pricingTierNotSupport(OperatingSystemEnum.fromString(os), configuration.getPricingTier())) {
-            String defaultPricingTier = configuration.getPricingTierOrDefault();
-            final List<String> availablePriceList = getAvailablePricingTierList(OperatingSystemEnum.fromString(os));
-            if (!availablePriceList.contains(defaultPricingTier)) {
-                Log.warn(String.format("'%s' is not supported in '%s'", defaultPricingTier, os));
-                defaultPricingTier = AppServiceUtils.convertPricingTierToString(WebAppConfiguration.DEFAULT_PRICINGTIER);
-            }
-            final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier, availablePriceList,
-                    String.format(PRICING_TIER_PROMPT, defaultPricingTier));
-            builder.pricingTier(AppServiceUtils.getPricingTierFromString(pricingTier));
-        }
+
+        RuntimeStack runtimeStack = null;
         switch (os.toLowerCase()) {
             case "linux":
-                builder = getRuntimeConfigurationOfLinux(builder, configuration);
+                runtimeStack = getRuntimeConfigurationOfLinux(configuration);
+                builder.runtimeStack(runtimeStack);
                 break;
             case "windows":
                 builder = getRuntimeConfigurationOfWindows(builder, configuration);
@@ -387,16 +386,31 @@ public class ConfigMojo extends AbstractWebAppMojo {
             default:
                 throw new AzureExecutionException("The value of <os> is unknown.");
         }
+        if (initial || pricingTierNotSupport(OperatingSystemEnum.fromString(os), configuration.getPricingTier(), runtimeStack)) {
+            final PricingTier defaultPricingTierFromRuntime = isJBossRuntime(runtimeStack) ?
+                WebAppConfiguration.DEFAULT_JBOSS_PRICING_TIER : WebAppConfiguration.DEFAULT_PRICINGTIER;
+            String defaultPricingTier = configuration.getPricingTierOrDefault(defaultPricingTierFromRuntime);
+            final List<String> availablePriceList = getAvailablePricingTierList(OperatingSystemEnum.fromString(os), isJBossRuntime(runtimeStack));
+            if (!availablePriceList.contains(defaultPricingTier)) {
+                if (!initial) {
+                    Log.warn(String.format("'%s' is not supported in current OS or runtime, use '%s' instead.", defaultPricingTier,
+                        defaultPricingTierFromRuntime.toSkuDescription().size()));
+                }
+                defaultPricingTier = AppServiceUtils.convertPricingTierToString(defaultPricingTierFromRuntime);
+            }
+            final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier, availablePriceList,
+                String.format(PRICING_TIER_PROMPT, defaultPricingTier));
+            builder.pricingTier(AppServiceUtils.getPricingTierFromString(pricingTier));
+        }
         return builder.build();
     }
 
-    private static boolean pricingTierNotSupport(OperatingSystemEnum parseOperationSystem, PricingTier pricingTier) {
-        final List<String> availablePriceList = getAvailablePricingTierList(parseOperationSystem);
+    private static boolean pricingTierNotSupport(OperatingSystemEnum parseOperationSystem, PricingTier pricingTier, RuntimeStack runtimeStack) {
+        final List<String> availablePriceList = getAvailablePricingTierList(parseOperationSystem, isJBossRuntime(runtimeStack));
         return Objects.isNull(findStringInCollectionIgnoreCase(availablePriceList, AppServiceUtils.convertPricingTierToString(pricingTier)));
     }
 
-    private WebAppConfiguration.Builder getRuntimeConfigurationOfLinux(WebAppConfiguration.Builder builder,
-                                                                       WebAppConfiguration configuration) throws MojoFailureException {
+    private RuntimeStack getRuntimeConfigurationOfLinux(WebAppConfiguration configuration) throws MojoFailureException {
         String defaultJavaVersion = configuration.getLinuxJavaVersionOrDefault();
         // sometimes the combination of <javaVersion> and <webContainer> may not be valid, but
         // <javaVersion> might be right
@@ -408,7 +422,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 JavaVersionUtils.getValidJavaVersions(), String.format(COMMON_PROMPT, JAVA_VERSION, defaultJavaVersion));
         // For project which package is jar, use java se runtime
         if (isJarProject()) {
-            return builder.runtimeStack(RuntimeStackUtils.getJavaSERuntimeStack(javaVersion));
+            return RuntimeStackUtils.getJavaSERuntimeStack(javaVersion);
         }
         final List<String> validRuntimeStacks = RuntimeStackUtils.getValidLinuxRuntimeStacksForJavaVersion(javaVersion);
         String defaultLinuxRuntimeStack = configuration.getLinuxRuntimeStackOrDefault();
@@ -431,7 +445,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
         final String runtimeStack = queryer.assureInputFromUser("runtimeStack", defaultLinuxRuntimeStack,
                 validRuntimeStacks, null);
-        return builder.runtimeStack(RuntimeStackUtils.getRuntimeStack(javaVersion, runtimeStack));
+        return RuntimeStackUtils.getRuntimeStack(javaVersion, runtimeStack);
     }
 
     private WebAppConfiguration.Builder getRuntimeConfigurationOfWindows(WebAppConfiguration.Builder builder,
@@ -466,14 +480,24 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return builder.image(image).serverId(serverId).registryUrl(registryUrl);
     }
 
-    private static List<String> getAvailablePricingTierList(OperatingSystemEnum operatingSystem) {
+    private static List<String> getAvailablePricingTierList(OperatingSystemEnum operatingSystem, boolean isJboss) {
         final Set<String> pricingTierSet = new HashSet<>();
+
+        pricingTierSet.add("P1v3");
+        pricingTierSet.add("P2v3");
+        pricingTierSet.add("P3v3");
+
+        if (isJboss) {
+            return new ArrayList<>(pricingTierSet);
+        }
+
         // Linux and docker app service uses linux as the os of app service plan.
         final List<PricingTier> availablePricingTier = AppServiceUtils.getAvailablePricingTiers(
                 operatingSystem == OperatingSystemEnum.Windows ? OperatingSystem.WINDOWS : OperatingSystem.LINUX);
         for (final PricingTier pricingTier : availablePricingTier) {
             pricingTierSet.add(pricingTier.toSkuDescription().size());
         }
+
         final List<String> result = new ArrayList<>(pricingTierSet);
         Collections.sort(result);
         return result;
