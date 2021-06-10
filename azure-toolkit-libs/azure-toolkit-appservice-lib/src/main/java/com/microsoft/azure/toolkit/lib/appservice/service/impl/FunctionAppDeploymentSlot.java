@@ -6,6 +6,7 @@ package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.appservice.fluent.models.HostKeysInner;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
@@ -77,6 +78,13 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
         return StringUtils.isNotEmpty(entity.getId()) ?
                 azureClient.functionApps().getById(ResourceId.fromString(entity.getId()).parent().id()) :
                 azureClient.functionApps().getByResourceGroup(entity.getResourceGroup(), entity.getFunctionAppName());
+    }
+
+    @Override
+    public String getMasterKey() {
+        final String resourceGroup = entity().getResourceGroup();
+        final String name = String.format("%s/slots/%s", entity().getFunctionAppName(), entity().getName());
+        return getRemoteResource().manager().serviceClient().getWebApps().listHostKeysAsync(resourceGroup, name).map(HostKeysInner::masterKey).block();
     }
 
     @Getter

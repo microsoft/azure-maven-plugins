@@ -17,8 +17,9 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
+import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
+import com.microsoft.azure.toolkit.lib.appservice.service.IProcessClient;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
@@ -118,47 +119,55 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
 
     @Override
     public Flux<ByteBuffer> getFileContent(String path) {
-        return getKuduManager().getFileContent(path);
+        return getFileClient().getFileContent(path);
     }
 
     @Override
     public List<? extends AppServiceFile> getFilesInDirectory(String dir) {
-        return getKuduManager().getFilesInDirectory(dir);
+        return getFileClient().getFilesInDirectory(dir);
     }
 
     @Override
     public AppServiceFile getFileByPath(String path) {
-        return getKuduManager().getFileByPath(path);
+        return getFileClient().getFileByPath(path);
     }
 
     @Override
     public void uploadFileToPath(String content, String path) {
-        getKuduManager().uploadFileToPath(content, path);
+        getFileClient().uploadFileToPath(content, path);
     }
 
     @Override
     public void createDirectory(String path) {
-        getKuduManager().createDirectory(path);
+        getFileClient().createDirectory(path);
     }
 
     @Override
     public void deleteFile(String path) {
-        getKuduManager().deleteFile(path);
+        getFileClient().deleteFile(path);
     }
 
     @Override
     public List<ProcessInfo> listProcess() {
-        return getKuduManager().listProcess();
+        return getProcessClient().listProcess();
     }
 
     @Override
     public CommandOutput execute(String command, String dir) {
-        return getKuduManager().execute(command, dir);
+        return getProcessClient().execute(command, dir);
     }
 
     @Override
     public TunnelStatus getAppServiceTunnelStatus() {
-        return getKuduManager().getAppServiceTunnelStatus();
+        return getProcessClient().getAppServiceTunnelStatus();
+    }
+
+    protected IFileClient getFileClient() {
+        return getKuduManager();
+    }
+
+    protected IProcessClient getProcessClient() {
+        return getKuduManager();
     }
 
     protected AppServiceKuduManager getKuduManager() {
