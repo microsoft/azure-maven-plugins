@@ -75,6 +75,11 @@ public class SpringCloudAppEntity implements IAzureResourceEntity {
         }).orElse(null);
     }
 
+    public String getLogStreamingEndpoint(String instanceName) {
+        final String endpoint = this.cluster.getTestEndpoint();
+        return String.format("%s/api/logstream/apps/%s/instances/%s", endpoint.replace(".test", ""), this.name, instanceName);
+    }
+
     @Override
     public String getId() {
         return Optional.ofNullable(this.remote).map(ExternalChildResource::id)
