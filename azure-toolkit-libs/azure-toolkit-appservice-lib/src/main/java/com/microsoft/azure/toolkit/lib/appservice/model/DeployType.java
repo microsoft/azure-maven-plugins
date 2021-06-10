@@ -23,6 +23,7 @@ public class DeployType {
     public static final DeployType JAR = new DeployType("jar");
     public static final DeployType EAR = new DeployType("ear");
     public static final DeployType JAR_LIB = new DeployType("lib");
+    public static final DeployType SCRIPT = new DeployType("script");
     public static final DeployType STATIC = new DeployType("static");
     public static final DeployType SCRIPT_STARTUP = new DeployType("startup");
     public static final DeployType ZIP = new DeployType("zip");
@@ -39,6 +40,7 @@ public class DeployType {
         TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.ZIP, WWWROOT);
         TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.WAR, WWWROOT + "/webapps/");
         TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.SCRIPT_STARTUP, "/home/site/scripts/");
+        TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.SCRIPT, "/home/site/scripts/");
         TYPE_TO_TARGET_DIRECTORY_MAP.put(DeployType.JAR_LIB, "/home/site/libs/");
     }
 
@@ -53,7 +55,7 @@ public class DeployType {
     private final String value;
 
     public static List<DeployType> values() {
-        return Arrays.asList(WAR, JAR, EAR, JAR_LIB, STATIC, SCRIPT_STARTUP, ZIP);
+        return Arrays.asList(WAR, JAR, EAR, JAR_LIB, STATIC, SCRIPT_STARTUP, ZIP, SCRIPT);
     }
 
     public static DeployType fromString(String input) {
@@ -71,7 +73,7 @@ public class DeployType {
     }
 
     public boolean requirePath() {
-        return Arrays.asList(DeployType.JAR_LIB, DeployType.STATIC).contains(this);
+        return Arrays.asList(DeployType.JAR_LIB, DeployType.STATIC, DeployType.SCRIPT).contains(this);
     }
 
     public boolean ignorePath() {
