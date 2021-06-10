@@ -119,32 +119,32 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
 
     @Override
     public Flux<ByteBuffer> getFileContent(String path) {
-        return getFileManager().getFileContent(path);
+        return getFileClient().getFileContent(path);
     }
 
     @Override
     public List<? extends AppServiceFile> getFilesInDirectory(String dir) {
-        return getFileManager().getFilesInDirectory(dir);
+        return getFileClient().getFilesInDirectory(dir);
     }
 
     @Override
     public AppServiceFile getFileByPath(String path) {
-        return getFileManager().getFileByPath(path);
+        return getFileClient().getFileByPath(path);
     }
 
     @Override
     public void uploadFileToPath(String content, String path) {
-        getFileManager().uploadFileToPath(content, path);
+        getFileClient().uploadFileToPath(content, path);
     }
 
     @Override
     public void createDirectory(String path) {
-        getFileManager().createDirectory(path);
+        getFileClient().createDirectory(path);
     }
 
     @Override
     public void deleteFile(String path) {
-        getFileManager().deleteFile(path);
+        getFileClient().deleteFile(path);
     }
 
     @Override
@@ -162,7 +162,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
         return getProcessClient().getAppServiceTunnelStatus();
     }
 
-    protected IFileClient getFileManager() {
+    protected IFileClient getFileClient() {
         return getKuduManager();
     }
 

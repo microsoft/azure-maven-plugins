@@ -118,7 +118,7 @@ public class AzureFunctionsResourceManager implements IFileClient {
     }
 
     @Host("{$host}")
-    @ServiceInterface(name = "KuduService")
+    @ServiceInterface(name = "FunctionHost")
     private interface FunctionsService {
         @Headers({
                 "Content-Type: application/json; charset=utf-8",
