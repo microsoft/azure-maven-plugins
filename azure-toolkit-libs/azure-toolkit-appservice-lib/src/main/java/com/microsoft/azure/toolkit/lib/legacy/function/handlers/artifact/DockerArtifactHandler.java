@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.handlers.artifact;
 
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTarget;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact.ArtifactHandlerBase;
 
@@ -32,7 +32,7 @@ public class DockerArtifactHandler extends ArtifactHandlerBase {
 
     @Override
     public void publish(DeployTarget deployTarget) {
-        Log.prompt(SKIP_DOCKER_DEPLOYMENT);
+        AzureMessager.getMessager().info(SKIP_DOCKER_DEPLOYMENT);
         deployTarget.getApp().restart();
     }
 }
