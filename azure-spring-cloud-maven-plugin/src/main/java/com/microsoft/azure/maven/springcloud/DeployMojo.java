@@ -106,7 +106,7 @@ public class DeployMojo extends AbstractMojoBase {
     }
 
     protected void printStatus(SpringCloudDeployment deployment) {
-        log.info("Deployment Status: {}", color(deployment.entity().getStatus()));
+        log.info("Deployment Status: {}", color(deployment.entity().getStatus().getLabel()));
         deployment.entity().getInstances().forEach(instance ->
                 log.info(String.format("  InstanceName:%-10s  Status:%-10s Reason:%-10s DiscoverStatus:%-10s",
                         instance.getName(), color(instance.status()), instance.reason(), instance.discoveryStatus())));

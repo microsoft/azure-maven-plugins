@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.lib.legacy.function.handlers.runtime;
 
 import com.microsoft.azure.management.appservice.AppServicePlan;
 import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
 import org.apache.commons.lang3.StringUtils;
 
@@ -54,7 +54,8 @@ public abstract class AbstractLinuxFunctionRuntimeHandler extends FunctionRuntim
 
     protected void checkFunctionExtensionVersion() {
         if (functionExtensionVersion.getValue() < LINUX_MINIMUM_VERSION.getValue()) {
-            Log.warn(String.format(FUNCTION_EXTENSION_VERSION_NOT_SUPPORTED, functionExtensionVersion.getVersion()));
+            final String message = String.format(FUNCTION_EXTENSION_VERSION_NOT_SUPPORTED, functionExtensionVersion.getVersion());
+            AzureMessager.getMessager().warning(message);
         }
     }
 }

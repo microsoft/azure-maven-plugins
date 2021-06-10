@@ -7,13 +7,14 @@ package com.microsoft.azure.toolkit.lib.common.messager;
 
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public abstract class AzureMessager implements IAzureMessager {
+public abstract class AzureMessager {
     private static IAzureMessager defaultMessager;
 
     public static synchronized void setDefaultMessager(@Nonnull IAzureMessager messager) {
@@ -79,6 +80,12 @@ public abstract class AzureMessager implements IAzureMessager {
         }
     }
 
+    @Slf4j
     public static class DummyMessager implements IAzureMessager {
+        @Override
+        public boolean show(IAzureMessage message) {
+            log.info("DUMMY MESSAGE:{}", message);
+            return false;
+        }
     }
 }

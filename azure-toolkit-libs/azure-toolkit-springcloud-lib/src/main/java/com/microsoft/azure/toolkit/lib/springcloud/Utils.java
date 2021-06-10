@@ -28,7 +28,7 @@ public class Utils {
         if (deployment == null) {
             return false;
         }
-        final String deploymentResourceStatus = deployment.entity().getStatus();
+        final String deploymentResourceStatus = deployment.entity().getStatus().getLabel();
         if (DEPLOYMENT_PROCESSING_STATUS.contains(deploymentResourceStatus)) {
             return false;
         }

@@ -12,7 +12,7 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
@@ -39,6 +39,10 @@ public class AppServiceUtils {
                 }
             }
         }
+
+        pricingTiers.add(new PricingTier("PremiumV3", "P1v3"));
+        pricingTiers.add(new PricingTier("PremiumV3", "P2v3"));
+        pricingTiers.add(new PricingTier("PremiumV3", "P3v3"));
     }
 
     public static AppServicePlan getAppServicePlan(final String servicePlanName, final Azure azureClient,
@@ -101,7 +105,7 @@ public class AppServiceUtils {
         if (pricingTier == null || pricingTier.equals(appServicePlan.pricingTier())) {
             return appServicePlan;
         }
-        Log.prompt(UPDATE_APP_SERVICE_PLAN);
+        AzureMessager.getMessager().info(UPDATE_APP_SERVICE_PLAN);
         final AppServicePlan.Update appServicePlanUpdate = appServicePlan.update();
         return appServicePlanUpdate.withPricingTier(pricingTier).apply();
     }

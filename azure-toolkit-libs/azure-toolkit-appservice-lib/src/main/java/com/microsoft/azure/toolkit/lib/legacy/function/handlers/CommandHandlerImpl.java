@@ -6,8 +6,9 @@
 package com.microsoft.azure.toolkit.lib.legacy.function.handlers;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.CommandUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,9 +17,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+@Slf4j
 public class CommandHandlerImpl implements CommandHandler {
     @Override
     public void runCommandWithReturnCodeCheck(final String command,
@@ -49,9 +51,9 @@ public class CommandHandlerImpl implements CommandHandler {
 
     protected String getOutputFromProcess(final Process process) throws IOException {
         try (final BufferedReader stdInput = new BufferedReader(
-                new InputStreamReader(process.getInputStream(), Charset.forName("UTF-8")))) {
-            final StringBuffer stdout = new StringBuffer();
-            String s = null;
+                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+            final StringBuilder stdout = new StringBuilder();
+            String s;
             while ((s = stdInput.readLine()) != null) {
                 stdout.append(s);
             }
@@ -62,7 +64,7 @@ public class CommandHandlerImpl implements CommandHandler {
     protected Process runCommand(final String command,
                                  final boolean showStdout,
                                  final String workingDirectory) throws IOException, InterruptedException {
-        Log.debug("Executing command: " + StringUtils.join(command, " "));
+        log.debug("Executing command: " + StringUtils.join(command, " "));
 
         final ProcessBuilder.Redirect redirect = getStdoutRedirect(showStdout);
         final ProcessBuilder processBuilder = new ProcessBuilder(buildCommand(command))
@@ -94,19 +96,19 @@ public class CommandHandlerImpl implements CommandHandler {
                                    final List<Long> validReturnCodes,
                                    final String errorMessage,
                                    final InputStream inputStream) throws AzureExecutionException, IOException {
-        Log.debug("Process exit value: " + exitValue);
+        log.debug("Process exit value: " + exitValue);
         if (!validReturnCodes.contains(Integer.toUnsignedLong(exitValue))) {
             // input stream is a merge of standard output and standard error of the sub-process
             showErrorIfAny(inputStream);
-            Log.error(errorMessage);
+            AzureMessager.getMessager().error(errorMessage);
             throw new AzureExecutionException(errorMessage);
         }
     }
 
     protected void showErrorIfAny(final InputStream inputStream) throws IOException {
         if (inputStream != null) {
-            final String input = IOUtils.toString(inputStream, "utf8");
-            Log.error(StringUtils.strip(input, "\n"));
+            final String input = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            AzureMessager.getMessager().error(StringUtils.strip(input, "\n"));
         }
     }
 }

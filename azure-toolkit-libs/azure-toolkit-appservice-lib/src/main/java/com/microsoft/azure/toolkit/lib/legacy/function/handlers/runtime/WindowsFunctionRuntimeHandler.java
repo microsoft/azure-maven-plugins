@@ -10,7 +10,8 @@ import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.WebAppBase;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import org.apache.commons.lang3.StringUtils;
 
 public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
@@ -74,14 +75,15 @@ public class WindowsFunctionRuntimeHandler extends FunctionRuntimeHandler {
     public FunctionApp.Update updateAppRuntime(FunctionApp app) {
         final JavaVersion serverJavaVersion = app.javaVersion();
         final FunctionApp.Update update = app.update();
+        final IAzureMessager messager = AzureMessager.getMessager();
         if (javaVersion.equals(serverJavaVersion)) {
-            Log.info(String.format(HOST_JAVA_VERSION, serverJavaVersion));
+            messager.info(String.format(HOST_JAVA_VERSION, serverJavaVersion));
         } else if (JavaVersion.OFF.equals(serverJavaVersion)) {
-            Log.info(HOST_JAVA_VERSION_OFF);
+            messager.info(HOST_JAVA_VERSION_OFF);
             update.withJavaVersion(javaVersion);
         } else if (StringUtils.isNotEmpty(runtimeConfiguration.getJavaVersion())) {
             // Will update function host java version if user specify it in pom
-            Log.info(String.format(HOST_JAVA_VERSION_UPDATE, serverJavaVersion, javaVersion));
+            messager.info(String.format(HOST_JAVA_VERSION_UPDATE, serverJavaVersion, javaVersion));
             update.withJavaVersion(javaVersion);
         }
         return update;
