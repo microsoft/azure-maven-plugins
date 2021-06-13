@@ -13,4 +13,6 @@ public interface IFunctionAppBase<T extends IAzureResourceEntity> extends IAppSe
     void deploy(File targetFile);
 
     void deploy(File targetFile, FunctionDeployType functionDeployType);
+
+    String getMasterKey();
 }

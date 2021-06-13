@@ -6,12 +6,15 @@
 package com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.artifact;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeployTarget;
+import lombok.extern.slf4j.Slf4j;
 import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
 
+@Slf4j
 public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
     private static final int DEFAULT_MAX_RETRY_TIMES = 3;
     private static final String LOCAL_SETTINGS_FILE = "local.settings.json";
@@ -37,7 +40,8 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
         assureStagingDirectoryNotEmpty();
 
         final File zipFile = getZipFile();
-        Log.prompt(String.format(DEPLOY_START, target.getName()));
+        final IAzureMessager messager = AzureMessager.getMessager();
+        messager.info(String.format(DEPLOY_START, target.getName()));
 
         // Add retry logic here to avoid Kudu's socket timeout issue.
         // More details: https://github.com/Microsoft/azure-maven-plugins/issues/339
@@ -46,10 +50,10 @@ public class ZIPArtifactHandlerImpl extends ArtifactHandlerBase {
             retryCount += 1;
             try {
                 target.zipDeploy(zipFile);
-                Log.prompt(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
+                messager.success(String.format(DEPLOY_FINISH, target.getDefaultHostName()));
                 return;
             } catch (Exception e) {
-                Log.debug(
+                log.debug(
                     String.format("Exception occurred when deploying the zip package: %s, " +
                         "retrying immediately (%d/%d)", e.getMessage(), retryCount, DEFAULT_MAX_RETRY_TIMES));
             }

@@ -56,6 +56,14 @@ public class SpringCloudClusterEntity implements IAzureResourceEntity {
         this.id = resource.id();
     }
 
+    public String getTestEndpoint() {
+        return this.remote.listTestKeys().primaryTestEndpoint();
+    }
+
+    public String getTestKey() {
+        return this.remote.listTestKeys().primaryKey();
+    }
+
     public SpringCloudSku getSku() {
         final Sku sku = this.remote.sku();
         final SpringCloudSku dft = SpringCloudSku.builder()
