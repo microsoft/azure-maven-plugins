@@ -134,6 +134,14 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
                 .collect(Collectors.toList());
     }
 
+    public List<IAppServicePlan> appServicePlansByResourceGroup(String resourceGroupName) {
+        return getSubscriptions().stream()
+            .map(subscription -> getAzureResourceManager(subscription.getId()))
+            .flatMap(azureResourceManager -> azureResourceManager.appServicePlans().listByResourceGroup(resourceGroupName).stream())
+            .map(appServicePlan -> appServicePlan(appServicePlan.id()))
+            .collect(Collectors.toList());
+    }
+
     public IWebAppDeploymentSlot deploymentSlot(String id) {
         return deploymentSlot(WebAppDeploymentSlotEntity.builder().id(id).build());
     }
