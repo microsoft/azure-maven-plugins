@@ -22,6 +22,8 @@
 
 package com.microsoft.azure.toolkit.lib.common.entity;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+
 public interface IAzureEntityManager<T extends IAzureResourceEntity> {
     IAzureEntityManager<T> refresh();
 
@@ -35,5 +37,13 @@ public interface IAzureEntityManager<T extends IAzureResourceEntity> {
 
     default String id() {
         return this.entity().getId();
+    }
+
+    default String subscriptionId() {
+        return ResourceId.fromString(id()).subscriptionId();
+    }
+
+    default String resourceGroup() {
+        return ResourceId.fromString(id()).resourceGroupName();
     }
 }
