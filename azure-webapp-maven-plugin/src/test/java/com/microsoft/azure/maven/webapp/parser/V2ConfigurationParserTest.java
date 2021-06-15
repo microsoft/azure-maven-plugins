@@ -5,17 +5,15 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
-import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.RuntimeStack;
-import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
-
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.junit.Before;
@@ -54,13 +52,13 @@ public class V2ConfigurationParserTest {
 
         doReturn(false).when(runtime).isEmpty();
         doReturn("windows").when(runtime).getOs();
-        assertEquals(OperatingSystemEnum.Windows, parser.getOs());
+        assertEquals(OperatingSystem.WINDOWS, parser.getOs());
 
         doReturn("linux").when(runtime).getOs();
-        assertEquals(OperatingSystemEnum.Linux, parser.getOs());
+        assertEquals(OperatingSystem.LINUX, parser.getOs());
 
         doReturn("docker").when(runtime).getOs();
-        assertEquals(OperatingSystemEnum.Docker, parser.getOs());
+        assertEquals(OperatingSystem.DOCKER, parser.getOs());
 
         try {
             doReturn(null).when(runtime).getOs();
@@ -87,29 +85,8 @@ public class V2ConfigurationParserTest {
             assertEquals(e.getMessage(), "The value of <region> is not supported, please correct it in pom.xml.");
         }
 
-        doReturn(Region.US_WEST.name()).when(mojo).getRegion();
+        doReturn(Region.US_WEST.getName()).when(mojo).getRegion();
         assertEquals(Region.US_WEST, parser.getRegion());
-    }
-
-    @Test
-    public void getRuntimeStack() throws AzureExecutionException {
-        doReturn(null).when(mojo).getRuntime();
-        assertNull(parser.getRuntimeStack());
-
-        final MavenRuntimeConfig runtime = mock(MavenRuntimeConfig.class);
-        doReturn(true).when(runtime).isEmpty();
-        doReturn(runtime).when(mojo).getRuntime();
-        assertNull(parser.getRuntimeStack());
-
-        doReturn(false).when(runtime).isEmpty();
-        doReturn(RuntimeStack.TOMCAT_8_5_JRE8).when(runtime).getLinuxRuntime();
-        assertEquals(RuntimeStack.TOMCAT_8_5_JRE8, parser.getRuntimeStack());
-
-        doReturn(RuntimeStack.TOMCAT_9_0_JRE8).when(runtime).getLinuxRuntime();
-        assertEquals(RuntimeStack.TOMCAT_9_0_JRE8, parser.getRuntimeStack());
-
-        doReturn(RuntimeStack.JAVA_8_JRE8).when(runtime).getLinuxRuntime();
-        assertEquals(RuntimeStack.JAVA_8_JRE8, parser.getRuntimeStack());
     }
 
     @Test
@@ -174,9 +151,9 @@ public class V2ConfigurationParserTest {
             assertTrue(StringUtils.contains(e.getMessage(), " for <webContainer> in pom.xml"));
         }
 
-        doReturn(WebContainer.TOMCAT_8_5_NEWEST).when(runtime).getWebContainer();
-        doReturn(WebContainer.TOMCAT_8_5_NEWEST.toString()).when(runtime).getWebContainerRaw();
-        assertEquals(WebContainer.TOMCAT_8_5_NEWEST, parser.getWebContainer());
+        doReturn(WebContainer.TOMCAT_85).when(runtime).getWebContainer();
+        doReturn(WebContainer.TOMCAT_85.toString()).when(runtime).getWebContainerRaw();
+        assertEquals(WebContainer.TOMCAT_85, parser.getWebContainer());
     }
 
     @Test
@@ -196,9 +173,9 @@ public class V2ConfigurationParserTest {
         } catch (AzureExecutionException e) {
             assertTrue(StringUtils.contains(e.getMessage(), " for <javaVersion> in pom.xml"));
         }
-        doReturn(JavaVersion.JAVA_8_NEWEST).when(runtime).getJavaVersion();
-        doReturn(JavaVersion.JAVA_8_NEWEST.toString()).when(runtime).getJavaVersionRaw();
-        assertEquals(JavaVersion.JAVA_8_NEWEST, parser.getJavaVersion());
+        doReturn(JavaVersion.JAVA_8).when(runtime).getJavaVersion();
+        doReturn(JavaVersion.JAVA_8.toString()).when(runtime).getJavaVersionRaw();
+        assertEquals(JavaVersion.JAVA_8, parser.getJavaVersion());
     }
 
     @Test

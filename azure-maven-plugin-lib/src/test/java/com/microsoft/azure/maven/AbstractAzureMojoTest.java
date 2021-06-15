@@ -6,8 +6,6 @@
 package com.microsoft.azure.maven;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.maven.auth.AuthenticationSetting;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.execution.MavenSession;
@@ -61,12 +59,6 @@ public class AbstractAzureMojoTest {
     @Mock
     PluginDescriptor plugin;
 
-    @Mock
-    AuthenticationSetting authenticationSetting;
-
-    @Mock
-    Azure azure;
-
     @InjectMocks
     private AbstractAzureMojo mojo = new AbstractAzureMojo() {
         @Override
@@ -104,16 +96,6 @@ public class AbstractAzureMojoTest {
     @Test
     public void getBuildDirectoryAbsolutePath() throws Exception {
         assertEquals("target", mojo.getBuildDirectoryAbsolutePath());
-    }
-
-    @Test
-    public void getAuthenticationSetting() throws Exception {
-        assertEquals(authenticationSetting, mojo.getAuthenticationSetting());
-    }
-
-    @Test
-    public void getAzureClient() throws Exception {
-        assertEquals(azure, mojo.getAzureClient());
     }
 
     @Test

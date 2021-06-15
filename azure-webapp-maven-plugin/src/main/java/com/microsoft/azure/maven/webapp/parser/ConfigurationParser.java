@@ -6,19 +6,16 @@
 package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.maven.model.DeploymentResource;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.RuntimeStack;
-import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 
 import java.util.List;
 
@@ -42,9 +39,9 @@ public abstract class ConfigurationParser {
         return mojo.getResourceGroup();
     }
 
-    protected PricingTier getPricingTier() throws AzureExecutionException {
+    protected String getPricingTier() throws AzureExecutionException {
         validate(validator.validatePricingTier());
-        return AppServiceUtils.getPricingTierFromString(mojo.getPricingTier());
+        return mojo.getPricingTier();
     }
 
     protected DeploymentSlotSetting getDeploymentSlotSetting() throws AzureExecutionException {
@@ -52,11 +49,9 @@ public abstract class ConfigurationParser {
         return mojo.getDeploymentSlotSetting();
     }
 
-    protected abstract OperatingSystemEnum getOs() throws AzureExecutionException;
+    protected abstract OperatingSystem getOs() throws AzureExecutionException;
 
     protected abstract Region getRegion() throws AzureExecutionException;
-
-    protected abstract RuntimeStack getRuntimeStack() throws AzureExecutionException;
 
     protected abstract String getImage() throws AzureExecutionException;
 
@@ -79,20 +74,18 @@ public abstract class ConfigurationParser {
     }
 
     public WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {
-        WebAppConfiguration.Builder builder = new WebAppConfiguration.Builder();
-        final OperatingSystemEnum os = getOs();
+        WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = WebAppConfiguration.builder();
+        final OperatingSystem os = getOs();
         if (os == null) {
             Log.debug("No runtime related config is specified. " +
                 "It will cause error if creating a new web app.");
         } else {
             switch (os) {
-                case Windows:
+                case WINDOWS:
+                case LINUX:
                     builder = builder.javaVersion(getJavaVersion()).webContainer(getWebContainer());
                     break;
-                case Linux:
-                    builder = builder.runtimeStack(getRuntimeStack());
-                    break;
-                case Docker:
+                case DOCKER:
                     builder = builder.image(getImage()).serverId(getServerId()).registryUrl(getRegistryUrl());
                     break;
                 default:

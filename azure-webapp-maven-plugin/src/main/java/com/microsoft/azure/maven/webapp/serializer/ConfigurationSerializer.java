@@ -24,7 +24,7 @@ public abstract class ConfigurationSerializer {
     public ConfigurationSerializer(WebAppConfiguration newConfigs, WebAppConfiguration oldConfigs) {
         this.newConfigs = newConfigs;
         // when there is no old configuration, just compare to an empty one
-        this.oldConfigs = oldConfigs == null ? new WebAppConfiguration.Builder().build() : oldConfigs;
+        this.oldConfigs = oldConfigs == null ? WebAppConfiguration.builder().build() : oldConfigs;
     }
 
     public abstract void saveToXML(Element document)

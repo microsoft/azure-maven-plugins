@@ -10,21 +10,18 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <configuration>
-                    <authentication>
-                        <serverId>azure-auth</serverId>
-                    </authentication>
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
-                    <deploymentSlot implementation="com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting">
+                    <deploymentSlot>
                         <name>slot</name>
                         <configurationSource>test</configurationSource>
                     </deploymentSlot>
                     <region>westeurope</region>
-                    <pricingTier>s2</pricingTier>
-                    <javaVersion>1.8</javaVersion>
-                    <javaWebContainer>tomcat 8.5</javaWebContainer>
-                    <!-- test unknown deployment type throw exception -->
-                    <deploymentType>unknown</deploymentType>
+                    <runtime>
+                        <os>Windows</os>
+                        <webContainer>Tomcat 8.5</webContainer>
+                        <javaVersion>Java 11</javaVersion>
+                    </runtime>
                     <appSettings>
                         <property>
                             <name>PORT</name>
