@@ -67,7 +67,7 @@ public class WebAppOption implements Comparable<WebAppOption> {
     }
 
     public boolean isDockerWebapp() {
-        return webappInner != null && Objects.equals(webappInner.getRuntime().getOperatingSystem(), OperatingSystem.DOCKER);
+        return webappInner != null && webappInner.getRuntime().isDocker();
     }
 
     public boolean isJavaWebApp() {

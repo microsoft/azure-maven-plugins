@@ -35,6 +35,7 @@ import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_VERSION_K
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.JAVA_WEB_CONTAINER_KEY;
 import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.OS_KEY;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -89,6 +90,7 @@ public class DeployMojoTest {
 
         assertEquals(1, mojo.getDeployment().getResources().size());
 
+        assertFalse(mojo.isStopAppDuringDeployment());
     }
 
     @Test

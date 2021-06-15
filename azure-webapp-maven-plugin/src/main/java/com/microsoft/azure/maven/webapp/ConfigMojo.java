@@ -54,7 +54,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.maven.webapp.utils.Utils.findStringInCollectionIgnoreCase;
@@ -89,7 +88,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static final String SETTING_REGISTRY_USERNAME = "DOCKER_REGISTRY_SERVER_USERNAME";
     private static final String SERVER_ID_TEMPLATE = "Please add a server in Maven settings.xml related to username: %s and put the serverId here";
 
-    private static final List<String> WEB_APP_PROPERTIES = Arrays.asList("subscriptionId", "resourceGroup", "appName", "runtime", "deployment", "region",
+    private static final List<String> WEB_APP_PROPERTIES = Arrays.asList("resourceGroup", "appName", "runtime", "deployment", "region",
             "appServicePlanResourceGroup", "appServicePlanName", "deploymentSlot");
 
     private MavenPluginQueryer queryer;
@@ -191,8 +190,12 @@ public class ConfigMojo extends AbstractWebAppMojo {
                     break;
                 case DOCKER:
                     System.out.println("Image : " + configuration.getImage());
-                    System.out.println("ServerId : " + configuration.getServerId());
-                    System.out.println("RegistryUrl : " + configuration.getRegistryUrl());
+                    if (StringUtils.isNotBlank(configuration.getServerId())) {
+                        System.out.println("ServerId : " + configuration.getServerId());
+                    }
+                    if (StringUtils.isNotBlank(configuration.getRegistryUrl())) {
+                        System.out.println("RegistryUrl : " + configuration.getRegistryUrl());
+                    }
                     break;
                 default:
                     throw new AzureExecutionException("The value of <os> is unknown.");
@@ -529,8 +532,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
             if (StringUtils.isNotBlank(imageSetting)) {
                 builder.image(imageSetting);
             } else {
-                // TODO: docker support in appservice-lib
-                // builder.image(getDockerImageName(webapp.linuxFxVersion()));
+                builder.image(webapp.entity().getDockerImageName());
             }
             final String registryServerSetting = settings.get(SETTING_REGISTRY_SERVER);
             if (StringUtils.isNotBlank(registryServerSetting)) {
@@ -541,7 +543,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
             if (StringUtils.isNotBlank(dockerUsernameSetting)) {
                 builder.serverId(String.format(SERVER_ID_TEMPLATE, dockerUsernameSetting));
             }
-            builder.os(OperatingSystem.DOCKER);
         } else {
             builder.os(webapp.getRuntime().getOperatingSystem());
             builder.javaVersion(webapp.getRuntime().getJavaVersion());
@@ -553,19 +554,6 @@ public class ConfigMojo extends AbstractWebAppMojo {
             builder.servicePlanResourceGroup(servicePlan.entity().getResourceGroup());
         }
         return builder.build();
-    }
-
-    private static String getDockerImageName(String linuxFxVersion) {
-        String[] segments = linuxFxVersion.split(Pattern.quote("|"));
-        if (segments.length != 2) {
-            return null;
-        }
-        final String image = segments[1];
-        if (!image.contains("/")) {
-            return image;
-        }
-        segments = image.split(Pattern.quote("/"));
-        return segments[segments.length - 1].trim();
     }
 
     private static boolean checkWebAppVisible(boolean isContainer, boolean isDockerOnly, boolean isJavaSEWebApp, boolean isDockerWebapp) {

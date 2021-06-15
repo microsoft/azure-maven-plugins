@@ -13,7 +13,6 @@ import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
@@ -197,7 +196,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private void deploy(IWebAppBase target, WebAppConfig config) throws AzureExecutionException {
-        if (target.getRuntime().getOperatingSystem() == OperatingSystem.DOCKER) {
+        if (target.getRuntime().isDocker()) {
             Log.info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
             return;
         }

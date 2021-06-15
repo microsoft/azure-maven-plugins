@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 class AppServiceUtils {
@@ -196,7 +197,7 @@ class AppServiceUtils {
     }
 
     static WebAppEntity fromWebApp(WebAppBase webAppBase) {
-        return WebAppEntity.builder().name(webAppBase.name())
+        final WebAppEntity.WebAppEntityBuilder<?, ?> builder = WebAppEntity.builder().name(webAppBase.name())
             .id(webAppBase.id())
             .region(Region.fromName(webAppBase.regionName()))
             .resourceGroup(webAppBase.resourceGroupName())
@@ -204,8 +205,13 @@ class AppServiceUtils {
             .runtime(getRuntimeFromAppService(webAppBase))
             .appServicePlanId(webAppBase.appServicePlanId())
             .defaultHostName(webAppBase.defaultHostname())
-            .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()))
-            .build();
+            .appSettings(Utils.normalizeAppSettings(webAppBase.getAppSettings()));
+
+        final String linuxFxVersion = webAppBase.linuxFxVersion();
+        if (StringUtils.startsWithIgnoreCase(linuxFxVersion, "docker")) {
+            builder.dockerImageName(getDockerImageNameFromLinuxFxVersion(linuxFxVersion));
+        }
+        return builder.build();
     }
 
     static WebAppEntity fromWebAppBasic(WebAppBasic webAppBasic) {
@@ -371,5 +377,18 @@ class AppServiceUtils {
                 .direction((String) bindingProperties.get("direction"))
                 .name((String) bindingProperties.get("name"))
                 .properties(bindingProperties).build();
+    }
+
+    private static String getDockerImageNameFromLinuxFxVersion(String linuxFxVersion) {
+        String[] segments = linuxFxVersion.split(Pattern.quote("|"));
+        if (segments.length != 2) {
+            return null;
+        }
+        final String image = segments[1];
+        if (!image.contains("/")) {
+            return image;
+        }
+        segments = image.split(Pattern.quote("/"));
+        return segments[segments.length - 1].trim();
     }
 }
