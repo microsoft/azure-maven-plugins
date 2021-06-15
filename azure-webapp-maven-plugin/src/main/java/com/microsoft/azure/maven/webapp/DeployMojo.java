@@ -9,20 +9,20 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.maven.model.DeploymentResource;
-import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
 import com.microsoft.azure.maven.webapp.utils.WebAppUtils;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
+import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -257,7 +257,7 @@ public class DeployMojo extends AbstractWebAppMojo {
             final List<File> files = new ArrayList<>(FileUtils.listFiles(stagingDirectory, null, true));
             DeployUtils.prepareJavaSERuntimeJarArtifact(files, project.getBuild().getFinalName());
         }
-        final File zipFile = Utils.createTempFile(appName + UUID.randomUUID().toString(), ".zip");
+        final File zipFile = Utils.createTempFile(appName + UUID.randomUUID(), ".zip");
         ZipUtil.pack(stagingDirectory, zipFile);
         // Deploy zip with zip deploy
         target.deploy(DeployType.ZIP, zipFile);

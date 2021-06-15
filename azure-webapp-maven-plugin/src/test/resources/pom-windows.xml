@@ -28,15 +28,17 @@
                             <value>80</value>
                         </property>
                     </appSettings>
-                    <resources>
-                        <resource>
-                            <directory>${baseDir}/target</directory>
-                            <targetPath>/</targetPath>
-                            <includes>
-                                <include>*.jar</include>
-                            </includes>
-                        </resource>
-                    </resources>
+                    <deployment>
+                        <resources>
+                            <resource>
+                                <directory>${baseDir}/target</directory>
+                                <targetPath>/</targetPath>
+                                <includes>
+                                    <include>*.jar</include>
+                                </includes>
+                            </resource>
+                        </resources>
+                    </deployment>
                 </configuration>
             </plugin>
         </plugins>
