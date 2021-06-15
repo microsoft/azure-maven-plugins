@@ -11,7 +11,6 @@ import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -188,7 +187,7 @@ public class ConfigurationParserTest {
         assertEquals("appName", webAppConfiguration.getAppName());
         assertEquals("resourceGroupName", webAppConfiguration.getResourceGroup());
         assertEquals(Region.EUROPE_WEST, webAppConfiguration.getRegion());
-        assertEquals(new PricingTier("PremiumV2", "P1v2"), webAppConfiguration.getPricingTier());
+        assertEquals("P1v2", webAppConfiguration.getPricingTier());
         assertEquals(null, webAppConfiguration.getServicePlanName());
         assertEquals(null, webAppConfiguration.getServicePlanResourceGroup());
         assertEquals(OperatingSystem.WINDOWS, webAppConfiguration.getOs());
