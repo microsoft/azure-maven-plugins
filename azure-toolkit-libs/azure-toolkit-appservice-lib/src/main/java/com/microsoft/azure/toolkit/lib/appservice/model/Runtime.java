@@ -6,7 +6,10 @@
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,7 +21,10 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Runtime {
     // Web App
     public static final Runtime WINDOWS_JAVA8 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_SE, JavaVersion.JAVA_8);
@@ -52,9 +58,9 @@ public class Runtime {
     private static final List<Runtime> values =
             Collections.unmodifiableList(new ArrayList<>(new HashSet<>(ListUtils.union(WEBAPP_RUNTIME, FUNCTION_APP_RUNTIME))));
 
-    private final OperatingSystem operatingSystem;
-    private final WebContainer webContainer;
-    private final JavaVersion javaVersion;
+    private OperatingSystem operatingSystem;
+    private WebContainer webContainer;
+    private JavaVersion javaVersion;
 
     public static Runtime getRuntime(OperatingSystem operatingSystem, WebContainer webContainer, JavaVersion javaVersion) {
         final Runtime standardRuntime = values().stream()

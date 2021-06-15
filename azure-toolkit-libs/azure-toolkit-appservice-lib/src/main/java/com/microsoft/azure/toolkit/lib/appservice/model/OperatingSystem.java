@@ -6,12 +6,16 @@
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 public enum OperatingSystem {
     WINDOWS("windows"),

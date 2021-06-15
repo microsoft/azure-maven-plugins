@@ -5,14 +5,20 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Region {
     public static final Region US_EAST = new Region("eastus", "East US");
     public static final Region US_EAST2 = new Region("eastus2", "East US 2");
@@ -73,8 +79,8 @@ public class Region {
     public static final Region US_EAST2_EUAP = new Region("eastus2euap", "East US 2 EUAP");
     public static final Region INDIA_JIO_WEST = new Region("jioindiawest", "Jio India West");
 
-    private final String name;
-    private final String label;
+    private String name;
+    private String label;
 
     public static List<Region> values() {
         return Arrays.asList(US_EAST, US_EAST2, US_SOUTH_CENTRAL, US_WEST2, US_CENTRAL, US_NORTH_CENTRAL, US_WEST, US_WEST_CENTRAL, CANADA_CENTRAL,

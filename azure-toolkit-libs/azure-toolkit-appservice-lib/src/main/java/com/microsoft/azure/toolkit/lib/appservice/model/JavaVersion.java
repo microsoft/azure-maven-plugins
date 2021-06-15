@@ -6,7 +6,11 @@
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -15,7 +19,10 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class JavaVersion {
     private static final String JAVA_7_VALUE = "Java 7";
     private static final String JAVA_7_VALUE_TRIM = "Java7";
@@ -54,7 +61,7 @@ public class JavaVersion {
             JAVA_ZULU_1_7_0_191, JAVA_8, JAVA_1_8_0_25, JAVA_1_8_0_60, JAVA_1_8_0_73, JAVA_1_8_0_111, JAVA_1_8_0_144, JAVA_1_8_0_172, JAVA_ZULU_1_8_0_172,
             JAVA_ZULU_1_8_0_92, JAVA_ZULU_1_8_0_102, JAVA_1_8_0_181, JAVA_ZULU_1_8_0_181, JAVA_1_8_0_202, JAVA_ZULU_1_8_0_202, JAVA_11, JAVA_ZULU_11_0_2));
 
-    private final String value;
+    private String value;
 
     public static List<JavaVersion> values() {
         return values;
