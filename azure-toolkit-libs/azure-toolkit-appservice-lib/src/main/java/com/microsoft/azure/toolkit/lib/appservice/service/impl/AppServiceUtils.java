@@ -87,9 +87,7 @@ class AppServiceUtils {
         if (webAppBase.javaVersion() == null || StringUtils.isAnyEmpty(webAppBase.javaContainer(), webAppBase.javaContainerVersion())) {
             return Runtime.getRuntime(OperatingSystem.WINDOWS, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
-        final JavaVersion javaVersion = JavaVersion.values().stream()
-            .filter(version -> StringUtils.equals(webAppBase.javaVersion().toString(), version.getValue()))
-            .findFirst().orElse(JavaVersion.OFF);
+        final JavaVersion javaVersion = fromJavaVersion(webAppBase.javaVersion());
         final String javaContainer = String.join(" ", webAppBase.javaContainer(), webAppBase.javaContainerVersion());
         final WebContainer webContainer = StringUtils.equalsIgnoreCase(webAppBase.javaContainer(), "java") ? WebContainer.JAVA_SE :
             WebContainer.values().stream()
@@ -101,7 +99,7 @@ class AppServiceUtils {
     static RuntimeStack toLinuxRuntimeStack(Runtime runtime) {
         return RuntimeStack.getAll().stream().filter(runtimeStack -> {
             final Runtime stackRuntime = Runtime.getRuntimeFromLinuxFxVersion(runtimeStack.toString());
-            return stackRuntime != null && Objects.equals(stackRuntime.getJavaVersion(), runtime.getJavaVersion()) &&
+            return Objects.equals(stackRuntime.getJavaVersion(), runtime.getJavaVersion()) &&
                 Objects.equals(stackRuntime.getWebContainer(), runtime.getWebContainer());
         }).findFirst().orElse(null);
     }
@@ -147,26 +145,26 @@ class AppServiceUtils {
 
     static PricingTier fromPricingTier(com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
         return PricingTier.values().stream()
-            .filter(value -> StringUtils.equals(value.getSize(), pricingTier.toSkuDescription().size()) &&
-                StringUtils.equals(value.getTier(), pricingTier.toSkuDescription().tier()))
+            .filter(value -> StringUtils.equalsIgnoreCase(value.getSize(), pricingTier.toSkuDescription().size()) &&
+                StringUtils.equalsIgnoreCase(value.getTier(), pricingTier.toSkuDescription().tier()))
             .findFirst().orElse(null);
     }
 
     static OperatingSystem fromOperatingSystem(com.azure.resourcemanager.appservice.models.OperatingSystem operatingSystem) {
         return Arrays.stream(OperatingSystem.values())
-            .filter(os -> StringUtils.equals(operatingSystem.name(), os.getValue()))
+            .filter(os -> StringUtils.equalsIgnoreCase(operatingSystem.name(), os.getValue()))
             .findFirst().orElse(null);
     }
 
     static JavaVersion fromJavaVersion(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
         return JavaVersion.values().stream()
-            .filter(value -> StringUtils.equals(value.getValue(), javaVersion.toString()))
-            .findFirst().orElse(null);
+            .filter(value -> StringUtils.equalsIgnoreCase(value.getValue(), javaVersion.toString()))
+            .findFirst().orElse(JavaVersion.OFF);
     }
 
     static com.azure.resourcemanager.appservice.models.JavaVersion toJavaVersion(JavaVersion javaVersion) {
         return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
-            .filter(value -> StringUtils.equals(value.toString(), javaVersion.getValue()))
+            .filter(value -> StringUtils.equalsIgnoreCase(value.toString(), javaVersion.getValue()))
             .findFirst().orElse(null);
     }
 
