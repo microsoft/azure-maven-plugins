@@ -11,6 +11,8 @@ import com.azure.resourcemanager.appplatform.implementation.SpringAppImpl;
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -30,7 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudAppEntity, SpringApp> implements AzureOperationEvent.Source<SpringCloudApp> {
+public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, SpringCloudAppEntity, SpringApp> implements AzureOperationEvent.Source<SpringCloudApp> {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
 
     @Getter
@@ -43,11 +45,13 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudAppEnt
     }
 
     @Override
-    SpringApp loadRemote() {
-        return this.cluster.app(this.entity().getName()).remote();
+    @CacheEvict(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
+    void updateRemote() {
+        this.entity.setRemote(this.cluster.app(this.entity().getName()).remote());
     }
 
     @Nonnull
+    @Cacheable(cacheName = "asc/app/{}/deployment/{}", key = "${this.name()}/$name")
     public SpringCloudDeployment deployment(final String name) {
         if (this.exists()) {
             try {
@@ -80,6 +84,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudAppEnt
     }
 
     @Nonnull
+    @Cacheable(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
     public List<SpringCloudDeployment> deployments() {
         if (this.exists()) {
             return Objects.requireNonNull(this.remote()).deployments().list().stream().map(this::deployment).collect(Collectors.toList());

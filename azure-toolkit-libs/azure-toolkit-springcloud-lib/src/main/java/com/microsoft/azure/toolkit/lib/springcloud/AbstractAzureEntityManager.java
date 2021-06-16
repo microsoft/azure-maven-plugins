@@ -17,13 +17,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-abstract class AbstractAzureEntityManager<T extends AbstractAzureEntityManager.RemoteAwareResourceEntity<R>, R> implements IAzureEntityManager<T> {
+abstract class AbstractAzureEntityManager<T extends IAzureEntityManager<E>, E extends AbstractAzureEntityManager.RemoteAwareResourceEntity<R>, R>
+        implements IAzureEntityManager<E> {
 
     private boolean refreshed;
     @Nonnull
-    protected final T entity;
+    protected final E entity;
 
-    protected AbstractAzureEntityManager(@Nonnull T entity) {
+    protected AbstractAzureEntityManager(@Nonnull E entity) {
         this.entity = entity;
     }
 
@@ -36,14 +37,15 @@ abstract class AbstractAzureEntityManager<T extends AbstractAzureEntityManager.R
 
     @Nonnull
     @Override
-    public final IAzureEntityManager<T> refresh() {
-        this.entity.setRemote(this.loadRemote());
+    public final T refresh() {
+        this.updateRemote();
         this.refreshed = true;
-        return this;
+        //noinspection unchecked
+        return (T) this;
     }
 
     @Nonnull
-    public final T entity() {
+    public final E entity() {
         return entity;
     }
 
@@ -52,7 +54,7 @@ abstract class AbstractAzureEntityManager<T extends AbstractAzureEntityManager.R
         return this.entity.getRemote();
     }
 
-    abstract R loadRemote();
+    abstract void updateRemote();
 
     abstract static class RemoteAwareResourceEntity<R> implements IAzureResourceEntity {
         @Nullable
