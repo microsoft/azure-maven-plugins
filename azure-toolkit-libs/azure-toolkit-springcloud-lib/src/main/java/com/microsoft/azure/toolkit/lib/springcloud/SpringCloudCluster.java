@@ -10,17 +10,18 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.SpringServices;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SpringCloudCluster extends AbstractAzureEntityManager<SpringCloudClusterEntity, SpringService> implements AzureOperationEvent.Source<SpringCloudCluster> {
+public class SpringCloudCluster extends AbstractAzureEntityManager<SpringCloudCluster, SpringCloudClusterEntity, SpringService> implements AzureOperationEvent.Source<SpringCloudCluster> {
     @Getter
     @Nonnull
     final SpringServices client;
@@ -30,16 +31,18 @@ public class SpringCloudCluster extends AbstractAzureEntityManager<SpringCloudCl
         this.client = client;
     }
 
-    @Nullable
-    SpringService loadRemote() {
+    @Override
+    @CacheEvict(cacheName = "asc/cluster/{}/apps", key = "${this.name()}")
+    void updateRemote() {
         try {
-            return this.client.getByResourceGroup(entity.getResourceGroup(), entity.getName());
+            this.entity.setRemote(this.client.getByResourceGroup(entity.getResourceGroup(), entity.getName()));
         } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
-            return null;
+            this.entity.setRemote(null);
         }
     }
 
     @Nonnull
+    @Cacheable(cacheName = "asc/cluster/{}/app/{}", key = "${this.name()}/$name")
     public SpringCloudApp app(final String name) {
         if (this.exists()) {
             try {
@@ -63,6 +66,7 @@ public class SpringCloudCluster extends AbstractAzureEntityManager<SpringCloudCl
     }
 
     @Nonnull
+    @Cacheable(cacheName = "asc/cluster/{}/apps", key = "${this.name()}")
     public List<SpringCloudApp> apps() {
         if (this.exists()) {
             return Objects.requireNonNull(this.remote()).apps().list().stream().map(this::app).collect(Collectors.toList());

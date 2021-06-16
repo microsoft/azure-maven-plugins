@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringCloudDeploymentEntity, SpringAppDeployment>
+public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringCloudDeployment, SpringCloudDeploymentEntity, SpringAppDeployment>
         implements AzureOperationEvent.Source<SpringCloudDeployment> {
     @Getter
     @Nonnull
@@ -40,9 +40,8 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
         this.app = app;
     }
 
-    @Nullable
-    SpringAppDeployment loadRemote() {
-        return this.app.deployment(this.entity().getName()).remote();
+    void updateRemote() {
+        this.entity.setRemote(this.app.deployment(this.entity().getName()).remote());
     }
 
     @Nonnull
@@ -76,7 +75,7 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
 
     public boolean waitUntilReady(int timeoutInSeconds) {
         AzureMessager.getMessager().info("Getting deployment status...");
-        final SpringCloudDeployment deployment = Utils.pollUntil(() -> (SpringCloudDeployment) this.refresh(), Utils::isDeploymentDone, timeoutInSeconds);
+        final SpringCloudDeployment deployment = Utils.pollUntil(this::refresh, Utils::isDeploymentDone, timeoutInSeconds);
         return Utils.isDeploymentDone(deployment);
     }
 
