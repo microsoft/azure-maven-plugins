@@ -46,14 +46,17 @@ public class SpringCloudDeploymentInstanceEntity {
         this.deployment = deployment;
     }
 
+    @Nonnull
     public String status() {
         return this.remote.status();
     }
 
+    @Nonnull
     public String reason() {
         return this.remote.reason();
     }
 
+    @Nonnull
     public String discoveryStatus() {
         return this.remote.discoveryStatus();
     }
