@@ -9,11 +9,6 @@ import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeInfo;
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
-import com.microsoft.azure.maven.auth.AuthConfiguration;
-import com.microsoft.azure.maven.auth.AuthenticationSetting;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.auth.AzureAuthHelperLegacy;
-import com.microsoft.azure.maven.auth.AzureClientFactory;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.model.SubscriptionOption;
@@ -83,7 +78,7 @@ import java.util.stream.Collectors;
 /**
  * Base abstract class for all Azure Mojos.
  */
-public abstract class AbstractAzureMojo extends AbstractMojo implements TelemetryConfiguration, AuthConfiguration {
+public abstract class AbstractAzureMojo extends AbstractMojo implements TelemetryConfiguration {
     public static final String PLUGIN_NAME_KEY = "pluginName";
     public static final String PLUGIN_VERSION_KEY = "pluginVersion";
     public static final String INSTALLATION_ID_KEY = "installationId";
@@ -142,19 +137,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     @Getter
     @Component(role = MavenResourcesFiltering.class, hint = "default")
     protected MavenResourcesFiltering mavenResourcesFiltering;
-
-    /**
-     * Authentication setting for Azure Management API.<p>
-     * Below are the supported sub-elements within {@code <authentication>}. You can use one of them to authenticate
-     * with azure<p>
-     * {@code <serverId>} specifies the credentials of your Azure service principal, by referencing a server definition
-     * in Maven's settings.xml<p>
-     * {@code <file>} specifies the absolute path of your authentication file for Azure.
-     *
-     * @since 0.1.0
-     */
-    @Parameter
-    protected AuthenticationSetting authentication;
 
     /**
      * Azure subscription Id. You only need to specify it when:
@@ -234,15 +216,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return buildDirectory.getAbsolutePath();
     }
 
-    @Override
-    public AuthenticationSetting getAuthenticationSetting() {
-        return authentication;
-    }
-
-    @Override
     public String getSubscriptionId() {
-        return StringUtils.firstNonBlank(subscriptionId, (azure == null || azure.getCurrentSubscription() == null) ?
-                null : azure.getCurrentSubscription().subscriptionId());
+        return subscriptionId;
     }
 
     public String getInstallationId() {
@@ -257,41 +232,18 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return plugin.getVersion();
     }
 
-    @Override
     public String getUserAgent() {
         return isAllowTelemetry() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
                 INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
                 : String.format("%s/%s", getPluginName(), getPluginVersion());
     }
 
-    @Override
     public String getHttpProxyHost() {
         return httpProxyHost;
     }
 
-    @Override
     public int getHttpProxyPort() {
         return NumberUtils.toInt(httpProxyPort, 0);
-    }
-
-    @Deprecated
-    public com.microsoft.azure.management.Azure getAzureClient() throws AzureAuthFailureException, AzureExecutionException {
-        if (azure == null) {
-            if (this.authentication != null && (this.authentication.getFile() != null || StringUtils.isNotBlank(authentication.getServerId()))) {
-                // TODO: remove the old way of authentication
-                Log.warn("You are using an old way of authentication which will be deprecated in future versions, please change your configurations.");
-                azure = new AzureAuthHelperLegacy(this).getAzureClient();
-            } else {
-                azure = getOrCreateAzureClient();
-
-            }
-            printCurrentSubscription(azure);
-            telemetryProxy.addDefaultProperty(AUTH_TYPE, getAuthType());
-            telemetryProxy.addDefaultProperty(AUTH_METHOD, getActualAuthType());
-            // Repopulate subscriptionId in case it is not configured.
-            telemetryProxy.addDefaultProperty(SUBSCRIPTION_ID_KEY, azure.subscriptionId());
-        }
-        return azure;
     }
 
     protected String getAuthType() {
@@ -320,17 +272,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
             throw new AzureExecutionException("You must select a subscription.");
         }
         return subscriptionOptionSelected.getSubscription().getId();
-    }
-
-    @Deprecated
-    protected com.microsoft.azure.management.Azure getOrCreateAzureClient() throws AzureAuthFailureException, AzureExecutionException {
-        try {
-            getAzureAccount();
-            selectSubscription();
-            return AzureClientFactory.getAzureClient(getUserAgent(), this.subscriptionId);
-        } catch (AzureLoginException | IOException e) {
-            throw new AzureAuthFailureException(e.getMessage());
-        }
     }
 
     protected Account getAzureAccount() throws MavenDecryptException, AzureExecutionException, LoginFailureException {
@@ -509,16 +450,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         final Account account = Azure.az(AzureAccount.class).account();
         if (account != null) {
             return account.getAuthType().toString();
-        }
-        final AuthenticationSetting authSetting = getAuthenticationSetting();
-        if (authSetting == null) {
-            return "AzureCLI";
-        }
-        if (StringUtils.isNotEmpty(authSetting.getServerId())) {
-            return "ServerId";
-        }
-        if (authSetting.getFile() != null) {
-            return "AuthFile";
         }
         return "Unknown";
     }

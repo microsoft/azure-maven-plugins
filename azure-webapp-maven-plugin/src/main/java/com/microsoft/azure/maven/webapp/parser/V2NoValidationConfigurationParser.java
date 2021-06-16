@@ -5,14 +5,12 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
-import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.RuntimeStack;
-import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
@@ -36,7 +34,7 @@ public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
     }
 
     @Override
-    protected PricingTier getPricingTier() throws AzureExecutionException {
+    protected String getPricingTier() throws AzureExecutionException {
         return validateConfiguration(validator.validatePricingTier()) ?
                 super.getPricingTier() : null;
     }
@@ -48,18 +46,13 @@ public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
     }
 
     @Override
-    protected OperatingSystemEnum getOs() throws AzureExecutionException {
+    protected OperatingSystem getOs() throws AzureExecutionException {
         return validateConfiguration(validator.validateOs()) ? super.getOs() : null;
     }
 
     @Override
     protected Region getRegion() throws AzureExecutionException {
         return validateConfiguration(validator.validateRegion()) ? super.getRegion() : null;
-    }
-
-    @Override
-    protected RuntimeStack getRuntimeStack() throws AzureExecutionException {
-        return validateConfiguration(validator.validateRuntimeStack()) ? super.getRuntimeStack() : null;
     }
 
     @Override

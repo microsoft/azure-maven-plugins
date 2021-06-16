@@ -381,7 +381,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private void deployArtifact(IFunctionAppBase target) throws AzureExecutionException {
-        if (target.getRuntime().getOperatingSystem() == OperatingSystem.DOCKER) {
+        if (target.getRuntime().isDocker()) {
             AzureMessager.getMessager().info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
             return;
         }
@@ -459,7 +459,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected void validateArtifactCompileVersion() throws AzureExecutionException {
         final Runtime runtime = getRuntimeOrDefault();
-        if (runtime.getOperatingSystem() == OperatingSystem.DOCKER) {
+        if (runtime.isDocker()) {
             return;
         }
         final ComparableVersion runtimeVersion = new ComparableVersion(runtime.getJavaVersion().getValue());

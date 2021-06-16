@@ -6,30 +6,28 @@
 
 package com.microsoft.azure.maven.webapp.models;
 
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.OperatingSystem;
-import com.microsoft.azure.management.appservice.implementation.SiteConfigResourceInner;
-import com.microsoft.azure.management.appservice.implementation.SiteInner;
-import com.microsoft.azure.management.appservice.implementation.WebAppsInner;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import rx.Observable;
+
+import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class WebAppOption implements Comparable<WebAppOption> {
     public static final WebAppOption CREATE_NEW = new WebAppOption();
     private static final String CREATE_NEW_STRING = "<create>";
-    private SiteInner siteInner;
-    private SiteConfigResourceInner siteConfig;
-    private WebAppsInner webappClient;
+    private IWebApp webappInner;
     private boolean createNewPlaceHolder = false;
 
-    public WebAppOption(SiteInner siteInner, WebAppsInner webappClient) {
-        this.siteInner = siteInner;
-        this.webappClient = webappClient;
+    public WebAppOption(@Nonnull IWebApp webapp) {
+        this.webappInner = webapp;
     }
 
     public String getId() {
-        return this.siteInner == null ? null : siteInner.id();
+        return this.webappInner == null ? null : webappInner.id();
     }
 
     @Override
@@ -37,18 +35,18 @@ public class WebAppOption implements Comparable<WebAppOption> {
         if (this.isCreateNew()) {
             return CREATE_NEW_STRING;
         }
-        return siteInner != null ? String.format("%s (%s)", siteInner.name(), getDescription().toLowerCase()) : null;
+        return webappInner != null ? String.format("%s (%s)", webappInner.name(), getDescription()) : null;
     }
 
     @Override
     public int compareTo(WebAppOption other) {
-        final int typeCompareResult = new Boolean(createNewPlaceHolder).compareTo(other.isCreateNew());
+        final int typeCompareResult = Boolean.compare(createNewPlaceHolder, other.isCreateNew());
         if (typeCompareResult != 0) {
             return typeCompareResult;
         }
 
         final String name1 = toString();
-        final String name2 = other.siteInner != null ? other.toString() : null;
+        final String name2 = other.webappInner != null ? other.toString() : null;
         return StringUtils.compare(name1, name2);
 
     }
@@ -61,94 +59,50 @@ public class WebAppOption implements Comparable<WebAppOption> {
         return this.createNewPlaceHolder;
     }
 
-    public Observable<WebAppOption> loadConfigurationSync() {
-        return Observable.fromCallable(() -> {
-            this.siteConfig = webappClient.getConfiguration(siteInner.resourceGroup(), siteInner.name());
-            return this;
-        });
-    }
-
     public String getServicePlanId() {
-        if (siteInner == null) {
+        if (webappInner == null) {
             return null;
         }
-        return siteInner.serverFarmId();
+        return webappInner.plan().id();
     }
 
     public boolean isDockerWebapp() {
-        final String linuxFxVersion = getLinuxFxVersion();
-        return StringUtils.containsIgnoreCase(linuxFxVersion, "DOCKER|");
+        return webappInner != null && webappInner.getRuntime().isDocker();
     }
 
     public boolean isJavaWebApp() {
-        if (siteInner == null) {
-            return false;
-        }
-        final OperatingSystem os = getOperatingSystem();
-        final JavaVersion javaVersion = getJavaVersion();
-        final String linuxFxVersion = getLinuxFxVersion();
-        return (os == OperatingSystem.WINDOWS && javaVersion != JavaVersion.OFF) ||
-                os == OperatingSystem.LINUX && (StringUtils.containsIgnoreCase(linuxFxVersion, "-jre") ||
-                StringUtils.containsIgnoreCase(linuxFxVersion, "-java"));
+        return getJavaVersion() != JavaVersion.OFF;
     }
 
     public boolean isJavaSE() {
+        if (webappInner == null) {
+            return false;
+        }
         if (!isJavaWebApp() || isDockerWebapp()) {
             return false;
         }
 
-        final OperatingSystem os = getOperatingSystem();
-        if (os == OperatingSystem.WINDOWS) {
-            return StringUtils.startsWithIgnoreCase(siteConfig.javaContainer(), "java");
-        }
-        if (os == OperatingSystem.LINUX) {
-            final String linuxFxVersion = getLinuxFxVersion();
-            return StringUtils.startsWithIgnoreCase(linuxFxVersion, "java");
-        }
-        return false;
-    }
-
-    public String getLinuxFxVersion() {
-        if (siteConfig == null) {
-            return null;
-        }
-        return siteConfig.linuxFxVersion();
+        return Objects.equals(webappInner.getRuntime().getWebContainer(), WebContainer.JAVA_SE);
     }
 
     public JavaVersion getJavaVersion() {
-        if (siteConfig == null || siteConfig.javaVersion() == null) {
+        if (webappInner == null || webappInner.getRuntime() == null) {
             return JavaVersion.OFF;
         }
-        return JavaVersion.fromString(siteConfig.javaVersion());
+        return ObjectUtils.firstNonNull(webappInner.getRuntime().getJavaVersion(), JavaVersion.OFF);
     }
 
     public OperatingSystem getOperatingSystem() {
-        if (siteInner == null || siteConfig == null) {
+        if (webappInner == null) {
             return null;
         }
-        if (siteInner.kind() != null && siteInner.kind().toLowerCase().contains("linux")) {
-            return OperatingSystem.LINUX;
-        } else {
-            return OperatingSystem.WINDOWS;
-        }
+        return webappInner.getRuntime().getOperatingSystem();
     }
 
     public String getDescription() {
-        if (siteInner == null || siteConfig == null) {
+        if (webappInner == null || webappInner.getRuntime() == null) {
             return "unknown";
         }
-        if (isDockerWebapp()) {
-            return "docker";
-        }
-        final OperatingSystem os = getOperatingSystem();
-        if (os == OperatingSystem.WINDOWS) {
-            if (StringUtils.isNotBlank(siteConfig.javaContainer())) {
-                return "windows, " + siteConfig.javaContainer() + " " + siteConfig.javaContainerVersion();
-            } else {
-                return "windows, java " + siteConfig.javaVersion();
-            }
-        } else {
-            return "linux, " + AppServiceUtils.parseRuntimeStack(getLinuxFxVersion());
-        }
+        return Objects.toString(webappInner.getRuntime(), null);
     }
 }

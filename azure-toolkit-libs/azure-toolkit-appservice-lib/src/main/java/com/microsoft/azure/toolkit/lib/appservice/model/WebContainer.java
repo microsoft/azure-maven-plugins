@@ -20,6 +20,7 @@ public class WebContainer {
     private static final String JAVA = "Java";
     private static final String JAVA_8 = "Java 8";
     private static final String JAVA_11 = "Java 11";
+    private static final String STRING_JAVA_SE = "Java SE";
 
     public static final WebContainer JAVA_OFF = new WebContainer("<null>");
     public static final WebContainer JAVA_SE = new WebContainer("java se");
@@ -82,5 +83,17 @@ public class WebContainer {
     @Override
     public int hashCode() {
         return Objects.hash(value);
+    }
+
+    @Override
+    public String toString() {
+        if (this.equals(JAVA_OFF)) {
+            return this.value;
+        }
+
+        if (this.equals(JAVA_SE)) {
+            return STRING_JAVA_SE;
+        }
+        return StringUtils.capitalize(StringUtils.lowerCase(value));
     }
 }

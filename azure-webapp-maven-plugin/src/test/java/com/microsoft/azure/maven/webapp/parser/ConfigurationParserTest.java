@@ -6,17 +6,14 @@
 package com.microsoft.azure.maven.webapp.parser;
 
 import com.microsoft.azure.maven.model.DeploymentResource;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.RuntimeStack;
-import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
-
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
@@ -74,18 +71,13 @@ public class ConfigurationParserTest {
             }
         }) {
             @Override
-            protected OperatingSystemEnum getOs() {
+            protected OperatingSystem getOs() {
                 return null;
             }
 
             @Override
             protected Region getRegion() {
                 return Region.EUROPE_WEST;
-            }
-
-            @Override
-            protected RuntimeStack getRuntimeStack() {
-                return RuntimeStack.TOMCAT_8_5_JRE8;
             }
 
             @Override
@@ -110,12 +102,12 @@ public class ConfigurationParserTest {
 
             @Override
             protected JavaVersion getJavaVersion() {
-                return JavaVersion.JAVA_8_NEWEST;
+                return JavaVersion.JAVA_8;
             }
 
             @Override
             protected WebContainer getWebContainer() {
-                return WebContainer.TOMCAT_8_5_NEWEST;
+                return WebContainer.TOMCAT_85;
             }
 
             @Override
@@ -187,18 +179,18 @@ public class ConfigurationParserTest {
         doReturn(session).when(mojo).getSession();
         doReturn("test-staging-path").when(mojo).getDeploymentStagingDirectoryPath();
         doReturn("test-build-directory-path").when(mojo).getBuildDirectoryAbsolutePath();
-        doReturn("p1v2").when(mojo).getPricingTier();
+        doReturn("P1v2").when(mojo).getPricingTier();
 
-        doReturn(OperatingSystemEnum.Windows).when(parserSpy).getOs();
+        doReturn(OperatingSystem.WINDOWS).when(parserSpy).getOs();
         WebAppConfiguration webAppConfiguration = parserSpy.getWebAppConfiguration();
 
         assertEquals("appName", webAppConfiguration.getAppName());
         assertEquals("resourceGroupName", webAppConfiguration.getResourceGroup());
         assertEquals(Region.EUROPE_WEST, webAppConfiguration.getRegion());
-        assertEquals(new PricingTier("PremiumV2", "P1v2"), webAppConfiguration.getPricingTier());
+        assertEquals("P1v2", webAppConfiguration.getPricingTier());
         assertEquals(null, webAppConfiguration.getServicePlanName());
         assertEquals(null, webAppConfiguration.getServicePlanResourceGroup());
-        assertEquals(OperatingSystemEnum.Windows, webAppConfiguration.getOs());
+        assertEquals(OperatingSystem.WINDOWS, webAppConfiguration.getOs());
         assertEquals(null, webAppConfiguration.getMavenSettings());
         assertEquals(project, webAppConfiguration.getProject());
         assertEquals(session, webAppConfiguration.getSession());
@@ -206,14 +198,14 @@ public class ConfigurationParserTest {
         assertEquals("test-staging-path", webAppConfiguration.getStagingDirectoryPath());
         assertEquals("test-build-directory-path", webAppConfiguration.getBuildDirectoryAbsolutePath());
 
-        assertEquals(JavaVersion.JAVA_8_NEWEST, webAppConfiguration.getJavaVersion());
-        assertEquals(WebContainer.TOMCAT_8_5_NEWEST, webAppConfiguration.getWebContainer());
+        assertEquals(JavaVersion.JAVA_8, webAppConfiguration.getJavaVersion());
+        assertEquals(WebContainer.TOMCAT_85, webAppConfiguration.getWebContainer());
 
-        doReturn(OperatingSystemEnum.Linux).when(parserSpy).getOs();
+        doReturn(OperatingSystem.LINUX).when(parserSpy).getOs();
         webAppConfiguration = parserSpy.getWebAppConfiguration();
-        assertEquals(RuntimeStack.TOMCAT_8_5_JRE8, webAppConfiguration.getRuntimeStack());
+        assertEquals(WebContainer.TOMCAT_85, webAppConfiguration.getWebContainer());
 
-        doReturn(OperatingSystemEnum.Docker).when(parserSpy).getOs();
+        doReturn(OperatingSystem.DOCKER).when(parserSpy).getOs();
         webAppConfiguration = parserSpy.getWebAppConfiguration();
         assertEquals("image", webAppConfiguration.getImage());
         assertEquals(null, webAppConfiguration.getServerId());

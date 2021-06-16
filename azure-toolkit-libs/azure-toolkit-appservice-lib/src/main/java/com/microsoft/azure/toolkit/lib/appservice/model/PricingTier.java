@@ -85,4 +85,12 @@ public class PricingTier {
     public int hashCode() {
         return Objects.hash(tier, size);
     }
+
+    @Override
+    public String toString() {
+        if (this.equals(CONSUMPTION)) {
+            return "Consumption";
+        }
+        return this.getSize();
+    }
 }

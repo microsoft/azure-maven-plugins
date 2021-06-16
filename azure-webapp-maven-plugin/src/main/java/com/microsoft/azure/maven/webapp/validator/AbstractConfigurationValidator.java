@@ -49,7 +49,7 @@ public abstract class AbstractConfigurationValidator {
 
     public String validatePricingTier() {
         if (mojo.getPricingTier() != null && PricingTier.fromString(mojo.getPricingTier()) == null) {
-            return "Unknown value of the pricingTier.";
+            return String.format("Unknown value \"%s\" of the pricingTier.", mojo.getPricingTier());
         }
         return null;
     }
