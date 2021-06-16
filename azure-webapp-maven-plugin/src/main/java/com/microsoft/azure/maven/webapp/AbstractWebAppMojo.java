@@ -7,33 +7,25 @@ package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
-import com.microsoft.azure.management.appservice.WebContainer;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
-import com.microsoft.azure.maven.auth.AzureAuthFailureException;
-import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
-import com.microsoft.azure.maven.webapp.configuration.ContainerSetting;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
-import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.parser.AbstractConfigParser;
-import com.microsoft.azure.maven.webapp.parser.V1ConfigParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigParser;
 import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
-import com.microsoft.azure.maven.webapp.validator.V1ConfigurationValidator;
 import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DockerImageType;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -75,94 +67,11 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     protected String pricingTier;
 
     /**
-     * JVM version of Web App. This only applies to Windows-based Web App.<p>
-     * Below is the list of supported JVM versions:
-     * <ul>
-     *     <li>1.7</li>
-     *     <li>1.7.0_51</li>
-     *     <li>1.7.0_71</li>
-     *     <li>1.8</li>
-     *     <li>1.8.0_25</li>
-     *     <li>1.8.0_60</li>
-     *     <li>1.8.0_73</li>
-     *     <li>1.8.0_111</li>
-     *     <li>1.8.0_92</li>
-     *     <li>1.8.0_102</li>
-     * </ul>
-     *
-     * @deprecated
-     */
-    @Deprecated
-    @Parameter(property = "webapp.javaVersion")
-    protected String javaVersion;
-
-    /**
-     * Web container type and version within Web App. This only applies to Windows-based Web App.<p>
-     * Below is the list of supported web container types:
-     * <ul>
-     *     <li>tomcat 7.0</li>
-     *     <li>tomcat 7.0.50</li>
-     *     <li>tomcat 7.0.62</li>
-     *     <li>tomcat 8.0</li>
-     *     <li>tomcat 8.0.23</li>
-     *     <li>tomcat 8.5</li>
-     *     <li>tomcat 8.5.6</li>
-     *     <li>jetty 9.1</li>
-     *     <li>jetty 9.1.0.20131115</li>
-     *     <li>jetty 9.3</li>
-     *     <li>jetty 9.3.12.20161014</li>
-     * </ul>
-     *
-     * @deprecated
-     */
-    @Deprecated
-    @Parameter(property = "webapp.javaWebContainer", defaultValue = "tomcat 8.5")
-    protected String javaWebContainer;
-
-    /**
-     * Below is the list of supported Linux runtime:
-     * <ul>
-     *     <li>tomcat 8.5-jre8</li>
-     *     <li>tomcat 9.0-jre8</li>
-     *     <li>jre8</li>
-     * </ul>
-     * @deprecated
-     */
-    @Deprecated
-    @Parameter(property = "webapp.linuxRuntime")
-    protected String linuxRuntime;
-
-    /**
-     * Settings of docker container image within Web App. This only applies to Linux-based Web App.<p>
-     * Below are the supported sub-element within {@code <containerSettings>}:<p>
-     * {@code <imageName>} specifies docker image name to use in Web App on Linux<p>
-     * {@code <serverId>} specifies credentials to access docker image. Use it when you are using private Docker Hub
-     * image or private registry.<p>
-     * {@code <registryUrl>} specifies your docker image registry URL. Use it when you are using private registry.
-     *
-     * @deprecated
-     */
-    @Deprecated
-    @Parameter
-    protected ContainerSetting containerSettings;
-
-    /**
      * Flag to control whether stop Web App during deployment.
-     *
-     * @deprecated
      */
-    @Deprecated
     @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "false")
+    @Getter
     protected boolean stopAppDuringDeployment;
-
-    /**
-     * Resources to deploy to Web App.
-     *
-     * @deprecated
-     */
-    @Deprecated
-    @Parameter(property = "webapp.resources")
-    protected List<DeploymentResource> resources;
 
     /**
      * Skip execution.
@@ -171,38 +80,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      */
     @Parameter(property = "webapp.skip", defaultValue = "false")
     protected boolean skip;
-
-    /**
-     * Location of the war file which is going to be deployed. If this field is not defined,
-     * plugin will find the war file with the final name in the build directory.
-     *
-     * @Deprecated
-     * @since 1.1.0
-     */
-    @Deprecated
-    @Parameter(property = "webapp.warFile")
-    protected String warFile;
-
-    /**
-     * Location of the jar file which is going to be deployed. If this field is not defined,
-     * plugin will find the jar file with the final name in the build directory.
-     *
-     * @Deprecated
-     * @since 1.3.0
-     */
-    @Deprecated
-    @Parameter(property = "webapp.jarFile")
-    protected String jarFile;
-
-    /**
-     * The context path for the deployment.
-     * By default it will be deployed to '/', which is also known as the ROOT.
-     *
-     * @Deprecated
-     */
-    @Deprecated
-    @Parameter(property = "webapp.path", defaultValue = "/")
-    protected String path;
 
     /**
      * App Service region, which will only be used to create App Service at the first time.
@@ -278,49 +155,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return this.pricingTier;
     }
 
-    public String getJavaVersion() {
-        return this.javaVersion;
-    }
-
-    public String getLinuxRuntime() {
-        return linuxRuntime;
-    }
-
-    public WebContainer getJavaWebContainer() {
-        return StringUtils.isEmpty(javaWebContainer) ?
-                WebContainer.TOMCAT_8_5_NEWEST :
-                WebContainer.fromString(javaWebContainer);
-    }
-
-    public ContainerSetting getContainerSettings() {
-        return containerSettings;
-    }
-
-    public boolean isStopAppDuringDeployment() {
-        return stopAppDuringDeployment;
-    }
-
-    @Override
-    public List<DeploymentResource> getResources() {
-        return resources == null ? Collections.emptyList() : resources;
-    }
-
-    public String getWarFile() {
-        return warFile;
-    }
-
-    public String getJarFile() {
-        return jarFile;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public WebApp getWebApp() throws AzureAuthFailureException, AzureExecutionException {
-        return getAzureClient().webApps().getByResourceGroup(getResourceGroup(), getAppName());
-    }
-
     public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {
         DeploymentSlot slot = null;
         if (StringUtils.isNotEmpty(slotName)) {
@@ -393,10 +227,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     protected WebAppConfig getWebAppConfig() throws AzureExecutionException {
-        final SchemaVersion version = SchemaVersion.fromString(getSchemaVersion());
-        final AbstractConfigurationValidator validator = version == SchemaVersion.V2 ?
-                new V2ConfigurationValidator(this) : new V1ConfigurationValidator(this);
-        final AbstractConfigParser parser = version == SchemaVersion.V2 ? new V2ConfigParser(this, validator) : new V1ConfigParser(this, validator);
+        final AbstractConfigurationValidator validator =
+                new V2ConfigurationValidator(this);
+        final AbstractConfigParser parser = new V2ConfigParser(this, validator);
         return parser.parse();
     }
 

@@ -28,4 +28,9 @@ public enum OperatingSystem {
         return Arrays.stream(values()).filter(operatingSystem -> StringUtils.equalsIgnoreCase(operatingSystem.value, value))
             .findFirst().orElse(null);
     }
+
+    @Override
+    public String toString() {
+        return StringUtils.capitalize(value);
+    }
 }

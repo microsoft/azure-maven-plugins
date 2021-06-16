@@ -11,9 +11,7 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.RuntimeHandler;
-import org.apache.commons.lang3.StringUtils;
 
 public abstract class BaseRuntimeHandler<T extends WebAppBase> implements RuntimeHandler<T> {
 
@@ -112,19 +110,10 @@ public abstract class BaseRuntimeHandler<T extends WebAppBase> implements Runtim
 
     @Override
     public AppServicePlan updateAppServicePlan(T app) throws AzureExecutionException {
-        final AppServicePlan appServicePlan = AppServiceUtils.getAppServicePlanByAppService(app);
-        final AppServicePlan targetAppServicePlan = StringUtils.isNotEmpty(servicePlanName) ? getAppServicePlan() : appServicePlan;
-        if (targetAppServicePlan == null) {
-            throw new AzureExecutionException(String.format(TARGET_APP_SERVICE_PLAN_DO_NOT_EXIST, servicePlanName,
-                    AppServiceUtils.getAppServicePlanResourceGroup(resourceGroup, servicePlanResourceGroup)));
-        }
-        if (!AppServiceUtils.isEqualAppServicePlan(appServicePlan, targetAppServicePlan)) {
-            changeAppServicePlan(app, targetAppServicePlan);
-        }
-        return AppServiceUtils.updateAppServicePlan(targetAppServicePlan, pricingTier);
+        throw new UnsupportedOperationException("Please switch track2 SDK.");
     }
 
     protected AppServicePlan getAppServicePlan() {
-        return AppServiceUtils.getAppServicePlan(servicePlanName, azure, resourceGroup, servicePlanResourceGroup);
+        throw new UnsupportedOperationException("Please switch track2 SDK.");
     }
 }

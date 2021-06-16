@@ -10,30 +10,35 @@
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-webapp-maven-plugin</artifactId>
                 <configuration>
-                    <authentication>
+                    <auth>
                         <serverId>azure-auth</serverId>
-                    </authentication>
+                    </auth>
                     <resourceGroup>resourceGroupName</resourceGroup>
                     <appName>appName</appName>
                     <region>westeurope</region>
                     <pricingTier>s2</pricingTier>
-                    <javaVersion>1.8</javaVersion>
-                    <javaWebContainer>tomcat 8.5</javaWebContainer>
+                    <runtime>
+                        <os>Windows</os>
+                        <webContainer>Tomcat 8.5</webContainer>
+                        <javaVersion>Java 11</javaVersion>
+                    </runtime>
                     <appSettings>
                         <property>
                             <name>PORT</name>
                             <value>80</value>
                         </property>
                     </appSettings>
-                    <resources>
-                        <resource>
-                            <directory>${baseDir}/target</directory>
-                            <targetPath>/</targetPath>
-                            <includes>
-                                <include>*.jar</include>
-                            </includes>
-                        </resource>
-                    </resources>
+                    <deployment>
+                        <resources>
+                            <resource>
+                                <directory>${baseDir}/target</directory>
+                                <targetPath>/</targetPath>
+                                <includes>
+                                    <include>*.jar</include>
+                                </includes>
+                            </resource>
+                        </resources>
+                    </deployment>
                 </configuration>
             </plugin>
         </plugins>

@@ -9,12 +9,7 @@ import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.management.appservice.FunctionRuntimeStack;
 import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.SkuName;
 import com.microsoft.azure.management.appservice.WebAppBase;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
-import org.apache.commons.lang3.StringUtils;
 
 public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHandler {
 
@@ -52,14 +47,7 @@ public class LinuxFunctionRuntimeHandler extends AbstractLinuxFunctionRuntimeHan
     @Override
     public WebAppBase.Update<FunctionDeploymentSlot> updateDeploymentSlot(FunctionDeploymentSlot deploymentSlot) {
         checkFunctionExtensionVersion();
-        final PricingTier pricingTier = AppServiceUtils.getAppServicePlanByAppService(deploymentSlot).pricingTier();
-        final String targetFxVersion = StringUtils.equals(pricingTier.toSkuDescription().tier(), SkuName.DYNAMIC.toString()) ?
-                getRuntimeStack().getLinuxFxVersionForConsumptionPlan() : getRuntimeStack().getLinuxFxVersionForDedicatedPlan();
-        if (!StringUtils.equals(deploymentSlot.linuxFxVersion(), targetFxVersion)) {
-            // Update runtime in deployment slot is not supported with current SDK
-            AzureMessager.getMessager().warning("Updating runtime of linux deployment slot is not supported in current version");
-        }
-        return deploymentSlot.update();
+        throw new UnsupportedOperationException("Please switch track2 SDK.");
     }
 
     private FunctionRuntimeStack getRuntimeStack() {

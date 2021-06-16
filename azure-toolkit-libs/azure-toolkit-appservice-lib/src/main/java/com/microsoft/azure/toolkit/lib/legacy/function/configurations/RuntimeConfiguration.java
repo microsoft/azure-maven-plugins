@@ -5,12 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.configurations;
 
-import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
 
 public class RuntimeConfiguration {
-
-    public static final OperatingSystemEnum DEFAULT_OS = OperatingSystemEnum.Windows;
-
     private String os;
     private String javaVersion;
     private String image;

@@ -71,18 +71,21 @@ public class JavaVersion {
         if (StringUtils.isEmpty(input)) {
             return JavaVersion.OFF;
         }
+
+        final String version = StringUtils.lowerCase(input).replaceFirst("jre", "java");
+
         // parse display name first
-        if (StringUtils.equalsAnyIgnoreCase(input, JAVA_7_VALUE, JAVA_7_VALUE_TRIM)) {
+        if (StringUtils.equalsAnyIgnoreCase(version, JAVA_7_VALUE, JAVA_7_VALUE_TRIM)) {
             return JavaVersion.JAVA_7;
         }
-        if (StringUtils.equalsAnyIgnoreCase(input, JAVA_8_VALUE, JAVA_8_VALUE_TRIM, JAVA_8_SIMPLE_VALUE)) {
+        if (StringUtils.equalsAnyIgnoreCase(version, JAVA_8_VALUE, JAVA_8_VALUE_TRIM, JAVA_8_SIMPLE_VALUE)) {
             return JavaVersion.JAVA_8;
         }
-        if (StringUtils.equalsAnyIgnoreCase(input, JAVA_11_VALUE, JAVA_11_VALUE_TRIM, JAVA_11_SIMPLE_VALUE)) {
+        if (StringUtils.equalsAnyIgnoreCase(version, JAVA_11_VALUE, JAVA_11_VALUE_TRIM, JAVA_11_SIMPLE_VALUE)) {
             return JavaVersion.JAVA_11;
         }
         return values().stream()
-                .filter(javaVersion -> StringUtils.equalsIgnoreCase(input, javaVersion.getValue()))
+                .filter(javaVersion -> StringUtils.equalsIgnoreCase(version, javaVersion.getValue()))
                 .findFirst().orElse(JavaVersion.OFF);
     }
 
@@ -101,5 +104,19 @@ public class JavaVersion {
     @Override
     public int hashCode() {
         return Objects.hash(value);
+    }
+
+    @Override
+    public String toString() {
+        if (this.equals(JAVA_7)) {
+            return JAVA_7_VALUE;
+        }
+        if (this.equals(JAVA_8)) {
+            return JAVA_8_VALUE;
+        }
+        if (this.equals(JAVA_11)) {
+            return JAVA_11_VALUE;
+        }
+        return this.value;
     }
 }
