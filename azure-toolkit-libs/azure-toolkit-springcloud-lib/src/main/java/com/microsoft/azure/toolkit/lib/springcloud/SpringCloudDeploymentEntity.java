@@ -26,13 +26,10 @@ import com.azure.resourcemanager.appplatform.models.DeploymentResourceStatus;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.ExternalChildResource;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.AbstractAzureEntityManager.RemoteAwareResourceEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentStatus;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,16 +41,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Getter
-public class SpringCloudDeploymentEntity implements IAzureResourceEntity {
+public class SpringCloudDeploymentEntity extends RemoteAwareResourceEntity<SpringAppDeployment> {
     @Nonnull
     private final SpringCloudAppEntity app;
     @Nonnull
     private final String name;
-    @Nullable
-    @JsonIgnore
-    @Getter(AccessLevel.PACKAGE)
-    @Setter(AccessLevel.PACKAGE)
-    private transient SpringAppDeployment remote;
 
     public SpringCloudDeploymentEntity(@Nonnull final String name, @Nonnull SpringCloudAppEntity app) {
         this.name = name;
@@ -66,57 +58,65 @@ public class SpringCloudDeploymentEntity implements IAzureResourceEntity {
         this.app = app;
     }
 
+    @Nonnull
     public Integer getCpu() {
         return Optional.ofNullable(this.remote)
-            .map(SpringAppDeployment::settings)
-            .map(DeploymentSettings::cpu)
-            .orElse(1);
+                .map(SpringAppDeployment::settings)
+                .map(DeploymentSettings::cpu)
+                .orElse(1);
     }
 
+    @Nonnull
     public Integer getMemoryInGB() {
         return Optional.ofNullable(this.remote)
-            .map(SpringAppDeployment::settings)
-            .map(DeploymentSettings::memoryInGB)
-            .orElse(1);
+                .map(SpringAppDeployment::settings)
+                .map(DeploymentSettings::memoryInGB)
+                .orElse(1);
     }
 
+    @Nonnull
     public SpringCloudDeploymentStatus getStatus() {
         final String status = Optional.ofNullable(this.remote)
-            .map(SpringAppDeployment::status)
-            .orElse(DeploymentResourceStatus.UNKNOWN).toString();
+                .map(SpringAppDeployment::status)
+                .orElse(DeploymentResourceStatus.UNKNOWN).toString();
         return SpringCloudDeploymentStatus.valueOf(status.toUpperCase());
     }
 
+    @Nonnull
     public String getRuntimeVersion() {
         return Optional.ofNullable(this.remote)
-            .map(SpringAppDeployment::settings)
-            .map(s -> s.runtimeVersion().toString())
-            .orElse(SpringCloudJavaVersion.JAVA_8);
+                .map(SpringAppDeployment::settings)
+                .map(s -> s.runtimeVersion().toString())
+                .orElse(SpringCloudJavaVersion.JAVA_8);
     }
 
+    @Nullable
     public String getJvmOptions() {
         return Optional.ofNullable(this.remote)
-            .map(SpringAppDeployment::settings)
-            .map(DeploymentSettings::jvmOptions)
-            .orElse(null);
+                .map(SpringAppDeployment::settings)
+                .map(DeploymentSettings::jvmOptions)
+                .orElse(null);
     }
 
+    @Nullable
     public Map<String, String> getEnvironmentVariables() {
         return Optional.ofNullable(this.remote)
-            .map(SpringAppDeployment::settings)
-            .map(DeploymentSettings::environmentVariables)
-            .orElse(null);
+                .map(SpringAppDeployment::settings)
+                .map(DeploymentSettings::environmentVariables)
+                .orElse(null);
     }
 
+    @Nonnull
     public List<SpringCloudDeploymentInstanceEntity> getInstances() {
         if (Objects.nonNull(this.remote)) {
             return this.remote.instances().stream()
-                .map(i -> new SpringCloudDeploymentInstanceEntity(i, this))
-                .collect(Collectors.toList());
+                    .map(i -> new SpringCloudDeploymentInstanceEntity(i, this))
+                    .collect(Collectors.toList());
         }
         return new ArrayList<>();
     }
 
+    @Nonnull
     public Boolean isActive() {
         return Optional.ofNullable(this.remote).map(SpringAppDeployment::isActive).orElse(false);
     }
