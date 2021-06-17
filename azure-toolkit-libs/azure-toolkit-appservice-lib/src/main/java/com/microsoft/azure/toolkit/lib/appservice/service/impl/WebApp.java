@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpda
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import io.jsonwebtoken.lang.Collections;
@@ -93,6 +94,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     }
 
     @Override
+    @Cacheable(cacheName = "appservice/webapp/{}/slot/{}", key = "${this.name()}/$slotName")
     public IWebAppDeploymentSlot deploymentSlot(String slotName) {
         final WebAppDeploymentSlotEntity slotEntity = WebAppDeploymentSlotEntity.builder().name(slotName)
             .resourceGroup(getRemoteResource().resourceGroupName())
@@ -101,7 +103,8 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     }
 
     @Override
-    public List<IWebAppDeploymentSlot> deploymentSlots() {
+    @Cacheable(cacheName = "appservice/webapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
+    public List<IWebAppDeploymentSlot> deploymentSlots(boolean... force) {
         return getRemoteResource().deploymentSlots().list().stream()
             .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureClient))
             .collect(Collectors.toList());
