@@ -19,7 +19,7 @@ public interface IWebApp extends IWebAppBase<WebAppEntity> {
 
     IWebAppDeploymentSlot deploymentSlot(String slotName);
 
-    List<IWebAppDeploymentSlot> deploymentSlots();
+    List<IWebAppDeploymentSlot> deploymentSlots(boolean... force);
 
     void swap(String slotName);
 }
