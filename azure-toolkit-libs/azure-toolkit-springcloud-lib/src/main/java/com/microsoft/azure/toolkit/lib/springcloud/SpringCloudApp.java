@@ -44,10 +44,16 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
         this.cluster = cluster;
     }
 
+    @Nonnull
     @Override
     @CacheEvict(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
-    void updateRemote() {
-        this.entity.setRemote(this.cluster.app(this.entity().getName()).remote());
+    public SpringCloudApp refresh() {
+        return super.refresh();
+    }
+
+    @Override
+    SpringApp loadRemote() {
+        return this.cluster.app(this.entity().getName()).remote();
     }
 
     @Nonnull
@@ -210,7 +216,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
             final IAzureMessager messager = AzureMessager.getMessager();
             if (!this.skippable) {
                 messager.info(String.format("Start updating app(%s)...", messager.value(this.app.name())));
-                this.app.entity.setRemote(this.modifier.apply());
+                this.app.refresh(this.modifier.apply());
                 messager.success(String.format("App(%s) is successfully updated.", messager.value(this.app.name())));
                 messager.warning(UPDATE_APP_WARNING);
             }
@@ -231,7 +237,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
             final String appName = this.app.name();
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(String.format("Start creating app(%s)...", messager.value(appName)));
-            this.app.entity.setRemote(this.modifier.create());
+            this.app.refresh(this.modifier.create());
             messager.success(String.format("App(%s) is successfully created.", messager.value(appName)));
             return this.app;
         }
