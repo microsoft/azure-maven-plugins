@@ -53,6 +53,10 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         super(AzureAppService::new, subscriptions);
     }
 
+    public static AzureAppService az() {
+        return Azure.az(AzureAppService.class);
+    }
+
     @Cacheable(cacheName = "appservcie/functionapp/{}", key = "$id")
     public IFunctionApp functionApp(String id) {
         final FunctionAppEntity functionAppEntity = FunctionAppEntity.builder().id(id).build();
@@ -76,7 +80,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     @Preload
     public List<IFunctionApp> functionApps(boolean... force) {
-        return getSubscriptions().stream()
+        return getSubscriptions().stream().parallel()
                 .flatMap(subscription -> functionApps(subscription.getId(), force).stream())
                 .collect(Collectors.toList());
     }
@@ -113,7 +117,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     @Preload
     public List<IWebApp> webapps(boolean... force) {
-        return getSubscriptions().stream()
+        return getSubscriptions().stream().parallel()
                 .flatMap(subscription -> webapps(subscription.getId(), force).stream())
                 .collect(Collectors.toList());
     }
@@ -159,7 +163,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     @Preload
     public List<IAppServicePlan> appServicePlans(boolean... force) {
-        return getSubscriptions().stream()
+        return getSubscriptions().stream().parallel()
                 .flatMap(subscription -> appServicePlans(subscription.getId(), force).stream())
                 .collect(Collectors.toList());
     }
@@ -173,7 +177,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     @Cacheable(cacheName = "appservcie/rg/{}/plans", key = "$rg", condition = "!(force&&force[0])")
     public List<IAppServicePlan> appServicePlansByResourceGroup(String rg, boolean... force) {
-        return getSubscriptions().stream()
+        return getSubscriptions().stream().parallel()
                 .map(subscription -> getAzureResourceManager(subscription.getId()))
                 .flatMap(azureResourceManager -> azureResourceManager.appServicePlans().listByResourceGroup(rg).stream())
                 .map(appServicePlan -> appServicePlan(appServicePlan.id()))

@@ -37,6 +37,10 @@ public class AzureGroup extends SubscriptionScoped<AzureGroup> implements AzureS
         super(AzureGroup::new, subscriptions);
     }
 
+    public static AzureGroup az() {
+        return Azure.az(AzureGroup.class);
+    }
+
     @Preload
     public List<ResourceGroup> list(boolean... force) {
         return getSubscriptions().stream().parallel()
