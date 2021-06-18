@@ -54,6 +54,10 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
         super(AzureSpringCloud::new, subscriptions);
     }
 
+    public static AzureSpringCloud az() {
+        return Azure.az(AzureSpringCloud.class);
+    }
+
     @Nullable
     @Cacheable(cacheName = "asc/cluster/{}", key = "$name")
     public SpringCloudCluster cluster(@Nonnull String name) {
@@ -75,7 +79,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
     @Nonnull
     @Preload
     public List<SpringCloudCluster> clusters(boolean... force) {
-        return this.getSubscriptions().stream()
+        return this.getSubscriptions().stream().parallel()
                 .flatMap(s -> clusters(s.getId(), force).stream())
                 .collect(Collectors.toList());
     }

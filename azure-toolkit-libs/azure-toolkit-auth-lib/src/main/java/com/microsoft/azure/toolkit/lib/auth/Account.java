@@ -13,7 +13,10 @@ import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AccountEntity;
 import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
+import com.microsoft.azure.toolkit.lib.common.cache.Preloader;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AccessLevel;
@@ -81,6 +84,7 @@ public abstract class Account implements IAccount {
         return getTokenCredentialForTenantV1(subscription.getTenantId());
     }
 
+    @CacheEvict(CacheEvict.ALL) // evict all caches on signing out
     public void logout() {
         if (this.entity != null) {
             this.entity = null;
@@ -110,6 +114,7 @@ public abstract class Account implements IAccount {
         }
         if (entity.getSubscriptions().stream().anyMatch(s -> Utils.containsIgnoreCase(selectedSubscriptionIds, s.getId()))) {
             selectSubscriptionInner(this.getSubscriptions(), selectedSubscriptionIds);
+            AzureTaskManager.getInstance().runOnPooledThread(Preloader::load);
         } else {
             throw new AzureToolkitAuthenticationException("Cannot select subscriptions since none subscriptions are selected, " +
                     "make sure you have provided valid subscription list");
