@@ -89,6 +89,10 @@ public abstract class AzureTaskManager {
         this.runInObservable(this::doRunLater, task).subscribe();
     }
 
+    public final void runOnPooledThread(Runnable task) {
+        this.runOnPooledThreadAsObservable(task).subscribe();
+    }
+
     public final void runAndWait(Runnable task) {
         this.runAndWait(new AzureTask<>(task));
     }
@@ -249,6 +253,14 @@ public abstract class AzureTaskManager {
         return this.runInObservable(this::doRunLater, task);
     }
 
+    public final Observable<Void> runOnPooledThreadAsObservable(Runnable task) {
+        return this.runOnPooledThreadAsObservable(new AzureTask<>(task));
+    }
+
+    public final <T> Observable<T> runOnPooledThreadAsObservable(AzureTask<T> task) {
+        return this.runInObservable(this::doRunOnPooledThread, task);
+    }
+
     public final Observable<Void> runAndWaitAsObservable(Runnable task) {
         return this.runAndWaitAsObservable(new AzureTask<>(task));
     }
@@ -371,6 +383,8 @@ public abstract class AzureTaskManager {
     protected abstract void doWrite(Runnable runnable, AzureTask<?> task);
 
     protected abstract void doRunLater(Runnable runnable, AzureTask<?> task);
+
+    protected abstract void doRunOnPooledThread(Runnable runnable, AzureTask<?> task);
 
     protected abstract void doRunAndWait(Runnable runnable, AzureTask<?> task);
 
