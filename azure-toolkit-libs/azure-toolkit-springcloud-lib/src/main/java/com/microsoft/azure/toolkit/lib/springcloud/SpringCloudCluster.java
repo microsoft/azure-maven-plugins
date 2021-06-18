@@ -32,13 +32,19 @@ public class SpringCloudCluster extends AbstractAzureEntityManager<SpringCloudCl
     }
 
     @Override
-    @CacheEvict(cacheName = "asc/cluster/{}/apps", key = "${this.name()}")
-    void updateRemote() {
+    SpringService loadRemote() {
         try {
-            this.entity.setRemote(this.client.getByResourceGroup(entity.getResourceGroup(), entity.getName()));
+            return this.client.getByResourceGroup(entity.getResourceGroup(), entity.getName());
         } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
-            this.entity.setRemote(null);
+            return null;
         }
+    }
+
+    @Nonnull
+    @Override
+    @CacheEvict(cacheName = "asc/cluster/{}/apps", key = "${this.name()}")
+    public SpringCloudCluster refresh() {
+        return super.refresh();
     }
 
     @Nonnull
