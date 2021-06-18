@@ -6,8 +6,6 @@
 package com.microsoft.azure.toolkit.lib.legacy.function.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.management.appservice.FunctionApp;
-import com.microsoft.azure.management.appservice.FunctionDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
@@ -23,7 +21,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 
 public class FunctionUtils {
@@ -31,15 +28,6 @@ public class FunctionUtils {
     private static final String LOAD_BINDING_TEMPLATES_FAIL = "Failed to load function binding template.";
     private static final String INVALID_FUNCTION_EXTENSION_VERSION = "FUNCTIONS_EXTENSION_VERSION is empty or invalid, " +
             "please check the configuration";
-
-    // Workaround for SDK will throw exception when get nonexistent function slot
-    public static FunctionDeploymentSlot getFunctionDeploymentSlotByName(FunctionApp functionApp, String slotName) {
-        try {
-            return functionApp.deploymentSlots().getByName(slotName);
-        } catch (NoSuchElementException e) {
-            return null;
-        }
-    }
 
     public static FunctionExtensionVersion parseFunctionExtensionVersion(String version) throws AzureExecutionException {
         return Arrays.stream(FunctionExtensionVersion.values())
