@@ -52,8 +52,8 @@ public class MySqlEntity extends AbstractAzureEntityManager.RemoteAwareResourceE
         return remoteOptional().map(remote -> Region.fromName(remote.regionName())).orElse(null);
     }
 
-    public Region getAdministratorLoginName() {
-        return remoteOptional().map(remote -> Region.fromName(remote.administratorLogin())).orElse(null);
+    public String getAdministratorLoginName() {
+        return remoteOptional().map(Server::administratorLogin).orElse(null);
     }
 
     public String getVersion() {

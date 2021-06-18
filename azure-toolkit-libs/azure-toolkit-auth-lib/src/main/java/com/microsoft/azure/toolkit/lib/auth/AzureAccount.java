@@ -14,7 +14,9 @@ import com.azure.identity.SharedTokenCacheCredential;
 import com.azure.identity.SharedTokenCacheCredentialBuilder;
 import com.azure.identity.TokenCachePersistenceOptions;
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.resources.fluentcore.policy.ProviderRegistrationPolicy;
 import com.azure.resourcemanager.resources.models.Location;
+import com.azure.resourcemanager.resources.models.Providers;
 import com.azure.resourcemanager.resources.models.RegionType;
 import com.azure.resourcemanager.resources.models.Subscription;
 import com.google.common.base.Preconditions;
@@ -288,9 +290,15 @@ public class AzureAccount implements IAzureAccount {
         final HttpLogDetailLevel logDetailLevel = config.getLogLevel() == null ?
                 HttpLogDetailLevel.NONE : HttpLogDetailLevel.valueOf(config.getLogLevel());
         final AzureProfile azureProfile = new AzureProfile(account.getEnvironment());
+
+        final Providers providers = AzureResourceManager.configure()
+            .withPolicy(getUserAgentPolicy(userAgent))
+            .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
+            .withSubscription(subscriptionId).providers();
         return AzureResourceManager.configure()
                 .withLogLevel(logDetailLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
+            .withPolicy(new ProviderRegistrationPolicy(providers)) // add policy to auto register resource providers
                 .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
                 .withSubscription(subscriptionId);
     }
