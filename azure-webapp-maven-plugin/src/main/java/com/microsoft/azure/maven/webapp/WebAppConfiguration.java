@@ -6,36 +6,34 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.maven.model.DeploymentResource;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.PricingTier;
-import com.microsoft.azure.management.appservice.RuntimeStack;
-import com.microsoft.azure.management.appservice.WebContainer;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azure.maven.webapp.models.JavaVersionEnum;
 import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
-import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
 import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
-
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 
+@Getter
+@Setter
+@SuperBuilder(toBuilder = true)
 public class WebAppConfiguration {
-    public static final PricingTier DEFAULT_JBOSS_PRICING_TIER = new PricingTier("PremiumV3", "P1v3");
-    public static final PricingTier DEFAULT_PRICINGTIER = PricingTier.PREMIUM_P1V2;
+    public static final PricingTier DEFAULT_JBOSS_PRICING_TIER = PricingTier.PREMIUM_P1V3;
     public static final Region DEFAULT_REGION = Region.EUROPE_WEST;
-    public static final JavaVersion DEFAULT_WINDOWS_JAVA_VERSION = JavaVersion.JAVA_8_NEWEST;
-    public static final WebContainer DEFAULT_WINDOWS_WEB_CONTAINER = WebContainer.TOMCAT_8_5_NEWEST;
-    public static final String DEFAULT_LINUX_JAVA_VERSION = JavaVersionEnum.JAVA_8.toString();
-    public static final String DEFAULT_LINUX_WEB_CONTAINER = WebContainerUtils.formatWebContainer(WebContainer.TOMCAT_8_5_NEWEST);
+    public static final PricingTier DEFAULT_PRICINGTIER = PricingTier.PREMIUM_P1V2;
+    public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
+    public static final WebContainer DEFAULT_CONTAINER = WebContainer.TOMCAT_85;
 
     // artifact deploy related configurations
     protected String subscriptionId;
@@ -43,11 +41,11 @@ public class WebAppConfiguration {
     protected DeploymentSlotSetting deploymentSlotSetting;
     protected String resourceGroup;
     protected Region region;
-    protected PricingTier pricingTier;
+    protected String pricingTier;
     protected String servicePlanName;
     protected String servicePlanResourceGroup;
-    protected OperatingSystemEnum os;
-    protected RuntimeStack runtimeStack;
+    protected OperatingSystem os;
+
     protected JavaVersion javaVersion;
     protected WebContainer webContainer;
     protected Settings mavenSettings;
@@ -64,328 +62,15 @@ public class WebAppConfiguration {
     protected MavenSession session;
     protected MavenResourcesFiltering filtering;
 
-    private WebAppConfiguration(final Builder builder) {
-        this.appName = builder.appName;
-        this.subscriptionId = builder.subscriptionId;
-        this.resourceGroup = builder.resourceGroup;
-        this.region = builder.region;
-        this.pricingTier = builder.pricingTier;
-        this.servicePlanName = builder.servicePlanName;
-        this.servicePlanResourceGroup = builder.servicePlanResourceGroup;
-        this.os = builder.os;
-        this.runtimeStack = builder.runtimeStack;
-        this.javaVersion = builder.javaVersion;
-        this.webContainer = builder.webContainer;
-        this.mavenSettings = builder.mavenSettings;
-        this.image = builder.image;
-        this.serverId = builder.serverId;
-        this.registryUrl = builder.registryUrl;
-        this.deploymentSlotSetting = builder.deploymentSlotSetting;
-        this.schemaVersion = builder.schemaVersion;
-
-        this.resources = builder.resources;
-        this.stagingDirectoryPath = builder.stagingDirectoryPath;
-        this.buildDirectoryAbsolutePath = builder.buildDirectoryAbsolutePath;
-        this.project = builder.project;
-        this.session = builder.session;
-        this.filtering = builder.filtering;
-    }
-
-    //region getters
-    public String getSubscriptionId() {
-        return this.subscriptionId;
-    }
-
-    public String getAppName() {
-        return this.appName;
-    }
-
-    public String getResourceGroup() {
-        return resourceGroup;
-    }
-
-    public Region getRegion() {
-        return region;
-    }
-
-    public PricingTier getPricingTier() {
-        return pricingTier;
-    }
-
-    public String getServicePlanName() {
-        return servicePlanName;
-    }
-
-    public String getServicePlanResourceGroup() {
-        return servicePlanResourceGroup;
-    }
-
-    public OperatingSystemEnum getOs() {
-        return this.os;
-    }
-
-    public RuntimeStack getRuntimeStack() {
-        return runtimeStack;
-    }
-
-    public JavaVersion getJavaVersion() {
-        return javaVersion;
-    }
-
-    public WebContainer getWebContainer() {
-        return webContainer;
-    }
-
-    public Settings getMavenSettings() {
-        return mavenSettings;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public String getServerId() {
-        return serverId;
-    }
-
-    public String getRegistryUrl() {
-        return registryUrl;
-    }
-
-    public List<DeploymentResource> getResources() {
-        return resources;
-    }
-
-    public String getStagingDirectoryPath() {
-        return stagingDirectoryPath;
-    }
-
-    public String getBuildDirectoryAbsolutePath() {
-        return buildDirectoryAbsolutePath;
-    }
-
-    public MavenProject getProject() {
-        return project;
-    }
-
-    public MavenSession getSession() {
-        return session;
-    }
-
-    public MavenResourcesFiltering getFiltering() {
-        return filtering;
-    }
-
-    public DeploymentSlotSetting getDeploymentSlotSetting() {
-        return deploymentSlotSetting;
-    }
-
-    public String getSchemaVersion() {
-        return schemaVersion;
-    }
-
-    public Builder getBuilderFromConfiguration() {
-        return new Builder().appName(this.appName)
-            .subscriptionId(subscriptionId)
-            .resourceGroup(this.resourceGroup)
-            .region(this.region)
-            .pricingTier(this.pricingTier)
-            .servicePlanName(this.servicePlanName)
-            .servicePlanResourceGroup(this.servicePlanResourceGroup)
-            .os(this.os)
-            .runtimeStack(this.runtimeStack)
-            .javaVersion(this.javaVersion)
-            .webContainer(this.webContainer)
-            .mavenSettings(this.mavenSettings)
-            .image(this.image)
-            .serverId(this.serverId)
-            .registryUrl(this.registryUrl)
-            .resources(this.resources)
-            .stagingDirectoryPath(this.stagingDirectoryPath)
-            .buildDirectoryAbsolutePath(this.buildDirectoryAbsolutePath)
-            .project(this.project)
-            .session(this.session)
-            .filtering(this.filtering)
-            .schemaVersion(this.schemaVersion)
-            .deploymentSlotSetting(this.deploymentSlotSetting);
-    }
-
     public String getRegionOrDefault() {
         return region != null ? region.toString() : DEFAULT_REGION.toString();
     }
 
-    public String getPricingTierOrDefault(@Nonnull PricingTier defaultPricingTier) {
-        return AppServiceUtils.convertPricingTierToString(pricingTier != null ? pricingTier : defaultPricingTier);
-    }
-
-    public String getLinuxJavaVersionOrDefault() {
-        return runtimeStack == null ? DEFAULT_LINUX_JAVA_VERSION :
-            RuntimeStackUtils.getJavaVersionFromRuntimeStack(runtimeStack);
-    }
-
-    public String getLinuxRuntimeStackOrDefault() {
-        return runtimeStack == null ? DEFAULT_LINUX_WEB_CONTAINER :
-            RuntimeStackUtils.getWebContainerFromRuntimeStack(runtimeStack);
-    }
-
     public String getJavaVersionOrDefault() {
-        return JavaVersionUtils.formatJavaVersion(Objects.nonNull(javaVersion) ? javaVersion : DEFAULT_WINDOWS_JAVA_VERSION);
+        return JavaVersionUtils.formatJavaVersion(Objects.nonNull(javaVersion) ? javaVersion : DEFAULT_JAVA_VERSION);
     }
 
     public String getWebContainerOrDefault() {
-        return WebContainerUtils.formatWebContainer(Objects.nonNull(webContainer) ? webContainer : DEFAULT_WINDOWS_WEB_CONTAINER);
+        return WebContainerUtils.formatWebContainer(Objects.nonNull(webContainer) ? webContainer : DEFAULT_CONTAINER);
     }
-
-    // endregion
-
-    //region builder
-    public static class Builder {
-        private String subscriptionId;
-        private String appName;
-        private String resourceGroup;
-        private Region region;
-        private PricingTier pricingTier;
-        private String servicePlanName;
-        private String servicePlanResourceGroup;
-        private OperatingSystemEnum os;
-        private RuntimeStack runtimeStack;
-        private JavaVersion javaVersion;
-        private WebContainer webContainer;
-        private Settings mavenSettings;
-        private String image;
-        private String serverId;
-        private String registryUrl;
-        private List<DeploymentResource> resources;
-        private String stagingDirectoryPath;
-        private String buildDirectoryAbsolutePath;
-        private MavenProject project;
-        private MavenSession session;
-        private MavenResourcesFiltering filtering;
-        private DeploymentSlotSetting deploymentSlotSetting;
-        private String schemaVersion;
-
-        protected Builder self() {
-            return this;
-        }
-
-        public WebAppConfiguration build() {
-            return new WebAppConfiguration(this);
-        }
-
-        public Builder subscriptionId(final String subscriptionId) {
-            this.subscriptionId = subscriptionId;
-            return self();
-        }
-
-        public Builder appName(final String value) {
-            this.appName = value;
-            return self();
-        }
-
-        public Builder resourceGroup(final String value) {
-            this.resourceGroup = value;
-            return self();
-        }
-
-        public Builder region(final Region value) {
-            this.region = value;
-            return self();
-        }
-
-        public Builder pricingTier(final PricingTier value) {
-            this.pricingTier = value;
-            return self();
-        }
-
-        public Builder servicePlanName(final String value) {
-            this.servicePlanName = value;
-            return self();
-        }
-
-        public Builder servicePlanResourceGroup(final String value) {
-            this.servicePlanResourceGroup = value;
-            return self();
-        }
-
-        public Builder os(final OperatingSystemEnum value) {
-            this.os = value;
-            return self();
-        }
-
-        public Builder runtimeStack(final RuntimeStack value) {
-            this.runtimeStack = value;
-            return self();
-        }
-
-        public Builder javaVersion(final JavaVersion value) {
-            this.javaVersion = value;
-            return self();
-        }
-
-        public Builder webContainer(final WebContainer value) {
-            this.webContainer = value;
-            return self();
-        }
-
-        public Builder mavenSettings(final Settings value) {
-            this.mavenSettings = value;
-            return self();
-        }
-
-        public Builder image(final String value) {
-            this.image = value;
-            return self();
-        }
-
-        public Builder serverId(final String value) {
-            this.serverId = value;
-            return self();
-        }
-
-        public Builder registryUrl(final String value) {
-            this.registryUrl = value;
-            return self();
-        }
-
-        public Builder resources(final List<DeploymentResource> values) {
-            this.resources = values;
-            return self();
-        }
-
-        public Builder stagingDirectoryPath(final String value) {
-            this.stagingDirectoryPath = value;
-            return self();
-        }
-
-        public Builder buildDirectoryAbsolutePath(final String value) {
-            this.buildDirectoryAbsolutePath = value;
-            return self();
-        }
-
-        public Builder project(final MavenProject value) {
-            this.project = value;
-            return self();
-        }
-
-        public Builder session(final MavenSession value) {
-            this.session = value;
-            return self();
-        }
-
-        public Builder filtering(final MavenResourcesFiltering value) {
-            this.filtering = value;
-            return self();
-        }
-
-        public Builder deploymentSlotSetting(final DeploymentSlotSetting value) {
-            this.deploymentSlotSetting = value;
-            return self();
-        }
-
-        public Builder schemaVersion(final String schemaVersion) {
-            this.schemaVersion = schemaVersion;
-            return self();
-        }
-    }
-    //endregion
 }

@@ -22,7 +22,6 @@
                     <appName>maven-it-app-17-${maven.build.timestamp}</appName>
                     <region>westus</region>
                     <pricingTier>S1</pricingTier>
-                    <schemaVersion>v2</schemaVersion>
                     <runtime>
                         <os>windows</os>
                         <javaVersion>1.8</javaVersion>

@@ -7,12 +7,9 @@ package com.microsoft.azure.maven.webapp.configuration;
 
 import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.management.appservice.JavaVersion;
-import com.microsoft.azure.management.appservice.RuntimeStack;
-import com.microsoft.azure.management.appservice.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
-import com.microsoft.azure.maven.webapp.utils.RuntimeStackUtils;
-import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -97,16 +94,11 @@ public class MavenRuntimeConfig {
                 : JavaVersion.fromString(javaVersion);
     }
 
-    public RuntimeStack getLinuxRuntime() {
-        // todo: add unit tests
-        return RuntimeStackUtils.getRuntimeStack(javaVersion, webContainer);
-    }
-
     public WebContainer getWebContainer() {
         if (!checkWebContainer(webContainer)) {
             return null;
         }
-        return WebContainerUtils.parseWebContainer(webContainer, getJavaVersion());
+        return WebContainer.fromString(webContainer);
     }
 
     public String getWebContainerRaw() {
@@ -146,7 +138,6 @@ public class MavenRuntimeConfig {
 
     protected boolean checkWebContainer(String value) {
         return StringUtils.isNotBlank(value) && (
-                WebContainerUtils.isJavaSeWebContainer(value) ||
-                        Objects.nonNull(WebContainerUtils.parseNonJavaSEWebContainer(value)));
+                WebContainer.fromString(value) != WebContainer.JAVA_OFF);
     }
 }

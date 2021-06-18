@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -91,6 +93,18 @@ public class Runtime {
         return values;
     }
 
+    public boolean isWindows() {
+        return Objects.equals(operatingSystem, OperatingSystem.WINDOWS);
+    }
+
+    public boolean isLinux() {
+        return Objects.equals(operatingSystem, OperatingSystem.LINUX);
+    }
+
+    public boolean isDocker() {
+        return Objects.equals(operatingSystem, OperatingSystem.DOCKER);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -107,5 +121,17 @@ public class Runtime {
     @Override
     public int hashCode() {
         return Objects.hash(operatingSystem, webContainer, javaVersion);
+    }
+
+    @Override
+    public String toString() {
+        if (isDocker()) {
+            return "Docker";
+        }
+
+        return Stream.of(getOperatingSystem(), getJavaVersion(), getWebContainer())
+            .filter(Objects::nonNull)
+            .map(Object::toString)
+            .collect(Collectors.joining("|"));
     }
 }

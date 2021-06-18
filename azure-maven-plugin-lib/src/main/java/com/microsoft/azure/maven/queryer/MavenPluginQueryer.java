@@ -25,10 +25,10 @@ public abstract class MavenPluginQueryer {
     public abstract void close();
 
     public String assureInputFromUser(String attribute, Enum defaultValue, String prompt) throws MojoFailureException {
-        final String defaultValueForAttribute = defaultValue.name();
+        final String defaultValueForAttribute = defaultValue.toString();
         final Set<String> optionSet = new LinkedHashSet<>();
         for (final Enum option : defaultValue.getClass().getEnumConstants()) {
-            optionSet.add(option.name());
+            optionSet.add(option.toString());
         }
         final ArrayList<String> options = new ArrayList<>(optionSet);
         return assureInputFromUser(attribute, defaultValueForAttribute, options, prompt);

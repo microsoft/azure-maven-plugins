@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.function.configurations;
 
-import com.microsoft.azure.management.appservice.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.management.appservice.SkuName;
 import org.apache.commons.lang3.StringUtils;
 

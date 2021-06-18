@@ -4,16 +4,17 @@
  */
 package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlFirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlFirewallRule;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlFirewallRuleCreator;
 
-public class SqlFirewallRuleRule implements ISqlFirewallRule {
+public class SqlFirewallRule implements ISqlFirewallRule {
 
     private SqlFirewallRuleEntity entity;
     private com.azure.resourcemanager.sql.models.SqlServer sqlServerInner;
 
-    public SqlFirewallRuleRule(SqlFirewallRuleEntity entity, com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
+    public SqlFirewallRule(SqlFirewallRuleEntity entity, com.azure.resourcemanager.sql.models.SqlServer sqlServerInner) {
         this.entity = entity;
         this.sqlServerInner = sqlServerInner;
     }
@@ -31,12 +32,22 @@ public class SqlFirewallRuleRule implements ISqlFirewallRule {
         sqlServerInner.firewallRules().delete(entity.getName());
     }
 
-    class SqlFirewallRuleCreator extends ISqlFirewallRuleCreator.AbstractSqlFirewallRuleCreator<SqlFirewallRuleRule> {
+    private SqlFirewallRuleEntity fromSqlFirewallRule(com.azure.resourcemanager.sql.models.SqlFirewallRule rule) {
+        return SqlFirewallRuleEntity.builder().name(rule.name())
+                .id(rule.id())
+                .subscriptionId(ResourceId.fromString(rule.id()).subscriptionId())
+                .startIpAddress(rule.startIpAddress())
+                .endIpAddress(rule.endIpAddress())
+                .build();
+    }
+
+    class SqlFirewallRuleCreator extends ISqlFirewallRuleCreator.AbstractSqlFirewallRuleCreator<SqlFirewallRule> {
 
         @Override
-        public SqlFirewallRuleRule commit() {
+        public SqlFirewallRule commit() {
             com.azure.resourcemanager.sql.models.SqlFirewallRule rule = sqlServerInner.firewallRules().define(getName()).withIpAddressRange(getStartIpAddress(), getEndIpAddress()).create();
-            return SqlFirewallRuleRule.this;
+            SqlFirewallRule.this.entity = fromSqlFirewallRule(rule);
+            return SqlFirewallRule.this;
         }
     }
 
