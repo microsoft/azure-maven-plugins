@@ -11,6 +11,7 @@ import com.azure.resourcemanager.mysql.models.PerformanceTierProperties;
 import com.azure.resourcemanager.mysql.models.Server;
 import com.azure.resourcemanager.mysql.models.ServerPropertiesForDefaultCreate;
 import com.azure.resourcemanager.mysql.models.ServerVersion;
+import com.azure.resourcemanager.mysql.models.Sku;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
@@ -75,15 +76,26 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
             @Override
             @AzureOperation(name = "mysql|server.create", params = {"this.app.name()"}, type = AzureOperation.Type.SERVICE)
             public MySqlServer commit() {
-
                 ServerPropertiesForDefaultCreate parameters = new ServerPropertiesForDefaultCreate();
                 parameters.withAdministratorLogin(this.getAdministratorLogin())
                     .withAdministratorLoginPassword(this.getAdministratorLoginPassword())
                     .withVersion(validateServerVersion(this.getVersion()));
+
+                final List<PerformanceTierProperties> tiers =
+                    manager.locationBasedPerformanceTiers().list(getRegion().getName()).stream().collect(Collectors.toList());
+                PerformanceTierProperties tier = tiers.stream().filter(e -> CollectionUtils.isNotEmpty(e.serviceLevelObjectives())).min((o1, o2) -> {
+                    int priority1 = getTierPriority(o1);
+                    int priority2 = getTierPriority(o2);
+                    return priority1 > priority2 ? 1 : -1;
+                }).orElseThrow(() ->
+                    new AzureToolkitRuntimeException("Currently, the service is not available in this location for your subscription."));
+                Sku sku = new Sku().withName(tier.serviceLevelObjectives().get(0).id());
                 Server server = manager.servers().define(getName())
                     .withRegion(getRegion().getName())
                     .withExistingResourceGroup(getResourceGroupName())
-                    .withProperties(parameters).create();
+                    .withProperties(parameters)
+                    .withSku(sku)
+                    .create();
                 this.app = toMysqlServer(server);
                 return app;
             }
@@ -94,6 +106,11 @@ public class AzureMySql extends SubscriptionScoped<AzureMySql> implements AzureS
                 return this.app;
             }
         };
+    }
+
+    private static int getTierPriority(PerformanceTierProperties tier) {
+        return StringUtils.equals("Basic", tier.id()) ? 1 :
+            StringUtils.equals("GeneralPurpose", tier.id()) ? 2 : StringUtils.equals("MemoryOptimized", tier.id()) ? 3 : 4;
     }
 
     private MySqlServer toMysqlServer(Server sqlServerInner) {
