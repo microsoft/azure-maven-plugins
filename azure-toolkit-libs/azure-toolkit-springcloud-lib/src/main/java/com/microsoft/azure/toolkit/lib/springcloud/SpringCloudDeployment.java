@@ -40,8 +40,9 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
         this.app = app;
     }
 
-    void updateRemote() {
-        this.entity.setRemote(this.app.deployment(this.entity().getName()).remote());
+    @Override
+    SpringAppDeployment loadRemote() {
+        return this.app.deployment(this.entity().getName()).remote();
     }
 
     @Nonnull
@@ -197,7 +198,7 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
                 messager.info(String.format("Skip updating deployment(%s) since its properties is not changed.", this.deployment.name()));
             } else {
                 messager.info(String.format("Start updating deployment(%s)...", messager.value(this.deployment.name())));
-                this.deployment.entity.setRemote(this.modifier.apply());
+                this.deployment.refresh(this.modifier.apply());
                 messager.success(String.format("Deployment(%s) is successfully updated", messager.value(this.deployment.name())));
             }
             return this.scale(this.newScaleSettings);
@@ -214,7 +215,7 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
         public SpringCloudDeployment commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(String.format("Start creating deployment(%s)...", messager.value(this.deployment.name())));
-            this.deployment.entity.setRemote(this.modifier.create());
+            this.deployment.refresh(this.modifier.create());
             messager.success(String.format("Deployment(%s) is successfully created", messager.value(this.deployment.name())));
             return this.scale(this.newScaleSettings);
         }
