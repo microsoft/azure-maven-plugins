@@ -5,14 +5,10 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.ArtifactHandler;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.RuntimeHandler;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
@@ -37,13 +33,9 @@ import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.OS_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeployMojoTest {
@@ -60,12 +52,6 @@ public class DeployMojoTest {
 
     @Mock
     protected PluginDescriptor plugin;
-
-    @Mock
-    protected ArtifactHandler artifactHandler;
-
-    @Mock
-    protected RuntimeHandler runtimeHandler;
 
     @Before
     public void setUp() throws Exception {
@@ -116,27 +102,6 @@ public class DeployMojoTest {
         assertTrue(map.containsKey(DEPLOYMENT_TYPE_KEY));
         assertTrue(map.containsKey(OS_KEY));
         assertTrue(map.containsKey(DEPLOY_TO_SLOT_KEY));
-    }
-
-    @Test
-    public void getNUllDeploymentSlot() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-linux.xml");
-        final WebApp app = mock(WebApp.class);
-
-        assertNull(mojo.getDeploymentSlot(app, ""));
-    }
-
-    @Test
-    public void getDeploymentSlot() throws Exception {
-        final DeployMojo mojo = getMojoFromPom("/pom-slot.xml");
-        final DeployMojo mojoSpy = spy(mojo);
-        final WebApp app = mock(WebApp.class);
-
-        doReturn(mock(DeploymentSlot.class)).when(mojoSpy).getDeploymentSlot(app, "");
-
-        mojoSpy.getDeploymentSlot(app, "");
-
-        verify(mojoSpy, times(1)).getDeploymentSlot(app, "");
     }
 
     /**

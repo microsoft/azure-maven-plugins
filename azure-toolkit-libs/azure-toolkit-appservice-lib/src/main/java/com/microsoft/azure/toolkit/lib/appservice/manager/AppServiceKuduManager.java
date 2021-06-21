@@ -138,44 +138,38 @@ public class AppServiceKuduManager implements IFileClient, IProcessClient {
     @ServiceInterface(name = "KuduService")
     private interface KuduService {
         @Headers({
-                "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps getFile"
+                "Content-Type: application/json; charset=utf-8"
         })
         @Get("api/vfs/{path}")
         Mono<StreamResponse> getFileContent(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
-                "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps getFilesInDirectory"
+                "Content-Type: application/json; charset=utf-8"
         })
         @Get("api/vfs/{path}/")
         Mono<Response<List<AppServiceFile>>> getFilesInDirectory(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
                 "Content-Type: application/octet-stream; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps saveFile",
                 "If-Match: *"
         })
         @Put("api/vfs/{path}")
         Mono<Void> saveFile(@HostParam("$host") String host, @PathParam("path") String path, @BodyParam("application/octet-stream") String content);
 
         @Headers({
-                "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps createDirectory"
+                "Content-Type: application/json; charset=utf-8"
         })
         @Put("api/vfs/{path}/")
         Mono<Void> createDirectory(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
                 "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps deleteFile",
                 "If-Match: *"
         })
         @Delete("api/vfs/{path}")
         Mono<Void> deleteFile(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps listProcesses",
                 "x-ms-body-logging: false"
         })
         @Get("api/processes")
@@ -183,7 +177,6 @@ public class AppServiceKuduManager implements IFileClient, IProcessClient {
 
         @Headers({
                 "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps command",
                 "x-ms-body-logging: false"
         })
         @Post("api/command")
@@ -191,7 +184,6 @@ public class AppServiceKuduManager implements IFileClient, IProcessClient {
 
         @Headers({
                 "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps AppServiceTunnelStatus",
                 "x-ms-body-logging: false"
         })
         @Get("AppServiceTunnel/Tunnel.ashx?GetStatus&GetStatusAPIVer=2")
