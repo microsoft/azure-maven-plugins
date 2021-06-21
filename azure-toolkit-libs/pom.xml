@@ -41,6 +41,7 @@
         <module>azure-toolkit-springcloud-lib</module>
         <module>azure-toolkit-appservice-lib</module>
         <module>azure-toolkit-sqlserver-lib</module>
+        <module>azure-toolkit-mysql-lib</module>
         <module>azure-toolkit-applicationinsights-lib</module>
     </modules>
 
@@ -136,6 +137,7 @@
         <zt.zip.version>1.14</zt.zip.version>
         <plexus-interpolation.version>1.26</plexus-interpolation.version>
         <powermock.version>2.0.9</powermock.version>
+        <azure-resourcemanager-mysql.version>1.0.0</azure-resourcemanager-mysql.version>
     </properties>
 
     <dependencyManagement>
@@ -510,6 +512,11 @@
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-sql</artifactId>
                 <version>${azure.resourcemanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure.resourcemanager</groupId>
+                <artifactId>azure-resourcemanager-mysql</artifactId>
+                <version>${azure-resourcemanager-mysql.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure.resourcemanager</groupId>
