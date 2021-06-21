@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.task;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExceptionHandler;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
@@ -13,9 +13,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.InterruptedIOException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -89,7 +91,11 @@ public class AzureTaskContext {
                 assert Objects.equals(task, popped) : String.format("popped op[%s] is not the exiting async task[%s]", popped, task);
             });
         } catch (final Throwable throwable) {
-            AzureExceptionHandler.onRxException(throwable);
+            final Throwable rootCause = ExceptionUtils.getRootCause(throwable);
+            if (!(rootCause instanceof InterruptedIOException) &&!(rootCause instanceof InterruptedException)) {
+                // Swallow interrupted exception caused by unsubscribe
+                AzureMessager.getMessager().error(throwable);
+            }
             Optional.ofNullable(context.getTask()).ifPresent(task -> {
                 final IAzureOperation popped = AzureTaskContext.current().popOperation();
                 AzureTelemeter.onError(task, throwable);
