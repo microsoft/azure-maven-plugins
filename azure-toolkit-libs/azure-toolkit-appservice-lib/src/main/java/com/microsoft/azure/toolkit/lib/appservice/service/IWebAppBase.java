@@ -4,7 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service;
 
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
 
-public interface IWebAppBase<T extends IAzureResourceEntity> extends IAppService<T>, IOneDeploy{
+public interface IWebAppBase<T extends AppServiceBaseEntity> extends IAppService<T>, IOneDeploy{
 }
