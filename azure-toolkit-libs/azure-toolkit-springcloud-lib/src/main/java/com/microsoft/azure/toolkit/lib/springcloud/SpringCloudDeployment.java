@@ -11,7 +11,6 @@ import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -30,37 +29,20 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDeploymentEntity>, AzureOperationEvent.Source<SpringCloudDeployment> {
+public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringCloudDeployment, SpringCloudDeploymentEntity, SpringAppDeployment>
+        implements AzureOperationEvent.Source<SpringCloudDeployment> {
     @Getter
     @Nonnull
     final SpringCloudApp app;
-    @Nonnull
-    private final SpringCloudDeploymentEntity local;
-    @Nullable
-    private SpringAppDeployment remote;
-    private boolean refreshed;
 
     public SpringCloudDeployment(@Nonnull SpringCloudDeploymentEntity deployment, @Nonnull SpringCloudApp app) {
-        this.local = deployment;
-        this.remote = this.local.getRemote();
+        super(deployment);
         this.app = app;
     }
 
-    public boolean exists() {
-        if (Objects.isNull(this.remote) && !this.refreshed) {
-            this.refresh();
-        }
-        return Objects.nonNull(this.remote);
-    }
-
-    @Nonnull
-    public SpringCloudDeploymentEntity entity() {
-        final SpringAppDeployment remote = Objects.nonNull(this.remote) ? this.remote : this.local.getRemote();
-        if (Objects.isNull(remote)) {
-            return this.local;
-        }
-        // prevent inconsistent properties between local and remote when local's properties is modified.
-        return new SpringCloudDeploymentEntity(remote, this.app.entity());
+    @Override
+    SpringAppDeployment loadRemote() {
+        return this.app.deployment(this.entity().getName()).remote();
     }
 
     @Nonnull
@@ -71,7 +53,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     @AzureOperation(name = "springcloud|deployment.start", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment start() {
         if (this.exists()) {
-            Objects.requireNonNull(this.remote).start();
+            Objects.requireNonNull(this.remote()).start();
         }
         return this;
     }
@@ -79,7 +61,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     @AzureOperation(name = "springcloud|deployment.stop", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment stop() {
         if (this.exists()) {
-            Objects.requireNonNull(this.remote).stop();
+            Objects.requireNonNull(this.remote()).stop();
         }
         return this;
     }
@@ -87,22 +69,9 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     @AzureOperation(name = "springcloud|deployment.restart", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment restart() {
         if (this.exists()) {
-            Objects.requireNonNull(this.remote).restart();
+            Objects.requireNonNull(this.remote()).restart();
         }
         return this;
-    }
-
-    @Nonnull
-    public SpringCloudDeployment refresh() {
-        final SpringCloudDeployment _this = this.app.deployment(this.entity().getName());
-        this.updateRemote(_this.entity().getRemote());
-        this.refreshed = true;
-        return this;
-    }
-
-    private void updateRemote(SpringAppDeployment remote) {
-        this.remote = remote;
-        this.local.setRemote(this.remote);
     }
 
     public boolean waitUntilReady(int timeoutInSeconds) {
@@ -184,10 +153,10 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
         public Modifier configScaleSettings(ScaleSettings newSettings) {
             final Optional<DeploymentSettings> settings = Optional.ofNullable(this.modifier.settings());
             final ScaleSettings oldSettings = ScaleSettings.builder()
-                .cpu(settings.map(DeploymentSettings::cpu).orElse(null))
-                .memoryInGB(settings.map(DeploymentSettings::memoryInGB).orElse(null))
-                .capacity(Optional.ofNullable(this.modifier.innerModel().sku()).map(Sku::capacity).orElse(null))
-                .build();
+                    .cpu(settings.map(DeploymentSettings::cpu).orElse(null))
+                    .memoryInGB(settings.map(DeploymentSettings::memoryInGB).orElse(null))
+                    .capacity(Optional.ofNullable(this.modifier.innerModel().sku()).map(Sku::capacity).orElse(null))
+                    .build();
             if (!newSettings.isEmpty() && !oldSettings.equals(newSettings)) {
                 // Deployment cannot be scaled and updated at the same time. so should not set properties directly on modifier.
                 this.newScaleSettings = newSettings;
@@ -202,9 +171,9 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
             }
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(String.format("Start scaling deployment(%s)...", messager.value(this.deployment.name())));
-            final SpringAppDeploymentImpl modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote).update());
+            final SpringAppDeploymentImpl modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote()).update());
             modifier.withCpu(settings.getCpu()).withMemory(settings.getMemoryInGB()).withInstance(settings.getCapacity());
-            this.deployment.updateRemote(modifier.apply());
+            this.deployment.entity.setRemote(modifier.apply());
             messager.success(String.format("Deployment(%s) is successfully scaled.", messager.value(this.deployment.name())));
             return this.deployment;
         }
@@ -219,7 +188,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     public static class Updater extends Modifier {
         public Updater(SpringCloudDeployment deployment) {
             super(deployment);
-            this.modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote).update());
+            this.modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote()).update());
         }
 
         @AzureOperation(name = "springcloud|deployment.update", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
@@ -229,7 +198,7 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
                 messager.info(String.format("Skip updating deployment(%s) since its properties is not changed.", this.deployment.name()));
             } else {
                 messager.info(String.format("Start updating deployment(%s)...", messager.value(this.deployment.name())));
-                this.deployment.updateRemote(this.modifier.apply());
+                this.deployment.refresh(this.modifier.apply());
                 messager.success(String.format("Deployment(%s) is successfully updated", messager.value(this.deployment.name())));
             }
             return this.scale(this.newScaleSettings);
@@ -239,14 +208,14 @@ public class SpringCloudDeployment implements IAzureEntityManager<SpringCloudDep
     public static class Creator extends Modifier {
         public Creator(SpringCloudDeployment deployment) {
             super(deployment);
-            this.modifier = (SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.app.getRemote()).deployments().define(deployment.name());
+            this.modifier = (SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.app.remote()).deployments().define(deployment.name());
         }
 
         @AzureOperation(name = "springcloud|deployment.create", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
         public SpringCloudDeployment commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(String.format("Start creating deployment(%s)...", messager.value(this.deployment.name())));
-            this.deployment.updateRemote(this.modifier.create());
+            this.deployment.refresh(this.modifier.create());
             messager.success(String.format("Deployment(%s) is successfully created", messager.value(this.deployment.name())));
             return this.scale(this.newScaleSettings);
         }

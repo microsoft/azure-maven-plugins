@@ -17,11 +17,11 @@ import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.lang3.StringUtils;
-import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -37,16 +37,20 @@ public class AzureGroup extends SubscriptionScoped<AzureGroup> implements AzureS
         super(AzureGroup::new, subscriptions);
     }
 
-    public List<ResourceGroup> list() {
-        return Flux.fromIterable(getSubscriptions()).parallel()
-                .map(subscription -> getResourceManager(subscription.getId()))
-                .flatMap(azureResourceManager -> azureResourceManager.resourceGroups().listAsync())
-                .map(AzureGroup::fromResource)
-                .sequential().collectList().block();
+    public static AzureGroup az() {
+        return Azure.az(AzureGroup.class);
     }
 
-    public List<ResourceGroup> list(String subscriptionId) {
-        return getResourceManager(subscriptionId).resourceGroups().listAsync()
+    @Preload
+    public List<ResourceGroup> list(boolean... force) {
+        return getSubscriptions().stream().parallel()
+                .flatMap(s -> list(s.getId(), force).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Cacheable(cacheName = "resource/{}/groups", key = "$sid", condition = "!(force&&force[0])")
+    public List<ResourceGroup> list(String sid, boolean... force) {
+        return getResourceManager(sid).resourceGroups().listAsync()
                 .map(AzureGroup::fromResource)
                 .collect(Collectors.toList()).block();
     }
@@ -60,8 +64,9 @@ public class AzureGroup extends SubscriptionScoped<AzureGroup> implements AzureS
         return get(getDefaultSubscription().getId(), name);
     }
 
-    public ResourceGroup get(@Nonnull String subscriptionId, @Nonnull String name) {
-        return fromResource(getResourceManager(subscriptionId).resourceGroups().getByName(name));
+    @Cacheable(cacheName = "resource/{}/group/{}", key = "$sid/$name")
+    public ResourceGroup get(@Nonnull String sid, @Nonnull String name) {
+        return fromResource(getResourceManager(sid).resourceGroups().getByName(name));
     }
 
     public ResourceGroup create(String name, String region) {
@@ -92,7 +97,7 @@ public class AzureGroup extends SubscriptionScoped<AzureGroup> implements AzureS
         return ResourceGroup.builder().subscriptionId(subscriptionId).id(id).name(name).region(region).build();
     }
 
-    @Cacheable(cacheName = "ResourceManager", key = "$subscriptionId")
+    @Cacheable(cacheName = "resource/{}/manager", key = "$subscriptionId")
     private ResourceManager getResourceManager(String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();

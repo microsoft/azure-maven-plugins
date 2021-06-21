@@ -61,7 +61,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final String deploymentName = StringUtils.firstNonBlank(
                 deploymentConfig.getDeploymentName(),
                 config.getActiveDeploymentName(),
-                app.getActiveDeploymentName(),
+                app.activeDeploymentName(),
                 DEFAULT_DEPLOYMENT_NAME
         );
         this.deployment = app.deployment(deploymentName);
@@ -93,7 +93,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
             .commit()));
         tasks.add(new AzureTask<Void>(UPDATE_APP_TITLE, () -> app.update()
             // active deployment should keep active.
-            .activate(StringUtils.firstNonBlank(app.getActiveDeploymentName(), toCreateDeployment ? deploymentName : null))
+            .activate(StringUtils.firstNonBlank(app.activeDeploymentName(), toCreateDeployment ? deploymentName : null))
             .setPublic(config.isPublic())
             .enablePersistentDisk(enableDisk).commit()));
         return tasks;

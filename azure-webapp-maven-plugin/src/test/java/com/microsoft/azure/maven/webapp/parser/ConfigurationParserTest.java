@@ -198,12 +198,12 @@ public class ConfigurationParserTest {
         assertEquals("test-staging-path", webAppConfiguration.getStagingDirectoryPath());
         assertEquals("test-build-directory-path", webAppConfiguration.getBuildDirectoryAbsolutePath());
 
-        assertEquals(JavaVersion.JAVA_8, webAppConfiguration.getJavaVersion());
-        assertEquals(WebContainer.TOMCAT_85, webAppConfiguration.getWebContainer());
+        assertEquals(JavaVersion.JAVA_8.toString(), webAppConfiguration.getJavaVersion());
+        assertEquals(WebContainer.TOMCAT_85.toString(), webAppConfiguration.getWebContainer());
 
         doReturn(OperatingSystem.LINUX).when(parserSpy).getOs();
         webAppConfiguration = parserSpy.getWebAppConfiguration();
-        assertEquals(WebContainer.TOMCAT_85, webAppConfiguration.getWebContainer());
+        assertEquals(WebContainer.TOMCAT_85.toString(), webAppConfiguration.getWebContainer());
 
         doReturn(OperatingSystem.DOCKER).when(parserSpy).getOs();
         webAppConfiguration = parserSpy.getWebAppConfiguration();

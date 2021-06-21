@@ -148,6 +148,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
      * @since 0.1.0
      */
     @Parameter
+    @Getter
     protected String subscriptionId = "";
 
     /**
@@ -173,6 +174,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
      * Use a HTTP proxy host for the Azure Auth Client
      */
     @Parameter(property = "httpProxyHost")
+    @Getter
     protected String httpProxyHost;
 
     /**
@@ -216,10 +218,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return buildDirectory.getAbsolutePath();
     }
 
-    public String getSubscriptionId() {
-        return subscriptionId;
-    }
-
     public String getInstallationId() {
         return installationId == null ? "" : installationId;
     }
@@ -236,10 +234,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         return isAllowTelemetry() ? String.format("%s/%s %s:%s %s:%s", getPluginName(), getPluginVersion(),
                 INSTALLATION_ID_KEY, getInstallationId(), SESSION_ID_KEY, getSessionId())
                 : String.format("%s/%s", getPluginName(), getPluginVersion());
-    }
-
-    public String getHttpProxyHost() {
-        return httpProxyHost;
     }
 
     public int getHttpProxyPort() {

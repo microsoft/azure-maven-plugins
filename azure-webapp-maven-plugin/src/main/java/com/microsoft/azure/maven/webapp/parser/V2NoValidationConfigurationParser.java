@@ -5,17 +5,16 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
+import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
+import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
-import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 
-@Deprecated
 public class V2NoValidationConfigurationParser extends V2ConfigurationParser {
 
     public V2NoValidationConfigurationParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {

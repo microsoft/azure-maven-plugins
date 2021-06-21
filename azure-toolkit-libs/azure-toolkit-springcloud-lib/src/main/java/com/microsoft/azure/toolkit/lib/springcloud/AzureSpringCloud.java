@@ -35,6 +35,7 @@ import com.microsoft.azure.toolkit.lib.SubscriptionScoped;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
 import javax.annotation.Nonnull;
@@ -53,7 +54,12 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
         super(AzureSpringCloud::new, subscriptions);
     }
 
+    public static AzureSpringCloud az() {
+        return Azure.az(AzureSpringCloud.class);
+    }
+
     @Nullable
+    @Cacheable(cacheName = "asc/cluster/{}", key = "$name")
     public SpringCloudCluster cluster(@Nonnull String name) {
         return this.clusters().stream()
                 .filter((s) -> Objects.equals(s.name(), name))
@@ -71,15 +77,22 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
     }
 
     @Nonnull
-    public List<SpringCloudCluster> clusters() {
-        return this.getSubscriptions().stream()
-                .map(s -> getClient(s.getId()))
-                .flatMap(c -> c.list().stream())
+    @Preload
+    public List<SpringCloudCluster> clusters(boolean... force) {
+        return this.getSubscriptions().stream().parallel()
+                .flatMap(s -> clusters(s.getId(), force).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Nonnull
+    @Cacheable(cacheName = "asc/{}/clusters", key = "$subscriptionId", condition = "!(force&&force[0])")
+    private List<SpringCloudCluster> clusters(@Nonnull String subscriptionId, boolean... force) {
+        return getClient(subscriptionId).list().stream()
                 .map(this::cluster)
                 .collect(Collectors.toList());
     }
 
-    @Cacheable(cacheName = "SpringServices", key = "$subscriptionId")
+    @Cacheable(cacheName = "asc/{}/client", key = "$subscriptionId")
     protected SpringServices getClient(final String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();

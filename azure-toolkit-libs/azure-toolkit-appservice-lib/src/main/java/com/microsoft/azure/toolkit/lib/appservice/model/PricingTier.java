@@ -5,8 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,7 +22,10 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-@RequiredArgsConstructor
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
 public class PricingTier {
     public static final PricingTier BASIC_B1 = new PricingTier("Basic", "B1");
     public static final PricingTier BASIC_B2 = new PricingTier("Basic", "B2");
@@ -53,8 +60,8 @@ public class PricingTier {
             Collections.unmodifiableList(new ArrayList<>(new HashSet<>(ListUtils.union(WEB_APP_PRICING, FUNCTION_PRICING))));
     private static final String CONSUMPTION_SIZE = "consumption";
 
-    private final String tier;
-    private final String size;
+    private String tier;
+    private String size;
 
     public static List<PricingTier> values() {
         return values;
