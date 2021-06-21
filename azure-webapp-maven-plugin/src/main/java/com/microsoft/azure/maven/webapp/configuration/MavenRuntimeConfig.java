@@ -5,14 +5,10 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
-
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Objects;
-
 
 /**
  * Runtime Setting
@@ -76,12 +72,7 @@ public class MavenRuntimeConfig {
     }
 
     public JavaVersion getJavaVersion() {
-        final JavaVersion ver = JavaVersionUtils.toAzureSdkJavaVersion(this.javaVersion);
-        if (Objects.nonNull(ver)) {
-            return ver;
-        }
-        return (StringUtils.isEmpty(javaVersion) || !checkJavaVersion(javaVersion)) ? null
-                : JavaVersion.fromString(javaVersion);
+        return toJavaVersion(this.javaVersion);
     }
 
     public WebContainer getWebContainer() {
@@ -117,17 +108,20 @@ public class MavenRuntimeConfig {
             StringUtils.isEmpty(this.serverId) && StringUtils.isEmpty(this.registryUrl);
     }
 
-    protected boolean checkJavaVersion(String value) {
-        for (final JavaVersion version : JavaVersion.values()) {
-            if (StringUtils.equalsIgnoreCase(version.toString(), value)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     protected boolean checkWebContainer(String value) {
         return StringUtils.isNotBlank(value) && (
                 WebContainer.fromString(value) != WebContainer.JAVA_OFF);
     }
+
+    private static JavaVersion toJavaVersion(String javaVersion) {
+        if (StringUtils.isEmpty(javaVersion)) {
+            return null;
+        }
+        final JavaVersion newJavaVersion = JavaVersion.fromString(javaVersion);
+        if (newJavaVersion == JavaVersion.OFF) {
+            throw new AzureToolkitRuntimeException(String.format("Cannot parse java version: '%s'.", javaVersion));
+        }
+        return newJavaVersion;
+    }
+
 }

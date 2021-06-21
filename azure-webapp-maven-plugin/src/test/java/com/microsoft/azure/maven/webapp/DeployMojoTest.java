@@ -7,7 +7,6 @@ package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.testing.MojoRule;
@@ -85,7 +84,7 @@ public class DeployMojoTest {
 
         assertEquals(JavaVersion.JAVA_11, mojo.getRuntime().getJavaVersion());
 
-        assertEquals(PricingTier.STANDARD_S2, AppServiceUtils.getPricingTierFromString(mojo.getPricingTier()));
+        assertEquals(PricingTier.STANDARD_S2, PricingTier.fromString(mojo.getPricingTier()));
     }
 
     @Test

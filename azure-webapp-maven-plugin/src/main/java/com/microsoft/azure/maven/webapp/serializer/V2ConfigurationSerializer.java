@@ -6,8 +6,6 @@
 package com.microsoft.azure.maven.webapp.serializer;
 
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
-import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 import com.microsoft.azure.maven.webapp.utils.XMLUtils;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
@@ -99,14 +97,13 @@ public class V2ConfigurationSerializer extends ConfigurationSerializer {
         final String oldOS = formatOperationSystem(oldConfigs.getOs());
         createOrUpdateAttribute("os", newConfigs.getOs().toString(), oldOS, configurationElement);
         if (newConfigs.getJavaVersion() != null) {
-            final String oldJavaVersion = oldConfigs.getJavaVersion() == null ? null :
-                    JavaVersionUtils.formatJavaVersion(oldConfigs.getJavaVersion());
-            createOrUpdateAttribute("javaVersion", JavaVersionUtils.formatJavaVersion(newConfigs.getJavaVersion()),
+            final String oldJavaVersion = Objects.toString(oldConfigs.getJavaVersion(), null);
+            createOrUpdateAttribute("javaVersion", Objects.toString(newConfigs.getJavaVersion(), null),
                     oldJavaVersion, configurationElement);
         }
         if (newConfigs.getWebContainer() != null) {
-            final String oldWebContainer = WebContainerUtils.formatWebContainer(oldConfigs.getWebContainer());
-            createOrUpdateAttribute("webContainer", WebContainerUtils.formatWebContainer(newConfigs.getWebContainer()), oldWebContainer,
+            final String oldWebContainer = Objects.toString(oldConfigs.getWebContainer());
+            createOrUpdateAttribute("webContainer", Objects.toString(newConfigs.getWebContainer()), oldWebContainer,
                     configurationElement);
         }
     }

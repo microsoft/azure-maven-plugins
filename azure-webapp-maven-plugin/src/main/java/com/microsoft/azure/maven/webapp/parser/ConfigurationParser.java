@@ -18,8 +18,8 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 
 import java.util.List;
+import java.util.Objects;
 
-@Deprecated
 public abstract class ConfigurationParser {
     protected final AbstractWebAppMojo mojo;
     protected final AbstractConfigurationValidator validator;
@@ -83,7 +83,7 @@ public abstract class ConfigurationParser {
             switch (os) {
                 case WINDOWS:
                 case LINUX:
-                    builder = builder.javaVersion(getJavaVersion()).webContainer(getWebContainer());
+                    builder = builder.javaVersion(Objects.toString(getJavaVersion())).webContainer(Objects.toString(getWebContainer()));
                     break;
                 case DOCKER:
                     builder = builder.image(getImage()).serverId(getServerId()).registryUrl(getRegistryUrl());
