@@ -11,6 +11,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
 import reactor.core.publisher.Flux;
 
+import java.io.InputStream;
+
 public interface IAppService<T extends AppServiceBaseEntity> extends IFileClient, IProcessClient, IAzureEntityManager<T> {
     void start();
 
@@ -29,6 +31,8 @@ public interface IAppService<T extends AppServiceBaseEntity> extends IFileClient
     Runtime getRuntime();
 
     PublishingProfile getPublishingProfile();
+
+    InputStream listPublishingProfileXmlWithSecrets();
 
     DiagnosticConfig getDiagnosticConfig();
 

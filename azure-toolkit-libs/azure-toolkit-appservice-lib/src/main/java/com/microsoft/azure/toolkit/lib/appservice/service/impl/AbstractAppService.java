@@ -6,7 +6,10 @@
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.appservice.models.CsmPublishingProfileOptions;
+import com.azure.resourcemanager.appservice.models.PublishingProfileFormat;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
+import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
 import com.microsoft.azure.toolkit.lib.appservice.manager.AppServiceKuduManager;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
@@ -20,10 +23,12 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.service.IProcessClient;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
@@ -155,6 +160,16 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     @Override
     public CommandOutput execute(String command, String dir) {
         return getProcessClient().execute(command, dir);
+    }
+
+    @Override
+    public InputStream listPublishingProfileXmlWithSecrets() {
+        final ResourceId resourceId = ResourceId.fromString(getRemoteResource().id());
+        final String resourceName = StringUtils.equals(resourceId.resourceType(), "slots") ?
+                String.format("%s/slots/%s", resourceId.parent().name(), resourceId.name()) : resourceId.name();
+        final CsmPublishingProfileOptions csmPublishingProfileOptions = new CsmPublishingProfileOptions().withFormat(PublishingProfileFormat.FTP);
+        return getRemoteResource().manager().serviceClient().getWebApps()
+                .listPublishingProfileXmlWithSecrets(resourceId.resourceGroupName(), resourceName, csmPublishingProfileOptions);
     }
 
     @Override

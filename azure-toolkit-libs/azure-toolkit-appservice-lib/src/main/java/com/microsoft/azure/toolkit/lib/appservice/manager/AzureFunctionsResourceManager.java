@@ -121,37 +121,32 @@ public class AzureFunctionsResourceManager implements IFileClient {
     @ServiceInterface(name = "FunctionHost")
     private interface FunctionsService {
         @Headers({
-                "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps getFile"
+                "Content-Type: application/json; charset=utf-8"
         })
         @Get("admin/vfs/{path}")
         Mono<StreamResponse> getFileContent(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
-                "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps getFilesInDirectory"
+                "Content-Type: application/json; charset=utf-8"
         })
         @Get("admin/vfs/{path}/")
         Mono<Response<List<AppServiceFile>>> getFilesInDirectory(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
                 "Content-Type: application/octet-stream; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps saveFile",
                 "If-Match: *"
         })
         @Put("admin/vfs/{path}")
         Mono<Void> saveFile(@HostParam("$host") String host, @PathParam("path") String path, @BodyParam("application/octet-stream") String content);
 
         @Headers({
-                "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps createDirectory"
+                "Content-Type: application/json; charset=utf-8"
         })
         @Put("admin/vfs/{path}/")
         Mono<Void> createDirectory(@HostParam("$host") String host, @PathParam("path") String path);
 
         @Headers({
                 "Content-Type: application/json; charset=utf-8",
-                "x-ms-logging-context: com.microsoft.azure.management.appservice.WebApps deleteFile",
                 "If-Match: *"
         })
         @Delete("admin/vfs/{path}")

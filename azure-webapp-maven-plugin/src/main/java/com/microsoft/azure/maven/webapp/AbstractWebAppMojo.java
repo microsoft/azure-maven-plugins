@@ -5,8 +5,6 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.management.appservice.DeploymentSlot;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
@@ -27,7 +25,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -153,17 +150,6 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     public String getPricingTier() {
         return this.pricingTier;
-    }
-
-    public DeploymentSlot getDeploymentSlot(final WebApp app, final String slotName) {
-        DeploymentSlot slot = null;
-        if (StringUtils.isNotEmpty(slotName)) {
-            try {
-                slot = app.deploymentSlots().getByName(slotName);
-            } catch (NoSuchElementException deploymentSlotNotExistException) {
-            }
-        }
-        return slot;
     }
 
     public boolean isDeployToDeploymentSlot() {
