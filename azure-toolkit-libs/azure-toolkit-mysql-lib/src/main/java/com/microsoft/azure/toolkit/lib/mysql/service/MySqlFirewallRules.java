@@ -51,8 +51,8 @@ public class MySqlFirewallRules {
             return myFirewallRule.update(publicIp, publicIp).commit();
         } else {
             return create().withName(name)
-                .wihStartIpAddress(IP_ALLOW_ACCESS_TO_AZURE_SERVICES)
-                .withEndIpAddress(IP_ALLOW_ACCESS_TO_AZURE_SERVICES).commit();
+                .wihStartIpAddress(publicIp)
+                .withEndIpAddress(publicIp).commit();
         }
     }
 

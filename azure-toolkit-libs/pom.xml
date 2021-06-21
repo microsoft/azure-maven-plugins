@@ -181,6 +181,11 @@
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-mysql-lib</artifactId>
+                <version>${azure.toolkit-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-springcloud-lib</artifactId>
                 <version>${azure.toolkit-lib.version}</version>
             </dependency>

@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.mysql.model.MySqlDatabaseEntity;
 import com.microsoft.azure.toolkit.lib.mysql.model.MySqlEntity;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import java.sql.DriverManager;
@@ -42,8 +43,10 @@ public class MySqlServer extends AbstractAzureEntityManager<MySqlServer, MySqlEn
         try {
             this.entity().remote = manager.servers().getById(this.entity.getId());
         } catch (ManagementException ex) {
-            if (404 == ex.getResponse().getStatusCode()) {
+            if (HttpStatus.SC_NOT_FOUND == ex.getResponse().getStatusCode()) {
                 this.entity().remote = null;
+            } else {
+                throw ex;
             }
         }
     }
