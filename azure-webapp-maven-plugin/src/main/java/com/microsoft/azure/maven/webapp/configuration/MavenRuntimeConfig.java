@@ -75,12 +75,7 @@ public class MavenRuntimeConfig {
     }
 
     public JavaVersion getJavaVersion() {
-        final JavaVersion ver = toAzureSdkJavaVersion(this.javaVersion);
-        if (Objects.nonNull(ver)) {
-            return ver;
-        }
-        return (StringUtils.isEmpty(javaVersion) || !checkJavaVersion(javaVersion)) ? null
-                : JavaVersion.fromString(javaVersion);
+        return toJavaVersion(this.javaVersion);
     }
 
     public WebContainer getWebContainer() {
@@ -116,21 +111,12 @@ public class MavenRuntimeConfig {
             StringUtils.isEmpty(this.serverId) && StringUtils.isEmpty(this.registryUrl);
     }
 
-    protected boolean checkJavaVersion(String value) {
-        for (final JavaVersion version : JavaVersion.values()) {
-            if (StringUtils.equalsIgnoreCase(version.toString(), value)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     protected boolean checkWebContainer(String value) {
         return StringUtils.isNotBlank(value) && (
                 WebContainer.fromString(value) != WebContainer.JAVA_OFF);
     }
 
-    private static JavaVersion toAzureSdkJavaVersion(String javaVersion) {
+    private static JavaVersion toJavaVersion(String javaVersion) {
         if (StringUtils.isEmpty(javaVersion)) {
             return null;
         }
