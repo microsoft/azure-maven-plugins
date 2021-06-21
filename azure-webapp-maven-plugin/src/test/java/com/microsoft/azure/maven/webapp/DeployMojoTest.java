@@ -9,7 +9,6 @@ import com.microsoft.azure.management.appservice.DeploymentSlot;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.ArtifactHandler;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.handlers.RuntimeHandler;
@@ -99,7 +98,7 @@ public class DeployMojoTest {
 
         assertEquals(JavaVersion.JAVA_11, mojo.getRuntime().getJavaVersion());
 
-        assertEquals(PricingTier.STANDARD_S2, AppServiceUtils.getPricingTierFromString(mojo.getPricingTier()));
+        assertEquals(PricingTier.STANDARD_S2, PricingTier.fromString(mojo.getPricingTier()));
     }
 
     @Test

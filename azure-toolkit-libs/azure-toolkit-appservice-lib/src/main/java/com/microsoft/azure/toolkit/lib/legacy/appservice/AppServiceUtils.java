@@ -14,14 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppServiceUtils {
-    public static PricingTier getPricingTierFromString(final String pricingTierString) {
-        return PricingTier.fromString(pricingTierString);
-    }
-
-    public static String convertPricingTierToString(final PricingTier pricingTier) {
-        return pricingTier == null ? null : pricingTier.getSize();
-    }
-
     public static List<PricingTier> getAvailablePricingTiers(OperatingSystem operatingSystem) {
         // This is a workaround for https://github.com/Azure/azure-libraries-for-java/issues/660
         // Linux app service didn't support P1,P2,P3 pricing tier.

@@ -18,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import java.util.List;
 
-@Deprecated
 public class V2ConfigurationParser extends ConfigurationParser {
 
     public V2ConfigurationParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {

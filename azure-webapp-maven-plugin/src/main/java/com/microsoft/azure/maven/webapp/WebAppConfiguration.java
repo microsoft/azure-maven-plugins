@@ -6,8 +6,6 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.microsoft.azure.maven.model.DeploymentResource;
-import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
-import com.microsoft.azure.maven.webapp.utils.WebContainerUtils;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -17,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
@@ -46,8 +45,8 @@ public class WebAppConfiguration {
     protected String servicePlanResourceGroup;
     protected OperatingSystem os;
 
-    protected JavaVersion javaVersion;
-    protected WebContainer webContainer;
+    protected String javaVersion;
+    protected String webContainer;
     protected Settings mavenSettings;
     protected String image;
     protected String serverId;
@@ -67,10 +66,10 @@ public class WebAppConfiguration {
     }
 
     public String getJavaVersionOrDefault() {
-        return JavaVersionUtils.formatJavaVersion(Objects.nonNull(javaVersion) ? javaVersion : DEFAULT_JAVA_VERSION);
+        return Objects.toString(ObjectUtils.firstNonNull(javaVersion, DEFAULT_JAVA_VERSION));
     }
 
     public String getWebContainerOrDefault() {
-        return WebContainerUtils.formatWebContainer(Objects.nonNull(webContainer) ? webContainer : DEFAULT_CONTAINER);
+        return Objects.toString(ObjectUtils.firstNonNull(webContainer, DEFAULT_CONTAINER));
     }
 }

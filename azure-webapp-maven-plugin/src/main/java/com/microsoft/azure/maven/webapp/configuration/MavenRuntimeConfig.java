@@ -5,12 +5,9 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
-import com.microsoft.azure.toolkit.lib.legacy.appservice.OperatingSystemEnum;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.maven.webapp.utils.JavaVersionUtils;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
@@ -77,16 +74,8 @@ public class MavenRuntimeConfig {
         return this.os;
     }
 
-    public OperatingSystemEnum getOsEnum() {
-        try {
-            return OperatingSystemEnum.fromString(this.os);
-        } catch (AzureExecutionException e) {
-            return null;
-        }
-    }
-
     public JavaVersion getJavaVersion() {
-        final JavaVersion ver = JavaVersionUtils.toAzureSdkJavaVersion(this.javaVersion);
+        final JavaVersion ver = toAzureSdkJavaVersion(this.javaVersion);
         if (Objects.nonNull(ver)) {
             return ver;
         }
@@ -140,4 +129,16 @@ public class MavenRuntimeConfig {
         return StringUtils.isNotBlank(value) && (
                 WebContainer.fromString(value) != WebContainer.JAVA_OFF);
     }
+
+    private static JavaVersion toAzureSdkJavaVersion(String javaVersion) {
+        if (StringUtils.isEmpty(javaVersion)) {
+            return null;
+        }
+        final JavaVersion newJavaVersion = JavaVersion.fromString(javaVersion);
+        if (newJavaVersion == JavaVersion.OFF) {
+            throw new AzureToolkitRuntimeException(String.format("Cannot parse java version: '%s'.", javaVersion));
+        }
+        return newJavaVersion;
+    }
+
 }
