@@ -25,12 +25,9 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.ExternalChildResource;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.AbstractAzureEntityManager.RemoteAwareResourceEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -38,14 +35,9 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 @Getter
-public class SpringCloudAppEntity implements IAzureResourceEntity {
+public class SpringCloudAppEntity extends RemoteAwareResourceEntity<SpringApp> {
     private final SpringCloudClusterEntity cluster;
     private final String name;
-    @Nullable
-    @JsonIgnore
-    @Getter(AccessLevel.PACKAGE)
-    @Setter(AccessLevel.PACKAGE)
-    private transient SpringApp remote;
 
     public SpringCloudAppEntity(@Nonnull final String name, @Nonnull final SpringCloudClusterEntity cluster) {
         this.name = name;
@@ -68,35 +60,41 @@ public class SpringCloudAppEntity implements IAzureResourceEntity {
         return StringUtils.isBlank(url) || url.equalsIgnoreCase("None") ? null : url;
     }
 
+    @Nullable
     public String getTestUrl() {
         return Optional.ofNullable(this.remote).map(SpringApp::activeDeploymentName).map(d -> {
-            final String key = this.cluster.getRemote().listTestKeys().primaryTestEndpoint();
-            return String.format("%s/%s/%s", key, this.name, d);
+            final String endpoint = this.remote.parent().listTestKeys().primaryTestEndpoint();
+            return String.format("%s/%s/%s", endpoint, this.name, d);
         }).orElse(null);
     }
 
+    @Nullable
     public String getLogStreamingEndpoint(String instanceName) {
-        final String endpoint = this.cluster.getTestEndpoint();
-        return String.format("%s/api/logstream/apps/%s/instances/%s", endpoint.replace(".test", ""), this.name, instanceName);
+        return Optional.ofNullable(this.remote).map(SpringApp::activeDeploymentName).map(d -> {
+            final String endpoint = this.remote.parent().listTestKeys().primaryTestEndpoint();
+            return String.format("%s/api/logstream/apps/%s/instances/%s", endpoint.replace(".test", ""), this.name, instanceName);
+        }).orElse(null);
     }
 
     @Override
     public String getId() {
         return Optional.ofNullable(this.remote).map(ExternalChildResource::id)
-            .orElse(this.cluster.getId() + "/apps/" + this.name);
+                .orElse(this.cluster.getId() + "/apps/" + this.name);
     }
 
+    @Nullable
     public SpringCloudPersistentDisk getPersistentDisk() {
         final PersistentDisk disk = Optional.ofNullable(this.remote).map(SpringApp::persistentDisk).orElse(null);
         return Optional.ofNullable(disk).filter(d -> d.sizeInGB() > 0)
-            .map(d -> SpringCloudPersistentDisk.builder()
-                .sizeInGB(disk.sizeInGB())
-                .mountPath(disk.mountPath())
-                .usedInGB(disk.usedInGB()).build())
-            .orElse(null);
+                .map(d -> SpringCloudPersistentDisk.builder()
+                        .sizeInGB(disk.sizeInGB())
+                        .mountPath(disk.mountPath())
+                        .usedInGB(disk.usedInGB()).build())
+                .orElse(null);
     }
 
     @Override
+    @Nonnull
     public String getSubscriptionId() {
         return cluster.getSubscriptionId();
     }

@@ -28,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import io.jsonwebtoken.lang.Collections;
 import org.apache.commons.codec.binary.Hex;
@@ -70,6 +71,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     }
 
     @Override
+    @Cacheable(cacheName = "appservice/functionapp/{}/slot/{}", key = "${this.name()}/$slotName")
     public IFunctionAppDeploymentSlot deploymentSlot(String slotName) {
         final FunctionAppDeploymentSlotEntity slotEntity = FunctionAppDeploymentSlotEntity.builder()
                 .functionAppName(name()).resourceGroup(getRemoteResource().resourceGroupName()).name(slotName).build();
@@ -77,7 +79,8 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     }
 
     @Override
-    public List<IFunctionAppDeploymentSlot> deploymentSlots() {
+    @Cacheable(cacheName = "appservice/functionapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
+    public List<IFunctionAppDeploymentSlot> deploymentSlots(boolean... force) {
         return getRemoteResource().deploymentSlots().list().stream().parallel()
                 .map(functionSlotBasic -> FunctionAppDeploymentSlotEntity.builder().id(functionSlotBasic.id()).build())
                 .map(slotEntity -> new FunctionAppDeploymentSlot(slotEntity, azureClient))
@@ -85,7 +88,8 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     }
 
     @Override
-    public List<FunctionEntity> listFunctions() {
+    @Cacheable(cacheName = "appservice/functionapp/{}/functions", key = "${this.name()}", condition = "!(force&&force[0])")
+    public List<FunctionEntity> listFunctions(boolean... force) {
         return azureClient.functionApps()
                 .listFunctions(getRemoteResource().resourceGroupName(), getRemoteResource().name()).stream()
                 .map(AppServiceUtils::fromFunctionAppEnvelope)

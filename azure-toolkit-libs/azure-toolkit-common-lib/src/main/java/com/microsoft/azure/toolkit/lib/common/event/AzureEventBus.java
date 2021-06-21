@@ -7,11 +7,9 @@ package com.microsoft.azure.toolkit.lib.common.event;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationBundle;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.PropertyKey;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,9 +17,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+@SuppressWarnings("UnstableApiUsage")
 public class AzureEventBus {
     @NonNls
-    private static Map<String, EventBus> buses = new ConcurrentHashMap<>();
+    private static final Map<String, EventBus> buses = new ConcurrentHashMap<>();
 
     public static <T, E extends AzureEvent<T>> void on(@Nonnull final String type, @Nonnull EventListener<T, E> listener) {
         getBus(type).register(listener);
