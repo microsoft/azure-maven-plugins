@@ -10,9 +10,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Objects;
-
-
 /**
  * Runtime Setting
  */
