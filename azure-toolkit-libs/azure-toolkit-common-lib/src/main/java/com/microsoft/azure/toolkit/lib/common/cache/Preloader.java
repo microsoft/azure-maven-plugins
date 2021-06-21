@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.cache;
 
+import com.microsoft.azure.toolkit.lib.AzureService;
 import lombok.extern.java.Log;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
@@ -34,8 +35,7 @@ public class Preloader {
         methods.parallelStream().forEach((m) -> {
             Object instance = null;
             // TODO: maybe support predefined variables, e.g. selected subscriptions
-            if ((m.getParameterCount() == 0 || m.isVarArgs())
-                    && (Modifier.isStatic(m.getModifiers()) || Objects.nonNull(instance = getSingleton(m)))) {
+            if ((m.getParameterCount() == 0 || m.isVarArgs()) && (Modifier.isStatic(m.getModifiers()) || Objects.nonNull(instance = getSingleton(m)))) {
                 log.fine(String.format("preloading [%s]", m.getName()));
                 invoke(m, instance);
                 log.fine(String.format("preloaded [%s]", m.getName()));
@@ -64,7 +64,8 @@ public class Preloader {
     private static Object getSingleton(final Method m) {
         final Class<?> clazz = m.getDeclaringClass();
         try {
-            final Method getInstance = clazz.getDeclaredMethod("getInstance");
+            final String methodName = AzureService.class.isAssignableFrom(clazz) ? "az" : "getInstance";
+            final Method getInstance = clazz.getDeclaredMethod(methodName);
             if (Modifier.isStatic(getInstance.getModifiers()) && getInstance.getParameterCount() == 0) {
                 getInstance.setAccessible(true);
                 return getInstance.invoke(null);
@@ -77,7 +78,7 @@ public class Preloader {
 
     private static Set<Method> getPreloadingMethods() {
         final ConfigurationBuilder configuration = new ConfigurationBuilder()
-                .forPackages("com.microsoft.azure.toolkit","com.microsoft.azuretools")
+                .forPackages("com.microsoft.azure.toolkit", "com.microsoft.azuretools")
                 .setScanners(new MethodAnnotationsScanner());
         final Reflections reflections = new Reflections(configuration);
         return reflections.getMethodsAnnotatedWith(Preload.class);

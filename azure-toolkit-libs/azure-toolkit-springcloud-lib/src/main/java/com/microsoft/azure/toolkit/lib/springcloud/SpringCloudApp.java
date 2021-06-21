@@ -11,7 +11,8 @@ import com.azure.resourcemanager.appplatform.implementation.SpringAppImpl;
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -19,7 +20,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
-import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -29,50 +29,39 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>, AzureOperationEvent.Source<SpringCloudApp> {
+public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, SpringCloudAppEntity, SpringApp> implements AzureOperationEvent.Source<SpringCloudApp> {
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
 
     @Getter
     @Nonnull
     final SpringCloudCluster cluster;
-    @Nonnull
-    private final SpringCloudAppEntity local;
-    @Nullable
-    @Getter(AccessLevel.PACKAGE)
-    private SpringApp remote;
-    private boolean refreshed;
 
     public SpringCloudApp(@Nonnull SpringCloudAppEntity app, @Nonnull SpringCloudCluster cluster) {
-        this.local = app;
-        this.remote = this.local.getRemote();
+        super(app);
         this.cluster = cluster;
     }
 
+    @Nonnull
     @Override
-    public boolean exists() {
-        if (Objects.isNull(this.remote) && !this.refreshed) {
-            this.refresh();
-        }
-        return Objects.nonNull(this.remote);
+    @CacheEvict(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
+    public SpringCloudApp refresh() {
+        return super.refresh();
+    }
+
+    @Override
+    SpringApp loadRemote() {
+        return this.cluster.app(this.entity().getName()).remote();
     }
 
     @Nonnull
-    public SpringCloudAppEntity entity() {
-        final SpringApp remote = Objects.nonNull(this.remote) ? this.remote : this.local.getRemote();
-        if (Objects.isNull(remote)) {
-            return this.local;
-        }
-        // prevent inconsistent properties between local and remote when local's properties is modified.
-        return new SpringCloudAppEntity(remote, this.cluster.entity());
-    }
-
-    @Nonnull
+    @Cacheable(cacheName = "asc/app/{}/deployment/{}", key = "${this.name()}/$name")
     public SpringCloudDeployment deployment(final String name) {
         if (this.exists()) {
             try {
-                final SpringAppDeployment deployment = Objects.requireNonNull(this.remote).deployments().getByName(name);
+                final SpringAppDeployment deployment = Objects.requireNonNull(this.remote()).deployments().getByName(name);
                 return this.deployment(deployment);
             } catch (ManagementException ignored) {
             }
@@ -92,60 +81,47 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
 
     @Nullable
     public SpringCloudDeployment activeDeployment() {
-        assert this.exists() && Objects.nonNull(this.remote) : String.format("app(%s) not exist", this.name());
-        final SpringAppDeployment active = this.remote.getActiveDeployment();
-        if (Objects.isNull(active)) {
-            return null;
-        }
-        return this.deployment(active);
+        return Optional.ofNullable(this.activeDeploymentName()).map(this::deployment).orElse(null);
+    }
+
+    @Nullable
+    public String activeDeploymentName() {
+        return this.exists() ? Objects.requireNonNull(this.remote()).activeDeploymentName() : null;
     }
 
     @Nonnull
+    @Cacheable(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
     public List<SpringCloudDeployment> deployments() {
         if (this.exists()) {
-            return Objects.requireNonNull(this.remote).deployments().list().stream().map(this::deployment).collect(Collectors.toList());
+            return Objects.requireNonNull(this.remote()).deployments().list().stream().map(this::deployment).collect(Collectors.toList());
         }
         return new ArrayList<>();
     }
 
     @AzureOperation(name = "springcloud|app.start", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp start() {
-        this.deployment(this.getActiveDeploymentName()).start();
+        this.deployment(this.activeDeploymentName()).start();
         return this;
     }
 
     @AzureOperation(name = "springcloud|app.stop", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp stop() {
-        this.deployment(this.getActiveDeploymentName()).stop();
+        this.deployment(this.activeDeploymentName()).stop();
         return this;
     }
 
     @AzureOperation(name = "springcloud|app.restart", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp restart() {
-        this.deployment(this.getActiveDeploymentName()).restart();
+        this.deployment(this.activeDeploymentName()).restart();
         return this;
     }
 
     @AzureOperation(name = "springcloud|app.remove", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp remove() {
-        if (this.exists() && Objects.nonNull(this.remote)) {
-            this.remote.parent().apps().deleteByName(this.name());
+        if (this.exists()) {
+            Objects.requireNonNull(this.remote()).parent().apps().deleteByName(this.name());
         }
         return this;
-    }
-
-    @Nonnull
-    @Override
-    public SpringCloudApp refresh() {
-        final SpringCloudApp _this = this.cluster.app(this.entity().getName());
-        this.updateRemote(_this.entity().getRemote());
-        this.refreshed = true;
-        return this;
-    }
-
-    private void updateRemote(SpringApp remote) {
-        this.remote = remote;
-        this.local.setRemote(this.remote);
     }
 
     public Creator create() {
@@ -157,14 +133,6 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
     public Updater update() throws AzureToolkitRuntimeException {
         assert this.exists() : String.format("app(%s) not exist", this.name());
         return new Updater(this);
-    }
-
-    @Nullable
-    public String getActiveDeploymentName() {
-        if (this.exists() && Objects.nonNull(this.remote) && Objects.nonNull(this.remote.getActiveDeployment())) {
-            return this.remote.getActiveDeployment().name();
-        }
-        return null;
     }
 
     public static abstract class Modifier implements ICommittable<SpringCloudApp>, AzureOperationEvent.Source<SpringCloudApp> {
@@ -189,7 +157,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
         }
 
         public Modifier activate(String deploymentName) {
-            final String oldDeploymentName = this.app.getActiveDeploymentName();
+            final String oldDeploymentName = this.app.activeDeploymentName();
             if (StringUtils.isNotBlank(deploymentName) && !Objects.equals(oldDeploymentName, deploymentName)) {
                 this.skippable = false;
                 this.modifier.withActiveDeployment(deploymentName);
@@ -216,7 +184,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
             if (Objects.nonNull(enable) && !Objects.equals(enable, enabled)) {
                 this.skippable = false;
                 if (enable) {
-                    if (Objects.requireNonNull(this.app.cluster.getRemote()).sku().tier().toLowerCase().startsWith("s")) {
+                    if (Objects.requireNonNull(this.app.cluster.remote()).sku().tier().toLowerCase().startsWith("s")) {
                         this.modifier.withPersistentDisk(STANDARD_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH);
                     } else {
                         this.modifier.withPersistentDisk(BASIC_TIER_DEFAULT_DISK_SIZE, DEFAULT_DISK_MOUNT_PATH);
@@ -239,7 +207,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
 
         public Updater(SpringCloudApp app) {
             super(app);
-            this.modifier = ((SpringAppImpl) Objects.requireNonNull(this.app.remote).update());
+            this.modifier = ((SpringAppImpl) Objects.requireNonNull(this.app.remote()).update());
         }
 
         @Override
@@ -248,7 +216,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
             final IAzureMessager messager = AzureMessager.getMessager();
             if (!this.skippable) {
                 messager.info(String.format("Start updating app(%s)...", messager.value(this.app.name())));
-                this.app.updateRemote(this.modifier.apply());
+                this.app.refresh(this.modifier.apply());
                 messager.success(String.format("App(%s) is successfully updated.", messager.value(this.app.name())));
                 messager.warning(UPDATE_APP_WARNING);
             }
@@ -261,7 +229,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
 
         public Creator(SpringCloudApp app) {
             super(app);
-            this.modifier = ((SpringAppImpl) Objects.requireNonNull(this.app.cluster.getRemote()).apps().define(app.name()).withDefaultActiveDeployment());
+            this.modifier = ((SpringAppImpl) Objects.requireNonNull(this.app.cluster.remote()).apps().define(app.name()).withDefaultActiveDeployment());
         }
 
         @AzureOperation(name = "springcloud|app.create", params = {"this.app.name()"}, type = Type.SERVICE)
@@ -269,7 +237,7 @@ public class SpringCloudApp implements IAzureEntityManager<SpringCloudAppEntity>
             final String appName = this.app.name();
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(String.format("Start creating app(%s)...", messager.value(appName)));
-            this.app.updateRemote(this.modifier.create());
+            this.app.refresh(this.modifier.create());
             messager.success(String.format("App(%s) is successfully created.", messager.value(appName)));
             return this.app;
         }

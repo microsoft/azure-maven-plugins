@@ -6,15 +6,22 @@
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
 public class LogLevel {
     public static final LogLevel OFF = new LogLevel("Off");
     public static final LogLevel VERBOSE = new LogLevel("Verbose");
@@ -22,7 +29,7 @@ public class LogLevel {
     public static final LogLevel WARNING = new LogLevel("Warning");
     public static final LogLevel ERROR = new LogLevel("Error");
 
-    private final String value;
+    private String value;
 
     public static List<LogLevel> values() {
         return Arrays.asList(OFF, VERBOSE, INFORMATION, WARNING, ERROR);

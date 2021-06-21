@@ -21,9 +21,9 @@ public interface IFunctionApp extends IFunctionAppBase<FunctionAppEntity> {
 
     IFunctionAppDeploymentSlot deploymentSlot(String slotName);
 
-    List<IFunctionAppDeploymentSlot> deploymentSlots();
+    List<IFunctionAppDeploymentSlot> deploymentSlots(boolean... force);
 
-    List<FunctionEntity> listFunctions();
+    List<FunctionEntity> listFunctions(boolean... force);
 
     Map<String, String> listFunctionKeys(String functionName);
 

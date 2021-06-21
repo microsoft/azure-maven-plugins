@@ -22,30 +22,23 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
-import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringService;
+import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.AbstractAzureEntityManager.RemoteAwareResourceEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudSku;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 @Getter
-@Setter(AccessLevel.PRIVATE)
-public class SpringCloudClusterEntity implements IAzureResourceEntity {
+public class SpringCloudClusterEntity extends RemoteAwareResourceEntity<SpringService> {
     private final String subscriptionId;
     private final String resourceGroup;
     private final String name;
     private final String id;
-    @Nonnull
-    @JsonIgnore
-    @Getter(AccessLevel.PACKAGE)
-    private transient SpringService remote;
 
     SpringCloudClusterEntity(@Nonnull final SpringService resource) {
         this.remote = resource;
@@ -56,25 +49,27 @@ public class SpringCloudClusterEntity implements IAzureResourceEntity {
         this.id = resource.id();
     }
 
+    @Nullable
     public String getTestEndpoint() {
-        return this.remote.listTestKeys().primaryTestEndpoint();
+        return Optional.ofNullable(this.remote).map(SpringService::listTestKeys).map(TestKeys::primaryTestEndpoint).orElse(null);
     }
 
+    @Nullable
     public String getTestKey() {
-        return this.remote.listTestKeys().primaryKey();
+        return Optional.ofNullable(this.remote).map(SpringService::listTestKeys).map(TestKeys::primaryKey).orElse(null);
     }
 
+    @Nonnull
     public SpringCloudSku getSku() {
-        final Sku sku = this.remote.sku();
         final SpringCloudSku dft = SpringCloudSku.builder()
-            .capacity(25)
-            .name("Basic")
-            .tier("B0")
-            .build();
-        return Optional.ofNullable(sku).map(s -> SpringCloudSku.builder()
-            .capacity(s.capacity())
-            .name(s.name())
-            .tier(s.tier())
-            .build()).orElse(dft);
+                .capacity(25)
+                .name("Basic")
+                .tier("B0")
+                .build();
+        return Optional.ofNullable(this.remote).map(SpringService::sku).map(s -> SpringCloudSku.builder()
+                .capacity(s.capacity())
+                .name(s.name())
+                .tier(s.tier())
+                .build()).orElse(dft);
     }
 }
