@@ -53,10 +53,6 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         super(AzureAppService::new, subscriptions);
     }
 
-    public static AzureAppService az() {
-        return Azure.az(AzureAppService.class);
-    }
-
     @Cacheable(cacheName = "appservcie/functionapp/{}", key = "$id")
     public IFunctionApp functionApp(String id) {
         final FunctionAppEntity functionAppEntity = FunctionAppEntity.builder().id(id).build();
@@ -194,12 +190,12 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/{}/rg/{}/app/{}/slot/{}", key = "$sid/$rg/$app/$name")
-    public IWebAppDeploymentSlot deploymentSlot(String subscriptionId, String resourceGroup, String appName, String slotName) {
+    public IWebAppDeploymentSlot deploymentSlot(String sid, String rg, String app, String name) {
         return deploymentSlot(WebAppDeploymentSlotEntity.builder()
-                .subscriptionId(subscriptionId)
-                .resourceGroup(resourceGroup)
-                .webappName(appName)
-                .name(slotName)
+                .subscriptionId(sid)
+                .resourceGroup(rg)
+                .webappName(app)
+                .name(name)
                 .build());
     }
 
