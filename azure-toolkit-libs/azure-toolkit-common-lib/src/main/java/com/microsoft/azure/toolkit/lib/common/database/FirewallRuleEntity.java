@@ -16,7 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 public class FirewallRuleEntity implements IAzureResourceEntity {
 
     private static final int MAX_FIREWALL_NAME_LENGTH = 128;
-    public static final String ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME =  FirewallRuleEntity.getAccessFromLocalFirewallRuleName();
     public static final String ACCESS_FROM_AZURE_SERVICES_FIREWALL_RULE_NAME = "AllowAllWindowsAzureIps";
     public static final String IP_ALLOW_ACCESS_TO_AZURE_SERVICES = "0.0.0.0";
 
@@ -26,7 +25,7 @@ public class FirewallRuleEntity implements IAzureResourceEntity {
     private final String startIpAddress;
     private final String endIpAddress;
 
-    private static String getAccessFromLocalFirewallRuleName() {
+    public static String getAccessFromLocalFirewallRuleName() {
         final String prefix = "ClientIPAddress_";
         final String suffix = "_" + NetUtils.getMac();
         final int maxHostnameLength = MAX_FIREWALL_NAME_LENGTH - prefix.length() - suffix.length();

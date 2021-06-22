@@ -181,10 +181,10 @@ public class SqlServer implements ISqlServer {
             if (isEnableAccessFromLocalMachine()) {
                 final String publicIp = getPublicIp(sqlServerInner);
                 FirewallRuleEntity ruleEntity = FirewallRuleEntity.builder()
-                    .name(FirewallRuleEntity.ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME).startIpAddress(publicIp).endIpAddress(publicIp).build();
+                    .name(FirewallRuleEntity.getAccessFromLocalFirewallRuleName()).startIpAddress(publicIp).endIpAddress(publicIp).build();
                 new SqlFirewallRule(ruleEntity, sqlServerInner).create().commit();
             } else {
-                FirewallRuleEntity ruleEntity = FirewallRuleEntity.builder().name(FirewallRuleEntity.ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME).build();
+                FirewallRuleEntity ruleEntity = FirewallRuleEntity.builder().name(FirewallRuleEntity.getAccessFromLocalFirewallRuleName()).build();
                 new SqlFirewallRule(ruleEntity, sqlServerInner).delete();
             }
             // refresh entity
