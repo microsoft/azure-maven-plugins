@@ -1,6 +1,7 @@
 package com.microsoft.azure.toolkit.lib.common.messager;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 public interface IAzureMessager {
     String DEFAULT_TITLE = "Azure";
@@ -22,7 +23,8 @@ public interface IAzureMessager {
     }
 
     default void error(@Nonnull Throwable throwable, String title, IAzureMessage.Action... actions) {
-        this.show(new SimpleMessage(IAzureMessage.Type.ERROR, throwable.getMessage()).setPayload(throwable).setActions(actions).setTitle(title));
+        final String message = Optional.ofNullable(throwable.getMessage()).orElse(throwable.getClass().getSimpleName());
+        this.show(new SimpleMessage(IAzureMessage.Type.ERROR, message).setPayload(throwable).setActions(actions).setTitle(title));
     }
 
     default boolean confirm(@Nonnull String message, String title) {
