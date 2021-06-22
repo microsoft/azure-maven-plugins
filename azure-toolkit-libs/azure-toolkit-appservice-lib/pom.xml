@@ -37,10 +37,6 @@
             <groupId>com.azure.resourcemanager</groupId>
             <artifactId>azure-resourcemanager</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-mgmt-appservice</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>com.microsoft.azure</groupId>
@@ -173,7 +169,6 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure</artifactId>
-            <version>${azure.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

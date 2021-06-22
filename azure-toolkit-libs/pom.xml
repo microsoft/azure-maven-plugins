@@ -204,6 +204,10 @@
                         <groupId>javax.xml.bind</groupId>
                         <artifactId>jaxb-api</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.microsoft.azure</groupId>
+                        <artifactId>azure-mgmt-appservice</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -527,11 +531,6 @@
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-appplatform</artifactId>
                 <version>${azure.resourcemanager.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-mgmt-appservice</artifactId>
-                <version>${azure.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.azure</groupId>
