@@ -369,10 +369,11 @@ public abstract class AzureTaskManager {
             final Runnable t = () -> AzureTaskContext.run(() -> {
                 try {
                     emitter.onNext(task.getSupplier().get());
-                    emitter.onCompleted();
                 } catch (final Throwable e) {
                     emitter.onError(e);
+                    return;
                 }
+                emitter.onCompleted();
             }, context);
             consumer.accept(t, task);
         }, Emitter.BackpressureMode.BUFFER);
