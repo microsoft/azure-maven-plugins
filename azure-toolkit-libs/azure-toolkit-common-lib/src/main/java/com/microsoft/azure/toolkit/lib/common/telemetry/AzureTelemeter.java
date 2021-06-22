@@ -91,7 +91,7 @@ public class AzureTelemeter {
     @Nonnull
     private static Map<String, String> serialize(@Nonnull final IAzureOperation op) {
         final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
-        final Map<String, String> actionProperties = context.getActionProperties();
+        final Map<String, String> actionProperties = getActionProperties(context.getOperation());
         final Optional<IAzureOperation> parent = Optional.ofNullable(op.getParent());
         final Map<String, String> properties = new HashMap<>();
         final String name = op.getName().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice|file.list.dir`
@@ -131,6 +131,15 @@ public class AzureTelemeter {
                     .ifPresent(properties::putAll);
         }
         return properties;
+    }
+
+    @Nonnull
+    private static Map<String, String> getActionProperties(IAzureOperation operation) {
+        return Optional.ofNullable(operation)
+                .map(IAzureOperation::getActionParent)
+                .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context(o)))
+                .map(AzureTelemetry.Context::getProperties)
+                .orElse(new HashMap<>());
     }
 
     @SneakyThrows
