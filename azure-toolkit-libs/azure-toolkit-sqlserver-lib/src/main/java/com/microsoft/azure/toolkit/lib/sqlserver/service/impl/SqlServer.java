@@ -7,12 +7,12 @@ package com.microsoft.azure.toolkit.lib.sqlserver.service.impl;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.sql.SqlServerManager;
+import com.microsoft.azure.toolkit.lib.common.database.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.common.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlDatabaseEntity;
-import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlFirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServer;
 import com.microsoft.azure.toolkit.lib.sqlserver.service.ISqlServerCreator;
@@ -80,7 +80,7 @@ public class SqlServer implements ISqlServer {
     }
 
     @Override
-    public List<SqlFirewallRuleEntity> firewallRules() {
+    public List<FirewallRuleEntity> firewallRules() {
         this.refreshInnerIfNotSet();
         return sqlServerInner.firewallRules().list().stream().map(this::formSqlServerFirewallRule).collect(Collectors.toList());
     }
@@ -106,8 +106,8 @@ public class SqlServer implements ISqlServer {
             .build();
     }
 
-    private SqlFirewallRuleEntity formSqlServerFirewallRule(com.azure.resourcemanager.sql.models.SqlFirewallRule firewallRuleInner) {
-        return SqlFirewallRuleEntity.builder().id(firewallRuleInner.id())
+    private FirewallRuleEntity formSqlServerFirewallRule(com.azure.resourcemanager.sql.models.SqlFirewallRule firewallRuleInner) {
+        return FirewallRuleEntity.builder().id(firewallRuleInner.id())
             .name(firewallRuleInner.name())
             .startIpAddress(firewallRuleInner.startIpAddress())
             .endIpAddress(firewallRuleInner.endIpAddress())
@@ -180,11 +180,11 @@ public class SqlServer implements ISqlServer {
             // update common rule
             if (isEnableAccessFromLocalMachine()) {
                 final String publicIp = getPublicIp(sqlServerInner);
-                SqlFirewallRuleEntity ruleEntity = SqlFirewallRuleEntity.builder()
-                    .name(SqlFirewallRuleEntity.ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME).startIpAddress(publicIp).endIpAddress(publicIp).build();
+                FirewallRuleEntity ruleEntity = FirewallRuleEntity.builder()
+                    .name(FirewallRuleEntity.ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME).startIpAddress(publicIp).endIpAddress(publicIp).build();
                 new SqlFirewallRule(ruleEntity, sqlServerInner).create().commit();
             } else {
-                SqlFirewallRuleEntity ruleEntity = SqlFirewallRuleEntity.builder().name(SqlFirewallRuleEntity.ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME).build();
+                FirewallRuleEntity ruleEntity = FirewallRuleEntity.builder().name(FirewallRuleEntity.ACCESS_FROM_LOCAL_FIREWALL_RULE_NAME).build();
                 new SqlFirewallRule(ruleEntity, sqlServerInner).delete();
             }
             // refresh entity

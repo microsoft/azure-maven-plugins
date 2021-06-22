@@ -4,8 +4,8 @@
  */
 package com.microsoft.azure.toolkit.lib.sqlserver.service;
 
+import com.microsoft.azure.toolkit.lib.common.database.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlDatabaseEntity;
-import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlFirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.sqlserver.model.SqlServerEntity;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public interface ISqlServer {
 
     ISqlServerUpdater<? extends ISqlServer> update();
 
-    List<SqlFirewallRuleEntity> firewallRules();
+    List<FirewallRuleEntity> firewallRules();
 
     List<SqlDatabaseEntity> databases();
 

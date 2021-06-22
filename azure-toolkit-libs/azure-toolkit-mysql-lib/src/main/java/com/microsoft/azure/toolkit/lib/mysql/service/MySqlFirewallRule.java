@@ -7,9 +7,9 @@ package com.microsoft.azure.toolkit.lib.mysql.service;
 
 import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.FirewallRule;
+import com.microsoft.azure.toolkit.lib.common.database.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import com.microsoft.azure.toolkit.lib.mysql.model.MySqlEntity;
-import com.microsoft.azure.toolkit.lib.mysql.model.MySqlFirewallRuleEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -18,10 +18,10 @@ public class MySqlFirewallRule {
     private final MySqlManager manager;
     private final MySqlEntity mySqlEntity;
     @Getter
-    private MySqlFirewallRuleEntity entity;
+    private FirewallRuleEntity entity;
 
-    static MySqlFirewallRuleEntity fromFirewallRule(FirewallRule firewallRule) {
-        return MySqlFirewallRuleEntity.builder()
+    static FirewallRuleEntity fromFirewallRule(FirewallRule firewallRule) {
+        return FirewallRuleEntity.builder()
             .id(firewallRule.id())
             .name(firewallRule.name())
             .startIpAddress(firewallRule.startIpAddress())
