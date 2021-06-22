@@ -204,6 +204,10 @@
                         <groupId>javax.xml.bind</groupId>
                         <artifactId>jaxb-api</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.microsoft.azure</groupId>
+                        <artifactId>azure-mgmt-appservice</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
