@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.lib.common.DataStore;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public interface IAzureOperation extends DataStore<IAzureOperation.IContext> {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
@@ -37,15 +38,12 @@ public interface IAzureOperation extends DataStore<IAzureOperation.IContext> {
         }
     }
 
+    @Nullable
     default IAzureOperation getActionParent() {
-        final IAzureOperation parent = this.getParent();
-        if (parent == null) {
-            return null;
-        } else if (parent.getType().equals(AzureOperation.Type.ACTION.name())) {
-            return parent;
-        } else {
-            return parent.getActionParent();
+        if (this.getType().equals(AzureOperation.Type.ACTION.name())) {
+            return this;
         }
+        return Optional.ofNullable(this.getParent()).map(IAzureOperation::getActionParent).orElse(null);
     }
 
     @Nullable
