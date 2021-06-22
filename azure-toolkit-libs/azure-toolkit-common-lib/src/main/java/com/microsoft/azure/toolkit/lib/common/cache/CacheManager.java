@@ -90,12 +90,12 @@ public class CacheManager {
 
         if (toEvictCache) {
             log.fine(String.format("evict cache[%s.%s] on method[%s]", name, key, signature.getName()));
-            invalidateCache(name, key);
+            evictCache(name, key);
         }
         return point.proceed();
     }
 
-    private void invalidateCache(@Nullable final String name, @Nullable final String key) throws ExecutionException {
+    public static void evictCache(@Nullable final String name, @Nullable final String key) throws ExecutionException {
         if (StringUtils.isBlank(name)) {
             log.warning("cache name is not specified when invalidating cache");
         } else if (StringUtils.equals(CacheEvict.ALL, name)) { // invalidate all cache entries if cache name not specified
