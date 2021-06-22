@@ -52,7 +52,13 @@ public class Preloader {
         try {
             if (m.isVarArgs()) {
                 final Class<?> varargType = m.getParameterTypes()[0].getComponentType();
-                m.invoke(instance, Array.newInstance(varargType, 0));
+                if (varargType.equals(Boolean.class)) {
+                    m.invoke(instance, (Object) new Boolean[]{true});
+                } else if (varargType.equals(boolean.class)) {
+                    m.invoke(instance, (Object) new boolean[]{true});
+                } else {
+                    m.invoke(instance, Array.newInstance(varargType, 0));
+                }
             } else {
                 m.invoke(instance);
             }
