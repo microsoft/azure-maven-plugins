@@ -6,9 +6,9 @@
 package com.microsoft.azure.toolkit.lib;
 
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ServiceLoader;
-import java.util.stream.StreamSupport;
 
 public class Azure {
     private final AzureConfiguration configuration;
@@ -18,10 +18,26 @@ public class Azure {
         this.configuration = new AzureConfiguration();
     }
 
-    public static <T extends AzureService> T az(final Class<T> clazz) {
-        return StreamSupport.stream(Holder.loader.spliterator(), false)
-                .filter(clazz::isInstance).findAny().map(clazz::cast)
-                .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Azure service(%s) not supported", clazz.getSimpleName())));
+    public static synchronized <T extends AzureService> T az(final Class<T> clazz) {
+        T service = getService(clazz);
+        if (service == null) {
+            Holder.loader.reload();
+            service = getService(clazz);
+        }
+        if (service != null) {
+            return service;
+        }
+        throw new AzureToolkitRuntimeException(String.format("Azure service(%s) not supported", clazz.getSimpleName()));
+    }
+
+    @Nullable
+    private static <T extends AzureService> T getService(Class<T> clazz) {
+        for (AzureService service : Holder.loader) {
+            if (clazz.isInstance(service)) {
+                return clazz.cast(service);
+            }
+        }
+        return null;
     }
 
     public static Azure az() {
