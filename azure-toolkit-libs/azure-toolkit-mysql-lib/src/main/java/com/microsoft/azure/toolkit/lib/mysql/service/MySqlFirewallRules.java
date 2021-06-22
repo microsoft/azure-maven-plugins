@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.mysql.service;
 import com.azure.resourcemanager.mysql.MySqlManager;
 import com.azure.resourcemanager.mysql.models.FirewallRule;
 import com.google.common.base.Preconditions;
-import com.microsoft.azure.toolkit.lib.common.utils.NetUtils;
+import com.microsoft.azure.toolkit.lib.common.database.FirewallRuleEntity;
 import com.microsoft.azure.toolkit.lib.mysql.model.MySqlEntity;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -19,9 +19,6 @@ import java.util.stream.Collectors;
 
 @AllArgsConstructor
 public class MySqlFirewallRules {
-    private static final String NAME_PREFIX_ALLOW_ACCESS_TO_LOCAL = "ClientIPAddress_";
-    private static final String NAME_ALLOW_ACCESS_TO_AZURE_SERVICES = "AllowAllWindowsAzureIps";
-    private static final String IP_ALLOW_ACCESS_TO_AZURE_SERVICES = "0.0.0.0";
 
     private final MySqlManager manager;
     private final MySqlEntity mySqlEntity;
@@ -42,7 +39,7 @@ public class MySqlFirewallRules {
     public MySqlFirewallRule enableLocalMachineAccessRule(String publicIp) {
         Preconditions.checkArgument(StringUtils.isNotBlank(publicIp),
             "Cannot enable local machine access to mysql server due to error: cannot get public ip.");
-        String name = getAccessFromLocalRuleName();
+        String name = FirewallRuleEntity.getAccessFromLocalFirewallRuleName();
         MySqlFirewallRule myFirewallRule = getAzureAccessRuleByName(name);
         if (myFirewallRule != null) {
             if (myFirewallRule.getEntity() != null && StringUtils.equals(myFirewallRule.getEntity().getStartIpAddress(), publicIp)) {
@@ -61,9 +58,9 @@ public class MySqlFirewallRules {
         if (allowAzureAccessRule != null) {
             return allowAzureAccessRule;
         }
-        return create().withName(NAME_ALLOW_ACCESS_TO_AZURE_SERVICES)
-            .wihStartIpAddress(IP_ALLOW_ACCESS_TO_AZURE_SERVICES)
-            .withEndIpAddress(IP_ALLOW_ACCESS_TO_AZURE_SERVICES).commit();
+        return create().withName(FirewallRuleEntity.ACCESS_FROM_AZURE_SERVICES_FIREWALL_RULE_NAME)
+            .wihStartIpAddress(FirewallRuleEntity.IP_ALLOW_ACCESS_TO_AZURE_SERVICES)
+            .withEndIpAddress(FirewallRuleEntity.IP_ALLOW_ACCESS_TO_AZURE_SERVICES).commit();
     }
 
     public void disableAzureAccessRule() {
@@ -71,15 +68,11 @@ public class MySqlFirewallRules {
     }
 
     public void disableLocalMachineAccessRule() {
-        Optional.ofNullable(getAzureAccessRuleByName(getAccessFromLocalRuleName())).ifPresent(MySqlFirewallRule::delete);
+        Optional.ofNullable(getAzureAccessRuleByName(FirewallRuleEntity.getAccessFromLocalFirewallRuleName())).ifPresent(MySqlFirewallRule::delete);
     }
 
     private MySqlFirewallRule getAzureAccessRule() {
-        return getAzureAccessRuleByName(NAME_ALLOW_ACCESS_TO_AZURE_SERVICES);
-    }
-
-    private String getAccessFromLocalRuleName() {
-        return NAME_PREFIX_ALLOW_ACCESS_TO_LOCAL + NetUtils.getHostName() + "_" + NetUtils.getMac();
+        return getAzureAccessRuleByName(FirewallRuleEntity.ACCESS_FROM_AZURE_SERVICES_FIREWALL_RULE_NAME);
     }
 
     private MySqlFirewallRule getAzureAccessRuleByName(String name) {
@@ -92,10 +85,11 @@ public class MySqlFirewallRules {
     }
 
     public boolean isLocalMachineAccessRuleEnabled() {
-        return getAzureAccessRuleByName(getAccessFromLocalRuleName()) != null;
+        return getAzureAccessRuleByName(FirewallRuleEntity.getAccessFromLocalFirewallRuleName()) != null;
     }
 
     class MySqlFirewallRuleCreator extends AbstractMySqlFirewallRuleCreator {
+        @Override
         public MySqlFirewallRule commit() {
             FirewallRule firewallRule = manager.firewallRules().define(this.getName()).withExistingServer(
                 MySqlFirewallRules.this.mySqlEntity.getResourceGroup(), MySqlFirewallRules.this.mySqlEntity.getName()).withStartIpAddress(getStartIpAddress())
