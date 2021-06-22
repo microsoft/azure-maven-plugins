@@ -54,10 +54,6 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
         super(AzureSpringCloud::new, subscriptions);
     }
 
-    public static AzureSpringCloud az() {
-        return Azure.az(AzureSpringCloud.class);
-    }
-
     @Nullable
     @Cacheable(cacheName = "asc/cluster/{}", key = "$name")
     public SpringCloudCluster cluster(@Nonnull String name) {

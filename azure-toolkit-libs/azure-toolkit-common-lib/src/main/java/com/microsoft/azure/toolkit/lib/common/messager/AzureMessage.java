@@ -15,10 +15,19 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public abstract class AzureMessage implements IAzureMessage{
+public abstract class AzureMessage implements IAzureMessage {
     @Nonnull
     public static AzureMessage.Context getContext() {
         return getContext(IAzureOperation.current());
+    }
+
+    @Nonnull
+    public static AzureMessage.Context getActionContext() {
+        final IAzureOperation operation = IAzureOperation.current();
+        return Optional.ofNullable(operation)
+                .map(IAzureOperation::getActionParent)
+                .map(AzureMessage::getContext)
+                .orElse(new AzureMessage.Context(operation));
     }
 
     @Nonnull
@@ -35,11 +44,11 @@ public abstract class AzureMessage implements IAzureMessage{
         private IAzureMessager messager = null;
         private final Map<String, Object> properties = new HashMap<>();
 
-        public void set(@Nonnull String key, Object val) {
+        public void setProperty(@Nonnull String key, Object val) {
             this.properties.put(key, val);
         }
 
-        public Object get(@Nonnull String key) {
+        public Object getProperty(@Nonnull String key) {
             return this.properties.get(key);
         }
 

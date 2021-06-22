@@ -83,6 +83,15 @@ public class AzureTelemetry {
     }
 
     @Nonnull
+    public static AzureTelemetry.Context getActionContext() {
+        final IAzureOperation operation = IAzureOperation.current();
+        return Optional.ofNullable(operation)
+                .map(IAzureOperation::getActionParent)
+                .map(AzureTelemetry::getContext)
+                .orElse(new AzureTelemetry.Context(operation));
+    }
+
+    @Nonnull
     public static AzureTelemetry.Context getContext(@Nullable IAzureOperation operation) {
         return Optional.ofNullable(operation)
                 .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context(operation)))
@@ -118,15 +127,6 @@ public class AzureTelemetry {
 
         public String getProperty(String key) {
             return this.properties.get(key);
-        }
-
-        @Nonnull
-        public Map<String, String> getActionProperties() {
-            return Optional.ofNullable(this.operation)
-                    .map(IAzureOperation::getActionParent)
-                    .map(o -> o.get(AzureTelemetry.Context.class, new AzureTelemetry.Context(o)))
-                    .map(Context::getProperties)
-                    .orElse(new HashMap<>());
         }
     }
 }

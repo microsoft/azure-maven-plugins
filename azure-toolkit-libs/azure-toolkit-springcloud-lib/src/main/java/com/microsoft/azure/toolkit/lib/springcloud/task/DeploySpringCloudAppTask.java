@@ -69,7 +69,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         final boolean toCreateApp = !app.exists();
         final boolean toCreateDeployment = !deployment.exists();
 
-        AzureTelemetry.getContext().getActionProperties().put("subscriptionId", config.getSubscriptionId());
+        AzureTelemetry.getActionContext().setProperty("subscriptionId", config.getSubscriptionId());
         AzureTelemetry.getContext().setProperty("isCreateNewApp", String.valueOf(toCreateApp));
         AzureTelemetry.getContext().setProperty("isCreateDeployment", String.valueOf(toCreateDeployment));
         AzureTelemetry.getContext().setProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deploymentConfig.getDeploymentName())));
