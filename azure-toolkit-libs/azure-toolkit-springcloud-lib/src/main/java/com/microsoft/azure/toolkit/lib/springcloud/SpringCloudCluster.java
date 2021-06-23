@@ -13,7 +13,9 @@ import com.azure.resourcemanager.appplatform.models.SpringServices;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
+import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -32,11 +34,15 @@ public class SpringCloudCluster extends AbstractAzureEntityManager<SpringCloudCl
     }
 
     @Override
+    @AzureOperation(name = "springcloud|cluster.load", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     SpringService loadRemote() {
         try {
             return this.client.getByResourceGroup(entity.getResourceGroup(), entity.getName());
         } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
-            return null;
+            if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
+                return null;
+            }
+            throw e;
         }
     }
 
