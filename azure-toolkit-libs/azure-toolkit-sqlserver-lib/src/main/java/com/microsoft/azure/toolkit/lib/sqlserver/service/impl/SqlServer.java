@@ -153,13 +153,11 @@ public class SqlServer implements ISqlServer {
                 .withAdministratorLogin(getAdministratorLogin())
                 .withAdministratorPassword(getAdministratorLoginPassword())
                 .create();
-            // update
-            if (isEnableAccessFromAzureServices() || isEnableAccessFromLocalMachine()) {
-                SqlServer.this.update()
-                    .withEnableAccessFromAzureServices(SqlServer.this.entity.isEnableAccessFromAzureServices())
-                    .withEnableAccessFromLocalMachine(SqlServer.this.entity.isEnableAccessFromLocalMachine())
-                    .commit();
-            }
+            // update firewall rules
+            SqlServer.this.update()
+                .withEnableAccessFromAzureServices(SqlServer.this.entity.isEnableAccessFromAzureServices())
+                .withEnableAccessFromLocalMachine(SqlServer.this.entity.isEnableAccessFromLocalMachine())
+                .commit();
             // refresh entity
             SqlServer.this.refreshInner();
             return SqlServer.this;
