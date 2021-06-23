@@ -28,8 +28,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 public abstract class Account implements IAccount {
@@ -114,7 +114,10 @@ public abstract class Account implements IAccount {
         }
         if (entity.getSubscriptions().stream().anyMatch(s -> Utils.containsIgnoreCase(selectedSubscriptionIds, s.getId()))) {
             selectSubscriptionInner(this.getSubscriptions(), selectedSubscriptionIds);
-            AzureTaskManager.getInstance().runOnPooledThread(Preloader::load);
+            final AzureTaskManager manager = AzureTaskManager.getInstance();
+            if (Objects.nonNull(manager)) {
+                manager.runOnPooledThread(Preloader::load);
+            }
         } else {
             throw new AzureToolkitAuthenticationException("Cannot select subscriptions since none subscriptions are selected, " +
                     "make sure you have provided valid subscription list");
