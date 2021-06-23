@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.toolkit.lib.springcloud;
 
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appplatform.implementation.SpringAppDeploymentImpl;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
@@ -20,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import lombok.Getter;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -41,8 +43,16 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
     }
 
     @Override
+    @AzureOperation(name = "springcloud|deployment.load", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     SpringAppDeployment loadRemote() {
-        return this.app.deployment(this.entity().getName()).remote();
+        try {
+            return Objects.requireNonNull(this.app.remote()).deployments().getByName(this.name());
+        } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
+            if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
+                return null;
+            }
+            throw e;
+        }
     }
 
     @Nonnull
@@ -50,7 +60,7 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
         return this.app;
     }
 
-    @AzureOperation(name = "springcloud|deployment.start", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud|deployment.start", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment start() {
         if (this.exists()) {
             Objects.requireNonNull(this.remote()).start();
@@ -58,7 +68,7 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
         return this;
     }
 
-    @AzureOperation(name = "springcloud|deployment.stop", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud|deployment.stop", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment stop() {
         if (this.exists()) {
             Objects.requireNonNull(this.remote()).stop();
