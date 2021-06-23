@@ -227,6 +227,7 @@ class AppServiceUtils {
                 .id(deploymentSlot.id())
                 .resourceGroup(deploymentSlot.resourceGroupName())
                 .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
+                .region(Region.fromName(deploymentSlot.regionName()))
                 .runtime(getRuntimeFromAppService(deploymentSlot))
                 .appServicePlanId(deploymentSlot.appServicePlanId())
                 .defaultHostName(deploymentSlot.defaultHostname())
@@ -236,16 +237,17 @@ class AppServiceUtils {
 
     static WebAppDeploymentSlotEntity fromWebAppDeploymentSlot(DeploymentSlot deploymentSlot) {
         return WebAppDeploymentSlotEntity.builder()
-            .name(deploymentSlot.name())
-            .webappName(deploymentSlot.parent().name())
-            .id(deploymentSlot.id())
-            .resourceGroup(deploymentSlot.resourceGroupName())
-            .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
-            .runtime(getRuntimeFromAppService(deploymentSlot))
-            .appServicePlanId(deploymentSlot.appServicePlanId())
-            .defaultHostName(deploymentSlot.defaultHostname())
-            .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
-            .build();
+                .name(deploymentSlot.name())
+                .webappName(deploymentSlot.parent().name())
+                .id(deploymentSlot.id())
+                .resourceGroup(deploymentSlot.resourceGroupName())
+                .subscriptionId(Utils.getSubscriptionId(deploymentSlot.id()))
+                .region(Region.fromName(deploymentSlot.regionName()))
+                .runtime(getRuntimeFromAppService(deploymentSlot))
+                .appServicePlanId(deploymentSlot.appServicePlanId())
+                .defaultHostName(deploymentSlot.defaultHostname())
+                .appSettings(Utils.normalizeAppSettings(deploymentSlot.getAppSettings()))
+                .build();
     }
 
     static AppServicePlanEntity fromAppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan appServicePlan) {
