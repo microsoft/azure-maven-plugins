@@ -56,7 +56,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
     @AzureOperation(name = "springcloud|app.load", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     SpringApp loadRemote() {
         try {
-            return Objects.requireNonNull(this.cluster.remote()).apps().getByName(this.entity.getName());
+            return Optional.ofNullable(this.cluster.remote()).map(r->r.apps().getByName(this.name())).orElse(null);
         } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
             if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
                 return null;
