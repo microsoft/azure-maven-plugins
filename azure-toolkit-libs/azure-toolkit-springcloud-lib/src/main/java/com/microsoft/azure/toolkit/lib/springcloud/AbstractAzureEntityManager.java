@@ -37,7 +37,7 @@ abstract class AbstractAzureEntityManager<T extends IAzureEntityManager<E>, E ex
 
     @Nonnull
     @Override
-    public T refresh() {
+    public synchronized T refresh() {
         return this.refresh(this.loadRemote());
     }
 

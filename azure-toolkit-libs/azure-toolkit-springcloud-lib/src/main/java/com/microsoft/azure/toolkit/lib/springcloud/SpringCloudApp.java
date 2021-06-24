@@ -49,7 +49,6 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
     @Override
     @CacheEvict(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
     public SpringCloudApp refresh() {
-        Optional.ofNullable(this.activeDeployment()).map(AbstractAzureEntityManager::refresh);
         return super.refresh();
     }
 
