@@ -83,11 +83,11 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     @Cacheable(cacheName = "appservcie/{}/functionapps", key = "$sid", condition = "!(force&&force[0])")
     private List<IFunctionApp> functionApps(String sid, boolean... force) {
-        return getAzureResourceManager(sid)
-                .functionApps().list().stream()
-                .filter(webAppBasic -> StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
-                .map(webAppBasic -> functionApp(webAppBasic.id()))
-                .collect(Collectors.toList());
+        final List<IFunctionApp> functionApps = getAzureResourceManager(sid)
+                .functionApps().list().stream().parallel()
+                .filter(functionAppBasic -> StringUtils.containsIgnoreCase(functionAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
+                .map(functionAppBasic -> functionApp(functionAppBasic.id())).collect(Collectors.toList());
+        return functionApps.stream().parallel().map(functionApp -> (IFunctionApp)functionApp.refresh()).collect(Collectors.toList());
     }
 
     @Cacheable(cacheName = "appservcie/webapp/{}", key = "$id")
@@ -120,10 +120,10 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     @Cacheable(cacheName = "appservcie/{}/webapps", key = "$sid", condition = "!(force&&force[0])")
     private List<IWebApp> webapps(String sid, boolean... force) {
-        return getAzureResourceManager(sid).webApps().list().stream()
-                .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
-                .map(webAppBasic -> webapp(webAppBasic.id()))
-                .collect(Collectors.toList());
+        final List<IWebApp> webApps = getAzureResourceManager(sid).webApps().list().stream()
+                .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "webApps")) // Filter out function apps
+                .map(webAppBasic -> webapp(webAppBasic.id())).collect(Collectors.toList());
+        return webApps.stream().parallel().map(webapp -> (IWebApp)webapp.refresh()).collect(Collectors.toList());
     }
 
     public @Nonnull
