@@ -33,6 +33,12 @@ public class AppServicePlan implements IAppServicePlan {
         this.azureClient = azureClient;
     }
 
+    public AppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan remote, AzureResourceManager azureClient) {
+        this.remote = remote;
+        this.entity = AppServiceUtils.fromAppServicePlan(remote);
+        this.azureClient = azureClient;
+    }
+
     @Override
     public Creator create() {
         return new AppServicePlanCreator();
