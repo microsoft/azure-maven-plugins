@@ -26,22 +26,38 @@ import java.util.regex.Pattern;
 
 public class NetUtils {
 
+    public static final Pattern INTACT_IPADDRESS_PATTERN = Pattern.compile("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$");
+    public static final Pattern INTACT_MAC_PATTERN = Pattern.compile("^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$");
     private static final Pattern IPADDRESS_PATTERN = Pattern.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
-    private static final Pattern INTACT_MAC_PATTERN = Pattern.compile("^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$");
     private static final Pattern MAC_PATTERN = Pattern.compile("([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}");
     private static final String[] INVALID_MAC_ADDRESS = {"00:00:00:00:00:00", "ff:ff:ff:ff:ff:ff", "ac:de:48:00:11:22"};
     private static final String[] UNIX_COMMAND = {"/sbin/ifconfig -a || /sbin/ip link"};
     private static final String[] WINDOWS_COMMAND = {"getmac"};
+    private static final String[] PUBLIC_IP_URLS = {"http://whatismyip.akamai.com", "http://bot.whatismyipaddress.com", "https://ipecho.net/plain"};
 
     public static String getPublicIp() {
         String ip = StringUtils.EMPTY;
+        for (String urlString : PUBLIC_IP_URLS) {
+            ip = getPublicIp(urlString);
+            if (StringUtils.isNotBlank(ip)) {
+                return ip;
+            }
+        }
+        return ip;
+    }
+
+    private static String getPublicIp(String urlString) {
+        String ip = StringUtils.EMPTY;
         try {
-            final URL url = new URL("https://ipecho.net/plain");
+            final URL url = new URL(urlString);
             final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
             while ((ip = in.readLine()) != null) {
                 if (StringUtils.isNotBlank(ip)) {
-                    break;
+                    final String trimIp = StringUtils.trim(ip);
+                    if (INTACT_IPADDRESS_PATTERN.matcher(trimIp).find()) {
+                        break;
+                    }
                 }
             }
         } catch (IOException e) {

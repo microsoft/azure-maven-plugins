@@ -128,7 +128,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     public @Nonnull
     List<Runtime> listWebAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
-        return Runtime.values().stream()
+        return Runtime.WEBAPP_RUNTIME.stream()
                 .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
                 .collect(Collectors.toList());
     }
@@ -166,8 +166,9 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     @Cacheable(cacheName = "appservcie/{}/plans", key = "$sid", condition = "!(force&&force[0])")
     public List<IAppServicePlan> appServicePlans(String sid, boolean... force) {
-        return getAzureResourceManager(sid).appServicePlans().list().stream()
-                .map(appServicePlan -> appServicePlan(appServicePlan.id()))
+        final AzureResourceManager azureResourceManager = getAzureResourceManager(sid);
+        return azureResourceManager.appServicePlans().list().stream().parallel()
+                .map(appServicePlan -> new AppServicePlan(appServicePlan, azureResourceManager))
                 .collect(Collectors.toList());
     }
 
@@ -175,8 +176,8 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     public List<IAppServicePlan> appServicePlansByResourceGroup(String rg, boolean... force) {
         return getSubscriptions().stream().parallel()
                 .map(subscription -> getAzureResourceManager(subscription.getId()))
-                .flatMap(azureResourceManager -> azureResourceManager.appServicePlans().listByResourceGroup(rg).stream())
-                .map(appServicePlan -> appServicePlan(appServicePlan.id()))
+                .flatMap(azureResourceManager -> azureResourceManager.appServicePlans().listByResourceGroup(rg).stream()
+                        .map(appServicePlan -> new AppServicePlan(appServicePlan, azureResourceManager)))
                 .collect(Collectors.toList());
     }
 

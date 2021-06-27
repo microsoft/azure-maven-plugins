@@ -18,23 +18,29 @@ public interface DataStore<T> {
     @Nonnull
     @SuppressWarnings("unchecked")
     default <D extends T> D get(Class<D> type, @Nonnull D dft) {
-        final Map<Class<?>, Object> thisStore = Impl.store.computeIfAbsent(this, (k) -> new HashMap<>());
-        return (D) thisStore.computeIfAbsent(type, (t) -> dft);
+        synchronized (Impl.store) {
+            final Map<Class<?>, Object> thisStore = Impl.store.computeIfAbsent(this, (k) -> new HashMap<>());
+            return (D) thisStore.computeIfAbsent(type, (t) -> dft);
+        }
     }
 
     @Nullable
     @SuppressWarnings("unchecked")
     default <D extends T> D get(Class<D> type) {
-        final Map<Class<?>, Object> thisStore = Impl.store.computeIfAbsent(this, (k) -> new HashMap<>());
-        return (D) thisStore.get(type);
+        synchronized (Impl.store) {
+            final Map<Class<?>, Object> thisStore = Impl.store.computeIfAbsent(this, (k) -> new HashMap<>());
+            return (D) thisStore.get(type);
+        }
     }
 
     default <D extends T> void set(Class<D> type, D val) {
-        final Map<Class<?>, Object> thisStore = Impl.store.computeIfAbsent(this, (k) -> new HashMap<>());
-        thisStore.put(type, val);
+        synchronized (Impl.store) {
+            final Map<Class<?>, Object> thisStore = Impl.store.computeIfAbsent(this, (k) -> new HashMap<>());
+            thisStore.put(type, val);
+        }
     }
 }
 
 final class Impl {
-    static WeakHashMap<Object, Map<Class<?>, Object>> store = new WeakHashMap<>();
+    static final WeakHashMap<Object, Map<Class<?>, Object>> store = new WeakHashMap<>();
 }

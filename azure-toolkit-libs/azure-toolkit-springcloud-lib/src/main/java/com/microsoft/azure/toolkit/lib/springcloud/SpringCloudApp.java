@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -52,8 +53,16 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
     }
 
     @Override
+    @AzureOperation(name = "springcloud|app.load", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     SpringApp loadRemote() {
-        return this.cluster.app(this.entity().getName()).remote();
+        try {
+            return Optional.ofNullable(this.cluster.remote()).map(r->r.apps().getByName(this.name())).orElse(null);
+        } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
+            if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
+                return null;
+            }
+            throw e;
+        }
     }
 
     @Nonnull
@@ -98,25 +107,25 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
         return new ArrayList<>();
     }
 
-    @AzureOperation(name = "springcloud|app.start", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud|app.start", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp start() {
         this.deployment(this.activeDeploymentName()).start();
         return this;
     }
 
-    @AzureOperation(name = "springcloud|app.stop", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud|app.stop", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp stop() {
         this.deployment(this.activeDeploymentName()).stop();
         return this;
     }
 
-    @AzureOperation(name = "springcloud|app.restart", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud|app.restart", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp restart() {
         this.deployment(this.activeDeploymentName()).restart();
         return this;
     }
 
-    @AzureOperation(name = "springcloud|app.remove", params = {"this.entity().getName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "springcloud|app.remove", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp remove() {
         if (this.exists()) {
             Objects.requireNonNull(this.remote()).parent().apps().deleteByName(this.name());

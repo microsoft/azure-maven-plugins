@@ -75,7 +75,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
 
     @Override
     @Nonnull
-    public R entity() {
+    public synchronized R entity() {
         if (remote == null) {
             refresh();
         }

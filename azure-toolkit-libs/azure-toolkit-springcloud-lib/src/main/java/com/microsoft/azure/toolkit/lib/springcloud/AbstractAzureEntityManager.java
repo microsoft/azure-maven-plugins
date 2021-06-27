@@ -37,11 +37,11 @@ abstract class AbstractAzureEntityManager<T extends IAzureEntityManager<E>, E ex
 
     @Nonnull
     @Override
-    public T refresh() {
+    public synchronized T refresh() {
         return this.refresh(this.loadRemote());
     }
 
-    protected T refresh(R remote) {
+    protected T refresh(@Nullable R remote) {
         this.entity.setRemote(remote);
         this.refreshed = true;
         //noinspection unchecked
@@ -58,6 +58,7 @@ abstract class AbstractAzureEntityManager<T extends IAzureEntityManager<E>, E ex
         return this.entity.getRemote();
     }
 
+    @Nullable
     abstract R loadRemote();
 
     abstract static class RemoteAwareResourceEntity<R> implements IAzureResourceEntity {
