@@ -275,7 +275,11 @@ The following configuration is applicable for below scenario:
                   <appServicePlanName>${PLAN_NAME}</appServicePlanName>
                   
                   <!-- Java Runtime Stack for Web App on Linux-->
-                  <linuxRuntime>tomcat 8.5-jre8</linuxRuntime>
+                    <runtime>
+                    <os>Linux</os>
+                    <webContainer>Tomcat 8.5</webContainer>
+                    <javaVersion>Java 8</javaVersion>
+                  </runtime>
                </configuration>
             </plugin>
             ...

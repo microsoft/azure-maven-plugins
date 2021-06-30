@@ -21,7 +21,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,9 +59,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     private static final String DEPLOY_START = "Trying to deploy artifact to %s...";
     private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
-    private static final String NO_RUNTIME_CONFIG = "You need to specified runtime in pom.xml for creating azure webapps. " +
-            "For V1 schema version, please use <javaVersion>, <linuxRuntime> or <containerSettings>, " +
-            "For V2 schema version, please use <runtime>.";
+    private static final String NO_RUNTIME_CONFIG = "You need to specified <runtime> in pom.xml for creating azure webapps.";
     private static final String CREATE_NEW_APP_SERVICE_PLAN = "createNewAppServicePlan";
     private static final String CREATE_NEW_RESOURCE_GROUP = "createNewResourceGroup";
     private static final String CREATE_NEW_WEB_APP = "createNewWebApp";
@@ -106,7 +104,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         getTelemetryProxy().addDefaultProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         final ResourceGroup resourceGroup = getOrCreateResourceGroup(webAppConfig);
         final IAppServicePlan appServicePlan = getOrCreateAppServicePlan(webAppConfig);
-        Log.info(String.format(CREATE_WEBAPP, webAppConfig.getAppName()));
+        AzureMessager.getMessager().info(String.format(CREATE_WEBAPP, webAppConfig.getAppName()));
         final IWebApp result = webApp.create().withName(webAppConfig.getAppName())
                 .withResourceGroup(resourceGroup.name())
                 .withPlan(appServicePlan.id())
@@ -114,13 +112,13 @@ public class DeployMojo extends AbstractWebAppMojo {
                 .withDockerConfiguration(webAppConfig.getDockerConfiguration())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
-        Log.info(String.format(CREATE_WEB_APP_DONE, result.name()));
+        AzureMessager.getMessager().info(String.format(CREATE_WEB_APP_DONE, result.name()));
         return result;
     }
 
     private IWebApp updateWebApp(final IWebApp webApp, final WebAppConfig webAppConfig) {
         // update app service plan
-        Log.info(String.format(UPDATE_WEBAPP, webApp.name()));
+        AzureMessager.getMessager().info(String.format(UPDATE_WEBAPP, webApp.name()));
         final IAppServicePlan currentPlan = webApp.plan();
         IAppServicePlan targetServicePlan = StringUtils.isEmpty(webAppConfig.getServicePlanName()) ? currentPlan :
                 az.appServicePlan(getServicePlanResourceGroup(webAppConfig), webAppConfig.getServicePlanName());
@@ -135,7 +133,7 @@ public class DeployMojo extends AbstractWebAppMojo {
                 .withDockerConfiguration(webAppConfig.getDockerConfiguration())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
-        Log.info(String.format(UPDATE_WEBAPP_DONE, webApp.name()));
+        AzureMessager.getMessager().info(String.format(UPDATE_WEBAPP_DONE, webApp.name()));
         return result;
     }
 
@@ -145,11 +143,11 @@ public class DeployMojo extends AbstractWebAppMojo {
         try {
             return azureResourceManager.resourceGroups().getByName(webAppConfig.getResourceGroup());
         } catch (ManagementException e) {
-            Log.info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion().getName()));
+            AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP, webAppConfig.getResourceGroup(), webAppConfig.getRegion().getName()));
             getTelemetryProxy().addDefaultProperty(CREATE_NEW_RESOURCE_GROUP, String.valueOf(true));
             final ResourceGroup result = azureResourceManager.resourceGroups().define(webAppConfig.getResourceGroup())
                     .withRegion(webAppConfig.getRegion().getName()).create();
-            Log.info(String.format(CREATE_RESOURCE_GROUP_DONE, webAppConfig.getResourceGroup()));
+            AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP_DONE, webAppConfig.getResourceGroup()));
             return result;
         }
     }
@@ -160,7 +158,7 @@ public class DeployMojo extends AbstractWebAppMojo {
         final String servicePlanGroup = getServicePlanResourceGroup(webAppConfig);
         final IAppServicePlan appServicePlan = az.appServicePlan(servicePlanGroup, servicePlanName);
         if (!appServicePlan.exists()) {
-            Log.info(CREATE_APP_SERVICE_PLAN);
+            AzureMessager.getMessager().info(CREATE_APP_SERVICE_PLAN);
             getTelemetryProxy().addDefaultProperty(CREATE_NEW_APP_SERVICE_PLAN, String.valueOf(true));
             appServicePlan.create()
                     .withName(servicePlanName)
@@ -169,7 +167,7 @@ public class DeployMojo extends AbstractWebAppMojo {
                     .withPricingTier(webAppConfig.getPricingTier())
                     .withOperatingSystem(webAppConfig.getRuntime().getOperatingSystem())
                     .commit();
-            Log.info(String.format(CREATE_APP_SERVICE_DONE, appServicePlan.name()));
+            AzureMessager.getMessager().info(String.format(CREATE_APP_SERVICE_DONE, appServicePlan.name()));
         }
         return appServicePlan;
     }
@@ -185,29 +183,29 @@ public class DeployMojo extends AbstractWebAppMojo {
     }
 
     private IWebAppDeploymentSlot createDeploymentSlot(final IWebAppDeploymentSlot slot, final WebAppConfig webAppConfig) {
-        Log.info(String.format(CREATE_DEPLOYMENT_SLOT, webAppConfig.getDeploymentSlotName(), webAppConfig.getAppName()));
+        AzureMessager.getMessager().info(String.format(CREATE_DEPLOYMENT_SLOT, webAppConfig.getDeploymentSlotName(), webAppConfig.getAppName()));
         getTelemetryProxy().addDefaultProperty(CREATE_NEW_DEPLOYMENT_SLOT, String.valueOf(true));
         final IWebAppDeploymentSlot result = slot.create().withName(webAppConfig.getDeploymentSlotName())
                 .withConfigurationSource(webAppConfig.getDeploymentSlotConfigurationSource())
                 .withAppSettings(webAppConfig.getAppSettings())
                 .commit();
-        Log.info(CREATE_DEPLOYMENT_SLOT_DONE);
+        AzureMessager.getMessager().info(CREATE_DEPLOYMENT_SLOT_DONE);
         return result;
     }
 
     private void deploy(IWebAppBase target, WebAppConfig config) throws AzureExecutionException {
         if (target.getRuntime().isDocker()) {
-            Log.info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
+            AzureMessager.getMessager().info(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE);
             return;
         }
         try {
-            Log.info(String.format(DEPLOY_START, config.getAppName()));
+            AzureMessager.getMessager().info(String.format(DEPLOY_START, config.getAppName()));
             if (isStopAppDuringDeployment()) {
                 WebAppUtils.stopAppService(target);
             }
             deployArtifacts(target, config);
             deployExternalResources(target);
-            Log.info(String.format(DEPLOY_FINISH, target.hostName()));
+            AzureMessager.getMessager().info(String.format(DEPLOY_FINISH, target.hostName()));
         } finally {
             WebAppUtils.startAppService(target);
         }
