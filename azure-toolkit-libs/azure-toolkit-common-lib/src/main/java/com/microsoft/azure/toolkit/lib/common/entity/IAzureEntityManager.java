@@ -23,6 +23,9 @@
 package com.microsoft.azure.toolkit.lib.common.entity;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
 public interface IAzureEntityManager<T extends IAzureResourceEntity> {
     IAzureEntityManager<T> refresh();
@@ -45,5 +48,9 @@ public interface IAzureEntityManager<T extends IAzureResourceEntity> {
 
     default String resourceGroup() {
         return ResourceId.fromString(id()).resourceGroupName();
+    }
+
+    default Subscription subscription(){
+        return Azure.az(IAzureAccount.class).account().getSubscription(this.subscriptionId());
     }
 }
