@@ -23,17 +23,17 @@
     "auth": {
       "$ref": "#/definitions/auth"
     },
-    "runtime": {
-      "$ref": "#/definitions/runtime"
-    },
-    "deployment": {
-      "$ref": "#/definitions/deployment"
-    },
     "region": {
       "$ref": "#/definitions/non-empty-string"
     },
     "pricingTier": {
       "$ref": "#/definitions/non-empty-string"
+    },
+    "runtime": {
+      "$ref": "#/definitions/runtime"
+    },
+    "deployment": {
+      "$ref": "#/definitions/deployment"
     },
     "deploymentSlot": {
       "$ref": "#/definitions/deployment-slot"
@@ -49,24 +49,13 @@
       "type": "boolean",
       "default": true
     },
-    "httpProxyHost": {
-      "description": "The host name of the proxy server",
-      "type": "string",
-      "format": "hostname"
+    "stopAppDuringDeployment": {
+      "type": "boolean",
+      "default": false
     },
-    "httpProxyPort": {
-      "description": "The port number of the proxy server, If specified, this must be a valid port number, 0 < x < 65536.",
-      "oneOf": [
-        {
-          "type": "string",
-          "pattern": "^\\d{1,5}$"
-        },
-        {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 65535
-        }
-      ]
+    "skip": {
+      "type": "boolean",
+      "default": false
     },
     "authType": {
       "$ref": "#/definitions/auth-type",
@@ -219,9 +208,10 @@
           "if": {
             "properties": {
               "type": {
-                "pattern": "(?i)^(service_principal)$"
+                "pattern": "(?i)^service_principal$"
               }
-            }
+            },
+            "required": ["type"]
           },
           "then": {
             "anyOf": [
