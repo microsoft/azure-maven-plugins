@@ -8,6 +8,9 @@ package com.microsoft.azure.maven.webapp;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.utils.DeployUtils;
 import com.microsoft.azure.maven.webapp.utils.Utils;
@@ -22,6 +25,9 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.ValidationMessage;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,9 +41,14 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_CREATORS;
+import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_GETTERS;
+import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_IS_GETTERS;
 
 /**
  * Deploy an Azure Web App, either Windows-based or Linux-based.
@@ -67,12 +78,25 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     @Override
     protected void doExecute() throws AzureExecutionException {
+        validateConfiguration();
         // initialize library client
         az = getOrCreateAzureAppServiceClient();
 
         final WebAppConfig config = getWebAppConfig();
         final IWebAppBase target = createOrUpdateResource(config);
         deploy(target, config);
+    }
+
+    private void validateConfiguration() {
+        final JsonSchema schema = getConfigurationSchema();
+        final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+                .disable(AUTO_DETECT_CREATORS, AUTO_DETECT_GETTERS, AUTO_DETECT_IS_GETTERS);
+        final JsonNode configuration = objectMapper.convertValue(this, JsonNode.class);
+        final Set<ValidationMessage> validate = schema.validate(configuration, configuration, "configuration");
+        if (CollectionUtils.isNotEmpty(validate)) {
+            validate.forEach(message -> AzureMessager.getMessager().error(message.getMessage()));
+            throw new AzureToolkitRuntimeException("Invalid values found in configuration, please correct the value with messages above");
+        }
     }
 
     private IWebAppBase createOrUpdateResource(final WebAppConfig config) throws AzureExecutionException {

@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
@@ -16,13 +18,19 @@ import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DockerImageType;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Objects;
@@ -60,14 +68,16 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *     <li>P3V2</li>
      * </ul>
      */
+    @JsonProperty
     @Parameter(property = "webapp.pricingTier")
     protected String pricingTier;
 
     /**
      * Flag to control whether stop Web App during deployment.
      */
-    @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "false")
     @Getter
+    @JsonProperty
+    @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "false")
     protected boolean stopAppDuringDeployment;
 
     /**
@@ -75,12 +85,14 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 0.1.4
      */
+    @JsonProperty
     @Parameter(property = "webapp.skip", defaultValue = "false")
     protected boolean skip;
 
     /**
      * App Service region, which will only be used to create App Service at the first time.
      */
+    @JsonProperty
     @Parameter(property = "webapp.region")
     protected String region;
 
@@ -89,6 +101,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 2.0.0
      */
+    @JsonProperty
     @Parameter(property = "schemaVersion", defaultValue = "v2")
     protected String schemaVersion;
 
@@ -97,6 +110,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 2.0.0
      */
+    @JsonProperty
     @Parameter(property = "runtime")
     protected MavenRuntimeConfig runtime;
 
@@ -105,15 +119,20 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 2.0.0
      */
+    @JsonProperty
     @Parameter(property = "deployment")
     protected Deployment deployment;
 
+    @JsonIgnore
     private WebAppConfiguration webAppConfiguration;
 
+    @JsonIgnore
     protected File stagingDirectory;
 
+    @JsonIgnore
     protected AzureAppService az;
 
+    @JsonIgnore
     private boolean isRuntimeInjected = false;
     //endregion
 
@@ -210,6 +229,15 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         }
         map.put(DEPLOY_TO_SLOT_KEY, String.valueOf(StringUtils.isNotEmpty(webAppConfig.getDeploymentSlotName())));
         return map;
+    }
+
+    protected JsonSchema getConfigurationSchema() {
+        final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
+        try (InputStream inputStream = AbstractWebAppMojo.class.getResourceAsStream("/schema/WebAppConfiguration.json")) {
+            return factory.getSchema(inputStream);
+        } catch (IOException e) {
+            throw new AzureToolkitRuntimeException("Failed to load configuration schema");
+        }
     }
 
     protected WebAppConfig getWebAppConfig() throws AzureExecutionException {
