@@ -13,8 +13,6 @@ import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.parser.AbstractConfigParser;
 import com.microsoft.azure.maven.webapp.parser.V2ConfigParser;
-import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
-import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
@@ -241,9 +239,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     protected WebAppConfig getWebAppConfig() throws AzureExecutionException {
-        final AbstractConfigurationValidator validator =
-                new V2ConfigurationValidator(this);
-        final AbstractConfigParser parser = new V2ConfigParser(this, validator);
+        final AbstractConfigParser parser = new V2ConfigParser(this);
         return parser.parse();
     }
 

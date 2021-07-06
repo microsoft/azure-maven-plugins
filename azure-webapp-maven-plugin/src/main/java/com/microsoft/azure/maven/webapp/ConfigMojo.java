@@ -14,8 +14,7 @@ import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import com.microsoft.azure.maven.webapp.models.WebAppOption;
-import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
-import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+import com.microsoft.azure.maven.webapp.parser.V2ConfigurationParser;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
@@ -464,7 +463,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     private WebAppConfiguration getWebAppConfigurationWithoutValidation() throws AzureExecutionException {
-        return new V2NoValidationConfigurationParser(this, new V2ConfigurationValidator(this)).getWebAppConfiguration();
+        return new V2ConfigurationParser(this).getWebAppConfiguration();
     }
 
     private WebAppConfiguration chooseExistingWebappForConfiguration()

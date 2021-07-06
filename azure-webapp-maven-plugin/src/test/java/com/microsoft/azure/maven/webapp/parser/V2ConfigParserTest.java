@@ -4,13 +4,12 @@
  */
 package com.microsoft.azure.maven.webapp.parser;
 
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.maven.webapp.DeployMojo;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
-import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,7 +23,6 @@ import static org.mockito.Mockito.mock;
 public class V2ConfigParserTest {
     DeployMojo deployMojo;
     MavenRuntimeConfig runtimeSetting;
-    V2ConfigurationValidator validator;
     V2ConfigParser parser;
 
     @Before
@@ -32,8 +30,7 @@ public class V2ConfigParserTest {
         deployMojo = mock(DeployMojo.class);
         runtimeSetting = mock(MavenRuntimeConfig.class);
         doReturn(runtimeSetting).when(deployMojo).getRuntime();
-        validator = new V2ConfigurationValidator(deployMojo);
-        parser = new V2ConfigParser(deployMojo, validator);
+        parser = new V2ConfigParser(deployMojo);
     }
 
     @Test
@@ -67,14 +64,6 @@ public class V2ConfigParserTest {
         assertEquals(parser.getRuntime(), Runtime.LINUX_JAVA11);
     }
 
-    @Test(expected = AzureExecutionException.class)
-    public void wrongLinuxRuntime() throws AzureExecutionException {
-        doReturn("linux").when(runtimeSetting).getOs();
-        doReturn("Java 11").when(runtimeSetting).getJavaVersionRaw();
-        doReturn("JBosseap 7.2").when(runtimeSetting).getWebContainerRaw();
-        parser.getRuntime();
-    }
-
     @Test
     public void getPricingTier() throws AzureExecutionException {
         // basic
@@ -92,12 +81,5 @@ public class V2ConfigParserTest {
         // premium v3
         doReturn("P3V3").when(deployMojo).getPricingTier();
         assertEquals(PricingTier.PREMIUM_P3V3, parser.getPricingTier());
-    }
-
-    @Test(expected = AzureExecutionException.class)
-    public void invalidPricingTier() throws AzureExecutionException {
-        // basic
-        doReturn("wrong").when(deployMojo).getPricingTier();
-        parser.getPricingTier();
     }
 }
