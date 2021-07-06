@@ -20,6 +20,9 @@
     "appServicePlanResourceGroup": {
       "$ref": "#/definitions/azure-resource-group"
     },
+    "auth": {
+      "$ref": "#/definitions/auth"
+    },
     "runtime": {
       "$ref": "#/definitions/runtime"
     },
@@ -168,6 +171,86 @@
           }
         }
       ]
+    },
+    "auth": {
+      "title": "AuthConfiguration",
+      "description": "The auth config for accessing azure resources",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/auth-type"
+        },
+        "serverId": {
+          "description": "The server id defined in maven settings",
+          "type": "string"
+        },
+        "client": {
+          "description": "Client ID",
+          "type": "string"
+        },
+        "tenant": {
+          "description": "Tenant ID",
+          "type": "string"
+        },
+        "key": {
+          "description": "Password",
+          "type": "string"
+        },
+        "certificate": {
+          "description": "The absolute path of your certificate",
+          "type": "string"
+        },
+        "certificatePassword": {
+          "description": "The password for your certificate, if there is any",
+          "type": "string"
+        },
+        "environment": {
+          "description": "The Azure cloud environment",
+          "type": "string",
+          "default": "AZURE",
+          "pattern": "(?i)^(AZURE|AZURE_CHINA|AZURE_GERMANY|AZURE_US_GOVERNMENT)$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "pattern": "(?i)^(service_principal)$"
+              }
+            }
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "client",
+                  "tenant",
+                  "key"
+                ]
+              },
+              {
+                "required": [
+                  "client",
+                  "tenant",
+                  "certificate"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "not": {
+        "required": [
+          "key",
+          "certificate"
+        ]
+      },
+      "dependencies": {
+        "certificatePassword": [
+          "certificate"
+        ]
+      }
     }
   }
 }
