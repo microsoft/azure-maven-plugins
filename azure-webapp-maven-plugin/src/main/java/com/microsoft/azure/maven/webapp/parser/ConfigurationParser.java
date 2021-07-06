@@ -8,6 +8,8 @@ package com.microsoft.azure.maven.webapp.parser;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import com.microsoft.azure.maven.webapp.configuration.Deployment;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
@@ -19,10 +21,10 @@ import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class ConfigurationParser {
+public class ConfigurationParser {
     protected final AbstractWebAppMojo mojo;
 
-    protected ConfigurationParser(final AbstractWebAppMojo mojo) {
+    public ConfigurationParser(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
     }
 
@@ -42,28 +44,58 @@ public abstract class ConfigurationParser {
         return mojo.getDeploymentSlotSetting();
     }
 
-    protected abstract OperatingSystem getOs() throws AzureExecutionException;
-
-    protected abstract Region getRegion() throws AzureExecutionException;
-
-    protected abstract String getImage() throws AzureExecutionException;
-
-    protected abstract String getServerId() throws AzureExecutionException;
-
-    protected abstract String getRegistryUrl();
-
-    protected abstract String getSchemaVersion();
-
-    protected abstract JavaVersion getJavaVersion() throws AzureExecutionException;
-
-    protected abstract WebContainer getWebContainer() throws AzureExecutionException;
-
-    protected abstract List<DeploymentResource> getResources() throws AzureExecutionException;
-
-    protected void validate(String errorMessage) throws AzureExecutionException {
-        if (errorMessage != null) {
-            throw new AzureExecutionException(errorMessage);
+    protected OperatingSystem getOs() throws AzureExecutionException {
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
+        final String os = runtime.getOs();
+        if (runtime.isEmpty()) {
+            return null;
         }
+        return OperatingSystem.fromString(os);
+    }
+
+    protected Region getRegion() throws AzureExecutionException {
+        final String region = mojo.getRegion();
+        return Region.fromName(region);
+    }
+
+    protected String getImage() throws AzureExecutionException {
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
+        return runtime.getImage();
+    }
+
+    protected String getServerId() {
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
+        if (runtime == null) {
+            return null;
+        }
+        return runtime.getServerId();
+    }
+
+    protected String getRegistryUrl() {
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
+        if (runtime == null) {
+            return null;
+        }
+        return runtime.getRegistryUrl();
+    }
+
+    protected String getSchemaVersion() {
+        return "v2";
+    }
+
+    protected WebContainer getWebContainer() throws AzureExecutionException {
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
+        return runtime.getWebContainer();
+    }
+
+    protected JavaVersion getJavaVersion() throws AzureExecutionException {
+        final MavenRuntimeConfig runtime = mojo.getRuntime();
+        return runtime.getJavaVersion();
+    }
+
+    protected List<DeploymentResource> getResources() {
+        final Deployment deployment = mojo.getDeployment();
+        return deployment == null ? null : deployment.getResources();
     }
 
     public WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {

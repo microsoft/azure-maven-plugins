@@ -5,15 +5,17 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
-import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import com.microsoft.azure.maven.webapp.configuration.Deployment;
+import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.junit.Before;
@@ -23,9 +25,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -38,52 +42,8 @@ public class ConfigurationParserTest {
     protected ConfigurationParser parser;
 
     public void buildParser() {
-        parser = new ConfigurationParser(mojo) {
-            @Override
-            protected OperatingSystem getOs() {
-                return null;
-            }
-
-            @Override
-            protected Region getRegion() {
-                return Region.EUROPE_WEST;
-            }
-
-            @Override
-            protected String getImage() {
-                return "image";
-            }
-
-            @Override
-            protected String getServerId() {
-                return null;
-            }
-
-            @Override
-            protected String getRegistryUrl() {
-                return null;
-            }
-
-            @Override
-            protected String getSchemaVersion() {
-                return null;
-            }
-
-            @Override
-            protected JavaVersion getJavaVersion() {
-                return JavaVersion.JAVA_8;
-            }
-
-            @Override
-            protected WebContainer getWebContainer() {
-                return WebContainer.TOMCAT_85;
-            }
-
-            @Override
-            protected List<DeploymentResource> getResources() {
-                return null;
-            }
-        };
+        MockitoAnnotations.initMocks(this);
+        parser = new ConfigurationParser(mojo);
     }
 
     @Before
@@ -119,13 +79,14 @@ public class ConfigurationParserTest {
         doReturn("test-staging-path").when(mojo).getDeploymentStagingDirectoryPath();
         doReturn("test-build-directory-path").when(mojo).getBuildDirectoryAbsolutePath();
         doReturn("P1v2").when(mojo).getPricingTier();
-
+        doReturn(JavaVersion.JAVA_8).when(parserSpy).getJavaVersion();
+        doReturn(WebContainer.TOMCAT_85).when(parserSpy).getWebContainer();
         doReturn(OperatingSystem.WINDOWS).when(parserSpy).getOs();
+        doReturn("image").when(parserSpy).getImage();
         WebAppConfiguration webAppConfiguration = parserSpy.getWebAppConfiguration();
 
         assertEquals("appName", webAppConfiguration.getAppName());
         assertEquals("resourceGroupName", webAppConfiguration.getResourceGroup());
-        assertEquals(Region.EUROPE_WEST, webAppConfiguration.getRegion());
         assertEquals("P1v2", webAppConfiguration.getPricingTier());
         assertEquals(null, webAppConfiguration.getServicePlanName());
         assertEquals(null, webAppConfiguration.getServicePlanResourceGroup());
@@ -137,9 +98,6 @@ public class ConfigurationParserTest {
         assertEquals("test-staging-path", webAppConfiguration.getStagingDirectoryPath());
         assertEquals("test-build-directory-path", webAppConfiguration.getBuildDirectoryAbsolutePath());
 
-        assertEquals(JavaVersion.JAVA_8.toString(), webAppConfiguration.getJavaVersion());
-        assertEquals(WebContainer.TOMCAT_85.toString(), webAppConfiguration.getWebContainer());
-
         doReturn(OperatingSystem.LINUX).when(parserSpy).getOs();
         webAppConfiguration = parserSpy.getWebAppConfiguration();
         assertEquals(WebContainer.TOMCAT_85.toString(), webAppConfiguration.getWebContainer());
@@ -149,5 +107,89 @@ public class ConfigurationParserTest {
         assertEquals("image", webAppConfiguration.getImage());
         assertEquals(null, webAppConfiguration.getServerId());
         assertEquals(null, webAppConfiguration.getRegistryUrl());
+    }
+
+    @Test
+    public void getOs() throws AzureExecutionException {
+        final MavenRuntimeConfig runtime = mock(MavenRuntimeConfig.class);
+        doReturn(runtime).when(mojo).getRuntime();
+
+        doReturn(true).when(runtime).isEmpty();
+        assertEquals(null, parser.getOs());
+
+        doReturn(false).when(runtime).isEmpty();
+        doReturn("windows").when(runtime).getOs();
+        assertEquals(OperatingSystem.WINDOWS, parser.getOs());
+
+        doReturn("linux").when(runtime).getOs();
+        assertEquals(OperatingSystem.LINUX, parser.getOs());
+
+        doReturn("docker").when(runtime).getOs();
+        assertEquals(OperatingSystem.DOCKER, parser.getOs());
+    }
+
+    @Test
+    public void getRegion() throws AzureExecutionException {
+        doReturn(Region.US_WEST.getName()).when(mojo).getRegion();
+        assertEquals(Region.US_WEST, parser.getRegion());
+    }
+
+    @Test
+    public void getImage() throws AzureExecutionException {
+        final MavenRuntimeConfig runtime = mock(MavenRuntimeConfig.class);
+        doReturn(runtime).when(mojo).getRuntime();
+
+        doReturn("imageName").when(runtime).getImage();
+        assertEquals("imageName", parser.getImage());
+    }
+
+    @Test
+    public void getServerId() {
+        assertNull(parser.getServerId());
+
+        final MavenRuntimeConfig runtime = mock(MavenRuntimeConfig.class);
+        doReturn(runtime).when(mojo).getRuntime();
+        doReturn("serverId").when(runtime).getServerId();
+        assertEquals("serverId", parser.getServerId());
+    }
+
+    @Test
+    public void getRegistryUrl() {
+        assertNull(parser.getRegistryUrl());
+
+        final MavenRuntimeConfig runtime = mock(MavenRuntimeConfig.class);
+        doReturn(runtime).when(mojo).getRuntime();
+        doReturn("serverId").when(runtime).getRegistryUrl();
+        assertEquals("serverId", parser.getRegistryUrl());
+    }
+
+    @Test
+    public void getWebContainer() throws AzureExecutionException {
+        final MavenRuntimeConfig runtime = mock(MavenRuntimeConfig.class);
+        doReturn(runtime).when(mojo).getRuntime();
+        doReturn(WebContainer.TOMCAT_85).when(runtime).getWebContainer();
+        assertEquals(WebContainer.TOMCAT_85, parser.getWebContainer());
+    }
+
+    @Test
+    public void getJavaVersion() throws AzureExecutionException {
+        final MavenRuntimeConfig runtime = mock(MavenRuntimeConfig.class);
+        doReturn(runtime).when(mojo).getRuntime();
+        doReturn(JavaVersion.JAVA_8).when(runtime).getJavaVersion();
+        assertEquals(JavaVersion.JAVA_8, parser.getJavaVersion());
+    }
+
+    @Test
+    public void getResources() {
+        doReturn(null).when(mojo).getDeployment();
+        assertNull(parser.getResources());
+
+        final List<Resource> resources = new ArrayList<Resource>();
+        resources.add(new Resource());
+        final Deployment deployment = mock(Deployment.class);
+        doReturn(deployment).when(mojo).getDeployment();
+        doReturn(resources).when(deployment).getResources();
+
+        assertEquals(resources, parser.getResources());
     }
 }
