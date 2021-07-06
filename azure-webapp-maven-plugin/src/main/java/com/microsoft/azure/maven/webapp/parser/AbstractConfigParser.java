@@ -5,18 +5,17 @@
 
 package com.microsoft.azure.maven.webapp.parser;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.maven.MavenDockerCredentialProvider;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
-import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -38,20 +37,16 @@ import java.util.stream.Collectors;
 public abstract class AbstractConfigParser {
 
     protected AbstractWebAppMojo mojo;
-    protected AbstractConfigurationValidator validator;
 
-    public AbstractConfigParser(AbstractWebAppMojo mojo, AbstractConfigurationValidator validator) {
+    public AbstractConfigParser(AbstractWebAppMojo mojo) {
         this.mojo = mojo;
-        this.validator = validator;
     }
 
     public String getAppName() throws AzureExecutionException {
-        validate(validator::validateAppName);
         return mojo.getAppName();
     }
 
     public String getResourceGroup() throws AzureExecutionException {
-        validate(validator::validateResourceGroup);
         return mojo.getResourceGroup();
     }
 
@@ -64,17 +59,14 @@ public abstract class AbstractConfigParser {
     }
 
     public PricingTier getPricingTier() throws AzureExecutionException {
-        validate(validator::validatePricingTier);
         return PricingTier.fromString(mojo.getPricingTier());
     }
 
     public String getAppServicePlanName() throws AzureExecutionException {
-        validate(validator::validateAppServicePlan);
         return mojo.getAppServicePlanName();
     }
 
     public String getAppServicePlanResourceGroup() throws AzureExecutionException {
-        validate(validator::validateResourceGroup);
         return mojo.getAppServicePlanResourceGroup();
     }
 

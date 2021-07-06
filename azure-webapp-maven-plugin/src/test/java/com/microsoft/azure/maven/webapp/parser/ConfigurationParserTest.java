@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.webapp.parser;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
@@ -39,37 +38,7 @@ public class ConfigurationParserTest {
     protected ConfigurationParser parser;
 
     public void buildParser() {
-        parser = new ConfigurationParser(mojo, new AbstractConfigurationValidator(mojo) {
-            @Override
-            public String validateRegion() {
-                return null;
-            }
-
-            @Override
-            public String validateOs() {
-                return null;
-            }
-
-            @Override
-            public String validateRuntimeStack() {
-                return null;
-            }
-
-            @Override
-            public String validateImage() {
-                return null;
-            }
-
-            @Override
-            public String validateJavaVersion() {
-                return null;
-            }
-
-            @Override
-            public String validateWebContainer() {
-                return null;
-            }
-        }) {
+        parser = new ConfigurationParser(mojo) {
             @Override
             protected OperatingSystem getOs() {
                 return null;
@@ -127,42 +96,12 @@ public class ConfigurationParserTest {
     public void getWebAppName() throws AzureExecutionException {
         doReturn("appName").when(mojo).getAppName();
         assertEquals("appName", parser.getAppName());
-
-        doReturn("-invalidAppName").when(mojo).getAppName();
-        try {
-            parser.getAppName();
-        } catch (AzureExecutionException e) {
-            assertEquals(e.getMessage(), "The <appName> only allow alphanumeric characters, " +
-                "hyphens and cannot start or end in a hyphen.");
-        }
-
-        doReturn(null).when(mojo).getAppName();
-        try {
-            parser.getAppName();
-        } catch (AzureExecutionException e) {
-            assertEquals(e.getMessage(), "Please config the <appName> in pom.xml.");
-        }
     }
 
     @Test
     public void getResourceGroup() throws AzureExecutionException {
         doReturn("resourceGroupName").when(mojo).getResourceGroup();
         assertEquals("resourceGroupName", parser.getResourceGroup());
-
-        doReturn("invalid**ResourceGroupName").when(mojo).getResourceGroup();
-        try {
-            parser.getResourceGroup();
-        } catch (AzureExecutionException e) {
-            assertEquals(e.getMessage(), "The <resourceGroup> only allow alphanumeric characters, periods, " +
-                "underscores, hyphens and parenthesis and cannot end in a period.");
-        }
-
-        doReturn(null).when(mojo).getResourceGroup();
-        try {
-            parser.getResourceGroup();
-        } catch (AzureExecutionException e) {
-            assertEquals(e.getMessage(), "Please config the <resourceGroup> in pom.xml.");
-        }
     }
 
     @Test

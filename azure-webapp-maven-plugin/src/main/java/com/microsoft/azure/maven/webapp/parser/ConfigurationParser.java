@@ -8,7 +8,6 @@ package com.microsoft.azure.maven.webapp.parser;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfiguration;
-import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
@@ -22,30 +21,24 @@ import java.util.Objects;
 
 public abstract class ConfigurationParser {
     protected final AbstractWebAppMojo mojo;
-    protected final AbstractConfigurationValidator validator;
 
-    protected ConfigurationParser(final AbstractWebAppMojo mojo, final AbstractConfigurationValidator validator) {
+    protected ConfigurationParser(final AbstractWebAppMojo mojo) {
         this.mojo = mojo;
-        this.validator = validator;
     }
 
     protected String getAppName() throws AzureExecutionException {
-        validate(validator.validateAppName());
         return mojo.getAppName();
     }
 
     protected String getResourceGroup() throws AzureExecutionException {
-        validate(validator.validateResourceGroup());
         return mojo.getResourceGroup();
     }
 
     protected String getPricingTier() throws AzureExecutionException {
-        validate(validator.validatePricingTier());
         return mojo.getPricingTier();
     }
 
     protected DeploymentSlotSetting getDeploymentSlotSetting() throws AzureExecutionException {
-        validate(validator.validateDeploymentSlot());
         return mojo.getDeploymentSlotSetting();
     }
 
