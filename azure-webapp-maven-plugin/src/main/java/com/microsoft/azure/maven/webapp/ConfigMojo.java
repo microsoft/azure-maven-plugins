@@ -28,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthentication
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -108,7 +109,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         try {
             pomHandler = new WebAppPomHandler(project.getFile().getAbsolutePath());
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
-                    getWebAppConfigurationWithoutValidation();
+                    getWebAppConfiguration();
             if (!isV2Configuration(configuration)) {
                 Log.warn(CONFIG_ONLY_SUPPORT_V2);
             } else {
@@ -463,7 +464,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return Utils.isJarPackagingProject(project.getPackaging());
     }
 
-    private WebAppConfiguration getWebAppConfigurationWithoutValidation() throws AzureExecutionException {
+    private WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {
+        validateConfiguration(message -> AzureMessager.getMessager().warning(message.getMessage()), false);
         return new ConfigurationParser(this).getWebAppConfiguration();
     }
 
