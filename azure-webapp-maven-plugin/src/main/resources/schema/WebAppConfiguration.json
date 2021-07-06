@@ -26,6 +26,9 @@
     "runtime": {
       "$ref": "#/definitions/runtime"
     },
+    "deployment": {
+      "$ref": "#/definitions/deployment"
+    },
     "region": {
       "$ref": "#/definitions/non-empty-string"
     },
@@ -250,6 +253,48 @@
         "certificatePassword": [
           "certificate"
         ]
+      }
+    },
+    "deployment-resource": {
+      "type": "object",
+      "title": "Deployment Resource",
+      "description": "Deployment Resource Configuration for Maven plugin for Azure Web App",
+      "properties": {
+        "type": {
+          "type": "string",
+          "pattern": "(?i)^(war|jar|ear|lib|script|static|startup|zip)$"
+        },
+        "directory": {
+          "$ref": "#/definitions/non-empty-string"
+        },
+        "targetPath": {
+          "$ref": "#/definitions/non-empty-string"
+        },
+        "includes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/non-empty-string"
+          }
+        },
+        "excludes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/non-empty-string"
+          }
+        }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "title": "Deployment",
+      "description": "Deployment Configuration for Maven plugin for Azure Web App",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/deployment-resource"
+          }
+        }
       }
     }
   }
