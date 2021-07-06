@@ -20,17 +20,17 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
-public class V2ConfigParserTest {
+public class ConfigParserTest {
     DeployMojo deployMojo;
     MavenRuntimeConfig runtimeSetting;
-    V2ConfigParser parser;
+    ConfigParser parser;
 
     @Before
     public void setUp() throws Exception {
         deployMojo = mock(DeployMojo.class);
         runtimeSetting = mock(MavenRuntimeConfig.class);
         doReturn(runtimeSetting).when(deployMojo).getRuntime();
-        parser = new V2ConfigParser(deployMojo);
+        parser = new ConfigParser(deployMojo);
     }
 
     @Test
