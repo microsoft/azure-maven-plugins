@@ -5,11 +5,11 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
+import com.microsoft.azure.toolkit.lib.common.model.ExpendedParameter;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -22,7 +22,6 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
 public class WebContainer {
     private static final String JAVA = "Java";
     private static final String JAVA_8 = "Java 8";
@@ -67,12 +66,15 @@ public class WebContainer {
 
     public static WebContainer fromString(String input) {
         // parse display name first
+        if (StringUtils.isEmpty(input)) {
+            return WebContainer.JAVA_OFF;
+        }
         if (StringUtils.equalsAnyIgnoreCase(input, JAVA, JAVA_8, JAVA_11)) {
             return WebContainer.JAVA_SE;
         }
         return values().stream()
             .filter(webContainer -> StringUtils.equalsIgnoreCase(input, webContainer.value))
-            .findFirst().orElse(WebContainer.JAVA_OFF);
+            .findFirst().orElse(new ExpendedWebContainer(input));
     }
 
     @Override
@@ -102,5 +104,15 @@ public class WebContainer {
             return STRING_JAVA_SE;
         }
         return StringUtils.capitalize(StringUtils.lowerCase(value));
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    static class ExpendedWebContainer extends WebContainer implements ExpendedParameter {
+        public ExpendedWebContainer(String value){
+            super(value);
+        }
     }
 }

@@ -5,15 +5,17 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
+import com.microsoft.azure.toolkit.lib.common.model.ExpendedParameter;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,7 +27,6 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
 public class PricingTier {
     public static final PricingTier BASIC_B1 = new PricingTier("Basic", "B1");
     public static final PricingTier BASIC_B2 = new PricingTier("Basic", "B2");
@@ -67,13 +68,18 @@ public class PricingTier {
         return values;
     }
 
-    public static PricingTier fromString(String size) {
+    public static PricingTier fromString(@Nonnull String size) {
+        return fromString(null, size);
+    }
+
+    public static PricingTier fromString(@Nullable String tier, @Nonnull String size) {
         if (StringUtils.equalsIgnoreCase(CONSUMPTION_SIZE, size)) {
             return PricingTier.CONSUMPTION;
         }
         return values().stream()
-                .filter(pricingTier -> StringUtils.equalsIgnoreCase(size, pricingTier.size))
-                .findFirst().orElse(null);
+                .filter(pricingTier -> StringUtils.equalsIgnoreCase(size, pricingTier.size) &&
+                        (StringUtils.isEmpty(tier) || StringUtils.equals(tier, pricingTier.tier)))
+                .findFirst().orElseGet(() -> new ExpendedPricingTier(tier, size));
     }
 
     @Override
@@ -99,5 +105,15 @@ public class PricingTier {
             return "Consumption";
         }
         return this.getSize();
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    static class ExpendedPricingTier extends PricingTier implements ExpendedParameter {
+        public ExpendedPricingTier(String tier, String size) {
+            super(tier, size);
+        }
     }
 }
