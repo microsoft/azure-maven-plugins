@@ -102,9 +102,21 @@ class AppServiceUtils {
         }).findFirst().orElseGet(() -> {
             final String[] containerInfo = runtime.getWebContainer().getValue().split(" ");
             final String stack = containerInfo[0];
-            final String version = String.format("%s-java%s", containerInfo[1], runtime.getJavaVersion().getValue());
+            final String stackVersion = containerInfo[1];
+            final String javaVersion = convertJavaVersionToStackJavaVersion(runtime.getJavaVersion());
+            final String version = String.format("%s-%s", stackVersion, javaVersion);
             return new RuntimeStack(stack, version);
         });
+    }
+
+    static String convertJavaVersionToStackJavaVersion(JavaVersion javaVersion) {
+        if (Objects.equals(javaVersion, JavaVersion.JAVA_7)) {
+            return "java7";
+        }
+        if (Objects.equals(javaVersion, JavaVersion.JAVA_8)) {
+            return "java8";
+        }
+        return String.format("java%s", javaVersion.getValue());
     }
 
     static FunctionRuntimeStack toFunctionRuntimeStack(@Nonnull Runtime runtime) {
