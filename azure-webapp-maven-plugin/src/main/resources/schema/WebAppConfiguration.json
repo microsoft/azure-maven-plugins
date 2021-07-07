@@ -1,0 +1,291 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Configuration",
+  "description": "Configuration for Maven plugin for Azure Web App",
+  "properties": {
+    "subscriptionId": {
+      "$ref": "#/definitions/non-empty-string"
+    },
+    "resourceGroup": {
+      "$ref": "#/definitions/azure-resource-group"
+    },
+    "appName": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9\\-]{2,60}$"
+    },
+    "appServicePlanName": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9\\-]{1,40}$"
+    },
+    "appServicePlanResourceGroup": {
+      "$ref": "#/definitions/azure-resource-group"
+    },
+    "auth": {
+      "$ref": "#/definitions/auth"
+    },
+    "region": {
+      "$ref": "#/definitions/non-empty-string"
+    },
+    "pricingTier": {
+      "$ref": "#/definitions/non-empty-string"
+    },
+    "runtime": {
+      "$ref": "#/definitions/runtime"
+    },
+    "deployment": {
+      "$ref": "#/definitions/deployment"
+    },
+    "deploymentSlot": {
+      "$ref": "#/definitions/deployment-slot"
+    },
+    "appSettings": {
+      "type": "object"
+    },
+    "allowTelemetry": {
+      "type": "boolean",
+      "default": true
+    },
+    "failsOnError": {
+      "type": "boolean",
+      "default": true
+    },
+    "stopAppDuringDeployment": {
+      "type": "boolean",
+      "default": false
+    },
+    "skip": {
+      "type": "boolean",
+      "default": false
+    },
+    "authType": {
+      "$ref": "#/definitions/auth-type",
+      "deprecationMessage": "Please set auth related properties like type in <auth>"
+    }
+  },
+  "required": [
+    "appName",
+    "resourceGroup"
+  ],
+  "definitions": {
+    "non-empty-string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "auth-type": {
+      "type": "string",
+      "pattern": "(?i)^(auto|service_principal|managed_identity|azure_cli|vscode|intellij|azure_auth_maven_plugin|device_code|oauth2|visual_studio)$"
+    },
+    "azure-resource-group": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9\\.\\_\\-\\(\\)]{1,90}$"
+    },
+    "deployment-slot": {
+      "title": "DeploymentSlotConfiguration",
+      "description": "Deployment slot configuration for Maven plugin for Azure Web App",
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/non-empty-string"
+        },
+        "configurationSource": {
+          "$ref": "#/definitions/non-empty-string"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "runtime": {
+      "title": "Runtime",
+      "description": "Runtime configuration for Maven plugin for Azure Web App",
+      "type": "object",
+      "properties": {
+        "os": {
+          "description": "The operating system for app service",
+          "type": "string",
+          "pattern": "(?i)^(windows|linux|docker)$"
+        },
+        "webContainer": {
+          "$ref": "#/definitions/non-empty-string"
+        },
+        "javaVersion": {
+          "$ref": "#/definitions/non-empty-string"
+        },
+        "image": {
+          "$ref": "#/definitions/non-empty-string"
+        },
+        "serverId": {
+          "$ref": "#/definitions/non-empty-string"
+        },
+        "registryUrl": {
+          "$ref": "#/definitions/non-empty-string"
+        }
+      },
+      "dependencies": {
+        "serverId": [
+          "image"
+        ],
+        "registryUrl": [
+          "image"
+        ]
+      },
+      "required": [
+        "os"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "os": {
+                "pattern": "(?i)^(windows|linux)$"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "javaVersion",
+              "webContainer"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "os": {
+                "pattern": "(?i)^(docker)$"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "image"
+            ]
+          }
+        }
+      ]
+    },
+    "auth": {
+      "title": "AuthConfiguration",
+      "description": "The auth config for accessing azure resources",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/auth-type"
+        },
+        "serverId": {
+          "description": "The server id defined in maven settings",
+          "type": "string"
+        },
+        "client": {
+          "description": "Client ID",
+          "type": "string"
+        },
+        "tenant": {
+          "description": "Tenant ID",
+          "type": "string"
+        },
+        "key": {
+          "description": "Password",
+          "type": "string"
+        },
+        "certificate": {
+          "description": "The absolute path of your certificate",
+          "type": "string"
+        },
+        "certificatePassword": {
+          "description": "The password for your certificate, if there is any",
+          "type": "string"
+        },
+        "environment": {
+          "description": "The Azure cloud environment",
+          "type": "string",
+          "default": "AZURE",
+          "pattern": "(?i)^(AZURE|AZURE_CHINA|AZURE_GERMANY|AZURE_US_GOVERNMENT)$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "pattern": "(?i)^service_principal$"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "client",
+                  "tenant",
+                  "key"
+                ]
+              },
+              {
+                "required": [
+                  "client",
+                  "tenant",
+                  "certificate"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "not": {
+        "required": [
+          "key",
+          "certificate"
+        ]
+      },
+      "dependencies": {
+        "certificatePassword": [
+          "certificate"
+        ]
+      }
+    },
+    "deployment-resource": {
+      "type": "object",
+      "title": "Deployment Resource",
+      "description": "Deployment Resource Configuration for Maven plugin for Azure Web App",
+      "properties": {
+        "type": {
+          "type": "string",
+          "pattern": "(?i)^(war|jar|ear|lib|script|static|startup|zip)$"
+        },
+        "directory": {
+          "$ref": "#/definitions/non-empty-string"
+        },
+        "targetPath": {
+          "$ref": "#/definitions/non-empty-string"
+        },
+        "includes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/non-empty-string"
+          }
+        },
+        "excludes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/non-empty-string"
+          }
+        }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "title": "Deployment",
+      "description": "Deployment Configuration for Maven plugin for Azure Web App",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/deployment-resource"
+          }
+        }
+      }
+    }
+  }
+}

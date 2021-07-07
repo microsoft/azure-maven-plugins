@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
@@ -13,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Runtime Setting
  */
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class MavenRuntimeConfig {
 
     /**

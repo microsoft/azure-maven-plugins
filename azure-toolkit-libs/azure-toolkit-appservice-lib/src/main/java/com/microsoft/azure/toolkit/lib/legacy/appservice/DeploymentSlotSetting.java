@@ -5,9 +5,12 @@
 
 package com.microsoft.azure.toolkit.lib.legacy.appservice;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+
 /**
  * Deployment Slot setting class.
  */
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class DeploymentSlotSetting {
     protected String name;
     protected String configurationSource;
