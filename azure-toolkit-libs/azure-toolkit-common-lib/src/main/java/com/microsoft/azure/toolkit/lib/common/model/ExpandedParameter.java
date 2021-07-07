@@ -7,4 +7,10 @@
 package com.microsoft.azure.toolkit.lib.common.model;
 
 public interface ExpandedParameter {
+    /**
+     * Get type of parameter, return parent class by default
+     */
+    default Class type() {
+       return getClass().getSuperclass();
+    }
 }
