@@ -303,7 +303,8 @@ class AppServiceUtils {
         return builder.build();
     }
 
-    static void defineDiagnosticConfigurationForWebAppBase(final WebAppBase.DefinitionStages.WithCreate withCreate, final DiagnosticConfig diagnosticConfig) {
+    static <T extends WebAppBase> void defineDiagnosticConfigurationForWebAppBase(final WebAppBase.DefinitionStages.WithCreate<T> withCreate,
+                                                                                  final DiagnosticConfig diagnosticConfig) {
         if (diagnosticConfig.isEnableApplicationLog()) {
             withCreate.defineDiagnosticLogsConfiguration()
                     .withApplicationLogging()
@@ -320,8 +321,8 @@ class AppServiceUtils {
         }
     }
 
-    static void updateDiagnosticConfigurationForWebAppBase(final WebAppBase.Update update, final DiagnosticConfig diagnosticConfig) {
-        final WebAppDiagnosticLogs.UpdateStages.Blank<WebAppBase.Update> blank = update.updateDiagnosticLogsConfiguration();
+    static <T extends WebAppBase> void updateDiagnosticConfigurationForWebAppBase(final WebAppBase.Update<T> update, final DiagnosticConfig diagnosticConfig) {
+        final WebAppDiagnosticLogs.UpdateStages.Blank<WebAppBase.Update<T>> blank = update.updateDiagnosticLogsConfiguration();
         if (diagnosticConfig.isEnableApplicationLog()) {
             blank.withApplicationLogging()
                     .withLogLevel(com.azure.resourcemanager.appservice.models.LogLevel.fromString(diagnosticConfig.getApplicationLogLevel().getValue()))
@@ -346,13 +347,15 @@ class AppServiceUtils {
         if (!(config instanceof Map)) {
             return null;
         }
-        final Map envelopeConfigMap = (Map) config;
+        final Map<?, ?> envelopeConfigMap = (Map<?, ?>) config;
         final String scriptFile = (String) (envelopeConfigMap).get(SCRIPT_FILE);
         final String entryPoint = (String) (envelopeConfigMap).get(ENTRY_POINT);
-        final Object bindingListObject = ((Map) config).get(BINDINGS);
+        final Object bindingListObject = envelopeConfigMap.get(BINDINGS);
         final List<FunctionEntity.BindingEntity> bindingEntities =
-                (List<FunctionEntity.BindingEntity>) Optional.ofNullable(bindingListObject instanceof List ? (List) bindingListObject : null)
-                        .map(list -> list.stream().filter(item -> item instanceof Map).map(map -> fromJsonBinding((Map) map)).collect(Collectors.toList()))
+                Optional.ofNullable(bindingListObject instanceof List<?> ? (List<?>) bindingListObject : null)
+                        .map(list -> list.stream().filter(item -> item instanceof Map)
+                                .map(map -> fromJsonBinding((Map<String, String>) map))
+                                .collect(Collectors.toList()))
                         .orElse(Collections.emptyList());
         return FunctionEntity.builder()
                 .name(getFunctionTriggerName(functionEnvelope))
@@ -371,11 +374,11 @@ class AppServiceUtils {
         return splitNames.length > 1 ? splitNames[1] : fullName;
     }
 
-    private static FunctionEntity.BindingEntity fromJsonBinding(Map bindingProperties) {
+    private static FunctionEntity.BindingEntity fromJsonBinding(Map<String, String> bindingProperties) {
         return FunctionEntity.BindingEntity.builder()
-                .type((String) bindingProperties.get("type"))
-                .direction((String) bindingProperties.get("direction"))
-                .name((String) bindingProperties.get("name"))
+                .type(bindingProperties.get("type"))
+                .direction(bindingProperties.get("direction"))
+                .name(bindingProperties.get("name"))
                 .properties(bindingProperties).build();
     }
 
