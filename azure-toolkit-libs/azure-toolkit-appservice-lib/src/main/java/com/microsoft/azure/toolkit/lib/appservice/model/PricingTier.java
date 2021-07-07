@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.common.model.ExpendedParameter;
+import com.microsoft.azure.toolkit.lib.common.model.ExpandedParameter;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -79,7 +79,7 @@ public class PricingTier {
         return values().stream()
                 .filter(pricingTier -> StringUtils.equalsIgnoreCase(size, pricingTier.size) &&
                         (StringUtils.isEmpty(tier) || StringUtils.equals(tier, pricingTier.tier)))
-                .findFirst().orElseGet(() -> new ExpendedPricingTier(tier, size));
+                .findFirst().orElseGet(() -> new ExpandedPricingTier(tier, size));
     }
 
     @Override
@@ -111,8 +111,8 @@ public class PricingTier {
     @Setter
     @NoArgsConstructor
     @EqualsAndHashCode(callSuper = true)
-    static class ExpendedPricingTier extends PricingTier implements ExpendedParameter {
-        public ExpendedPricingTier(String tier, String size) {
+    static class ExpandedPricingTier extends PricingTier implements ExpandedParameter {
+        public ExpandedPricingTier(String tier, String size) {
             super(tier, size);
         }
     }
