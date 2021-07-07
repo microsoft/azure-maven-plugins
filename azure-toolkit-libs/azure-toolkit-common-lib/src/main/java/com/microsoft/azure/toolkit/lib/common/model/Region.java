@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 
@@ -92,14 +93,24 @@ public class Region {
             US_CENTRAL_EUAP, US_EAST2_EUAP, INDIA_JIO_WEST);
     }
 
-    public static Region fromName(String value) {
+    public static Region fromName(@Nonnull String value) {
         return values().stream()
-            .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label))
-            .findFirst().orElse(null);
+                .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label))
+                .findFirst().orElse(new ExpendedRegion(value, value));
     }
 
     @Override
     public String toString() {
         return name;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    static class ExpendedRegion extends Region implements ExpendedParameter {
+        public ExpendedRegion(String name, String label) {
+            super(name, label);
+        }
     }
 }
