@@ -6,5 +6,5 @@
 
 package com.microsoft.azure.toolkit.lib.common.model;
 
-public interface ExpendedParameter {
+public interface ExpandedParameter {
 }

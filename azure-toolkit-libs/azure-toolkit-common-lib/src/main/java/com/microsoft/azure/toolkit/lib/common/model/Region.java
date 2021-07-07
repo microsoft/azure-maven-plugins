@@ -96,7 +96,7 @@ public class Region {
     public static Region fromName(@Nonnull String value) {
         return values().stream()
                 .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label))
-                .findFirst().orElse(new ExpendedRegion(value, value));
+                .findFirst().orElse(new ExpandedRegion(value, value));
     }
 
     @Override
@@ -108,8 +108,8 @@ public class Region {
     @Setter
     @NoArgsConstructor
     @EqualsAndHashCode(callSuper = true)
-    static class ExpendedRegion extends Region implements ExpendedParameter {
-        public ExpendedRegion(String name, String label) {
+    static class ExpandedRegion extends Region implements ExpandedParameter {
+        public ExpandedRegion(String name, String label) {
             super(name, label);
         }
     }
