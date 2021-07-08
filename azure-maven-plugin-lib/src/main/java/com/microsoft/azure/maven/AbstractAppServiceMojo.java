@@ -96,7 +96,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      * Deployment Slot. It will be created if it does not exist.
      * It requires the web app exists already.
      */
-    @JsonProperty
+    @JsonProperty("deploymentSlot")
     @Parameter(alias = "deploymentSlot")
     protected DeploymentSlotSetting deploymentSlotSetting;
 
