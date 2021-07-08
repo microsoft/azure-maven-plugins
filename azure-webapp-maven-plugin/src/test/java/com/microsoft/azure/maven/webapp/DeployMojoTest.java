@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
