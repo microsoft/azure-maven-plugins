@@ -22,6 +22,8 @@ import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.ExpandedParameter;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -34,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
@@ -45,11 +48,11 @@ public class ConfigParser {
         this.mojo = mojo;
     }
 
-    public String getAppName() throws AzureExecutionException {
+    public String getAppName() {
         return mojo.getAppName();
     }
 
-    public String getResourceGroup() throws AzureExecutionException {
+    public String getResourceGroup() {
         return mojo.getResourceGroup();
     }
 
@@ -61,15 +64,22 @@ public class ConfigParser {
         return mojo.getDeploymentSlotSetting() == null ? null : mojo.getDeploymentSlotSetting().getConfigurationSource();
     }
 
-    public PricingTier getPricingTier() throws AzureExecutionException {
-        return PricingTier.fromString(mojo.getPricingTier());
+    public PricingTier getPricingTier() {
+        return parseExpandableParameter(input -> {
+            if (StringUtils.contains(mojo.getPricingTier(), "_")) {
+                final String[] pricingParams = mojo.getPricingTier().split("_");
+                return PricingTier.fromString(pricingParams[0], pricingParams[1]);
+            } else {
+                return PricingTier.fromString(mojo.getPricingTier());
+            }
+        }, mojo.getPricingTier());
     }
 
-    public String getAppServicePlanName() throws AzureExecutionException {
+    public String getAppServicePlanName() {
         return mojo.getAppServicePlanName();
     }
 
-    public String getAppServicePlanResourceGroup() throws AzureExecutionException {
+    public String getAppServicePlanResourceGroup() {
         return mojo.getAppServicePlanResourceGroup();
     }
 
@@ -77,8 +87,8 @@ public class ConfigParser {
         return mojo.getSubscriptionId();
     }
 
-    public Region getRegion() throws AzureExecutionException {
-        return Region.fromName(mojo.getRegion());
+    public Region getRegion() {
+        return parseExpandableParameter(Region::fromName, mojo.getRegion());
     }
 
     public DockerConfiguration getDockerConfiguration() throws AzureExecutionException {
@@ -100,7 +110,7 @@ public class ConfigParser {
 
     public List<WebAppArtifact> getMavenArtifacts() throws AzureExecutionException {
         if (mojo.getDeployment() == null || mojo.getDeployment().getResources() == null) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         return convertResourceToArtifacts(mojo.getDeployment().getResources());
     }
@@ -114,12 +124,12 @@ public class ConfigParser {
         if (os == OperatingSystem.DOCKER) {
             return Runtime.DOCKER;
         }
-        final JavaVersion javaVersion = JavaVersion.fromString(runtime.getJavaVersionRaw());
-        final WebContainer webContainer = WebContainer.fromString(runtime.getWebContainerRaw());
+        final JavaVersion javaVersion = parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersionRaw());
+        final WebContainer webContainer = parseExpandableParameter(WebContainer::fromString, runtime.getWebContainerRaw());
         return Runtime.getRuntime(os, webContainer, javaVersion);
     }
 
-    private OperatingSystem getOs(final MavenRuntimeConfig runtime) throws AzureExecutionException {
+    private OperatingSystem getOs(final MavenRuntimeConfig runtime) {
         return OperatingSystem.fromString(runtime.getOs());
     }
 
@@ -155,6 +165,14 @@ public class ConfigParser {
         } catch (Throwable ex) {
             throw new AzureExecutionException(String.format("Cannot parse deployment resources due to error: %s.", ex.getMessage()), ex);
         }
+    }
+
+    private static <T> T parseExpandableParameter(Function<String, T> parser, String input) {
+        final T result = parser.apply(input);
+        if (result instanceof ExpandedParameter) {
+            AzureMessager.getMessager().warning(String.format("'%s' may not be a valid %s", input, ((ExpandedParameter) result).type().getSimpleName()));
+        }
+        return result;
     }
 
     private static List<WebAppArtifact> convertResourceToArtifacts(DeploymentResource resource) throws AzureToolkitRuntimeException {

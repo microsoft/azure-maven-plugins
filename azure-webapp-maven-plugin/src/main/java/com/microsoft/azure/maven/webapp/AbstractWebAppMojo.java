@@ -142,6 +142,10 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
 
     @JsonIgnore
     private boolean isRuntimeInjected = false;
+
+    @JsonIgnore
+    private WebAppConfig config;
+
     //endregion
 
     //region Getter
@@ -260,9 +264,11 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         }
     }
 
-    protected WebAppConfig getWebAppConfig() throws AzureExecutionException {
-        final ConfigParser parser = new ConfigParser(this);
-        return parser.parse();
+    protected synchronized WebAppConfig getWebAppConfig() throws AzureExecutionException {
+        if (config == null) {
+            config = new ConfigParser(this).parse();
+        }
+        return config;
     }
 
     @Override

@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.common.model.ExpendedParameter;
+import com.microsoft.azure.toolkit.lib.common.model.ExpandedParameter;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -85,7 +85,7 @@ public class JavaVersion {
         }
         return values().stream()
                 .filter(javaVersion -> StringUtils.equalsIgnoreCase(version, javaVersion.getValue()))
-                .findFirst().orElse(new ExpendedJavaVersion(input));
+                .findFirst().orElse(new ExpandedJavaVersion(input));
     }
 
     @Override
@@ -123,8 +123,8 @@ public class JavaVersion {
     @Setter
     @NoArgsConstructor
     @EqualsAndHashCode(callSuper = true)
-    static class ExpendedJavaVersion extends JavaVersion implements ExpendedParameter {
-        public ExpendedJavaVersion(String value){
+    static class ExpandedJavaVersion extends JavaVersion implements ExpandedParameter {
+        public ExpandedJavaVersion(String value){
             super(value);
         }
     }

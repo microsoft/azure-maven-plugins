@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.common.model.ExpendedParameter;
+import com.microsoft.azure.toolkit.lib.common.model.ExpandedParameter;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -74,7 +74,7 @@ public class WebContainer {
         }
         return values().stream()
             .filter(webContainer -> StringUtils.equalsIgnoreCase(input, webContainer.value))
-            .findFirst().orElse(new ExpendedWebContainer(input));
+            .findFirst().orElse(new ExpandedWebContainer(input));
     }
 
     @Override
@@ -110,8 +110,8 @@ public class WebContainer {
     @Setter
     @NoArgsConstructor
     @EqualsAndHashCode(callSuper = true)
-    static class ExpendedWebContainer extends WebContainer implements ExpendedParameter {
-        public ExpendedWebContainer(String value){
+    static class ExpandedWebContainer extends WebContainer implements ExpandedParameter {
+        public ExpandedWebContainer(String value){
             super(value);
         }
     }
