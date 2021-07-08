@@ -7,8 +7,12 @@
 package com.microsoft.azure.toolkit.lib.springcloud.config;
 
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentInstanceEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.ScaleSettings;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
+import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -19,9 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,10 +61,10 @@ public class SpringCloudDeploymentConfig {
 
     public ScaleSettings getScaleSettings() {
         return ScaleSettings.builder()
-            .capacity(instanceCount)
-            .cpu(cpu)
-            .memoryInGB(memoryInGB)
-            .build();
+                .capacity(instanceCount)
+                .cpu(cpu)
+                .memoryInGB(memoryInGB)
+                .build();
     }
 
     public String getJavaVersion() {
@@ -76,4 +84,19 @@ public class SpringCloudDeploymentConfig {
             return DEFAULT_RUNTIME_VERSION;
         }
     }
+
+    public static SpringCloudDeploymentConfig fromDeployment(@Nonnull SpringCloudDeploymentEntity deploymentEntity) { // get config from deployment
+        final List<SpringCloudDeploymentInstanceEntity> instances = deploymentEntity.getInstances();
+        final SpringCloudPersistentDisk disk = deploymentEntity.getApp().getPersistentDisk();
+        final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.builder().build();
+        deploymentConfig.setRuntimeVersion(deploymentEntity.getRuntimeVersion());
+        deploymentConfig.setEnablePersistentStorage(Objects.nonNull(disk) && disk.getSizeInGB() > 0);
+        deploymentConfig.setCpu(deploymentEntity.getCpu());
+        deploymentConfig.setMemoryInGB(deploymentEntity.getMemoryInGB());
+        deploymentConfig.setInstanceCount(instances.size());
+        deploymentConfig.setJvmOptions(Optional.ofNullable(deploymentEntity.getJvmOptions()).map(String::trim).orElse(""));
+        deploymentConfig.setEnvironment(Optional.ofNullable(deploymentEntity.getEnvironmentVariables()).orElse(new HashMap<>()));
+        return deploymentConfig;
+    }
+
 }

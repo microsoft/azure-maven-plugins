@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import lombok.Getter;
 import org.apache.http.HttpStatus;
 
@@ -75,6 +76,11 @@ public class SpringCloudCluster extends AbstractAzureEntityManager<SpringCloudCl
     @Nonnull
     public SpringCloudApp app(@Nonnull SpringCloudAppEntity app) {
         return new SpringCloudApp(app, this);
+    }
+
+    @Nonnull
+    public SpringCloudApp app(@Nonnull SpringCloudAppConfig config) {
+        return this.app(new SpringCloudAppEntity(config, this.entity));
     }
 
     @Nonnull

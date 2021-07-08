@@ -26,21 +26,30 @@ import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.ExternalChildResource;
 import com.microsoft.azure.toolkit.lib.springcloud.AbstractAzureEntityManager.RemoteAwareResourceEntity;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 @Getter
 public class SpringCloudAppEntity extends RemoteAwareResourceEntity<SpringApp> {
     private final SpringCloudClusterEntity cluster;
     private final String name;
+    private SpringCloudAppConfig config;
 
     public SpringCloudAppEntity(@Nonnull final String name, @Nonnull final SpringCloudClusterEntity cluster) {
         this.name = name;
+        this.cluster = cluster;
+    }
+
+    public SpringCloudAppEntity(@Nonnull final SpringCloudAppConfig config, @Nonnull final SpringCloudClusterEntity cluster) {
+        this.config = config;
+        this.name = config.getAppName();
         this.cluster = cluster;
     }
 
@@ -51,7 +60,13 @@ public class SpringCloudAppEntity extends RemoteAwareResourceEntity<SpringApp> {
     }
 
     public boolean isPublic() {
-        return Optional.ofNullable(this.remote).map(SpringApp::isPublic).orElse(false);
+        if (Objects.nonNull(this.remote)) {
+            return this.remote.isPublic();
+        }
+        if (Objects.nonNull(this.config)) {
+            return this.config.isPublic();
+        }
+        return false;
     }
 
     @Nullable
@@ -91,6 +106,12 @@ public class SpringCloudAppEntity extends RemoteAwareResourceEntity<SpringApp> {
                         .mountPath(disk.mountPath())
                         .usedInGB(disk.usedInGB()).build())
                 .orElse(null);
+    }
+
+    public SpringCloudDeploymentEntity activeDeployment() {
+        return Optional.ofNullable(this.remote).map(SpringApp::getActiveDeployment)
+                .map(d -> new SpringCloudDeploymentEntity(d, this))
+                .orElse(new SpringCloudDeploymentEntity("default", this));
     }
 
     @Override
