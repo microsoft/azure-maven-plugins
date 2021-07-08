@@ -108,6 +108,12 @@ public class SpringCloudAppEntity extends RemoteAwareResourceEntity<SpringApp> {
                 .orElse(null);
     }
 
+    public SpringCloudDeploymentEntity activeDeployment() {
+        return Optional.ofNullable(this.remote).map(SpringApp::getActiveDeployment)
+                .map(d -> new SpringCloudDeploymentEntity(d, this))
+                .orElse(new SpringCloudDeploymentEntity("default", this));
+    }
+
     @Override
     @Nonnull
     public String getSubscriptionId() {
