@@ -85,7 +85,8 @@
       "type": "object",
       "properties": {
         "name": {
-          "$ref": "#/definitions/non-empty-string"
+          "type": "string",
+          "pattern": "^[A-Za-z0-9-]{1,60}$"
         },
         "configurationSource": {
           "$ref": "#/definitions/non-empty-string"
