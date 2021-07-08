@@ -131,13 +131,11 @@ public class DeployMojo extends AbstractFunctionMojo {
             "it only allow alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period.";
     private static final String EMPTY_SLOT_NAME = "Please config the <name> of <deploymentSlot> in pom.xml";
     private static final String INVALID_SLOT_NAME = "Invalid value of <name> inside <deploymentSlot> in pom.xml, it needs to match the pattern '%s'";
-    private static final String INVALID_REGION = "The value of <region> is not supported, please correct it in pom.xml.";
     private static final String EMPTY_IMAGE_NAME = "Please config the <image> of <runtime> in pom.xml.";
     private static final String INVALID_OS = "The value of <os> is not correct, supported values are: windows, linux and docker.";
-    private static final String INVALID_JAVA_VERSION = "Unsupported value %s for <javaVersion> in pom.xml";
-    private static final String INVALID_PRICING_TIER = "Unsupported value %s for <pricingTier> in pom.xml";
     private static final String FAILED_TO_LIST_TRIGGERS = "Deployment succeeded, but failed to list http trigger urls.";
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
+    private static final String EXPANDABLE_PARAMETER_WARNING = "'%s' may not be a valid %s";
 
     private AzureAppService az;
 
@@ -195,20 +193,21 @@ public class DeployMojo extends AbstractFunctionMojo {
             throw new AzureToolkitRuntimeException(String.format(INVALID_SLOT_NAME, SLOT_NAME_PATTERN));
         }
         // region
-        if (StringUtils.isNotEmpty(region) && Region.fromName(region) == null) {
-            throw new AzureToolkitRuntimeException(INVALID_REGION);
+        if (StringUtils.isNotEmpty(region) && Region.fromName(region).isExpandedValue()) {
+            AzureMessager.getMessager().warning(String.format(EXPANDABLE_PARAMETER_WARNING, region, Region.class.getSimpleName()));
+
         }
         // os
         if (StringUtils.isNotEmpty(runtime.getOs()) && OperatingSystem.fromString(runtime.getOs()) == null) {
             throw new AzureToolkitRuntimeException(INVALID_OS);
         }
         // java version
-        if (StringUtils.isNotEmpty(runtime.getJavaVersion()) && JavaVersion.fromString(runtime.getJavaVersion()) == JavaVersion.OFF) {
-            throw new AzureToolkitRuntimeException(String.format(INVALID_JAVA_VERSION, runtime.getJavaVersion()));
+        if (StringUtils.isNotEmpty(runtime.getJavaVersion()) && JavaVersion.fromString(runtime.getJavaVersion()).isExpandedValue()) {
+            AzureMessager.getMessager().warning(String.format(EXPANDABLE_PARAMETER_WARNING, runtime.getJavaVersion(), JavaVersion.class.getSimpleName()));
         }
         // pricing tier
-        if (StringUtils.isNotEmpty(pricingTier) && PricingTier.fromString(pricingTier) == null) {
-            throw new AzureToolkitRuntimeException(String.format(INVALID_PRICING_TIER, pricingTier));
+        if (StringUtils.isNotEmpty(pricingTier) && PricingTier.fromString(pricingTier).isExpandedValue()) {
+            AzureMessager.getMessager().warning(String.format(EXPANDABLE_PARAMETER_WARNING, pricingTier, PricingTier.class.getSimpleName()));
         }
         // docker image
         if (OperatingSystem.fromString(runtime.getOs()) == OperatingSystem.DOCKER && StringUtils.isEmpty(runtime.getImage())) {
