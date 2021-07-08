@@ -57,9 +57,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.microsoft.azure.maven.webapp.utils.Utils.findStringInCollectionIgnoreCase;
-import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.APP_NAME_PATTERN;
-import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.RESOURCE_GROUP_PATTERN;
-import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.SUBSCRIPTION_ID_PATTERN;
 
 /**
  * Init or edit the configuration of azure webapp maven plugin.
@@ -72,6 +69,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static final String PRICING_TIER_PROMPT = "Define value for pricingTier [%s]:";
     private static final String NOT_EMPTY_REGEX = "[\\s\\S]+";
     private static final String BOOLEAN_REGEX = "[YyNn]";
+    public static final String SUBSCRIPTION_ID_PATTERN = "[a-fA-F0-9\\-]{30,36}";
+    public static final String APP_NAME_PATTERN = "[a-zA-Z0-9\\-]{2,60}";
+    public static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9\\.\\_\\-\\(\\)]{1,90}";
+    public static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
 
     private static final String CONFIG_ONLY_SUPPORT_V2 = "Config only support V2 schema";
     private static final String CHANGE_OS_WARNING = "The plugin may not work if you change the os of an existing " +
@@ -315,7 +316,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         final String defaultSlotName = deploymentSlotSetting == null ? String.format("%s-slot",
                 configuration.getAppName()) : deploymentSlotSetting.getName();
-        final String slotName = queryer.assureInputFromUser("slotName", defaultSlotName, NOT_EMPTY_REGEX,
+        final String slotName = queryer.assureInputFromUser("slotName", defaultSlotName, SLOT_NAME_PATTERN,
                 null, null);
 
         final String defaultConfigurationSource = deploymentSlotSetting == null ? null :
