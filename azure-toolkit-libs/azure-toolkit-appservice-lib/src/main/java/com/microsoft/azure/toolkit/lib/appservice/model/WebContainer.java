@@ -5,9 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.common.model.ExpandedParameter;
+import com.microsoft.azure.toolkit.lib.common.model.ExpandableParameter;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,7 +21,7 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class WebContainer {
+public class WebContainer implements ExpandableParameter {
     private static final String JAVA = "Java";
     private static final String JAVA_8 = "Java 8";
     private static final String JAVA_11 = "Java 11";
@@ -74,7 +73,7 @@ public class WebContainer {
         }
         return values().stream()
             .filter(webContainer -> StringUtils.equalsIgnoreCase(input, webContainer.value))
-            .findFirst().orElse(new ExpandedWebContainer(input));
+            .findFirst().orElse(new WebContainer(input));
     }
 
     @Override
@@ -106,13 +105,8 @@ public class WebContainer {
         return StringUtils.capitalize(StringUtils.lowerCase(value));
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @EqualsAndHashCode(callSuper = true)
-    static class ExpandedWebContainer extends WebContainer implements ExpandedParameter {
-        public ExpandedWebContainer(String value){
-            super(value);
-        }
+    @Override
+    public boolean isExpandedValue() {
+        return !values().contains(this);
     }
 }

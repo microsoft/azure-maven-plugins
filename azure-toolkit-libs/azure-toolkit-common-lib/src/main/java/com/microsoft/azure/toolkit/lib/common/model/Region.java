@@ -20,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class Region {
+public class Region implements ExpandableParameter {
     public static final Region US_EAST = new Region("eastus", "East US");
     public static final Region US_EAST2 = new Region("eastus2", "East US 2");
     public static final Region US_SOUTH_CENTRAL = new Region("southcentralus", "South Central US");
@@ -96,7 +96,7 @@ public class Region {
     public static Region fromName(@Nonnull String value) {
         return values().stream()
                 .filter(region -> StringUtils.equalsAnyIgnoreCase(value, region.name, region.label))
-                .findFirst().orElse(new ExpandedRegion(value, value));
+                .findFirst().orElse(new Region(value, value));
     }
 
     @Override
@@ -104,13 +104,8 @@ public class Region {
         return name;
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @EqualsAndHashCode(callSuper = true)
-    static class ExpandedRegion extends Region implements ExpandedParameter {
-        public ExpandedRegion(String name, String label) {
-            super(name, label);
-        }
+    @Override
+    public boolean isExpandedValue() {
+        return !values().contains(this);
     }
 }

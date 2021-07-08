@@ -5,9 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.common.model.ExpandedParameter;
+import com.microsoft.azure.toolkit.lib.common.model.ExpandableParameter;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,7 +26,7 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PricingTier {
+public class PricingTier implements ExpandableParameter {
     public static final PricingTier BASIC_B1 = new PricingTier("Basic", "B1");
     public static final PricingTier BASIC_B2 = new PricingTier("Basic", "B2");
     public static final PricingTier BASIC_B3 = new PricingTier("Basic", "B3");
@@ -79,7 +78,7 @@ public class PricingTier {
         return values().stream()
                 .filter(pricingTier -> StringUtils.equalsIgnoreCase(size, pricingTier.size) &&
                         (StringUtils.isEmpty(tier) || StringUtils.equals(tier, pricingTier.tier)))
-                .findFirst().orElseGet(() -> new ExpandedPricingTier(tier, size));
+                .findFirst().orElseGet(() -> new PricingTier(tier, size));
     }
 
     @Override
@@ -107,13 +106,8 @@ public class PricingTier {
         return this.getSize();
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @EqualsAndHashCode(callSuper = true)
-    static class ExpandedPricingTier extends PricingTier implements ExpandedParameter {
-        public ExpandedPricingTier(String tier, String size) {
-            super(tier, size);
-        }
+    @Override
+    public boolean isExpandedValue() {
+        return !values().contains(this);
     }
 }

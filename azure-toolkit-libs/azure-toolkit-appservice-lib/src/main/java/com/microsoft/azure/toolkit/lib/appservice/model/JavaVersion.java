@@ -5,9 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.common.model.ExpandedParameter;
+import com.microsoft.azure.toolkit.lib.common.model.ExpandableParameter;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,7 +21,7 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class JavaVersion {
+public class JavaVersion implements ExpandableParameter {
     private static final String JAVA_7_VALUE = "Java 7";
     private static final String JAVA_7_VALUE_TRIM = "Java7";
     private static final String JAVA_8_VALUE = "Java 8";
@@ -85,7 +84,7 @@ public class JavaVersion {
         }
         return values().stream()
                 .filter(javaVersion -> StringUtils.equalsIgnoreCase(version, javaVersion.getValue()))
-                .findFirst().orElse(new ExpandedJavaVersion(input));
+                .findFirst().orElse(new JavaVersion(input));
     }
 
     @Override
@@ -119,13 +118,8 @@ public class JavaVersion {
         return this.value;
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @EqualsAndHashCode(callSuper = true)
-    static class ExpandedJavaVersion extends JavaVersion implements ExpandedParameter {
-        public ExpandedJavaVersion(String value){
-            super(value);
-        }
+    @Override
+    public boolean isExpandedValue() {
+        return !values().contains(this);
     }
 }
