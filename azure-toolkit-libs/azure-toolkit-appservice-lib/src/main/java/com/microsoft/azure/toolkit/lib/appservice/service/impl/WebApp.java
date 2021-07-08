@@ -157,15 +157,15 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
                                                         Runtime runtime) {
             return (DefinitionStages.WithCreate) blank.withExistingWindowsPlan(appServicePlan)
                 .withExistingResourceGroup(resourceGroup)
-                .withJavaVersion(AppServiceUtils.toWindowsJavaVersion(runtime))
-                .withWebContainer(AppServiceUtils.toWindowsWebContainer(runtime));
+                .withJavaVersion(AppServiceUtils.toJavaVersion(runtime))
+                .withWebContainer(AppServiceUtils.toWebContainer(runtime));
         }
 
         DefinitionStages.WithCreate createLinuxWebApp(DefinitionStages.Blank blank, ResourceGroup resourceGroup, AppServicePlan appServicePlan,
                                                       Runtime runtime) {
             return blank.withExistingLinuxPlan(appServicePlan)
                 .withExistingResourceGroup(resourceGroup)
-                .withBuiltInImage(AppServiceUtils.toLinuxRuntimeStack(runtime));
+                .withBuiltInImage(AppServiceUtils.toRuntimeStack(runtime));
         }
 
         DefinitionStages.WithCreate createDockerWebApp(DefinitionStages.Blank blank, ResourceGroup resourceGroup, AppServicePlan appServicePlan,
@@ -247,10 +247,10 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             final OperatingSystem operatingSystem = ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), current.getOperatingSystem());
             switch (operatingSystem) {
                 case LINUX:
-                    return update.withBuiltInImage(AppServiceUtils.toLinuxRuntimeStack(newRuntime));
+                    return update.withBuiltInImage(AppServiceUtils.toRuntimeStack(newRuntime));
                 case WINDOWS:
-                    return (Update) update.withJavaVersion(AppServiceUtils.toWindowsJavaVersion(newRuntime))
-                        .withWebContainer(AppServiceUtils.toWindowsWebContainer(newRuntime));
+                    return (Update) update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime))
+                        .withWebContainer(AppServiceUtils.toWebContainer(newRuntime));
                 case DOCKER:
                     final DockerConfiguration dockerConfiguration = getDockerConfiguration().get();
                     final com.azure.resourcemanager.appservice.models.WebApp.UpdateStages.WithStartUpCommand withStartUpCommand;

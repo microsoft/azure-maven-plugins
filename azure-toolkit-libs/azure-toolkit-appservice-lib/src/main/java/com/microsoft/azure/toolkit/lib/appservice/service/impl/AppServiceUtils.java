@@ -94,12 +94,17 @@ class AppServiceUtils {
         return Runtime.getRuntime(OperatingSystem.WINDOWS, webContainer, javaVersion);
     }
 
-    static RuntimeStack toLinuxRuntimeStack(Runtime runtime) {
+    static RuntimeStack toRuntimeStack(Runtime runtime) {
         return RuntimeStack.getAll().stream().filter(runtimeStack -> {
             final Runtime stackRuntime = Runtime.getRuntimeFromLinuxFxVersion(runtimeStack.toString());
             return Objects.equals(stackRuntime.getJavaVersion(), runtime.getJavaVersion()) &&
-                Objects.equals(stackRuntime.getWebContainer(), runtime.getWebContainer());
-        }).findFirst().orElse(null);
+                    Objects.equals(stackRuntime.getWebContainer(), runtime.getWebContainer());
+        }).findFirst().orElseGet(() -> {
+            final String[] containerInfo = runtime.getWebContainer().getValue().split(" ");
+            final String stack = containerInfo[0];
+            final String version = String.format("%s-java%s", containerInfo[1], runtime.getJavaVersion().getValue());
+            return new RuntimeStack(stack, version);
+        });
     }
 
     static FunctionRuntimeStack toFunctionRuntimeStack(@Nonnull Runtime runtime) {
@@ -109,21 +114,20 @@ class AppServiceUtils {
         return runtime.getJavaVersion() == JavaVersion.JAVA_8 ? FunctionRuntimeStack.JAVA_8 : FunctionRuntimeStack.JAVA_11;
     }
 
-    static com.azure.resourcemanager.appservice.models.WebContainer toWindowsWebContainer(Runtime runtime) {
+    static com.azure.resourcemanager.appservice.models.WebContainer toWebContainer(Runtime runtime) {
         if (runtime.getWebContainer() == WebContainer.JAVA_SE) {
             return StringUtils.startsWith(runtime.getJavaVersion().getValue(), JavaVersion.JAVA_8.getValue()) ?
-                com.azure.resourcemanager.appservice.models.WebContainer.JAVA_8 :
-                com.azure.resourcemanager.appservice.models.WebContainer.fromString("java 11");
+                    com.azure.resourcemanager.appservice.models.WebContainer.JAVA_8 :
+                    com.azure.resourcemanager.appservice.models.WebContainer.fromString("java 11");
         }
         return com.azure.resourcemanager.appservice.models.WebContainer.values().stream()
-            .filter(container -> StringUtils.equalsIgnoreCase(container.toString(), runtime.getWebContainer().getValue()))
-            .findFirst().orElse(null);
+                .filter(container -> StringUtils.equalsIgnoreCase(container.toString(), runtime.getWebContainer().getValue()))
+                .findFirst()
+                .orElseGet(() -> com.azure.resourcemanager.appservice.models.WebContainer.fromString(runtime.getWebContainer().getValue()));
     }
 
-    static com.azure.resourcemanager.appservice.models.JavaVersion toWindowsJavaVersion(Runtime runtime) {
-        return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
-            .filter(serviceVersion -> StringUtils.equalsIgnoreCase(serviceVersion.toString(), runtime.getJavaVersion().getValue()))
-            .findFirst().orElse(null);
+    static com.azure.resourcemanager.appservice.models.JavaVersion toJavaVersion(Runtime runtime) {
+        return toJavaVersion(runtime.getJavaVersion());
     }
 
     static PublishingProfile fromPublishingProfile(com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile) {
@@ -143,9 +147,10 @@ class AppServiceUtils {
 
     static PricingTier fromPricingTier(com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
         return PricingTier.values().stream()
-            .filter(value -> StringUtils.equalsIgnoreCase(value.getSize(), pricingTier.toSkuDescription().size()) &&
-                StringUtils.equalsIgnoreCase(value.getTier(), pricingTier.toSkuDescription().tier()))
-            .findFirst().orElse(null);
+                .filter(value -> StringUtils.equalsIgnoreCase(value.getSize(), pricingTier.toSkuDescription().size()) &&
+                        StringUtils.equalsIgnoreCase(value.getTier(), pricingTier.toSkuDescription().tier()))
+                .findFirst()
+                .orElseGet(() -> PricingTier.fromString(pricingTier.toSkuDescription().tier(), pricingTier.toSkuDescription().size()));
     }
 
     static OperatingSystem fromOperatingSystem(com.azure.resourcemanager.appservice.models.OperatingSystem operatingSystem) {
@@ -155,15 +160,13 @@ class AppServiceUtils {
     }
 
     static JavaVersion fromJavaVersion(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
-        return javaVersion == null ? JavaVersion.OFF : JavaVersion.values().stream()
-                .filter(value -> StringUtils.equalsIgnoreCase(value.getValue(), javaVersion.toString()))
-                .findFirst().orElse(JavaVersion.OFF);
+        return javaVersion == null ? JavaVersion.OFF : JavaVersion.fromString(javaVersion.toString());
     }
 
     static com.azure.resourcemanager.appservice.models.JavaVersion toJavaVersion(JavaVersion javaVersion) {
         return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
-            .filter(value -> StringUtils.equalsIgnoreCase(value.toString(), javaVersion.getValue()))
-            .findFirst().orElse(null);
+                .filter(value -> StringUtils.equalsIgnoreCase(value.toString(), javaVersion.getValue()))
+                .findFirst().orElseGet(() -> com.azure.resourcemanager.appservice.models.JavaVersion.fromString(javaVersion.getValue()));
     }
 
     static FunctionAppEntity fromFunctionApp(FunctionApp functionApp) {
@@ -300,7 +303,8 @@ class AppServiceUtils {
         return builder.build();
     }
 
-    static void defineDiagnosticConfigurationForWebAppBase(final WebAppBase.DefinitionStages.WithCreate withCreate, final DiagnosticConfig diagnosticConfig) {
+    static <T extends WebAppBase> void defineDiagnosticConfigurationForWebAppBase(final WebAppBase.DefinitionStages.WithCreate<T> withCreate,
+                                                                                  final DiagnosticConfig diagnosticConfig) {
         if (diagnosticConfig.isEnableApplicationLog()) {
             withCreate.defineDiagnosticLogsConfiguration()
                     .withApplicationLogging()
@@ -317,8 +321,8 @@ class AppServiceUtils {
         }
     }
 
-    static void updateDiagnosticConfigurationForWebAppBase(final WebAppBase.Update update, final DiagnosticConfig diagnosticConfig) {
-        final WebAppDiagnosticLogs.UpdateStages.Blank<WebAppBase.Update> blank = update.updateDiagnosticLogsConfiguration();
+    static <T extends WebAppBase> void updateDiagnosticConfigurationForWebAppBase(final WebAppBase.Update<T> update, final DiagnosticConfig diagnosticConfig) {
+        final WebAppDiagnosticLogs.UpdateStages.Blank<WebAppBase.Update<T>> blank = update.updateDiagnosticLogsConfiguration();
         if (diagnosticConfig.isEnableApplicationLog()) {
             blank.withApplicationLogging()
                     .withLogLevel(com.azure.resourcemanager.appservice.models.LogLevel.fromString(diagnosticConfig.getApplicationLogLevel().getValue()))
@@ -343,13 +347,15 @@ class AppServiceUtils {
         if (!(config instanceof Map)) {
             return null;
         }
-        final Map envelopeConfigMap = (Map) config;
+        final Map<?, ?> envelopeConfigMap = (Map<?, ?>) config;
         final String scriptFile = (String) (envelopeConfigMap).get(SCRIPT_FILE);
         final String entryPoint = (String) (envelopeConfigMap).get(ENTRY_POINT);
-        final Object bindingListObject = ((Map) config).get(BINDINGS);
+        final Object bindingListObject = envelopeConfigMap.get(BINDINGS);
         final List<FunctionEntity.BindingEntity> bindingEntities =
-                (List<FunctionEntity.BindingEntity>) Optional.ofNullable(bindingListObject instanceof List ? (List) bindingListObject : null)
-                        .map(list -> list.stream().filter(item -> item instanceof Map).map(map -> fromJsonBinding((Map) map)).collect(Collectors.toList()))
+                Optional.ofNullable(bindingListObject instanceof List<?> ? (List<?>) bindingListObject : null)
+                        .map(list -> list.stream().filter(item -> item instanceof Map)
+                                .map(map -> fromJsonBinding((Map<String, String>) map))
+                                .collect(Collectors.toList()))
                         .orElse(Collections.emptyList());
         return FunctionEntity.builder()
                 .name(getFunctionTriggerName(functionEnvelope))
@@ -368,11 +374,11 @@ class AppServiceUtils {
         return splitNames.length > 1 ? splitNames[1] : fullName;
     }
 
-    private static FunctionEntity.BindingEntity fromJsonBinding(Map bindingProperties) {
+    private static FunctionEntity.BindingEntity fromJsonBinding(Map<String, String> bindingProperties) {
         return FunctionEntity.BindingEntity.builder()
-                .type((String) bindingProperties.get("type"))
-                .direction((String) bindingProperties.get("direction"))
-                .name((String) bindingProperties.get("name"))
+                .type(bindingProperties.get("type"))
+                .direction(bindingProperties.get("direction"))
+                .name(bindingProperties.get("name"))
                 .properties(bindingProperties).build();
     }
 
