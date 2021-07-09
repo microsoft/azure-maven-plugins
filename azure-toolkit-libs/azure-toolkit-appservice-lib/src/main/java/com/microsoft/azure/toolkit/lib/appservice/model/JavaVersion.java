@@ -95,8 +95,11 @@ public class JavaVersion implements ExpandableParameter {
         if (!(o instanceof JavaVersion)) {
             return false;
         }
-        final JavaVersion that = (JavaVersion) o;
-        return Objects.equals(value, that.value);
+        // users may get javaVersion by setTier/Size, which will skip the parse step in fromString, so compare the parsed value in equals
+        // todo: update the implement once we find solution to serialize parameters without public setter/constructor
+        final JavaVersion current = JavaVersion.fromString(value);
+        final JavaVersion toCompare = JavaVersion.fromString(((JavaVersion) o).value);
+        return StringUtils.equals(current.value, toCompare.value);
     }
 
     @Override

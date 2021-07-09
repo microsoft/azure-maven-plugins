@@ -84,8 +84,10 @@ public class WebContainer implements ExpandableParameter {
         if (target == null || getClass() != target.getClass()) {
             return false;
         }
-        final WebContainer that = (WebContainer) target;
-        return Objects.equals(value, that.value);
+        // todo: update the implement once we find solution to serialize parameters without public setter/constructor
+        final WebContainer current = WebContainer.fromString(value);
+        final WebContainer toCompare = WebContainer.fromString(((WebContainer) target).value);
+        return StringUtils.equals(current.value, toCompare.value);
     }
 
     @Override

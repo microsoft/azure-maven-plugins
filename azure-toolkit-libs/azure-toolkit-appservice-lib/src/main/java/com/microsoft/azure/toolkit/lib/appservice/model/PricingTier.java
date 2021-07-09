@@ -89,8 +89,10 @@ public class PricingTier implements ExpandableParameter {
         if (!(o instanceof PricingTier)) {
             return false;
         }
-        final PricingTier that = (PricingTier) o;
-        return Objects.equals(tier, that.tier) && Objects.equals(size, that.size);
+        // todo: update the implement once we find solution to serialize parameters without public setter/constructor
+        final PricingTier current = PricingTier.fromString(this.tier, this.size);
+        final PricingTier target = PricingTier.fromString(((PricingTier) o).tier, ((PricingTier) o).size);
+        return StringUtils.equalsIgnoreCase(current.tier, target.tier) && StringUtils.equalsIgnoreCase(current.size, target.size);
     }
 
     @Override
