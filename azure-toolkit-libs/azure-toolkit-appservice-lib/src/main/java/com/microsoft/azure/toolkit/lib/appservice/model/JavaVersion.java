@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
+import com.google.common.collect.Sets;
 import com.microsoft.azure.toolkit.lib.common.model.ExpandableParameter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,10 +13,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -55,13 +55,13 @@ public class JavaVersion implements ExpandableParameter {
     public static final JavaVersion JAVA_ZULU_1_8_0_202 = new JavaVersion("1.8.0_202_ZULU");
     public static final JavaVersion JAVA_ZULU_11_0_2 = new JavaVersion("11.0.2_ZULU");
 
-    private static final List<JavaVersion> values = Collections.unmodifiableList(Arrays.asList(OFF, JAVA_7, JAVA_1_7_0_51, JAVA_1_7_0_71, JAVA_1_7_0_80,
+    private static final Set<JavaVersion> values = Collections.unmodifiableSet(Sets.newHashSet(OFF, JAVA_7, JAVA_1_7_0_51, JAVA_1_7_0_71, JAVA_1_7_0_80,
             JAVA_ZULU_1_7_0_191, JAVA_8, JAVA_1_8_0_25, JAVA_1_8_0_60, JAVA_1_8_0_73, JAVA_1_8_0_111, JAVA_1_8_0_144, JAVA_1_8_0_172, JAVA_ZULU_1_8_0_172,
             JAVA_ZULU_1_8_0_92, JAVA_ZULU_1_8_0_102, JAVA_1_8_0_181, JAVA_ZULU_1_8_0_181, JAVA_1_8_0_202, JAVA_ZULU_1_8_0_202, JAVA_11, JAVA_ZULU_11_0_2));
 
     private String value;
 
-    public static List<JavaVersion> values() {
+    public static Set<JavaVersion> values() {
         return values;
     }
 

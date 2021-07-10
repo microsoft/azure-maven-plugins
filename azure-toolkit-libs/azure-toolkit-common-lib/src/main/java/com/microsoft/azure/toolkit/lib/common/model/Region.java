@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.lib.common.model;
 
+import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -12,8 +13,8 @@ import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -80,17 +81,19 @@ public class Region implements ExpandableParameter {
     public static final Region US_EAST2_EUAP = new Region("eastus2euap", "East US 2 EUAP");
     public static final Region INDIA_JIO_WEST = new Region("jioindiawest", "Jio India West");
 
-    private String name;
-    private String label;
-
-    public static List<Region> values() {
-        return Arrays.asList(US_EAST, US_EAST2, US_SOUTH_CENTRAL, US_WEST2, US_CENTRAL, US_NORTH_CENTRAL, US_WEST, US_WEST_CENTRAL, CANADA_CENTRAL,
+    private static final Set<Region> values = Collections.unmodifiableSet(Sets.newHashSet(US_EAST, US_EAST2, US_SOUTH_CENTRAL, US_WEST2, US_CENTRAL, US_NORTH_CENTRAL, US_WEST, US_WEST_CENTRAL, CANADA_CENTRAL,
             CANADA_EAST, BRAZIL_SOUTH, BRAZIL_SOUTHEAST, EUROPE_NORTH, UK_SOUTH, EUROPE_WEST, FRANCE_CENTRAL, GERMANY_WEST_CENTRAL, NORWAY_EAST,
             SWITZERLAND_NORTH, FRANCE_SOUTH, GERMANY_NORTH, NORWAY_WEST, SWITZERLAND_WEST, UK_WEST, AUSTRALIA_EAST, ASIA_SOUTHEAST, INDIA_CENTRAL,
             ASIA_EAST, JAPAN_EAST, KOREA_CENTRAL, AUSTRALIA_CENTRAL, AUSTRALIA_CENTRAL2, AUSTRALIA_SOUTHEAST, JAPAN_WEST, KOREA_SOUTH, INDIA_SOUTH,
             INDIA_WEST, UAE_NORTH, UAE_CENTRAL, SOUTHAFRICA_NORTH, SOUTHAFRICA_WEST, CHINA_NORTH, CHINA_EAST, CHINA_NORTH2, CHINA_EAST2, GERMANY_CENTRAL,
             GERMANY_NORTHEAST, GOV_US_VIRGINIA, GOV_US_IOWA, GOV_US_ARIZONA, GOV_US_TEXAS, GOV_US_DOD_EAST, GOV_US_DOD_CENTRAL, US_WEST3,
-            US_CENTRAL_EUAP, US_EAST2_EUAP, INDIA_JIO_WEST);
+            US_CENTRAL_EUAP, US_EAST2_EUAP, INDIA_JIO_WEST));
+
+    private String name;
+    private String label;
+
+    public static Set<Region> values() {
+        return values;
     }
 
     public static Region fromName(@Nonnull String value) {
