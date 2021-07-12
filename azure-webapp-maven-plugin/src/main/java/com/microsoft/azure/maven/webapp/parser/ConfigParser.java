@@ -155,13 +155,12 @@ public class ConfigParser {
     }
 
     // todo: replace WebAppConfiguration with WebAppConfig
-    public WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {
+    public WebAppConfiguration getWebAppConfiguration() {
         WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = WebAppConfiguration.builder();
         final Runtime runtime = getRuntime();
         final OperatingSystem os = Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null);
         if (os == null) {
-            Log.debug("No runtime related config is specified. " +
-                    "It will cause error if creating a new web app.");
+            Log.debug("No runtime related config is specified. It will cause error if creating a new web app.");
         } else {
             switch (os) {
                 case WINDOWS:
@@ -173,7 +172,7 @@ public class ConfigParser {
                     builder = builder.image(runtimeConfig.getImage()).serverId(runtimeConfig.getServerId()).registryUrl(runtimeConfig.getRegistryUrl());
                     break;
                 default:
-                    throw new AzureExecutionException("Invalid operating system from the configuration.");
+                    Log.debug("Invalid operating system from the configuration.");
             }
         }
         return builder.appName(getAppName())
