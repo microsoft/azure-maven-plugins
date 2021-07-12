@@ -210,9 +210,9 @@ public class ConfigParser {
         }
     }
 
-    private static <T> T parseExpandableParameter(Function<String, T> parser, String input) {
+    private static <T extends ExpandableParameter> T parseExpandableParameter(Function<String, T> parser, String input) {
         final T result = parser.apply(input);
-        if (result instanceof ExpandableParameter && ((ExpandableParameter) result).isExpandedValue()) {
+        if (StringUtils.isNotEmpty(input) && result.isExpandedValue()) {
             AzureMessager.getMessager().warning(String.format("'%s' may not be a valid %s", input, result.getClass().getSimpleName()));
         }
         return result;
