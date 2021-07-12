@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry.Properties;
@@ -44,11 +43,16 @@ public class AzureTelemeter {
     @Getter
     @Setter
     @Nullable
-    private static Map<String, String> commonProperties;
-    @Getter
-    @Setter
+    private static AzureTelemetryClient client;
+
     @Nullable
-    private static TelemetryClient client;
+    public static Map<String, String> getCommonProperties() {
+        return Optional.ofNullable(client).map(AzureTelemetryClient::getDefaultProperties).orElse(null);
+    }
+
+    public static void setCommonProperties(@Nullable Map<String, String> commonProperties) {
+        Optional.ofNullable(client).ifPresent(client -> client.setDefaultProperties(commonProperties));
+    }
 
     public static void afterCreate(@Nonnull final IAzureOperation op) {
         final AzureTelemetry.Context context = AzureTelemetry.getContext(op);
@@ -84,7 +88,6 @@ public class AzureTelemeter {
             properties.putAll(Optional.ofNullable(getCommonProperties()).orElse(new HashMap<>()));
             final String eventName = Optional.ofNullable(getEventNamePrefix()).orElse("AzurePlugin") + "/" + type.name();
             client.trackEvent(eventName, properties, null);
-            client.flush();
         }
     }
 
