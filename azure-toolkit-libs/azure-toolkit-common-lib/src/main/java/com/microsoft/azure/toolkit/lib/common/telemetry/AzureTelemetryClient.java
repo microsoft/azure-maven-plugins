@@ -6,23 +6,14 @@
 package com.microsoft.azure.toolkit.lib.common.telemetry;
 
 import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.applicationinsights.channel.TelemetryChannel;
-import com.microsoft.applicationinsights.channel.concrete.TelemetryChannelBase;
-import com.microsoft.applicationinsights.channel.concrete.inprocess.InProcessTelemetryChannel;
-import com.microsoft.applicationinsights.internal.config.TelemetryConfigurationFactory;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
@@ -37,57 +28,13 @@ public class AzureTelemetryClient {
     private boolean isEnabled = true;     // Telemetry is enabled by default.
 
     public AzureTelemetryClient() {
-        this(Collections.EMPTY_MAP);
+        this(Collections.emptyMap());
     }
 
     public AzureTelemetryClient(@Nonnull final Map<String, String> defaultProperties) {
         this.client = new TelemetryClient();
         this.defaultProperties = new HashMap<>(defaultProperties);
     }
-
-    //      This is a workaround for telemetry issue. ApplicationInsight read configuration file by JAXB, and JAXB parse
-    //      configuration by JAXBContext, but the context model differs in Java 8 and Java 11 during maven execution,
-    //      here is the link https://github.com/Microsoft/ApplicationInsights-Java/issues/674, will remove the code and
-    //      use ai sdk to read configuration file once the issue is fixed
-    private com.microsoft.applicationinsights.TelemetryConfiguration readConfigurationFromFile() {
-        final com.microsoft.applicationinsights.TelemetryConfiguration telemetryConfiguration =
-            new com.microsoft.applicationinsights.TelemetryConfiguration();
-        final Map<String, String> channelProperties = new HashMap<>();
-        channelProperties.put(TelemetryChannelBase.FLUSH_BUFFER_TIMEOUT_IN_SECONDS_NAME, "1");
-        final TelemetryChannel channel = new InProcessTelemetryChannel(channelProperties);
-        telemetryConfiguration.setChannel(channel);
-
-        final String key = readInstrumentationKeyFromConfiguration();
-        if (StringUtils.isNotEmpty(key)) {
-            telemetryConfiguration.setInstrumentationKey(key);
-        } else {
-            // No instrumentation key found.
-            disable();
-        }
-
-        TelemetryConfigurationFactory.INSTANCE.initialize(telemetryConfiguration);
-        return telemetryConfiguration;
-    }
-
-    // Get instrumentation key from ApplicationInsights.xml
-    private String readInstrumentationKeyFromConfiguration() {
-        try (final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(CONFIGURATION_FILE)) {
-            if (inputStream == null) {
-                return StringUtils.EMPTY;
-            }
-
-            final String configurationContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-            final Matcher matcher = INSTRUMENTATION_KEY_PATTERN.matcher(configurationContent);
-            if (matcher.find()) {
-                return matcher.group(1);
-            } else {
-                return StringUtils.EMPTY;
-            }
-        } catch (IOException exception) {
-            return StringUtils.EMPTY;
-        }
-    }
-    // end
 
     public void addDefaultProperty(String key, String value) {
         if (StringUtils.isEmpty(key)) {
