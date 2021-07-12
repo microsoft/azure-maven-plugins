@@ -24,6 +24,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpPipelinePolicy;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.appplatform.AppPlatformManager;
 import com.azure.resourcemanager.appplatform.models.SpringService;
@@ -37,14 +38,18 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> implements AzureService {
     public AzureSpringCloud() { // for SPI
         super(AzureSpringCloud::new);
@@ -83,9 +88,17 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
     @Nonnull
     @Cacheable(cacheName = "asc/{}/clusters", key = "$subscriptionId", condition = "!(force&&force[0])")
     private List<SpringCloudCluster> clusters(@Nonnull String subscriptionId, boolean... force) {
-        return getClient(subscriptionId).list().stream()
-                .map(this::cluster)
-                .collect(Collectors.toList());
+        try {
+            return getClient(subscriptionId).list().stream()
+                    .map(this::cluster)
+                    .collect(Collectors.toList());
+        } catch (ManagementException e) {
+            log.warn(String.format("failed to list spring cloud services of subscription(%s)", subscriptionId), e);
+            if (HttpStatus.SC_FORBIDDEN == e.getResponse().getStatusCode()) {
+                return Collections.emptyList();
+            }
+            throw e;
+        }
     }
 
     @Cacheable(cacheName = "asc/{}/client", key = "$subscriptionId")
