@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.maven.webapp;
 
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentType;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -32,6 +31,7 @@ import static com.microsoft.azure.maven.webapp.AbstractWebAppMojo.OS_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -41,7 +41,7 @@ public class DeployMojoTest {
     @Rule
     public MojoRule rule = new MojoRule() {
         @Override
-        protected void before() throws Throwable {
+        protected void before() {
         }
 
         @Override
@@ -53,7 +53,7 @@ public class DeployMojoTest {
     protected PluginDescriptor plugin;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
     }
 
@@ -67,7 +67,7 @@ public class DeployMojoTest {
 
         assertEquals("westeurope", mojo.getRegion());
 
-        assertEquals(null, mojo.getPricingTier());
+        assertNull(mojo.getPricingTier());
 
         assertEquals(1, mojo.getAppSettings().size());
 
@@ -82,7 +82,7 @@ public class DeployMojoTest {
     public void getConfigurationForWindows() throws Exception {
         final DeployMojo mojo = getMojoFromPom("/pom-windows.xml");
 
-        assertEquals(JavaVersion.JAVA_11, mojo.getRuntime().getJavaVersion());
+        assertEquals("Java 11", mojo.getRuntime().getJavaVersion());
 
         assertEquals(PricingTier.STANDARD_S2, PricingTier.fromString(mojo.getPricingTier()));
     }

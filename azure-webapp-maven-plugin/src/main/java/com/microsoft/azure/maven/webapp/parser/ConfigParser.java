@@ -10,6 +10,8 @@ import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.maven.utils.MavenArtifactUtils;
 import com.microsoft.azure.maven.webapp.AbstractWebAppMojo;
 import com.microsoft.azure.maven.webapp.WebAppConfig;
+import com.microsoft.azure.maven.webapp.WebAppConfiguration;
+import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
@@ -36,6 +38,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
@@ -115,7 +118,7 @@ public class ConfigParser {
         return convertResourceToArtifacts(mojo.getDeployment().getResources());
     }
 
-    public Runtime getRuntime() throws AzureExecutionException {
+    public Runtime getRuntime() {
         final MavenRuntimeConfig runtime = mojo.getRuntime();
         if (runtime == null || runtime.isEmpty()) {
             return null;
@@ -124,8 +127,8 @@ public class ConfigParser {
         if (os == OperatingSystem.DOCKER) {
             return Runtime.DOCKER;
         }
-        final JavaVersion javaVersion = parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersionRaw());
-        final WebContainer webContainer = parseExpandableParameter(WebContainer::fromString, runtime.getWebContainerRaw());
+        final JavaVersion javaVersion = parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersion());
+        final WebContainer webContainer = parseExpandableParameter(WebContainer::fromString, runtime.getWebContainer());
         return Runtime.getRuntime(os, webContainer, javaVersion);
     }
 
@@ -148,6 +151,47 @@ public class ConfigParser {
                 .deploymentSlotConfigurationSource(getDeploymentSlotConfigurationSource())
                 .webAppArtifacts(getMavenArtifacts())
                 .appSettings(this.mojo.getAppSettings())
+                .build();
+    }
+
+    // todo: replace WebAppConfiguration with WebAppConfig
+    public WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {
+        WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder = WebAppConfiguration.builder();
+        final Runtime runtime = getRuntime();
+        final OperatingSystem os = Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null);
+        if (os == null) {
+            Log.debug("No runtime related config is specified. " +
+                    "It will cause error if creating a new web app.");
+        } else {
+            switch (os) {
+                case WINDOWS:
+                case LINUX:
+                    builder = builder.javaVersion(Objects.toString(runtime.getJavaVersion())).webContainer(Objects.toString(runtime.getWebContainer()));
+                    break;
+                case DOCKER:
+                    final MavenRuntimeConfig runtimeConfig = mojo.getRuntime();
+                    builder = builder.image(runtimeConfig.getImage()).serverId(runtimeConfig.getServerId()).registryUrl(runtimeConfig.getRegistryUrl());
+                    break;
+                default:
+                    throw new AzureExecutionException("Invalid operating system from the configuration.");
+            }
+        }
+        return builder.appName(getAppName())
+                .resourceGroup(getResourceGroup())
+                .region(getRegion())
+                .pricingTier(mojo.getPricingTier())
+                .servicePlanName(mojo.getAppServicePlanName())
+                .servicePlanResourceGroup(mojo.getAppServicePlanResourceGroup())
+                .deploymentSlotSetting(mojo.getDeploymentSlotSetting())
+                .os(os)
+                .mavenSettings(mojo.getSettings())
+                .resources(Optional.ofNullable(mojo.getDeployment()).map(Deployment::getResources).orElse(null))
+                .stagingDirectoryPath(mojo.getDeploymentStagingDirectoryPath())
+                .buildDirectoryAbsolutePath(mojo.getBuildDirectoryAbsolutePath())
+                .project(mojo.getProject())
+                .session(mojo.getSession())
+                .filtering(mojo.getMavenResourcesFiltering())
+                .schemaVersion("v2")
                 .build();
     }
 
