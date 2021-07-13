@@ -12,8 +12,6 @@ import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFac
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.model.SubscriptionOption;
-import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
-import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.ProxyUtils;
@@ -33,6 +31,7 @@ import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -78,7 +77,7 @@ import java.util.stream.Collectors;
 /**
  * Base abstract class for all Azure Mojos.
  */
-public abstract class AbstractAzureMojo extends AbstractMojo implements TelemetryConfiguration {
+public abstract class AbstractAzureMojo extends AbstractMojo {
     public static final String PLUGIN_NAME_KEY = "pluginName";
     public static final String PLUGIN_VERSION_KEY = "pluginVersion";
     public static final String INSTALLATION_ID_KEY = "installationId";
@@ -203,7 +202,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     private com.microsoft.azure.management.Azure azure;
 
     @Getter
-    protected AppInsightsProxy telemetryProxy;
+    protected AzureTelemetryClient telemetryProxy;
     @Getter
     protected Map<String, String> telemetries = new HashMap<>();
 
@@ -405,14 +404,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void initTelemetryProxy() {
-        telemetryProxy = new AppInsightsProxy(this);
+        final Map<String, String> properties = getTelemetryProperties();
+        telemetryProxy = new AzureTelemetryClient(properties);
+        AzureTelemeter.setClient(telemetryProxy);
+        AzureTelemeter.setEventNamePrefix("AzurePlugin.Maven");
         if (!isAllowTelemetry()) {
             telemetryProxy.trackEvent(TELEMETRY_NOT_ALLOWED);
             telemetryProxy.disable();
-        } else {
-            AzureTelemeter.setClient(telemetryProxy.getClient());
-            AzureTelemeter.setCommonProperties(this.getTelemetryProperties());
-            AzureTelemeter.setEventNamePrefix("AzurePlugin.Maven");
         }
     }
 
@@ -427,9 +425,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    //region Telemetry Configuration Interface
-
-    @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = new HashMap<>();
         map.put(INSTALLATION_ID_KEY, getInstallationId());
@@ -447,8 +442,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
         return "Unknown";
     }
-
-    //endregion
 
     //region Entry Point
 
@@ -523,7 +516,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void beforeMojoExecution() {
-        telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".start", this.getTelemetries(), false);
+        telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".start", this.getTelemetries(), null, false);
     }
 
     protected void afterMojoExecution() {
