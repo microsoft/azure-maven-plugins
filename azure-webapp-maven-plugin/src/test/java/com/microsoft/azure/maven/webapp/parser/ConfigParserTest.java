@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -39,7 +40,7 @@ public class ConfigParserTest {
     ConfigParser parser;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         deployMojo = mock(DeployMojo.class);
         runtimeSetting = mock(MavenRuntimeConfig.class);
         doReturn(runtimeSetting).when(deployMojo).getRuntime();
@@ -63,7 +64,7 @@ public class ConfigParserTest {
         doReturn("P1v2").when(deployMojo).getPricingTier();
         final Runtime mockRuntime = Runtime.getRuntime(OperatingSystem.WINDOWS, WebContainer.TOMCAT_85, JavaVersion.JAVA_8);
         doReturn(mockRuntime).when(parserSpy).getRuntime();
-        final List<Resource> resources = new ArrayList<Resource>();
+        final List<Resource> resources = new ArrayList<>();
         resources.add(new Resource());
         final Deployment deployment = mock(Deployment.class);
         doReturn(deployment).when(deployMojo).getDeployment();
@@ -77,10 +78,10 @@ public class ConfigParserTest {
         assertEquals("appName", webAppConfiguration.getAppName());
         assertEquals("resourceGroupName", webAppConfiguration.getResourceGroup());
         assertEquals("P1v2", webAppConfiguration.getPricingTier());
-        assertEquals(null, webAppConfiguration.getServicePlanName());
-        assertEquals(null, webAppConfiguration.getServicePlanResourceGroup());
+        assertNull(webAppConfiguration.getServicePlanName());
+        assertNull(webAppConfiguration.getServicePlanResourceGroup());
         assertEquals(OperatingSystem.WINDOWS, webAppConfiguration.getOs());
-        assertEquals(null, webAppConfiguration.getMavenSettings());
+        assertNull(webAppConfiguration.getMavenSettings());
         assertEquals(project, webAppConfiguration.getProject());
         assertEquals(session, webAppConfiguration.getSession());
         assertEquals(filtering, webAppConfiguration.getFiltering());
@@ -89,7 +90,7 @@ public class ConfigParserTest {
     }
 
     @Test
-    public void getWindowsRuntime() throws AzureExecutionException {
+    public void getWindowsRuntime() {
         doReturn("windows").when(runtimeSetting).getOs();
         doReturn("Java 8").when(runtimeSetting).getJavaVersion();
         doReturn("Java SE").when(runtimeSetting).getWebContainer();
@@ -99,15 +100,10 @@ public class ConfigParserTest {
         doReturn("Java 11").when(runtimeSetting).getJavaVersion();
         doReturn("tomcat 8.5").when(runtimeSetting).getWebContainer();
         assertEquals(parser.getRuntime(), Runtime.WINDOWS_JAVA11_TOMCAT85);
-
-        doReturn("windows").when(runtimeSetting).getOs();
-        doReturn("11.0.2_ZULU").when(runtimeSetting).getJavaVersion();
-        doReturn("tomcat 8.5").when(runtimeSetting).getWebContainer();
-        assertEquals(parser.getRuntime().getJavaVersion(), JavaVersion.JAVA_ZULU_11_0_2);
     }
 
     @Test()
-    public void getLinuxRuntime() throws AzureExecutionException {
+    public void getLinuxRuntime() {
         doReturn("linux").when(runtimeSetting).getOs();
         doReturn("Java 8").when(runtimeSetting).getJavaVersion();
         doReturn("JBosseap 7.2").when(runtimeSetting).getWebContainer();
@@ -120,7 +116,7 @@ public class ConfigParserTest {
     }
 
     @Test
-    public void getPricingTier() throws AzureExecutionException {
+    public void getPricingTier() {
         // basic
         doReturn("b1").when(deployMojo).getPricingTier();
         assertEquals(PricingTier.BASIC_B1, parser.getPricingTier());

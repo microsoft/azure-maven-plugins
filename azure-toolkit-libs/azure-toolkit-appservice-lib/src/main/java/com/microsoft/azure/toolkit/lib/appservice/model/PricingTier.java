@@ -5,29 +5,26 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.common.model.ExpandedParameter;
+import com.google.common.collect.Sets;
+import com.microsoft.azure.toolkit.lib.common.model.ExpandableParameter;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PricingTier {
+public class PricingTier implements ExpandableParameter {
     public static final PricingTier BASIC_B1 = new PricingTier("Basic", "B1");
     public static final PricingTier BASIC_B2 = new PricingTier("Basic", "B2");
     public static final PricingTier BASIC_B3 = new PricingTier("Basic", "B3");
@@ -51,20 +48,20 @@ public class PricingTier {
     public static final PricingTier ELASTIC_PREMIUM_EP2 = new PricingTier("ElasticPremium", "EP2");
     public static final PricingTier ELASTIC_PREMIUM_EP3 = new PricingTier("ElasticPremium", "EP3");
 
-    public static final List<PricingTier> SHARED_PRICING = Collections.unmodifiableList(Arrays.asList(BASIC_B1, BASIC_B2, BASIC_B3, STANDARD_S1, STANDARD_S2,
+    public static final Set<PricingTier> SHARED_PRICING = Collections.unmodifiableSet(Sets.newHashSet(BASIC_B1, BASIC_B2, BASIC_B3, STANDARD_S1, STANDARD_S2,
             STANDARD_S3, PREMIUM_P1, PREMIUM_P2, PREMIUM_P3, PREMIUM_P1V2, PREMIUM_P2V2, PREMIUM_P3V2, PREMIUM_P1V3, PREMIUM_P2V3, PREMIUM_P3V3,
             FREE_F1, SHARED_D1));
-    public static final List<PricingTier> WEB_APP_PRICING = Collections.unmodifiableList(SHARED_PRICING);
-    public static final List<PricingTier> FUNCTION_PRICING = Collections.unmodifiableList(ListUtils.union(SHARED_PRICING,
-            Arrays.asList(CONSUMPTION, ELASTIC_PREMIUM_EP1, ELASTIC_PREMIUM_EP2, ELASTIC_PREMIUM_EP3)));
-    private static final List<PricingTier> values =
-            Collections.unmodifiableList(new ArrayList<>(new HashSet<>(ListUtils.union(WEB_APP_PRICING, FUNCTION_PRICING))));
+    public static final Set<PricingTier> WEB_APP_PRICING = Collections.unmodifiableSet(SHARED_PRICING);
+    public static final Set<PricingTier> FUNCTION_PRICING = Collections.unmodifiableSet(SetUtils.union(SHARED_PRICING,
+            Sets.newHashSet(CONSUMPTION, ELASTIC_PREMIUM_EP1, ELASTIC_PREMIUM_EP2, ELASTIC_PREMIUM_EP3)));
+    private static final Set<PricingTier> values =
+            Collections.unmodifiableSet(SetUtils.union(WEB_APP_PRICING, FUNCTION_PRICING));
     private static final String CONSUMPTION_SIZE = "consumption";
 
     private String tier;
     private String size;
 
-    public static List<PricingTier> values() {
+    public static Set<PricingTier> values() {
         return values;
     }
 
@@ -79,7 +76,7 @@ public class PricingTier {
         return values().stream()
                 .filter(pricingTier -> StringUtils.equalsIgnoreCase(size, pricingTier.size) &&
                         (StringUtils.isEmpty(tier) || StringUtils.equals(tier, pricingTier.tier)))
-                .findFirst().orElseGet(() -> new ExpandedPricingTier(tier, size));
+                .findFirst().orElseGet(() -> new PricingTier(tier, size));
     }
 
     @Override
@@ -90,8 +87,10 @@ public class PricingTier {
         if (!(o instanceof PricingTier)) {
             return false;
         }
-        final PricingTier that = (PricingTier) o;
-        return Objects.equals(tier, that.tier) && Objects.equals(size, that.size);
+        // todo: update the implement once we find solution to serialize parameters without public setter/constructor
+        final PricingTier current = PricingTier.fromString(this.tier, this.size);
+        final PricingTier target = PricingTier.fromString(((PricingTier) o).tier, ((PricingTier) o).size);
+        return StringUtils.equalsIgnoreCase(current.tier, target.tier) && StringUtils.equalsIgnoreCase(current.size, target.size);
     }
 
     @Override
@@ -107,13 +106,8 @@ public class PricingTier {
         return this.getSize();
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @EqualsAndHashCode(callSuper = true)
-    static class ExpandedPricingTier extends PricingTier implements ExpandedParameter {
-        public ExpandedPricingTier(String tier, String size) {
-            super(tier, size);
-        }
+    @Override
+    public boolean isExpandedValue() {
+        return !values().contains(this);
     }
 }

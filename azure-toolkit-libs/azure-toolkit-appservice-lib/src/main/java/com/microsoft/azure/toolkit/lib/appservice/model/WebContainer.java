@@ -5,24 +5,23 @@
 
 package com.microsoft.azure.toolkit.lib.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.common.model.ExpandedParameter;
+import com.google.common.collect.Sets;
+import com.microsoft.azure.toolkit.lib.common.model.ExpandableParameter;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class WebContainer {
+public class WebContainer implements ExpandableParameter {
     private static final String JAVA = "Java";
     private static final String JAVA_8 = "Java 8";
     private static final String JAVA_11 = "Java 11";
@@ -54,13 +53,13 @@ public class WebContainer {
     public static final WebContainer JETTY_9_3_NEWEST = new WebContainer("jetty 9.3");
     public static final WebContainer JETTY_9_3_V20161014 = new WebContainer("jetty 9.3.13.20161014");
 
-    private static final List<WebContainer> values = Collections.unmodifiableList(Arrays.asList(TOMCAT_7, TOMCAT_7_0_50, TOMCAT_7_0_62, TOMCAT_8,
-        TOMCAT_8_0_23, TOMCAT_85, TOMCAT_8_5_6, TOMCAT_8_5_20, TOMCAT_8_5_31, TOMCAT_8_5_34, TOMCAT_8_5_37, TOMCAT_9, TOMCAT_9_0_0, TOMCAT_9_0_8,
-        TOMCAT_9_0_12, TOMCAT_9_0_14, JETTY_9_1_NEWEST, JETTY_9_1_V20131115, JETTY_9_3_NEWEST, JETTY_9_3_V20161014, JAVA_SE, JBOSS_72, JBOSS_7));
+    private static final Set<WebContainer> values = Collections.unmodifiableSet(Sets.newHashSet(TOMCAT_7, TOMCAT_7_0_50, TOMCAT_7_0_62, TOMCAT_8,
+            TOMCAT_8_0_23, TOMCAT_85, TOMCAT_8_5_6, TOMCAT_8_5_20, TOMCAT_8_5_31, TOMCAT_8_5_34, TOMCAT_8_5_37, TOMCAT_9, TOMCAT_9_0_0, TOMCAT_9_0_8,
+            TOMCAT_9_0_12, TOMCAT_9_0_14, JETTY_9_1_NEWEST, JETTY_9_1_V20131115, JETTY_9_3_NEWEST, JETTY_9_3_V20161014, JAVA_SE, JBOSS_72, JBOSS_7));
 
     private String value;
 
-    public static List<WebContainer> values() {
+    public static Set<WebContainer> values() {
         return values;
     }
 
@@ -74,7 +73,7 @@ public class WebContainer {
         }
         return values().stream()
             .filter(webContainer -> StringUtils.equalsIgnoreCase(input, webContainer.value))
-            .findFirst().orElse(new ExpandedWebContainer(input));
+            .findFirst().orElse(new WebContainer(input));
     }
 
     @Override
@@ -85,8 +84,10 @@ public class WebContainer {
         if (target == null || getClass() != target.getClass()) {
             return false;
         }
-        final WebContainer that = (WebContainer) target;
-        return Objects.equals(value, that.value);
+        // todo: update the implement once we find solution to serialize parameters without public setter/constructor
+        final WebContainer current = WebContainer.fromString(value);
+        final WebContainer toCompare = WebContainer.fromString(((WebContainer) target).value);
+        return StringUtils.equals(current.value, toCompare.value);
     }
 
     @Override
@@ -106,13 +107,8 @@ public class WebContainer {
         return StringUtils.capitalize(StringUtils.lowerCase(value));
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @EqualsAndHashCode(callSuper = true)
-    static class ExpandedWebContainer extends WebContainer implements ExpandedParameter {
-        public ExpandedWebContainer(String value){
-            super(value);
-        }
+    @Override
+    public boolean isExpandedValue() {
+        return !values().contains(this);
     }
 }

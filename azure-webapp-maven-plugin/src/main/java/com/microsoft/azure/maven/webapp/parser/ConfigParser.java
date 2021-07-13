@@ -25,7 +25,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.model.ExpandedParameter;
+import com.microsoft.azure.toolkit.lib.common.model.ExpandableParameter;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -213,8 +213,8 @@ public class ConfigParser {
 
     private static <T> T parseExpandableParameter(Function<String, T> parser, String input) {
         final T result = parser.apply(input);
-        if (result instanceof ExpandedParameter) {
-            AzureMessager.getMessager().warning(String.format("'%s' may not be a valid %s", input, ((ExpandedParameter) result).type().getSimpleName()));
+        if (result instanceof ExpandableParameter && ((ExpandableParameter) result).isExpandedValue()) {
+            AzureMessager.getMessager().warning(String.format("'%s' may not be a valid %s", input, result.getClass().getSimpleName()));
         }
         return result;
     }
