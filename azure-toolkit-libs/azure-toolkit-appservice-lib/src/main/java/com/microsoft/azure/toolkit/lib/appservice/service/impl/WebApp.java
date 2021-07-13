@@ -172,18 +172,17 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
                                                        DockerConfiguration dockerConfiguration) {
             final DefinitionStages.WithLinuxAppFramework withLinuxAppFramework =
                     blank.withExistingLinuxPlan(appServicePlan).withExistingResourceGroup(resourceGroup);
-            final DefinitionStages.WithStartUpCommand withStartUpCommand;
+            final DefinitionStages.WithStartUpCommand draft;
             if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
-                withStartUpCommand = withLinuxAppFramework.withPublicDockerHubImage(dockerConfiguration.getImage());
+                draft = withLinuxAppFramework.withPublicDockerHubImage(dockerConfiguration.getImage());
             } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
-                withStartUpCommand = withLinuxAppFramework.withPrivateDockerHubImage(dockerConfiguration.getImage())
+                draft = withLinuxAppFramework.withPrivateDockerHubImage(dockerConfiguration.getImage())
                         .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             } else {
-
-                withStartUpCommand = withLinuxAppFramework.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
+                draft = withLinuxAppFramework.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
                         .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
-            return withStartUpCommand.withStartUpCommand(dockerConfiguration.getStartUpCommand());
+            return draft.withStartUpCommand(dockerConfiguration.getStartUpCommand());
         }
     }
 
@@ -240,18 +239,18 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
         }
 
         private Update updateDockerConfiguration(Update update, DockerConfiguration dockerConfiguration) {
-            final com.azure.resourcemanager.appservice.models.WebApp.UpdateStages.WithStartUpCommand withStartUpCommand;
+            final com.azure.resourcemanager.appservice.models.WebApp.UpdateStages.WithStartUpCommand draft;
             if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
-                withStartUpCommand = update.withPublicDockerHubImage(dockerConfiguration.getImage());
+                draft = update.withPublicDockerHubImage(dockerConfiguration.getImage());
             } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
-                withStartUpCommand = update.withPrivateDockerHubImage(dockerConfiguration.getImage())
+                draft = update.withPrivateDockerHubImage(dockerConfiguration.getImage())
                         .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             } else {
-                withStartUpCommand = update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
+                draft = update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
                         .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
             modified = true;
-            return withStartUpCommand.withStartUpCommand(dockerConfiguration.getStartUpCommand());
+            return draft.withStartUpCommand(dockerConfiguration.getStartUpCommand());
         }
 
         private Update updateRuntime(Update update, Runtime newRuntime) {
