@@ -40,6 +40,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -89,7 +90,8 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     private static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
     private static final String INIT_FAILURE = "InitFailure";
     private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
-    private static final String FAILURE_REASON = "failureReason";
+    private static final String ERROR_MESSAGE = "error.message";
+    private static final String ERROR_STACK = "error.stack";
     private static final String JVM_UP_TIME = "jvmUpTime";
     private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
             ".azure", "mavenplugins.properties").toString();
@@ -523,9 +525,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
         telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".success", recordJvmUpTime(new HashMap<>()));
     }
 
-    protected void trackMojoFailure(final String message) {
+    protected void trackMojoFailure(final Throwable throwable) {
         final Map<String, String> failureParameters = new HashMap<>();
-        failureParameters.put(FAILURE_REASON, message);
+        failureParameters.put(ERROR_MESSAGE, throwable.getMessage());
+        failureParameters.put(ERROR_STACK, ExceptionUtils.getStackTrace(throwable));
         telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".failure", recordJvmUpTime(failureParameters));
     }
 
@@ -534,12 +537,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     }
 
     protected void onMojoError(final Exception exception) throws MojoExecutionException {
-        String message = exception.getMessage();
-        if (StringUtils.isEmpty(message)) {
-            message = exception.toString();
-        }
-        trackMojoFailure(message);
+        trackMojoFailure(exception);
 
+        final String message = StringUtils.isEmpty(exception.getMessage()) ? exception.toString() : exception.getMessage();
         if (isFailsOnError()) {
             throw new MojoExecutionException(message, exception);
         } else {
