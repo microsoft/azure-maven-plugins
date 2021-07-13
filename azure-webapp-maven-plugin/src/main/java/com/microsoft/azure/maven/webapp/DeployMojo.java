@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -251,7 +252,7 @@ public class DeployMojo extends AbstractWebAppMojo {
     private void deployArtifactsWithZipDeploy(IWebAppBase target, List<WebAppArtifact> artifacts) throws AzureExecutionException {
         final File stagingDirectory = prepareStagingDirectory(artifacts);
         // Rename jar once java_se runtime
-        if (target.getRuntime().getWebContainer() == WebContainer.JAVA_SE) {
+        if (Objects.equals(target.getRuntime().getWebContainer(), WebContainer.JAVA_SE)) {
             final List<File> files = new ArrayList<>(FileUtils.listFiles(stagingDirectory, null, true));
             DeployUtils.prepareJavaSERuntimeJarArtifact(files, project.getBuild().getFinalName());
         }

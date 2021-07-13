@@ -465,7 +465,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return Utils.isJarPackagingProject(project.getPackaging());
     }
 
-    private WebAppConfiguration getWebAppConfiguration() throws AzureExecutionException {
+    private WebAppConfiguration getWebAppConfiguration() {
         validateConfiguration(message -> AzureMessager.getMessager().warning(message.getMessage()), false);
         return new ConfigParser(this).getWebAppConfiguration();
     }

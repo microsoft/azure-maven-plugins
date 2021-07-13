@@ -140,7 +140,10 @@
               "os": {
                 "pattern": "(?i)^(windows|linux)$"
               }
-            }
+            },
+            "required": [
+              "os"
+            ]
           },
           "then": {
             "required": [
@@ -155,7 +158,10 @@
               "os": {
                 "pattern": "(?i)^(docker)$"
               }
-            }
+            },
+            "required": [
+              "os"
+            ]
           },
           "then": {
             "required": [
@@ -212,7 +218,9 @@
                 "pattern": "(?i)^service_principal$"
               }
             },
-            "required": ["type"]
+            "required": [
+              "type"
+            ]
           },
           "then": {
             "anyOf": [

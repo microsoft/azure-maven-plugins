@@ -16,10 +16,11 @@ import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
 import com.microsoft.azure.maven.webapp.parser.ConfigParser;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
-import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DockerImageType;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
@@ -35,7 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -213,33 +214,27 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
-        final WebAppConfig webAppConfig;
-        try {
-            webAppConfig = getWebAppConfig();
-        } catch (Exception e) {
-            map.put(INVALID_CONFIG_KEY, e.getMessage());
-            return map;
-        }
-        if (webAppConfig.getDockerConfiguration() != null) {
-            final DockerConfiguration dockerConfiguration = webAppConfig.getDockerConfiguration();
-            final String imageType = AppServiceUtils.getDockerImageType(dockerConfiguration.getImage(), StringUtils.isEmpty(dockerConfiguration.getPassword()),
-                    dockerConfiguration.getRegistryUrl()).name();
+        final MavenRuntimeConfig runtimeConfig = getRuntime();
+        final String os = Optional.ofNullable(runtimeConfig).map(MavenRuntimeConfig::getOs).orElse(StringUtils.EMPTY);
+        map.put(SCHEMA_VERSION_KEY, schemaVersion);
+        map.put(OS_KEY, os);
+        if (StringUtils.equalsIgnoreCase(os, OperatingSystem.DOCKER.getValue())) {
+            final String imageType = AppServiceUtils.getDockerImageType(runtimeConfig.getImage(), StringUtils.isEmpty(runtimeConfig.getServerId()),
+                    runtimeConfig.getRegistryUrl()).name();
             map.put(DOCKER_IMAGE_TYPE_KEY, imageType);
         } else {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
         }
-        map.put(SCHEMA_VERSION_KEY, schemaVersion);
-        map.put(OS_KEY, webAppConfig.getRuntime() == null ? "" : Objects.toString(webAppConfig.getRuntime().getOperatingSystem()));
-        map.put(JAVA_VERSION_KEY, (webAppConfig.getRuntime() == null || webAppConfig.getRuntime().getJavaVersion() == null) ?
-                "" : webAppConfig.getRuntime().getJavaVersion().getValue());
-        map.put(JAVA_WEB_CONTAINER_KEY, (webAppConfig.getRuntime() == null || webAppConfig.getRuntime().getWebContainer() == null) ?
-                "" : webAppConfig.getRuntime().getWebContainer().getValue());
+        map.put(JAVA_VERSION_KEY, Optional.ofNullable(runtimeConfig).map(MavenRuntimeConfig::getJavaVersion).orElse(StringUtils.EMPTY));
+        map.put(JAVA_WEB_CONTAINER_KEY, Optional.ofNullable(runtimeConfig).map(MavenRuntimeConfig::getWebContainer).orElse(StringUtils.EMPTY));
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
         } catch (AzureExecutionException e) {
             map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
         }
-        map.put(DEPLOY_TO_SLOT_KEY, String.valueOf(StringUtils.isNotEmpty(webAppConfig.getDeploymentSlotName())));
+        final boolean isDeployToSlot = Optional.ofNullable(getDeploymentSlotSetting()).map(DeploymentSlotSetting::getName)
+                .map(StringUtils::isNotEmpty).orElse(false);
+        map.put(DEPLOY_TO_SLOT_KEY, String.valueOf(isDeployToSlot));
         return map;
     }
 

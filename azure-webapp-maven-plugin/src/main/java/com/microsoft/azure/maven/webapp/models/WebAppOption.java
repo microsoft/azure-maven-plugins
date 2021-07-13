@@ -71,7 +71,7 @@ public class WebAppOption implements Comparable<WebAppOption> {
     }
 
     public boolean isJavaWebApp() {
-        return getJavaVersion() != JavaVersion.OFF;
+        return ObjectUtils.notEqual(getJavaVersion(), JavaVersion.OFF);
     }
 
     public boolean isJavaSE() {
