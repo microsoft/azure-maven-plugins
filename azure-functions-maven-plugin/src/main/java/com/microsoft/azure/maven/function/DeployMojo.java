@@ -136,7 +136,11 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String INVALID_OS = "The value of <os> is not correct, supported values are: windows, linux and docker.";
     private static final String FAILED_TO_LIST_TRIGGERS = "Deployment succeeded, but failed to list http trigger urls.";
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker app service";
-    private static final String EXPANDABLE_PARAMETER_WARNING = "'%s' may not be a valid %s";
+    private static final String EXPANDABLE_PRICING_TIER_WARNING = "'%s' may not be a valid pricing tier, " +
+            "please refer https://aka.ms/maven_function_configuration#supported-pricing-tiers for valid values";
+    private static final String EXPANDABLE_REGION_WARNING = "'%s' may not be a valid region, " +
+            "please refer https://aka.ms/maven_function_configuration#supported-regions for valid values";
+    private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8` and `Java 11`";
 
     private AzureAppService az;
 
@@ -195,8 +199,7 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
         // region
         if (StringUtils.isNotEmpty(region) && Region.fromName(region).isExpandedValue()) {
-            AzureMessager.getMessager().warning(String.format(EXPANDABLE_PARAMETER_WARNING, region, Region.class.getSimpleName()));
-
+            AzureMessager.getMessager().warning(String.format(EXPANDABLE_REGION_WARNING, region));
         }
         // os
         if (StringUtils.isNotEmpty(runtime.getOs()) && OperatingSystem.fromString(runtime.getOs()) == null) {
@@ -204,11 +207,11 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
         // java version
         if (StringUtils.isNotEmpty(runtime.getJavaVersion()) && JavaVersion.fromString(runtime.getJavaVersion()).isExpandedValue()) {
-            AzureMessager.getMessager().warning(String.format(EXPANDABLE_PARAMETER_WARNING, runtime.getJavaVersion(), JavaVersion.class.getSimpleName()));
+            AzureMessager.getMessager().warning(String.format(EXPANDABLE_JAVA_VERSION_WARNING, runtime.getJavaVersion()));
         }
         // pricing tier
         if (StringUtils.isNotEmpty(pricingTier) && PricingTier.fromString(pricingTier).isExpandedValue()) {
-            AzureMessager.getMessager().warning(String.format(EXPANDABLE_PARAMETER_WARNING, pricingTier, PricingTier.class.getSimpleName()));
+            AzureMessager.getMessager().warning(String.format(EXPANDABLE_PRICING_TIER_WARNING, pricingTier));
         }
         // docker image
         if (OperatingSystem.fromString(runtime.getOs()) == OperatingSystem.DOCKER && StringUtils.isEmpty(runtime.getImage())) {

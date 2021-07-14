@@ -45,6 +45,14 @@ import java.util.stream.Collectors;
 
 public class ConfigParser {
 
+    private static final String EXPANDABLE_PRICING_TIER_WARNING = "'%s' may not be a valid pricing tier, " +
+            "please refer https://aka.ms/maven_webapp_runtime#pricingtier for valid values";
+    private static final String EXPANDABLE_REGION_WARNING = "'%s' may not be a valid region, " +
+            "please refer https://aka.ms/maven_webapp_runtime#region for valid values";
+    private static final String EXPANDABLE_WEB_CONTAINER_WARNING = "'%s' may not be a valid web container, " +
+            "please refer https://aka.ms/maven_webapp_runtime#webcontainer for valid values";
+    private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8` and `Java 11`";
+
     protected AbstractWebAppMojo mojo;
 
     public ConfigParser(AbstractWebAppMojo mojo) {
@@ -75,7 +83,7 @@ public class ConfigParser {
             } else {
                 return PricingTier.fromString(mojo.getPricingTier());
             }
-        }, mojo.getPricingTier());
+        }, mojo.getPricingTier(), EXPANDABLE_PRICING_TIER_WARNING);
     }
 
     public String getAppServicePlanName() {
@@ -91,7 +99,7 @@ public class ConfigParser {
     }
 
     public Region getRegion() {
-        return parseExpandableParameter(Region::fromName, mojo.getRegion());
+        return parseExpandableParameter(Region::fromName, mojo.getRegion(), EXPANDABLE_REGION_WARNING);
     }
 
     public DockerConfiguration getDockerConfiguration() throws AzureExecutionException {
@@ -127,8 +135,8 @@ public class ConfigParser {
         if (os == OperatingSystem.DOCKER) {
             return Runtime.DOCKER;
         }
-        final JavaVersion javaVersion = parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersion());
-        final WebContainer webContainer = parseExpandableParameter(WebContainer::fromString, runtime.getWebContainer());
+        final JavaVersion javaVersion = parseExpandableParameter(JavaVersion::fromString, runtime.getJavaVersion(), EXPANDABLE_JAVA_VERSION_WARNING);
+        final WebContainer webContainer = parseExpandableParameter(WebContainer::fromString, runtime.getWebContainer(), EXPANDABLE_WEB_CONTAINER_WARNING);
         return Runtime.getRuntime(os, webContainer, javaVersion);
     }
 
@@ -178,7 +186,7 @@ public class ConfigParser {
         return builder.appName(getAppName())
                 .resourceGroup(getResourceGroup())
                 .region(getRegion())
-                .pricingTier(mojo.getPricingTier())
+                .pricingTier(getPricingTier().getSize())
                 .servicePlanName(mojo.getAppServicePlanName())
                 .servicePlanResourceGroup(mojo.getAppServicePlanResourceGroup())
                 .deploymentSlotSetting(mojo.getDeploymentSlotSetting())
@@ -210,10 +218,10 @@ public class ConfigParser {
         }
     }
 
-    private static <T extends ExpandableParameter> T parseExpandableParameter(Function<String, T> parser, String input) {
+    private static <T extends ExpandableParameter> T parseExpandableParameter(Function<String, T> parser, String input, String prompt) {
         final T result = parser.apply(input);
         if (StringUtils.isNotEmpty(input) && result.isExpandedValue()) {
-            AzureMessager.getMessager().warning(String.format("'%s' may not be a valid %s", input, result.getClass().getSimpleName()));
+            AzureMessager.getMessager().warning(String.format(prompt, input));
         }
         return result;
     }

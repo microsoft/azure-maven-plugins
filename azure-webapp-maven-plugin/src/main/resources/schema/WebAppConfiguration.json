@@ -119,7 +119,8 @@
           "$ref": "#/definitions/non-empty-string"
         },
         "registryUrl": {
-          "$ref": "#/definitions/non-empty-string"
+          "type": "string",
+          "pattern": "^https.*"
         }
       },
       "dependencies": {
