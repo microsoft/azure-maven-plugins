@@ -31,8 +31,8 @@ import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
@@ -481,9 +481,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
                 afterMojoExecution();
             }
         } catch (Exception e) {
-            if (e instanceof AzureToolkitAuthenticationException) {
-                throw new MojoExecutionException(String.format("Cannot authenticate due to error: %s", e.getMessage()), e);
-            }
             onMojoError(e);
         } finally {
             // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
