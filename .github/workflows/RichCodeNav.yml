@@ -15,3 +15,4 @@ jobs:
       with:
         languages: java
         repo-token: ${{ github.token }}
+        uploadRichNavArtifacts: true
