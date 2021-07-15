@@ -38,6 +38,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 
@@ -61,6 +62,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
 
     @Nullable
     @Cacheable(cacheName = "asc/cluster/{}", key = "$name")
+    @AzureOperation(name = "springcloud|cluster.get.name", params = {"name"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudCluster cluster(@Nonnull String name) {
         return this.clusters().stream()
                 .filter((s) -> Objects.equals(s.name(), name))
@@ -79,6 +81,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
 
     @Nonnull
     @Preload
+    @AzureOperation(name = "springcloud|cluster.list.subscription|selected", type = AzureOperation.Type.SERVICE)
     public List<SpringCloudCluster> clusters(boolean... force) {
         return this.getSubscriptions().stream().parallel()
                 .flatMap(s -> clusters(s.getId(), force).stream())
@@ -87,6 +90,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
 
     @Nonnull
     @Cacheable(cacheName = "asc/{}/clusters", key = "$subscriptionId", condition = "!(force&&force[0])")
+    @AzureOperation(name = "springcloud|cluster.list.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
     private List<SpringCloudCluster> clusters(@Nonnull String subscriptionId, boolean... force) {
         try {
             return getClient(subscriptionId).list().stream()
@@ -102,6 +106,7 @@ public class AzureSpringCloud extends SubscriptionScoped<AzureSpringCloud> imple
     }
 
     @Cacheable(cacheName = "asc/{}/client", key = "$subscriptionId")
+    @AzureOperation(name = "springcloud.get_client.subscription", params = "subscriptionId", type = AzureOperation.Type.SERVICE)
     protected SpringServices getClient(final String subscriptionId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
