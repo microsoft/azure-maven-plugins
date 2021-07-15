@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.auth.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
@@ -16,8 +17,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AzureCliUtils {
     private static final String MIN_VERSION = "2.11.0";
@@ -78,7 +82,14 @@ public class AzureCliUtils {
     @Nonnull
     public static String executeAzureCli(@Nonnull String command) {
         try {
-            return CommandUtils.exec(command);
+            final InetSocketAddress proxy = Azure.az().config().getHttpProxy();
+            Map<String, String> env = new HashMap<>();
+            if (proxy != null) {
+                String proxyStr = String.format("http://%s:%s", proxy.getHostString(), proxy.getPort());
+                env.put("HTTPS_PROXY", proxyStr);
+                env.put("HTTP_PROXY", proxyStr);
+            }
+            return CommandUtils.exec(command, env);
         } catch (IOException e) {
             throw new AzureToolkitAuthenticationException(
                     String.format("Cannot execute azure cli command '%s' due to error: %s.", command, e.getMessage()));
