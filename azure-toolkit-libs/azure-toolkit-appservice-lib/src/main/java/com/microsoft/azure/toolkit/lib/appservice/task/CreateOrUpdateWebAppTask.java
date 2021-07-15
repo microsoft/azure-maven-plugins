@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
@@ -68,6 +69,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         return tasks;
     }
 
+    @AzureOperation(name = "webapp.create", params = {"this.config.appName()"}, type = Type.SERVICE)
     private IWebApp create() {
         AzureTelemetry.getActionContext().setProperty(CREATE_NEW_WEB_APP, String.valueOf(true));
         AzureMessager.getMessager().info(String.format(CREATE_WEBAPP, config.appName()));
@@ -92,7 +94,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
         AzureMessager.getMessager().info(String.format(CREATE_WEB_APP_DONE, result.name()));
         return result;
     }
-
+    @AzureOperation(name = "webapp.update", params = {"this.config.appName()"}, type = Type.SERVICE)
     private IWebApp update(final IWebApp webApp) {
         AzureMessager.getMessager().info(String.format(UPDATE_WEBAPP, webApp.name()));
         final IAppServicePlan currentPlan = webApp.plan();
@@ -153,7 +155,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
     }
 
     @Override
-    @AzureOperation(name = "webapp.create_update", params = {"this.config.appName()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "webapp.create_update", params = {"this.config.appName()"}, type = Type.SERVICE)
     public IWebApp execute() {
         return (IWebApp) Flux.fromStream(this.subTasks.stream().map(t -> t.getSupplier().get())).last().block();
     }

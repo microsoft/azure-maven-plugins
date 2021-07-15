@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ public class CreateOrUpdateAppServicePlanTask extends AzureTask<IAppServicePlan>
     private static final String CREATE_NEW_APP_SERVICE_PLAN = "createNewAppServicePlan";
     private AppServicePlanConfig config;
 
+    @AzureOperation(name = "appservice|plan.create_update", params = {"this.config.servicePlanName()"}, type = AzureOperation.Type.SERVICE)
     public IAppServicePlan execute() {
         final AzureAppService az = Azure.az(AzureAppService.class).subscription(config.subscriptionId());
         az.appServicePlan(config.servicePlanResourceGroup(), config.servicePlanName());

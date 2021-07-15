@@ -35,6 +35,7 @@ public class CreateResourceGroupTask extends AzureTask<ResourceGroup> {
     }
 
     @Override
+    @AzureOperation(name = "group.create_if_not_exist", params = {"this.resourceGroupName"}, type = AzureOperation.Type.SERVICE)
     public ResourceGroup execute() {
         final AzureGroup az = Azure.az(AzureGroup.class).subscription(subscriptionId);
         try {
