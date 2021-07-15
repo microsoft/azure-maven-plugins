@@ -50,12 +50,14 @@ public class SpringCloudCluster extends AbstractAzureEntityManager<SpringCloudCl
     @Nonnull
     @Override
     @CacheEvict(cacheName = "asc/cluster/{}/apps", key = "${this.name()}")
+    @AzureOperation(name = "springcloud|cluster.refresh", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudCluster refresh() {
         return super.refresh();
     }
 
     @Nonnull
     @Cacheable(cacheName = "asc/cluster/{}/app/{}", key = "${this.name()}/$name")
+    @AzureOperation(name = "springcloud|app.get.name", params = {"name"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp app(final String name) {
         if (this.exists()) {
             try {
@@ -85,6 +87,7 @@ public class SpringCloudCluster extends AbstractAzureEntityManager<SpringCloudCl
 
     @Nonnull
     @Cacheable(cacheName = "asc/cluster/{}/apps", key = "${this.name()}")
+    @AzureOperation(name = "springcloud|app.list.cluster", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public List<SpringCloudApp> apps() {
         if (this.exists()) {
             return Objects.requireNonNull(this.remote()).apps().list().stream().map(this::app).collect(Collectors.toList());

@@ -35,6 +35,7 @@ import com.microsoft.azure.toolkit.lib.common.cache.Preload;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -54,6 +55,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/functionapp/{}", key = "$id")
+    @AzureOperation(name = "functionapp.get.id", params = {"id"}, type = AzureOperation.Type.SERVICE)
     public IFunctionApp functionApp(String id) {
         final FunctionAppEntity functionAppEntity = FunctionAppEntity.builder().id(id).build();
         return functionApp(functionAppEntity);
@@ -64,6 +66,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/{}/rg/{}/functionapp/{}", key = "$sid/$rg/$name")
+    @AzureOperation(name = "functionapp.get.name|rg|sid", params = {"name", "rg", "sid"}, type = AzureOperation.Type.SERVICE)
     public IFunctionApp functionApp(String sid, String rg, String name) {
         final FunctionAppEntity functionAppEntity = FunctionAppEntity.builder().subscriptionId(sid).resourceGroup(rg).name(name).build();
         return functionApp(functionAppEntity);
@@ -75,6 +78,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Preload
+    @AzureOperation(name = "functionapp.list.subscription|selected", type = AzureOperation.Type.SERVICE)
     public List<IFunctionApp> functionApps(boolean... force) {
         return getSubscriptions().stream().parallel()
                 .flatMap(subscription -> functionApps(subscription.getId(), force).stream())
@@ -82,6 +86,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/{}/functionapps", key = "$sid", condition = "!(force&&force[0])")
+    @AzureOperation(name = "functionapp.list.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
     private List<IFunctionApp> functionApps(String sid, boolean... force) {
         return getAzureResourceManager(sid)
                 .functionApps().list().stream()
@@ -91,6 +96,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/webapp/{}", key = "$id")
+    @AzureOperation(name = "webapp.get.id", params = "id", type = AzureOperation.Type.SERVICE)
     public IWebApp webapp(String id) {
         final WebAppEntity webAppEntity = WebAppEntity.builder().id(id).build();
         return webapp(webAppEntity);
@@ -101,6 +107,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/{}/rg/{}/webapp/{}", key = "$sid/$rg/$name")
+    @AzureOperation(name = "webapp.get.name|rg|sid", params = {"name", "rg", "sid"}, type = AzureOperation.Type.SERVICE)
     public IWebApp webapp(String sid, String rg, String name) {
         final WebAppEntity webAppEntity = WebAppEntity.builder().subscriptionId(sid).resourceGroup(rg).name(name).build();
         return webapp(webAppEntity);
@@ -112,6 +119,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Preload
+    @AzureOperation(name = "webapp.list.subscription|selected", type = AzureOperation.Type.SERVICE)
     public List<IWebApp> webapps(boolean... force) {
         return getSubscriptions().stream().parallel()
                 .flatMap(subscription -> webapps(subscription.getId(), force).stream())
@@ -119,6 +127,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/{}/webapps", key = "$sid", condition = "!(force&&force[0])")
+    @AzureOperation(name = "webapp.list.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
     private List<IWebApp> webapps(String sid, boolean... force) {
         return getAzureResourceManager(sid).webApps().list().stream()
                 .filter(webAppBasic -> !StringUtils.containsIgnoreCase(webAppBasic.innerModel().kind(), "functionapp")) // Filter out function apps
@@ -127,6 +136,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     public @Nonnull
+    @AzureOperation(name = "webapp|runtime.list.os|version", params = {"os.getValue()", "version.getValue()"}, type = AzureOperation.Type.SERVICE)
     List<Runtime> listWebAppRuntimes(@Nonnull OperatingSystem os, @Nonnull JavaVersion version) {
         return Runtime.WEBAPP_RUNTIME.stream()
                 .filter(runtime -> Objects.equals(os, runtime.getOperatingSystem()) && Objects.equals(version, runtime.getJavaVersion()))
@@ -134,6 +144,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/plan/{}", key = "$id")
+    @AzureOperation(name = "appservice|plan.get.id", params = "id", type = AzureOperation.Type.SERVICE)
     public IAppServicePlan appServicePlan(String id) {
         final AppServicePlanEntity appServicePlanEntity = AppServicePlanEntity.builder().id(id).build();
         return appServicePlan(appServicePlanEntity);
@@ -144,6 +155,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/{}/rg/{}/plan/{}", key = "$sid/$rg/$name")
+    @AzureOperation(name = "appservice|plan.get.name|rg|sid", params = {"name", "rg", "sid"}, type = AzureOperation.Type.SERVICE)
     public IAppServicePlan appServicePlan(String sid, String rg, String name) {
         final AppServicePlanEntity appServicePlanEntity = AppServicePlanEntity.builder()
                 .subscriptionId(sid)
@@ -158,6 +170,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Preload
+    @AzureOperation(name = "appservice|plan.list.subscription|selected", type = AzureOperation.Type.SERVICE)
     public List<IAppServicePlan> appServicePlans(boolean... force) {
         return getSubscriptions().stream().parallel()
                 .flatMap(subscription -> appServicePlans(subscription.getId(), force).stream())
@@ -165,6 +178,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/{}/plans", key = "$sid", condition = "!(force&&force[0])")
+    @AzureOperation(name = "appservice|plan.list.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
     public List<IAppServicePlan> appServicePlans(String sid, boolean... force) {
         final AzureResourceManager azureResourceManager = getAzureResourceManager(sid);
         return azureResourceManager.appServicePlans().list().stream().parallel()
@@ -173,6 +187,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/rg/{}/plans", key = "$rg", condition = "!(force&&force[0])")
+    @AzureOperation(name = "appservice|plan.list.rg", params = "rg", type = AzureOperation.Type.SERVICE)
     public List<IAppServicePlan> appServicePlansByResourceGroup(String rg, boolean... force) {
         return getSubscriptions().stream().parallel()
                 .map(subscription -> getAzureResourceManager(subscription.getId()))
@@ -182,6 +197,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/slot/{}", key = "$id")
+    @AzureOperation(name = "appservice|deployment.get.id", params = "id", type = AzureOperation.Type.SERVICE)
     public IWebAppDeploymentSlot deploymentSlot(String id) {
         return deploymentSlot(WebAppDeploymentSlotEntity.builder().id(id).build());
     }
@@ -191,6 +207,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     @Cacheable(cacheName = "appservcie/{}/rg/{}/app/{}/slot/{}", key = "$sid/$rg/$app/$name")
+    @AzureOperation(name = "appservice|deployment.get.name|app|rg|subscription", params = {"name", "app", "rg", "sid"}, type = AzureOperation.Type.SERVICE)
     public IWebAppDeploymentSlot deploymentSlot(String sid, String rg, String app, String name) {
         return deploymentSlot(WebAppDeploymentSlotEntity.builder()
                 .subscriptionId(sid)
@@ -206,8 +223,9 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
     }
 
     // todo: share codes with other library which leverage track2 mgmt sdk
-    @Cacheable(cacheName = "appservice/{}/manager", key = "$subscriptionId")
-    public AzureResourceManager getAzureResourceManager(String subscriptionId) {
+    @Cacheable(cacheName = "appservice/{}/manager", key = "$sid")
+    @AzureOperation(name = "appservice.get_client.subscription", params = "sid", type = AzureOperation.Type.SERVICE)
+    public AzureResourceManager getAzureResourceManager(String sid) {
         final Account account = Azure.az(AzureAccount.class).account();
         final AzureConfiguration config = Azure.az().config();
         final String userAgent = config.getUserAgent();
@@ -216,8 +234,8 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
         return AzureResourceManager.configure()
                 .withLogLevel(logLevel)
                 .withPolicy(getUserAgentPolicy(userAgent)) // set user agent with policy
-                .authenticate(account.getTokenCredential(subscriptionId), azureProfile)
-                .withSubscription(subscriptionId);
+                .authenticate(account.getTokenCredential(sid), azureProfile)
+                .withSubscription(sid);
     }
 
     private HttpPipelinePolicy getUserAgentPolicy(String userAgent) {

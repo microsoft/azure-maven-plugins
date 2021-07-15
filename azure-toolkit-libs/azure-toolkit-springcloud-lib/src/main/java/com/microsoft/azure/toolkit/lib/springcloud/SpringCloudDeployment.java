@@ -84,6 +84,7 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
         return this;
     }
 
+    @AzureOperation(name = "springcloud|deployment.wait_until_ready", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
     public boolean waitUntilReady(int timeoutInSeconds) {
         AzureMessager.getMessager().info("Getting deployment status...");
         final SpringCloudDeployment deployment = Utils.pollUntil(this::refresh, Utils::isDeploymentDone, timeoutInSeconds);
