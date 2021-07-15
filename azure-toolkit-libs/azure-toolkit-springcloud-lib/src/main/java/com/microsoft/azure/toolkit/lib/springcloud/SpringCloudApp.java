@@ -48,6 +48,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
     @Nonnull
     @Override
     @CacheEvict(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
+    @AzureOperation(name = "springcloud|app.refresh", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudApp refresh() {
         return super.refresh();
     }
@@ -67,6 +68,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
 
     @Nonnull
     @Cacheable(cacheName = "asc/app/{}/deployment/{}", key = "${this.name()}/$name")
+    @AzureOperation(name = "springcloud|deployment.get", params = {"name", "this.name()"}, type = AzureOperation.Type.SERVICE)
     public SpringCloudDeployment deployment(final String name) {
         if (this.exists()) {
             try {
@@ -100,6 +102,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
 
     @Nonnull
     @Cacheable(cacheName = "asc/app/{}/deployments", key = "${this.name()}")
+    @AzureOperation(name = "springcloud|deployment.list.app", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
     public List<SpringCloudDeployment> deployments() {
         if (this.exists()) {
             return Objects.requireNonNull(this.remote()).deployments().list().stream().map(this::deployment).collect(Collectors.toList());
