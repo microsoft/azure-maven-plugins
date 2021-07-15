@@ -44,11 +44,11 @@ public class CreateResourceGroupTask extends AzureTask<ResourceGroup> {
             if (e.getResponse().getStatusCode() != 404) {
                 throw e;
             }
-            AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP, resourceGroupName, region));
-            AzureTelemetry.getActionContext().setProperty(CREATE_NEW_RESOURCE_GROUP_KEY, String.valueOf(true));
-            final ResourceGroup result = az.create(resourceGroupName, region.getName());
-            AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP_DONE, result.getName()));
-            return result;
         }
+        AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP, resourceGroupName, region));
+        AzureTelemetry.getActionContext().setProperty(CREATE_NEW_RESOURCE_GROUP_KEY, String.valueOf(true));
+        final ResourceGroup result = az.create(resourceGroupName, region.getName());
+        AzureMessager.getMessager().info(String.format(CREATE_RESOURCE_GROUP_DONE, result.getName()));
+        return result;
     }
 }
