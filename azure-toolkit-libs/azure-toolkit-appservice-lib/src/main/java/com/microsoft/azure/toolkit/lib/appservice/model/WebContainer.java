@@ -23,6 +23,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class WebContainer implements ExpandableParameter {
     private static final String JAVA = "Java";
+    private static final String JAVA_7 = "Java 7";
     private static final String JAVA_8 = "Java 8";
     private static final String JAVA_11 = "Java 11";
     private static final String STRING_JAVA_SE = "Java SE";
@@ -68,7 +69,7 @@ public class WebContainer implements ExpandableParameter {
         if (StringUtils.isEmpty(input)) {
             return WebContainer.JAVA_OFF;
         }
-        if (StringUtils.equalsAnyIgnoreCase(input, JAVA, JAVA_8, JAVA_11)) {
+        if (StringUtils.equalsAnyIgnoreCase(input, JAVA, JAVA_7, JAVA_8, JAVA_11, STRING_JAVA_SE)) {
             return WebContainer.JAVA_SE;
         }
         return values().stream()

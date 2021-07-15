@@ -44,7 +44,6 @@ import com.microsoft.azure.toolkit.lib.common.model.Region;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -70,51 +69,57 @@ class AppServiceUtils {
         if (StringUtils.isEmpty(webAppBase.linuxFxVersion())) {
             return Runtime.getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
-        final String linuxFxVersion = webAppBase.linuxFxVersion().replace("|", " ");
+        final String linuxFxVersion = webAppBase.linuxFxVersion();
         return StringUtils.containsIgnoreCase(webAppBase.innerModel().kind(), "function") ?
-                getRuntimeFromLinuxFunctionApp(linuxFxVersion) : getRuntimeFromLinuxWebApp(linuxFxVersion);
-    }
-
-    private static Runtime getRuntimeFromLinuxWebApp(String linuxFxVersion) {
-        return Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
+                getRuntimeFromLinuxFunctionApp(linuxFxVersion) :  Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
     }
 
     private static Runtime getRuntimeFromLinuxFunctionApp(String linuxFxVersion) {
-        final JavaVersion javaVersion = JavaVersion.fromString(linuxFxVersion);
+        final JavaVersion javaVersion = JavaVersion.fromString(linuxFxVersion.replace("|", " "));
         return Runtime.getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, javaVersion);
     }
 
     private static Runtime getRuntimeFromWindowsAppService(WebAppBase webAppBase) {
-        final JavaVersion javaVersion = fromJavaVersion(webAppBase.javaVersion());
         final String javaContainer = String.join(" ", webAppBase.javaContainer(), webAppBase.javaContainerVersion());
-        final WebContainer webContainer = StringUtils.equalsIgnoreCase(webAppBase.javaContainer(), "java") ? WebContainer.JAVA_SE :
-            WebContainer.values().stream()
-                .filter(container -> StringUtils.equalsIgnoreCase(javaContainer, container.getValue()))
-                .findFirst().orElse(WebContainer.JAVA_OFF);
+        final WebContainer webContainer = WebContainer.fromString(javaContainer);
+        final JavaVersion javaVersion = JavaVersion.fromString(Objects.toString(webAppBase.javaVersion(), null));
         return Runtime.getRuntime(OperatingSystem.WINDOWS, webContainer, javaVersion);
     }
 
     static RuntimeStack toRuntimeStack(Runtime runtime) {
         return RuntimeStack.getAll().stream().filter(runtimeStack -> {
-            final Runtime stackRuntime = Runtime.getRuntimeFromLinuxFxVersion(runtimeStack.toString());
+            final String linuxFxVersion = String.format("%s|%s", runtimeStack.stack(), runtimeStack.version());
+            final Runtime stackRuntime = Runtime.getRuntimeFromLinuxFxVersion(linuxFxVersion);
             return Objects.equals(stackRuntime.getJavaVersion(), runtime.getJavaVersion()) &&
                     Objects.equals(stackRuntime.getWebContainer(), runtime.getWebContainer());
         }).findFirst().orElseGet(() -> {
+            if (Objects.equals(runtime.getWebContainer(), WebContainer.JAVA_SE)) {
+                return new RuntimeStack("JAVA", getJavaVersionValueForJavaSERuntimeStack(runtime.getJavaVersion()));
+            }
             final String[] containerInfo = runtime.getWebContainer().getValue().split(" ");
             final String stack = containerInfo[0];
             final String stackVersion = containerInfo[1];
-            final String javaVersion = convertJavaVersionToStackJavaVersion(runtime.getJavaVersion());
+            final String javaVersion = getJavaVersionValueForContainerRuntimeStack(runtime.getJavaVersion());
             final String version = String.format("%s-%s", stackVersion, javaVersion);
             return new RuntimeStack(stack, version);
         });
     }
 
-    static String convertJavaVersionToStackJavaVersion(JavaVersion javaVersion) {
-        if (Objects.equals(javaVersion, JavaVersion.JAVA_7)) {
-            return "java7";
-        }
+    static String getJavaVersionValueForJavaSERuntimeStack(@Nonnull JavaVersion javaVersion) {
+        // Java SE with minor version runtime stack follow pattern JAVA|VERSION, like JAVA|11.0.9, JAVA|8u25
+        return javaVersion.getValue().replaceAll("java|jre", "").trim();
+    }
+
+    static String getJavaVersionValueForContainerRuntimeStack(@Nonnull JavaVersion javaVersion) {
+        // Runtime stack for java containers follow pattern STACK|STACK_VERSION-JAVA_VERSION, like TOMCAT|9.0.41-java11, JBOSSEAP|7-java8
         if (Objects.equals(javaVersion, JavaVersion.JAVA_8)) {
             return "java8";
+        }
+        if (Objects.equals(javaVersion, JavaVersion.JAVA_8)) {
+            return "java11";
+        }
+        if (StringUtils.startsWithAny(javaVersion.getValue().toLowerCase(), "java", "jre")) {
+            return javaVersion.getValue();
         }
         return String.format("java%s", javaVersion.getValue());
     }
@@ -134,19 +139,16 @@ class AppServiceUtils {
     }
 
     static com.azure.resourcemanager.appservice.models.WebContainer toWebContainer(Runtime runtime) {
-        if (Objects.equals(runtime.getWebContainer(), WebContainer.JAVA_SE)) {
+        final WebContainer webContainer = runtime.getWebContainer();
+        if (webContainer == null || Objects.equals(webContainer, WebContainer.JAVA_OFF)) {
+            return null;
+        }
+        if (Objects.equals(webContainer, WebContainer.JAVA_SE)) {
             return StringUtils.startsWith(runtime.getJavaVersion().getValue(), JavaVersion.JAVA_8.getValue()) ?
                     com.azure.resourcemanager.appservice.models.WebContainer.JAVA_8 :
                     com.azure.resourcemanager.appservice.models.WebContainer.fromString("java 11");
         }
-        return com.azure.resourcemanager.appservice.models.WebContainer.values().stream()
-                .filter(container -> StringUtils.equalsIgnoreCase(container.toString(), runtime.getWebContainer().getValue()))
-                .findFirst()
-                .orElseGet(() -> com.azure.resourcemanager.appservice.models.WebContainer.fromString(runtime.getWebContainer().getValue()));
-    }
-
-    static com.azure.resourcemanager.appservice.models.JavaVersion toJavaVersion(Runtime runtime) {
-        return toJavaVersion(runtime.getJavaVersion());
+        return com.azure.resourcemanager.appservice.models.WebContainer.fromString(webContainer.getValue());
     }
 
     static PublishingProfile fromPublishingProfile(com.azure.resourcemanager.appservice.models.PublishingProfile publishingProfile) {
@@ -164,28 +166,18 @@ class AppServiceUtils {
         return com.azure.resourcemanager.appservice.models.PricingTier.fromSkuDescription(skuDescription);
     }
 
-    static PricingTier fromPricingTier(com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
-        return PricingTier.values().stream()
-                .filter(value -> StringUtils.equalsIgnoreCase(value.getSize(), pricingTier.toSkuDescription().size()) &&
-                        StringUtils.equalsIgnoreCase(value.getTier(), pricingTier.toSkuDescription().tier()))
-                .findFirst()
-                .orElseGet(() -> PricingTier.fromString(pricingTier.toSkuDescription().tier(), pricingTier.toSkuDescription().size()));
+    static PricingTier fromPricingTier(@Nonnull com.azure.resourcemanager.appservice.models.PricingTier pricingTier) {
+        return PricingTier.fromString(pricingTier.toSkuDescription().tier(), pricingTier.toSkuDescription().size());
     }
 
     static OperatingSystem fromOperatingSystem(com.azure.resourcemanager.appservice.models.OperatingSystem operatingSystem) {
-        return Arrays.stream(OperatingSystem.values())
-            .filter(os -> StringUtils.equalsIgnoreCase(operatingSystem.name(), os.getValue()))
-            .findFirst().orElse(null);
-    }
-
-    static JavaVersion fromJavaVersion(com.azure.resourcemanager.appservice.models.JavaVersion javaVersion) {
-        return javaVersion == null ? JavaVersion.OFF : JavaVersion.fromString(javaVersion.toString());
+        return OperatingSystem.fromString(operatingSystem.name());
     }
 
     static com.azure.resourcemanager.appservice.models.JavaVersion toJavaVersion(JavaVersion javaVersion) {
-        return com.azure.resourcemanager.appservice.models.JavaVersion.values().stream()
-                .filter(value -> StringUtils.equalsIgnoreCase(value.toString(), javaVersion.getValue()))
-                .findFirst().orElseGet(() -> com.azure.resourcemanager.appservice.models.JavaVersion.fromString(javaVersion.getValue()));
+        // remove the java/jre prefix for user input
+        final String value = javaVersion.getValue().replaceFirst("(?i)java|jre", "");
+        return com.azure.resourcemanager.appservice.models.JavaVersion.fromString(value);
     }
 
     static FunctionAppEntity fromFunctionApp(FunctionApp functionApp) {

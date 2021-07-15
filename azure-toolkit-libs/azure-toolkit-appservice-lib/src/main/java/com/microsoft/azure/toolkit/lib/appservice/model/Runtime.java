@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,6 +30,8 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class Runtime {
+    private static final Pattern LINUX_FX_VERSION_PATTERN = Pattern.compile("(.+)\\|((.*)-)?(.+)");
+
     // Web App
     public static final Runtime WINDOWS_JAVA8 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_SE, JavaVersion.JAVA_8);
     public static final Runtime WINDOWS_JAVA11 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_SE, JavaVersion.JAVA_11);
@@ -77,16 +81,13 @@ public class Runtime {
     }
 
     public static Runtime getRuntimeFromLinuxFxVersion(String linuxFxVersion) {
-        final String[] runtimeDetails = linuxFxVersion.split("-");
-        if (runtimeDetails.length != 2) {
+        final Matcher matcher = LINUX_FX_VERSION_PATTERN.matcher(linuxFxVersion);
+        if (!matcher.matches()) {
             return getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
-        final String javaVersionRaw = runtimeDetails[1];
-        final String webContainerRaw = runtimeDetails[0];
-        final JavaVersion javaVersion = StringUtils.containsAny(StringUtils.lowerCase(javaVersionRaw), "java", "jre") ?
-                StringUtils.containsIgnoreCase(javaVersionRaw, "11") ? JavaVersion.JAVA_11 : JavaVersion.JAVA_8 : JavaVersion.OFF;
-        final WebContainer webContainer = WebContainer.fromString(webContainerRaw);
-        return getRuntime(OperatingSystem.LINUX, webContainer, javaVersion);
+        final String javaVersion = matcher.group(4);
+        final String webContainer = String.format("%s %s", matcher.group(1), matcher.group(3)).trim();
+        return getRuntime(OperatingSystem.LINUX, WebContainer.fromString(webContainer), JavaVersion.fromString(javaVersion));
     }
 
     public static List<Runtime> values() {

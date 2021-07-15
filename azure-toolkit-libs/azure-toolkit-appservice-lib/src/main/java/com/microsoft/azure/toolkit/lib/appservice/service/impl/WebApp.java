@@ -157,7 +157,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
                                                         Runtime runtime) {
             return (DefinitionStages.WithCreate) blank.withExistingWindowsPlan(appServicePlan)
                 .withExistingResourceGroup(resourceGroup)
-                .withJavaVersion(AppServiceUtils.toJavaVersion(runtime))
+                .withJavaVersion(AppServiceUtils.toJavaVersion(runtime.getJavaVersion()))
                 .withWebContainer(AppServiceUtils.toWebContainer(runtime));
         }
 
@@ -249,7 +249,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
                 case LINUX:
                     return update.withBuiltInImage(AppServiceUtils.toRuntimeStack(newRuntime));
                 case WINDOWS:
-                    return (Update) update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime))
+                    return (Update) update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
                         .withWebContainer(AppServiceUtils.toWebContainer(newRuntime));
                 case DOCKER:
                     final DockerConfiguration dockerConfiguration = getDockerConfiguration().get();
