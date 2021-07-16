@@ -23,38 +23,14 @@
 package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureBundle;
-import lombok.Builder;
-import lombok.Getter;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureText;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
 
 public class AzureOperationBundle {
 
-    private static AzureBundle provider;
+    private static final AzureBundle bundle = new AzureBundle("com.microsoft.azure.toolkit.operation.title");
 
-    public static synchronized void register(AzureBundle bundle) {
-        if (AzureOperationBundle.provider == null) {
-            AzureOperationBundle.provider = bundle;
-        }
-    }
-
-    public static IAzureOperationTitle title(@NotNull String name, @NotNull Object... params) {
-        return MessageBundleBasedOperationTitle.builder().name(name).params(params).build();
-    }
-
-    @Builder
-    @Getter
-    public static class MessageBundleBasedOperationTitle implements IAzureOperationTitle {
-        private final String name;
-        private final Object[] params;
-        private String title;
-
-        public String toString() {
-            if (Objects.isNull(this.title)) {
-                this.title = provider.message(this.name, params);
-            }
-            return this.title;
-        }
+    public static AzureText title(@NotNull String name, @NotNull Object... params) {
+        return AzureText.fromBundle(bundle, name, params);
     }
 }

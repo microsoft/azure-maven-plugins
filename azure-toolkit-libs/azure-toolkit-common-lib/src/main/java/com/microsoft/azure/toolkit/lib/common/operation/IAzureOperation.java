@@ -6,21 +6,27 @@
 package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.DataStore;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureText;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
 public interface IAzureOperation extends DataStore<IAzureOperation.IContext> {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
 
+    @Nonnull
     String getId();
 
+    @Nonnull
     String getName();
 
+    @Nonnull
     String getType();
 
-    Object getTitle();
+    @Nullable
+    AzureText getTitle();
 
     void setParent(IAzureOperation operation);
 

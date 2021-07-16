@@ -5,115 +5,122 @@
 
 package com.microsoft.azure.toolkit.lib.common.task;
 
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureText;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperationTitle;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 @Getter
 @Setter
 public class AzureTask<T> implements IAzureOperation {
+    @Nonnull
     private final Modality modality;
     @Getter(AccessLevel.NONE)
+    @Nullable
     private final Supplier<T> supplier;
+    @Nullable
     private final Object project;
     private final boolean cancellable;
-    private final IAzureOperationTitle title;
+    @Nullable
+    private final AzureText title;
     private IAzureOperation parent;
     @Builder.Default
     private boolean backgroundable = true;
+    @Nullable
     private Boolean backgrounded = null;
 
     public AzureTask() {
         this((Supplier<T>) null);
     }
 
-    public AzureTask(Runnable runnable) {
+    public AzureTask(@Nonnull Runnable runnable) {
         this(runnable, Modality.DEFAULT);
     }
 
-    public AzureTask(String title, Runnable runnable) {
+    public AzureTask(@Nonnull String title, @Nonnull Runnable runnable) {
         this(title, runnable, Modality.DEFAULT);
     }
 
-    public AzureTask(IAzureOperationTitle title, Runnable runnable) {
+    public AzureTask(@Nonnull AzureText title, @Nonnull Runnable runnable) {
         this(title, runnable, Modality.DEFAULT);
     }
 
-    public AzureTask(Supplier<T> supplier) {
+    public AzureTask(@Nullable Supplier<T> supplier) {
         this(supplier, Modality.DEFAULT);
     }
 
-    public AzureTask(String title, Supplier<T> supplier) {
+    public AzureTask(@Nonnull String title, @Nonnull Supplier<T> supplier) {
         this(null, title, false, supplier, Modality.DEFAULT);
     }
 
-    public AzureTask(IAzureOperationTitle title, Supplier<T> supplier) {
+    public AzureTask(@Nonnull AzureText title, @Nonnull Supplier<T> supplier) {
         this(null, title, false, supplier, Modality.DEFAULT);
     }
 
-    public AzureTask(Runnable runnable, Modality modality) {
+    public AzureTask(@Nonnull Runnable runnable, @Nonnull Modality modality) {
         this(null, (String) null, false, runnable, modality);
     }
 
-    public AzureTask(String title, Runnable runnable, Modality modality) {
+    public AzureTask(@Nonnull String title, @Nonnull Runnable runnable, @Nonnull Modality modality) {
         this(null, title, false, runnable, modality);
     }
 
-    public AzureTask(IAzureOperationTitle title, Runnable runnable, Modality modality) {
+    public AzureTask(@Nonnull AzureText title, @Nonnull Runnable runnable, @Nonnull Modality modality) {
         this(null, title, false, runnable, modality);
     }
 
-    public AzureTask(Supplier<T> supplier, Modality modality) {
+    public AzureTask(@Nullable Supplier<T> supplier, @Nonnull Modality modality) {
         this(null, (String) null, false, supplier, modality);
     }
 
-    public AzureTask(String title, Supplier<T> supplier, Modality modality) {
+    public AzureTask(@Nonnull String title, @Nonnull Supplier<T> supplier, @Nonnull Modality modality) {
         this(null, title, false, supplier, modality);
     }
 
-    public AzureTask(IAzureOperationTitle title, Supplier<T> supplier, Modality modality) {
+    public AzureTask(@Nonnull AzureText title, @Nonnull Supplier<T> supplier, @Nonnull Modality modality) {
         this(null, title, false, supplier, modality);
     }
 
-    public AzureTask(Object project, String title, boolean cancellable, Runnable runnable) {
+    public AzureTask(@Nullable Object project, @Nonnull String title, boolean cancellable, @Nonnull Runnable runnable) {
         this(project, title, cancellable, runnable, Modality.DEFAULT);
     }
 
-    public AzureTask(Object project, IAzureOperationTitle title, boolean cancellable, Runnable runnable) {
+    public AzureTask(@Nullable Object project, @Nonnull AzureText title, boolean cancellable, @Nonnull Runnable runnable) {
         this(project, title, cancellable, runnable, Modality.DEFAULT);
     }
 
-    public AzureTask(Object project, String title, boolean cancellable, Supplier<T> supplier) {
+    public AzureTask(@Nullable Object project, @Nonnull String title, boolean cancellable, @Nonnull Supplier<T> supplier) {
         this(project, title, cancellable, supplier, Modality.DEFAULT);
     }
 
-    public AzureTask(Object project, IAzureOperationTitle title, boolean cancellable, Supplier<T> supplier) {
+    public AzureTask(@Nullable Object project, @Nonnull AzureText title, boolean cancellable, @Nonnull Supplier<T> supplier) {
         this(project, title, cancellable, supplier, Modality.DEFAULT);
     }
 
-    public AzureTask(Object project, String title, boolean cancellable, Runnable runnable, Modality modality) {
-        this(project, new IAzureOperationTitle.Simple(title), cancellable, runnable, modality);
+    public AzureTask(@Nullable Object project, @Nullable String title, boolean cancellable, @Nonnull Runnable runnable, @Nonnull Modality modality) {
+        this(project, Optional.ofNullable(title).map(AzureText::fromText).orElse(null), cancellable, runnable, modality);
     }
 
-    public AzureTask(Object project, IAzureOperationTitle title, boolean cancellable, Runnable runnable, Modality modality) {
+    public AzureTask(@Nullable Object project, @Nullable AzureText title, boolean cancellable, @Nonnull Runnable runnable, @Nonnull Modality modality) {
         this(project, title, cancellable, () -> {
             runnable.run();
             return null;
         }, modality);
     }
 
-    public AzureTask(Object project, String title, boolean cancellable, Supplier<T> supplier, Modality modality) {
-        this(project, new IAzureOperationTitle.Simple(title), cancellable, supplier, modality);
+    public AzureTask(@Nullable Object project, @Nullable String title, boolean cancellable, @Nullable Supplier<T> supplier, @Nonnull Modality modality) {
+        this(project, Optional.ofNullable(title).map(AzureText::fromText).orElse(null), cancellable, supplier, modality);
     }
 
-    public AzureTask(Object project, IAzureOperationTitle title, boolean cancellable, Supplier<T> supplier, Modality modality) {
+    public AzureTask(@Nullable Object project, @Nullable AzureText title, boolean cancellable, @Nullable Supplier<T> supplier, @Nonnull Modality modality) {
         this.project = project;
         this.title = title;
         this.cancellable = cancellable;
@@ -121,16 +128,19 @@ public class AzureTask<T> implements IAzureOperation {
         this.modality = modality;
     }
 
+    @Nonnull
     public String getId() {
         return "&" + Utils.getId(this);
     }
 
     @Override
+    @Nonnull
     public String getName() {
-        return Optional.ofNullable(this.getTitle()).map(IAzureOperationTitle::getName).orElse(UNKNOWN_NAME);
+        return Optional.ofNullable(this.getTitle()).map(AzureText::getName).orElse(UNKNOWN_NAME);
     }
 
     @Override
+    @Nonnull
     public String getType() {
         return "ASYNC";
     }
@@ -140,6 +150,7 @@ public class AzureTask<T> implements IAzureOperation {
         return String.format("{name:'%s'}", this.getName());
     }
 
+    @Nonnull
     public Supplier<T> getSupplier() {
         return Optional.ofNullable(this.supplier).orElse(this::execute);
     }
