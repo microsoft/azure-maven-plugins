@@ -22,6 +22,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
 import lombok.Builder;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -30,11 +31,11 @@ import java.util.Objects;
 
 public class AzureOperationBundle {
 
-    private static Provider provider;
+    private static AzureMessageBundle provider;
 
-    public static synchronized void register(final Provider provider) {
+    public static synchronized void register(AzureMessageBundle bundle) {
         if (AzureOperationBundle.provider == null) {
-            AzureOperationBundle.provider = provider;
+            AzureOperationBundle.provider = bundle;
         }
     }
 
@@ -55,9 +56,5 @@ public class AzureOperationBundle {
             }
             return this.title;
         }
-    }
-
-    public interface Provider {
-        String getMessage(@NotNull String key, @NotNull Object... params);
     }
 }

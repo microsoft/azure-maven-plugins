@@ -30,10 +30,10 @@ import com.microsoft.azure.toolkit.lib.auth.model.AuthType;
 import com.microsoft.azure.toolkit.lib.auth.util.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationBundle;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationTitleBundle;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
@@ -458,7 +458,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     public void execute() throws MojoExecutionException {
         try {
             AzureMessager.setDefaultMessager(new MavenAzureMessager());
-            AzureOperationBundle.register(new AzureOperationTitleBundle("maven"));
+            AzureOperationBundle.register(new AzureMessageBundle("com.microsoft.azure.toolkit.operation.titles", "maven"));
             Azure.az().config().setLogLevel(HttpLogDetailLevel.NONE.name());
             Azure.az().config().setUserAgent(getUserAgent());
             // init proxy manager
