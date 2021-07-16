@@ -9,6 +9,8 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.appservice.models.CsmPublishingProfileOptions;
 import com.azure.resourcemanager.appservice.models.PublishingProfileFormat;
 import com.azure.resourcemanager.appservice.models.WebAppBase;
+import com.azure.resourcemanager.appservice.models.WebAppBasic;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
 import com.microsoft.azure.toolkit.lib.appservice.manager.AppServiceKuduManager;
@@ -22,7 +24,10 @@ import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.service.IProcessClient;
+import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -36,9 +41,41 @@ import java.util.Optional;
 
 abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBaseEntity> implements IAppService<R> {
 
+    @Nonnull
+    protected String name;
+    @Nonnull
+    protected String resourceGroup;
+    @Nonnull
+    protected String subscriptionId;
+
     protected AppServiceKuduManager kuduManager;
     protected R entity;
     protected T remote;
+
+    public AbstractAppService(@Nonnull final String id) {
+        final ResourceId resourceId = ResourceId.fromString(id);
+        this.name = resourceId.name();
+        this.resourceGroup = resourceId.resourceGroupName();
+        this.subscriptionId = resourceId.subscriptionId();
+    }
+
+    public AbstractAppService(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name) {
+        this.name = name;
+        this.resourceGroup = resourceGroup;
+        this.subscriptionId = subscriptionId;
+    }
+
+    public AbstractAppService(@Nonnull WebSiteBase webSiteBase) {
+        this.name = webSiteBase.name();
+        this.resourceGroup = webSiteBase.resourceGroupName();
+        this.subscriptionId = Utils.getSubscriptionId(webSiteBase.id());
+    }
+
+    public AbstractAppService(@Nonnull T appService) {
+        this((WebAppBasic) appService);
+        this.remote = appService;
+        this.entity = getEntityFromRemoteResource(remote);
+    }
 
     @Override
     public AbstractAppService<T, R> refresh() {
@@ -61,11 +98,6 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     @Override
     public void restart() {
         getRemoteResource().restart();
-    }
-
-    @Override
-    public String name() {
-        return entity().getName();
     }
 
     @Override
@@ -175,6 +207,21 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     @Override
     public TunnelStatus getAppServiceTunnelStatus() {
         return getProcessClient().getAppServiceTunnelStatus();
+    }
+
+    @Override
+    public String name() {
+        return this.name;
+    }
+
+    @Override
+    public String subscriptionId() {
+        return this.subscriptionId;
+    }
+
+    @Override
+    public String resourceGroup() {
+        return this.resourceGroup;
     }
 
     protected IFileClient getFileClient() {

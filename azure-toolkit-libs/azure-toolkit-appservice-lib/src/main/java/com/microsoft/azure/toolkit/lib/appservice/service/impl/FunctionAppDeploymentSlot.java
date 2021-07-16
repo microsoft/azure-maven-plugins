@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appservice.fluent.models.HostKeysInner;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
+import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlotBasic;
 import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
@@ -23,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,11 +33,22 @@ import java.util.Optional;
 
 public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymentSlot, FunctionAppDeploymentSlotEntity>
         implements IFunctionAppDeploymentSlot {
-
+    @Nonnull
+    private final String functionAppName;
     private final AzureResourceManager azureClient;
 
-    public FunctionAppDeploymentSlot(FunctionAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureClient) {
-        this.entity = deploymentSlot;
+    private FunctionApp parent;
+
+    public FunctionAppDeploymentSlot(@Nonnull final FunctionApp webApp, @Nonnull final String slotName, @Nonnull final AzureResourceManager azureClient) {
+        super(webApp.id(), webApp.resourceGroupName(), slotName);
+        this.parent = webApp;
+        this.functionAppName = parent.name();
+        this.azureClient = azureClient;
+    }
+
+    public FunctionAppDeploymentSlot(@Nonnull final FunctionDeploymentSlotBasic slotBasic, @Nonnull final AzureResourceManager azureClient) {
+        super(slotBasic);
+        this.functionAppName = ResourceId.fromString(slotBasic.id()).parent().name();
         this.azureClient = azureClient;
     }
 
@@ -68,16 +81,14 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
     @Nullable
     @Override
     protected FunctionDeploymentSlot remote() {
-        final FunctionApp parentFunctionApp = getParentFunctionApp();
-        return StringUtils.isNotEmpty(entity.getId()) ?
-                parentFunctionApp.deploymentSlots().getById(entity.getId()) :
-                parentFunctionApp.deploymentSlots().getByName(entity.getName());
+        return getParentFunctionApp().deploymentSlots().getByName(name);
     }
 
     private FunctionApp getParentFunctionApp() {
-        return StringUtils.isNotEmpty(entity.getId()) ?
-                azureClient.functionApps().getById(ResourceId.fromString(entity.getId()).parent().id()) :
-                azureClient.functionApps().getByResourceGroup(entity.getResourceGroup(), entity.getFunctionAppName());
+        if (parent == null) {
+            parent = azureClient.functionApps().getByResourceGroup(resourceGroup, functionAppName);
+        }
+        return parent;
     }
 
     @Override

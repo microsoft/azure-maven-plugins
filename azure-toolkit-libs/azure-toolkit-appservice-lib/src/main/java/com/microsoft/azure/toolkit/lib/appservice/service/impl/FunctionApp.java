@@ -10,11 +10,11 @@ import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.WithCreate;
 import com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.WithDockerContainerImage;
 import com.azure.resourcemanager.appservice.models.FunctionApp.Update;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
-import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
@@ -50,8 +50,19 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
     private final AzureResourceManager azureClient;
 
-    public FunctionApp(FunctionAppEntity entity, AzureResourceManager azureClient) {
-        this.entity = entity;
+    public FunctionApp(@Nonnull final String id, @Nonnull final AzureResourceManager azureClient) {
+        super(id);
+        this.azureClient = azureClient;
+    }
+
+    public FunctionApp(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name,
+                  @Nonnull final AzureResourceManager azureClient) {
+        super(subscriptionId, resourceGroup, name);
+        this.azureClient = azureClient;
+    }
+
+    public FunctionApp(@Nonnull WebSiteBase webSiteBase, @Nonnull final AzureResourceManager azureClient) {
+        super(webSiteBase);
         this.azureClient = azureClient;
     }
 
@@ -73,17 +84,14 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Override
     @Cacheable(cacheName = "appservice/functionapp/{}/slot/{}", key = "${this.name()}/$slotName")
     public IFunctionAppDeploymentSlot deploymentSlot(String slotName) {
-        final FunctionAppDeploymentSlotEntity slotEntity = FunctionAppDeploymentSlotEntity.builder()
-                .functionAppName(name()).resourceGroup(getRemoteResource().resourceGroupName()).name(slotName).build();
-        return new FunctionAppDeploymentSlot(slotEntity, azureClient);
+        return new FunctionAppDeploymentSlot(getRemoteResource(), slotName, azureClient);
     }
 
     @Override
     @Cacheable(cacheName = "appservice/functionapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<IFunctionAppDeploymentSlot> deploymentSlots(boolean... force) {
         return getRemoteResource().deploymentSlots().list().stream().parallel()
-                .map(functionSlotBasic -> FunctionAppDeploymentSlotEntity.builder().id(functionSlotBasic.id()).build())
-                .map(slotEntity -> new FunctionAppDeploymentSlot(slotEntity, azureClient))
+                .map(functionSlotBasic -> new FunctionAppDeploymentSlot(functionSlotBasic, azureClient))
                 .collect(Collectors.toList());
     }
 
@@ -126,9 +134,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Nullable
     @Override
     protected com.azure.resourcemanager.appservice.models.FunctionApp remote() {
-        return StringUtils.isNotEmpty(entity.getId()) ?
-                azureClient.functionApps().getById(entity.getId()) :
-                azureClient.functionApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
+        return azureClient.functionApps().getByResourceGroup(resourceGroup, name);
     }
 
     @Override

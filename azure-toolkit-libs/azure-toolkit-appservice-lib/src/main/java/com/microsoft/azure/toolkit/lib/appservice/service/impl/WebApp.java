@@ -10,11 +10,11 @@ import com.azure.resourcemanager.appservice.models.AppServicePlan;
 import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages;
 import com.azure.resourcemanager.appservice.models.WebApp.Update;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
-import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.entity.WebAppEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
@@ -46,8 +46,19 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
     private final AzureResourceManager azureClient;
 
-    public WebApp(WebAppEntity entity, AzureResourceManager azureClient) {
-        this.entity = entity;
+    public WebApp(@Nonnull final String id, @Nonnull final AzureResourceManager azureClient) {
+        super(id);
+        this.azureClient = azureClient;
+    }
+
+    public WebApp(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name,
+                              @Nonnull final AzureResourceManager azureClient) {
+        super(subscriptionId, resourceGroup, name);
+        this.azureClient = azureClient;
+    }
+
+    public WebApp(@Nonnull WebSiteBase webAppBasic, @Nonnull final AzureResourceManager azureClient) {
+        super(webAppBasic);
         this.azureClient = azureClient;
     }
 
@@ -69,9 +80,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
     @Override
     protected com.azure.resourcemanager.appservice.models.WebApp remote() {
-        return StringUtils.isNotEmpty(entity.getId()) ?
-                azureClient.webApps().getById(entity.getId()) :
-                azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getName());
+        return azureClient.webApps().getByResourceGroup(resourceGroup, name);
     }
 
     @Override
@@ -96,18 +105,13 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     @Override
     @Cacheable(cacheName = "appservice/webapp/{}/slot/{}", key = "${this.name()}/$slotName")
     public IWebAppDeploymentSlot deploymentSlot(String slotName) {
-        final WebAppDeploymentSlotEntity slotEntity = WebAppDeploymentSlotEntity.builder().name(slotName)
-            .resourceGroup(getRemoteResource().resourceGroupName())
-            .webappName(getRemoteResource().name()).build();
-        return new WebAppDeploymentSlot(slotEntity, azureClient);
+        return new WebAppDeploymentSlot(getRemoteResource(), slotName, azureClient);
     }
 
     @Override
     @Cacheable(cacheName = "appservice/webapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<IWebAppDeploymentSlot> deploymentSlots(boolean... force) {
-        return getRemoteResource().deploymentSlots().list().stream()
-            .map(slot -> new WebAppDeploymentSlot(WebAppDeploymentSlotEntity.builder().id(slot.id()).build(), azureClient))
-            .collect(Collectors.toList());
+        return getRemoteResource().deploymentSlots().list().stream().map(slot -> new WebAppDeploymentSlot(slot, azureClient)).collect(Collectors.toList());
     }
 
     @Override
