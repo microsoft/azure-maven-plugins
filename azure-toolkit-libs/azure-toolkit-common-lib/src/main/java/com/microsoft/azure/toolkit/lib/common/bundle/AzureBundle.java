@@ -29,6 +29,11 @@ public class AzureBundle {
     private final String pkg;
 
     @Nonnull
+    public AzureText text(@Nonnull final String key, final Object... params) {
+        return AzureText.fromBundle(this, key, params);
+    }
+
+    @Nonnull
     public String message(@Nonnull final String key, final Object... params) {
         return message(this.pkg, key, params);
     }
@@ -36,6 +41,11 @@ public class AzureBundle {
     @Nullable
     public String pattern(@Nonnull final String key) {
         return pattern(this.pkg, key);
+    }
+
+    @Nonnull
+    public static AzureText text(@Nonnull final String pkg, @Nonnull final String key, final Object... params) {
+        return AzureText.fromBundle(new AzureBundle(pkg), key, params);
     }
 
     @Nonnull
