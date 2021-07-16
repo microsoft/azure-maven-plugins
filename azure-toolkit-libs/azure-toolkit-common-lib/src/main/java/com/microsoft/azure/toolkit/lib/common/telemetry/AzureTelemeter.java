@@ -31,11 +31,11 @@ public class AzureTelemeter {
     private static final String OP_TYPE = "op_type";
     private static final String OP_PARENT_ID = "op_parentId";
 
-    private static final String ERROR_CODE = "errorCode";
-    private static final String ERROR_MSG = "message";
-    private static final String ERROR_TYPE = "errorType";
-    private static final String ERROR_CLASSNAME = "errorClassName";
-    private static final String ERROR_STACKTRACE = "errorStackTrace";
+    private static final String ERROR_CODE = "error.code";
+    private static final String ERROR_MSG = "error.message";
+    private static final String ERROR_TYPE = "error.type";
+    private static final String ERROR_CLASSNAME = "error.class_name";
+    private static final String ERROR_STACKTRACE = "error.stack";
     @Getter
     @Setter
     @Nullable
