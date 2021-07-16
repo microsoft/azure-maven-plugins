@@ -477,7 +477,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         try {
             AzureMessager.setDefaultMessager(new MavenAzureMessager());
-            AzureOperationBundle.register(new AzureBundle("com.microsoft.azure.toolkit.operation.title"));
             Azure.az().config().setLogLevel(HttpLogDetailLevel.NONE.name());
             Azure.az().config().setUserAgent(getUserAgent());
             // init proxy manager
