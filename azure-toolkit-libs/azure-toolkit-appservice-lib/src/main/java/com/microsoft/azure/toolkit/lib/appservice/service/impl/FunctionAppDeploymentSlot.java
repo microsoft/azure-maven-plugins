@@ -33,6 +33,7 @@ import java.util.Optional;
 
 public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymentSlot, FunctionAppDeploymentSlotEntity>
         implements IFunctionAppDeploymentSlot {
+    private static final String FUNCTION_DEPLOYMENT_SLOT_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s";
     @Nonnull
     private final String functionAppName;
     private final AzureResourceManager azureClient;
@@ -96,6 +97,11 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
         final String resourceGroup = entity().getResourceGroup();
         final String name = String.format("%s/slots/%s", entity().getFunctionAppName(), entity().getName());
         return remote().manager().serviceClient().getWebApps().listHostKeysAsync(resourceGroup, name).map(HostKeysInner::masterKey).block();
+    }
+
+    @Override
+    public String id() {
+        return String.format(FUNCTION_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, functionAppName, name);
     }
 
     @Getter

@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, WebAppDeploymentSlotEntity> implements IWebAppDeploymentSlot {
+    private static final String WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s";
     @Nonnull
     private final String webAppName;
     @Nonnull
@@ -95,6 +96,11 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
     public void deploy(DeployType deployType, File targetFile, String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
         remote().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
+    }
+
+    @Override
+    public String id() {
+        return String.format(WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, webAppName, name);
     }
 
     private WebApp getParentWebApp() {

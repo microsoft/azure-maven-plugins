@@ -34,6 +34,7 @@ import java.util.Optional;
 
 abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBaseEntity> extends AbstractAzureManager<T> implements IAppService<R> {
 
+    protected static final String APP_SERVICE_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s";
     protected AppServiceKuduManager kuduManager;
     protected R entity;
     protected T remote;
@@ -79,7 +80,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
 
     @Override
     public String id() {
-        return entity().getId();
+        return String.format(APP_SERVICE_ID_TEMPLATE, subscriptionId, resourceGroup, name);
     }
 
     @Override

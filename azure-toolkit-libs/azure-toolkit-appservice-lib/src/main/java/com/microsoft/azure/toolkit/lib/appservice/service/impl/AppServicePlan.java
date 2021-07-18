@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanager.appservice.models.AppServicePlan> implements IAppServicePlan {
+    private static final String APP_SERVICE_PLAN_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/serverfarms/%s";
 
     private AppServicePlanEntity entity;
     private final AzureResourceManager azureClient;
@@ -61,7 +62,7 @@ public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanag
 
     @Override
     public String id() {
-        return getRemoteResource().id();
+        return String.format(APP_SERVICE_PLAN_ID_TEMPLATE, subscriptionId, resourceGroup, name);
     }
 
     @Override
