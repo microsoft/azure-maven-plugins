@@ -17,9 +17,11 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -33,57 +35,70 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@Setter
 @RequiredArgsConstructor
-public abstract class AzureMessage implements IAzureMessage {
+@Accessors(chain = true)
+@Getter
+@Setter
+public class AzureMessage implements IAzureMessage {
     static final String DEFAULT_MESSAGE_TITLE = "Azure";
-    @Nullable
-    private String title;
-    @Nullable
-    private Object payload;
-    @Nullable
-    private Action[] actions;
-    @Nullable
-    private Boolean backgrounded;
     @Nonnull
-    @Getter
-    private final IAzureMessage original;
+    protected final Type type;
+    @Nonnull
+    protected final AzureText message;
+    @Nullable
+    protected String title;
+    @Nullable
+    protected Object payload;
+    @Nullable
+    protected Action[] actions;
+    @Nullable
+    protected Boolean backgrounded;
+    protected ValueDecorator valueDecorator;
+    @Setter(AccessLevel.PRIVATE)
     private ArrayList<IAzureOperation> operations;
 
-    public AzureMessage(@Nonnull Type type, @Nonnull String message) {
-        this(new SimpleMessage(type, message));
-    }
-
     @Nonnull
-    public String getMessage() {
+    public String getContent() {
         if (!(getPayload() instanceof Throwable)) {
-            return this.original.getMessage();
+            return ObjectUtils.firstNonNull(this.decorateText(this.message, null), this.message.getText());
         }
         final Throwable throwable = (Throwable) getPayload();
         final List<IAzureOperation> operations = this.getOperations();
-        final String failure = operations.isEmpty() ? "Failed to proceed" : "Failed to " + getText(operations.get(0).getTitle());
+        final AzureText title = operations.get(0).getTitle();
+        final String failure = operations.isEmpty() || Objects.isNull(title) ? "Failed to proceed" : "Failed to " + this.decorateText(title, title::getText);
         final String cause = Optional.ofNullable(this.getCause(throwable))
                 .map(c -> String.format(", because %s", c))
                 .orElse("");
         final String errorAction = Optional.ofNullable(this.getErrorAction(throwable)).orElse("");
-        return failure + cause + "\n" + errorAction;
+        return failure + cause + errorAction;
     }
 
     public String getDetails() {
         final List<IAzureOperation> operations = this.getOperations();
         return operations.size() < 2 ? "" : operations.stream()
                 .map(this::getDetailItem)
-                .collect(Collectors.joining("", "\n", ""));
+                .collect(Collectors.joining("", "", ""));
     }
 
     protected String getDetailItem(IAzureOperation o) {
-        return String.format("● %s", StringUtils.capitalize(getText(o.getTitle())));
+        return Optional.ofNullable(o.getTitle())
+                .map(t -> decorateText(t, t::getText))
+                .map(StringUtils::capitalize)
+                .map(t -> String.format("● %s", t))
+                .orElse(null);
     }
 
-    public String getText(@Nullable AzureText text) {
-        return Optional.ofNullable(text).map(AzureText::getText).orElse(null);
+    @Override
+    @Nullable
+    public String decorateValue(@Nonnull Object p, @Nullable Supplier<String> dft) {
+        String result = IAzureMessage.super.decorateValue(p, null);
+        if (Objects.isNull(result) && Objects.nonNull(this.valueDecorator)) {
+            result = this.valueDecorator.decorateValue(p, this);
+        }
+        return Objects.isNull(result) && Objects.nonNull(dft) ? dft.get() : result;
     }
 
     @Nullable
@@ -171,26 +186,14 @@ public abstract class AzureMessage implements IAzureMessage {
 
     @Nonnull
     @Override
-    public Type getType() {
-        return this.original.getType();
-    }
-
-    @Nonnull
-    @Override
     public String getTitle() {
-        return StringUtils.firstNonBlank(this.title, this.original.getTitle(), DEFAULT_MESSAGE_TITLE);
-    }
-
-    @Nullable
-    @Override
-    public Object getPayload() {
-        return ObjectUtils.firstNonNull(this.payload, this.original.getPayload());
+        return StringUtils.firstNonBlank(this.title, DEFAULT_MESSAGE_TITLE);
     }
 
     @Nonnull
     @Override
     public Action[] getActions() {
-        return ObjectUtils.firstNonNull(this.actions, this.original.getActions(), new Action[0]);
+        return ObjectUtils.firstNonNull(this.actions, new Action[0]);
     }
 
     @Nullable

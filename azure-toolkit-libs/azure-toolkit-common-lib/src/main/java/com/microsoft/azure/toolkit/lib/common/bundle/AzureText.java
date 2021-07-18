@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.bundle;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -23,6 +24,7 @@ public class AzureText {
     private final AzureBundle bundle;
     @Nonnull
     private final String name;
+    @Nonnull
     private final Object[] params;
 
     @Nonnull
@@ -32,12 +34,12 @@ public class AzureText {
 
     @Nonnull
     public static AzureText fromPattern(@Nonnull String pattern, Object... params) {
-        return new AzureText(null, pattern, params);
+        return new AzureText(null, pattern, ObjectUtils.firstNonNull(params, new Object[0]));
     }
 
     @Nonnull
     public static AzureText fromBundle(@Nonnull AzureBundle bundle, @Nonnull String key, Object... params) {
-        return new AzureText(bundle, key, params);
+        return new AzureText(bundle, key, ObjectUtils.firstNonNull(params, new Object[0]));
     }
 
     public String getText() {
