@@ -45,14 +45,14 @@ public abstract class FunctionAppBase<T extends WebAppBase, R extends AppService
 
     @Override
     public void deploy(File targetFile, FunctionDeployType functionDeployType) {
-        getDeployHandlerByType(functionDeployType).deploy(targetFile, getRemoteResource());
+        getDeployHandlerByType(functionDeployType).deploy(targetFile, remote());
     }
 
     @Override
     protected IFileClient getFileClient() {
         // kudu api does not applies to linux consumption, using functions admin api instead
         if (functionsResourceManager == null) {
-            functionsResourceManager = AzureFunctionsResourceManager.getClient(getRemoteResource(), this);
+            functionsResourceManager = AzureFunctionsResourceManager.getClient(remote(), this);
         }
         return functionsResourceManager;
     }
@@ -61,7 +61,7 @@ public abstract class FunctionAppBase<T extends WebAppBase, R extends AppService
         if (getRuntime().getOperatingSystem() == OperatingSystem.WINDOWS) {
             return FunctionDeployType.RUN_FROM_ZIP;
         }
-        final PricingTier pricingTier = Azure.az(AzureAppService.class).appServicePlan(getRemoteResource().appServicePlanId()).entity().getPricingTier();
+        final PricingTier pricingTier = Azure.az(AzureAppService.class).appServicePlan(remote().appServicePlanId()).entity().getPricingTier();
         return StringUtils.equalsAnyIgnoreCase(pricingTier.getTier(), "Dynamic", "ElasticPremium") ?
                 FunctionDeployType.RUN_FROM_BLOB : FunctionDeployType.RUN_FROM_ZIP;
     }

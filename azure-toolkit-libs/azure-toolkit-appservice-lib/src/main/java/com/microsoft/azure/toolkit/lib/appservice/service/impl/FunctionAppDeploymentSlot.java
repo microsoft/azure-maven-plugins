@@ -75,12 +75,12 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Override
     public void delete() {
-        getParentFunctionApp().deploymentSlots().deleteById(getRemoteResource().id());
+        getParentFunctionApp().deploymentSlots().deleteById(remote().id());
     }
 
     @Nullable
     @Override
-    protected FunctionDeploymentSlot remote() {
+    protected FunctionDeploymentSlot loadRemote() {
         return getParentFunctionApp().deploymentSlots().getByName(name);
     }
 
@@ -95,7 +95,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
     public String getMasterKey() {
         final String resourceGroup = entity().getResourceGroup();
         final String name = String.format("%s/slots/%s", entity().getFunctionAppName(), entity().getName());
-        return getRemoteResource().manager().serviceClient().getWebApps().listHostKeysAsync(resourceGroup, name).map(HostKeysInner::masterKey).block();
+        return remote().manager().serviceClient().getWebApps().listHostKeysAsync(resourceGroup, name).map(HostKeysInner::masterKey).block();
     }
 
     @Getter
@@ -195,7 +195,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
         @Override
         public FunctionAppDeploymentSlot commit() {
-            final DeploymentSlotBase.Update<FunctionDeploymentSlot> update = getRemoteResource().update();
+            final DeploymentSlotBase.Update<FunctionDeploymentSlot> update = remote().update();
             if (getAppSettingsToAdd() != null) {
                 update.withAppSettings(getAppSettingsToAdd());
             }

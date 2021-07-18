@@ -69,7 +69,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     public IFunctionApp functionApp(FunctionAppEntity entity) {
         return StringUtils.isEmpty(entity.getId()) ?
-                functionApp(entity.getSubscriptionId(), entity.getResourceGroup(), entity.getId()) : functionApp(entity.getId());
+                functionApp(entity.getSubscriptionId(), entity.getResourceGroup(), entity.getName()) : functionApp(entity.getId());
     }
 
     @Preload
@@ -109,7 +109,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     public IWebApp webapp(WebAppEntity webAppEntity) {
         return StringUtils.isEmpty(webAppEntity.getId()) ?
-                webapp(webAppEntity.getSubscriptionId(), webAppEntity.getResourceGroup(), webAppEntity.getId()) : webapp(webAppEntity.getId());
+                webapp(webAppEntity.getSubscriptionId(), webAppEntity.getResourceGroup(), webAppEntity.getName()) : webapp(webAppEntity.getId());
     }
 
     @Preload
@@ -156,7 +156,7 @@ public class AzureAppService extends SubscriptionScoped<AzureAppService> impleme
 
     public IAppServicePlan appServicePlan(AppServicePlanEntity entity) {
         return StringUtils.isEmpty(entity.getId()) ?
-                appServicePlan(entity.getSubscriptionId(), entity.getResourceGroup(), entity.getId()) : appServicePlan(entity.getId());
+                appServicePlan(entity.getSubscriptionId(), entity.getResourceGroup(), entity.getName()) : appServicePlan(entity.getId());
     }
 
     @Preload

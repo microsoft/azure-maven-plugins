@@ -68,7 +68,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
 
     @Override
     public IAppServicePlan plan() {
-        return Azure.az(AzureAppService.class).appServicePlan(getRemoteResource().appServicePlanId());
+        return Azure.az(AzureAppService.class).appServicePlan(remote().appServicePlanId());
     }
 
     @Override
@@ -84,13 +84,13 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Override
     @Cacheable(cacheName = "appservice/functionapp/{}/slot/{}", key = "${this.name()}/$slotName")
     public IFunctionAppDeploymentSlot deploymentSlot(String slotName) {
-        return new FunctionAppDeploymentSlot(getRemoteResource(), slotName, azureClient);
+        return new FunctionAppDeploymentSlot(remote(), slotName, azureClient);
     }
 
     @Override
     @Cacheable(cacheName = "appservice/functionapp/{}/slots", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<IFunctionAppDeploymentSlot> deploymentSlots(boolean... force) {
-        return getRemoteResource().deploymentSlots().list().stream().parallel()
+        return remote().deploymentSlots().list().stream().parallel()
                 .map(functionSlotBasic -> new FunctionAppDeploymentSlot(functionSlotBasic, azureClient))
                 .collect(Collectors.toList());
     }
@@ -99,7 +99,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Cacheable(cacheName = "appservice/functionapp/{}/functions", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<FunctionEntity> listFunctions(boolean... force) {
         return azureClient.functionApps()
-                .listFunctions(getRemoteResource().resourceGroupName(), getRemoteResource().name()).stream()
+                .listFunctions(remote().resourceGroupName(), remote().name()).stream()
                 .map(AppServiceUtils::fromFunctionAppEnvelope)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -107,22 +107,22 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
 
     @Override
     public void triggerFunction(String functionName, Object input) {
-        getRemoteResource().triggerFunction(functionName, input);
+        remote().triggerFunction(functionName, input);
     }
 
     @Override
     public void swap(String slotName) {
-        getRemoteResource().swap(slotName);
+        remote().swap(slotName);
     }
 
     @Override
     public void syncTriggers() {
-        getRemoteResource().syncTriggers();
+        remote().syncTriggers();
     }
 
     @Override
     public void delete() {
-        azureClient.functionApps().deleteById(getRemoteResource().id());
+        azureClient.functionApps().deleteById(remote().id());
     }
 
     @Nonnull
@@ -133,18 +133,18 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
 
     @Nullable
     @Override
-    protected com.azure.resourcemanager.appservice.models.FunctionApp remote() {
+    protected com.azure.resourcemanager.appservice.models.FunctionApp loadRemote() {
         return azureClient.functionApps().getByResourceGroup(resourceGroup, name);
     }
 
     @Override
     public String getMasterKey() {
-        return getRemoteResource().getMasterKey();
+        return remote().getMasterKey();
     }
 
     @Override
     public Map<String, String> listFunctionKeys(String functionName) {
-        return getRemoteResource().listFunctionKeys(functionName);
+        return remote().listFunctionKeys(functionName);
     }
 
     public class FunctionAppCreator extends AbstractAppServiceCreator<FunctionApp> {
@@ -241,7 +241,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
 
         @Override
         public FunctionApp commit() {
-            Update update = getRemoteResource().update();
+            Update update = remote().update();
             if (getAppServicePlan() != null && getAppServicePlan().isPresent()) {
                 update = updateAppServicePlan(update, getAppServicePlan().get());
             }
@@ -272,7 +272,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         }
 
         private Update updateAppServicePlan(Update update, AppServicePlanEntity newServicePlan) {
-            final String servicePlanId = getRemoteResource().appServicePlanId();
+            final String servicePlanId = remote().appServicePlanId();
             final AppServicePlanEntity currentServicePlan = Azure.az(AzureAppService.class).appServicePlan(servicePlanId).entity();
             if (StringUtils.equalsIgnoreCase(currentServicePlan.getId(), newServicePlan.getId()) ||
                     (StringUtils.equalsIgnoreCase(currentServicePlan.getName(), newServicePlan.getName()) &&

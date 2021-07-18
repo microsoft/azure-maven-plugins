@@ -4,18 +4,13 @@
  */
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
-import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.AzureResourceManager;
-import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -24,44 +19,25 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class AppServicePlan implements IAppServicePlan {
-
-    @Getter
-    @Nonnull
-    protected String name;
-    @Getter
-    @Nonnull
-    protected String resourceGroup;
-    @Getter
-    @Nonnull
-    protected String subscriptionId;
+public class AppServicePlan extends AbstractAzureManager<com.azure.resourcemanager.appservice.models.AppServicePlan> implements IAppServicePlan {
 
     private AppServicePlanEntity entity;
     private final AzureResourceManager azureClient;
-    private com.azure.resourcemanager.appservice.models.AppServicePlan remote;
 
 
     public AppServicePlan(@Nonnull final String id, @Nonnull final AzureResourceManager azureClient) {
-        final ResourceId resourceId = ResourceId.fromString(id);
-        this.name = resourceId.name();
-        this.resourceGroup = resourceId.resourceGroupName();
-        this.subscriptionId = resourceId.subscriptionId();
+        super(id);
         this.azureClient = azureClient;
     }
 
     public AppServicePlan(@Nonnull final String subscriptionId, @Nonnull final String resourceGroup, @Nonnull final String name,
                        @Nonnull final AzureResourceManager azureClient) {
-        this.name = name;
-        this.resourceGroup = resourceGroup;
-        this.subscriptionId = subscriptionId;
+        super(subscriptionId, resourceGroup, name);
         this.azureClient = azureClient;
     }
 
     public AppServicePlan(com.azure.resourcemanager.appservice.models.AppServicePlan remote, AzureResourceManager azureClient) {
-        this.name = remote.name();
-        this.resourceGroup = remote.resourceGroupName();
-        this.subscriptionId = Utils.getSubscriptionId(remote.id());
-        this.remote = remote;
+        super(remote);
         this.entity = AppServiceUtils.fromAppServicePlan(remote);
         this.azureClient = azureClient;
     }
@@ -73,9 +49,8 @@ public class AppServicePlan implements IAppServicePlan {
 
     @Override
     public AppServicePlan refresh() {
-        this.remote = remote();
-        this.entity = Optional.ofNullable(this.remote).map(AppServiceUtils::fromAppServicePlan)
-                .orElseThrow(() -> new AzureToolkitRuntimeException("Target resource does not exist."));
+        super.refresh();
+        this.entity = Optional.ofNullable(this.remote).map(AppServiceUtils::fromAppServicePlan).orElse(null);
         return this;
     }
 
@@ -87,16 +62,6 @@ public class AppServicePlan implements IAppServicePlan {
     @Override
     public String id() {
         return getRemoteResource().id();
-    }
-
-    @Override
-    public boolean exists() {
-        try {
-            return remote() != null;
-        } catch (ManagementException e) {
-            // SDK will throw exception when resource not founded
-            return false;
-        }
     }
 
     @Override
@@ -120,7 +85,7 @@ public class AppServicePlan implements IAppServicePlan {
         return new AppServicePlanUpdater();
     }
 
-    private com.azure.resourcemanager.appservice.models.AppServicePlan remote() {
+    protected com.azure.resourcemanager.appservice.models.AppServicePlan loadRemote() {
         return azureClient.appServicePlans().getByResourceGroup(resourceGroup, name);
     }
 
