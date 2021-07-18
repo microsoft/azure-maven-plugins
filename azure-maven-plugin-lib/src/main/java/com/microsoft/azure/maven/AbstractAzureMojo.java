@@ -12,8 +12,6 @@ import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFac
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.model.SubscriptionOption;
-import com.microsoft.azure.maven.telemetry.AppInsightsProxy;
-import com.microsoft.azure.maven.telemetry.TelemetryConfiguration;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
 import com.microsoft.azure.maven.utils.ProxyUtils;
@@ -34,6 +32,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import com.microsoft.azure.toolkit.maven.common.messager.MavenAzureMessager;
@@ -41,6 +40,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -78,7 +78,7 @@ import java.util.stream.Collectors;
 /**
  * Base abstract class for all Azure Mojos.
  */
-public abstract class AbstractAzureMojo extends AbstractMojo implements TelemetryConfiguration {
+public abstract class AbstractAzureMojo extends AbstractMojo {
     public static final String PLUGIN_NAME_KEY = "pluginName";
     public static final String PLUGIN_VERSION_KEY = "pluginVersion";
     public static final String INSTALLATION_ID_KEY = "installationId";
@@ -90,7 +90,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     private static final String TELEMETRY_NOT_ALLOWED = "TelemetryNotAllowed";
     private static final String INIT_FAILURE = "InitFailure";
     private static final String AZURE_INIT_FAIL = "Failed to authenticate with Azure. Please check your configuration.";
-    private static final String FAILURE_REASON = "failureReason";
+    private static final String ERROR_MESSAGE = "error.message";
+    private static final String ERROR_STACK = "error.stack";
+    private static final String ERROR_CLASSNAME = "error.class_name";
     private static final String JVM_UP_TIME = "jvmUpTime";
     private static final String CONFIGURATION_PATH = Paths.get(System.getProperty("user.home"),
             ".azure", "mavenplugins.properties").toString();
@@ -203,7 +205,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     private com.microsoft.azure.management.Azure azure;
 
     @Getter
-    protected AppInsightsProxy telemetryProxy;
+    protected AzureTelemetryClient telemetryProxy;
     @Getter
     protected Map<String, String> telemetries = new HashMap<>();
 
@@ -405,14 +407,13 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void initTelemetryProxy() {
-        telemetryProxy = new AppInsightsProxy(this);
+        final Map<String, String> properties = getTelemetryProperties();
+        telemetryProxy = new AzureTelemetryClient(properties);
+        AzureTelemeter.setClient(telemetryProxy);
+        AzureTelemeter.setEventNamePrefix("AzurePlugin.Maven");
         if (!isAllowTelemetry()) {
             telemetryProxy.trackEvent(TELEMETRY_NOT_ALLOWED);
             telemetryProxy.disable();
-        } else {
-            AzureTelemeter.setClient(telemetryProxy.getClient());
-            AzureTelemeter.setCommonProperties(this.getTelemetryProperties());
-            AzureTelemeter.setEventNamePrefix("AzurePlugin.Maven");
         }
     }
 
@@ -427,9 +428,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
     }
 
-    //region Telemetry Configuration Interface
-
-    @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = new HashMap<>();
         map.put(INSTALLATION_ID_KEY, getInstallationId());
@@ -447,8 +445,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
         }
         return "Unknown";
     }
-
-    //endregion
 
     //region Entry Point
 
@@ -485,9 +481,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
                 afterMojoExecution();
             }
         } catch (Exception e) {
-            if (e instanceof AzureToolkitAuthenticationException) {
-                throw new MojoExecutionException(String.format("Cannot authenticate due to error: %s", e.getMessage()), e);
-            }
             onMojoError(e);
         } finally {
             // When maven goal executes too quick, The HTTPClient of AI SDK may not fully initialized and will step
@@ -523,16 +516,19 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void beforeMojoExecution() {
-        telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".start", this.getTelemetries(), false);
+        telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".start", this.getTelemetries(), null, false);
     }
 
     protected void afterMojoExecution() {
         telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".success", recordJvmUpTime(new HashMap<>()));
     }
 
-    protected void trackMojoFailure(final String message) {
+    protected void trackMojoFailure(final Throwable throwable) {
         final Map<String, String> failureParameters = new HashMap<>();
-        failureParameters.put(FAILURE_REASON, message);
+        failureParameters.put(ERROR_MESSAGE, throwable.getMessage());
+        failureParameters.put(ERROR_STACK, ExceptionUtils.getStackTrace(throwable));
+        failureParameters.put(ERROR_CLASSNAME, throwable.getClass().getName());
+
         telemetryProxy.trackEvent(this.getClass().getSimpleName() + ".failure", recordJvmUpTime(failureParameters));
     }
 
@@ -541,12 +537,9 @@ public abstract class AbstractAzureMojo extends AbstractMojo implements Telemetr
     }
 
     protected void onMojoError(final Exception exception) throws MojoExecutionException {
-        String message = exception.getMessage();
-        if (StringUtils.isEmpty(message)) {
-            message = exception.toString();
-        }
-        trackMojoFailure(message);
+        trackMojoFailure(exception);
 
+        final String message = StringUtils.isEmpty(exception.getMessage()) ? exception.toString() : exception.getMessage();
         if (isFailsOnError()) {
             throw new MojoExecutionException(message, exception);
         } else {
