@@ -128,6 +128,10 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-resource-lib</artifactId>
+        </dependency>
         <!-- TEST -->
         <dependency>
             <groupId>org.mockito</groupId>
@@ -170,6 +174,10 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure</artifactId>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-toolkit-common-lib</artifactId>
         </dependency>
     </dependencies>
 
