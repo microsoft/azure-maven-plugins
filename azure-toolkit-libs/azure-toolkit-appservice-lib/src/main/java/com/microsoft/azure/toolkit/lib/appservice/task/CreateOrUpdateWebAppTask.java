@@ -17,7 +17,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureText;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation.Type;
@@ -55,7 +55,7 @@ public class CreateOrUpdateWebAppTask extends AzureTask<IWebApp> {
             && !StringUtils.equalsIgnoreCase(this.config.servicePlanResourceGroup(), this.config.resourceGroup())) {
             tasks.add(new CreateResourceGroupTask(this.config.subscriptionId(), this.config.servicePlanResourceGroup(), this.config.region()));
         }
-        final AzureText title = AzureText.fromPattern("Create new web app({0})", this.config.appName());
+        final AzureString title = AzureString.format("Create new web app({0})", this.config.appName());
 
         tasks.add(new AzureTask<>(title, () -> {
             final IWebApp target = Azure.az(AzureAppService.class).subscription(config.subscriptionId())

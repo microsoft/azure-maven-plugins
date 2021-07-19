@@ -18,7 +18,7 @@ import java.util.Objects;
 
 @Getter
 @RequiredArgsConstructor
-public class AzureText {
+public class AzureString {
 
     @Nullable
     private final AzureBundle bundle;
@@ -28,21 +28,21 @@ public class AzureText {
     private final Object[] params;
 
     @Nonnull
-    public static AzureText fromText(@Nonnull String text) {
-        return fromPattern(text);
+    public static AzureString fromString(@Nonnull String text) {
+        return format(text);
     }
 
     @Nonnull
-    public static AzureText fromPattern(@Nonnull String pattern, Object... params) {
-        return new AzureText(null, pattern, ObjectUtils.firstNonNull(params, new Object[0]));
+    public static AzureString format(@Nonnull String pattern, Object... params) {
+        return new AzureString(null, pattern, ObjectUtils.firstNonNull(params, new Object[0]));
     }
 
     @Nonnull
-    public static AzureText fromBundle(@Nonnull AzureBundle bundle, @Nonnull String key, Object... params) {
-        return new AzureText(bundle, key, ObjectUtils.firstNonNull(params, new Object[0]));
+    public static AzureString format(@Nonnull AzureBundle bundle, @Nonnull String key, Object... params) {
+        return new AzureString(bundle, key, ObjectUtils.firstNonNull(params, new Object[0]));
     }
 
-    public String getText() {
+    public String getString() {
         final String pattern = Objects.nonNull(bundle) ? bundle.pattern(name) : name;
         try {
             if (StringUtils.isBlank(pattern)) {
@@ -55,6 +55,6 @@ public class AzureText {
     }
 
     public String toString() {
-        return this.getText();
+        return this.getString();
     }
 }

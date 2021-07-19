@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.messager;
 import com.azure.core.exception.HttpResponseException;
 import com.azure.core.management.exception.ManagementException;
 import com.google.common.collect.Streams;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureText;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -47,7 +47,7 @@ public class AzureMessage implements IAzureMessage {
     @Nonnull
     protected final Type type;
     @Nonnull
-    protected final AzureText message;
+    protected final AzureString message;
     @Nullable
     protected String title;
     @Nullable
@@ -63,12 +63,12 @@ public class AzureMessage implements IAzureMessage {
     @Nonnull
     public String getContent() {
         if (!(getPayload() instanceof Throwable)) {
-            return ObjectUtils.firstNonNull(this.decorateText(this.message, null), this.message.getText());
+            return ObjectUtils.firstNonNull(this.decorateText(this.message, null), this.message.getString());
         }
         final Throwable throwable = (Throwable) getPayload();
         final List<IAzureOperation> operations = this.getOperations();
-        final AzureText title = operations.get(0).getTitle();
-        final String failure = operations.isEmpty() || Objects.isNull(title) ? "Failed to proceed" : "Failed to " + this.decorateText(title, title::getText);
+        final AzureString title = operations.get(0).getTitle();
+        final String failure = operations.isEmpty() || Objects.isNull(title) ? "Failed to proceed" : "Failed to " + this.decorateText(title, title::getString);
         final String cause = Optional.ofNullable(this.getCause(throwable))
                 .map(c -> String.format(", because %s", c))
                 .orElse("");
@@ -85,7 +85,7 @@ public class AzureMessage implements IAzureMessage {
 
     protected String getDetailItem(IAzureOperation o) {
         return Optional.ofNullable(o.getTitle())
-                .map(t -> decorateText(t, t::getText))
+                .map(t -> decorateText(t, t::getString))
                 .map(StringUtils::capitalize)
                 .map(t -> String.format("● %s", t))
                 .orElse(null);

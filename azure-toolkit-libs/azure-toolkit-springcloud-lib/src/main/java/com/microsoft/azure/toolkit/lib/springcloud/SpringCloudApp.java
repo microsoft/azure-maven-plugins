@@ -11,7 +11,7 @@ import com.azure.resourcemanager.appplatform.implementation.SpringAppImpl;
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureText;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
@@ -228,9 +228,9 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
         public SpringCloudApp commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
             if (!this.skippable) {
-                messager.info(AzureText.fromPattern("Start updating app({0})...", this.app.name()));
+                messager.info(AzureString.format("Start updating app({0})...", this.app.name()));
                 this.app.refresh(this.modifier.apply());
-                messager.success(AzureText.fromPattern("App({0}) is successfully updated.", this.app.name()));
+                messager.success(AzureString.format("App({0}) is successfully updated.", this.app.name()));
                 messager.warning(UPDATE_APP_WARNING);
             }
             return this.app;
@@ -249,9 +249,9 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
         public SpringCloudApp commit() {
             final String appName = this.app.name();
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(AzureText.fromPattern("Start creating app({0})...", appName));
+            messager.info(AzureString.format("Start creating app({0})...", appName));
             this.app.refresh(this.modifier.create());
-            messager.success(AzureText.fromPattern("App({0}) is successfully created.", appName));
+            messager.success(AzureString.format("App({0}) is successfully created.", appName));
             return this.app;
         }
     }
