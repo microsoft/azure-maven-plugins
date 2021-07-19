@@ -172,18 +172,17 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
                                                        DockerConfiguration dockerConfiguration) {
             final DefinitionStages.WithLinuxAppFramework withLinuxAppFramework =
                     blank.withExistingLinuxPlan(appServicePlan).withExistingResourceGroup(resourceGroup);
-            final DefinitionStages.WithStartUpCommand withStartUpCommand;
+            final DefinitionStages.WithStartUpCommand draft;
             if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
-                withStartUpCommand = withLinuxAppFramework.withPublicDockerHubImage(dockerConfiguration.getImage());
+                draft = withLinuxAppFramework.withPublicDockerHubImage(dockerConfiguration.getImage());
             } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
-                withStartUpCommand = withLinuxAppFramework.withPrivateDockerHubImage(dockerConfiguration.getImage())
+                draft = withLinuxAppFramework.withPrivateDockerHubImage(dockerConfiguration.getImage())
                         .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             } else {
-
-                withStartUpCommand = withLinuxAppFramework.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
+                draft = withLinuxAppFramework.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
                         .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
-            return withStartUpCommand.withStartUpCommand(dockerConfiguration.getStartUpCommand());
+            return draft.withStartUpCommand(dockerConfiguration.getStartUpCommand());
         }
     }
 
@@ -199,6 +198,10 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             }
             if (getRuntime() != null && getRuntime().isPresent()) {
                 update = updateRuntime(update, getRuntime().get());
+            }
+            if (getDockerConfiguration() != null && getDockerConfiguration().isPresent() && WebApp.this.getRuntime().isDocker()) {
+                modified = true;
+                update = updateDockerConfiguration(update, getDockerConfiguration().get());
             }
             if (!Collections.isEmpty(getAppSettingsToAdd())) {
                 modified = true;
@@ -235,13 +238,28 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
             return update.withExistingAppServicePlan(newPlanServiceModel);
         }
 
+        private Update updateDockerConfiguration(Update update, DockerConfiguration dockerConfiguration) {
+            final com.azure.resourcemanager.appservice.models.WebApp.UpdateStages.WithStartUpCommand draft;
+            if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
+                draft = update.withPublicDockerHubImage(dockerConfiguration.getImage());
+            } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
+                draft = update.withPrivateDockerHubImage(dockerConfiguration.getImage())
+                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+            } else {
+                draft = update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
+                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+            }
+            modified = true;
+            return draft.withStartUpCommand(dockerConfiguration.getStartUpCommand());
+        }
+
         private Update updateRuntime(Update update, Runtime newRuntime) {
             final Runtime current = WebApp.this.getRuntime();
-            if (Objects.equals(current, newRuntime)) {
-                return update;
-            }
             if (newRuntime.getOperatingSystem() != null && current.getOperatingSystem() != newRuntime.getOperatingSystem()) {
                 throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
+            }
+            if (Objects.equals(current, newRuntime) || current.isDocker()) {
+                return update;
             }
             modified = true;
             final OperatingSystem operatingSystem = ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), current.getOperatingSystem());
@@ -251,19 +269,6 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
                 case WINDOWS:
                     return (Update) update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion()))
                         .withWebContainer(AppServiceUtils.toWebContainer(newRuntime));
-                case DOCKER:
-                    final DockerConfiguration dockerConfiguration = getDockerConfiguration().get();
-                    final com.azure.resourcemanager.appservice.models.WebApp.UpdateStages.WithStartUpCommand withStartUpCommand;
-                    if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
-                        withStartUpCommand = update.withPublicDockerHubImage(dockerConfiguration.getImage());
-                    } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
-                        withStartUpCommand = update.withPrivateDockerHubImage(dockerConfiguration.getImage())
-                                .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
-                    } else {
-                        withStartUpCommand = update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
-                                .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
-                    }
-                    return withStartUpCommand.withStartUpCommand(dockerConfiguration.getStartUpCommand());
                 default:
                     throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
             }

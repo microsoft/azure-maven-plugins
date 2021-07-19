@@ -84,7 +84,7 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         if (toCreateApp) {
             tasks.add(new AzureTask<Void>(CREATE_APP_TITLE, () -> app.create().commit()));
         }
-        tasks.add(new AzureTask<Void>(DEPLOYMENT_TITLE, () -> (toCreateDeployment ? deployment.create() : deployment.update())
+        tasks.add(new AzureTask<Void>(DEPLOYMENT_TITLE, () -> (toCreateDeployment ? deployment.create() : deployment.refresh().update())
             .configEnvironmentVariables(env)
             .configJvmOptions(jvmOptions)
             .configScaleSettings(scaleSettings)

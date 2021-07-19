@@ -214,7 +214,6 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                 withCreate = withLinuxAppFramework.withPrivateDockerHubImage(dockerConfiguration.getImage())
                         .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             } else {
-
                 withCreate = withLinuxAppFramework.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
                         .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
@@ -242,6 +241,10 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
             }
             if (getRuntime() != null && getRuntime().isPresent()) {
                 update = updateRuntime(update, getRuntime().get());
+            }
+            if (getDockerConfiguration() != null && getDockerConfiguration().isPresent() && FunctionApp.this.getRuntime().isDocker()) {
+                modified = true;
+                update = updateDockerConfiguration(update, getDockerConfiguration().get());
             }
             if (!Collections.isEmpty(getAppSettingsToAdd())) {
                 modified = true;
@@ -280,11 +283,11 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
 
         private Update updateRuntime(Update update, Runtime newRuntime) {
             final Runtime current = FunctionApp.this.getRuntime();
-            if (Objects.equals(current, newRuntime)) {
-                return update;
-            }
             if (newRuntime.getOperatingSystem() != null && current.getOperatingSystem() != newRuntime.getOperatingSystem()) {
                 throw new AzureToolkitRuntimeException(CAN_NOT_UPDATE_EXISTING_APP_SERVICE_OS);
+            }
+            if (Objects.equals(current, newRuntime) || current.isDocker()) {
+                return update;
             }
             modified = true;
             final OperatingSystem operatingSystem = ObjectUtils.firstNonNull(newRuntime.getOperatingSystem(), current.getOperatingSystem());
@@ -293,19 +296,20 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                     return update.withBuiltInImage(AppServiceUtils.toFunctionRuntimeStack(newRuntime));
                 case WINDOWS:
                     return updateWindowsFunctionApp(update, current, newRuntime);
-                case DOCKER:
-                    final DockerConfiguration dockerConfiguration = getDockerConfiguration().get();
-                    if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
-                        return update.withPublicDockerHubImage(dockerConfiguration.getImage());
-                    } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
-                        return update.withPrivateDockerHubImage(dockerConfiguration.getImage())
-                                .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
-                    } else {
-                        return update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
-                                .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
-                    }
                 default:
                     throw new AzureToolkitRuntimeException(String.format(UNSUPPORTED_OPERATING_SYSTEM, newRuntime.getOperatingSystem()));
+            }
+        }
+
+        private Update updateDockerConfiguration(Update update, DockerConfiguration dockerConfiguration) {
+            if (StringUtils.isAllEmpty(dockerConfiguration.getUserName(), dockerConfiguration.getPassword())) {
+                return update.withPublicDockerHubImage(dockerConfiguration.getImage());
+            } else if (StringUtils.isEmpty(dockerConfiguration.getRegistryUrl())) {
+                return update.withPrivateDockerHubImage(dockerConfiguration.getImage())
+                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
+            } else {
+                return update.withPrivateRegistryImage(dockerConfiguration.getImage(), dockerConfiguration.getRegistryUrl())
+                        .withCredentials(dockerConfiguration.getUserName(), dockerConfiguration.getPassword());
             }
         }
 
