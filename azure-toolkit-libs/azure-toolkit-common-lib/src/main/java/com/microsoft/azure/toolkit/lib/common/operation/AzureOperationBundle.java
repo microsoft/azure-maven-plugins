@@ -23,14 +23,14 @@
 package com.microsoft.azure.toolkit.lib.common.operation;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureBundle;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureText;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import org.jetbrains.annotations.NotNull;
 
 public class AzureOperationBundle {
 
     private static final AzureBundle bundle = new AzureBundle("com.microsoft.azure.toolkit.operation.title");
 
-    public static AzureText title(@NotNull String name, @NotNull Object... params) {
-        return AzureText.fromBundle(bundle, name, params);
+    public static AzureString title(@NotNull String name, @NotNull Object... params) {
+        return AzureString.format(bundle, name, params);
     }
 }

@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.task;
 
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureText;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AccessLevel;
@@ -30,7 +30,7 @@ public class AzureTask<T> implements IAzureOperation {
     private final Object project;
     private final boolean cancellable;
     @Nullable
-    private final AzureText title;
+    private final AzureString title;
     private IAzureOperation parent;
     @Builder.Default
     private boolean backgroundable = true;
@@ -49,7 +49,7 @@ public class AzureTask<T> implements IAzureOperation {
         this(title, runnable, Modality.DEFAULT);
     }
 
-    public AzureTask(@Nonnull AzureText title, @Nonnull Runnable runnable) {
+    public AzureTask(@Nonnull AzureString title, @Nonnull Runnable runnable) {
         this(title, runnable, Modality.DEFAULT);
     }
 
@@ -61,7 +61,7 @@ public class AzureTask<T> implements IAzureOperation {
         this(null, title, false, supplier, Modality.DEFAULT);
     }
 
-    public AzureTask(@Nonnull AzureText title, @Nonnull Supplier<T> supplier) {
+    public AzureTask(@Nonnull AzureString title, @Nonnull Supplier<T> supplier) {
         this(null, title, false, supplier, Modality.DEFAULT);
     }
 
@@ -73,7 +73,7 @@ public class AzureTask<T> implements IAzureOperation {
         this(null, title, false, runnable, modality);
     }
 
-    public AzureTask(@Nonnull AzureText title, @Nonnull Runnable runnable, @Nonnull Modality modality) {
+    public AzureTask(@Nonnull AzureString title, @Nonnull Runnable runnable, @Nonnull Modality modality) {
         this(null, title, false, runnable, modality);
     }
 
@@ -85,7 +85,7 @@ public class AzureTask<T> implements IAzureOperation {
         this(null, title, false, supplier, modality);
     }
 
-    public AzureTask(@Nonnull AzureText title, @Nonnull Supplier<T> supplier, @Nonnull Modality modality) {
+    public AzureTask(@Nonnull AzureString title, @Nonnull Supplier<T> supplier, @Nonnull Modality modality) {
         this(null, title, false, supplier, modality);
     }
 
@@ -93,7 +93,7 @@ public class AzureTask<T> implements IAzureOperation {
         this(project, title, cancellable, runnable, Modality.DEFAULT);
     }
 
-    public AzureTask(@Nullable Object project, @Nonnull AzureText title, boolean cancellable, @Nonnull Runnable runnable) {
+    public AzureTask(@Nullable Object project, @Nonnull AzureString title, boolean cancellable, @Nonnull Runnable runnable) {
         this(project, title, cancellable, runnable, Modality.DEFAULT);
     }
 
@@ -101,15 +101,15 @@ public class AzureTask<T> implements IAzureOperation {
         this(project, title, cancellable, supplier, Modality.DEFAULT);
     }
 
-    public AzureTask(@Nullable Object project, @Nonnull AzureText title, boolean cancellable, @Nonnull Supplier<T> supplier) {
+    public AzureTask(@Nullable Object project, @Nonnull AzureString title, boolean cancellable, @Nonnull Supplier<T> supplier) {
         this(project, title, cancellable, supplier, Modality.DEFAULT);
     }
 
     public AzureTask(@Nullable Object project, @Nullable String title, boolean cancellable, @Nonnull Runnable runnable, @Nonnull Modality modality) {
-        this(project, Optional.ofNullable(title).map(AzureText::fromText).orElse(null), cancellable, runnable, modality);
+        this(project, Optional.ofNullable(title).map(AzureString::fromString).orElse(null), cancellable, runnable, modality);
     }
 
-    public AzureTask(@Nullable Object project, @Nullable AzureText title, boolean cancellable, @Nonnull Runnable runnable, @Nonnull Modality modality) {
+    public AzureTask(@Nullable Object project, @Nullable AzureString title, boolean cancellable, @Nonnull Runnable runnable, @Nonnull Modality modality) {
         this(project, title, cancellable, () -> {
             runnable.run();
             return null;
@@ -117,10 +117,10 @@ public class AzureTask<T> implements IAzureOperation {
     }
 
     public AzureTask(@Nullable Object project, @Nullable String title, boolean cancellable, @Nullable Supplier<T> supplier, @Nonnull Modality modality) {
-        this(project, Optional.ofNullable(title).map(AzureText::fromText).orElse(null), cancellable, supplier, modality);
+        this(project, Optional.ofNullable(title).map(AzureString::fromString).orElse(null), cancellable, supplier, modality);
     }
 
-    public AzureTask(@Nullable Object project, @Nullable AzureText title, boolean cancellable, @Nullable Supplier<T> supplier, @Nonnull Modality modality) {
+    public AzureTask(@Nullable Object project, @Nullable AzureString title, boolean cancellable, @Nullable Supplier<T> supplier, @Nonnull Modality modality) {
         this.project = project;
         this.title = title;
         this.cancellable = cancellable;
@@ -136,7 +136,7 @@ public class AzureTask<T> implements IAzureOperation {
     @Override
     @Nonnull
     public String getName() {
-        return Optional.ofNullable(this.getTitle()).map(AzureText::getName).orElse(UNKNOWN_NAME);
+        return Optional.ofNullable(this.getTitle()).map(AzureString::getName).orElse(UNKNOWN_NAME);
     }
 
     @Override

@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.springcloud.task;
 
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureText;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -75,11 +75,11 @@ public class DeploySpringCloudAppTask extends AzureTask<SpringCloudDeployment> {
         AzureTelemetry.getContext().setProperty("isCreateDeployment", String.valueOf(toCreateDeployment));
         AzureTelemetry.getContext().setProperty("isDeploymentNameGiven", String.valueOf(StringUtils.isNotEmpty(deploymentConfig.getDeploymentName())));
 
-        final AzureText CREATE_APP_TITLE = AzureText.fromPattern("Create new app({0}) on service({1})", appName, clusterName);
-        final AzureText UPDATE_APP_TITLE = AzureText.fromPattern("Update app({0}) of service({1})", appName, clusterName);
-        final AzureText CREATE_DEPLOYMENT_TITLE = AzureText.fromPattern("Create new deployment({0}) in app({1})", deploymentName, appName);
-        final AzureText UPDATE_DEPLOYMENT_TITLE = AzureText.fromPattern("Update deployment({0}) of app({1})", deploymentName, appName);
-        final AzureText DEPLOYMENT_TITLE = toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE;
+        final AzureString CREATE_APP_TITLE = AzureString.format("Create new app({0}) on service({1})", appName, clusterName);
+        final AzureString UPDATE_APP_TITLE = AzureString.format("Update app({0}) of service({1})", appName, clusterName);
+        final AzureString CREATE_DEPLOYMENT_TITLE = AzureString.format("Create new deployment({0}) in app({1})", deploymentName, appName);
+        final AzureString UPDATE_DEPLOYMENT_TITLE = AzureString.format("Update deployment({0}) of app({1})", deploymentName, appName);
+        final AzureString DEPLOYMENT_TITLE = toCreateDeployment ? CREATE_DEPLOYMENT_TITLE : UPDATE_DEPLOYMENT_TITLE;
 
         final List<AzureTask<?>> tasks = new ArrayList<>();
         if (toCreateApp) {

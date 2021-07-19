@@ -29,8 +29,8 @@ public class AzureBundle {
     private final String pkg;
 
     @Nonnull
-    public AzureText text(@Nonnull final String key, final Object... params) {
-        return AzureText.fromBundle(this, key, params);
+    public AzureString text(@Nonnull final String key, final Object... params) {
+        return AzureString.format(this, key, params);
     }
 
     @Nonnull
@@ -44,8 +44,8 @@ public class AzureBundle {
     }
 
     @Nonnull
-    public static AzureText text(@Nonnull final String pkg, @Nonnull final String key, final Object... params) {
-        return AzureText.fromBundle(new AzureBundle(pkg), key, params);
+    public static AzureString text(@Nonnull final String pkg, @Nonnull final String key, final Object... params) {
+        return AzureString.format(new AzureBundle(pkg), key, params);
     }
 
     @Nonnull
