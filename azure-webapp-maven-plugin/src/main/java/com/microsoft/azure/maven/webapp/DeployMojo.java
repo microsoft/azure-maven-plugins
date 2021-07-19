@@ -68,7 +68,7 @@ public class DeployMojo extends AbstractWebAppMojo {
 
     @Override
     protected void doExecute() throws AzureExecutionException {
-        validateConfiguration(message -> AzureMessager.getMessager().error(message.getMessage()), true);
+        validateConfiguration(message -> AzureMessager.getMessager().error(message.getRawMessage()), true);
         // initialize library client
         az = getOrCreateAzureAppServiceClient();
 
