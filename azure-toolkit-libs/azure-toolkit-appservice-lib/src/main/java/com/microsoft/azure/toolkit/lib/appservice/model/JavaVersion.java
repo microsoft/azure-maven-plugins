@@ -22,14 +22,11 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JavaVersion implements ExpandableParameter {
-    private static final String JAVA_7_VALUE = "Java 7";
-    private static final String JAVA_7_VALUE_TRIM = "Java7";
-    private static final String JAVA_8_VALUE = "Java 8";
-    private static final String JAVA_8_SIMPLE_VALUE = "8";
-    private static final String JAVA_8_VALUE_TRIM = "Java8";
-    private static final String JAVA_11_VALUE = "Java 11";
-    private static final String JAVA_11_SIMPLE_VALUE = "11";
-    private static final String JAVA_11_VALUE_TRIM = "Java11";
+    private static final String JAVA_7_VALUE = "7";
+    private static final String JAVA_7_DISPLAY_NAME = "Java 7";
+    private static final String JAVA_8_VALUE = "8";
+    private static final String JAVA_8_DISPLAY_NAME = "Java 8";
+    private static final String JAVA_11_DISPLAY_NAME = "Java 11";
 
     public static final JavaVersion OFF = new JavaVersion("<null>");
     public static final JavaVersion JAVA_7 = new JavaVersion("1.7");
@@ -69,18 +66,14 @@ public class JavaVersion implements ExpandableParameter {
         if (StringUtils.isEmpty(input)) {
             return JavaVersion.OFF;
         }
-
-        final String version = StringUtils.lowerCase(input).replaceFirst("jre", "java");
-
-        // parse display name first
-        if (StringUtils.equalsAnyIgnoreCase(version, JAVA_7_VALUE, JAVA_7_VALUE_TRIM)) {
+        // remove java, jre prefix
+        final String version = StringUtils.lowerCase(input).replaceFirst("java|jre", "").trim();
+        // handle java 7/ java 8 cases
+        if (StringUtils.equalsIgnoreCase(version, JAVA_7_VALUE)) {
             return JavaVersion.JAVA_7;
         }
-        if (StringUtils.equalsAnyIgnoreCase(version, JAVA_8_VALUE, JAVA_8_VALUE_TRIM, JAVA_8_SIMPLE_VALUE)) {
+        if (StringUtils.equalsIgnoreCase(version, JAVA_8_VALUE)) {
             return JavaVersion.JAVA_8;
-        }
-        if (StringUtils.equalsAnyIgnoreCase(version, JAVA_11_VALUE, JAVA_11_VALUE_TRIM, JAVA_11_SIMPLE_VALUE)) {
-            return JavaVersion.JAVA_11;
         }
         return values().stream()
                 .filter(javaVersion -> StringUtils.equalsIgnoreCase(version, javaVersion.getValue()))
@@ -110,13 +103,13 @@ public class JavaVersion implements ExpandableParameter {
     @Override
     public String toString() {
         if (this.equals(JAVA_7)) {
-            return JAVA_7_VALUE;
+            return JAVA_7_DISPLAY_NAME;
         }
         if (this.equals(JAVA_8)) {
-            return JAVA_8_VALUE;
+            return JAVA_8_DISPLAY_NAME;
         }
         if (this.equals(JAVA_11)) {
-            return JAVA_11_VALUE;
+            return JAVA_11_DISPLAY_NAME;
         }
         return this.value;
     }

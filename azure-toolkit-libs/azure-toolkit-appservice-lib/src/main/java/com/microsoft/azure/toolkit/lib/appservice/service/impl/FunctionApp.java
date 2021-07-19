@@ -188,7 +188,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                                             Runtime runtime) {
             return (WithCreate) blank.withExistingAppServicePlan(appServicePlan)
                     .withExistingResourceGroup(resourceGroup)
-                    .withJavaVersion(AppServiceUtils.toJavaVersion(runtime))
+                    .withJavaVersion(AppServiceUtils.toJavaVersion(runtime.getJavaVersion()))
                     .withWebContainer(null);
         }
 
