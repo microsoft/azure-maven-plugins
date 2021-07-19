@@ -70,16 +70,7 @@ public interface IAzureMessage {
             final Object[] params = Arrays.stream(text.getParams())
                     .map((p) -> this.decorateValue(p, p::toString))
                     .toArray();
-            final AzureBundle bundle = text.getBundle();
-            if (Objects.nonNull(bundle)) {
-                result = bundle.message(text.getName(), params);
-            } else {
-                try {
-                    result = MessageFormat.format(text.getName(), params);
-                } catch (final IllegalArgumentException e) {
-                    result = null;
-                }
-            }
+            result = text.getString(params);
         }
         return Objects.isNull(result) && Objects.nonNull(dft) ? dft.get() : result;
     }

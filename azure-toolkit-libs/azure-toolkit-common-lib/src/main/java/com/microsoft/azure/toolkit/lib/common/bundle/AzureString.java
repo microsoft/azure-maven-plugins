@@ -43,12 +43,19 @@ public class AzureString {
     }
 
     public String getString() {
+        return this.getString(this.params);
+    }
+
+    public String getString(Object... params) {
         final String pattern = Objects.nonNull(bundle) ? bundle.pattern(name) : name;
         try {
             if (StringUtils.isBlank(pattern)) {
                 return String.format("!%s!", name);
             }
-            return MessageFormat.format(pattern, params);
+            if (pattern.contains("{0}")) {
+                return MessageFormat.format(pattern, params);
+            }
+            return String.format(pattern, params);
         } catch (final IllegalArgumentException e) {
             return pattern;
         }
