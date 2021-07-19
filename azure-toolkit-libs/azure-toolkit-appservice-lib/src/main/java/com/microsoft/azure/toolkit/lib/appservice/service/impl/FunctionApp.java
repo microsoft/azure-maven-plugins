@@ -188,7 +188,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
                                             Runtime runtime) {
             return (WithCreate) blank.withExistingAppServicePlan(appServicePlan)
                     .withExistingResourceGroup(resourceGroup)
-                    .withJavaVersion(AppServiceUtils.toWindowsJavaVersion(runtime))
+                    .withJavaVersion(AppServiceUtils.toJavaVersion(runtime.getJavaVersion()))
                     .withWebContainer(null);
         }
 
@@ -314,10 +314,11 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
         }
 
         Update updateWindowsFunctionApp(Update update, Runtime currentRuntime, Runtime newRuntime) {
-            if (currentRuntime.getJavaVersion() == JavaVersion.OFF) {
+            if (Objects.equals(currentRuntime.getJavaVersion(), JavaVersion.OFF)) {
                 final JavaVersion javaVersion = Optional.ofNullable(newRuntime.getJavaVersion()).orElse(DEFAULT_JAVA_VERSION);
                 return (Update) update.withJavaVersion(AppServiceUtils.toJavaVersion(javaVersion)).withWebContainer(null);
-            } else if (newRuntime.getJavaVersion() != JavaVersion.OFF && newRuntime.getJavaVersion() != currentRuntime.getJavaVersion()) {
+            } else if (ObjectUtils.notEqual(newRuntime.getJavaVersion(), JavaVersion.OFF) &&
+                    ObjectUtils.notEqual(newRuntime.getJavaVersion(), currentRuntime.getJavaVersion())) {
                 return (Update) update.withJavaVersion(AppServiceUtils.toJavaVersion(newRuntime.getJavaVersion())).withWebContainer(null);
             } else {
                 return update;

@@ -8,6 +8,8 @@ package com.microsoft.azure.maven;
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.identity.DeviceCodeInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.applicationinsights.internal.channel.common.ApacheSenderFactory;
 import com.microsoft.azure.maven.exception.MavenDecryptException;
 import com.microsoft.azure.maven.model.MavenAuthConfiguration;
@@ -115,16 +117,20 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     //region Properties
 
     @Getter
+    @JsonIgnore
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
 
     @Getter
+    @JsonIgnore
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     protected MavenSession session;
 
+    @JsonIgnore
     @Parameter(defaultValue = "${project.build.directory}", readonly = true, required = true)
     protected File buildDirectory;
 
+    @JsonIgnore
     @Parameter(defaultValue = "${plugin}", readonly = true, required = true)
     protected PluginDescriptor plugin;
 
@@ -133,10 +139,12 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
      * merging global and user-level settings files.
      */
     @Getter
+    @JsonIgnore
     @Parameter(defaultValue = "${settings}", readonly = true, required = true)
     protected Settings settings;
 
     @Getter
+    @JsonIgnore
     @Component(role = MavenResourcesFiltering.class, hint = "default")
     protected MavenResourcesFiltering mavenResourcesFiltering;
 
@@ -149,6 +157,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
      *
      * @since 0.1.0
      */
+    @JsonProperty
     @Parameter
     @Getter
     protected String subscriptionId = "";
@@ -159,6 +168,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
      * @since 0.1.0
      */
     @Getter
+    @JsonProperty
     @Parameter(property = "allowTelemetry", defaultValue = "true")
     protected boolean allowTelemetry;
 
@@ -169,12 +179,14 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
      * @since 0.1.0
      */
     @Getter
+    @JsonProperty
     @Parameter(property = "failsOnError", defaultValue = "true")
     protected boolean failsOnError;
 
     /**
      * Use a HTTP proxy host for the Azure Auth Client
      */
+    @JsonProperty
     @Parameter(property = "httpProxyHost")
     @Getter
     protected String httpProxyHost;
@@ -182,6 +194,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     /**
      * Use a HTTP proxy port for the Azure Auth Client
      */
+    @JsonProperty
     @Parameter(property = "httpProxyPort")
     protected String httpProxyPort;
 
@@ -191,27 +204,37 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
      *
      * @since 1.2.13
      */
+    @JsonProperty
     @Parameter(property = "authType")
     protected String authType;
 
+    @JsonProperty
     @Parameter(property = "auth")
     protected MavenAuthConfiguration auth;
 
     @Component
+    @JsonIgnore
     protected SettingsDecrypter settingsDecrypter;
 
+    @JsonIgnore
     private Account azureAccount;
 
+    @JsonIgnore
     private com.microsoft.azure.management.Azure azure;
 
     @Getter
+    @JsonIgnore
     protected AzureTelemetryClient telemetryProxy;
+
     @Getter
+    @JsonIgnore
     protected Map<String, String> telemetries = new HashMap<>();
 
     @Getter
+    @JsonIgnore
     private final String sessionId = UUID.randomUUID().toString();
 
+    @JsonIgnore
     private final String installationId = InstallationIdUtils.getHashMac();
 
     //endregion

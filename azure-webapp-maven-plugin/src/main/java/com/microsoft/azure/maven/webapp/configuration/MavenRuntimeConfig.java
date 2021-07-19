@@ -5,15 +5,17 @@
 
 package com.microsoft.azure.maven.webapp.configuration;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * Runtime Setting
  */
+@Getter
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class MavenRuntimeConfig {
+    public static final String RUNTIME_CONFIG_REFERENCE = "https://aka.ms/maven_webapp_runtime";
 
     /**
      * OS of Web App Below is the list of supported JVM versions:
@@ -65,63 +67,9 @@ public class MavenRuntimeConfig {
      */
     protected String registryUrl;
 
-    public static final String RUNTIME_CONFIG_REFERENCE = "https://aka.ms/maven_webapp_runtime";
-
-    public String getOs() {
-        return this.os;
-    }
-
-    public JavaVersion getJavaVersion() {
-        return toJavaVersion(this.javaVersion);
-    }
-
-    public WebContainer getWebContainer() {
-        if (!checkWebContainer(webContainer)) {
-            return null;
-        }
-        return WebContainer.fromString(webContainer);
-    }
-
-    public String getWebContainerRaw() {
-        return webContainer;
-    }
-
-    public String getJavaVersionRaw() {
-        return javaVersion;
-    }
-
-    public String getImage() {
-        return this.image;
-    }
-
-    public String getServerId() {
-        return this.serverId;
-    }
-
-    public String getRegistryUrl() {
-        return this.registryUrl;
-    }
-
     public boolean isEmpty() {
         return StringUtils.isEmpty(this.os) && StringUtils.isEmpty(this.javaVersion) &&
             StringUtils.isEmpty(this.webContainer) && StringUtils.isEmpty(image) &&
             StringUtils.isEmpty(this.serverId) && StringUtils.isEmpty(this.registryUrl);
     }
-
-    protected boolean checkWebContainer(String value) {
-        return StringUtils.isNotBlank(value) && (
-                WebContainer.fromString(value) != WebContainer.JAVA_OFF);
-    }
-
-    private static JavaVersion toJavaVersion(String javaVersion) {
-        if (StringUtils.isEmpty(javaVersion)) {
-            return null;
-        }
-        final JavaVersion newJavaVersion = JavaVersion.fromString(javaVersion);
-        if (newJavaVersion == JavaVersion.OFF) {
-            throw new AzureToolkitRuntimeException(String.format("Cannot parse java version: '%s'.", javaVersion));
-        }
-        return newJavaVersion;
-    }
-
 }

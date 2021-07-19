@@ -6,6 +6,8 @@
 package com.microsoft.azure.maven;
 
 import com.azure.core.management.AzureEnvironment;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.maven.model.DeploymentResource;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
@@ -38,12 +40,14 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
     /**
      * Resource group of App Service. It will be created if it doesn't exist.
      */
+    @JsonProperty
     @Parameter(property = "resourceGroup", required = false)
     protected String resourceGroup;
 
     /**
      * App Service name. It will be created if it doesn't exist.
      */
+    @JsonProperty
     @Parameter(property = "appName", required = false)
     protected String appName;
 
@@ -70,18 +74,21 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      * </ul>
      * @since 0.1.0
      */
+    @JsonProperty
     @Parameter(property = "deploymentType")
     protected String deploymentType;
 
     /**
      * Resource group of App Service Plan. It will be created if it doesn't exist.
      */
+    @JsonProperty
     @Parameter(property = "appServicePlanResourceGroup")
     protected String appServicePlanResourceGroup;
 
     /**
      * App Service Plan name. It will be created if it doesn't exist.
      */
+    @JsonProperty
     @Parameter(property = "appServicePlanName")
     protected String appServicePlanName;
 
@@ -89,6 +96,7 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      * Deployment Slot. It will be created if it does not exist.
      * It requires the web app exists already.
      */
+    @JsonProperty("deploymentSlot")
     @Parameter(alias = "deploymentSlot")
     protected DeploymentSlotSetting deploymentSlotSetting;
 
@@ -105,9 +113,11 @@ public abstract class AbstractAppServiceMojo extends AbstractAzureMojo {
      * }
      * </pre>
      */
+    @JsonProperty
     @Parameter
     protected Properties appSettings;
 
+    @JsonIgnore
     protected AzureAppService appServiceClient;
 
     public String getResourceGroup() {

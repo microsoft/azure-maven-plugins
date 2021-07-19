@@ -14,8 +14,7 @@ import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.SchemaVersion;
 import com.microsoft.azure.maven.webapp.handlers.WebAppPomHandler;
 import com.microsoft.azure.maven.webapp.models.WebAppOption;
-import com.microsoft.azure.maven.webapp.parser.V2NoValidationConfigurationParser;
-import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+import com.microsoft.azure.maven.webapp.parser.ConfigParser;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
@@ -29,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthentication
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
@@ -57,9 +57,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.microsoft.azure.maven.webapp.utils.Utils.findStringInCollectionIgnoreCase;
-import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.APP_NAME_PATTERN;
-import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.RESOURCE_GROUP_PATTERN;
-import static com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator.SUBSCRIPTION_ID_PATTERN;
 
 /**
  * Init or edit the configuration of azure webapp maven plugin.
@@ -72,6 +69,10 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static final String PRICING_TIER_PROMPT = "Define value for pricingTier [%s]:";
     private static final String NOT_EMPTY_REGEX = "[\\s\\S]+";
     private static final String BOOLEAN_REGEX = "[YyNn]";
+    public static final String SUBSCRIPTION_ID_PATTERN = "[a-fA-F0-9\\-]{30,36}";
+    public static final String APP_NAME_PATTERN = "[a-zA-Z0-9\\-]{2,60}";
+    public static final String RESOURCE_GROUP_PATTERN = "[a-zA-Z0-9\\.\\_\\-\\(\\)]{1,90}";
+    public static final String SLOT_NAME_PATTERN = "[A-Za-z0-9-]{1,60}";
 
     private static final String CONFIG_ONLY_SUPPORT_V2 = "Config only support V2 schema";
     private static final String CHANGE_OS_WARNING = "The plugin may not work if you change the os of an existing " +
@@ -82,7 +83,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     private static final String PRICE_TIER_NOT_AVAIL = "The price tier \"%s\" is not available for current OS or runtime, use \"%s\" instead.";
     private static final String NO_JAVA_WEB_APPS = "There are no Java Web Apps in current subscription, please follow the following steps to create a new one.";
     private static final String LONG_LOADING_HINT = "It may take a few minutes to load all Java Web Apps, please be patient.";
-    private static final String[] configTypes = { "Application", "Runtime", "DeploymentSlot" };
+    private static final String[] configTypes = {"Application", "Runtime", "DeploymentSlot"};
     private static final String SETTING_DOCKER_IMAGE = "DOCKER_CUSTOM_IMAGE_NAME";
     private static final String SETTING_REGISTRY_SERVER = "DOCKER_REGISTRY_SERVER_URL";
     private static final String SETTING_REGISTRY_USERNAME = "DOCKER_REGISTRY_SERVER_USERNAME";
@@ -109,7 +110,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
         try {
             pomHandler = new WebAppPomHandler(project.getFile().getAbsolutePath());
             final WebAppConfiguration configuration = pomHandler.getConfiguration() == null ? null :
-                    getWebAppConfigurationWithoutValidation();
+                    getWebAppConfiguration();
             if (!isV2Configuration(configuration)) {
                 Log.warn(CONFIG_ONLY_SUPPORT_V2);
             } else {
@@ -275,7 +276,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         final boolean isJBoss = isJBossRuntime(WebContainer.fromString(configuration.getWebContainer()));
         final PricingTier defaultPricingTierFromRuntime = isJBoss ?
-            WebAppConfiguration.DEFAULT_JBOSS_PRICING_TIER : WebAppConfiguration.DEFAULT_PRICINGTIER;
+                WebAppConfiguration.DEFAULT_JBOSS_PRICING_TIER : WebAppConfiguration.DEFAULT_PRICINGTIER;
         final String currentPricingTier = configuration.getPricingTier();
         final List<String> availablePriceList = getAvailablePricingTierList(configuration.getOs(), WebContainer.fromString(configuration.getWebContainer()));
         String defaultPricingTier = currentPricingTier;
@@ -315,7 +316,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
 
         final String defaultSlotName = deploymentSlotSetting == null ? String.format("%s-slot",
                 configuration.getAppName()) : deploymentSlotSetting.getName();
-        final String slotName = queryer.assureInputFromUser("slotName", defaultSlotName, NOT_EMPTY_REGEX,
+        final String slotName = queryer.assureInputFromUser("slotName", defaultSlotName, SLOT_NAME_PATTERN,
                 null, null);
 
         final String defaultConfigurationSource = deploymentSlotSetting == null ? null :
@@ -359,7 +360,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
                 defaultPricingTier = defaultPricingTierEnu.getSize();
             }
             final String pricingTier = queryer.assureInputFromUser("pricingTier", defaultPricingTier, availablePriceList,
-                String.format(PRICING_TIER_PROMPT, defaultPricingTier));
+                    String.format(PRICING_TIER_PROMPT, defaultPricingTier));
             builder.pricingTier(pricingTier);
         }
         return builder.build();
@@ -378,7 +379,8 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     private WebContainer getRuntimeConfigurationForWindowsOrLinux(OperatingSystem os,
-        WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder, WebAppConfiguration configuration) throws MojoFailureException {
+                                                                  WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder,
+                                                                  WebAppConfiguration configuration) throws MojoFailureException {
         String defaultJavaVersion = Objects.toString(configuration.getJavaVersionOrDefault());
         final List<String> validJavaVersions = getValidJavaVersions();
         if (!validJavaVersions.contains(defaultJavaVersion)) {
@@ -399,20 +401,20 @@ public class ConfigMojo extends AbstractWebAppMojo {
         }
         String webContainerOrDefault = configuration.getWebContainerOrDefault();
         final List<String> validWebContainers = getAvailableWebContainer(os, javaVersion,
-            Utils.isJarPackagingProject(this.project.getPackaging()));
+                Utils.isJarPackagingProject(this.project.getPackaging()));
         if (!validWebContainers.contains(webContainerOrDefault)) {
             Log.warn(String.format("'%s' is not supported.", webContainerOrDefault));
             webContainerOrDefault = WebAppConfiguration.DEFAULT_CONTAINER.toString();
         }
         final String webContainerInput = queryer.assureInputFromUser(WEB_CONTAINER, webContainerOrDefault,
-            validWebContainers,
-            String.format(COMMON_PROMPT, WEB_CONTAINER, webContainerOrDefault));
+                validWebContainers,
+                String.format(COMMON_PROMPT, WEB_CONTAINER, webContainerOrDefault));
         builder.javaVersion(javaVersion.toString()).webContainer(webContainerInput);
         return WebContainer.fromString(webContainerInput);
     }
 
-    private WebAppConfiguration.WebAppConfigurationBuilder<?, ?> getRuntimeConfigurationOfDocker(WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder,
-                                                                        WebAppConfiguration configuration) throws MojoFailureException {
+    private WebAppConfiguration.WebAppConfigurationBuilder<?, ?> getRuntimeConfigurationOfDocker(
+            WebAppConfiguration.WebAppConfigurationBuilder<?, ?> builder, WebAppConfiguration configuration) throws MojoFailureException {
         final String image = queryer.assureInputFromUser("image", configuration.image, NOT_EMPTY_REGEX, null, null);
         final String serverId = queryer.assureInputFromUser("serverId", configuration.serverId, null, null, null);
         final String registryUrl = queryer.assureInputFromUser("registryUrl", configuration.registryUrl, null, null,
@@ -463,8 +465,9 @@ public class ConfigMojo extends AbstractWebAppMojo {
         return Utils.isJarPackagingProject(project.getPackaging());
     }
 
-    private WebAppConfiguration getWebAppConfigurationWithoutValidation() throws AzureExecutionException {
-        return new V2NoValidationConfigurationParser(this, new V2ConfigurationValidator(this)).getWebAppConfiguration();
+    private WebAppConfiguration getWebAppConfiguration() {
+        validateConfiguration(message -> AzureMessager.getMessager().warning(message.getMessage()), false);
+        return new ConfigParser(this).getWebAppConfiguration();
     }
 
     private WebAppConfiguration chooseExistingWebappForConfiguration()

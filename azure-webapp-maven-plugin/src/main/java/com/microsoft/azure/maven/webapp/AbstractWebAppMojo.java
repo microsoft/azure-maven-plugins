@@ -5,28 +5,45 @@
 
 package com.microsoft.azure.maven.webapp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
 import com.microsoft.azure.maven.webapp.configuration.MavenRuntimeConfig;
-import com.microsoft.azure.maven.webapp.parser.AbstractConfigParser;
-import com.microsoft.azure.maven.webapp.parser.V2ConfigParser;
-import com.microsoft.azure.maven.webapp.validator.AbstractConfigurationValidator;
-import com.microsoft.azure.maven.webapp.validator.V2ConfigurationValidator;
+import com.microsoft.azure.maven.webapp.parser.ConfigParser;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
-import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
+import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DockerImageType;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
 import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
+
+import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_CREATORS;
+import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_GETTERS;
+import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_IS_GETTERS;
 
 /**
  * Base abstract class for Web App Mojos.
@@ -60,14 +77,16 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *     <li>P3V2</li>
      * </ul>
      */
+    @JsonProperty
     @Parameter(property = "webapp.pricingTier")
     protected String pricingTier;
 
     /**
      * Flag to control whether stop Web App during deployment.
      */
-    @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "false")
     @Getter
+    @JsonProperty
+    @Parameter(property = "webapp.stopAppDuringDeployment", defaultValue = "false")
     protected boolean stopAppDuringDeployment;
 
     /**
@@ -75,12 +94,14 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 0.1.4
      */
+    @JsonProperty
     @Parameter(property = "webapp.skip", defaultValue = "false")
     protected boolean skip;
 
     /**
      * App Service region, which will only be used to create App Service at the first time.
      */
+    @JsonProperty
     @Parameter(property = "webapp.region")
     protected String region;
 
@@ -89,6 +110,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 2.0.0
      */
+    @JsonProperty
     @Parameter(property = "schemaVersion", defaultValue = "v2")
     protected String schemaVersion;
 
@@ -97,6 +119,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 2.0.0
      */
+    @JsonProperty
     @Parameter(property = "runtime")
     protected MavenRuntimeConfig runtime;
 
@@ -105,16 +128,25 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
      *
      * @since 2.0.0
      */
+    @JsonProperty
     @Parameter(property = "deployment")
     protected Deployment deployment;
 
+    @JsonIgnore
     private WebAppConfiguration webAppConfiguration;
 
+    @JsonIgnore
     protected File stagingDirectory;
 
+    @JsonIgnore
     protected AzureAppService az;
 
+    @JsonIgnore
     private boolean isRuntimeInjected = false;
+
+    @JsonIgnore
+    private WebAppConfig config;
+
     //endregion
 
     //region Getter
@@ -182,41 +214,56 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     @Override
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> map = super.getTelemetryProperties();
-        final WebAppConfig webAppConfig;
-        try {
-            webAppConfig = getWebAppConfig();
-        } catch (Exception e) {
-            map.put(INVALID_CONFIG_KEY, e.getMessage());
-            return map;
-        }
-        if (webAppConfig.getDockerConfiguration() != null) {
-            final DockerConfiguration dockerConfiguration = webAppConfig.getDockerConfiguration();
-            final String imageType = AppServiceUtils.getDockerImageType(dockerConfiguration.getImage(), StringUtils.isEmpty(dockerConfiguration.getPassword()),
-                    dockerConfiguration.getRegistryUrl()).name();
+        final MavenRuntimeConfig runtimeConfig = getRuntime();
+        final String os = Optional.ofNullable(runtimeConfig).map(MavenRuntimeConfig::getOs).orElse(StringUtils.EMPTY);
+        map.put(SCHEMA_VERSION_KEY, schemaVersion);
+        map.put(OS_KEY, os);
+        if (StringUtils.equalsIgnoreCase(os, OperatingSystem.DOCKER.getValue())) {
+            final String imageType = AppServiceUtils.getDockerImageType(runtimeConfig.getImage(), StringUtils.isEmpty(runtimeConfig.getServerId()),
+                    runtimeConfig.getRegistryUrl()).name();
             map.put(DOCKER_IMAGE_TYPE_KEY, imageType);
         } else {
             map.put(DOCKER_IMAGE_TYPE_KEY, DockerImageType.NONE.toString());
         }
-        map.put(SCHEMA_VERSION_KEY, schemaVersion);
-        map.put(OS_KEY, webAppConfig.getRuntime() == null ? "" : Objects.toString(webAppConfig.getRuntime().getOperatingSystem()));
-        map.put(JAVA_VERSION_KEY, (webAppConfig.getRuntime() == null || webAppConfig.getRuntime().getJavaVersion() == null) ?
-                "" : webAppConfig.getRuntime().getJavaVersion().getValue());
-        map.put(JAVA_WEB_CONTAINER_KEY, (webAppConfig.getRuntime() == null || webAppConfig.getRuntime().getWebContainer() == null) ?
-                "" : webAppConfig.getRuntime().getWebContainer().getValue());
+        map.put(JAVA_VERSION_KEY, Optional.ofNullable(runtimeConfig).map(MavenRuntimeConfig::getJavaVersion).orElse(StringUtils.EMPTY));
+        map.put(JAVA_WEB_CONTAINER_KEY, Optional.ofNullable(runtimeConfig).map(MavenRuntimeConfig::getWebContainer).orElse(StringUtils.EMPTY));
         try {
             map.put(DEPLOYMENT_TYPE_KEY, getDeploymentType().toString());
         } catch (AzureExecutionException e) {
             map.put(DEPLOYMENT_TYPE_KEY, "Unknown deployment type.");
         }
-        map.put(DEPLOY_TO_SLOT_KEY, String.valueOf(StringUtils.isNotEmpty(webAppConfig.getDeploymentSlotName())));
+        final boolean isDeployToSlot = Optional.ofNullable(getDeploymentSlotSetting()).map(DeploymentSlotSetting::getName)
+                .map(StringUtils::isNotEmpty).orElse(false);
+        map.put(DEPLOY_TO_SLOT_KEY, String.valueOf(isDeployToSlot));
         return map;
     }
 
-    protected WebAppConfig getWebAppConfig() throws AzureExecutionException {
-        final AbstractConfigurationValidator validator =
-                new V2ConfigurationValidator(this);
-        final AbstractConfigParser parser = new V2ConfigParser(this, validator);
-        return parser.parse();
+    protected JsonSchema getConfigurationSchema() {
+        final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
+        try (InputStream inputStream = AbstractWebAppMojo.class.getResourceAsStream("/schema/WebAppConfiguration.json")) {
+            return factory.getSchema(inputStream);
+        } catch (IOException e) {
+            throw new AzureToolkitRuntimeException("Failed to load configuration schema");
+        }
+    }
+
+    protected void validateConfiguration(Consumer<ValidationMessage> validationMessageConsumer, boolean failOnError) {
+        final JsonSchema schema = getConfigurationSchema();
+        final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+                .disable(AUTO_DETECT_CREATORS, AUTO_DETECT_GETTERS, AUTO_DETECT_IS_GETTERS);
+        final JsonNode configuration = objectMapper.convertValue(this, JsonNode.class);
+        final Set<ValidationMessage> validate = schema.validate(configuration, configuration, "configuration");
+        validate.forEach(message -> validationMessageConsumer.accept(message));
+        if (CollectionUtils.isNotEmpty(validate) && failOnError) {
+            throw new AzureToolkitRuntimeException("Invalid values found in configuration, please correct the value with messages above");
+        }
+    }
+
+    protected synchronized WebAppConfig getWebAppConfig() throws AzureExecutionException {
+        if (config == null) {
+            config = new ConfigParser(this).parse();
+        }
+        return config;
     }
 
     @Override

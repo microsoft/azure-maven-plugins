@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.maven.model;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +13,7 @@ import org.apache.maven.model.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class DeploymentResource extends Resource {
     private static final Path FTP_ROOT = Paths.get("/site/wwwroot");
 
