@@ -86,7 +86,8 @@ public class Runtime {
             return getRuntime(OperatingSystem.LINUX, WebContainer.JAVA_OFF, JavaVersion.OFF);
         }
         final String javaVersion = matcher.group(4);
-        final String webContainer = String.format("%s %s", matcher.group(1), matcher.group(3)).trim();
+        final String webContainer = StringUtils.isEmpty(matcher.group(3)) ? matcher.group(1) :
+                String.format("%s %s", matcher.group(1), matcher.group(3)).trim();
         return getRuntime(OperatingSystem.LINUX, WebContainer.fromString(webContainer), JavaVersion.fromString(javaVersion));
     }
 
