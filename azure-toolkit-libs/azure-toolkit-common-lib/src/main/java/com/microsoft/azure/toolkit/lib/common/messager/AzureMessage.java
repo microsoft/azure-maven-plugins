@@ -67,8 +67,8 @@ public class AzureMessage implements IAzureMessage {
         }
         final Throwable throwable = (Throwable) getPayload();
         final List<IAzureOperation> operations = this.getOperations();
-        final AzureString title = operations.get(0).getTitle();
-        final String failure = operations.isEmpty() || Objects.isNull(title) ? "Failed to proceed" : "Failed to " + this.decorateText(title, title::getString);
+        final String failure = operations.stream().findFirst().map(IAzureOperation::getTitle)
+                .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
         final String cause = Optional.ofNullable(this.getCause(throwable))
                 .map(c -> String.format(", because %s", c))
                 .orElse("");
