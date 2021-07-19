@@ -99,11 +99,13 @@ public class AzureTelemeter {
         final Map<String, String> properties = new HashMap<>();
         final String name = op.getName().replaceAll("\\(.+\\)", "(***)"); // e.g. `appservice|file.list.dir`
         final String[] parts = name.split("\\."); // ["appservice|file", "list", "dir"]
-        final String[] compositeServiceName = parts[0].split("\\|"); // ["appservice", "file"]
-        final String mainServiceName = compositeServiceName[0]; // "appservice"
-        final String operationName = compositeServiceName.length > 1 ? parts[1] + "_" + compositeServiceName[1] : parts[1]; // "list_file"
-        properties.put(SERVICE_NAME, mainServiceName);
-        properties.put(OPERATION_NAME, operationName);
+        if (parts.length > 1) {
+            final String[] compositeServiceName = parts[0].split("\\|"); // ["appservice", "file"]
+            final String mainServiceName = compositeServiceName[0]; // "appservice"
+            final String operationName = compositeServiceName.length > 1 ? parts[1] + "_" + compositeServiceName[1] : parts[1]; // "list_file"
+            properties.put(SERVICE_NAME, mainServiceName);
+            properties.put(OPERATION_NAME, operationName);
+        }
         properties.put(OP_ID, op.getId());
         properties.put(OP_PARENT_ID, parent.map(IAzureOperation::getId).orElse("/"));
         properties.put(OP_NAME, name);
