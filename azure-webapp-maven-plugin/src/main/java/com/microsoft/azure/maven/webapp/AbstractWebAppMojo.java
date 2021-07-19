@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Base abstract class for Web App Mojos.
@@ -231,7 +232,9 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         final Set<ValidationMessage> validate = SchemaValidator.getInstance().validate("WebAppConfiguration", this, "configuration");
         validate.forEach(message -> validationMessageConsumer.accept(message));
         if (CollectionUtils.isNotEmpty(validate) && failOnError) {
-            throw new AzureToolkitRuntimeException("Invalid values found in configuration, please correct the value with messages above");
+            final String errorDetails = validate.stream().map(ValidationMessage::getRawMessage).collect(Collectors.joining(StringUtils.LF));
+            throw new AzureToolkitRuntimeException(String.join(StringUtils.LF,
+                    "Invalid values found in configuration, please correct the value with messages below:", errorDetails));
         }
     }
 
