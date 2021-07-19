@@ -6,10 +6,7 @@
 package com.microsoft.azure.maven.webapp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.maven.AbstractAppServiceMojo;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.maven.webapp.configuration.Deployment;
@@ -19,31 +16,23 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.validator.SchemaValidator;
+import com.microsoft.azure.toolkit.lib.common.validator.ValidationMessage;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.AppServiceUtils;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DeploymentSlotSetting;
 import com.microsoft.azure.toolkit.lib.legacy.appservice.DockerImageType;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
-
-import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_CREATORS;
-import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_GETTERS;
-import static com.fasterxml.jackson.databind.MapperFeature.AUTO_DETECT_IS_GETTERS;
 
 /**
  * Base abstract class for Web App Mojos.
@@ -238,21 +227,8 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         return map;
     }
 
-    protected JsonSchema getConfigurationSchema() {
-        final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
-        try (InputStream inputStream = AbstractWebAppMojo.class.getResourceAsStream("/schema/WebAppConfiguration.json")) {
-            return factory.getSchema(inputStream);
-        } catch (IOException e) {
-            throw new AzureToolkitRuntimeException("Failed to load configuration schema");
-        }
-    }
-
     protected void validateConfiguration(Consumer<ValidationMessage> validationMessageConsumer, boolean failOnError) {
-        final JsonSchema schema = getConfigurationSchema();
-        final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
-                .disable(AUTO_DETECT_CREATORS, AUTO_DETECT_GETTERS, AUTO_DETECT_IS_GETTERS);
-        final JsonNode configuration = objectMapper.convertValue(this, JsonNode.class);
-        final Set<ValidationMessage> validate = schema.validate(configuration, configuration, "configuration");
+        final Set<ValidationMessage> validate = SchemaValidator.getInstance().validate("WebAppConfiguration", this, "configuration");
         validate.forEach(message -> validationMessageConsumer.accept(message));
         if (CollectionUtils.isNotEmpty(validate) && failOnError) {
             throw new AzureToolkitRuntimeException("Invalid values found in configuration, please correct the value with messages above");

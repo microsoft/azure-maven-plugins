@@ -466,7 +466,7 @@ public class ConfigMojo extends AbstractWebAppMojo {
     }
 
     private WebAppConfiguration getWebAppConfiguration() {
-        validateConfiguration(message -> AzureMessager.getMessager().warning(message.getMessage()), false);
+        validateConfiguration(message -> AzureMessager.getMessager().warning(message.getRawMessage()), false);
         return new ConfigParser(this).getWebAppConfiguration();
     }
 
