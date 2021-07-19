@@ -6,7 +6,7 @@
 package com.microsoft.azure.toolkit.lib.common.messager;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureBundle;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureText;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.bundle.CustomDecoratable;
 
 import javax.annotation.Nonnull;
@@ -18,11 +18,11 @@ import java.util.function.Supplier;
 
 public interface IAzureMessage {
     @Nonnull
-    AzureText getMessage();
+    AzureString getMessage();
 
     @Nonnull
     default String getContent() {
-        return this.getMessage().getText();
+        return this.getMessage().getString();
     }
 
     @Nonnull
@@ -61,7 +61,7 @@ public interface IAzureMessage {
      * @return null if not decoratable
      */
     @Nullable
-    default String decorateText(@Nonnull AzureText text, @Nullable Supplier<String> dft) {
+    default String decorateText(@Nonnull AzureString text, @Nullable Supplier<String> dft) {
         String result = null;
         if (text instanceof CustomDecoratable) {
             result = ((CustomDecoratable) text).decorate(this);
