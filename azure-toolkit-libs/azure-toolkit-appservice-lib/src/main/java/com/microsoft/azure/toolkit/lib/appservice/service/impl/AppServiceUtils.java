@@ -107,7 +107,7 @@ class AppServiceUtils {
 
     static String getJavaVersionValueForJavaSERuntimeStack(@Nonnull JavaVersion javaVersion) {
         // Java SE with minor version runtime stack follow pattern JAVA|VERSION, like JAVA|11.0.9, JAVA|8u25
-        return javaVersion.getValue().replaceAll("java|jre", "").trim();
+        return javaVersion.getValue().replaceAll("(?i)java|jre", "").trim();
     }
 
     static String getJavaVersionValueForContainerRuntimeStack(@Nonnull JavaVersion javaVersion) {
