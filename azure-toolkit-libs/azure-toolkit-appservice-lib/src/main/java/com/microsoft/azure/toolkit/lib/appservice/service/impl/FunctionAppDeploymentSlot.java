@@ -5,19 +5,18 @@
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.core.management.exception.ManagementException;
-import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.appservice.fluent.models.HostKeysInner;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.FunctionApp;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlot;
 import com.azure.resourcemanager.appservice.models.FunctionDeploymentSlotBasic;
-import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionAppDeploymentSlotEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -34,28 +33,23 @@ import java.util.Optional;
 public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymentSlot, FunctionAppDeploymentSlotEntity>
         implements IFunctionAppDeploymentSlot {
     private static final String FUNCTION_DEPLOYMENT_SLOT_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s";
+
     @Nonnull
-    private final String functionAppName;
-    private final AzureResourceManager azureClient;
+    private final FunctionApp parent;
 
-    private FunctionApp parent;
-
-    public FunctionAppDeploymentSlot(@Nonnull final FunctionApp functionApp, @Nonnull final String slotName, @Nonnull final AzureResourceManager azureClient) {
-        super(functionApp.id(), functionApp.resourceGroupName(), slotName);
+    public FunctionAppDeploymentSlot(@Nonnull final FunctionApp functionApp, @Nonnull final String slotName) {
+        super(Utils.getSubscriptionId(functionApp.id()), functionApp.resourceGroupName(), slotName);
         this.parent = functionApp;
-        this.functionAppName = parent.name();
-        this.azureClient = azureClient;
     }
 
-    public FunctionAppDeploymentSlot(@Nonnull final FunctionDeploymentSlotBasic slotBasic, @Nonnull final AzureResourceManager azureClient) {
+    public FunctionAppDeploymentSlot(@Nonnull final FunctionApp functionApp, @Nonnull final FunctionDeploymentSlotBasic slotBasic) {
         super(slotBasic);
-        this.functionAppName = ResourceId.fromString(slotBasic.id()).parent().name();
-        this.azureClient = azureClient;
+        this.parent = functionApp;
     }
 
     @Override
     public IFunctionApp functionApp() {
-        return Azure.az(AzureAppService.class).functionApp(entity().getResourceGroup(), entity().getFunctionAppName());
+        return Azure.az(AzureAppService.class).functionApp(resourceGroup, parent.name());
     }
 
     @Override
@@ -76,20 +70,13 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Override
     public void delete() {
-        getParentFunctionApp().deploymentSlots().deleteById(this.id());
+        parent.deploymentSlots().deleteById(this.id());
     }
 
     @Nullable
     @Override
     protected FunctionDeploymentSlot loadRemote() {
-        return getParentFunctionApp().deploymentSlots().getByName(name);
-    }
-
-    private FunctionApp getParentFunctionApp() {
-        if (parent == null) {
-            parent = azureClient.functionApps().getByResourceGroup(resourceGroup, functionAppName);
-        }
-        return parent;
+        return parent.deploymentSlots().getByName(name);
     }
 
     @Override
@@ -101,7 +88,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Override
     public String id() {
-        return String.format(FUNCTION_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, functionAppName, name);
+        return String.format(FUNCTION_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, parent.name(), name);
     }
 
     @Getter
@@ -142,7 +129,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
         @Override
         public IFunctionAppDeploymentSlot commit() {
-            final FunctionApp functionApp = getParentFunctionApp();
+            final FunctionApp functionApp = parent;
             final FunctionDeploymentSlot.DefinitionStages.Blank blank = functionApp.deploymentSlots().define(getName());
             final FunctionDeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default

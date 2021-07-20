@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -35,35 +36,26 @@ import java.util.Optional;
 public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, WebAppDeploymentSlotEntity> implements IWebAppDeploymentSlot {
     private static final String WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s";
     @Nonnull
-    private final String webAppName;
-    @Nonnull
-    private final AzureResourceManager azureClient;
-
-    private WebApp parent;
+    private final WebApp parent;
 
     public WebAppDeploymentSlot(@Nonnull final String id, @Nonnull final AzureResourceManager azureClient) {
         super(id);
-        this.webAppName = ResourceId.fromString(id).parent().name();
-        this.azureClient = azureClient;
+        this.parent = azureClient.webApps().getById(ResourceId.fromString(id).parent().id());
     }
 
-    public WebAppDeploymentSlot(@Nonnull final WebApp webApp, @Nonnull final String slotName, @Nonnull final AzureResourceManager azureClient) {
-        super(webApp.id(), webApp.resourceGroupName(), slotName);
+    public WebAppDeploymentSlot(@Nonnull final WebApp webApp, @Nonnull final String slotName) {
+        super(Utils.getSubscriptionId(webApp.id()), webApp.resourceGroupName(), slotName);
         this.parent = webApp;
-        this.webAppName = parent.name();
-        this.azureClient = azureClient;
     }
 
-    public WebAppDeploymentSlot(@Nonnull final WebDeploymentSlotBasic slotBasic, @Nonnull final AzureResourceManager azureClient) {
+    public WebAppDeploymentSlot(@Nonnull final WebApp webApp, @Nonnull final WebDeploymentSlotBasic slotBasic) {
         super(slotBasic);
-        this.webAppName = ResourceId.fromString(slotBasic.id()).parent().name();
-        this.azureClient = azureClient;
+        this.parent = webApp;
     }
 
     @Override
     public IWebApp webApp() {
-        final WebAppDeploymentSlotEntity entity = entity();
-        return Azure.az(AzureAppService.class).webapp(entity.getSubscriptionId(), entity.getResourceGroup(), entity.getWebappName());
+        return Azure.az(AzureAppService.class).webapp(subscriptionId, resourceGroup, parent.name());
     }
 
     @Override
@@ -84,7 +76,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
     @Override
     protected DeploymentSlot loadRemote() {
-        return getParentWebApp().deploymentSlots().getByName(name);
+        return parent.deploymentSlots().getByName(name);
     }
 
     @Override
@@ -100,14 +92,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
     @Override
     public String id() {
-        return String.format(WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, webAppName, name);
-    }
-
-    private WebApp getParentWebApp() {
-        if (parent == null) {
-            parent = azureClient.webApps().getByResourceGroup(resourceGroup, webAppName);
-        }
-        return parent;
+        return String.format(WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, parent.name(), name);
     }
 
     @Getter
@@ -148,7 +133,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
         @Override
         public WebAppDeploymentSlot commit() {
-            final WebApp webApp = getParentWebApp();
+            final WebApp webApp = parent;
             final DeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
             final DeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default
