@@ -5,12 +5,25 @@
 
 package com.microsoft.azure.toolkit.lib.common.messager;
 
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureBundle;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.bundle.CustomDecoratable;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 public interface IAzureMessage {
     @Nonnull
-    String getMessage();
+    AzureString getMessage();
+
+    @Nonnull
+    default String getContent() {
+        return this.getMessage().getString();
+    }
 
     @Nonnull
     Type getType();
@@ -32,8 +45,42 @@ public interface IAzureMessage {
         return messager.show(this);
     }
 
+    /**
+     * @return null if not decoratable
+     */
+    @Nullable
+    default String decorateValue(@Nonnull Object p, @Nullable Supplier<String> dft) {
+        String result = null;
+        if (p instanceof CustomDecoratable) {
+            result = ((CustomDecoratable) p).decorate(this);
+        }
+        return Objects.isNull(result) && Objects.nonNull(dft) ? dft.get() : result;
+    }
+
+    /**
+     * @return null if not decoratable
+     */
+    @Nullable
+    default String decorateText(@Nonnull AzureString text, @Nullable Supplier<String> dft) {
+        String result = null;
+        if (text instanceof CustomDecoratable) {
+            result = ((CustomDecoratable) text).decorate(this);
+        }
+        if (Objects.isNull(result)) {
+            final Object[] params = Arrays.stream(text.getParams())
+                    .map((p) -> this.decorateValue(p, p::toString))
+                    .toArray();
+            result = text.getString(params);
+        }
+        return Objects.isNull(result) && Objects.nonNull(dft) ? dft.get() : result;
+    }
+
     enum Type {
         INFO, WARNING, SUCCESS, ERROR, ALERT, CONFIRM
+    }
+
+    interface ValueDecorator {
+        String decorateValue(@Nonnull Object p, @Nullable IAzureMessage message);
     }
 
     interface Action {

@@ -10,29 +10,32 @@ import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 @Slf4j
-public class MavenAzureMessager implements IAzureMessager {
+public class MavenAzureMessager implements IAzureMessager, IAzureMessage.ValueDecorator {
     @Override
     public boolean show(IAzureMessage message) {
         switch (message.getType()) {
             case ALERT:
             case CONFIRM:
             case WARNING:
-                log.warn(message.getMessage());
+                log.warn(message.getContent());
                 return true;
             case ERROR:
-                log.error(message.getMessage(), ((Throwable) message.getPayload()));
+                log.error(message.getContent(), ((Throwable) message.getPayload()));
                 return true;
             case INFO:
             case SUCCESS:
             default:
-                log.info(message.getMessage());
+                log.info(message.getContent());
                 return true;
         }
     }
 
     @Override
-    public String value(String val) {
-        return TextUtils.cyan(val);
+    public String decorateValue(@Nonnull Object p, @Nullable IAzureMessage message) {
+        return TextUtils.cyan(p.toString());
     }
 }

@@ -12,6 +12,7 @@ import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -181,11 +182,11 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
                 return this.deployment;
             }
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(String.format("Start scaling deployment(%s)...", messager.value(this.deployment.name())));
+            messager.info(AzureString.format("Start scaling deployment({0})...", this.deployment.name()));
             final SpringAppDeploymentImpl modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote()).update());
             modifier.withCpu(settings.getCpu()).withMemory(settings.getMemoryInGB()).withInstance(settings.getCapacity());
             this.deployment.entity.setRemote(modifier.apply());
-            messager.success(String.format("Deployment(%s) is successfully scaled.", messager.value(this.deployment.name())));
+            messager.success(AzureString.format("Deployment({0}) is successfully scaled.", this.deployment.name()));
             return this.deployment;
         }
 
@@ -206,11 +207,11 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
         public SpringCloudDeployment commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
             if (this.skippable) {
-                messager.info(String.format("Skip updating deployment(%s) since its properties is not changed.", this.deployment.name()));
+                messager.info(AzureString.format("Skip updating deployment({0}) since its properties is not changed.", this.deployment.name()));
             } else {
-                messager.info(String.format("Start updating deployment(%s)...", messager.value(this.deployment.name())));
+                messager.info(AzureString.format("Start updating deployment({0})...", this.deployment.name()));
                 this.deployment.refresh(this.modifier.apply());
-                messager.success(String.format("Deployment(%s) is successfully updated", messager.value(this.deployment.name())));
+                messager.success(AzureString.format("Deployment({0}) is successfully updated", this.deployment.name()));
             }
             return this.scale(this.newScaleSettings);
         }
@@ -225,9 +226,9 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
         @AzureOperation(name = "springcloud|deployment.create", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
         public SpringCloudDeployment commit() {
             final IAzureMessager messager = AzureMessager.getMessager();
-            messager.info(String.format("Start creating deployment(%s)...", messager.value(this.deployment.name())));
+            messager.info(AzureString.format("Start creating deployment({0})...", this.deployment.name()));
             this.deployment.refresh(this.modifier.create());
-            messager.success(String.format("Deployment(%s) is successfully created", messager.value(this.deployment.name())));
+            messager.success(AzureString.format("Deployment({0}) is successfully created", this.deployment.name()));
             return this.scale(this.newScaleSettings);
         }
     }

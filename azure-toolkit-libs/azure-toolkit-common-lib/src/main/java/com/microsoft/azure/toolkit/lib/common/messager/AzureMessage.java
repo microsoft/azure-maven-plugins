@@ -5,17 +5,207 @@
 
 package com.microsoft.azure.toolkit.lib.common.messager;
 
+import com.azure.core.exception.HttpResponseException;
+import com.azure.core.management.exception.ManagementException;
+import com.google.common.collect.Streams;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationException;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-public abstract class AzureMessage implements IAzureMessage {
+@RequiredArgsConstructor
+@Accessors(chain = true)
+@Getter
+@Setter
+public class AzureMessage implements IAzureMessage {
+    static final String DEFAULT_MESSAGE_TITLE = "Azure";
+    @Nonnull
+    protected final Type type;
+    @Nonnull
+    protected final AzureString message;
+    @Nullable
+    protected String title;
+    @Nullable
+    protected Object payload;
+    @Nullable
+    protected Action[] actions;
+    @Nullable
+    protected Boolean backgrounded;
+    protected ValueDecorator valueDecorator;
+    @Setter(AccessLevel.PRIVATE)
+    private ArrayList<IAzureOperation> operations;
+
+    @Nonnull
+    public String getContent() {
+        if (!(getPayload() instanceof Throwable)) {
+            return ObjectUtils.firstNonNull(this.decorateText(this.message, null), this.message.getString());
+        }
+        final Throwable throwable = (Throwable) getPayload();
+        final List<IAzureOperation> operations = this.getOperations();
+        final String failure = operations.stream().findFirst().map(IAzureOperation::getTitle)
+                .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
+        final String cause = Optional.ofNullable(this.getCause(throwable))
+                .map(c -> String.format(", because %s", c))
+                .orElse("");
+        final String errorAction = Optional.ofNullable(this.getErrorAction(throwable)).orElse("");
+        return failure + cause + errorAction;
+    }
+
+    public String getDetails() {
+        final List<IAzureOperation> operations = this.getOperations();
+        return operations.size() < 2 ? "" : operations.stream()
+                .map(this::getDetailItem)
+                .collect(Collectors.joining("", "", ""));
+    }
+
+    protected String getDetailItem(IAzureOperation o) {
+        return Optional.ofNullable(o.getTitle())
+                .map(t -> decorateText(t, t::getString))
+                .map(StringUtils::capitalize)
+                .map(t -> String.format("● %s", t))
+                .orElse(null);
+    }
+
+    @Override
+    @Nullable
+    public String decorateValue(@Nonnull Object p, @Nullable Supplier<String> dft) {
+        String result = IAzureMessage.super.decorateValue(p, null);
+        if (Objects.isNull(result) && Objects.nonNull(this.valueDecorator)) {
+            result = this.valueDecorator.decorateValue(p, this);
+        }
+        return Objects.isNull(result) && Objects.nonNull(dft) ? dft.get() : result;
+    }
+
+    @Nullable
+    protected String getCause(@Nonnull Throwable throwable) {
+        final Throwable root = getRecognizableCause(throwable);
+        if (Objects.isNull(root)) {
+            return ExceptionUtils.getRootCause(throwable).toString();
+        }
+        String cause = null;
+        if (root instanceof ManagementException) {
+            cause = ((ManagementException) root).getValue().getMessage();
+        } else if (root instanceof HttpResponseException) {
+            cause = ((HttpResponseException) root).getResponse().getBodyAsString().block();
+        }
+        return StringUtils.firstNonBlank(cause, root.getMessage());
+    }
+
+    @Nullable
+    private static Throwable getRecognizableCause(@Nonnull Throwable throwable) {
+        final List<Throwable> throwables = ExceptionUtils.getThrowableList(throwable);
+        for (int i = throwables.size() - 1; i >= 0; i--) {
+            final Throwable t = throwables.get(i);
+            if (t instanceof AzureOperationException) {
+                continue;
+            }
+            final String rootClassName = t.getClass().getName();
+            if (rootClassName.startsWith("com.microsoft") || rootClassName.startsWith("com.azure")) {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    protected String getErrorAction(@Nonnull Throwable throwable) {
+        return ExceptionUtils.getThrowableList(throwable).stream()
+                .filter(t -> t instanceof AzureToolkitRuntimeException || t instanceof AzureToolkitException)
+                .map(t -> t instanceof AzureToolkitRuntimeException ? ((AzureToolkitRuntimeException) t).getAction() : ((AzureToolkitException) t).getAction())
+                .filter(StringUtils::isNotBlank)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Nonnull
+    protected List<IAzureOperation> getOperations() {
+        if (Objects.isNull(this.operations)) {
+            final List<IAzureOperation> contextOperations = getContextOperations();
+            final List<IAzureOperation> exceptionOperations = Optional.ofNullable(this.getPayload())
+                    .filter(p -> p instanceof Throwable)
+                    .map(p -> getExceptionOperations((Throwable) p))
+                    .orElse(new ArrayList<>());
+            final Map<String, IAzureOperation> operations = new HashMap<>();
+            Streams.concat(contextOperations.stream(), exceptionOperations.stream())
+                    .filter(o -> !operations.containsKey(o.getName()))
+                    .forEachOrdered(o -> operations.put(o.getName(), o));
+            this.operations = new ArrayList<>(operations.values());
+        }
+        return this.operations;
+    }
+
+    @Nonnull
+    private static List<IAzureOperation> getContextOperations() {
+        final LinkedList<IAzureOperation> result = new LinkedList<>();
+        IAzureOperation current = AzureTaskContext.current().currentOperation();
+        while (Objects.nonNull(current)) {
+            if (current instanceof AzureOperationRef) {
+                result.addFirst(current);
+                final AzureOperation annotation = ((AzureOperationRef) current).getAnnotation(AzureOperation.class);
+                if (annotation.type() == AzureOperation.Type.ACTION) {
+                    break;
+                }
+            }
+            current = current.getParent();
+        }
+        return result;
+    }
+
+    @Nonnull
+    private static List<IAzureOperation> getExceptionOperations(@Nonnull Throwable throwable) {
+        return ExceptionUtils.getThrowableList(throwable).stream()
+                .filter(object -> object instanceof AzureOperationException)
+                .map(o -> ((AzureOperationException) o).getOperation())
+                .collect(Collectors.toList());
+    }
+
+    @Nonnull
+    @Override
+    public String getTitle() {
+        return StringUtils.firstNonBlank(this.title, DEFAULT_MESSAGE_TITLE);
+    }
+
+    @Nonnull
+    @Override
+    public Action[] getActions() {
+        return ObjectUtils.firstNonNull(this.actions, new Action[0]);
+    }
+
+    @Nullable
+    public Boolean getBackgrounded() {
+        Boolean b = this.backgrounded;
+        if (Objects.isNull(b)) {
+            final AzureTask<?> task = AzureTaskContext.current().getTask();
+            b = Optional.ofNullable(task).map(AzureTask::getBackgrounded).orElse(null);
+        }
+        return b;
+    }
+
     @Nonnull
     public static AzureMessage.Context getContext() {
         return getContext(IAzureOperation.current());
