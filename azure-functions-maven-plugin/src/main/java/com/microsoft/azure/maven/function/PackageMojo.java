@@ -35,6 +35,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
@@ -95,9 +96,13 @@ public class PackageMojo extends AbstractFunctionMojo {
     private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION =
         {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
     private static final String EXTENSION_BUNDLE_ID = "Microsoft.Azure.Functions.ExtensionBundle";
+    private static final String SKIP_INSTALL_EXTENSIONS_FLAG = "skipInstallExtensions flag is set, skip install extension";
     private static final String SKIP_INSTALL_EXTENSIONS_BUNDLE = "Extension bundle specified, skip install extension";
     private static final String CAN_NOT_FIND_ARTIFACT = "Cannot find the maven artifact, please run `mvn package` first.";
     //region Entry Point
+
+    @Parameter(property = "functions.skipInstallExtensions", defaultValue = "false")
+    protected boolean skipInstallExtensions;
 
     @Override
     protected void doExecute() throws AzureExecutionException {
@@ -369,6 +374,10 @@ public class PackageMojo extends AbstractFunctionMojo {
     }
 
     protected boolean isInstallingExtensionNeeded(Set<BindingEnum> bindingTypes) {
+        if (skipInstallExtensions) {
+            Log.info(SKIP_INSTALL_EXTENSIONS_FLAG);
+            return false;
+        }
         final JsonObject hostJson = readHostJson();
         final JsonObject extensionBundle = hostJson == null ? null : hostJson.getAsJsonObject(EXTENSION_BUNDLE);
         if (extensionBundle != null && extensionBundle.has("id") &&
