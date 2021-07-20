@@ -1,6 +1,7 @@
 package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 
 import com.azure.resourcemanager.appservice.models.WebAppBase;
+import com.azure.resourcemanager.appservice.models.WebSiteBase;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
@@ -18,11 +19,24 @@ import com.microsoft.azure.toolkit.lib.appservice.service.impl.deploy.RunFromZip
 import com.microsoft.azure.toolkit.lib.appservice.service.impl.deploy.ZIPFunctionDeployHandler;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
 public abstract class FunctionAppBase<T extends WebAppBase, R extends AppServiceBaseEntity> extends AbstractAppService<T, R> implements IFunctionAppBase<R> {
     private AzureFunctionsResourceManager functionsResourceManager;
+
+    public FunctionAppBase(@NotNull String id) {
+        super(id);
+    }
+
+    public FunctionAppBase(@NotNull String subscriptionId, @NotNull String resourceGroup, @NotNull String name) {
+        super(subscriptionId, resourceGroup, name);
+    }
+
+    public FunctionAppBase(@NotNull WebSiteBase webSiteBase) {
+        super(webSiteBase);
+    }
 
     @Override
     public void deploy(File targetFile) {
@@ -31,14 +45,14 @@ public abstract class FunctionAppBase<T extends WebAppBase, R extends AppService
 
     @Override
     public void deploy(File targetFile, FunctionDeployType functionDeployType) {
-        getDeployHandlerByType(functionDeployType).deploy(targetFile, getRemoteResource());
+        getDeployHandlerByType(functionDeployType).deploy(targetFile, remote());
     }
 
     @Override
     protected IFileClient getFileClient() {
         // kudu api does not applies to linux consumption, using functions admin api instead
         if (functionsResourceManager == null) {
-            functionsResourceManager = AzureFunctionsResourceManager.getClient(getRemoteResource(), this);
+            functionsResourceManager = AzureFunctionsResourceManager.getClient(remote(), this);
         }
         return functionsResourceManager;
     }
@@ -47,7 +61,7 @@ public abstract class FunctionAppBase<T extends WebAppBase, R extends AppService
         if (getRuntime().getOperatingSystem() == OperatingSystem.WINDOWS) {
             return FunctionDeployType.RUN_FROM_ZIP;
         }
-        final PricingTier pricingTier = Azure.az(AzureAppService.class).appServicePlan(getRemoteResource().appServicePlanId()).entity().getPricingTier();
+        final PricingTier pricingTier = Azure.az(AzureAppService.class).appServicePlan(remote().appServicePlanId()).entity().getPricingTier();
         return StringUtils.equalsAnyIgnoreCase(pricingTier.getTier(), "Dynamic", "ElasticPremium") ?
                 FunctionDeployType.RUN_FROM_BLOB : FunctionDeployType.RUN_FROM_ZIP;
     }

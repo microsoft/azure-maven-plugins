@@ -10,6 +10,7 @@ import com.azure.resourcemanager.appservice.models.DeployOptions;
 import com.azure.resourcemanager.appservice.models.DeploymentSlot;
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase;
 import com.azure.resourcemanager.appservice.models.WebApp;
+import com.azure.resourcemanager.appservice.models.WebDeploymentSlotBasic;
 import com.microsoft.azure.arm.resources.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
@@ -18,11 +19,13 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.utils.Utils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,18 +34,28 @@ import java.util.Map;
 import java.util.Optional;
 
 public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, WebAppDeploymentSlotEntity> implements IWebAppDeploymentSlot {
+    private static final String WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s";
+    @Nonnull
+    private final WebApp parent;
 
-    private final AzureResourceManager azureClient;
+    public WebAppDeploymentSlot(@Nonnull final String id, @Nonnull final AzureResourceManager azureClient) {
+        super(id);
+        this.parent = azureClient.webApps().getById(ResourceId.fromString(id).parent().id());
+    }
 
-    public WebAppDeploymentSlot(WebAppDeploymentSlotEntity deploymentSlot, AzureResourceManager azureClient) {
-        this.entity = deploymentSlot;
-        this.azureClient = azureClient;
+    public WebAppDeploymentSlot(@Nonnull final WebApp webApp, @Nonnull final String slotName) {
+        super(Utils.getSubscriptionId(webApp.id()), webApp.resourceGroupName(), slotName);
+        this.parent = webApp;
+    }
+
+    public WebAppDeploymentSlot(@Nonnull final WebApp webApp, @Nonnull final WebDeploymentSlotBasic slotBasic) {
+        super(slotBasic);
+        this.parent = webApp;
     }
 
     @Override
     public IWebApp webApp() {
-        final WebAppDeploymentSlotEntity entity = entity();
-        return Azure.az(AzureAppService.class).webapp(entity.getSubscriptionId(), entity.getResourceGroup(), entity.getWebappName());
+        return Azure.az(AzureAppService.class).webapp(subscriptionId, resourceGroup, parent.name());
     }
 
     @Override
@@ -62,27 +75,24 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
     }
 
     @Override
-    protected DeploymentSlot remote() {
-        final WebApp parentWebApp = getParentWebApp();
-        return StringUtils.isNotEmpty(entity.getId()) ? parentWebApp.deploymentSlots().getById(entity.getId()) :
-                parentWebApp.deploymentSlots().getByName(entity.getName());
+    protected DeploymentSlot loadRemote() {
+        return parent.deploymentSlots().getByName(name);
     }
 
     @Override
     public void delete() {
-        getRemoteResource().parent().deploymentSlots().deleteByName(entity.getName());
+        remote().parent().deploymentSlots().deleteById(this.id());
     }
 
     @Override
     public void deploy(DeployType deployType, File targetFile, String targetPath) {
         final DeployOptions options = new DeployOptions().withPath(targetPath);
-        getRemoteResource().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
+        remote().deploy(com.azure.resourcemanager.appservice.models.DeployType.fromString(deployType.getValue()), targetFile, options);
     }
 
-    private WebApp getParentWebApp() {
-        return StringUtils.isNotEmpty(entity.getId()) ?
-                azureClient.webApps().getById(ResourceId.fromString(entity.getId()).parent().id()) :
-                azureClient.webApps().getByResourceGroup(entity.getResourceGroup(), entity.getWebappName());
+    @Override
+    public String id() {
+        return String.format(WEB_APP_DEPLOYMENT_SLOT_ID_TEMPLATE, subscriptionId, resourceGroup, parent.name(), name);
     }
 
     @Getter
@@ -123,7 +133,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
         @Override
         public WebAppDeploymentSlot commit() {
-            final WebApp webApp = getParentWebApp();
+            final WebApp webApp = parent;
             final DeploymentSlot.DefinitionStages.Blank blank = webApp.deploymentSlots().define(getName());
             final DeploymentSlot.DefinitionStages.WithCreate withCreate;
             // Using configuration from parent by default
@@ -183,7 +193,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
         @Override
         public WebAppDeploymentSlot commit() {
-            final DeploymentSlotBase.Update<DeploymentSlot> update = getRemoteResource().update();
+            final DeploymentSlotBase.Update<DeploymentSlot> update = remote().update();
             if (getAppSettingsToAdd() != null) {
                 update.withAppSettings(getAppSettingsToAdd());
             }
