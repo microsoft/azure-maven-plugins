@@ -46,11 +46,11 @@ import java.util.stream.Collectors;
 public class ConfigParser {
 
     private static final String EXPANDABLE_PRICING_TIER_WARNING = "'%s' may not be a valid pricing tier, " +
-            "please refer https://aka.ms/maven_webapp_runtime#pricingtier for valid values";
+            "please refer to https://aka.ms/maven_webapp_runtime#pricingtier for valid values";
     private static final String EXPANDABLE_REGION_WARNING = "'%s' may not be a valid region, " +
-            "please refer https://aka.ms/maven_webapp_runtime#region for valid values";
+            "please refer to https://aka.ms/maven_webapp_runtime#region for valid values";
     private static final String EXPANDABLE_WEB_CONTAINER_WARNING = "'%s' may not be a valid web container, " +
-            "please refer https://aka.ms/maven_webapp_runtime#webcontainer for valid values";
+            "please refer to https://aka.ms/maven_webapp_runtime#webcontainer for valid values";
     private static final String EXPANDABLE_JAVA_VERSION_WARNING = "'%s' may not be a valid java version, recommended values are `Java 8` and `Java 11`";
 
     protected AbstractWebAppMojo mojo;
