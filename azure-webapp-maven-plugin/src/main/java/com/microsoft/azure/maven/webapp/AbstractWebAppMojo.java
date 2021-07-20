@@ -232,7 +232,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
         final Set<ValidationMessage> validate = SchemaValidator.getInstance().validate("WebAppConfiguration", this, "configuration");
         validate.forEach(message -> validationMessageConsumer.accept(message));
         if (CollectionUtils.isNotEmpty(validate) && failOnError) {
-            final String errorDetails = validate.stream().map(ValidationMessage::getRawMessage).collect(Collectors.joining(StringUtils.LF));
+            final String errorDetails = validate.stream().map(message -> message.getMessage().toString()).collect(Collectors.joining(StringUtils.LF));
             throw new AzureToolkitRuntimeException(String.join(StringUtils.LF,
                     "Invalid values found in configuration, please correct the value with messages below:", errorDetails));
         }

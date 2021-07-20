@@ -10,8 +10,6 @@ import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Map;
-
 @Getter
 @Builder(toBuilder = true)
 public class ValidationMessage {
@@ -19,8 +17,6 @@ public class ValidationMessage {
     private String code;
     private String path;
     private String[] arguments;
-    private Map<String, Object> details;
-    private String rawMessage;
     private AzureString message;
 
     static ValidationMessage fromRawMessage(com.networknt.schema.ValidationMessage validationMessage) {
@@ -29,8 +25,6 @@ public class ValidationMessage {
                 .code(validationMessage.getCode())
                 .path(validationMessage.getPath())
                 .arguments(validationMessage.getArguments())
-                .details(validationMessage.getDetails())
-                .rawMessage(validationMessage.getMessage())
                 .message(getMessage(validationMessage.getMessage(), validationMessage.getPath(), validationMessage.getArguments())).build();
     }
 
@@ -46,6 +40,6 @@ public class ValidationMessage {
             }
         }
         final String[] args = path == null ? arguments : ArrayUtils.addAll(new String[]{path}, arguments);
-        return AzureString.format(pattern, (String[])args);
+        return AzureString.format(pattern, (String[]) args);
     }
 }
