@@ -37,7 +37,6 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
     protected static final String APP_SERVICE_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s";
     protected AppServiceKuduManager kuduManager;
     protected R entity;
-    protected T remote;
 
     public AbstractAppService(@Nonnull final String id) {
         super(id);
@@ -164,7 +163,7 @@ abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBase
 
     @Override
     public InputStream listPublishingProfileXmlWithSecrets() {
-        final ResourceId resourceId = ResourceId.fromString(remote().id());
+        final ResourceId resourceId = ResourceId.fromString(id());
         final String resourceName = StringUtils.equals(resourceId.resourceType(), "slots") ?
                 String.format("%s/slots/%s", resourceId.parent().name(), resourceId.name()) : resourceId.name();
         final CsmPublishingProfileOptions csmPublishingProfileOptions = new CsmPublishingProfileOptions().withFormat(PublishingProfileFormat.FTP);

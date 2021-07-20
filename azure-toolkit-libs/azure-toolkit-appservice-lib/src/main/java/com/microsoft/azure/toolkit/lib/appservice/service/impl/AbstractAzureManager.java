@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.appservice.service.impl;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.microsoft.azure.arm.resources.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import org.apache.http.HttpStatus;
 
 import javax.annotation.Nonnull;
@@ -18,11 +19,11 @@ public abstract class AbstractAzureManager<T extends HasId> {
     protected boolean isRefreshed = false;
 
     @Nonnull
-    protected String name;
+    protected final String name;
     @Nonnull
-    protected String resourceGroup;
+    protected final String resourceGroup;
     @Nonnull
-    protected String subscriptionId;
+    protected final String subscriptionId;
 
     protected T remote;
 
@@ -40,11 +41,8 @@ public abstract class AbstractAzureManager<T extends HasId> {
     }
 
     public AbstractAzureManager(@Nonnull final T resource) {
+        this(resource.id());
         this.remote = resource;
-        final ResourceId resourceId = ResourceId.fromString(resource.id());
-        this.name = resourceId.name();
-        this.resourceGroup = resourceId.resourceGroupName();
-        this.subscriptionId = resourceId.subscriptionId();
     }
 
     public final boolean exists() {
@@ -70,10 +68,10 @@ public abstract class AbstractAzureManager<T extends HasId> {
 
     @Nonnull
     protected final T remote() {
-        if (Objects.isNull(this.remote) && !isRefreshed) {
-            refresh();
+        if (!exists()) {
+            throw new AzureToolkitRuntimeException(String.format("Target resource %s does not exist.", name));
         }
-        return Objects.requireNonNull(this.remote, "Target resource does not exist.");
+        return this.remote;
     }
 
     @Nullable

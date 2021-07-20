@@ -85,7 +85,7 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
 
     @Override
     public void delete() {
-        azureClient.webApps().deleteById(remote().id());
+        azureClient.webApps().deleteById(this.id());
     }
 
     @Override

@@ -99,7 +99,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @Cacheable(cacheName = "appservice/functionapp/{}/functions", key = "${this.name()}", condition = "!(force&&force[0])")
     public List<FunctionEntity> listFunctions(boolean... force) {
         return azureClient.functionApps()
-                .listFunctions(remote().resourceGroupName(), remote().name()).stream()
+                .listFunctions(resourceGroup, name).stream()
                 .map(AppServiceUtils::fromFunctionAppEnvelope)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -122,7 +122,7 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
 
     @Override
     public void delete() {
-        azureClient.functionApps().deleteById(remote().id());
+        azureClient.functionApps().deleteById(this.id());
     }
 
     @Nonnull

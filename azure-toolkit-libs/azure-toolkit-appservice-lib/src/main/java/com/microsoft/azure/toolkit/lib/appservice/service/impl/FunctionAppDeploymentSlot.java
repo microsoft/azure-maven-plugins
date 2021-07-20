@@ -40,9 +40,9 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     private FunctionApp parent;
 
-    public FunctionAppDeploymentSlot(@Nonnull final FunctionApp webApp, @Nonnull final String slotName, @Nonnull final AzureResourceManager azureClient) {
-        super(webApp.id(), webApp.resourceGroupName(), slotName);
-        this.parent = webApp;
+    public FunctionAppDeploymentSlot(@Nonnull final FunctionApp functionApp, @Nonnull final String slotName, @Nonnull final AzureResourceManager azureClient) {
+        super(functionApp.id(), functionApp.resourceGroupName(), slotName);
+        this.parent = functionApp;
         this.functionAppName = parent.name();
         this.azureClient = azureClient;
     }
@@ -76,7 +76,7 @@ public class FunctionAppDeploymentSlot extends FunctionAppBase<FunctionDeploymen
 
     @Override
     public void delete() {
-        getParentFunctionApp().deploymentSlots().deleteById(remote().id());
+        getParentFunctionApp().deploymentSlots().deleteById(this.id());
     }
 
     @Nullable

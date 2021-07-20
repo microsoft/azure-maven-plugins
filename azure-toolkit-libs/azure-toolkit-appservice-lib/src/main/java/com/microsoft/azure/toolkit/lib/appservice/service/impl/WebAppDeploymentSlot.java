@@ -89,7 +89,7 @@ public class WebAppDeploymentSlot extends AbstractAppService<DeploymentSlot, Web
 
     @Override
     public void delete() {
-        remote().parent().deploymentSlots().deleteByName(entity.getName());
+        remote().parent().deploymentSlots().deleteById(this.id());
     }
 
     @Override
