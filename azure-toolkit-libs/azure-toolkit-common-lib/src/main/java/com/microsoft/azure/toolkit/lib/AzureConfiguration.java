@@ -16,5 +16,12 @@ public class AzureConfiguration {
     private String logLevel;
     private String userAgent;
     private String cloud;
+
+    private String installationId;
+    private String pluginVersion;
+    private String passwordSaveType;
+    private Boolean allowTelemetry;
+    private String functionCoreToolsPath;
+
     private InetSocketAddress httpProxy;
 }
