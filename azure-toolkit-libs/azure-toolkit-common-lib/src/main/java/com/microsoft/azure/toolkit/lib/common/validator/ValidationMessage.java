@@ -5,10 +5,13 @@
 package com.microsoft.azure.toolkit.lib.common.validator;
 
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.networknt.schema.ValidatorTypeCode;
 import lombok.Builder;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 
 @Getter
 @Builder(toBuilder = true)
@@ -25,21 +28,18 @@ public class ValidationMessage {
                 .code(validationMessage.getCode())
                 .path(validationMessage.getPath())
                 .arguments(validationMessage.getArguments())
-                .message(getMessage(validationMessage.getMessage(), validationMessage.getPath(), validationMessage.getArguments())).build();
+                .message(getMessage(validationMessage)).build();
     }
 
-    private static AzureString getMessage(final String rawMessage, final String path, final String[] arguments) {
-        int parameterCount = 0;
-        String pattern = rawMessage;
-        if (StringUtils.isNotEmpty(path)) {
-            pattern = pattern.replace(path, String.format("{%d}", parameterCount++));
+    // refers https://github.com/networknt/json-schema-validator/blob/master/src/main/java/com/networknt/schema/ValidationMessage.java#L174
+    private static AzureString getMessage(final com.networknt.schema.ValidationMessage validationMessage) {
+        final ValidatorTypeCode validatorTypeCode = Arrays.stream(ValidatorTypeCode.values())
+                .filter(typeCode -> StringUtils.equalsIgnoreCase(validationMessage.getCode(), typeCode.getErrorCode())).findFirst().orElse(null);
+        if (validatorTypeCode == null) {
+            return AzureString.fromString(validationMessage.getMessage());
         }
-        if (ArrayUtils.isNotEmpty(arguments)) {
-            for (String argument : arguments) {
-                pattern = pattern.replace(argument, String.format("{%d}", parameterCount++));
-            }
-        }
-        final String[] args = path == null ? arguments : ArrayUtils.addAll(new String[]{path}, arguments);
-        return AzureString.format(pattern, (String[]) args);
+        final String[] path = new String[]{validationMessage.getPath()};
+        final String[] args = ArrayUtils.isEmpty(validationMessage.getArguments()) ? path : ArrayUtils.addAll(path, validationMessage.getArguments());
+        return AzureString.format(validatorTypeCode.getMessageFormat().toPattern(), (String[]) args);
     }
 }
