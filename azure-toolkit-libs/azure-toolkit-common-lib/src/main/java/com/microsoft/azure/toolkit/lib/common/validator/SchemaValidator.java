@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.common.validator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
@@ -53,7 +54,7 @@ public class SchemaValidator {
 
     public void registerSchema(@Nonnull final String schemaId, @Nonnull final JsonNode schema) {
         if (schemaMap.containsKey(schemaId)) {
-            AzureMessager.getMessager().info(String.format("Updating schema for %s", schemaId));
+            AzureMessager.getMessager().info(AzureString.format("Updating schema for %s", schemaId));
         }
         schemaMap.put(schemaId, factory.getSchema(schema));
     }
@@ -63,7 +64,7 @@ public class SchemaValidator {
             final JsonNode schemaNode = this.objectMapper.readTree(inputStream);
             registerSchema(schemaId, schemaNode);
         } catch (IOException e) {
-            AzureMessager.getMessager().warning(String.format("Failed to load configuration schema %s", schemaId));
+            AzureMessager.getMessager().warning(AzureString.format("Failed to load configuration schema %s", schemaId));
         }
     }
 
@@ -81,7 +82,7 @@ public class SchemaValidator {
 
     public List<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
         if (!schemaMap.containsKey(schemaId)) {
-            AzureMessager.getMessager().warning(String.format("Skip validation as schema %s was not registered", schemaId));
+            AzureMessager.getMessager().warning(AzureString.format("Skip validation as schema %s was not registered", schemaId));
             return Collections.emptyList();
         }
         return validate(schemaMap.get(schemaId), value, pathPrefix);
