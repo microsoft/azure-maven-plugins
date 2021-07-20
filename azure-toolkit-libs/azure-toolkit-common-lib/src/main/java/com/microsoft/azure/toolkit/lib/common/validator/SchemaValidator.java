@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -66,28 +67,28 @@ public class SchemaValidator {
         }
     }
 
-    public Set<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final Object value) {
+    public List<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final Object value) {
         return validate(schemaId, value, "$");
     }
 
-    public Set<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final Object value, @Nullable final String pathPrefix) {
+    public List<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final Object value, @Nullable final String pathPrefix) {
         return validate(schemaId, objectMapper.convertValue(value, JsonNode.class), pathPrefix);
     }
 
-    public Set<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final JsonNode value) {
+    public List<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final JsonNode value) {
         return validate(schemaId, value, "$");
     }
 
-    public Set<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
+    public List<ValidationMessage> validate(@Nonnull final String schemaId, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
         if (!schemaMap.containsKey(schemaId)) {
             AzureMessager.getMessager().warning(String.format("Skip validation as schema %s was not registered", schemaId));
-            return Collections.emptySet();
+            return Collections.emptyList();
         }
         return validate(schemaMap.get(schemaId), value, pathPrefix);
     }
 
-    private Set<ValidationMessage> validate(@Nonnull final JsonSchema schema, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
-        return schema.validate(value, value, pathPrefix).stream().map(ValidationMessage::fromRawMessage).collect(Collectors.toSet());
+    private List<ValidationMessage> validate(@Nonnull final JsonSchema schema, @Nonnull final JsonNode value, @Nullable final String pathPrefix) {
+        return schema.validate(value, value, pathPrefix).stream().map(ValidationMessage::fromRawMessage).collect(Collectors.toList());
     }
 
     private static class LazyHolder {

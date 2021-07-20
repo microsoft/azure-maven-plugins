@@ -28,6 +28,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -47,6 +48,7 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     public static final String INVALID_CONFIG_KEY = "invalidConfiguration";
     public static final String SCHEMA_VERSION_KEY = "schemaVersion";
     public static final String DEPLOY_TO_SLOT_KEY = "isDeployToSlot";
+    private static final String INVALID_PARAMETER_ERROR_MESSAGE = "Invalid values found in configuration, please correct the value with messages below:";
 
     //region Properties
 
@@ -229,12 +231,11 @@ public abstract class AbstractWebAppMojo extends AbstractAppServiceMojo {
     }
 
     protected void validateConfiguration(Consumer<ValidationMessage> validationMessageConsumer, boolean failOnError) {
-        final Set<ValidationMessage> validate = SchemaValidator.getInstance().validate("WebAppConfiguration", this, "configuration");
+        final List<ValidationMessage> validate = SchemaValidator.getInstance().validate("WebAppConfiguration", this, "configuration");
         validate.forEach(message -> validationMessageConsumer.accept(message));
         if (CollectionUtils.isNotEmpty(validate) && failOnError) {
             final String errorDetails = validate.stream().map(message -> message.getMessage().toString()).collect(Collectors.joining(StringUtils.LF));
-            throw new AzureToolkitRuntimeException(String.join(StringUtils.LF,
-                    "Invalid values found in configuration, please correct the value with messages below:", errorDetails));
+            throw new AzureToolkitRuntimeException(String.join(StringUtils.LF, INVALID_PARAMETER_ERROR_MESSAGE, errorDetails));
         }
     }
 
