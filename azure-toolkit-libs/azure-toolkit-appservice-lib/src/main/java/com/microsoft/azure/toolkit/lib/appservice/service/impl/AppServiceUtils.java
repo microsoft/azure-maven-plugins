@@ -81,8 +81,12 @@ class AppServiceUtils {
 
     private static Runtime getRuntimeFromWindowsAppService(WebAppBase webAppBase) {
         final String javaContainer = String.join(" ", webAppBase.javaContainer(), webAppBase.javaContainerVersion());
-        final WebContainer webContainer = WebContainer.fromString(javaContainer);
-        final JavaVersion javaVersion = JavaVersion.fromString(Objects.toString(webAppBase.javaVersion(), null));
+        final WebContainer webContainer = StringUtils.isAllEmpty(webAppBase.javaContainer(), webAppBase.javaContainerVersion()) ?
+                WebContainer.JAVA_OFF : WebContainer.fromString(javaContainer);
+        final JavaVersion javaVersion = Optional.ofNullable(webAppBase.javaVersion())
+                .filter(version -> !Objects.equals(version, com.azure.resourcemanager.appservice.models.JavaVersion.OFF))
+                .map(version -> JavaVersion.fromString(version.toString()))
+                .orElse(JavaVersion.OFF);
         return Runtime.getRuntime(OperatingSystem.WINDOWS, webContainer, javaVersion);
     }
 

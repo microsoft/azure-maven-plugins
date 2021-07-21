@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class Runtime {
-    private static final Pattern LINUX_FX_VERSION_PATTERN = Pattern.compile("(.+)\\|((.*)-)?(.+)");
+    private static final Pattern LINUX_FX_VERSION_PATTERN = Pattern.compile("(?i)(JAVA|TOMCAT|JBOSSEAP)\\|((.*)-)?(.+)");
 
     // Web App
     public static final Runtime WINDOWS_JAVA8 = new Runtime(OperatingSystem.WINDOWS, WebContainer.JAVA_SE, JavaVersion.JAVA_8);
