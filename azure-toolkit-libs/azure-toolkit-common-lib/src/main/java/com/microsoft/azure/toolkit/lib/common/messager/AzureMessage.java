@@ -9,6 +9,7 @@ import com.azure.core.exception.HttpResponseException;
 import com.azure.core.management.exception.ManagementException;
 import com.google.common.collect.Streams;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -17,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -54,11 +54,7 @@ public class AzureMessage implements IAzureMessage {
     protected Object payload;
     @Nullable
     protected Action[] actions;
-    @Nullable
-    protected Boolean backgrounded;
     protected ValueDecorator valueDecorator;
-    @Setter(AccessLevel.PRIVATE)
-    private ArrayList<IAzureOperation> operations;
 
     @Nonnull
     public String getContent() {
@@ -143,20 +139,18 @@ public class AzureMessage implements IAzureMessage {
     }
 
     @Nonnull
+    @Cacheable(cacheName = "message/operations", key = "${this.hashCode()}")
     protected List<IAzureOperation> getOperations() {
-        if (Objects.isNull(this.operations)) {
-            final List<IAzureOperation> contextOperations = getContextOperations();
-            final List<IAzureOperation> exceptionOperations = Optional.ofNullable(this.getPayload())
-                    .filter(p -> p instanceof Throwable)
-                    .map(p -> getExceptionOperations((Throwable) p))
-                    .orElse(new ArrayList<>());
-            final Map<String, IAzureOperation> operations = new HashMap<>();
-            Streams.concat(contextOperations.stream(), exceptionOperations.stream())
-                    .filter(o -> !operations.containsKey(o.getName()))
-                    .forEachOrdered(o -> operations.put(o.getName(), o));
-            this.operations = new ArrayList<>(operations.values());
-        }
-        return this.operations;
+        final List<IAzureOperation> contextOperations = getContextOperations();
+        final List<IAzureOperation> exceptionOperations = Optional.ofNullable(this.getPayload())
+                .filter(p -> p instanceof Throwable)
+                .map(p -> getExceptionOperations((Throwable) p))
+                .orElse(new ArrayList<>());
+        final Map<String, IAzureOperation> operations = new HashMap<>();
+        Streams.concat(contextOperations.stream(), exceptionOperations.stream())
+                .filter(o -> !operations.containsKey(o.getName()))
+                .forEachOrdered(o -> operations.put(o.getName(), o));
+        return new ArrayList<>(operations.values());
     }
 
     @Nonnull
@@ -194,16 +188,6 @@ public class AzureMessage implements IAzureMessage {
     @Override
     public Action[] getActions() {
         return ObjectUtils.firstNonNull(this.actions, new Action[0]);
-    }
-
-    @Nullable
-    public Boolean getBackgrounded() {
-        Boolean b = this.backgrounded;
-        if (Objects.isNull(b)) {
-            final AzureTask<?> task = AzureTaskContext.current().getTask();
-            b = Optional.ofNullable(task).map(AzureTask::getBackgrounded).orElse(null);
-        }
-        return b;
     }
 
     @Nonnull
