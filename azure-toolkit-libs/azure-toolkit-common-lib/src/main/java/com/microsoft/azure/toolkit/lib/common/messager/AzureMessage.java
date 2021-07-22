@@ -16,7 +16,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationRef;
 import com.microsoft.azure.toolkit.lib.common.operation.IAzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskContext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -66,9 +65,9 @@ public class AzureMessage implements IAzureMessage {
         final String failure = operations.stream().findFirst().map(IAzureOperation::getTitle)
                 .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
         final String cause = Optional.ofNullable(this.getCause(throwable))
-                .map(c -> String.format(", because %s", c))
+                .map(c -> "," + c + ".")
                 .orElse("");
-        final String errorAction = Optional.ofNullable(this.getErrorAction(throwable)).orElse("");
+        final String errorAction = Optional.ofNullable(this.getErrorAction(throwable)).map(a -> System.lineSeparator() + a).orElse("");
         return failure + cause + errorAction;
     }
 
