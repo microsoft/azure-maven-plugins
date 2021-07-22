@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.lib.appservice.task;
 
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 
 public class DeployWebAppTask extends AzureTask<IWebApp> {
     private static final String SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE = "Skip deployment for docker webapp, " +
-        "you can navigate to https://%s to access your docker webapp.";
+        "you can navigate to %s to access your docker webapp.";
     private static final String DEPLOY_START = "Trying to deploy artifact to %s...";
     private static final String DEPLOY_FINISH = "Successfully deployed the artifact to https://%s";
     private static final String STOP_APP = "Stopping Web App before deploying artifacts...";
@@ -45,7 +46,7 @@ public class DeployWebAppTask extends AzureTask<IWebApp> {
     @AzureOperation(name = "webapp.deploy", params = {"this.config.getAppName()"}, type = AzureOperation.Type.SERVICE)
     public IWebApp execute() {
         if (webApp.getRuntime().isDocker()) {
-            AzureMessager.getMessager().info(String.format(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE, webApp.hostName()));
+            AzureMessager.getMessager().info(AzureString.format(SKIP_DEPLOYMENT_FOR_DOCKER_APP_SERVICE, "https://" + webApp.hostName()));
             return webApp;
         }
         try {
