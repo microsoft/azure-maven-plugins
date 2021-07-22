@@ -65,9 +65,13 @@ public class AzureMessage implements IAzureMessage {
         final String failure = operations.stream().findFirst().map(IAzureOperation::getTitle)
                 .map(azureString -> "Failed to " + this.decorateText(azureString, azureString::getString)).orElse("Failed to proceed");
         final String cause = Optional.ofNullable(this.getCause(throwable))
-                .map(c -> "," + c + ".")
+                .map(StringUtils::uncapitalize)
+                .map(c -> "," + (c.endsWith(".") ? c : c + '.'))
                 .orElse("");
-        final String errorAction = Optional.ofNullable(this.getErrorAction(throwable)).map(a -> System.lineSeparator() + a).orElse("");
+        final String errorAction = Optional.ofNullable(this.getErrorAction(throwable))
+                .map(StringUtils::capitalize)
+                .map(c -> System.lineSeparator() + (c.endsWith(".") ? c : c + '.'))
+                .orElse("");
         return failure + cause + errorAction;
     }
 
