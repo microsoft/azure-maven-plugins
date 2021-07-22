@@ -16,5 +16,11 @@ public class AzureConfiguration {
     private String logLevel;
     private String userAgent;
     private String cloud;
-    private InetSocketAddress httpProxy;
+    private String machineId;
+    private String product;  
+    private String version;
+    private String databasePasswordSaveType;
+    private Boolean telemetryEnabled; // null means true
+    private String functionCoreToolsPath;
+    private InetSocketAddress httpProxy; // TODO: change to primitive type
 }
