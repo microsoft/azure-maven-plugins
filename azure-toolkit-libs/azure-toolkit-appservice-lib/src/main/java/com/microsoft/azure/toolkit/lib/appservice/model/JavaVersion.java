@@ -27,6 +27,7 @@ public class JavaVersion implements ExpandableParameter {
     private static final String JAVA_8_VALUE = "8";
     private static final String JAVA_8_DISPLAY_NAME = "Java 8";
     private static final String JAVA_11_DISPLAY_NAME = "Java 11";
+    private static final String NULL = "null";
 
     public static final JavaVersion OFF = new JavaVersion("<null>");
     public static final JavaVersion JAVA_7 = new JavaVersion("1.7");
@@ -63,7 +64,7 @@ public class JavaVersion implements ExpandableParameter {
     }
 
     public static JavaVersion fromString(String input) {
-        if (StringUtils.isEmpty(input)) {
+        if (StringUtils.isEmpty(input) || StringUtils.equalsIgnoreCase(input, NULL)) {
             return JavaVersion.OFF;
         }
         // remove java, jre prefix
