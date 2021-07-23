@@ -32,13 +32,13 @@ public class AzureCliUtils {
             final String cliVersion = result.get("azure-cli").getAsString();
             // we require at least azure cli version 2.11.0
             if (compareWithMinimVersion(cliVersion) < 0) {
-                throw new AzureToolkitAuthenticationException(String.format("your azure cli version '%s' is too old, " +
+                throw new AzureToolkitAuthenticationException(String.format("your Azure Cli version '%s' is too old, " +
                         "you need to upgrade your CLI with 'az upgrade'.", cliVersion));
             }
         } catch (NullPointerException | NumberFormatException ex) {
             throw new AzureToolkitAuthenticationException(
-                    String.format("azure cli is not ready, " +
-                            "please make sure your Azure cli is installed and signed-in, the detailed error is : %s", ex.getMessage()));
+                    String.format("Azure Cli is not ready, " +
+                            "please make sure your Azure Cli is installed and signed-in, the detailed error is : %s", ex.getMessage()));
         }
     }
 
@@ -76,7 +76,7 @@ public class AzureCliUtils {
         }
 
         throw new AzureToolkitAuthenticationException(
-                "Cannot list subscriptions by command `az account list`, please make sure you have signed in azure cli using `az login`");
+                "list subscriptions by command `az account list` failed, please make sure you have signed in Azure Cli using `az login`");
     }
 
     @Nonnull
@@ -92,7 +92,7 @@ public class AzureCliUtils {
             return CommandUtils.exec(command, env);
         } catch (IOException e) {
             throw new AzureToolkitAuthenticationException(
-                    String.format("Cannot execute azure cli command '%s' due to error: %s.", command, e.getMessage()));
+                    String.format("execute Azure Cli command '%s' failed due to error: %s.", command, e.getMessage()));
         }
     }
 
