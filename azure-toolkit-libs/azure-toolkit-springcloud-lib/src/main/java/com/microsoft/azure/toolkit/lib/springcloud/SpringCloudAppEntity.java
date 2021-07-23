@@ -79,7 +79,7 @@ public class SpringCloudAppEntity extends RemoteAwareResourceEntity<SpringApp> {
     public String getTestUrl() {
         return Optional.ofNullable(this.remote).map(SpringApp::activeDeploymentName).map(d -> {
             final String endpoint = this.remote.parent().listTestKeys().primaryTestEndpoint();
-            return String.format("%s/%s/%s", endpoint, this.name, d);
+            return String.format("%s/%s/%s/", endpoint, this.name, d);
         }).orElse(null);
     }
 
