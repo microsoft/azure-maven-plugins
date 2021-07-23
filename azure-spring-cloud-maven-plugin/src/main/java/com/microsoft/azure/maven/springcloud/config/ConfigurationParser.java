@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.List;
@@ -23,7 +24,7 @@ public class ConfigurationParser {
             .appName(springMojo.getAppName())
             .clusterName(springMojo.getClusterName())
             .deployment(config)
-            .runtimeVersion(springMojo.getRuntimeVersion())
+            .runtimeVersion(config.getRuntimeVersion())
             .isPublic(springMojo.getIsPublic())
             .subscriptionId(springMojo.getSubscriptionId())
             .build();
@@ -45,7 +46,7 @@ public class ConfigurationParser {
             .instanceCount(rawConfig.getInstanceCount())
             .jvmOptions(rawConfig.getJvmOptions())
             .memoryInGB(rawConfig.getMemoryInGB())
-            .runtimeVersion(rawConfig.getRuntimeVersion())
+            .runtimeVersion(StringUtils.firstNonEmpty(rawConfig.getRuntimeVersion(), mojo.getRuntimeVersion()))
             .build();
     }
 
