@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.TunnelStatus;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppService;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFileClient;
 import com.microsoft.azure.toolkit.lib.appservice.service.IProcessClient;
+import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -32,7 +33,8 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 
-abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBaseEntity> extends AbstractAzureManager<T> implements IAppService<R> {
+abstract class AbstractAppService<T extends WebAppBase, R extends AppServiceBaseEntity> extends AbstractAzureManager<T> implements IAppService<R>,
+    AzureOperationEvent.Source<AbstractAppService<T, R>> {
 
     protected static final String APP_SERVICE_ID_TEMPLATE = "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s";
     protected AppServiceKuduManager kuduManager;
