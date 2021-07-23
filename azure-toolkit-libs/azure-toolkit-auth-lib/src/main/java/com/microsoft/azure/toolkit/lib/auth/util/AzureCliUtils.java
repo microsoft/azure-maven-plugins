@@ -32,12 +32,12 @@ public class AzureCliUtils {
             final String cliVersion = result.get("azure-cli").getAsString();
             // we require at least azure cli version 2.11.0
             if (compareWithMinimVersion(cliVersion) < 0) {
-                throw new AzureToolkitAuthenticationException(String.format("Your azure cli version '%s' is too old, " +
+                throw new AzureToolkitAuthenticationException(String.format("your azure cli version '%s' is too old, " +
                         "you need to upgrade your CLI with 'az upgrade'.", cliVersion));
             }
         } catch (NullPointerException | NumberFormatException ex) {
             throw new AzureToolkitAuthenticationException(
-                    String.format("Cannot authenticate through azure cli, " +
+                    String.format("azure cli is not ready, " +
                             "please make sure your Azure cli is installed and signed-in, the detailed error is : %s", ex.getMessage()));
         }
     }
