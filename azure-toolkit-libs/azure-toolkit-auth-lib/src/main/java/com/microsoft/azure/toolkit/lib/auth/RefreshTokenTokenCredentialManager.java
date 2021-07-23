@@ -63,7 +63,7 @@ public class RefreshTokenTokenCredentialManager extends TokenCredentialManagerWi
         try {
             refreshTokenFromResult = (String) FieldUtils.readField(result, "refreshToken", true);
         } catch (IllegalAccessException e) {
-            throw new AzureToolkitAuthenticationException("Cannot read refreshToken from IAuthenticationResult.");
+            throw new AzureToolkitAuthenticationException("cannot read refreshToken from IAuthenticationResult.");
         }
 
         return refreshTokenFromResult;
@@ -75,7 +75,7 @@ public class RefreshTokenTokenCredentialManager extends TokenCredentialManagerWi
             String authority, String clientId) {
         String refreshToken = getRefreshTokenFromMsalToken(token);
         if (StringUtils.isBlank(refreshToken)) {
-            throw new IllegalArgumentException("Cannot get refresh token from msal token.");
+            throw new IllegalArgumentException("cannot get refresh token from msal token.");
         }
 
         final TokenCredentialManager tokenCredentialManager = new TokenCredentialManagerWithCache();
@@ -151,7 +151,7 @@ public class RefreshTokenTokenCredentialManager extends TokenCredentialManagerWi
                 return null;
             }
             if (authenticationResult.getExpiresOnDate() == null) {
-                throw new AzureToolkitAuthenticationException("Cannot find expiration information from AuthenticationResult.");
+                throw new AzureToolkitAuthenticationException("there is no expiration information in AuthenticationResult.");
             }
             OffsetDateTime expiresOnDate = OffsetDateTime.ofInstant(authenticationResult.getExpiresOnDate().toInstant(), ZoneOffset.UTC);
 

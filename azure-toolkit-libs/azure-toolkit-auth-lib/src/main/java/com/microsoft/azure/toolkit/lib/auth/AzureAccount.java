@@ -22,7 +22,6 @@ import com.azure.resourcemanager.resources.models.Subscription;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
-import com.microsoft.azure.toolkit.lib.AzureService;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.azurecli.AzureCliAccount;
 import com.microsoft.azure.toolkit.lib.auth.core.devicecode.DeviceCodeAccount;
@@ -65,7 +64,7 @@ public class AzureAccount implements IAzureAccount {
      */
     public Account account() throws AzureToolkitAuthenticationException {
         return Optional.ofNullable(this.account)
-                .orElseThrow(() -> new AzureToolkitAuthenticationException("Please signed in first."));
+                .orElseThrow(() -> new AzureToolkitAuthenticationException("you are not signed-in."));
     }
 
     public Account account(@Nonnull AccountEntity accountEntity) {
@@ -137,7 +136,7 @@ public class AzureAccount implements IAzureAccount {
         } else if (Arrays.asList(AuthType.VSCODE, AuthType.AZURE_CLI).contains(accountEntity.getType())) {
             target = buildAccountMap().get(accountEntity.getType()).get();
         } else {
-            return Mono.error(new AzureToolkitAuthenticationException(String.format("Cannot restore login for auth type '%s'.", accountEntity.getType())));
+            return Mono.error(new AzureToolkitAuthenticationException(String.format("login for auth type '%s' cannot be restored.", accountEntity.getType())));
         }
         return target.login().map(ac -> {
             if (ac.getEnvironment() != accountEntity.getEnvironment()) {
@@ -252,7 +251,7 @@ public class AzureAccount implements IAzureAccount {
     }
 
     private static Region toRegion(com.azure.core.management.Region region) {
-        return Optional.ofNullable(Region.fromName(region.name())).orElseGet(() -> new Region(region.name(), region.label() + "*"));
+        return Optional.of(Region.fromName(region.name())).orElseGet(() -> new Region(region.name(), region.label() + "*"));
     }
 
     private AzureAccount finishLogin(Mono<Account> mono) {
@@ -260,7 +259,7 @@ public class AzureAccount implements IAzureAccount {
             mono.flatMap(Account::continueLogin).block();
             return this;
         } catch (Throwable ex) {
-            throw new AzureToolkitAuthenticationException("Cannot login due to error: " + ex.getMessage());
+            throw new AzureToolkitAuthenticationException("encountering error: " + ex.getMessage());
         }
     }
 

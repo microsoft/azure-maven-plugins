@@ -85,7 +85,7 @@ public class DeviceCodeAccount extends Account {
 
     private TokenCredential createCredential(AzureEnvironment env) {
         if (executorService.isShutdown()) {
-            throw new AzureToolkitAuthenticationException("Cannot device login twice.");
+            throw new AzureToolkitAuthenticationException("device login twice is forbidden.");
         }
         AzureEnvironmentUtils.setupAzureEnvironment(env);
         DeviceCodeCredentialBuilder builder = new DeviceCodeCredentialBuilder();

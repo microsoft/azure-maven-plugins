@@ -345,9 +345,6 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             if (StringUtils.isAllBlank(auth.getCertificate(), auth.getCertificatePassword(), auth.getKey())) {
                 // not service principal configuration, will list accounts and try them one by one
                 final Account account = findFirstAvailableAccount().block();
-                if (account == null) {
-                    throw new AzureToolkitAuthenticationException("There are no accounts available.");
-                }
                 // prompt if oauth or device code
                 promptForOAuthOrDeviceCodeLogin(account.getAuthType());
                 return handleDeviceCodeAccount(Azure.az(AzureAccount.class).loginAsync(account, false).block());
@@ -387,7 +384,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
     private static Mono<Account> findFirstAvailableAccount() {
         final List<Account> accounts = Azure.az(AzureAccount.class).accounts();
         if (accounts.isEmpty()) {
-            return Mono.error(new AzureToolkitAuthenticationException("There are no accounts available."));
+            return Mono.error(new AzureToolkitAuthenticationException("there are no subscriptions available."));
         }
         Mono<Account> current = checkAccountAvailable(accounts.get(0));
         for (int i = 1; i < accounts.size(); i++) {
@@ -407,7 +404,7 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             if (avail) {
                 return account;
             }
-            throw new AzureToolkitAuthenticationException(String.format("Cannot login with auth type: %s", account.getAuthType()));
+            throw new AzureToolkitAuthenticationException(String.format("auth type: %s is not available", account.getAuthType()));
         });
     }
 

@@ -42,7 +42,7 @@ public class OAuthAccount extends Account {
     protected Mono<Boolean> preLoginCheck() {
         return Mono.fromCallable(() -> {
             if (!isBrowserAvailable()) {
-                throw new AzureToolkitAuthenticationException("Browser is not available for oauth login.");
+                throw new AzureToolkitAuthenticationException("browser is not available for oauth login.");
             }
             return true;
         });
