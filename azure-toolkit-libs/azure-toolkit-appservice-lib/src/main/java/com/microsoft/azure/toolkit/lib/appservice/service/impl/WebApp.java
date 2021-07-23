@@ -27,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import io.jsonwebtoken.lang.Collections;
 import org.apache.commons.lang3.ObjectUtils;
@@ -84,8 +85,28 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     }
 
     @Override
+    @AzureOperation(name = "webapp.delete", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         azureClient.webApps().deleteById(this.id());
+        refresh();
+    }
+
+    @Override
+    @AzureOperation(name = "webapp.start", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    public void start() {
+        super.start();
+    }
+
+    @Override
+    @AzureOperation(name = "webapp.stop", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    public void stop() {
+        super.stop();
+    }
+
+    @Override
+    @AzureOperation(name = "webapp.restart", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
+    public void restart() {
+        super.restart();
     }
 
     @Override
