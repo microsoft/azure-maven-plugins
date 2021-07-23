@@ -11,13 +11,13 @@
     },
     "appName": {
       "type": "string",
-      "pattern": "^[a-zA-Z0-9\\-]$",
+      "pattern": "^[a-zA-Z0-9\\-]+$",
       "minLength": 2,
       "maxLength": 60
     },
     "appServicePlanName": {
       "type": "string",
-      "pattern": "^[a-zA-Z0-9\\-]$",
+      "pattern": "^[a-zA-Z0-9\\-]+$",
       "minLength": 1,
       "maxLength": 40
     },
@@ -81,7 +81,7 @@
     },
     "azure-resource-group": {
       "type": "string",
-      "pattern": "^[a-zA-Z0-9\\.\\_\\-\\(\\)]$",
+      "pattern": "^[a-zA-Z0-9._\\-()]+$",
       "minLength": 1,
       "maxLength": 90
     },
@@ -92,7 +92,7 @@
       "properties": {
         "name": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9-]$",
+          "pattern": "^[A-Za-z0-9-]+$",
           "minLength": 1,
           "maxLength": 60
         },
