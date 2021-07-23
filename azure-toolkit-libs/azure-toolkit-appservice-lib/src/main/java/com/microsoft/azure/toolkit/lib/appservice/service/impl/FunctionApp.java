@@ -28,10 +28,12 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServiceUpdater;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import io.jsonwebtoken.lang.Collections;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -46,6 +48,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appservice.models.FunctionApp, FunctionAppEntity> implements IFunctionApp {
     public static final JavaVersion DEFAULT_JAVA_VERSION = JavaVersion.JAVA_8;
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
@@ -125,6 +128,20 @@ public class FunctionApp extends FunctionAppBase<com.azure.resourcemanager.appse
     @AzureOperation(name = "function.delete", params = {"this.entity.getName()"}, type = AzureOperation.Type.SERVICE)
     public void delete() {
         azureClient.functionApps().deleteById(this.id());
+        refresh();
+    }
+
+    @Override
+    public AbstractAppService<com.azure.resourcemanager.appservice.models.FunctionApp, FunctionAppEntity> refresh() {
+        try {
+            return super.refresh();
+        } finally {
+            try {
+                CacheManager.evictCache("appservcie/functionapp/{}", this.id());
+            } catch (Throwable e) {
+                log.warn("failed to evict cache", e);
+            }
+        }
     }
 
     @Override

@@ -25,11 +25,13 @@ import com.microsoft.azure.toolkit.lib.appservice.service.AbstractAppServiceUpda
 import com.microsoft.azure.toolkit.lib.appservice.service.IAppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IWebAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.TextUtils;
 import io.jsonwebtoken.lang.Collections;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +43,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class WebApp extends AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp, WebAppEntity> implements IWebApp {
     private static final ClientLogger LOGGER = new ClientLogger(WebApp.class);
     private static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system %s";
@@ -121,6 +124,19 @@ public class WebApp extends AbstractAppService<com.azure.resourcemanager.appserv
     @Override
     public WebAppUpdater update() {
         return new WebAppUpdater();
+    }
+
+    @Override
+    public AbstractAppService<com.azure.resourcemanager.appservice.models.WebApp, WebAppEntity> refresh() {
+        try {
+            return super.refresh();
+        } finally {
+            try {
+                CacheManager.evictCache("appservcie/webapp/{}", this.id());
+            } catch (Throwable e) {
+                log.warn("failed to evict cache", e);
+            }
+        }
     }
 
     @Override
