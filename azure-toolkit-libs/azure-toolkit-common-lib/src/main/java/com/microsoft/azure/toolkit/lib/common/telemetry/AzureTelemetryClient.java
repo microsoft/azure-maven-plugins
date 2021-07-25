@@ -104,6 +104,9 @@ public class AzureTelemetryClient {
 
     private void anonymizePersonallyIdentifiableInformation(final Map<String, String> properties) {
         properties.replaceAll((key, value) -> {
+            if (StringUtils.isBlank(value)) {
+                return value;
+            }
             final String input = FILE_PATH_PATTERN.matcher(value).replaceAll("<REDACTED: user-file-path>");
             return EMAIL_PATTERN.matcher(input).replaceAll("<REDACTED: user-email-address>");
         });
