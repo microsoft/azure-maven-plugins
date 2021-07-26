@@ -462,7 +462,7 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected void validateArtifactCompileVersion() throws AzureExecutionException {
         final Runtime runtime = getRuntimeOrDefault();
-        if (runtime.isDocker()) {
+        if (runtime.isDocker() || runtime.getJavaVersion().isExpandedValue()) {
             return;
         }
         final ComparableVersion runtimeVersion = new ComparableVersion(runtime.getJavaVersion().getValue());
