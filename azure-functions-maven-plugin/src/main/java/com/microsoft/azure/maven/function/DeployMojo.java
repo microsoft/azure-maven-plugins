@@ -89,8 +89,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String NO_ANONYMOUS_HTTP_TRIGGER = "No anonymous HTTP Triggers found in deployed function app, skip list triggers.";
     private static final String AUTH_LEVEL = "authLevel";
     private static final String HTTP_TRIGGER = "httpTrigger";
-    private static final String ARTIFACT_INCOMPATIBLE = "Your function app artifact compile version is higher than java version {0} in configuration, " +
-            "please downgrade the project compile version and try again.";
+    private static final String ARTIFACT_INCOMPATIBLE_WARNING = "Your function app artifact compile version {0} may not compatible with java version {1} in " +
+            "configuration.";
+    private static final String ARTIFACT_INCOMPATIBLE_ERROR = "Your function app artifact compile version {0} is not compatible with java version {1} in " +
+            "configuration, please downgrade the project compile version and try again.";
     private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
     private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
     private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java.";
@@ -471,11 +473,11 @@ public class DeployMojo extends AbstractFunctionMojo {
         if (runtimeVersion.compareTo(artifactVersion) >= 0) {
             return;
         }
-        final AzureString message = AzureString.format(ARTIFACT_INCOMPATIBLE, runtimeVersion.toString());
         if (runtime.getJavaVersion().isExpandedValue()) {
-            AzureMessager.getMessager().warning(message);
+            AzureMessager.getMessager().warning(AzureString.format(ARTIFACT_INCOMPATIBLE_WARNING, artifactVersion.toString(), runtimeVersion.toString()));
         } else {
-            throw new AzureExecutionException(message.toString());
+            final String errorMessage = AzureString.format(ARTIFACT_INCOMPATIBLE_ERROR, artifactVersion.toString(), runtimeVersion.toString()).toString();
+            throw new AzureExecutionException(errorMessage);
         }
     }
 
