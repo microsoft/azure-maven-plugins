@@ -119,7 +119,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String UPDATE_FUNCTION_DONE = "Successfully updated Function App %s.";
     private static final String NO_ARTIFACT_FOUNDED = "Failed to find function artifact '%s.jar' in folder '%s', please re-package the project and try again.";
     private static final String LOCAL_SETTINGS_FILE = "local.settings.json";
-    private static final int LIST_TRIGGERS_MAX_RETRY = 4;
+    private static final int LIST_TRIGGERS_MAX_RETRY = 5;
     private static final int LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS = 10;
     private static final String SYNCING_TRIGGERS = "Syncing triggers and fetching function information";
     private static final String SYNCING_TRIGGERS_WITH_RETRY = "Syncing triggers and fetching function information (Attempt {0}/{1})...";
@@ -456,7 +456,7 @@ public class DeployMojo extends AbstractFunctionMojo {
                     .filter(CollectionUtils::isNotEmpty)
                     .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
         }).subscribeOn(Schedulers.boundedElastic())
-                .retryWhen(Retry.backoff(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
+                .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
     }
 
     protected void validateArtifactCompileVersion() throws AzureExecutionException {
