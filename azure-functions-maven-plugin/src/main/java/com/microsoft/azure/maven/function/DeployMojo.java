@@ -28,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -88,7 +89,7 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String NO_ANONYMOUS_HTTP_TRIGGER = "No anonymous HTTP Triggers found in deployed function app, skip list triggers.";
     private static final String AUTH_LEVEL = "authLevel";
     private static final String HTTP_TRIGGER = "httpTrigger";
-    private static final String ARTIFACT_INCOMPATIBLE = "Your function app artifact compile version is higher than the java version in function host, " +
+    private static final String ARTIFACT_INCOMPATIBLE = "Your function app artifact compile version is higher than java version {0} in configuration, " +
             "please downgrade the project compile version and try again.";
     private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
     private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
@@ -462,13 +463,19 @@ public class DeployMojo extends AbstractFunctionMojo {
 
     protected void validateArtifactCompileVersion() throws AzureExecutionException {
         final Runtime runtime = getRuntimeOrDefault();
-        if (runtime.isDocker() || runtime.getJavaVersion().isExpandedValue()) {
+        if (runtime.isDocker()) {
             return;
         }
         final ComparableVersion runtimeVersion = new ComparableVersion(runtime.getJavaVersion().getValue());
         final ComparableVersion artifactVersion = new ComparableVersion(Utils.getArtifactCompileVersion(getArtifactToDeploy()));
-        if (runtimeVersion.compareTo(artifactVersion) < 0) {
-            throw new AzureExecutionException(ARTIFACT_INCOMPATIBLE);
+        if (runtimeVersion.compareTo(artifactVersion) >= 0) {
+            return;
+        }
+        final AzureString message = AzureString.format(ARTIFACT_INCOMPATIBLE, runtimeVersion.toString());
+        if (runtime.getJavaVersion().isExpandedValue()) {
+            AzureMessager.getMessager().warning(message);
+        } else {
+            throw new AzureExecutionException(message.toString());
         }
     }
 
