@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -447,10 +446,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private List<FunctionEntity> listFunctions(final IFunctionApp functionApp) {
-        final AtomicInteger count = new AtomicInteger(0);
+        final int[] count = {0};
         return Mono.fromCallable(() -> {
-            final AzureString message = count.getAndAdd(1) == 0 ?
-                    AzureString.fromString(SYNCING_TRIGGERS) : AzureString.format(SYNCING_TRIGGERS_WITH_RETRY, count.get(), LIST_TRIGGERS_MAX_RETRY);
+            final AzureString message = count[0]++ == 0 ?
+                    AzureString.fromString(SYNCING_TRIGGERS) : AzureString.format(SYNCING_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
             AzureMessager.getMessager().info(message);
             return Optional.ofNullable(functionApp.listFunctions(true))
                     .filter(CollectionUtils::isNotEmpty)
