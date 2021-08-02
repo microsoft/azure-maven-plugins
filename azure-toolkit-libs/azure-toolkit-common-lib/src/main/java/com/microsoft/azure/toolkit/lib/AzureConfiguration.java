@@ -17,10 +17,13 @@ public class AzureConfiguration {
     private String userAgent;
     private String cloud;
     private String machineId;
-    private String product;  
+    private String product;
     private String version;
     private String databasePasswordSaveType;
     private Boolean telemetryEnabled; // null means true
     private String functionCoreToolsPath;
+    private String proxySource;
     private InetSocketAddress httpProxy; // TODO: change to primitive type
+    private String proxyUsername;
+    private String proxyPassword;
 }

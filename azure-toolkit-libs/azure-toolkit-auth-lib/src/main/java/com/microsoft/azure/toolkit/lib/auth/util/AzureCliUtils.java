@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.lib.auth.util;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.auth.model.AzureCliSubscription;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
@@ -82,10 +83,15 @@ public class AzureCliUtils {
     @Nonnull
     public static String executeAzureCli(@Nonnull String command) {
         try {
-            final InetSocketAddress proxy = Azure.az().config().getHttpProxy();
+            final AzureConfiguration az = Azure.az().config();
+            final InetSocketAddress proxy = az.getHttpProxy();
             Map<String, String> env = new HashMap<>();
             if (proxy != null) {
-                String proxyStr = String.format("http://%s:%s", proxy.getHostString(), proxy.getPort());
+                String proxyAuthPrefix = StringUtils.EMPTY;
+                if (StringUtils.isNoneBlank(az.getProxyUsername(), az.getProxyPassword())) {
+                    proxyAuthPrefix = az.getProxyUsername() + ":" + az.getProxyPassword() + "@";
+                }
+                String proxyStr = String.format("http://%s%s:%s", proxyAuthPrefix, proxy.getHostString(), proxy.getPort());
                 env.put("HTTPS_PROXY", proxyStr);
                 env.put("HTTP_PROXY", proxyStr);
             }

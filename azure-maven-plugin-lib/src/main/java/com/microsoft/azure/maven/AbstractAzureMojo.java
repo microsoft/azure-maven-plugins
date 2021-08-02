@@ -16,9 +16,9 @@ import com.microsoft.azure.maven.model.MavenAuthConfiguration;
 import com.microsoft.azure.maven.model.SubscriptionOption;
 import com.microsoft.azure.maven.utils.CustomTextIoStringListReader;
 import com.microsoft.azure.maven.utils.MavenAuthUtils;
-import com.microsoft.azure.maven.utils.ProxyUtils;
 import com.microsoft.azure.maven.utils.SystemPropertyUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
@@ -44,6 +44,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -51,6 +52,7 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Proxy;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
@@ -66,6 +68,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
+import java.net.InetSocketAddress;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -475,9 +478,10 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             Azure.az().config().setLogLevel(HttpLogDetailLevel.NONE.name());
             Azure.az().config().setUserAgent(getUserAgent());
             // init proxy manager
-            ProxyUtils.initProxy(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
+            initProxyConfig(Optional.ofNullable(this.session).map(MavenSession::getRequest).orElse(null));
+            ProxyManager.getInstance().applyProxy();
             initTelemetryProxy();
-            telemetryProxy.addDefaultProperty(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
+            telemetryProxy.addDefaultProperty(PROXY, String.valueOf(ProxyManager.getInstance().isProxyEnabled()));
             // Work around for Application Insights Java SDK:
             // Sometimes, NoClassDefFoundError will be thrown even after Maven build is completed successfully.
             // An issue has been filed at https://github.com/Microsoft/ApplicationInsights-Java/issues/416
@@ -515,6 +519,55 @@ public abstract class AbstractAzureMojo extends AbstractMojo {
             }
             ApacheSenderFactory.INSTANCE.create().close();
         }
+    }
+
+    public static void initProxyConfig(MavenExecutionRequest request) {
+        String source = null;
+        if (initProxyFromProgramArgument("http")) {
+            source = "${http.proxyHost}";
+        } else if (initProxyFromProgramArgument("https")) {
+            source = "${https.proxyHost}";
+        } else if (initProxyMavenSettings(request)) {
+            source = "maven";
+        }
+        if (source != null) {
+            Azure.az().config().setProxySource(source);
+        }
+    }
+
+    private static boolean initProxyFromProgramArgument(String prefix) {
+        final String proxyHost = System.getProperty(prefix + ".proxyHost");
+        final String proxyPort = System.getProperty(prefix + ".proxyPort");
+        final String proxyUser = System.getProperty(prefix + ".proxyUser");
+        final String proxyPassword = System.getProperty(prefix + ".proxyPassword");
+
+        if (StringUtils.isNoneBlank(proxyHost, proxyPort) && NumberUtils.isCreatable(proxyPort)) {
+            configure(proxyHost, Integer.valueOf(proxyPort), proxyUser, proxyPassword);
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean initProxyMavenSettings(MavenExecutionRequest request) {
+        if (request != null) {
+            final List<Proxy> mavenProxies = request.getProxies();
+            if (CollectionUtils.isNotEmpty(mavenProxies)) {
+                final Proxy mavenProxy = mavenProxies.stream().filter(
+                    proxy -> proxy.isActive() && proxy.getPort() > 0 && StringUtils.isNotBlank(proxy.getHost())).findFirst().orElse(null);
+                if (mavenProxy != null) {
+                    configure(mavenProxy.getHost(), mavenProxy.getPort(), mavenProxy.getUsername(), mavenProxy.getPassword());
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static void configure(String proxyHost, Integer port, String proxyUser, String proxyPassword) {
+        final AzureConfiguration config = Azure.az().config();
+        config.setHttpProxy(new InetSocketAddress(proxyHost, port));
+        config.setProxyUsername(proxyUser);
+        config.setProxyPassword(proxyPassword);
     }
 
     /**
