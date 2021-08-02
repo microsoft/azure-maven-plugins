@@ -8,12 +8,12 @@ import com.microsoft.azure.toolkit.lib.appservice.entity.AppServiceBaseEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.PublishingProfile;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import reactor.core.publisher.Flux;
 
 import java.io.InputStream;
 
-public interface IAppService<T extends AppServiceBaseEntity> extends IFileClient, IProcessClient, IAzureEntityManager<T> {
+public interface IAppService<T extends AppServiceBaseEntity> extends IFileClient, IProcessClient, IAzureResource<T> {
     void start();
 
     void stop();

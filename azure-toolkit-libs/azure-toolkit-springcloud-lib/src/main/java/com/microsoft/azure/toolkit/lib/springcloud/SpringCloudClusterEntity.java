@@ -25,7 +25,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.resourcemanager.appplatform.models.SpringService;
 import com.azure.resourcemanager.appplatform.models.TestKeys;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager.RemoteAwareResourceEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource.RemoteAwareResourceEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudSku;
 import lombok.Getter;
 

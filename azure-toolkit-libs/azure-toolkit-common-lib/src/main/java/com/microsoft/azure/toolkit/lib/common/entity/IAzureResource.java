@@ -27,8 +27,8 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
-public interface IAzureEntityManager<T extends IAzureResourceEntity> {
-    IAzureEntityManager<T> refresh();
+public interface IAzureResource<T extends IAzureResourceEntity> {
+    IAzureResource<T> refresh();
 
     boolean exists();
 

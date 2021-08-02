@@ -11,13 +11,13 @@ import com.azure.resourcemanager.mysql.models.Sku;
 import com.azure.resourcemanager.mysql.models.SslEnforcementEnum;
 import com.azure.resourcemanager.mysql.models.StorageProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-public class MySqlEntity extends AbstractAzureEntityManager.RemoteAwareResourceEntity<Server> {
+public class MySqlEntity extends AbstractAzureResource.RemoteAwareResourceEntity<Server> {
 
     public MySqlEntity(Server server) {
         this.resourceId = ResourceId.fromString(server.id());

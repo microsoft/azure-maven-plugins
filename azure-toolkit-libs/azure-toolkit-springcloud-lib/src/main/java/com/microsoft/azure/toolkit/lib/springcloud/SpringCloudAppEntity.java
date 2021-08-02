@@ -25,7 +25,7 @@ package com.microsoft.azure.toolkit.lib.springcloud;
 import com.azure.resourcemanager.appplatform.models.PersistentDisk;
 import com.azure.resourcemanager.appplatform.models.SpringApp;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.ExternalChildResource;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager.RemoteAwareResourceEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource.RemoteAwareResourceEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
