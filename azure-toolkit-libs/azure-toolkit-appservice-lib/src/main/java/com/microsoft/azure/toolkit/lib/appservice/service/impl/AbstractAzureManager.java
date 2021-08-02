@@ -55,13 +55,14 @@ public abstract class AbstractAzureManager<T extends HasId> {
     public synchronized AbstractAzureManager<T> refresh() {
         try {
             this.remote = loadRemote();
+            this.isRefreshed = true;
         } catch (final ManagementException e) {
-            this.remote = null;
-            if (HttpStatus.SC_NOT_FOUND != e.getResponse().getStatusCode()) {
+            if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatusCode()) {
+                this.remote = null;
+                this.isRefreshed = true;
+            } else {
                 throw e;
             }
-        } finally {
-            this.isRefreshed = true;
         }
         return this;
     }

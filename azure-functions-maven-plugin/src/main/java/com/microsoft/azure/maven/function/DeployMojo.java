@@ -28,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.service.IFunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -43,8 +44,12 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.zeroturnaround.zip.ZipUtil;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -88,8 +93,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String NO_ANONYMOUS_HTTP_TRIGGER = "No anonymous HTTP Triggers found in deployed function app, skip list triggers.";
     private static final String AUTH_LEVEL = "authLevel";
     private static final String HTTP_TRIGGER = "httpTrigger";
-    private static final String ARTIFACT_INCOMPATIBLE = "Your function app artifact compile version is higher than the java version in function host, " +
-            "please downgrade the project compile version and try again.";
+    private static final String ARTIFACT_INCOMPATIBLE_WARNING = "Your function app artifact compile version {0} may not compatible with java version {1} in " +
+            "configuration.";
+    private static final String ARTIFACT_INCOMPATIBLE_ERROR = "Your function app artifact compile version {0} is not compatible with java version {1} in " +
+            "configuration, please downgrade the project compile version and try again.";
     private static final String FUNCTIONS_WORKER_RUNTIME_NAME = "FUNCTIONS_WORKER_RUNTIME";
     private static final String FUNCTIONS_WORKER_RUNTIME_VALUE = "java";
     private static final String SET_FUNCTIONS_WORKER_RUNTIME = "Set function worker runtime to java.";
@@ -113,9 +120,10 @@ public class DeployMojo extends AbstractFunctionMojo {
     private static final String UPDATE_FUNCTION_DONE = "Successfully updated Function App %s.";
     private static final String NO_ARTIFACT_FOUNDED = "Failed to find function artifact '%s.jar' in folder '%s', please re-package the project and try again.";
     private static final String LOCAL_SETTINGS_FILE = "local.settings.json";
-    private static final int LIST_TRIGGERS_MAX_RETRY = 3;
+    private static final int LIST_TRIGGERS_MAX_RETRY = 5;
     private static final int LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS = 10;
-    private static final String SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION = "Syncing triggers and fetching function information (Attempt %d/%d)...";
+    private static final String SYNCING_TRIGGERS = "Syncing triggers and fetching function information";
+    private static final String SYNCING_TRIGGERS_WITH_RETRY = "Syncing triggers and fetching function information (Attempt {0}/{1})...";
     private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app, " +
             "please try recompile the project by `mvn clean package` and deploy again.";
     private static final String APP_NAME_PATTERN = "[a-zA-Z0-9\\-]{2,60}";
@@ -440,24 +448,16 @@ public class DeployMojo extends AbstractFunctionMojo {
     }
 
     private List<FunctionEntity> listFunctions(final IFunctionApp functionApp) {
-        for (int i = 0; i < LIST_TRIGGERS_MAX_RETRY; i++) {
-            try {
-                AzureMessager.getMessager().info(String.format(SYNCING_TRIGGERS_AND_FETCH_FUNCTION_INFORMATION, i + 1, LIST_TRIGGERS_MAX_RETRY));
-                functionApp.syncTriggers();
-                final List<FunctionEntity> triggers = functionApp.listFunctions();
-                if (CollectionUtils.isNotEmpty(triggers)) {
-                    return triggers;
-                }
-            } catch (RuntimeException e) {
-                // swallow service exception while list triggers
-            }
-            try {
-                Thread.sleep(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS * 1000);
-            } catch (InterruptedException e) {
-                // swallow interrupted exception
-            }
-        }
-        throw new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED);
+        final int[] count = {0};
+        return Mono.fromCallable(() -> {
+            final AzureString message = count[0]++ == 0 ?
+                    AzureString.fromString(SYNCING_TRIGGERS) : AzureString.format(SYNCING_TRIGGERS_WITH_RETRY, count[0], LIST_TRIGGERS_MAX_RETRY);
+            AzureMessager.getMessager().info(message);
+            return Optional.ofNullable(functionApp.listFunctions(true))
+                    .filter(CollectionUtils::isNotEmpty)
+                    .orElseThrow(() -> new AzureToolkitRuntimeException(NO_TRIGGERS_FOUNDED));
+        }).subscribeOn(Schedulers.boundedElastic())
+                .retryWhen(Retry.fixedDelay(LIST_TRIGGERS_MAX_RETRY - 1, Duration.ofSeconds(LIST_TRIGGERS_RETRY_PERIOD_IN_SECONDS))).block();
     }
 
     protected void validateArtifactCompileVersion() throws AzureExecutionException {
@@ -467,8 +467,14 @@ public class DeployMojo extends AbstractFunctionMojo {
         }
         final ComparableVersion runtimeVersion = new ComparableVersion(runtime.getJavaVersion().getValue());
         final ComparableVersion artifactVersion = new ComparableVersion(Utils.getArtifactCompileVersion(getArtifactToDeploy()));
-        if (runtimeVersion.compareTo(artifactVersion) < 0) {
-            throw new AzureExecutionException(ARTIFACT_INCOMPATIBLE);
+        if (runtimeVersion.compareTo(artifactVersion) >= 0) {
+            return;
+        }
+        if (runtime.getJavaVersion().isExpandedValue()) {
+            AzureMessager.getMessager().warning(AzureString.format(ARTIFACT_INCOMPATIBLE_WARNING, artifactVersion.toString(), runtimeVersion.toString()));
+        } else {
+            final String errorMessage = AzureString.format(ARTIFACT_INCOMPATIBLE_ERROR, artifactVersion.toString(), runtimeVersion.toString()).toString();
+            throw new AzureExecutionException(errorMessage);
         }
     }
 

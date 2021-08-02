@@ -119,7 +119,7 @@ public abstract class Account implements IAccount {
                 manager.runOnPooledThread(Preloader::load);
             }
         } else {
-            throw new AzureToolkitAuthenticationException("Cannot select subscriptions since none subscriptions are selected, " +
+            throw new AzureToolkitAuthenticationException("no subscriptions are selected, " +
                     "make sure you have provided valid subscription list");
         }
     }
@@ -254,10 +254,10 @@ public abstract class Account implements IAccount {
 
     private void requireAuthenticated() {
         if (!this.entity.isAvailable()) {
-            throw new AzureToolkitAuthenticationException("Account is not available.");
+            throw new AzureToolkitAuthenticationException("account is not available.");
         }
         if (this.credentialManager == null || this.entity.getTenantIds() == null || this.entity.getSubscriptions() == null) {
-            throw new AzureToolkitAuthenticationException("Please sign-in first.");
+            throw new AzureToolkitAuthenticationException("you are not signed-in.");
         }
     }
 }
