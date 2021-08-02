@@ -13,7 +13,7 @@ import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringCloudDeployment, SpringCloudDeploymentEntity, SpringAppDeployment>
+public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDeployment, SpringCloudDeploymentEntity, SpringAppDeployment>
         implements AzureOperationEvent.Source<SpringCloudDeployment> {
     @Getter
     @Nonnull

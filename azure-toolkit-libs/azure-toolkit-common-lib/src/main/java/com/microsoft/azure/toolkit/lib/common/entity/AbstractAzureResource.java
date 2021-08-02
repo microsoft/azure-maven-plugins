@@ -15,14 +15,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public abstract class AbstractAzureEntityManager<T extends IAzureEntityManager<E>, E extends AbstractAzureEntityManager.RemoteAwareResourceEntity<R>, R>
-        implements IAzureEntityManager<E> {
+public abstract class AbstractAzureResource<T extends IAzureResource<E>, E extends AbstractAzureResource.RemoteAwareResourceEntity<R>, R>
+        implements IAzureResource<E> {
 
     private boolean refreshed;
     @Nonnull
     protected final E entity;
 
-    protected AbstractAzureEntityManager(@Nonnull E entity) {
+    protected AbstractAzureResource(@Nonnull E entity) {
         this.entity = entity;
     }
 

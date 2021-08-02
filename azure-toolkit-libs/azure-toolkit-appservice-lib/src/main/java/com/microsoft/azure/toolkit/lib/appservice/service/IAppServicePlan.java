@@ -7,12 +7,12 @@ package com.microsoft.azure.toolkit.lib.appservice.service;
 import com.microsoft.azure.toolkit.lib.appservice.entity.AppServicePlanEntity;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
+import com.microsoft.azure.toolkit.lib.common.entity.IAzureResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 
 import java.util.List;
 
-public interface IAppServicePlan extends IAzureEntityManager<AppServicePlanEntity> {
+public interface IAppServicePlan extends IAzureResource<AppServicePlanEntity> {
     Creator create();
 
     Updater update();
