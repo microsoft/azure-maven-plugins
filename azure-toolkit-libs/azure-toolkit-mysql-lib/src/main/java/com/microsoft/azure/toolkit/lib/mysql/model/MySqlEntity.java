@@ -11,8 +11,8 @@ import com.azure.resourcemanager.mysql.models.Sku;
 import com.azure.resourcemanager.mysql.models.SslEnforcementEnum;
 import com.azure.resourcemanager.mysql.models.StorageProfile;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
-import com.microsoft.azure.toolkit.lib.mysql.service.AbstractAzureEntityManager;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;

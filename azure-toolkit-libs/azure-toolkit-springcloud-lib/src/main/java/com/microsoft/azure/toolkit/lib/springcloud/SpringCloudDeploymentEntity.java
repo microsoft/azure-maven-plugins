@@ -26,7 +26,7 @@ import com.azure.resourcemanager.appplatform.models.DeploymentResourceStatus;
 import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.ExternalChildResource;
-import com.microsoft.azure.toolkit.lib.springcloud.AbstractAzureEntityManager.RemoteAwareResourceEntity;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager.RemoteAwareResourceEntity;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudDeploymentStatus;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudJavaVersion;
 import lombok.Getter;

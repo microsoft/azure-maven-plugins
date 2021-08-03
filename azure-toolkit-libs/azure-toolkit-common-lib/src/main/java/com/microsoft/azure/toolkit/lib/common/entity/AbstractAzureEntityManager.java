@@ -4,11 +4,9 @@
  * license information.
  */
 
-package com.microsoft.azure.toolkit.lib.springcloud;
+package com.microsoft.azure.toolkit.lib.common.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
-import com.microsoft.azure.toolkit.lib.common.entity.IAzureResourceEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +15,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-abstract class AbstractAzureEntityManager<T extends IAzureEntityManager<E>, E extends AbstractAzureEntityManager.RemoteAwareResourceEntity<R>, R>
+public abstract class AbstractAzureEntityManager<T extends IAzureEntityManager<E>, E extends AbstractAzureEntityManager.RemoteAwareResourceEntity<R>, R>
         implements IAzureEntityManager<E> {
 
     private boolean refreshed;
@@ -54,18 +52,18 @@ abstract class AbstractAzureEntityManager<T extends IAzureEntityManager<E>, E ex
     }
 
     @Nullable
-    final R remote() {
+    public final R remote() {
         return this.entity.getRemote();
     }
 
     @Nullable
-    abstract R loadRemote();
+    protected abstract R loadRemote();
 
-    abstract static class RemoteAwareResourceEntity<R> implements IAzureResourceEntity {
+    public abstract static class RemoteAwareResourceEntity<R> implements IAzureResourceEntity {
         @Nullable
         @JsonIgnore
-        @Getter(AccessLevel.PACKAGE)
-        @Setter(AccessLevel.PACKAGE)
+        @Getter(AccessLevel.PUBLIC)
+        @Setter(AccessLevel.PUBLIC)
         protected transient R remote;
     }
 }
