@@ -13,6 +13,7 @@ import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -45,7 +46,7 @@ public class SpringCloudDeployment extends AbstractAzureEntityManager<SpringClou
 
     @Override
     @AzureOperation(name = "springcloud|deployment.load", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
-    SpringAppDeployment loadRemote() {
+    protected SpringAppDeployment loadRemote() {
         try {
             return Optional.ofNullable(this.app.remote()).map(r -> r.deployments().getByName(this.name())).orElse(null);
         } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.

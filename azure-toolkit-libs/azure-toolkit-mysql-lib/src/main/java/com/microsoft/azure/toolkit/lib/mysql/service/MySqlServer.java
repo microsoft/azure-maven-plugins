@@ -10,6 +10,7 @@ import com.azure.resourcemanager.mysql.models.Database;
 import com.azure.resourcemanager.mysql.models.Server;
 import com.google.common.base.Preconditions;
 import com.microsoft.azure.toolkit.lib.common.database.JdbcUrl;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.entity.IAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -39,16 +40,17 @@ public class MySqlServer extends AbstractAzureEntityManager<MySqlServer, MySqlEn
     }
 
     @Override
-    void updateRemote() {
+    protected Server loadRemote() {
         try {
-            this.entity().remote = manager.servers().getById(this.entity.getId());
+            this.entity().setRemote(manager.servers().getById(this.entity.getId()));
         } catch (ManagementException ex) {
             if (HttpStatus.SC_NOT_FOUND == ex.getResponse().getStatusCode()) {
-                this.entity().remote = null;
+                this.entity().setRemote(null);
             } else {
                 throw ex;
             }
         }
+        return this.entity.getRemote();
     }
 
     public String getPublicIpForLocalMachine() {

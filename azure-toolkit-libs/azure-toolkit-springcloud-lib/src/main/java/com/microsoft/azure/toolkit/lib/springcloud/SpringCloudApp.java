@@ -14,6 +14,7 @@ import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheEvict;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureEntityManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -56,7 +57,7 @@ public class SpringCloudApp extends AbstractAzureEntityManager<SpringCloudApp, S
 
     @Override
     @AzureOperation(name = "springcloud|app.load", params = {"this.name()"}, type = AzureOperation.Type.SERVICE)
-    SpringApp loadRemote() {
+    protected SpringApp loadRemote() {
         try {
             return Optional.ofNullable(this.cluster.remote()).map(r->r.apps().getByName(this.name())).orElse(null);
         } catch (ManagementException e) { // if cluster with specified resourceGroup/name removed.
