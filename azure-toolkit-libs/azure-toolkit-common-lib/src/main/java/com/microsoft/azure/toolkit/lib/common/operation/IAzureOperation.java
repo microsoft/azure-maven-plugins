@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public interface IAzureOperation extends DataStore<IAzureOperation.IContext> {
+public interface IAzureOperation extends DataStore {
     String UNKNOWN_NAME = "<unknown>.<unknown>";
 
     @Nonnull
