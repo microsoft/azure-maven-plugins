@@ -9,7 +9,6 @@ package com.microsoft.azure.toolkit.lib.storage.service;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
-import com.azure.resourcemanager.storage.models.Kind;
 import com.azure.resourcemanager.storage.models.Reason;
 import com.azure.resourcemanager.storage.models.SkuName;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
@@ -21,14 +20,13 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.ICommittable;
 import com.microsoft.azure.toolkit.lib.storage.StorageManagerFactory;
-import com.microsoft.azure.toolkit.lib.storage.model.KindEnum;
-import com.microsoft.azure.toolkit.lib.storage.model.PerformanceEnum;
-import com.microsoft.azure.toolkit.lib.storage.model.RedundancyEnum;
+import com.microsoft.azure.toolkit.lib.storage.model.Kind;
+import com.microsoft.azure.toolkit.lib.storage.model.Performance;
+import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,11 +44,10 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
 
     public List<StorageAccount> list() {
         return getSubscriptions().stream()
-            .map(subscription -> StorageManagerFactory.create(subscription.getId()))
-            .flatMap(manager -> manager.storageAccounts().list().stream())
-            .collect(Collectors.toList()).stream()
-            .map(a -> new StorageAccount(a.manager(), a))
-            .collect(Collectors.toList());
+                .map(subscription -> StorageManagerFactory.create(subscription.getId()))
+                .flatMap(manager -> manager.storageAccounts().list().stream())
+                .map(account -> new StorageAccount(account.manager(), account))
+                .collect(Collectors.toList());
     }
 
     public StorageAccount get(@Nonnull String id) {
@@ -72,17 +69,18 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
                 Optional.ofNullable(result.reason()).map(Reason::toString).orElse(null), result.message());
     }
 
-    public List<KindEnum> listSupportedKinds() {
-        return Arrays.stream(KindEnum.values()).collect(Collectors.toList());
+    public List<Performance> listSupportedPerformances() {
+        return Performance.values();
     }
 
-    public List<PerformanceEnum> listSupportedPerformances() {
-        return Arrays.stream(PerformanceEnum.values()).collect(Collectors.toList());
+    public List<Kind> listSupportedKinds(@Nonnull Performance performance) {
+        return Kind.values().stream().filter(k -> Objects.equals(k.getPerformance(), performance)).collect(Collectors.toList());
     }
 
-    public List<RedundancyEnum> listSupportedReplicationsByPerformance(@Nonnull PerformanceEnum performance) {
-        return Arrays.stream(RedundancyEnum.values())
+    public List<Redundancy> listSupportedRedundanciesByPerformance(@Nonnull Performance performance, @Nullable Kind kind) {
+        return Redundancy.values().stream()
                 .filter(r -> Objects.equals(r.getPerformance(), performance))
+                .filter(r -> Objects.equals(Kind.BLOCK_BLOB_STORAGE, kind) && !Objects.equals(r, Redundancy.PREMIUM_ZRS))
                 .collect(Collectors.toList());
     }
 
@@ -106,17 +104,15 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
                     .define(config.getName())
                     .withRegion(config.getRegion().getName())
                     .withExistingResourceGroup(config.getResourceGroupName())
-                    .withSku(StorageAccountSkuType.fromSkuName(SkuName.fromString(config.getReplication())));
-            if (Kind.STORAGE.toString().equals(config.getKind())) {
-                withCreate = withCreate.withGeneralPurposeAccountKind();
-            } else if (Kind.STORAGE_V2.toString().equals(config.getKind())) {
-                withCreate = withCreate.withGeneralPurposeAccountKindV2();
-            } else if (Kind.BLOB_STORAGE.toString().equals(config.getKind())) {
+                    .withSku(StorageAccountSkuType.fromSkuName(SkuName.fromString(config.getRedundancy().getName())));
+            if (Objects.equals(Kind.BLOB_STORAGE, config.getKind())) {
                 withCreate = withCreate.withBlobStorageAccountKind();
-            } else if (Kind.FILE_STORAGE.toString().equals(config.getKind())) {
+            } else if (Objects.equals(Kind.FILE_STORAGE, config.getKind())) {
                 withCreate = withCreate.withFileStorageAccountKind();
-            } else {
+            } else if (Objects.equals(Kind.BLOCK_BLOB_STORAGE, config.getKind())) {
                 withCreate = withCreate.withBlockBlobStorageAccountKind();
+            } else {
+                withCreate = withCreate.withGeneralPurposeAccountKindV2();
             }
             com.azure.resourcemanager.storage.models.StorageAccount account = withCreate.create();
             return new StorageAccount(account.manager(), account);
