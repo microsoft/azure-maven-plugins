@@ -25,9 +25,9 @@ public class StorageAccountConfig implements IStorageAccountEntity {
     private Subscription subscription;
     private Region region;
 
-    private String performance;
-    private String kind;
-    private String replication;
+    private Performance performance;
+    private Kind kind;
+    private Redundancy redundancy;
 
     @Override
     public String getSubscriptionId() {

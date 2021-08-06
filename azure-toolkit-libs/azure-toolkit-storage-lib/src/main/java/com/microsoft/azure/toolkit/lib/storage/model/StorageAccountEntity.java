@@ -15,8 +15,8 @@ import java.util.Optional;
 
 public class StorageAccountEntity extends AbstractAzureEntityManager.RemoteAwareResourceEntity<StorageAccount> implements IStorageAccountEntity {
 
-    private @Nonnull
-    ResourceId resourceId;
+    @Nonnull
+    private final ResourceId resourceId;
 
     public StorageAccountEntity(StorageAccount server) {
         this.resourceId = ResourceId.fromString(server.id());
@@ -46,21 +46,21 @@ public class StorageAccountEntity extends AbstractAzureEntityManager.RemoteAware
     }
 
     @Override
-    public String getPerformance() {
+    public Performance getPerformance() {
         return remoteOptional().map(remote -> {
             String[] replicationArr = remote.skuType().name().toString().split("_");
-            return replicationArr.length == 2 ? replicationArr[0] : null;
+            return replicationArr.length == 2 ? Performance.fromName(replicationArr[0]) : null;
         }).orElse(null);
     }
 
     @Override
-    public String getReplication() {
-        return remoteOptional().map(remote -> remote.skuType().name().toString()).orElse(null);
+    public Redundancy getRedundancy() {
+        return remoteOptional().map(remote -> Redundancy.fromName(remote.skuType().name().toString())).orElse(null);
     }
 
     @Override
-    public String getKind() {
-        return remoteOptional().map(remote -> remote.kind().toString()).orElse(null);
+    public Kind getKind() {
+        return remoteOptional().map(remote -> Kind.fromName(remote.kind().toString())).orElse(null);
     }
 
     private Optional<StorageAccount> remoteOptional() {
