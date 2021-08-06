@@ -12,8 +12,8 @@ public interface IStorageAccountEntity extends IAzureResourceEntity {
 
     Region getRegion();
     String getResourceGroupName();
-    String getPerformance();
-    String getReplication();
-    String getKind();
+    Performance getPerformance();
+    Redundancy getRedundancy();
+    Kind getKind();
 
 }
