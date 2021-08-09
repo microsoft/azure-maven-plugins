@@ -39,7 +39,7 @@ Here is a typical configuration for Azure Web App Maven Plugin:
 <plugin> 
   <groupId>com.microsoft.azure</groupId>  
   <artifactId>azure-webapp-maven-plugin</artifactId>  
-  <version>1.14.0</version>  
+  <version>2.1.0</version>  
   <configuration>
     <subscriptionId>111111-11111-11111-1111111</subscriptionId>
     <resourceGroup>spring-boot-xxxxxxxxxx-rg</resourceGroup>
@@ -54,6 +54,7 @@ Here is a typical configuration for Azure Web App Maven Plugin:
     <deployment>
       <resources>
         <resource>
+          <type>jar</type>
           <directory>${project.basedir}/target</directory>
           <includes>
             <include>*.jar</include>

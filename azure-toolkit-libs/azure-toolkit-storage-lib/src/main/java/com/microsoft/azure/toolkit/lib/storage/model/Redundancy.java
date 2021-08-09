@@ -24,6 +24,7 @@ public class Redundancy implements ExpandableParameter {
     public static final Redundancy STANDARD_RAGZRS = new Redundancy(Performance.STANDARD, "Standard_RAGZRS", "Read Access Geo-Zone-Redundant");
     public static final Redundancy PREMIUM_LRS = new Redundancy(Performance.PREMIUM, "Premium_LRS", "Locally Redundant");
     public static final Redundancy PREMIUM_ZRS = new Redundancy(Performance.PREMIUM, "Premium_ZRS", "Zone-Redundant");
+    public static final Redundancy STANDARD_RAGRS = new Redundancy(Performance.STANDARD, "Standard_RAGRS", "Read Access Geo-Redundant");
 
     private static final List<Redundancy> values = new ImmutableList.Builder<Redundancy>().add(STANDARD_ZRS, STANDARD_LRS, STANDARD_GRS, STANDARD_RAGZRS, PREMIUM_LRS, PREMIUM_ZRS).build();
 
