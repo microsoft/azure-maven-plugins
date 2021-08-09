@@ -5,6 +5,8 @@
 
 package com.microsoft.azure.toolkit.lib.common.entity;
 
+import java.util.Objects;
+
 public interface Startable<T extends IAzureResourceEntity> extends IAzureResource<T> {
 
     void start();
@@ -14,14 +16,14 @@ public interface Startable<T extends IAzureResourceEntity> extends IAzureResourc
     void restart();
 
     default boolean isStartable() {
-        return true;
+        return Objects.equals(this.status(), Status.STOPPED);
     }
 
     default boolean isStoppable() {
-        return true;
+        return Objects.equals(this.status(), Status.RUNNING);
     }
 
     default boolean isRestartable() {
-        return true;
+        return Objects.equals(this.status(), Status.RUNNING);
     }
 }

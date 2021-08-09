@@ -12,6 +12,7 @@ import com.azure.resourcemanager.appplatform.models.DeploymentSettings;
 import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.azure.resourcemanager.appplatform.models.Sku;
 import com.azure.resourcemanager.appplatform.models.SpringAppDeployment;
+import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.entity.AbstractAzureResource;
 import com.microsoft.azure.toolkit.lib.common.event.AzureOperationEvent;
@@ -63,27 +64,30 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
     }
 
     @AzureOperation(name = "springcloud|deployment.start", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudDeployment start() {
+    public void start() {
         if (this.exists()) {
+            this.refreshStatus(Status.PENDING);
             Objects.requireNonNull(this.remote()).start();
+            this.refreshStatus();
         }
-        return this;
     }
 
     @AzureOperation(name = "springcloud|deployment.stop", params = {"this.name()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudDeployment stop() {
+    public void stop() {
         if (this.exists()) {
+            this.refreshStatus(Status.PENDING);
             Objects.requireNonNull(this.remote()).stop();
+            this.refreshStatus();
         }
-        return this;
     }
 
     @AzureOperation(name = "springcloud|deployment.restart", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
-    public SpringCloudDeployment restart() {
+    public void restart() {
         if (this.exists()) {
+            this.refreshStatus(Status.PENDING);
             Objects.requireNonNull(this.remote()).restart();
+            this.refreshStatus();
         }
-        return this;
     }
 
     @AzureOperation(name = "springcloud|deployment.wait_until_ready", params = {"this.entity().getName()", "this.app.name()"}, type = AzureOperation.Type.SERVICE)
@@ -91,6 +95,25 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
         AzureMessager.getMessager().info("Getting deployment status...");
         final SpringCloudDeployment deployment = Utils.pollUntil(this::refresh, Utils::isDeploymentDone, timeoutInSeconds);
         return Utils.isDeploymentDone(deployment);
+    }
+
+    @Override
+    protected String loadStatus() {
+        Optional.ofNullable(this.entity().getRemote()).ifPresent(Refreshable::refresh);
+        switch (this.entity().getStatus()) {
+            case RUNNING:
+                return Status.RUNNING;
+            case STOPPED:
+                return Status.STOPPED;
+            case FAILED:
+                return Status.ERROR;
+            case ALLOCATING:
+            case UPGRADING:
+            case COMPILING:
+                return Status.PENDING;
+            default:
+                return Status.UNKNOWN;
+        }
     }
 
     public Creator create() {
@@ -182,12 +205,14 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
             if (Objects.isNull(settings) || settings.isEmpty()) {
                 return this.deployment;
             }
+            this.deployment.refreshStatus(Status.PENDING);
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start scaling deployment({0})...", this.deployment.name()));
             final SpringAppDeploymentImpl modifier = ((SpringAppDeploymentImpl) Objects.requireNonNull(this.deployment.remote()).update());
             modifier.withCpu(settings.getCpu()).withMemory(settings.getMemoryInGB()).withInstance(settings.getCapacity());
             this.deployment.entity.setRemote(modifier.apply());
             messager.success(AzureString.format("Deployment({0}) is successfully scaled.", this.deployment.name()));
+            this.deployment.app.refreshChildren();
             return this.deployment;
         }
 
@@ -210,9 +235,11 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
             if (this.skippable) {
                 messager.info(AzureString.format("Skip updating deployment({0}) since its properties is not changed.", this.deployment.name()));
             } else {
+                this.deployment.refreshStatus(Status.PENDING);
                 messager.info(AzureString.format("Start updating deployment({0})...", this.deployment.name()));
                 this.deployment.refresh(this.modifier.apply());
                 messager.success(AzureString.format("Deployment({0}) is successfully updated", this.deployment.name()));
+                this.deployment.refreshStatus();
             }
             return this.scale(this.newScaleSettings);
         }
@@ -226,11 +253,14 @@ public class SpringCloudDeployment extends AbstractAzureResource<SpringCloudDepl
 
         @AzureOperation(name = "springcloud|deployment.create", params = {"this.deployment.name()", "this.deployment.app.name()"}, type = AzureOperation.Type.SERVICE)
         public SpringCloudDeployment commit() {
+            this.deployment.refreshStatus(Status.PENDING);
             final IAzureMessager messager = AzureMessager.getMessager();
             messager.info(AzureString.format("Start creating deployment({0})...", this.deployment.name()));
             this.deployment.refresh(this.modifier.create());
             messager.success(AzureString.format("Deployment({0}) is successfully created", this.deployment.name()));
-            return this.scale(this.newScaleSettings);
+            final SpringCloudDeployment deployment = this.scale(this.newScaleSettings);
+            this.deployment.app.refreshChildren();
+            return deployment;
         }
     }
 }
