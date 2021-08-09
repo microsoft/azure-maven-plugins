@@ -16,6 +16,11 @@ import java.util.Map;
 
 public class AzureEnvironmentUtils {
     private static final Map<AzureEnvironment, String[]> AZURE_CLOUD_ALIAS_MAP = new HashMap<>();
+    private static final String CHINA_PORTAL = "https://portal.azure.cn";
+    private static final String GLOBAL_PORTAL = "https://ms.portal.azure.com";
+
+    private static final String CHINA_SCM_SUFFIX = ".scm.chinacloudsites.cn";
+    private static final String GLOBAL_SCM_SUFFIX = ".scm.azurewebsites.net";
 
     static {
         // the first alias is the cloud name in azure cli
@@ -67,6 +72,20 @@ public class AzureEnvironmentUtils {
         return AZURE_CLOUD_ALIAS_MAP.entrySet().stream().filter(entry -> Utils.containsIgnoreCase(Arrays.asList(entry.getValue()), targetEnvironment))
             .map(Map.Entry::getKey)
             .findFirst().orElse(null);
+    }
+
+    public static String getPortalUrl(AzureEnvironment env) {
+        if (AzureEnvironment.AZURE.equals(env)) {
+            return GLOBAL_PORTAL;
+        } else if (AzureEnvironment.AZURE_CHINA.equals(env)) {
+            return CHINA_PORTAL;
+        } else if (AzureEnvironment.AZURE_GERMANY.equals(env)) {
+            return com.microsoft.azure.AzureEnvironment.AZURE_GERMANY.portal();
+        } else if (AzureEnvironment.AZURE_US_GOVERNMENT.equals(env)) {
+            return com.microsoft.azure.AzureEnvironment.AZURE_US_GOVERNMENT.portal();
+        } else {
+            return env.getPortal();
+        }
     }
 
     private static void putAliasMap(AzureEnvironment env, String... aliases) {
