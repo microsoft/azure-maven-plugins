@@ -77,10 +77,10 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
         return Kind.values().stream().filter(k -> Objects.equals(k.getPerformance(), performance)).collect(Collectors.toList());
     }
 
-    public List<Redundancy> listSupportedRedundanciesByPerformance(@Nonnull Performance performance, @Nullable Kind kind) {
+    public List<Redundancy> listSupportedRedundancies(@Nonnull Performance performance, @Nullable Kind kind) {
         return Redundancy.values().stream()
                 .filter(r -> Objects.equals(r.getPerformance(), performance))
-                .filter(r -> Objects.equals(Kind.BLOCK_BLOB_STORAGE, kind) && !Objects.equals(r, Redundancy.PREMIUM_ZRS))
+                .filter(r -> !(Objects.equals(Kind.PAGE_BLOB_STORAGE, kind) && Objects.equals(r, Redundancy.PREMIUM_ZRS)))
                 .collect(Collectors.toList());
     }
 
@@ -105,9 +105,7 @@ public class AzureStorageAccount extends SubscriptionScoped<AzureStorageAccount>
                     .withRegion(config.getRegion().getName())
                     .withExistingResourceGroup(config.getResourceGroupName())
                     .withSku(StorageAccountSkuType.fromSkuName(SkuName.fromString(config.getRedundancy().getName())));
-            if (Objects.equals(Kind.BLOB_STORAGE, config.getKind())) {
-                withCreate = withCreate.withBlobStorageAccountKind();
-            } else if (Objects.equals(Kind.FILE_STORAGE, config.getKind())) {
+            if (Objects.equals(Kind.FILE_STORAGE, config.getKind())) {
                 withCreate = withCreate.withFileStorageAccountKind();
             } else if (Objects.equals(Kind.BLOCK_BLOB_STORAGE, config.getKind())) {
                 withCreate = withCreate.withBlockBlobStorageAccountKind();
