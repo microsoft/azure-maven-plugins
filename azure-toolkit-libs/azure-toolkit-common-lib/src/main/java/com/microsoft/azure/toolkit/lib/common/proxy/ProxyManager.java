@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.net.Authenticator;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
@@ -33,7 +32,7 @@ public class ProxyManager {
     private static final boolean isSystemProxyUnset = StringUtils.isBlank(System.getProperty(PROPERTY_USE_SYSTEM_PROXY));
 
     public boolean isProxyEnabled() {
-        return false;
+        return StringUtils.isNotBlank(Azure.az().config().getProxySource());
     }
 
     private static class ProxyManagerHolder {
@@ -69,11 +68,12 @@ public class ProxyManager {
             }
         }
         if (Objects.nonNull(config.getHttpProxy())) {
-            final InetAddress address = config.getHttpProxy().getAddress();
+            final String proxyHost = config.getHttpProxy().getAddress().getHostAddress();
+            final int proxyPort = config.getHttpProxy().getPort();
             AzureMessager.getMessager().info(AzureString.format("Use %s proxy: %s", StringUtils.defaultString(source, ""),
-                address.getHostAddress() + ":" + config.getHttpProxy().getPort()));
+                proxyHost + ":" + proxyPort));
             if (!StringUtils.equals(source, "system")) {
-                final Proxy proxy = createHttpProxy(address.getHostAddress(), config.getHttpProxy().getPort());
+                final Proxy proxy = createHttpProxy(proxyHost, proxyPort);
                 ProxySelector.setDefault(new ProxySelector() {
                     @Override
                     public List<Proxy> select(URI uri) {
@@ -92,7 +92,7 @@ public class ProxyManager {
                             @Override
                             public PasswordAuthentication getPasswordAuthentication() {
                                 if (getRequestorType() == RequestorType.PROXY) {
-                                    if (getRequestingHost().equalsIgnoreCase(address.getHostAddress())) {
+                                    if (getRequestingHost().equalsIgnoreCase(proxyHost)) {
                                         return new PasswordAuthentication(config.getProxyUsername(), config.getProxyPassword().toCharArray());
                                     }
                                 }
@@ -107,8 +107,8 @@ public class ProxyManager {
             if (StringUtils.isNoneBlank(config.getProxyUsername(), config.getProxyPassword())) {
                 proxyAuthPrefix = config.getProxyUsername() + ":" + config.getProxyPassword() + "@";
             }
-            final String proxyUrl = String.format("http://%s%s:%s", proxyAuthPrefix,
-                config.getHttpProxy().getHostString(), config.getHttpProxy().getPort());
+            final String proxyUrl = String.format("http://%s%s:%d", proxyAuthPrefix,
+                proxyHost, proxyPort);
             Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTP_PROXY, proxyUrl);
             Configuration.getGlobalConfiguration().put(Configuration.PROPERTY_HTTPS_PROXY, proxyUrl);
         }

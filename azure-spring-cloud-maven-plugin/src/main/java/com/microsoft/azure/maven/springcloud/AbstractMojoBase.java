@@ -70,7 +70,7 @@ public abstract class AbstractMojoBase extends AbstractAzureMojo {
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_WITHIN_PARENT_POM, String.valueOf(project.getPackaging().equalsIgnoreCase("pom")));
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_JAVA_VERSION, javaVersion);
 
-        telemetryProxy.addDefaultProperty(PROXY, String.valueOf(ProxyManager.getInstance().getProxy() != null));
+        telemetryProxy.addDefaultProperty(PROXY, String.valueOf(ProxyManager.getInstance().isProxyEnabled()));
 
         // Todo update deploy mojo telemetries with real value
         telemetryProxy.addDefaultProperty(TELEMETRY_KEY_AUTH_METHOD, TELEMETRY_VALUE_AUTH_POM_CONFIGURATION);
